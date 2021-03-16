@@ -1,0 +1,1243 @@
+
+
+/* WP Layout
+--------------------------------------*/
+
+#wpbody-content {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 0px);
+
+  padding-bottom: 0;
+  z-index: 1;
+  position: relative;
+}
+.karma-fields-table {
+  flex-grow: 1;
+  display: flex;
+  margin-right: 20px;
+}
+
+
+
+/* Fields
+--------------------------------------*/
+
+.karma-fields {
+  margin-top: 10px;
+}
+
+
+
+/* Tables
+--------------------------------------*/
+
+.karma-field-table {
+  margin-right: 0;
+  display: flex;
+  flex-direction: column;
+  color: #535c63;
+  width: 100%;
+}
+
+.karma-field-table a {
+  color: #535c63;
+}
+
+
+/* Tables Header
+--------------------------------------*/
+.karma-field-table .table-header {
+  /* margin: 0 -5px; */
+}
+/* .karma-field-table.grid .filter-node-children {
+  display: flex;
+  margin: 0 -5px;
+} */
+/* .karma-field-table .filter-node {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.karma-field-table .filter-item {
+  margin: 0 5px;
+} */
+
+
+
+/* Grid Filter
+--------------------------------------*/
+
+/* .karma-filter-children {
+  display: flex;
+  margin: 0 -5px;
+}
+.karma-filter {
+  margin: 0 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+} */
+
+
+
+/* Grid Filter Status
+--------------------------------------*/
+
+.karma-field-table .filter-node-poststatus {
+  width: 100%;
+}
+.karma-field-table .filter-node-poststatus ul {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  /* margin: 0 0; */
+  align-items: flex-end;
+  min-height: 30px;
+}
+.karma-field-table .filter-node-poststatus ul li {
+  margin: 10px 0;
+  padding: 0;
+
+}
+.karma-field-table .filter-node-poststatus ul li a {
+  display: block;
+  padding: 5px 20px;
+  border-color: #aab3bb;
+  border-style: solid;
+  border-width: 0px 0px 1px 0;
+  /* margin: 0 0; */
+  color: #525a61;
+  cursor: pointer;
+
+}
+.karma-field-table .filter-node-poststatus ul li a.active {
+  border-width: 1px 1px 0;
+  /* padding: 5px 20px !important; */
+    color: #10212f;
+}
+.karma-field-table .filter-node-poststatus ul li a:hover {
+  /* background-color: #0073aa;
+  border-color: #0073aa;
+  color: white; */
+  /* padding: 6px 19px 4px 21px; */
+  color: #10212f;
+}
+/* .karma-field-table.grid ul.karma-filter.post-status li.placeholder {
+  flex-grow: 1;
+  border-bottom: 1px solid #aab3bb;
+  text-align: right;
+  padding-bottom: 9px;
+} */
+.karma-field-table .filter-node-poststatus ul::after {
+  content: "";
+  flex-grow: 1;
+  border-bottom: 1px solid #aab3bb;
+  margin: 10px 0;
+}
+.karma-field-table .filter-node-poststatus ul li .filter-count {
+  min-width: 0;
+  color: inherit;
+  margin-left: 0.4em;
+  font-size: 0.75em;
+  /* text-align: right; */
+  vertical-align: baseline;
+}
+.karma-field-table .filter-node-poststatus ul li .filter-count::before {
+  content: "(";
+}
+.karma-field-table .filter-node-poststatus ul li .filter-count::after {
+  content: ")";
+}
+
+
+
+/* Grid Filter Dropdown
+--------------------------------------*/
+
+.table-header label {
+  font-size: 0.875em;
+  font-weight: bolder;
+  /* margin-top: 1em; */
+  margin-bottom: 0;
+  position: relative;
+  display: block;
+}
+.table-header select.dropdown {
+  min-width: 175px;
+  border-radius: 0;
+  background-color: transparent;
+  margin: 0;
+  /* background-color: #edf2f5; */
+}
+
+
+
+/* Grid Search
+--------------------------------------*/
+
+.karma-fields .table-header .search-form {
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+}
+.karma-fields .table-header input.search {
+  border-radius: 0;
+  background-color: #f1f1f1;
+  /* background-color: #edf2f5; */
+  font-size: inherit;
+  width: 100%;
+  margin: 0;
+  position: relative;
+  /* z-index: 3; */
+}
+.karma-fields .table-header input.search:focus {
+  background-color: white;
+}
+.karma-fields .table-header .search-form ul {
+  background-color: #f1f1f1;
+  margin: 0;
+  text-align: left;
+  position: absolute;
+  padding: 0;
+  border: 1px solid #7e8993;
+  border-top: none;
+  box-sizing: border-box;
+  box-shadow: 0 0 10px #0000002e;
+  z-index: 2;
+}
+.karma-fields .table-header .search-form ul li {
+  padding: 5px;
+  cursor: default;
+  margin: 0;
+}
+.karma-fields .table-header .search-form ul li:hover,
+.karma-fields .table-header .search-form ul li.active {
+  background-color: white;
+  color: black;
+}
+
+/* Table
+--------------------------------------*/
+
+.karma-fields .table-body {
+  padding-top: 1em;
+  flex-grow: 1;
+  width: 100%;
+  overflow: auto;
+  margin-bottom: 70px;
+}
+.karma-fields table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-style: solid;
+  border-color: #7e8993;
+  border-width: 0;
+  border-left-width: 1px;
+  border-top-width: 1px;
+
+
+  table-layout: fixed;
+  width: 100%;
+}
+
+
+
+.karma-fields table thead {
+  background-color: #d4d8db;
+}
+.karma-fields table th,
+.karma-fields table td {
+  border-style: solid;
+  border-color: #7e8993;
+
+
+  border-width: 0;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  text-align: left;
+  padding: 1px;
+  /* line-height: 3em; */
+}
+.karma-fields table th.main,
+.karma-fields table td.main {
+  width: 100%;
+}
+
+
+.karma-fields table td.selected {
+  background-color: white; /* #efebea; */
+}
+
+/* .karma-fields table td.selected-left {
+  padding-left: 0;
+  border-left-width: 1px;
+}
+.karma-fields table td.selected-right {
+  padding-right: 0;
+  border-right-width: 2px;
+}
+.karma-fields table td.selected-top {
+  padding-top: 0;
+  border-top-width: 1px;
+}
+.karma-fields table td.selected-bottom {
+  padding-bottom: 0;
+  border-bottom-width: 2px;
+} */
+
+
+
+
+/* Table Header
+--------------------------------------*/
+
+.karma-fields table th {
+  user-select: none;
+}
+.karma-fields table th.table-header-index {
+  padding: 0 5px;
+}
+.karma-fields table th .header-cell {
+  display: flex;
+  justify-content: space-between;
+}
+.karma-fields table th .header-cell a {
+  display: flex;
+  padding: 8px 5px;
+  color: #535c63;
+}
+.karma-fields table th .header-cell a.header-cell-title {
+  padding-right: 0;
+}
+.karma-fields table th a.header-cell-order {
+  width: 20px;
+  align-items: center;
+  cursor: pointer;
+}
+.karma-fields table th .header-cell-order .order-icon {
+  width: 20px;
+  height: 20px;
+
+  background-image: url(../dashicons/sort.svg);
+  background-repeat: no-repeat;
+  mix-blend-mode: overlay;
+}
+.karma-fields table th .header-cell-order:hover .order-icon {
+  mix-blend-mode: normal;
+}
+.karma-fields table th .header-cell-order.asc .order-icon {
+  background-image: url(../dashicons/arrow-up.svg);
+  mix-blend-mode: normal;
+}
+.karma-fields table th .header-cell-order.desc .order-icon {
+  background-image: url(../dashicons/arrow-down.svg);
+  mix-blend-mode: normal;
+}
+
+.karma-fields table.grid tr td:first-child,
+.karma-fields table.grid tr th:first-child {
+  text-align:center;
+}
+
+/* Grid
+--------------------------------------*/
+
+.karma-fields table.grid td {
+  position: relative;
+  box-sizing: border-box;
+}
+.karma-fields table.grid td .karma-field {
+  display: flex;
+}
+.karma-fields table.grid td .karma-field .karma-field-content {
+  display: flex;
+  flex-grow: 1;
+}
+.karma-fields table.grid tr th {
+  background-color: #d4d8db;
+}
+
+
+.karma-fields table.grid td {
+  /* background-image: url(http://localhost:8888/arsenic/wp-content/plugins/karma-editor/plugins/karma-fields/dashicons/admin-users.svg);
+  background-repeat: no-repeat;
+  background-position: top 5px right 5px;
+  background-size: 0;
+  transition: background-size 300ms ease-in-out; */
+  /* animation: animatedBackgroundOut 3s linear 1 backwards; */
+}
+.karma-fields table.grid td.test {
+  /* background-size: 15px; */
+}
+
+
+/* @keyframes animatedBackgroundOut {
+  from {
+    background-size: 35px;
+  }
+  to {
+    background-size: 0;
+  }
+}
+@keyframes animatedBackgroundIn {
+  from {
+    background-size: 35px;
+  }
+  to {
+    background-size: 0;
+  }
+} */
+
+
+/* Grid Text Input
+--------------------------------------*/
+
+.karma-fields table.grid td input.text {
+  margin: 0;
+  padding: 8px 5px;
+  border: 0;
+  width: 100%;
+  box-sizing: border-box;
+
+  outline: none;
+
+  line-height: inherit;
+  border-radius: 0;
+
+  /* background-color: #f1f1f1; */
+  color: #535c63;
+
+}
+.karma-fields table.grid td input.text:focus {
+  box-shadow: none;
+}
+
+
+.karma-fields table td input,
+.karma-fields table td textarea,
+.karma-fields table td button {
+  background-color: transparent; /* #efebea; */
+}
+
+.karma-fields table td textarea {
+  padding: 5px 5px;
+}
+
+
+/* .karma-fields table.grid td.modified input.text {
+  background-image: url(../dashicons/pets.svg);
+  background-position: center right;
+  background-repeat: no-repeat;
+  background-blend-mode: overlay;
+} */
+
+
+/* .karma-fields table.grid td.modified {
+
+  background-color: gray;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.5) 35px, rgba(255,255,255,.5) 70px);
+} */
+
+/* .karma-fields table.grid td.modified::after {
+  content: "";
+  position: absolute;
+  top:0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background-image: url(../dashicons/marker.svg);
+  background-position: center;
+  background-repeat: no-repeat;
+
+  opacity: 0.25;
+} */
+
+
+.karma-fields table.grid td.modified input {
+  color: black;
+}
+
+
+
+/* Grid Textarea
+--------------------------------------*/
+
+.karma-fields table.grid td textarea {
+  resize: none;
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  margin: 0;
+  color: #525a61;
+}
+.karma-fields table.grid td textarea:focus {
+  box-shadow: none;
+}
+.karma-fields table.grid td.modified textarea {
+  color: black;
+}
+
+
+
+
+/* Grid Index
+--------------------------------------*/
+
+.karma-fields table.grid .row-index {
+  padding: 8px 5px;
+  user-select: none;
+}
+
+
+
+/* Grid Dropdown
+--------------------------------------*/
+
+.karma-fields table.grid select {
+  margin: 0;
+  border: none;
+  width: 100%;
+  background-color: transparent;
+  padding-left: 5px;
+  padding-right: 21px;
+}
+.karma-fields table.grid select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Grid Cell Button
+--------------------------------------*/
+
+.karma-fields table.grid td button {
+  /* display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 1px;
+  box-sizing: border-box;
+  border: 0;
+  height: 100%;
+  width: 100%; */
+
+  border: none;
+  width: 20px;
+  height: 20px;
+  padding: 10px;
+  box-sizing: content-box;
+  background-color: transparent;
+  cursor: pointer;
+
+
+  /* border: 0 solid #7d8993; */
+}
+.karma-fields table.grid td button:focus {
+  box-shadow: none;
+  outline: none;
+}
+.karma-fields table.grid td button svg {
+  display: block;
+  /* height: 30px;
+  width: 30px; */
+}
+
+
+/* .karma-fields table.grid td {
+  position: relative;
+} */
+
+/* .karma-fields table.grid td .on-off-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+} */
+/* .karma-fields table.grid td.selected .on-off-container button {
+  background-color: white;
+}
+.karma-fields table.grid td.selected-left .on-off-container button {
+  padding-left: 0;
+  border-left-width: 1px;
+}
+.karma-fields table.grid td.selected-right .on-off-container button {
+  padding-right: 0;
+  border-right-width: 1px;
+}
+.karma-fields table.grid td.selected-top .on-off-container button {
+  padding-top: 0;
+  border-top-width: 1px;
+}
+.karma-fields table.grid td.selected-bottom .on-off-container button {
+  padding-bottom: 0;
+  border-bottom-width: 1px;
+} */
+
+/* .karma-fields .icon {
+  width: 25px;
+  height: 25px;
+}
+.karma-fields .on-off .icon {
+  background-repeat: no-repeat;
+}
+.karma-fields .on-off .icon.off {
+  background-image: url(../dashicons/no-alt.svg);
+}
+.karma-fields .on-off .icon.on {
+  background-image: url(../dashicons/yes.svg);
+} */
+
+
+
+
+.on-off svg path {
+  fill: #535c63;
+}
+td.modified .on-off svg path {
+  fill: black;
+}
+
+
+/* Field controls
+--------------------------------------*/
+
+.field-controls {
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 32px;
+  z-index: 2;
+  margin-bottom: -1px;
+}
+.field-controls-group {
+  display: inline-block;
+  background-color: white;
+  border: 1px solid #7e8993;
+  border-right-width: 0;
+}
+.field-controls-group:last-child {
+  border-right-width: 1px;
+}
+.field-controls button {
+  padding: 0;
+  border: none;
+  width: 20px;
+  height: 20px;
+  padding: 10px;
+  box-sizing: content-box;
+  background-color: transparent;
+  cursor: pointer;
+}
+.field-controls button:focus {
+  outline-style: dotted;
+  outline-color: #7d8993;
+  outline-width: 2px;
+  outline-offset: -1px;
+}
+.field-controls button:hover {
+  outline: 2px solid #7d8993;
+  outline-offset: -1px;
+}
+.field-controls button:disabled {
+  outline: none;
+  opacity: 0.2;
+  cursor: default;
+}
+
+.field-controls button:hover svg {
+}
+
+
+/* Field controls in Grid (for files)
+--------------------------------------*/
+
+/* .grid .field-controls {
+  position: absolute;
+  top: auto;
+  bottom: 1px;
+  right: 1px;
+}
+.grid .field-controls button:disabled {
+  display: none;
+} */
+
+
+
+
+/* Table Footer
+--------------------------------------*/
+
+.karma-fields .table-footer {
+  position: sticky;
+  /* width: 100%; */
+  bottom: 0;
+  background-color: #24282d;
+  color: #f3f5f6;
+  /* min-height: 50px;
+  display: flex;
+  justify-content: space-between; */
+  margin: 20px -20px 0;
+  /* padding: 0 20px; */
+  user-select: none;
+}
+/* .karma-fields .table-footer {
+  position: fixed;
+  left: 160px;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background-color: #24282d;
+  margin-top: 2em;
+  min-height: 50px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 15px;
+  box-sizing: border-box;
+  user-select: none;
+  color: #f3f5f6;
+} */
+.karma-fields .table-footer .footer-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 15px;
+  min-height: 50px;
+}
+
+
+
+
+/* Table Footer Group
+--------------------------------------*/
+
+.karma-fields .table-footer .footer-group {
+  display: flex;
+  align-items: center;
+  /* margin: 0 5px; */
+}
+.karma-fields .table-footer .footer-item {
+  margin: 0 5px;
+}
+
+
+
+
+/* Table Footer Button
+--------------------------------------*/
+
+.karma-fields .button {
+  color: #f1f1f1;
+  /* border-color: #f3f5f6; */
+  border: none;
+  background-color: #535c63;;
+  box-shadow: none;
+  text-shadow: none;
+  border-width: 1px;
+  border-radius: 3px;
+  font-weight: bold;
+  font-size: 14px;
+  position: relative;
+  /* box-shadow: inset 1px 3px 8px #f1f1f126; */
+}
+.karma-fields .table-footer .button:hover,
+.karma-fields .table-footer .button:focus,
+.karma-fields .table-footer .button.active {
+  box-shadow: none;
+  outline: none;
+  border: none;
+}
+.karma-fields .table-footer .button:focus {
+  color: #f1f1f1;
+  background-color: #535c63;
+}
+.karma-fields .table-footer .button:hover,
+.karma-fields .table-footer .button.active {
+  color: #535c63;
+  background-color: #f1f1f1;
+}
+
+
+.karma-fields .table-footer .button[disabled] {
+  color: #535c63 !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.karma-fields .table-footer .karma-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* width: 2.5em;
+  height: 2.5em;
+  padding: 1px; */
+
+
+  /* box-sizing: content-box; */
+}
+
+
+.karma-fields .table-footer .karma-icon svg {
+  width: 21px;
+  height: 21px;
+}
+.karma-fields .table-footer .karma-icon svg path {
+  fill: #f1f1f1;
+}
+
+.karma-fields .table-footer button:focus .karma-icon svg path {
+  fill: #f1f1f1;
+}
+.karma-fields .table-footer button:hover .karma-icon svg path {
+  fill: #535c63;
+}
+.karma-fields .table-footer button.primary:enabled .karma-icon svg path {
+  fill: #535c63;
+}
+.karma-fields .table-footer button.active .karma-icon svg path {
+  fill: #535c63;
+}
+.karma-fields .table-footer button.primary:enabled:hover .karma-icon svg path {
+  fill: #f1f1f1;
+}
+
+.karma-fields .table-footer button:not(:hover) .karma-field-spinner {
+  border-color: #f1f1f1 transparent #f1f1f1 #f1f1f1;
+}
+
+
+
+.karma-fields .table-footer button[disabled] svg path {
+  fill: #5f6469;
+}
+.karma-fields .table-footer button[disabled]:hover svg path {
+  fill: #5f6469;
+}
+
+.karma-fields .table-footer button.primary {
+  /* background-color: #0173aa;
+  border-color: #f3f5f6;
+  color: #f3f5f6; */
+  /* color: #535c63; */
+  color: white;
+  /* background-color: #f3f5f6; */
+  background-color: #0173aa
+
+}
+.karma-fields .table-footer button.primary:hover {
+  /* background-color: #0173aa;
+  border-color: #f3f5f6;
+  color: #f3f5f6; */
+  /* color: #f3f5f6;
+  background-color: #25282d; */
+  background-color: #ececec;
+
+}
+
+/* Table Footer Delete Button
+--------------------------------------*/
+
+.karma-fields .table-footer .table-control button.delete {
+  color: #dc3232;
+  border-color: #dc3232;
+  background-color: #f3f5f6;
+}
+.karma-fields .table-footer .table-control button.delete:hover {
+  /* color: #dc3232;
+  border-color: #dc3232; */
+
+  color: #f3f5f6;
+  background-color: #25282d;
+  border-color: #f3f5f6;
+}
+
+
+
+/* Table Footer Options
+--------------------------------------*/
+
+.table-options-container {
+  /* position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0px; */
+  color: #f1f1f1;
+  background-color: #25282d;
+  text-align: left;
+  border-bottom: 1px solid #7d8993;
+  /* box-shadow: -5px -5px 16px 0px #00000020; */
+  display: flex;
+  padding: 0 10px;
+}
+/* .table-options-header {
+  justify-content: space-between;
+  border-bottom: 1px solid #7e8993;
+  padding: 0 0 0 10px;
+  background-color: #25282d;
+}
+.table-options-header h4 {
+  margin: 0;
+} */
+.table-options-body {
+  padding: 5px 10px;
+  flex-grow: 1;
+}
+.table-options-footer {
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+}
+
+.table-options-container .item-number {
+  display: flex;
+  align-items: baseline;
+}
+.table-options-container .item-number input {
+  margin-left: 10px;
+}
+
+
+
+/* Table Footer Options Option Buttons Field
+--------------------------------------*/
+
+.option-buttons {
+  display: flex;
+  /* margin: 0 -5px; */
+  border: 1px solid #f3f5f6;
+  border-radius: 3px;
+}
+.option-buttons .option-button {
+  padding: 4px 8px;
+  color: #f3f5f6;
+  font-weight: bold;
+  cursor: pointer;
+
+  /* margin: 0 5px; */
+}
+.option-buttons .option-button.active {
+  background-color: #f3f5f6;
+  color: #25282d;
+}
+.option-buttons .option-button:not(:last-child) {
+  border-right: 1px solid #f3f5f6;
+}
+
+
+
+
+
+
+/* Table Spinner
+--------------------------------------*/
+
+.karma-field-spinner {
+  display: none;
+}
+.loading .karma-field-spinner {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;;
+  margin: 0 0.5em;
+  vertical-align: middle;
+  border-color: #535c63 transparent #535c63 #535c63;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 50%;
+  animation: spinner 750ms linear infinite;
+}
+
+
+@keyframes spinner {
+  100% {
+    transform: rotate(1turn);
+  }
+}
+
+
+
+/* Fields
+--------------------------------------*/
+
+.karma-field label {
+  font-weight: bold;
+  vertical-align: baseline;
+  margin: 3px 0;
+  display: block;
+}
+
+
+
+/* Text-input Field
+--------------------------------------*/
+
+.karma-fields input.text,
+.karma-fields textarea {
+  box-shadow: none;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+.karma-fields input.text:focus,
+.karma-fields textarea:focus {
+  outline-color: #7d8993;
+  outline-offset: -2px;
+}
+
+
+
+/* Textarea Field
+--------------------------------------*/
+
+.karma-fields textarea {
+  padding: 10px;
+  width: 100%;
+}
+
+
+
+
+
+/* File Field
+--------------------------------------*/
+
+.karma-field label {
+  font-weight: bold;
+  vertical-align: baseline;
+  margin: 3px 0;
+  display: block;
+}
+.karma-field .file-input-thumbs {
+  margin-top: 1px;
+  display: flex;
+  flex-wrap: wrap;
+}
+.karma-field-file,
+.karma-field-files {
+  display: inline-block;
+}
+
+
+/* File Field in Grid
+--------------------------------------*/
+
+.grid .karma-field-file,
+.grid .karma-field-files {
+  display: block;
+  /* margin: -1px; */
+}
+.grid .file-input-thumbs {
+  height: 80px;
+  pointer-events: none;
+  display: flex;
+}
+.grid .selected .file-input-thumbs {
+  pointer-events: auto;
+}
+.grid .karma-field-file img,
+.grid .karma-field-files img {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+
+
+
+/* Dropdown Field
+--------------------------------------*/
+
+.karma-field select:focus {
+  color: inherit;
+  border-color: inherit;
+  box-shadow: none;
+}
+
+
+
+/* Checkbox Field
+--------------------------------------*/
+
+.karma-field .checkbox-container label.description {
+  display: inline-block;
+
+}
+
+
+
+/* TinyMCE Field
+--------------------------------------*/
+
+.karma-field.tinymce .editor-content {
+  padding: 1px 10px;
+  box-sizing: border-box;
+  border: 1px solid #7d8993;
+
+  min-height: 150px;
+}
+.karma-field.tinymce .editor-content.mce-edit-focus {
+  outline: 2px solid #7d8993;
+  outline-offset: -2px;
+}
+
+
+
+/* Filterlink Field
+--------------------------------------*/
+
+.karma-fields .filterlink {
+  padding: 5px 10px;
+  font-weight: bold;
+  user-select: none;
+}
+.karma-fields .filterlink a.active {
+  text-decoration: underline;
+  cursor: pointer;
+  color: #0073aa;
+}
+.karma-fields .filterlink a.active:hover {
+  text-decoration: underline;
+  color: #0073aa;
+}
+
+/* Filterlink Field
+--------------------------------------*/
+
+.karma-fields .submit {
+  /* align-self: center;
+  padding: 0; */
+}
+
+
+
+
+
+/* Group
+--------------------------------------*/
+
+
+/* .karma-field-group-container.display-block>* {
+  margin-bottom: 1em;
+}
+.karma-field-group-container.display-block>*>label {
+  display: block;
+} */
+.karma-field-group.display-block>* {
+}
+.karma-field-group.display-block>*>label {
+  display: block;
+  margin-top: 10px;
+}
+
+
+/* Group Display Flex
+--------------------------------------*/
+
+/* .karma-field-group-container.display-flex {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin: 0 -5px -1em;
+}
+.karma-field-group-container.display-flex>* {
+  padding: 0 5px 1em;
+  width: 100%;
+  min-width: 480px;
+  box-sizing: border-box;
+} */
+
+.karma-field-group.display-flex {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin: 0 -5px -1em;
+}
+.karma-field-group.display-flex>* {
+  padding: 0 5px 1em;
+  /* width: 100%;
+  min-width: 480px; */
+  box-sizing: border-box;
+}
+
+
+
+/* Group Display Table
+--------------------------------------*/
+
+/* .karma-field-group-container.display-table {
+  display: table;
+}
+.karma-field-group-container.display-table>* {
+  display: table-row;
+}
+.karma-field-group-container.display-table>*>* {
+  display: table-cell;
+  padding: 0 5px;
+  margin-bottom: 0.5em;
+}
+.karma-field-group-container.display-table>*>label {
+  padding-left: 0;
+  margin: 0;
+  font-weight: bolder;
+  min-width: 150px;
+  vertical-align: baseline;
+} */
+.karma-field-group.display-table {
+  display: table;
+}
+.karma-field-group.display-table>* {
+  display: table-row;
+}
+.karma-field-group.display-table>*>* {
+  display: table-cell;
+  padding: 0 5px;
+  margin-bottom: 0.5em;
+}
+.karma-field-group.display-table>*>label,
+.karma-field-group.display-table>*>h3 {
+  padding-left: 0;
+  margin: 0;
+  font-weight: bolder;
+  min-width: 150px;
+  vertical-align: baseline;
+}
+
+
+/* Arsenic
+--------------------------------------*/
+
+.karma-fields .spectacle-details {
+  /* display: flex; */
+  /* padding: 1em 0 0; */
+  margin-top: 0.5em;
+}
+.karma-fields .spectacle-details-row {
+  display: flex;
+}
+.karma-fields .spectacle-details label {
+  margin: 0;
+  flex-basis: 180px;
+}
+.karma-fields .spectacle-details.disable label {
+  color: #adb6bd;
+  font-weight: normal;
+}
+.karma-fields .spectacle-details input {
+  width: 50px;
+  padding: 0 5px;
+  margin: 1px 5px;
+  border-radius: 0;
+  border: 1px solid #adb6bd;
+  background-color: white;
+  outline: none;
+  min-height: 0;
+  line-height: 1.25em;
+}
+.karma-fields .spectacle-details input:disabled {
+  background-color: #f1f1f1;
+}
+.karma-fields .spectacle-details input:read-only {
+  background-color: #f1f1f1;
+  color: #535c63;
+}
