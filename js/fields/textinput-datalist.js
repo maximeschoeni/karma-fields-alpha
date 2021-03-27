@@ -1,4 +1,4 @@
-KarmaFields.fields.textinput_datalist = function(field) {
+KarmaFieldsAlpha.fields.textinput_datalist = function(field) {
 	return {
 		class: "field-datalist-input",
 		update: function() {

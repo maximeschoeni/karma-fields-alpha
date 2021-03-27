@@ -1,9 +1,9 @@
 <?php
 /**
- * @package karma-editor
+ * @package karma-fields
  */
 /*
-Plugin Name: Karma Editor
+Plugin Name: Karma Fields Alpha
 Version: 1.0
 */
 

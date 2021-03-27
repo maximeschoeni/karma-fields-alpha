@@ -1,4 +1,4 @@
-KarmaFields.fields.array = function(field) {
+KarmaFieldsAlpha.fields.array = function(field) {
   let value;
   return {
     class: "karma-field-array",
@@ -81,8 +81,8 @@ KarmaFields.fields.array = function(field) {
                           },
                           kid: {
                             tag: "button",
-                            kid: KarmaFields.includes.icon({
-                              file: KarmaFields.icons_url+"/trash.svg"
+                            kid: KarmaFieldsAlpha.includes.icon({
+                              file: KarmaFieldsAlpha.icons_url+"/trash.svg"
                             }),
                             init: function() {
                               this.addEventListener("click", function(event) {
@@ -109,7 +109,7 @@ KarmaFields.fields.array = function(field) {
           children: [
             {
               tag: "button",
-              child: KarmaFields.includes.icon(KarmaFields.icons_url+"/insert.svg"),
+              child: KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/insert.svg"),
               init: function() {
                 this.element.addEventListener("click", function(event) {
                   event.preventDefault();

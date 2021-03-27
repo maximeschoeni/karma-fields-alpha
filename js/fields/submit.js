@@ -1,11 +1,14 @@
-KarmaFields.fields.submit = function(field) {
+KarmaFieldsAlpha.fields.submit = {};
+
+KarmaFieldsAlpha.fields.submit.build = function(field) {
 	return {
 		tag: "button",
-		class: "submit",
+		class: "karma-submit",
 		init: function(button) {
 			this.element.textContent = field.resource.title || "Submit";
 
-			this.element.addEventListener("click", function() {
+			this.element.addEventListener("click", function(event) {
+				event.preventDefault();
 				field.trigger("submit", field);
 			});
 

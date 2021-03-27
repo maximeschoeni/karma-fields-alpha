@@ -13,7 +13,7 @@
 		var input = document.getElementById("karma-fields-input-<?php echo $index; ?>");
 		var resource = <?php echo json_encode($args); ?>;
 		var id = <?php echo $id; ?>;
-		var history = KarmaFields.History.createInstance();
+		var history = KarmaFieldsAlpha.History.createInstance();
 
 		window.fieldHistory = history; // -> for debug
 
@@ -26,16 +26,16 @@
 			input.value = JSON.stringify(output);
 		};
 
-		var fieldNode = KarmaFields.build({
+		var fieldNode = KarmaFieldsAlpha.build({
 			children: fieldManager.build()
 		}, container);
 		container.addEventListener("focusin", function() {
-			KarmaFields.events.onUndo = function(event) {
+			KarmaFieldsAlpha.events.onUndo = function(event) {
 				history.undo();
 				fieldNode.render();
 				event.preventDefault();
 			}
-			KarmaFields.events.onRedo = function(event) {
+			KarmaFieldsAlpha.events.onRedo = function(event) {
 				history.redo();
 				event.preventDefault();
 			}

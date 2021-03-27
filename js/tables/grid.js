@@ -1,4 +1,4 @@
-KarmaFields.tables.grid = function(manager) {
+KarmaFieldsAlpha.tables.grid = function(manager) {
   return {
     class: "karma-field-table karma-fields",
     init: function(container) {
@@ -50,7 +50,7 @@ KarmaFields.tables.grid = function(manager) {
             }
           },
           update: function() {
-            manager.select.init(); // = KarmaFields.selectors.grid(manager);
+            manager.select.init(); // = KarmaFieldsAlpha.selectors.grid(manager);
             manager.fields = {};
           },
           children: [
@@ -246,7 +246,7 @@ KarmaFields.tables.grid = function(manager) {
           ]
         }
       },
-      KarmaFields.tables.footer(manager)
+      KarmaFieldsAlpha.tables.footer(manager)
 
     ]
   };

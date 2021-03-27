@@ -1,3 +1,3 @@
-if (!window.KarmaFields) {
-	KarmaFields = {};
+if (!window.KarmaFieldsAlpha) {
+	KarmaFieldsAlpha = {};
 }

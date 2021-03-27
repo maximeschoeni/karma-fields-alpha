@@ -1,4 +1,4 @@
-KarmaFields.fields.group = function(field) {
+KarmaFieldsAlpha.fields.group = function(field) {
 	return {
 		class: "karma-field-group-container display-"+(field.resource.display || "flex"),
 		init: function(group) {
@@ -20,7 +20,7 @@ KarmaFields.fields.group = function(field) {
 
 			field.children.map(function(child) {
 
-				if (KarmaFields.fields[child.resource.type || "group"]) {
+				if (KarmaFieldsAlpha.fields[child.resource.type || "group"]) {
 
 					group.children.push({
 						class: "karma-field-"+child.resource.type || "group",
@@ -53,7 +53,7 @@ KarmaFields.fields.group = function(field) {
 
 
 							this.children = [
-								KarmaFields.fields[child.resource.type || "group"](child),
+								KarmaFieldsAlpha.fields[child.resource.type || "group"](child),
 								{
 									class: "karma-field-spinner"
 								}
@@ -71,18 +71,18 @@ KarmaFields.fields.group = function(field) {
 							// if (child.resource.grandChildren) {
 							// 	this.children = this.children.concat(this.children, child.resource.grandChildren.map(function(resource) {
 							// 		let childValue = child.getValue();
-							// 		let grandChild = child.getChild(childValue) || KarmaFields.Field({
+							// 		let grandChild = child.getChild(childValue) || KarmaFieldsAlpha.Field({
 							// 			key: childValue,
 							// 			...resource
 							// 		}, child);
-							// 		return KarmaFields.fields[resource.type || "group"](grandChild),
+							// 		return KarmaFieldsAlpha.fields[resource.type || "group"](grandChild),
 							// 	}));
 							// }
 
 
 							// this.children = [];
 							//
-							// let node = KarmaFields.fields[child.resource.type || "group"](child);
+							// let node = KarmaFieldsAlpha.fields[child.resource.type || "group"](child);
 							//
 							// if (Array.isArray(node)) {
 							// 	this.children = node;
@@ -120,7 +120,7 @@ KarmaFields.fields.group = function(field) {
 			//
 			// 	let child = field.createChild(resource);
 			//
-			// 	if (KarmaFields.fields[resource.type || "group"]) {
+			// 	if (KarmaFieldsAlpha.fields[resource.type || "group"]) {
 			//
 			// 		group.children.push({
 			// 			class: "karma-field-"+resource.type || "group",
@@ -148,7 +148,7 @@ KarmaFields.fields.group = function(field) {
 			// 				child.events.update();
 			//
 			// 				this.children = [
-			// 					KarmaFields.fields[resource.type || "group"](child),
+			// 					KarmaFieldsAlpha.fields[resource.type || "group"](child),
 			// 					{
 			// 						class: "karma-field-spinner"
 			// 					}

@@ -1,4 +1,55 @@
-KarmaFields.fields.group = function(field) {
+KarmaFieldsAlpha.fields.group = {};
+
+KarmaFieldsAlpha.fields.group.create = function(resource) {
+	let field = KarmaFieldsAlpha.Field(resource);
+	field.setValue = function(value, context) {
+		if (value && typeof value === "object") {
+			for (let key in value) {
+				const child = this.getChild(key);
+				if (child) {
+					child.setValue(value[key], context);
+				}
+			}
+		}
+	};
+	field.getValue = function() {
+		value = {};
+		this.children.forEach(function(child) {
+			if (child.resource.key) {
+				value[child.resource.key] = child.getValue();
+			} else {
+				Object.assign(value, child.getValue());
+			}
+		});
+		return value;
+	};
+	field.getModifiedValue = function() {
+		let value;
+		this.children.forEach(function(child) {
+			let childValue = child.getModifiedValue();
+			if (childValue !== undefined) {
+				if (!value) {
+					value = {};
+				}
+				if (child.resource.key) {
+					value[child.resource.key] = childValue;
+				} else {
+					Object.assign(value, childValue);
+				}
+				value[child.resource.key] = childValue;
+			}
+		});
+		return value;
+	};
+	// if (resource.children) {
+	// 	resource.children.forEach(function(childResource) {
+	// 		field.createChild(childResource);
+	// 	});
+	// }
+	return field;
+}
+
+KarmaFieldsAlpha.fields.group.build = function(field) {
 
 	return {
 		class: "karma-field-group display-"+(field.resource.display || "block"),
@@ -10,15 +61,17 @@ KarmaFields.fields.group = function(field) {
 		update: function(group) {
 			this.element.classList.toggle("disabled", field.resource.disabled || false);
 
-			if (field.resource.children && field.resource.children.length) {
-				this.children = field.resource.children.map(function(resource, index) {
-					let child = field.children[index] || field.createChild(resource);
+			// if (field.resource.children && field.resource.children.length) {
+				// this.children = field.resource.children.map(function(resource, index) {
+				// 	let child = field.children[index] || field.createChild(resource);
 
-					if (resource.type && resource.type !== "group") {
+				this.children = field.children.map(function(child) {
+
+					if (child.resource.type && child.resource.type !== "group") {
 						return {
 							class: "karma-field-"+child.resource.type,
 							init: function(item) {
-								child.trigger("init", child);
+								child.triggerEvent("init", true);
 								if (child.resource.style) {
 									this.element.style = child.resource.style;
 								}
@@ -26,7 +79,8 @@ KarmaFields.fields.group = function(field) {
 									item.element.classList.toggle("loading", child.data.loading ? true : false);
 									item.element.classList.toggle("modified", child.value !== child.originalValue);
 								};
-								child.events.render = function() {
+								child.events.render = function(target) {
+
 									item.render();
 								};
 							},
@@ -43,17 +97,8 @@ KarmaFields.fields.group = function(field) {
 									});
 								}
 
-								// if (child.resource.title) {
-								// 	this.children.push({
-								// 		tag: child.resource.level || "h3",
-								// 		init: function(label) {
-								// 			this.element.textContent = child.resource.title;
-								// 		}
-								// 	});
-								// }
-
-
-								this.children.push(KarmaFields.fields[child.resource.type](child));
+								// this.children.push(KarmaFieldsAlpha.fields[child.resource.type](child));
+								this.children.push(child.build());
 
 								if (child.resource.spinner !== false) {
 									this.children.push({
@@ -64,11 +109,12 @@ KarmaFields.fields.group = function(field) {
 							}
 						};
 					} else {
-						return KarmaFields.fields.group(child);
+						// return KarmaFieldsAlpha.fields.group(child);
+						return child.build();
 					}
 
 				});
-			}
+			// }
 		}
 	};
 }
@@ -78,13 +124,13 @@ KarmaFields.fields.group = function(field) {
 
 
 //
-// KarmaFields.fields.group = function(field) {
+// KarmaFieldsAlpha.fields.group = function(field) {
 // 	let nodes = [];
 //
 //
 //
-// 	// if (KarmaFields.fields[child.resource.type]) {
-// 	// 	nodes = nodes.concat(builder(KarmaFields.fields[child.resource.type]));
+// 	// if (KarmaFieldsAlpha.fields[child.resource.type]) {
+// 	// 	nodes = nodes.concat(builder(KarmaFieldsAlpha.fields[child.resource.type]));
 // 	// 	nodes.push({
 // 	// 		class: "karma-field-spinner"
 // 	// 	});
@@ -92,7 +138,7 @@ KarmaFields.fields.group = function(field) {
 //
 // 	if (field.resource.children.length) {
 // 		field.resource.children.forEach(function(resource, index) {
-// 			// let child = resource.key && (field.getChild(resource.key) || !resource.key && field.children[index] || KarmaFields.Field(resource, field);
+// 			// let child = resource.key && (field.getChild(resource.key) || !resource.key && field.children[index] || KarmaFieldsAlpha.Field(resource, field);
 // 			let child = field.children[index] || field.createChild(resource);
 //
 //
@@ -141,7 +187,7 @@ KarmaFields.fields.group = function(field) {
 // 						});
 // 					}
 //
-// 					let childNode = KarmaFields.fields[child.resource.type || "group"](child);
+// 					let childNode = KarmaFieldsAlpha.fields[child.resource.type || "group"](child);
 //
 // 					if (Array.isArray(childNode)) {
 // 						this.children = this.children.concat(childNode);
@@ -150,7 +196,7 @@ KarmaFields.fields.group = function(field) {
 // 					}
 //
 // 					// maybe all field builders should return an array?
-// 					// KarmaFields.fields[child.resource.type || "group"](child).forEach(function(childNode) {
+// 					// KarmaFieldsAlpha.fields[child.resource.type || "group"](child).forEach(function(childNode) {
 // 					// 	node.children.push(childNode);
 // 					// });
 //

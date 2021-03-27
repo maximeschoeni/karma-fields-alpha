@@ -3,22 +3,22 @@
 // /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
 
 
-KarmaFields.fields.tinymce = function(field) {
+KarmaFieldsAlpha.fields.tinymce = function(field) {
 	var manager = {};
-	return KarmaFields.build({
+	return KarmaFieldsAlpha.build({
 		class: "editor",
 		children: function() {
 			return [
-				KarmaFields.build({
+				KarmaFieldsAlpha.build({
 					class: "field-controls",
 					child: function() {
-						return KarmaFields.build({
+						return KarmaFieldsAlpha.build({
 							class: "field-controls-group",
 							children: function() {
 								return [
-									KarmaFields.includes.icon({
+									KarmaFieldsAlpha.includes.icon({
 										tag: "button",
-										url: KarmaFields.icons_url+"/table-row-before.svg",
+										url: KarmaFieldsAlpha.icons_url+"/table-row-before.svg",
 										init: function(element, update) {
 											element.addEventListener("click", function(event) {
 												event.preventDefault();
@@ -34,9 +34,9 @@ KarmaFields.fields.tinymce = function(field) {
 											});
 										}
 									}),
-									KarmaFields.includes.icon({
+									KarmaFieldsAlpha.includes.icon({
 										tag: "button",
-										url: KarmaFields.icons_url+"/car.svg",
+										url: KarmaFieldsAlpha.icons_url+"/car.svg",
 										init: function(element, update) {
 											element.addEventListener("click", function(event) {
 												event.preventDefault();
@@ -58,9 +58,9 @@ KarmaFields.fields.tinymce = function(field) {
 											});
 										}
 									}),
-									KarmaFields.includes.icon({
+									KarmaFieldsAlpha.includes.icon({
 										tag: "button",
-										url: KarmaFields.icons_url+"/car.svg",
+										url: KarmaFieldsAlpha.icons_url+"/car.svg",
 										init: function(element, update) {
 											element.addEventListener("click", function(event) {
 												event.preventDefault();
@@ -85,7 +85,7 @@ KarmaFields.fields.tinymce = function(field) {
 						});
 					}
 				}),
-				KarmaFields.build({
+				KarmaFieldsAlpha.build({
 					class: "editor-content",
 					init: function(element) {
 						element.id = field.id;

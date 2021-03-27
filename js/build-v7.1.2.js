@@ -1,23 +1,24 @@
 /**
  * build (V7.1)
  */
-KarmaFields.build = function(args, parent, element, clean) {
+KarmaFieldsAlpha.build = function(args, parent, element, clean) {
 	if (args) {
-		if (args.kids || args.kid || args.className) {
-			console.error(args, "bad args");
+		if (!args.render) {
+			args.render = function(clean) {
+				let children = this.children || this.child && [this.child] || [];
+				let i = 0;
+				let child = this.element.firstElementChild;
+				while (i < children.length || child) {
+					let next = child && child.nextElementSibling;
+					if (children[i]) {
+						children[i].parent = this;
+					}
+					KarmaFieldsAlpha.build(children[i], this.element, child, clean);
+					i++;
+					child = next;
+				}
+			};
 		}
-		args.render = function(clean) {
-			let children = this.children || this.child && [this.child] || [];
-			let i = 0;
-			let child = this.element.firstElementChild;
-			while (i < children.length || child) {
-				let next = child && child.nextElementSibling;
-				KarmaFields.build(children[i], this.element, child, clean);
-				i++;
-				child = next;
-			}
-		};
-
 		if (!element || clean || args.clear || args.reflow && args.reflow(element)) {
 			args.element = document.createElement(args.tag || "div");
 			if (args.class) {
@@ -39,7 +40,7 @@ KarmaFields.build = function(args, parent, element, clean) {
 			args.update(args);
 		}
 		if (args.render) {
-			args.render();
+			args.render(clean);
 		}
 	} else if (element) {
 		parent.removeChild(element);

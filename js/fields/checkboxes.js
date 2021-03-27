@@ -1,5 +1,5 @@
-KarmaFields.fields.checkboxes = function(field) {
-	return KarmaFields.build({
+KarmaFieldsAlpha.fields.checkboxes = function(field) {
+	return KarmaFieldsAlpha.build({
 		class: "checkboxes",
 		children: function() {
 			var children = (field.resource.options || []).map(function(option) {

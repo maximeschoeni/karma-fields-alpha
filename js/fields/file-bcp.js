@@ -1,8 +1,8 @@
-KarmaFields.fields.file = function(field) {
+KarmaFieldsAlpha.fields.file = function(field) {
   return {
     className: "karma-field-file",
     init: function(container) {
-      var imageUploader = KarmaFields.createImageUploader();
+      var imageUploader = KarmaFieldsAlpha.createImageUploader();
     	imageUploader.mimeType = field.resource.mimeType || null;
       imageUploader.onSelect = function(attachments) {
         var value;
@@ -50,9 +50,9 @@ KarmaFields.fields.file = function(field) {
             kids: [
               {
                 tag: "button",
-                // kids: [KarmaFields.includes.icon(KarmaFields.icons_url+"/insert.svg")],
-                kid: KarmaFields.includes.icon({
-                  file: KarmaFields.icons_url+"/insert.svg"
+                // kids: [KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/insert.svg")],
+                kid: KarmaFieldsAlpha.includes.icon({
+                  file: KarmaFieldsAlpha.icons_url+"/insert.svg"
                 }),
                 init: function() {
                   this.disabled = (field.getValue() || []).length;
@@ -69,9 +69,9 @@ KarmaFields.fields.file = function(field) {
               },
               {
                 tag: "button",
-                // kids: [KarmaFields.includes.icon(KarmaFields.icons_url+"/edit.svg")],
-                kid: KarmaFields.includes.icon({
-                  file: KarmaFields.icons_url+"/edit.svg"
+                // kids: [KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/edit.svg")],
+                kid: KarmaFieldsAlpha.includes.icon({
+                  file: KarmaFieldsAlpha.icons_url+"/edit.svg"
                 }),
                 init: function() {
                   this.addEventListener("click", function(event) {
@@ -88,9 +88,9 @@ KarmaFields.fields.file = function(field) {
               },
               {
                 tag: "button",
-                // kids: [KarmaFields.includes.icon(KarmaFields.icons_url+"/trash.svg")],
-                kid: KarmaFields.includes.icon({
-                  file: KarmaFields.icons_url+"/trash.svg"
+                // kids: [KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/trash.svg")],
+                kid: KarmaFieldsAlpha.includes.icon({
+                  file: KarmaFieldsAlpha.icons_url+"/trash.svg"
                 }),
                 init: function() {
                   this.addEventListener("click", function(event) {

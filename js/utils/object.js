@@ -1,5 +1,5 @@
-KarmaFields.Object = {};
-// KarmaFields.Object.getValue = function(object, keys) {
+KarmaFieldsAlpha.Object = {};
+// KarmaFieldsAlpha.Object.getValue = function(object, keys) {
 // 	if (keys.length) {
 // 		var key = keys.shift();
 // 		if (key) {
@@ -11,7 +11,7 @@ KarmaFields.Object = {};
 // 	}
 // 	return object;
 // };
-// KarmaFields.Object.getValue = function(object, keys) {
+// KarmaFieldsAlpha.Object.getValue = function(object, keys) {
 // 	var key = keys[0];
 // 	if (key !== undefined) {
 // 		if (object[key] && typeof object[key] === "object") {
@@ -21,7 +21,7 @@ KarmaFields.Object = {};
 // 	}
 // 	return object;
 // };
-// KarmaFields.Object.getValue = function(object, keys) {
+// KarmaFieldsAlpha.Object.getValue = function(object, keys) {
 // 	var key = keys[0];
 // 	if (key !== undefined) {
 // 		if (object && typeof object === "object") {
@@ -31,7 +31,7 @@ KarmaFields.Object = {};
 // 		return object;
 // 	}
 // };
-KarmaFields.Object.getValue = function(object, keys) {
+KarmaFieldsAlpha.Object.getValue = function(object, keys) {
 	if (keys.length) {
 		var key = keys[0];
 		if (object && typeof object === "object") {
@@ -42,7 +42,7 @@ KarmaFields.Object.getValue = function(object, keys) {
 	}
 };
 
-// KarmaFields.Object.empty = function(object, keys) {
+// KarmaFieldsAlpha.Object.empty = function(object, keys) {
 // 	var key = keys[0];
 // 	if (keys.length > 1 && object[key] && typeof object[key] === "object") {
 // 		this.empty(object[key], keys.slice(1));
@@ -50,7 +50,7 @@ KarmaFields.Object.getValue = function(object, keys) {
 // 		object[key] = {};
 // 	}
 // };
-KarmaFields.Object.setValue = function(object, keys, value, under) {
+KarmaFieldsAlpha.Object.setValue = function(object, keys, value, under) {
 	if (keys[1] !== undefined) {
 		var key = keys[0];
 		if (!object[key]) {
@@ -71,10 +71,10 @@ KarmaFields.Object.setValue = function(object, keys, value, under) {
 		}
 	}
 }
-KarmaFields.Object.delete = function(object, keys) {
+KarmaFieldsAlpha.Object.delete = function(object, keys) {
 	this.setValue(object, keys, null);
 }
-// KarmaFields.Object.merge000 = function(object1, object2, soft) {
+// KarmaFieldsAlpha.Object.merge000 = function(object1, object2, soft) {
 // 	for (var i in object2) {
 // 		if (object2[i] && typeof object2[i] === "object" && !Array.isArray(object2[i])) {
 // 			if (!object1[i]) {
@@ -86,7 +86,7 @@ KarmaFields.Object.delete = function(object, keys) {
 // 		}
 // 	}
 // }
-// KarmaFields.Object.merge = function(object1, object2) {
+// KarmaFieldsAlpha.Object.merge = function(object1, object2) {
 // 	for (var i in object2) {
 // 		if (object2[i] && typeof object2[i] === "object") {
 // 			if (!object1[i] || typeof object1[i] !== "object") {
@@ -104,7 +104,7 @@ KarmaFields.Object.delete = function(object, keys) {
 // 		}
 // 	}
 // }
-KarmaFields.Object.merge = function(object1, object2) {
+KarmaFieldsAlpha.Object.merge = function(object1, object2) {
 	for (var i in object2) {
 		if (object2[i] !== undefined) {
 			if (typeof object2[i] === "object") {
@@ -124,7 +124,7 @@ KarmaFields.Object.merge = function(object1, object2) {
 }
 
 
-KarmaFields.Object.add = function(...objects) {
+KarmaFieldsAlpha.Object.add = function(...objects) {
 	var result;
 	while (objects.length) {
 		var object = objects.shift();
@@ -146,7 +146,7 @@ KarmaFields.Object.add = function(...objects) {
 	return result;
 }
 
-// KarmaFields.Object.clone = function(object) {
+// KarmaFieldsAlpha.Object.clone = function(object) {
 // 	var copie;
 // 	if (Array.isArray(object)) {
 // 		copie = object.slice();
@@ -159,7 +159,7 @@ KarmaFields.Object.add = function(...objects) {
 // 	return copie;
 // };
 
-KarmaFields.Object.getPrimitive = function(object) {
+KarmaFieldsAlpha.Object.getPrimitive = function(object) {
 	if (Array.isArray(object)) {
 		return [];
 	} else {
@@ -167,7 +167,7 @@ KarmaFields.Object.getPrimitive = function(object) {
 	}
 }
 
-KarmaFields.Object.clone = function(object) {
+KarmaFieldsAlpha.Object.clone = function(object) {
 	if (object && typeof object === "object") {
 		// var result;
 		// if (Array.isArray(object)) {
@@ -182,12 +182,12 @@ KarmaFields.Object.clone = function(object) {
 		return object;
 	}
 };
-KarmaFields.Object.clean = function(object) {
+KarmaFieldsAlpha.Object.clean = function(object) {
 	if (object && typeof object === "object") {
 		var clone;
 		if (Array.isArray(object)) {
 			var array = object.filter(function(child) {
-				child = KarmaFields.Object.clean(child);
+				child = KarmaFieldsAlpha.Object.clean(child);
 				return child !== undefined && child !== null;
 			});
 			if (array.length) {
@@ -210,7 +210,7 @@ KarmaFields.Object.clean = function(object) {
 }
 
 
-// KarmaFields.Object.diff = function(obj1, obj2) {
+// KarmaFieldsAlpha.Object.diff = function(obj1, obj2) {
 //   var diff;
 // 	if (obj2 === undefined) {
 // 		diff = obj1;
@@ -229,7 +229,7 @@ KarmaFields.Object.clean = function(object) {
 // 	}
 //   return diff;
 // };
-KarmaFields.Object.diff = function(obj1, obj2) {
+KarmaFieldsAlpha.Object.diff = function(obj1, obj2) {
 	var diff;
 	if (obj1 !== obj2) {
 		if (obj1 === undefined) {
@@ -251,7 +251,7 @@ KarmaFields.Object.diff = function(obj1, obj2) {
   return diff;
 };
 
-KarmaFields.Object.subtract = function(obj1, obj2) {
+KarmaFieldsAlpha.Object.subtract = function(obj1, obj2) {
 	var diff;
 	if (obj1 !== obj2) {
 		if (obj1 === undefined) {
@@ -280,12 +280,12 @@ KarmaFields.Object.subtract = function(obj1, obj2) {
 	}
   return diff;
 };
-KarmaFields.Object.unmerge = function(obj1, obj2) {
+KarmaFieldsAlpha.Object.unmerge = function(obj1, obj2) {
 	return this.subtract(obj1, obj2);
 }
 
 
-KarmaFields.Object.contain = function(obj1, obj2) {
+KarmaFieldsAlpha.Object.contain = function(obj1, obj2) {
 	if (obj1 && obj2 && typeof obj1 === "object" && typeof obj2 === "object") {
 		for (var i in obj2) {
       if (!this.contain(obj1[i], obj2[i])) {
@@ -298,13 +298,13 @@ KarmaFields.Object.contain = function(obj1, obj2) {
 	}
 };
 
-// KarmaFields.Object.differ = function(obj1, obj2) {
+// KarmaFieldsAlpha.Object.differ = function(obj1, obj2) {
 // 	return this.clean(obj1) !== this.clean(obj2);
 // };
 
 
 // deprecated
-KarmaFields.Object.mask = function(obj, mask) {
+KarmaFieldsAlpha.Object.mask = function(obj, mask) {
   var result = {};
   for (var i in mask) {
     if (mask[i] && typeof mask[i] === "object" && !Array.isArray(mask[i])) {
@@ -316,7 +316,7 @@ KarmaFields.Object.mask = function(obj, mask) {
   return result;
 };
 
-// KarmaFields.Object.clean = function(object) {
+// KarmaFieldsAlpha.Object.clean = function(object) {
 // 	var isNotEmpty;
 // 	if (object && typeof object === "object") {
 // 		for (var i in object) {
@@ -329,7 +329,7 @@ KarmaFields.Object.mask = function(obj, mask) {
 //
 // 	return object;
 // };
-KarmaFields.Object.isEmpty = function(object) {
+KarmaFieldsAlpha.Object.isEmpty = function(object) {
 	if (object && typeof object === "object") {
 		for (var i in object) {
 			if (!this.isEmpty(object[i])) {
@@ -343,7 +343,7 @@ KarmaFields.Object.isEmpty = function(object) {
 };
 
 // moved
-// KarmaFields.Object.serialize = function(object) {
+// KarmaFieldsAlpha.Object.serialize = function(object) {
 // 	var params = [];
 // 	for (var key in object) {
 //     params.push(key + "=" + encodeURIComponent(object[key]));
@@ -352,7 +352,7 @@ KarmaFields.Object.isEmpty = function(object) {
 // }
 
 // deprecated
-KarmaFields.Object.forEach = function(object, callback, keys) {
+KarmaFieldsAlpha.Object.forEach = function(object, callback, keys) {
 	if (object && typeof object === "object") {
 		for (var key in object) {
 	    this.forEach(object[key], callback, (keys||[]).concat(key));
@@ -363,7 +363,7 @@ KarmaFields.Object.forEach = function(object, callback, keys) {
 }
 
 // like contain but return true when obj2 is empty
-KarmaFields.Object.compare = function(obj1, obj2) {
+KarmaFieldsAlpha.Object.compare = function(obj1, obj2) {
 	// if (obj1 && obj2 && typeof obj1 === "object" && typeof obj2 === "object") {
 	if (obj2 && typeof obj2 === "object") {
 		for (var i in obj2) {

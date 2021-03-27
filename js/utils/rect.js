@@ -1,4 +1,4 @@
-KarmaFields.utils.rect = function(left, top, width, height) {
+KarmaFieldsAlpha.utils.rect = function(left, top, width, height) {
 	var rect = {
 		left: left || 0,
 		top: top || 0,
@@ -12,14 +12,14 @@ KarmaFields.utils.rect = function(left, top, width, height) {
 			var top = Math.max(rect.top, this.top);
 			var right = Math.min(rect.left + rect.width, this.left + this.width);
 			var bottom = Math.min(rect.top + rect.height, this.top + this.height);
-			return KarmaFields.utils.rect(left, top, right - left, bottom - top);
+			return KarmaFieldsAlpha.utils.rect(left, top, right - left, bottom - top);
 		},
 		union: function(rect) {
 			var left = Math.min(rect.left, this.left);
 			var top = Math.min(rect.top, this.top);
 			var right = Math.max(rect.left + rect.width, this.left + this.width);
 			var bottom = Math.max(rect.top + rect.height, this.top + this.height);
-			return KarmaFields.utils.rect(left, top, right - left, bottom - top);
+			return KarmaFieldsAlpha.utils.rect(left, top, right - left, bottom - top);
 		},
 		set: function(left, top, width, height) {
 			this.left = left || 0;
@@ -34,7 +34,7 @@ KarmaFields.utils.rect = function(left, top, width, height) {
 			return rect.left === this.left && rect.top === this.top && rect.width === this.width && rect.height === this.height;
 		},
 		clone: function() {
-			return KarmaFields.utils.rect(this.left, this.top, this.width, this.height);
+			return KarmaFieldsAlpha.utils.rect(this.left, this.top, this.width, this.height);
 		}
 	};
 	return rect;

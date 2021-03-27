@@ -1,4 +1,4 @@
-KarmaFields.tables.pagination = function(manager) {
+KarmaFieldsAlpha.tables.pagination = function(manager) {
   return {
     class: "footer-group table-pagination",
     update: function() {

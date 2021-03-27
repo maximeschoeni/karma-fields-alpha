@@ -1,228 +1,314 @@
-KarmaFields.fields.file = function(field) {
+// KarmaFieldsAlpha.fieldsOptions.file = {
+//   datatype: "array"
+// };
+
+KarmaFieldsAlpha.fields.file = function(field) {
   return {
     class: "field-file",
+    clear: true,
     init: function(container) {
-      field.data.uploader = KarmaFields.createImageUploader();
-    	field.data.uploader.mimeType = field.resource.mimeType || field.resource.mimeTypes || null;
-
-      field.data.uploader.onSelect = function(attachments) {
-        if (attachments.length) {
-          // var attachment = attachments[0];
-          // var sources = [];
-          // if (attachment.sizes) {
-          //   for (var key in attachment.sizes) {
-          //     if (key !== "thumbnail") {
-          //       sources.push({
-          //         size: key,
-          //         width: attachment.sizes[key].width,
-          //         height: attachment.sizes[key].height,
-          //         url: attachment.sizes[key].url
-          //       });
-          //     }
-          //   }
-          // }
-          // value = {
-          //   id: attachment.id,
-          //   width: attachment.width,
-          //   height: attachment.height,
-          //   description: attachment.description,
-          //   alt: attachment.alt,
-          //   title: attachment.title,
-          //   name: attachment.name,
-          //   url: attachment.url,
-          //   thumb: attachment.sizes && attachment.sizes.thumbnail.url || attachment.icon,
-          //   thumb_width: attachment.sizes && attachment.sizes.thumbnail.width || attachment.thumb && attachment.thumb.width,
-          //   thumb_height: attachment.sizes && attachment.sizes.thumbnail.height || attachment.thumb && attachment.thumb.height,
-          //   sources: sources,
-          //   filename: attachment.filename
-          // };
-
-          field.setValue(attachments[0].id);
-          container.render();
-        }
-      };
-    },
-    update: function(container) {
-      if (field.value) {
-        if (field.data.files && field.data.files[field.value]) {
-          this.children = {
-            class: "file-thumb",
-            children: [
-              {
-                tag: "img",
-                init: function() {
-                  this.element.addEventListener("click", function(event) {
-                    event.preventDefault();
-                    field.data.uploader.imageId = field.value;
-                    field.data.uploader.open();
-                  });
+      if (!field.data.uploader) {
+        field.data.uploader = {
+          addFrame: null,
+          // imageId: null,
+          open: function () {
+            if (!this.addFrame) {
+              var args = {
+                title: "Select file",
+                button: {
+                  text: "Use this file"
                 },
-                update: function() {
-                  this.element.src = field.data.files[field.value].thumb;
-                  this.element.width = field.data.files[field.value].thumb_width;
-                  this.element.height = field.data.files[field.value].thumb_height;
+                library: {
+                  type: field.resource.file && (field.resource.file.type || field.resource.file.types)
+                    || field.resource.mime_types
+                    || field.resource.mimeTypes
+                    || field.resource.mimetypes
+                    || field.resource.mimeType
+                    || field.resource.mimetype
+                    || field.resource.mime_type
+                    || "image" //'application/font-woff'
+                },
+                multiple: true
+              };
+              this.addFrame = wp.media(args);
+              this.addFrame.on("select", function() {
+                let attachments = field.data.uploader.addFrame.state().get("selection").toJSON().map(function(attachment) {
+                  return attachment;
+                });
+                if (attachments.length) {
+                  field.setValue(attachments[0].id);
+                  container.parent.render(true);
                 }
-              },
-              {
-                tag: "button",
-                class: "delete",
-                init: function() {
-                  this.element.textContent = "Remove";
-                  this.element.addEventListener("click", function(event) {
-                    event.preventDefault();
-                    field.setValue(null);
-                    field.data.uploader.imageId = null;
-                    container.render();
-                  });
+              });
+              this.addFrame.on("open", function() {
+                let selection = field.data.uploader.addFrame.state().get("selection");
+                let value = field.getValue();
+                if (value) {
+                  selection.add(wp.media.attachment(value));
                 }
-              }
-            ]
-          };
-        } else {
-          field.data.loading = true;
-          field.trigger("update");
-          field.trigger("fetch", "queryfiles", {
-            ids: [field.value],
-            key: field.resource.key
-          }).then(function(results) {
-            field.data.loading = false;
-            field.data.files = results;
-            container.render();
-          });
-        }
-      } else {
-        this.child = {
-          tag: "button",
-          class: "insert",
-          init: function() {
-            this.element.textContent = "Add";
-            this.element.addEventListener("click", function(event) {
-              event.preventDefault();
-              field.data.uploader.imageId = null;
-              field.data.uploader.open();
-            });
+              });
+            }
+            this.addFrame.open();
           }
         };
       }
+    },
+    update: function(container) {
+      this.children = [];
+      let value = field.getValue();
+      if (value) {
+        let file = field.data.files && field.data.files[value];
+        if (!file) {
+          this.element.classList.add("loading");
+          field.trigger("files", [value]).then(function(results) {
+            if (!field.data.files) {
+              field.data.files = {};
+            }
+            results.forEach(function(image) {
+              field.data.files[image.id] = image;
+            });
+            container.parent.render(true);
+          });
+        }
+        this.children.push({
+          class: "image-frame type-"+(file && file.type.startsWith("image") && "image" || "file"),
+          init: function(frame) {
+            this.element.addEventListener("click", function(event) {
+              event.preventDefault();
+              field.data.uploader.open();
+            });
+            // this.element.addEventListener("mousedown", function(event) {
+            //   let child = this.children[0];
+            //   let x = event.clientX;
+            //   let y = event.clientY;
+            //   let width = this.clientWidth;
+            //   let height = this.clientHeight;
+            //   let tooltip = document.createElement("div");
+            //   tooltip.className = "tooltip";
+            //   frame.element.appendChild(tooltip);
+            //   tooltip.textContent = "Remove";
+            //   tooltip.style.display = "block";
+            //   tooltip.style.position = "absolute";
+            //   tooltip.style.zIndex = "23452346523";
+            //   let offset = 10;
+            //   let box = child.getBoundingClientRect();
+            //   frame.element.style.position = "relative";
+            //   let onMove = function(event) {
+            //     let dx = event.clientX - x;
+            //     let dy = event.clientY - y;
+            //     child.style.transform = "translate("+dx.toFixed()+"px, "+dy.toFixed()+"px)";
+            //     if (Math.abs(dx) > width || Math.abs(dy) > height) {
+            //       let tooltipX = 0;
+            //       let tooltipY = 0;
+            //       if (dx > width) {
+            //         tooltipX = width/2 + box.width/2 + offset;
+            //         tooltipY = height/2 - tooltip.clientHeight/2;
+            //       } else if (dx < -width) {
+            //         tooltipX = width/2 - box.width/2 - tooltip.clientWidth - offset;
+            //         tooltipY = height/2 - tooltip.clientHeight/2;
+            //       } else if (dy > height) {
+            //         tooltipX = width/2 - tooltip.clientWidth/2;
+            //         tooltipY = height/2 + box.height/2 + offset;
+            //       } else if (dy < -height) {
+            //         tooltipX = width/2 - tooltip.clientWidth/2;
+            //         tooltipY = height/2 - box.height/2 - tooltip.clientHeight - offset;
+            //       }
+            //       tooltip.style.left = tooltipX.toFixed()+"px";
+            //       tooltip.style.top = tooltipY.toFixed()+"px";
+            //     }
+            //     tooltip.style.transform = "translate("+dx.toFixed()+"px, "+dy.toFixed()+"px)";
+            //   }
+            //   let onClose = function() {
+            //     child.style.transform = "translate(0, 0)";
+            //     frame.element.removeChild(tooltip);
+            //     window.removeEventListener("mousemove", onMove);
+            //     window.removeEventListener("mouseup", onClose);
+            //   }
+            //
+            //   if (child) {
+            //     window.addEventListener("mousemove", onMove);
+            //     window.addEventListener("mouseup", onClose);
+            //   }
+            //   event.preventDefault();
+            // });
+          },
+          child: file && {
+            tag: "img",
+            update: function() {
+              this.element.src = file.src;
+              this.element.width = file.width;
+              this.element.height = file.height;
+            }
+          } || {
+            class: "karma-field-spinner"
+          }
+        });
+      }
+      this.children.push({
+        class: "field-control",
+        update: function() {
+          this.children = [{
+            tag: "button",
+            class: "edit",
+            init: function() {
+              this.element.id = field.getId();
+              this.element.addEventListener("click", function(event) {
+                event.preventDefault();
+                field.data.uploader.open();
+              });
+            },
+            update: function() {
+              this.element.textContent = field.getValue() ? "Edit" : "Add";
+            }
+          }];
+          if (field.getValue()) {
+            this.children.push({
+              tag: "button",
+              class: "delete",
+              init: function() {
+                this.element.textContent = "Remove";
+                this.element.addEventListener("click", function(event) {
+                  event.preventDefault();
+                  field.setValue("");
+                  container.parent.render();
+                });
+              }
+            });
+          }
+        }
+      });
+
     }
   };
 }
 
-// KarmaFields.fields.file = function(field) {
-//   let imageUploader;
+
+// KarmaFieldsAlpha.fields.file = function(field) {
 //   return {
-//     className: "field-file",
+//     class: "field-file",
 //     init: function(container) {
-//       imageUploader = KarmaFields.createImageUploader();
-//     	imageUploader.mimeType = field.resource.mimeType || field.resource.mimeTypes || null;
-//       imageUploader.onSelect = function(attachments) {
-//         console.log(attachments);
-//         var value;
-//         if (attachments.length) {
-//           var attachment = attachments[0];
-//           var sources = [];
-//           if (attachment.sizes) {
-//             for (var key in attachment.sizes) {
-//               if (key !== "thumbnail") {
-//                 sources.push({
-//                   size: key,
-//                   width: attachment.sizes[key].width,
-//                   height: attachment.sizes[key].height,
-//                   url: attachment.sizes[key].url
+//       if (!field.data.uploader) {
+//         field.data.uploader = {
+//           addFrame: null,
+//           // imageId: null,
+//           open: function () {
+//             if (!this.addFrame) {
+//               var args = {
+//                 title: "Select file",
+//                 button: {
+//                   text: "Use this file"
+//                 },
+//                 library: {
+//                   type: field.resource.file && (field.resource.file.type || field.resource.file.types)
+//                     || field.resource.mime_types
+//                     || field.resource.mimeTypes
+//                     || field.resource.mimetypes
+//                     || field.resource.mimeType
+//                     || field.resource.mimetype
+//                     || field.resource.mime_type
+//                     || "image" //'application/font-woff'
+//                 },
+//                 multiple: true
+//               };
+//               this.addFrame = wp.media(args);
+//               this.addFrame.on("select", function() {
+//                 let attachments = field.data.uploader.addFrame.state().get("selection").toJSON().map(function(attachment) {
+//                   return attachment;
 //                 });
-//               }
+//                 if (attachments.length) {
+//                   field.setValue(attachments[0].id);
+//                   container.render(true);
+//                 }
+//               });
+//               this.addFrame.on("open", function() {
+//                 let selection = field.data.uploader.addFrame.state().get("selection");
+//                 let value = field.getValue();
+//                 if (value) {
+//                   selection.add(wp.media.attachment(value));
+//                 }
+//               });
 //             }
+//             this.addFrame.open();
 //           }
-//           value = {
-//             id: attachment.id,
-//             width: attachment.width,
-//             height: attachment.height,
-//             description: attachment.description,
-//             alt: attachment.alt,
-//             title: attachment.title,
-//             name: attachment.name,
-//             url: attachment.url,
-//             thumb: attachment.sizes && attachment.sizes.thumbnail.url || attachment.icon,
-//             thumb_width: attachment.sizes && attachment.sizes.thumbnail.width || attachment.thumb && attachment.thumb.width,
-//             thumb_height: attachment.sizes && attachment.sizes.thumbnail.height || attachment.thumb && attachment.thumb.height,
-//             sources: sources,
-//             filename: attachment.filename
-//           };
-//
-//           field.setValue(value);
-//           container.render();
-//         }
-//       };
-//
-//       this.classList.add("loading");
-//       field.fetchValue().then(function() {
-//         container.classList.remove("loading");
-//         console.log(field.getValue());
-//         container.render();
-//       });
-//       this.kid = {
-//         className: "file-thumb",
-//         clear: true,
-//         update: function() {
-//           var value = field.getValue();
-//           this.kids = [];
-//           if (value && value.id) {
-//             this.kids.push({
-//               tag: "img",
-//               init: function() {
-//                 this.addEventListener("click", function(event) {
-//                   event.preventDefault();
-//                   var value = field.getValue();
-//                   imageUploader.imageId = value.id;
-//                   imageUploader.open();
-//                 });
-//               },
-//               update: function() {
-//                 this.src = value.thumb;
-//                 this.width = value.thumb_width;
-//                 this.height = value.thumb_height;
-//               }
-//             });
-//             this.kids.push({
-//               tag: "button",
-//               className: "delete",
-//               textContent: "Remove",
-//               // kid: KarmaFields.includes.icon({
-//               //   file: KarmaFields.icons_url+"/trash.svg"
-//               // }),
-//               init: function() {
-//                 this.addEventListener("click", function(event) {
-//                   event.preventDefault();
-//                   field.setValue(null);
-//                   imageUploader.imageId = null;
-//                   container.render();
-//                 });
-//               }
-//             });
-//           } else if (!container.classList.contains("loading")) {
-//             this.kids.push({
-//               tag: "button",
-//               className: "insert",
-//               textContent: "Add",
-//               // kid: KarmaFields.includes.icon({
-//               //   file: KarmaFields.icons_url+"/insert.svg"
-//               // }),
-//               init: function() {
-//                 this.addEventListener("click", function(event) {
-//                   event.preventDefault();
-//                   imageUploader.imageId = null;
-//                   imageUploader.open();
-//                 });
-//               }
-//             });
-//           } else {
-//             this.kids.push({
-//               className: "wait",
-//               textContent: "..."
-//             });
-//           }
-//         }
+//         };
 //       }
+//     },
+//     update: function(container) {
+//       this.children = [
+//         {
+//           class: "image-container",
+//           update: function(imgContainer) {
+//             let value = field.getValue();
+//             if (value) {
+//               let file = field.data.files && field.data.files[value];
+//               if (!file) {
+//                 this.element.classList.add("loading");
+//                 field.trigger("files", [value]).then(function(results) {
+//                   if (!field.data.files) {
+//                     field.data.files = {};
+//                   }
+//                   results.forEach(function(image) {
+//                     field.data.files[image.id] = image;
+//                   });
+//                   container.render(true);
+//                 });
+//               }
+//               this.child = {
+//                 class: "image-frame type-"+(file && file.type.startsWith("image") && "image" || "file"),
+//                 init: function() {
+//                   this.element.addEventListener("click", function(event) {
+//                     event.preventDefault();
+//                     field.data.uploader.open();
+//                   });
+//                 },
+//                 child: file && {
+//                   tag: "img",
+//                   update: function() {
+//                     this.element.src = file.src;
+//                     this.element.width = file.width;
+//                     this.element.height = file.height;
+//                   }
+//                 } || {
+//                   class: "karma-field-spinner"
+//                 }
+//               };
+//             } else {
+//               this.child = {};
+//             }
+//
+//           }
+//         },
+//         {
+//           tag: "button",
+//           class: "delete",
+//           init: function() {
+//             this.element.textContent = "Remove";
+//             this.element.addEventListener("click", function(event) {
+//               event.preventDefault();
+//               field.setValue("");
+//               container.render(true);
+//             });
+//           },
+//           update: function() {
+//             this.element.style.display = field.getValue() ? "block" : "none";
+//           }
+//         },
+//         {
+//           tag: "button",
+//           class: "insert",
+//           init: function() {
+//             this.element.textContent = "Add";
+//             this.element.id = field.getId();
+//             this.element.addEventListener("click", function(event) {
+//               event.preventDefault();
+//               field.data.uploader.open();
+//             });
+//           },
+//           update: function() {
+//             this.element.style.display = field.getValue() ? "none" : "block";
+//           }
+//         }
+//       ]
 //     }
 //   };
 // }

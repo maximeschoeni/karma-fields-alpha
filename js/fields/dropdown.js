@@ -1,4 +1,98 @@
-KarmaFields.fields.dropdown = function(field) {
+KarmaFieldsAlpha.fields.dropdown = {};
+
+
+KarmaFieldsAlpha.fields.dropdown.create = function(resource) {
+	const field = KarmaFieldsAlpha.Field(resource);
+
+	if (!resource.value && resource.options && resource.options.length) {
+		field.value = resource.default_option && resource.default_option.key || resource.options[0].key;
+	}
+
+	field.data.parseOptions = function(items) {
+
+		if (field.resource.novalue !== undefined) {
+
+			let emptyItem = {}
+
+			switch (field.resource.datatype) {
+
+				case "boolean":
+					emptyItem.key = "false";
+					break;
+
+				case "number":
+					emptyItem.key = 0;
+					break;
+
+				default:
+					emptyItem.key = "";
+					break;
+
+			}
+
+			if (field.resource.novalue === true) {
+
+				emptyItem.name = "-";
+
+			} else {
+
+				emptyItem.name = field.resource.novalue;
+
+			}
+
+
+			items = [emptyItem].concat(items);
+		}
+
+
+
+
+
+
+		if (items.length && !items.some(function(item) {
+			return item.key == field.value;
+		})) {
+			value = items[0].key;
+			requestAnimationFrame(function() {
+				field.setValue(value, "change"); //
+			});
+		}
+
+
+		return items;
+
+	}
+
+	field.data.fetch = function() {
+
+		field.data.loading = true;
+		field.triggerEvent("update");
+
+		if (field.resource.options) {
+
+			return Promise.resolve(field.data.parseOptions(field.resource.options));
+
+		} else {
+
+			// return field.triggerEvent("fetch", true).then(function(results) {
+			// 	return field.data.parseOptions(results.items || results || []);
+			// });
+
+			return field.fetch().then(function(results) {
+
+				field.data.loading = false;
+				return field.data.parseOptions(results.items || results || []);
+			});
+
+		}
+
+	}
+
+	return field;
+}
+
+
+KarmaFieldsAlpha.fields.dropdown.build = function(field) {
 
 
 	return {
@@ -9,85 +103,8 @@ KarmaFields.fields.dropdown = function(field) {
 			this.element.onchange = function() {
 				field.setValue(this.value, "change");
 			}
-
-			// if (field.resource.script_init) {
-			// 	(new Function("element", "field", field.resource.script_init))(this.element, field);
-			// }
-
-
-			// if (!field.data.options) {
-			// 	field.data.options = KarmaFields.Field({
-			// 		datatype: "array",
-			// 		value: []
-			// 	});
-			// }
-
-
-
-
-			// field.data.optgroups = field.data.optgroups || KarmaFields.Field({
-			// 	datatype: "array",
-			// 	value: []
-			// }, null, {
-			// 	change: function() {
-			// 		field.trigger("render");
-			// 	}
-			// });
-
-
-
-			field.data.fetch = function() {
-
-				field.data.loading = true;
-				field.trigger("update");
-
-				let promise = field.resource.options && Promise.resolve(field.resource.options) || field.trigger("fetch", field);
-
-				return promise.then(function(results) {
-
-					let items = results.items || results || [];
-
-					if (field.resource.novalue !== undefined) {
-
-						let emptyItem = {}
-
-						switch (field.resource.datatype) {
-
-							case "boolean":
-								emptyItem.key = "false";
-								break;
-
-							case "number":
-								emptyItem.key = "0";
-								break;
-
-							default:
-								emptyItem.key = "";
-								break;
-
-						}
-
-						if (field.resource.novalue === true) {
-
-							emptyItem.name = "-";
-
-						} else {
-
-							emptyItem.name = field.resource.novalue;
-
-						}
-
-						items = [emptyItem].concat(items);
-					}
-
-					return items;
-				});
-
-			}
-
 		},
 		update: function(dropdown) {
-
 			field.data.fetch().then(function(items) {
 
 				let hasOptgroups = items.some(function(item) {
@@ -98,7 +115,7 @@ KarmaFields.fields.dropdown = function(field) {
 
 					let optgroups = items.reduce(function(obj, item) {
 						let group = obj.find(function(group) {
-							return group.name === item.group || "default";
+							return group.name === (item.group || "default");
 						});
 						if (!group) {
 							group = {
@@ -115,7 +132,7 @@ KarmaFields.fields.dropdown = function(field) {
 						return {
 							tag: "optgroup",
 							update: function() {
-								this.label = optgroup.name;
+								this.element.label = optgroup.name;
 								this.children = optgroup.children.map(function(option) {
 									return {
 										tag: "option",
@@ -149,7 +166,7 @@ KarmaFields.fields.dropdown = function(field) {
 
 				field.data.loading = false;
 
-				field.trigger("update");
+				field.triggerEvent("update");
 
 			});
 
@@ -159,7 +176,7 @@ KarmaFields.fields.dropdown = function(field) {
 
 
 
-// KarmaFields.fields.dropdown = function(field) {
+// KarmaFieldsAlpha.fields.dropdown = function(field) {
 // 	return {
 // 		tag: "select",
 // 		class: "dropdown",

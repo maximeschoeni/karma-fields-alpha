@@ -1,4 +1,4 @@
-KarmaFields.fields.checkboxtest = function(field) {
+KarmaFieldsAlpha.fields.checkboxtest = function(field) {
 	return {
 		tag: "button",
 		class: "on-off",
@@ -10,8 +10,8 @@ KarmaFields.fields.checkboxtest = function(field) {
 			});
 		},
 		update: function() {
-			this.child = KarmaFields.includes.icon({
-				file: KarmaFields.icons_url+"/"+(field.getValue() === "1" ? "yes.svg" : "no-alt.svg")
+			this.child = KarmaFieldsAlpha.includes.icon({
+				file: KarmaFieldsAlpha.icons_url+"/"+(field.getValue() === "1" ? "yes.svg" : "no-alt.svg")
 			});
 		}
 	};

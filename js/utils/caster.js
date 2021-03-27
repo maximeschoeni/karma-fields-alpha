@@ -1,4 +1,4 @@
-// KarmaFields.cast = function(value, type) {
+// KarmaFieldsAlpha.cast = function(value, type) {
 // 	if (type === "array") {
 // 		if (!Array.isArray(value)) {
 // 			if (value && typeof value === "object") {

@@ -1,4 +1,4 @@
-KarmaFields.fields.search = function(fieldManager) {
+KarmaFieldsAlpha.fields.search = function(fieldManager) {
 	return {
 		class: "search-form",
 		init: function(container) {

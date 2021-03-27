@@ -1,5 +1,5 @@
-KarmaFields.fields.grid = function(field) {
-  var select = KarmaFields.selectors.grid();
+KarmaFieldsAlpha.fields.grid = function(field) {
+  var select = KarmaFieldsAlpha.selectors.grid();
 
 
   var gridManager = {
@@ -72,13 +72,13 @@ KarmaFields.fields.grid = function(field) {
     return value;
   };
 
-  KarmaFields.events.onCopy = function(event) {
+  KarmaFieldsAlpha.events.onCopy = function(event) {
 		select.onCopy(event);
 	}
-	KarmaFields.events.onPast = function(event) {
+	KarmaFieldsAlpha.events.onPast = function(event) {
 		select.onPast(event);
 	}
-  KarmaFields.events.onDelete = function(event) {
+  KarmaFieldsAlpha.events.onDelete = function(event) {
     if (document.activeElement === document.body) {
       // var rect = select.getSelectionRect();
       // if (rect.width > 1 || rect.height > 1) {
@@ -94,16 +94,16 @@ KarmaFields.fields.grid = function(field) {
       // }
     }
 	};
-  KarmaFields.events.onSelectAll = function(event) {
+  KarmaFieldsAlpha.events.onSelectAll = function(event) {
 		select.onSelectAll(event);
 	};
-  KarmaFields.events.onClick = function(event) {
+  KarmaFieldsAlpha.events.onClick = function(event) {
 		select.onClick();
 	};
-  KarmaFields.events.onClick = function(event) {
+  KarmaFieldsAlpha.events.onClick = function(event) {
 		select.onClick();
 	};
-  KarmaFields.events.onArrowUp = function(event) {
+  KarmaFieldsAlpha.events.onArrowUp = function(event) {
     var rect = select.getSelectionRect();
     if (rect.top > 0) {
       rect.top--;
@@ -112,7 +112,7 @@ KarmaFields.fields.grid = function(field) {
       select.select(rect);
     }
 	};
-  KarmaFields.events.onArrowDown = function(event) {
+  KarmaFieldsAlpha.events.onArrowDown = function(event) {
     var rect = select.getSelectionRect();
     if (rect.top + rect.height < select.rect.height) {
       rect.top = rect.top + rect.height;
@@ -121,7 +121,7 @@ KarmaFields.fields.grid = function(field) {
       select.select(rect);
     }
 	};
-  KarmaFields.events.onArrowLeft = function(event) {
+  KarmaFieldsAlpha.events.onArrowLeft = function(event) {
     var rect = select.getSelectionRect();
     if (rect.left > 0) {
       rect.left--;
@@ -130,7 +130,7 @@ KarmaFields.fields.grid = function(field) {
       select.select(rect);
     }
 	};
-  KarmaFields.events.onArrowRight = function(event) {
+  KarmaFieldsAlpha.events.onArrowRight = function(event) {
     var rect = select.getSelectionRect();
     if (rect.left + rect.width < select.rect.width) {
       rect.left = rect.left + rect.width;
@@ -140,39 +140,39 @@ KarmaFields.fields.grid = function(field) {
     }
 	};
 
-	// return KarmaFields.build({
+	// return KarmaFieldsAlpha.build({
 	// 	class: "karma-field grid-field",
 	// 	children: function() {
 	// 		return [
-	// 			field.resource.label && KarmaFields.build({
+	// 			field.resource.label && KarmaFieldsAlpha.build({
 	// 				tag: "label",
 	// 				init: function(label) {
 	// 					label.htmlFor = field.id;
 	// 					label.innerHTML = field.resource.label;
 	// 				}
 	// 			}),
-        return KarmaFields.build({
+        return KarmaFieldsAlpha.build({
       		class: "karma-field-grid",
       		children: function() {
       			return [
-              KarmaFields.build({
+              KarmaFieldsAlpha.build({
                 class: "field-controls",
                 child: function() {
-                  return KarmaFields.build({
+                  return KarmaFieldsAlpha.build({
                     class: "field-controls-group",
                     children: function() {
                       return [
-                        KarmaFields.includes.icon({
+                        KarmaFieldsAlpha.includes.icon({
                           tag: "button",
                           // text: function() {
-                          //   return fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
+                          //   return fetch(KarmaFieldsAlpha.icons_url+"/table-row-before.svg").then(function(response) {
                           //     return response.text();
                           //   });
                           // },
-                          // text: () => fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
+                          // text: () => fetch(KarmaFieldsAlpha.icons_url+"/table-row-before.svg").then(function(response) {
                           //   return response.text();
                           // }),
-                          url: KarmaFields.icons_url+"/table-row-before.svg",
+                          url: KarmaFieldsAlpha.icons_url+"/table-row-before.svg",
                           init: function(element, update) {
                             element.addEventListener("click", function(event) {
                               event.preventDefault();
@@ -187,18 +187,18 @@ KarmaFields.fields.grid = function(field) {
                             element.addEventListener("mouseup", function(event) {
                               event.stopPropagation();
                             });
-                            // fetch(KarmaFields.icons_url+"/table-row-before.svg").then(function(response) {
+                            // fetch(KarmaFieldsAlpha.icons_url+"/table-row-before.svg").then(function(response) {
                             //   return response.text();
                             // }).then(function(result) {
                             //   element.innerHTML = result;
                             // });
                           }
                         }),
-                        KarmaFields.includes.icon({
+                        KarmaFieldsAlpha.includes.icon({
                           tag: "button",
-                          url: KarmaFields.icons_url+"/table-row-after.svg",
+                          url: KarmaFieldsAlpha.icons_url+"/table-row-after.svg",
                           init: function(element) {
-                            // fetch(KarmaFields.icons_url+"/table-row-after.svg").then(function(response) {
+                            // fetch(KarmaFieldsAlpha.icons_url+"/table-row-after.svg").then(function(response) {
                             //   return response.text();
                             // }).then(function(result) {
                             //   element.innerHTML = result;
@@ -217,12 +217,12 @@ KarmaFields.fields.grid = function(field) {
                             });
                           }
                         }),
-                        KarmaFields.includes.icon({
+                        KarmaFieldsAlpha.includes.icon({
                           tag: "button",
-                          url: KarmaFields.icons_url+"/table-col-before.svg",
+                          url: KarmaFieldsAlpha.icons_url+"/table-col-before.svg",
                           init: function(element) {
                             // element.innerText = "add col before";
-                            // fetch(KarmaFields.icons_url+"/table-col-before.svg").then(function(response) {
+                            // fetch(KarmaFieldsAlpha.icons_url+"/table-col-before.svg").then(function(response) {
                             //   return response.text();
                             // }).then(function(result) {
                             //   element.innerHTML = result;
@@ -242,11 +242,11 @@ KarmaFields.fields.grid = function(field) {
                             });
                           }
                         }),
-                        KarmaFields.includes.icon({
+                        KarmaFieldsAlpha.includes.icon({
                           tag: "button",
-                          url: KarmaFields.icons_url+"/table-col-after.svg",
+                          url: KarmaFieldsAlpha.icons_url+"/table-col-after.svg",
                           init: function(element) {
-                            // fetch(KarmaFields.icons_url+"/table-col-after.svg").then(function(response) {
+                            // fetch(KarmaFieldsAlpha.icons_url+"/table-col-after.svg").then(function(response) {
                             //   return response.text();
                             // }).then(function(result) {
                             //   element.innerHTML = result;
@@ -265,11 +265,11 @@ KarmaFields.fields.grid = function(field) {
                             });
                           }
                         }),
-                        KarmaFields.includes.icon({
+                        KarmaFieldsAlpha.includes.icon({
                           tag: "button",
-                          url: KarmaFields.icons_url+"/table-row-delete.svg",
+                          url: KarmaFieldsAlpha.icons_url+"/table-row-delete.svg",
                           init: function(element) {
-                            // fetch(KarmaFields.icons_url+"/table-row-delete.svg").then(function(response) {
+                            // fetch(KarmaFieldsAlpha.icons_url+"/table-row-delete.svg").then(function(response) {
                             //   return response.text();
                             // }).then(function(result) {
                             //   element.innerHTML = result;
@@ -290,12 +290,12 @@ KarmaFields.fields.grid = function(field) {
                             });
                           }
                         }),
-                        KarmaFields.includes.icon({
+                        KarmaFieldsAlpha.includes.icon({
                           tag: "button",
-                          url: KarmaFields.icons_url+"/table-col-delete.svg",
+                          url: KarmaFieldsAlpha.icons_url+"/table-col-delete.svg",
                           init: function(element) {
                             // element.innerText = "remove col";
-                            // fetch(KarmaFields.icons_url+"/table-col-delete.svg").then(function(response) {
+                            // fetch(KarmaFieldsAlpha.icons_url+"/table-col-delete.svg").then(function(response) {
                             //   return response.text();
                             // }).then(function(result) {
                             //   element.innerHTML = result;
@@ -321,11 +321,11 @@ KarmaFields.fields.grid = function(field) {
                   });
                 }
               }),
-              KarmaFields.build({
+              KarmaFieldsAlpha.build({
                 tag: "table",
                 class: "grid",
                 child: function() {
-                  return KarmaFields.build({
+                  return KarmaFieldsAlpha.build({
                     tag: "tbody",
                     init: function(element, update) {
                       field.onUpdate = function(value) {
@@ -343,7 +343,7 @@ KarmaFields.fields.grid = function(field) {
                       });
                       return rowsField.get().map(function(row, y) {
                         select.addRow(y, y);
-                        return KarmaFields.build({
+                        return KarmaFieldsAlpha.build({
                           tag: "tr",
                           children: function() {
                             var cellsField = rowsField.createChild({
@@ -357,14 +357,14 @@ KarmaFields.fields.grid = function(field) {
                               }).createChild({
                                 child_key: "text",
                               });
-                              return KarmaFields.build({
+                              return KarmaFieldsAlpha.build({
                                 tag: "td",
                                 init: function(cell, update) {
                                   select.addField(cell, inputField, x, y);
                                   update();
                                 },
                                 child: function() {
-                                  return KarmaFields.fields.textinput(inputField);
+                                  return KarmaFieldsAlpha.fields.textinput(inputField);
                                 }
                               });
                             });

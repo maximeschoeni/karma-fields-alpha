@@ -1,8 +1,9 @@
-KarmaFields.fields.header = function(manager) {
+KarmaFieldsAlpha.fields.header = {};
+KarmaFieldsAlpha.fields.header.build = function(manager) {
 	return {
-		tag: manager.resource.level || "h1",
+		tag: manager.resource.level || "h3",
 		init: function() {
-			this.element.textContent = manager.resource.title;
+			this.element.textContent = manager.resource.value;
 		}
 	};
 }

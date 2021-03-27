@@ -1,22 +1,24 @@
-if (!window.KarmaFields) {
-	KarmaFields = {};
+if (!window.KarmaFieldsAlpha) {
+	KarmaFieldsAlpha = {};
 }
-KarmaFields.customfields = {};
+KarmaFieldsAlpha.customfields = {};
 
-KarmaFields.fields = {};
-KarmaFields.filters = {};
-KarmaFields.tables = {};
-KarmaFields.managers = {};
-KarmaFields.selectors = {};
-KarmaFields.utils = {};
-KarmaFields.includes = {};
-KarmaFields.events = {};
-KarmaFields.assets = {};
-KarmaFields.fetchCache = {};
-KarmaFields.Loading = function(){}; // create loading instance
-KarmaFields.wm = {};
+KarmaFieldsAlpha.fields = {};
+KarmaFieldsAlpha.fieldsOptions = {};
 
-KarmaFields.storage = { //Window.sessionStorage || {
+KarmaFieldsAlpha.filters = {};
+KarmaFieldsAlpha.tables = {};
+KarmaFieldsAlpha.managers = {};
+KarmaFieldsAlpha.selectors = {};
+KarmaFieldsAlpha.utils = {};
+KarmaFieldsAlpha.includes = {};
+KarmaFieldsAlpha.events = {};
+KarmaFieldsAlpha.assets = {};
+KarmaFieldsAlpha.fetchCache = {};
+KarmaFieldsAlpha.Loading = function(){}; // create loading instance
+KarmaFieldsAlpha.wm = {};
+
+KarmaFieldsAlpha.storage = { //Window.sessionStorage || {
 	values: {},
 	getItem: function(key) {
 		return this.values[key];
@@ -29,63 +31,63 @@ KarmaFields.storage = { //Window.sessionStorage || {
 	}
 };
 
-KarmaFields.getAsset = function(url) {
-	if (!KarmaFields.assets[url]) {
-		KarmaFields.assets[url] = fetch(url).then(function(response) {
+KarmaFieldsAlpha.getAsset = function(url) {
+	if (!KarmaFieldsAlpha.assets[url]) {
+		KarmaFieldsAlpha.assets[url] = fetch(url).then(function(response) {
 			return response.text();
 		});
 	}
-	return KarmaFields.assets[url];
+	return KarmaFieldsAlpha.assets[url];
 }
-// KarmaFields.getIcon = function(url) {
-// 	KarmaFields.getAsset(url).then(function(result) {
+// KarmaFieldsAlpha.getIcon = function(url) {
+// 	KarmaFieldsAlpha.getAsset(url).then(function(result) {
 // 		requestAnimationFrame(function() {
 // 			element.innerHTML = result;
 // 		});
 // 	})
 // };
 window.addEventListener("keydown", function(event) {
-	if (event.metaKey && event.key === "c" && KarmaFields.events.onCopy) {
-		KarmaFields.events.onCopy(event);
+	if (event.metaKey && event.key === "c" && KarmaFieldsAlpha.events.onCopy) {
+		KarmaFieldsAlpha.events.onCopy(event);
 	}
-	if (event.metaKey && event.key === "v" && KarmaFields.events.onPast) {
-		KarmaFields.events.onPast(event);
+	if (event.metaKey && event.key === "v" && KarmaFieldsAlpha.events.onPast) {
+		KarmaFieldsAlpha.events.onPast(event);
 	}
-	if (event.metaKey && event.key === "a" && KarmaFields.events.onSelectAll) {
-		KarmaFields.events.onSelectAll(event);
+	if (event.metaKey && event.key === "a" && KarmaFieldsAlpha.events.onSelectAll) {
+		KarmaFieldsAlpha.events.onSelectAll(event);
 	}
-	if (event.metaKey && event.key === "s" && KarmaFields.events.onSave) {
-		KarmaFields.events.onSave(event);
+	if (event.metaKey && event.key === "s" && KarmaFieldsAlpha.events.onSave) {
+		KarmaFieldsAlpha.events.onSave(event);
 	}
-	if (event.metaKey && !event.shiftKey && event.key === "z" && KarmaFields.events.onUndo) {
-		KarmaFields.events.onUndo(event);
+	if (event.metaKey && !event.shiftKey && event.key === "z" && KarmaFieldsAlpha.events.onUndo) {
+		KarmaFieldsAlpha.events.onUndo(event);
 	}
-	if (event.metaKey && event.shiftKey && event.key === "z" && KarmaFields.events.onRedo) {
-		KarmaFields.events.onRedo(event);
+	if (event.metaKey && event.shiftKey && event.key === "z" && KarmaFieldsAlpha.events.onRedo) {
+		KarmaFieldsAlpha.events.onRedo(event);
 	}
-	if (event.key === "Backspace" && KarmaFields.events.onDelete) {
-		KarmaFields.events.onDelete(event);
+	if (event.key === "Backspace" && KarmaFieldsAlpha.events.onDelete) {
+		KarmaFieldsAlpha.events.onDelete(event);
 	}
-	if (event.key === "+" && KarmaFields.events.onAdd) {
-		KarmaFields.events.onAdd(event);
-	}
-
-	if (event.key === "ArrowUp" && KarmaFields.events.onArrowUp) {
-		KarmaFields.events.onArrowUp(event);
-	}
-	if (event.key === "ArrowDown" && KarmaFields.events.onArrowDown) {
-		KarmaFields.events.onArrowDown(event);
-	}
-	if (event.key === "ArrowLeft" && KarmaFields.events.onArrowLeft) {
-		KarmaFields.events.onArrowLeft(event);
-	}
-	if (event.key === "ArrowRight" && KarmaFields.events.onArrowRight) {
-		KarmaFields.events.onArrowRight(event);
+	if (event.key === "+" && KarmaFieldsAlpha.events.onAdd) {
+		KarmaFieldsAlpha.events.onAdd(event);
 	}
 
-	KarmaFields.events.unload
-	if (event.key === "Backspace" && KarmaFields.events.onUnload) {
-		KarmaFields.events.onDelete(event);
+	if (event.key === "ArrowUp" && KarmaFieldsAlpha.events.onArrowUp) {
+		KarmaFieldsAlpha.events.onArrowUp(event);
+	}
+	if (event.key === "ArrowDown" && KarmaFieldsAlpha.events.onArrowDown) {
+		KarmaFieldsAlpha.events.onArrowDown(event);
+	}
+	if (event.key === "ArrowLeft" && KarmaFieldsAlpha.events.onArrowLeft) {
+		KarmaFieldsAlpha.events.onArrowLeft(event);
+	}
+	if (event.key === "ArrowRight" && KarmaFieldsAlpha.events.onArrowRight) {
+		KarmaFieldsAlpha.events.onArrowRight(event);
+	}
+
+	KarmaFieldsAlpha.events.unload
+	if (event.key === "Backspace" && KarmaFieldsAlpha.events.onUnload) {
+		KarmaFieldsAlpha.events.onDelete(event);
 	}
 
 
@@ -93,14 +95,14 @@ window.addEventListener("keydown", function(event) {
 });
 
 document.addEventListener("mouseup", function() {
-  if (KarmaFields.events.onClick) {
-    KarmaFields.events.onClick();
+  if (KarmaFieldsAlpha.events.onClick) {
+    KarmaFieldsAlpha.events.onClick();
   }
 });
 
 window.addEventListener("beforeunload", function() {
-	if (KarmaFields.events.onUnload) {
-		KarmaFields.events.onUnload();
+	if (KarmaFieldsAlpha.events.onUnload) {
+		KarmaFieldsAlpha.events.onUnload();
 	}
 });
 
@@ -108,11 +110,11 @@ window.addEventListener("beforeunload", function() {
 
 
 //
-// KarmaFields.attachmentPromises = {};
-// KarmaFields.getImageSrc = function(id, callback) {
-// 	if (!KarmaFields.attachmentPromises[id]) {
-// 		KarmaFields.attachmentPromises[id] = new Promise(function(resolve, reject) {
-// 			Ajax.get(KarmaFields.ajax_url, {
+// KarmaFieldsAlpha.attachmentPromises = {};
+// KarmaFieldsAlpha.getImageSrc = function(id, callback) {
+// 	if (!KarmaFieldsAlpha.attachmentPromises[id]) {
+// 		KarmaFieldsAlpha.attachmentPromises[id] = new Promise(function(resolve, reject) {
+// 			Ajax.get(KarmaFieldsAlpha.ajax_url, {
 // 				action: "karma_multimedia_get_image_src",
 // 				id: id
 // 			}, function(results) {
@@ -121,14 +123,14 @@ window.addEventListener("beforeunload", function() {
 // 		});
 // 	}
 // 	if (callback) {
-// 		KarmaFields.attachmentPromises[id].then(callback);
+// 		KarmaFieldsAlpha.attachmentPromises[id].then(callback);
 // 	}
-// 	return KarmaFields.attachmentPromises[id];
+// 	return KarmaFieldsAlpha.attachmentPromises[id];
 // }
 
 
-// KarmaFields.save = function(post, data) {
-// 	return fetch(KarmaFields.rest+"/update/post/"+post.id, {
+// KarmaFieldsAlpha.save = function(post, data) {
+// 	return fetch(KarmaFieldsAlpha.rest+"/update/post/"+post.id, {
 // 		method: "post",
 // 		headers: {"Content-Type": "application/json"},
 // 		body: JSON.stringify(data),
@@ -137,20 +139,20 @@ window.addEventListener("beforeunload", function() {
 // 		return result.json();
 // 	});
 // };
-// KarmaFields.get = function(key, postURI) {
-// 	return fetch(KarmaFields.cache+"/"+postURI+"/"+key);
+// KarmaFieldsAlpha.get = function(key, postURI) {
+// 	return fetch(KarmaFieldsAlpha.cache+"/"+postURI+"/"+key);
 // };
 
 
 
 
 //
-// KarmaFields.terms = {
+// KarmaFieldsAlpha.terms = {
 // 	promises: {},
 // 	getPromise: function(taxonomy) {
 // 		if (!this.promises[taxonomy]) {
 // 			this.promises[taxonomy] = new Promise(function(resolve, reject) {
-// 				Ajax.get(KarmaFields.ajax_url, {
+// 				Ajax.get(KarmaFieldsAlpha.ajax_url, {
 // 					action: "karma_field_get_terms",
 // 					taxonomy: taxonomy
 // 				}, function(results) {
@@ -167,7 +169,7 @@ window.addEventListener("beforeunload", function() {
 // };
 
 
-KarmaFields.createImageUploader = function() {
+KarmaFieldsAlpha.createImageUploader = function() {
 	var manager = {
 		addFrame: null,
 		imageId: null,
@@ -208,7 +210,7 @@ KarmaFields.createImageUploader = function() {
 	}
 	return manager;
 }
-KarmaFields.createGalleryUploader = function() {
+KarmaFieldsAlpha.createGalleryUploader = function() {
 	var manager = {
 		frame: null,
 		imageIds: null,

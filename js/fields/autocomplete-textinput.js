@@ -1,4 +1,4 @@
-KarmaFields.fields.autocompletetextinput = function(field) {
+KarmaFieldsAlpha.fields.autocompletetextinput = function(field) {
 	var manager = {};
 	return {
 		class: "autocomplete-input",

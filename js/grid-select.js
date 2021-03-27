@@ -1,10 +1,10 @@
-KarmaFields.selectors.grid = function(tableManager) {
+KarmaFieldsAlpha.selectors.grid = function(tableManager) {
 	var manager = {
 		rows: {}, // deprecated
 		grid: {},
 
-		rect: KarmaFields.utils.rect(),
-		selectionRect: KarmaFields.utils.rect(),
+		rect: KarmaFieldsAlpha.utils.rect(),
+		selectionRect: KarmaFieldsAlpha.utils.rect(),
 
 		init: function() {
 			this.rows = {}; // deprecated
@@ -12,7 +12,7 @@ KarmaFields.selectors.grid = function(tableManager) {
 			this.rect.set();
 		},
 		createRect: function(x, y, width, height) {
-			return KarmaFields.utils.rect(x, y, width, height).intersect(this.rect);
+			return KarmaFieldsAlpha.utils.rect(x, y, width, height).intersect(this.rect);
 		},
 		getSelectionRect: function() {
 			return this.selectionRect.intersect(this.rect);
@@ -303,6 +303,7 @@ KarmaFields.selectors.grid = function(tableManager) {
 
 			this.selectionRect = rect;
 		},
+
 		onClick: function() {
 			if (this.selection) {
 				this.selection = null;
@@ -615,6 +616,6 @@ KarmaFields.selectors.grid = function(tableManager) {
 			// });
 		}
 	};
-	KarmaFields.currentSelector = manager; // ??
+	KarmaFieldsAlpha.currentSelector = manager; // ??
 	return manager;
 };

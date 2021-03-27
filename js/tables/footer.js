@@ -1,4 +1,4 @@
-KarmaFields.tables.footer = function(manager) {
+KarmaFieldsAlpha.tables.footer = function(manager) {
   return {
     class: "table-footer",
     init: function() {
@@ -38,7 +38,7 @@ KarmaFields.tables.footer = function(manager) {
 
 
 
-                  // var field = KarmaFields.managers.field();
+                  // var field = KarmaFieldsAlpha.managers.field();
                   // field.resource = manager.resource.options;
                   // // field.input = ["options"];
                   // // field.output = ["options"];
@@ -62,7 +62,7 @@ KarmaFields.tables.footer = function(manager) {
                   // });
                   this.children = optionField.createChild(manager.resource.options).build();
                 }
-                // var field = KarmaFields.managers.field(manager.resource.options, {
+                // var field = KarmaFieldsAlpha.managers.field(manager.resource.options, {
                 //   inputBuffer: "options",
                 //   outputBuffer: "options",
                 //   history: manager.history,
@@ -81,7 +81,7 @@ KarmaFields.tables.footer = function(manager) {
             //   //       tag: "button",
             //   //       class: "button footer-item",
             //   //       init: function(item) {
-            //   //         KarmaFields.getAsset(KarmaFields.icons_url+"/no.svg").then(function(result) {
+            //   //         KarmaFieldsAlpha.getAsset(KarmaFieldsAlpha.icons_url+"/no.svg").then(function(result) {
             //   //           requestAnimationFrame(function() {
             //   //             item.element.innerHTML = result;
             //   //           });
@@ -101,7 +101,7 @@ KarmaFields.tables.footer = function(manager) {
           //     class: "table-options-body",
           //     init: function(element, render, args) {
           //       // manager.renderOptions = render; // trigerred when history changes
-          //       var field = KarmaFields.managers.field(manager.resource.options, {
+          //       var field = KarmaFieldsAlpha.managers.field(manager.resource.options, {
           //         inputBuffer: "options",
           //         outputBuffer: "options",
           //         history: manager.history,
@@ -113,10 +113,10 @@ KarmaFields.tables.footer = function(manager) {
           //   {
           //     class: "table-options-footer",
           //     children: [
-          //       KarmaFields.includes.icon({
+          //       KarmaFieldsAlpha.includes.icon({
           //         tag: "button",
           //         class: "button footer-item",
-          //         url: KarmaFields.icons_url+"/no.svg",
+          //         url: KarmaFieldsAlpha.icons_url+"/no.svg",
           //         init: function(element, update) {
           //           element.addEventListener("click", function() {
           //             manager.displayOptions = false;
@@ -137,7 +137,7 @@ KarmaFields.tables.footer = function(manager) {
                 // {
                 //   class: "footer-item table-spinner karma-icon",
                 //   init: function(item) {
-                //     KarmaFields.getAsset(KarmaFields.icons_url+"/update.svg").then(function(result) {
+                //     KarmaFieldsAlpha.getAsset(KarmaFieldsAlpha.icons_url+"/update.svg").then(function(result) {
                 //       requestAnimationFrame(function() {
                 //         item.element.innerHTML = result;
                 //       });
@@ -160,7 +160,7 @@ KarmaFields.tables.footer = function(manager) {
                         var loading = manager.history.read("static", ["loading"]);
                         this.element.classList.toggle("loading", loading);
                       },
-                      child: KarmaFields.includes.icon(KarmaFields.icons_url+"/update.svg")
+                      child: KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/update.svg")
                     };
                     this.element.addEventListener("click", function(event) {
                       manager.request().then(function() {
@@ -198,12 +198,12 @@ KarmaFields.tables.footer = function(manager) {
                   class: "button footer-item",
                   init: function(item) {
                     this.element.title = "Options";
-                    // KarmaFields.getAsset(KarmaFields.icons_url+"/admin-generic.svg").then(function(result) {
+                    // KarmaFieldsAlpha.getAsset(KarmaFieldsAlpha.icons_url+"/admin-generic.svg").then(function(result) {
                     //   requestAnimationFrame(function() {
                     //     item.element.innerHTML = result;
                     //   });
                     // });
-                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/admin-generic.svg");
+                    this.child = KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/admin-generic.svg");
                     this.element.addEventListener("click", function(event) {
                       var displayOptions = manager.history.read("static", ["displayOptions"]);
 
@@ -227,8 +227,8 @@ KarmaFields.tables.footer = function(manager) {
                   class: "button footer-item",
                   init: function(item) {
                     this.element.title = "Undo";
-                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/undo.svg");
-                    // KarmaFields.getAsset(KarmaFields.icons_url+"/undo.svg").then(function(result) {
+                    this.child = KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/undo.svg");
+                    // KarmaFieldsAlpha.getAsset(KarmaFieldsAlpha.icons_url+"/undo.svg").then(function(result) {
                     //   requestAnimationFrame(function() {
                     //     item.innerHTML = result;
                     //   });
@@ -250,8 +250,8 @@ KarmaFields.tables.footer = function(manager) {
                   class: "button footer-item",
                   init: function(item) {
                     this.element.title = "Redo";
-                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/redo.svg");
-                    // KarmaFields.getAsset(KarmaFields.icons_url+"/redo.svg").then(function(result) {
+                    this.child = KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/redo.svg");
+                    // KarmaFieldsAlpha.getAsset(KarmaFieldsAlpha.icons_url+"/redo.svg").then(function(result) {
                     //   requestAnimationFrame(function() {
                     //     item.element.innerHTML = result;
                     //   });
@@ -273,8 +273,8 @@ KarmaFields.tables.footer = function(manager) {
                   class: "button footer-item",
                   init: function(item) {
                     this.element.title = "Add";
-                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/plus-alt2.svg");
-                    // KarmaFields.getAsset(KarmaFields.icons_url+"/plus-alt2.svg").then(function(result) {
+                    this.child = KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/plus-alt2.svg");
+                    // KarmaFieldsAlpha.getAsset(KarmaFieldsAlpha.icons_url+"/plus-alt2.svg").then(function(result) {
                     //   requestAnimationFrame(function() {
                     //     item.element.innerHTML = result;
                     //   });
@@ -294,8 +294,8 @@ KarmaFields.tables.footer = function(manager) {
                   class: "button footer-item",
                   init: function(item) {
                     this.element.title = "Delete";
-                    this.child = KarmaFields.includes.icon(KarmaFields.icons_url+"/trash.svg");
-                    // KarmaFields.getAsset(KarmaFields.icons_url+"/trash.svg").then(function(result) {
+                    this.child = KarmaFieldsAlpha.includes.icon(KarmaFieldsAlpha.icons_url+"/trash.svg");
+                    // KarmaFieldsAlpha.getAsset(KarmaFieldsAlpha.icons_url+"/trash.svg").then(function(result) {
                     //   requestAnimationFrame(function() {
                     //     item.element.innerHTML = result;
                     //   });
@@ -321,7 +321,7 @@ KarmaFields.tables.footer = function(manager) {
                 }
               ]
             },
-            KarmaFields.tables.pagination(manager)
+            KarmaFieldsAlpha.tables.pagination(manager)
           ]
         }
       ];

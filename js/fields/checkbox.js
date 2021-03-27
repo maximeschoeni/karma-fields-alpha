@@ -1,4 +1,4 @@
-KarmaFields.fields.checkbox = function(field) {
+KarmaFieldsAlpha.fields.checkbox = function(field) {
 	return {
 		class: "checkbox",
 		children: [

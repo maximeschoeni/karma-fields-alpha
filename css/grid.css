@@ -3,7 +3,7 @@
 /* WP Layout
 --------------------------------------*/
 
-#wpbody-content {
+/* #wpbody-content {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 0px);
@@ -11,7 +11,7 @@
   padding-bottom: 0;
   z-index: 1;
   position: relative;
-}
+} */
 .karma-fields-table {
   flex-grow: 1;
   display: flex;
@@ -1116,6 +1116,13 @@ td.modified .on-off svg path {
 /* Group
 --------------------------------------*/
 
+.karma-field-group>:not(.karma-field-group) {
+  margin: 0 0 1em;
+}
+.karma-field-group label {
+  display: block;
+}
+
 
 /* .karma-field-group-container.display-block>* {
   margin-bottom: 1em;
@@ -1126,8 +1133,8 @@ td.modified .on-off svg path {
 .karma-field-group.display-block>* {
 }
 .karma-field-group.display-block>*>label {
-  display: block;
-  margin-top: 10px;
+  /* display: block; */
+  /* margin-top: 10px; */
 }
 
 
@@ -1151,10 +1158,10 @@ td.modified .on-off svg path {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  margin: 0 -5px -1em;
+  margin: 0 -5px 0;
 }
 .karma-field-group.display-flex>* {
-  padding: 0 5px 1em;
+  margin: 0 5px 1em;
   /* width: 100%;
   min-width: 480px; */
   box-sizing: border-box;

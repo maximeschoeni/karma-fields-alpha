@@ -1,11 +1,11 @@
 
-KarmaFields.fields.table = function(field) {
+KarmaFieldsAlpha.fields.table = function(field) {
 
   return {
     class: "karma-field-table",
     init: function(container) {
 
-      field.data.filters = KarmaFields.Field(field.resource.filters);
+      field.data.filters = KarmaFieldsAlpha.Field(field.resource.filters);
 
       field.data.filters.events.change = function(currentField) {
         currentField.data.loading = true;
@@ -22,7 +22,7 @@ KarmaFields.fields.table = function(field) {
       }
 
 
-      field.data.orderby = KarmaFields.Field({
+      field.data.orderby = KarmaFieldsAlpha.Field({
         key: "orderby",
         type: "hidden",
         value: field.resource.orderby
@@ -31,7 +31,7 @@ KarmaFields.fields.table = function(field) {
           currentField.history.save();
         }
       });
-      field.data.order = KarmaFields.Field({
+      field.data.order = KarmaFieldsAlpha.Field({
         key: "order",
         type: "hidden",
         value: field.resource.columns.find(function(column) {
@@ -42,7 +42,7 @@ KarmaFields.fields.table = function(field) {
           currentField.history.save();
         }
       });
-      field.data.page = KarmaFields.Field({
+      field.data.page = KarmaFieldsAlpha.Field({
         key: "page",
         type: "hidden",
         value: 1,
@@ -52,14 +52,14 @@ KarmaFields.fields.table = function(field) {
           currentField.history.save();
         }
       });
-      field.data.ppp = KarmaFields.Field({
+      field.data.ppp = KarmaFieldsAlpha.Field({
         key: "ppp",
         type: "hidden",
         value: field.resource.ppp || 50,
         datatype: "number"
       });
 
-      field.data.count = KarmaFields.Field({
+      field.data.count = KarmaFieldsAlpha.Field({
         key: "count",
         type: "hidden",
         datatype: "number"
@@ -68,7 +68,7 @@ KarmaFields.fields.table = function(field) {
           currentField.history.save();
         }
       });
-      field.data.ids = KarmaFields.Field({
+      field.data.ids = KarmaFieldsAlpha.Field({
         key: "ids",
         type: "hidden",
         datatype: "array"
@@ -83,7 +83,7 @@ KarmaFields.fields.table = function(field) {
       }
 
       field.events.change = function(currentField) {
-        KarmaFields.History.update(currentField);
+        KarmaFieldsAlpha.History.update(currentField);
         currentField.history.save();
 
         field.trigger("renderFooter");
@@ -102,7 +102,7 @@ KarmaFields.fields.table = function(field) {
             if (value[column.field.key] === undefined) {
               child.data.loading = true;
               child.trigger("update");
-              KarmaFields.Form.get(field.resource.driver, value.id+"/"+column.field.key).then(function(value) {
+              KarmaFieldsAlpha.Form.get(field.resource.driver, value.id+"/"+column.field.key).then(function(value) {
                 child.data.loading = false;
                 child.setValue(value, "set");
               });
@@ -123,7 +123,7 @@ KarmaFields.fields.table = function(field) {
           ppp: field.data.ppp.getValue()
         }, field.data.filters.getValue());
 
-        return KarmaFields.Form.fetch(field.resource.driver, "querytable", params).then(function(results) {
+        return KarmaFieldsAlpha.Form.fetch(field.resource.driver, "querytable", params).then(function(results) {
           field.data.count.setValue(results.count, "set");
           field.data.ids.setValue(results.items.map(function(item) {
             return item.id;
@@ -137,14 +137,14 @@ KarmaFields.fields.table = function(field) {
 
       field.events.sync = function() {
         let value = field.getModifiedValue();
-        return KarmaFields.Form.update(field.resource.driver, value).then(function(results) {
+        return KarmaFieldsAlpha.Form.update(field.resource.driver, value).then(function(results) {
           field.setValue(value, "set");
           // return field.events.queryTable();
         });
       };
 
       field.events.add = function() {
-        return KarmaFields.Form.add(field.resource.driver, field.data.filters.getValue()).then(function(value) {
+        return KarmaFieldsAlpha.Form.add(field.resource.driver, field.data.filters.getValue()).then(function(value) {
           field.trigger("createRow", value);
           field.data.ids.setValue([value.id].concat(ids.getValue()), "change");
           return value;
@@ -175,7 +175,7 @@ KarmaFields.fields.table = function(field) {
           params[currentField.resource.key] = undefined;
         }
 
-        return KarmaFields.Form.fetch(field.resource.driver, "querykey", params).then(function(results) {
+        return KarmaFieldsAlpha.Form.fetch(field.resource.driver, "querykey", params).then(function(results) {
           return results;
         });
       };
@@ -232,7 +232,7 @@ KarmaFields.fields.table = function(field) {
             }
           },
           update: function() {
-            this.child = field.resource.filters && KarmaFields.fields[field.resource.filters.type || "group"](field.data.filters);
+            this.child = field.resource.filters && KarmaFieldsAlpha.fields[field.resource.filters.type || "group"](field.data.filters);
           }
         },
 
@@ -257,7 +257,7 @@ KarmaFields.fields.table = function(field) {
             class: "table grid",
             clear: true,
             init: function(table) {
-              field.data.select = KarmaFields.selectors.grid();
+              field.data.select = KarmaFieldsAlpha.selectors.grid();
               field.data.select.onSelect = function() {
                 // field.parent.directory.footer.trigger("update");
               }
@@ -428,7 +428,7 @@ KarmaFields.fields.table = function(field) {
                         },
                         update: function(cell) {
                           cellField.trigger("update");
-                          this.child = KarmaFields.fields[column.field.type || "group"](cellField);
+                          this.child = KarmaFieldsAlpha.fields[column.field.type || "group"](cellField);
                           field.data.select.addField(colIndex, rowIndex, this.element, cellField);
                         }
                       });
@@ -463,8 +463,8 @@ KarmaFields.fields.table = function(field) {
                         children: [
                           {
                             class: "table-spinner button-content",
-                            child: KarmaFields.includes.icon({
-                              file: KarmaFields.icons_url+"/update.svg"
+                            child: KarmaFieldsAlpha.includes.icon({
+                              file: KarmaFieldsAlpha.icons_url+"/update.svg"
                             })
                           },
                           {
@@ -477,7 +477,7 @@ KarmaFields.fields.table = function(field) {
                             item.element.classList.add("loading");
 
                             // empty cache
-                            KarmaFields.Form.cache = {};
+                            KarmaFieldsAlpha.Form.cache = {};
 
                             field.trigger("queryTable").then(function() {
                               item.element.classList.remove("loading");
@@ -528,13 +528,13 @@ KarmaFields.fields.table = function(field) {
                       {
                         tag: "button",
                         class: "button footer-item",
-                        child: KarmaFields.includes.icon({
-                          file: KarmaFields.icons_url+"/undo.svg"
+                        child: KarmaFieldsAlpha.includes.icon({
+                          file: KarmaFieldsAlpha.icons_url+"/undo.svg"
                         }),
                         init: function(item) {
                           this.element.title = "Undo";
                           this.element.addEventListener("click", function(event) {
-                            KarmaFields.History.undo(field);
+                            KarmaFieldsAlpha.History.undo(field);
                             container.render();
                           });
                           this.element.addEventListener("mouseup", function(event) {
@@ -542,19 +542,19 @@ KarmaFields.fields.table = function(field) {
                           });
                         },
                         update: function() {
-                          this.element.disabled = KarmaFields.History.getIndex(field) === 0;
+                          this.element.disabled = KarmaFieldsAlpha.History.getIndex(field) === 0;
                         }
                       },
                       {
                         tag: "button",
                         class: "button footer-item",
-                        child: KarmaFields.includes.icon({
-                          file: KarmaFields.icons_url+"/redo.svg"
+                        child: KarmaFieldsAlpha.includes.icon({
+                          file: KarmaFieldsAlpha.icons_url+"/redo.svg"
                         }),
                         init: function(button) {
                           this.element.title = "Redo";
                           this.element.addEventListener("click", function(event) {
-                            KarmaFields.History.redo(field);
+                            KarmaFieldsAlpha.History.redo(field);
                             container.render();
                           });
                           this.element.addEventListener("mouseup", function(event) {
@@ -562,15 +562,15 @@ KarmaFields.fields.table = function(field) {
                           });
                         },
                         update: function(button) {
-                          let instance = KarmaFields.History.getInstance(field);
+                          let instance = KarmaFieldsAlpha.History.getInstance(field);
                           this.element.disabled = instance.index >= instance.max;
                         }
                       },
                       {
                         tag: "button",
                         class: "button footer-item",
-                        child: KarmaFields.includes.icon({
-                          file: KarmaFields.icons_url+"/plus-alt2.svg"
+                        child: KarmaFieldsAlpha.includes.icon({
+                          file: KarmaFieldsAlpha.icons_url+"/plus-alt2.svg"
                         }),
                         init: function(button) {
                           this.element.title = "Add";
@@ -592,8 +592,8 @@ KarmaFields.fields.table = function(field) {
                       {
                         tag: "button",
                         class: "button footer-item",
-                        child: KarmaFields.includes.icon({
-                          file: KarmaFields.icons_url+"/trash.svg"
+                        child: KarmaFieldsAlpha.includes.icon({
+                          file: KarmaFieldsAlpha.icons_url+"/trash.svg"
                         }),
                         init: function(item) {
                           this.element.title = "Delete";

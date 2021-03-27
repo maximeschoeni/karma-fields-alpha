@@ -1,6 +1,6 @@
-KarmaFields.fields.filterlink = function(field) {
+KarmaFieldsAlpha.fields.filterlink = function(field) {
 	var isSelected;
-	return KarmaFields.build({
+	return KarmaFieldsAlpha.build({
 		class: "filterlink",
 		init: function(element, render) {
 			field.onUpdate = function(value) { // -> historic change
@@ -17,7 +17,7 @@ KarmaFields.fields.filterlink = function(field) {
 			}
 		},
 		child: function() {
-			return KarmaFields.build({
+			return KarmaFieldsAlpha.build({
 				tag: "a",
 				init: function(element) {
 					var value = field.get();

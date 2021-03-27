@@ -3,9 +3,9 @@
  */
 
 
-// KarmaFields.wm.date = new WeakMap();
+// KarmaFieldsAlpha.wm.date = new WeakMap();
 
-KarmaFields.fields.date = function(field) {
+KarmaFieldsAlpha.fields.date = function(field) {
 
   // let date;
 
@@ -56,7 +56,7 @@ KarmaFields.fields.date = function(field) {
                           {
                             class: "karma-current-month",
                             update: function() {
-                              this.element.textContent = KarmaFields.Calendar.format(field.data.date, "%fullmonth% yyyy");
+                              this.element.textContent = KarmaFieldsAlpha.Calendar.format(field.data.date, "%fullmonth% yyyy");
                             }
                           },
                           {
@@ -75,7 +75,7 @@ KarmaFields.fields.date = function(field) {
                     {
                       class: "karma-calendar-body",
                       update: function(body) {
-                        let days = KarmaFields.Calendar.getMonthDays(date);
+                        let days = KarmaFieldsAlpha.Calendar.getMonthDays(date);
                         let value = field.getValue();
                         let rows = [];
                         while(days.length) {
@@ -89,7 +89,7 @@ KarmaFields.fields.date = function(field) {
                               return {
                                 tag: "li",
                                 update: function() {
-                                  this.element.textContent = KarmaFields.Calendar.format(day.date, "%d2%");
+                                  this.element.textContent = KarmaFieldsAlpha.Calendar.format(day.date, "%d2%");
                                 }
                               };
                             })
@@ -104,7 +104,7 @@ KarmaFields.fields.date = function(field) {
                                 children: [{
                                   tag: "span",
                                   update: function() {
-                                    this.element.textContent = KarmaFields.Calendar.format(day.date, "#d");
+                                    this.element.textContent = KarmaFieldsAlpha.Calendar.format(day.date, "#d");
                                   }
                                 }],
                                 update: function(item) {
@@ -141,10 +141,10 @@ KarmaFields.fields.date = function(field) {
               this.element.readOnly = true;
             } else {
               this.element.addEventListener("keyup", function() {
-                let inputDate = KarmaFields.Calendar.parse(this.value, format);
+                let inputDate = KarmaFieldsAlpha.Calendar.parse(this.value, format);
                 if (inputDate) {
                   field.data.date = inputDate;
-                  var sqlDate = KarmaFields.Calendar.format(field.data.date);
+                  var sqlDate = KarmaFieldsAlpha.Calendar.format(field.data.date);
                   field.setValue(sqlDate);
                   container.render();
                 }
@@ -153,7 +153,7 @@ KarmaFields.fields.date = function(field) {
 
               var keyChange = function(dir) {
                 var value = field.getValue();
-                field.data.date = KarmaFields.Calendar.parse(value);
+                field.data.date = KarmaFieldsAlpha.Calendar.parse(value);
                 var index = input.selectionStart || 0;
                 if (format[index] === "y" || format[index-1] === "y") {
                   date.setFullYear(date.getFullYear() + dir);
@@ -164,7 +164,7 @@ KarmaFields.fields.date = function(field) {
                 }
 
                 input.setSelectionRange(index, index);
-                var sqlDate = KarmaFields.Calendar.format(field.data.date);
+                var sqlDate = KarmaFieldsAlpha.Calendar.format(field.data.date);
                 field.setValue(sqlDate);
                 container.render();
               };
@@ -179,17 +179,17 @@ KarmaFields.fields.date = function(field) {
               });
               this.element.addEventListener("mousedown", function() {
                 var value = field.getValue();
-                field.data.date = value && KarmaFields.Calendar.parse(value) || new Date();
+                field.data.date = value && KarmaFieldsAlpha.Calendar.parse(value) || new Date();
                 container.render();
               });
               this.element.addEventListener("focus", function() {
                 var value = field.getValue();
-                field.data.date = value && KarmaFields.Calendar.parse(value) || new Date();
+                field.data.date = value && KarmaFieldsAlpha.Calendar.parse(value) || new Date();
                 container.render();
               });
               this.element.addEventListener("focusout", function() {
                 field.data.date = null;
-                if (!KarmaFields.Calendar.parse(this.value, format)) {
+                if (!KarmaFieldsAlpha.Calendar.parse(this.value, format)) {
                   field.setValue("");
                 }
                 container.render();
@@ -198,8 +198,8 @@ KarmaFields.fields.date = function(field) {
           },
           update: function() {
             let value = field.getValue();
-            let date = value && KarmaFields.Calendar.parse(value);
-            this.element.value = date && KarmaFields.Calendar.format(date, format) || "";
+            let date = value && KarmaFieldsAlpha.Calendar.parse(value);
+            this.element.value = date && KarmaFieldsAlpha.Calendar.format(date, format) || "";
           }
         }
       ];

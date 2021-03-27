@@ -1,5 +1,5 @@
 
-KarmaFields.Calendar = {
+KarmaFieldsAlpha.Calendar = {
 	months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
 	months3: ["jan", "fev", "mar", "avr", "mai", "jun", "jui", "aoû", "sept", "oct", "nov", "dec"],
 	weekdays: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
@@ -30,7 +30,7 @@ KarmaFields.Calendar = {
 
 					days.push({
 						date: day,
-						sqlDate: KarmaFields.Calendar.format(day),
+						sqlDate: KarmaFieldsAlpha.Calendar.format(day),
 						isDayBefore: day.getTime() == lastDayPrevMonth.getTime(),
 						isDayAfter: day.getTime() == firstDayNextMonth.getTime(),
 						isOffset: day.getTime() <= lastDayPrevMonth.getTime() || day.getTime() >= firstDayNextMonth.getTime(),
@@ -122,12 +122,12 @@ KarmaFields.Calendar = {
 			format = format.replace("#m", (date.getMonth()+1).toString());
 			format = format.replace("#d", date.getDate().toString());
 			format = format.replace("#w", date.getDay().toString());
-			format = format.replace("%fullmonth%", KarmaFields.Calendar.months[date.getMonth()]);
-			format = format.replace("%fullweek%", KarmaFields.Calendar.weekdays[date.getDay()]);
-			format = format.replace("%mon%", KarmaFields.Calendar.months3[date.getMonth()]);
-			format = format.replace("%day%", KarmaFields.Calendar.weekdays3[date.getDay()]);
-			format = format.replace("%d2%", KarmaFields.Calendar.weekdays2[date.getDay()]);
-			format = format.replace("%d%", KarmaFields.Calendar.weekdays1[date.getDay()]);
+			format = format.replace("%fullmonth%", KarmaFieldsAlpha.Calendar.months[date.getMonth()]);
+			format = format.replace("%fullweek%", KarmaFieldsAlpha.Calendar.weekdays[date.getDay()]);
+			format = format.replace("%mon%", KarmaFieldsAlpha.Calendar.months3[date.getMonth()]);
+			format = format.replace("%day%", KarmaFieldsAlpha.Calendar.weekdays3[date.getDay()]);
+			format = format.replace("%d2%", KarmaFieldsAlpha.Calendar.weekdays2[date.getDay()]);
+			format = format.replace("%d%", KarmaFieldsAlpha.Calendar.weekdays1[date.getDay()]);
 			format = format.replace("%y2%", this.zeroize(date.getFullYear(), 2));
 			return format;
 		}
@@ -146,8 +146,8 @@ KarmaFields.Calendar = {
 			.replace("#m", "([0-9]+)")
 			.replace("#d", "([0-9]+)")
 			.replace("%y2%", "([0-9]{2})")
-			.replace("%fullmonth%", "("+KarmaFields.Calendar.months3.join("|")+")")
-			.replace("%mon%", "("+KarmaFields.Calendar.months3.join("|")+")");
+			.replace("%fullmonth%", "("+KarmaFieldsAlpha.Calendar.months3.join("|")+")")
+			.replace("%mon%", "("+KarmaFieldsAlpha.Calendar.months3.join("|")+")");
 		var results = dateString.match(new RegExp("^"+reg+"$"));
 		var items = format.match(/(yyyy|mm|dd|hh|ii|ss|#m|#d|%y2%|%fullmonth%|%mon%)/g);
 		if (results && items) {
@@ -177,10 +177,10 @@ KarmaFields.Calendar = {
 						date.setSeconds(parseInt(results[i]));
 						break;
 					case "%fullmonth%":
-						date.setMonth(KarmaFields.Calendar.months.indexOf(results[i]) || 0);
+						date.setMonth(KarmaFieldsAlpha.Calendar.months.indexOf(results[i]) || 0);
 						break;
 					case "%mon%":
-						date.setMonth(KarmaFields.Calendar.months3.indexOf(results[i]) || 0);
+						date.setMonth(KarmaFieldsAlpha.Calendar.months3.indexOf(results[i]) || 0);
 						break;
 				}
 			}

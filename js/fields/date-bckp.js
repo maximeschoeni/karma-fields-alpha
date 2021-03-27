@@ -2,7 +2,7 @@
  * version sept2020
  */
 
-KarmaFields.fields.date = function(field) {
+KarmaFieldsAlpha.fields.date = function(field) {
 
   return {
     class: "karma-field-date",
@@ -53,7 +53,7 @@ KarmaFields.fields.date = function(field) {
                           {
                             class: "karma-current-month",
                             update: function() {
-                              this.element.textContent = KarmaFields.Calendar.format(manager.date, "%fullmonth% yyyy");
+                              this.element.textContent = KarmaFieldsAlpha.Calendar.format(manager.date, "%fullmonth% yyyy");
                             }
                           },
                           {
@@ -72,7 +72,7 @@ KarmaFields.fields.date = function(field) {
                     {
                       class: "karma-calendar-body",
                       update: function(body) {
-                        var days = KarmaFields.Calendar.getMonthDays(manager.date);
+                        var days = KarmaFieldsAlpha.Calendar.getMonthDays(manager.date);
 
                         var rows = [];
                         while(days.length) {
@@ -86,7 +86,7 @@ KarmaFields.fields.date = function(field) {
                               return {
                                 tag: "li",
                                 update: function() {
-                                  this.element.textContent = KarmaFields.Calendar.format(day.date, "%d2%");
+                                  this.element.textContent = KarmaFieldsAlpha.Calendar.format(day.date, "%d2%");
                                 }
                               };
                             })
@@ -101,7 +101,7 @@ KarmaFields.fields.date = function(field) {
                                 child: {
                                   tag: "span",
                                   update: function() {
-                                    this.element.textContent = KarmaFields.Calendar.format(day.date, "#d");
+                                    this.element.textContent = KarmaFieldsAlpha.Calendar.format(day.date, "#d");
                                   }
                                 },
                                 init: function(item) {
@@ -144,9 +144,9 @@ KarmaFields.fields.date = function(field) {
               this.element.readOnly = true;
             } else {
               this.element.addEventListener("keyup", function() {
-                var date = KarmaFields.Calendar.parse(this.value, format);
+                var date = KarmaFieldsAlpha.Calendar.parse(this.value, format);
                 if (date) {
-                  var sqlDate = KarmaFields.Calendar.format(date);
+                  var sqlDate = KarmaFieldsAlpha.Calendar.format(date);
                   field.setValue(sqlDate);
                   container.render();
                 }
@@ -155,7 +155,7 @@ KarmaFields.fields.date = function(field) {
 
               var keyChange = function(dir) {
                 var value = field.getValue();
-                var date = KarmaFields.Calendar.parse(value);
+                var date = KarmaFieldsAlpha.Calendar.parse(value);
                 var index = input.element.selectionStart || 0;
                 if (format[index] === "y" || format[index-1] === "y") {
                   date.setFullYear(date.getFullYear() + dir);
@@ -166,7 +166,7 @@ KarmaFields.fields.date = function(field) {
                 }
 
                 input.element.setSelectionRange(index, index);
-                var sqlDate = KarmaFields.Calendar.format(date);
+                var sqlDate = KarmaFieldsAlpha.Calendar.format(date);
                 field.setValue(sqlDate);
                 container.render();
               };
@@ -181,12 +181,12 @@ KarmaFields.fields.date = function(field) {
               });
               this.element.addEventListener("mousedown", function() {
                 var sqlDate = field.getValue();
-                manager.date = sqlDate && KarmaFields.Calendar.parse(sqlDate) || new Date();
+                manager.date = sqlDate && KarmaFieldsAlpha.Calendar.parse(sqlDate) || new Date();
                 container.render();
               });
               this.element.addEventListener("focus", function() {
                 var sqlDate = field.getValue();
-                manager.date = sqlDate && KarmaFields.Calendar.parse(sqlDate) || new Date();
+                manager.date = sqlDate && KarmaFieldsAlpha.Calendar.parse(sqlDate) || new Date();
                 container.render();
               });
               this.element.addEventListener("focusout", function() {
@@ -198,9 +198,9 @@ KarmaFields.fields.date = function(field) {
           update: function() {
             var value = field.getValue();
             console.log(field.uri, value, this.element);
-            var date = value && KarmaFields.Calendar.parse(value);
+            var date = value && KarmaFieldsAlpha.Calendar.parse(value);
             if (date) {
-              this.element.value = KarmaFields.Calendar.format(date, format);
+              this.element.value = KarmaFieldsAlpha.Calendar.format(date, format);
             }
           }
         }

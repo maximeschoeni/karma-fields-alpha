@@ -5,14 +5,14 @@
 		let container = document.getElementById("karma-fields-field-<?php echo $index; ?>-container");
 		let resource = <?php echo json_encode($args); ?>;
 		let driver = "<?php echo $driver; ?>";
-		let field = KarmaFields.Field({
+		let field = KarmaFieldsAlpha.Field({
 			type: "form",
 			children: [resource]
 		});
 
-		KarmaFields.build({
+		KarmaFieldsAlpha.build({
 			update: function(item) {
-				this.child = KarmaFields.Fields.form(field);
+				this.child = KarmaFieldsAlpha.Fields.form(field);
 			}
 		}, container);
 

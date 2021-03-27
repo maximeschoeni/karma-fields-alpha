@@ -1,4 +1,4 @@
-KarmaFields.managers.table = function(field, history, resource) {
+KarmaFieldsAlpha.managers.table = function(field, history, resource) {
 
 	var manager = {
 		// resource: resource,
@@ -7,8 +7,8 @@ KarmaFields.managers.table = function(field, history, resource) {
 		// field: history.createFieldManager(resource),
 
 		// build: function() {
-		// 	if (KarmaFields.tables[resource.name || "grid"]) {
-		// 		return KarmaFields.tables[resource.name || "grid"](this);
+		// 	if (KarmaFieldsAlpha.tables[resource.name || "grid"]) {
+		// 		return KarmaFieldsAlpha.tables[resource.name || "grid"](this);
 		// 	}
 		// },
 		getItems: function() {
@@ -93,7 +93,7 @@ KarmaFields.managers.table = function(field, history, resource) {
 			// this.stopRefresh();
 			var output = history.request(["output"]) || {};
 
-			if (KarmaFields.Object.isEmpty(output)) {
+			if (KarmaFieldsAlpha.Object.isEmpty(output)) {
 				console.log(output);
 				console.warn("Output is empty");
 				return;
@@ -185,15 +185,15 @@ KarmaFields.managers.table = function(field, history, resource) {
 		// save: function() {
 		//
 		// 	if (history.store && history.store.undos) {
-		// 		var diff = KarmaFields.Object.unmerge(history.store.undos, this.lastData);
-		// 		this.lastData = KarmaFields.Object.clone(history.store.undos);
+		// 		var diff = KarmaFieldsAlpha.Object.unmerge(history.store.undos, this.lastData);
+		// 		this.lastData = KarmaFieldsAlpha.Object.clone(history.store.undos);
 		// 		//
 		//
 		//
-		// 		return KarmaFields.Transfer.autoSave2(resource.driver, {diff: diff}).then(function(results) {
+		// 		return KarmaFieldsAlpha.Transfer.autoSave2(resource.driver, {diff: diff}).then(function(results) {
 		// 			var timestamp = Date.now();
-		// 			KarmaFields.Object.forEach(results, function(path, userId) {
-		// 				KarmaFields.Transfer.get(...path).then(function(value) {
+		// 			KarmaFieldsAlpha.Object.forEach(results, function(path, userId) {
+		// 				KarmaFieldsAlpha.Transfer.get(...path).then(function(value) {
 		// 					var currentValue = history.request(["output", ...path], ["input", ...path]);
 		// 					history.write("input", path, value);
 		// 					history.save(["output", ...path], value, timestamp, currentValue);
@@ -257,19 +257,19 @@ KarmaFields.managers.table = function(field, history, resource) {
 	// if (!resource.middleware) {
 	// 	console.error("Middleware is missing");
 	// }
-	// KarmaFields.events.onSelectAll = function(event) {
+	// KarmaFieldsAlpha.events.onSelectAll = function(event) {
 	// 	if (document.activeElement === document.body) {
 	// 		manager.select.onSelectAll(event);
 	// 		event.preventDefault();
 	// 	}
 	// };
-	// KarmaFields.events.onAdd = function(event) {
+	// KarmaFieldsAlpha.events.onAdd = function(event) {
 	// 	if (document.activeElement === document.body) {
 	// 		manager.addItem();
 	// 		event.preventDefault();
 	// 	}
 	// };
-	// KarmaFields.events.onDelete = function(event) {
+	// KarmaFieldsAlpha.events.onDelete = function(event) {
 	// 	var items = manager.select.getSelectedItems();
 	// 	if (items.length) {
 	// 		manager.removeItems(items);
@@ -277,32 +277,32 @@ KarmaFields.managers.table = function(field, history, resource) {
 	// 	}
 	// };
 	//
-	// KarmaFields.events.onCopy = function(event) {
+	// KarmaFieldsAlpha.events.onCopy = function(event) {
 	// 	manager.select.onCopy(event);
 	// }
-	// KarmaFields.events.onPast = function(event) {
+	// KarmaFieldsAlpha.events.onPast = function(event) {
 	// 	manager.select.onPast(event);
 	// 	manager.render();
 	// }
 	//
-	// KarmaFields.events.onSave = function(event) {
+	// KarmaFieldsAlpha.events.onSave = function(event) {
 	// 	manager.sync();
 	// 	event.preventDefault();
 	// }
-	// KarmaFields.events.onUndo = function(event) {
+	// KarmaFieldsAlpha.events.onUndo = function(event) {
 	// 	history.undo();
 	// 	manager.render();
 	//
 	//
 	// 	event.preventDefault();
 	// }
-	// KarmaFields.events.onRedo = function(event) {
+	// KarmaFieldsAlpha.events.onRedo = function(event) {
 	// 	history.redo();
 	// 	manager.render();
 	// 	event.preventDefault();
 	// }
 	//
-	// KarmaFields.events.onUnload = function() {
+	// KarmaFieldsAlpha.events.onUnload = function() {
 	// 	// manager.save();
 	// 	// manager.stopRefresh();
 	// }
@@ -331,9 +331,9 @@ KarmaFields.managers.table = function(field, history, resource) {
 
 	// manager.history.store.input = localStorage.getItem("input");
 
-	// manager.select = KarmaFields.selectors.grid(manager);
+	// manager.select = KarmaFieldsAlpha.selectors.grid(manager);
 
-	// manager.optionsField = KarmaFields.managers.field(manager.resource.options, manager.options);
+	// manager.optionsField = KarmaFieldsAlpha.managers.field(manager.resource.options, manager.options);
 
 
 	if (resource.filter) {
