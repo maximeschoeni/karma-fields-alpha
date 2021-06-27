@@ -1,22 +1,11 @@
 
 
-/* WP Layout
---------------------------------------*/
-
-/* #wpbody-content {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 0px);
-
-  padding-bottom: 0;
-  z-index: 1;
-  position: relative;
-} */
 .karma-fields-table {
   flex-grow: 1;
   display: flex;
   margin-right: 20px;
 }
+
 
 
 
@@ -41,14 +30,31 @@
 }
 
 .karma-field-table a {
-  color: #535c63;
+  /* color: #535c63; */
+  background-color: #f1f1f1;
+  display: flex;
+  align-items: center;
+  padding: 0 5px;
+  cursor: pointer;
 }
+.karma-field-table a:focus {
+  box-shadow: none;
+}
+
+
+
+.karma-field-table .karma-field.selected {
+  background-color: white;
+}
+
+
+
 
 
 /* Tables Header
 --------------------------------------*/
 .karma-field-table .table-header {
-  /* margin: 0 -5px; */
+  margin: 1em 0;
 }
 /* .karma-field-table.grid .filter-node-children {
   display: flex;
@@ -155,10 +161,9 @@
 /* Grid Filter Dropdown
 --------------------------------------*/
 
-.table-header label {
+/* .table-header label {
   font-size: 0.875em;
   font-weight: bolder;
-  /* margin-top: 1em; */
   margin-bottom: 0;
   position: relative;
   display: block;
@@ -168,8 +173,7 @@
   border-radius: 0;
   background-color: transparent;
   margin: 0;
-  /* background-color: #edf2f5; */
-}
+} */
 
 
 
@@ -220,14 +224,15 @@
 /* Table
 --------------------------------------*/
 
-.karma-fields .table-body {
+
+/* .karma-fields .table-body {
   padding-top: 1em;
   flex-grow: 1;
   width: 100%;
-  overflow: auto;
   margin-bottom: 70px;
-}
-.karma-fields table {
+} */
+
+/* .karma-fields table {
   border-collapse: separate;
   border-spacing: 0;
   border-style: solid;
@@ -257,7 +262,6 @@
   border-bottom-width: 1px;
   text-align: left;
   padding: 1px;
-  /* line-height: 3em; */
 }
 .karma-fields table th.main,
 .karma-fields table td.main {
@@ -266,24 +270,7 @@
 
 
 .karma-fields table td.selected {
-  background-color: white; /* #efebea; */
-}
-
-/* .karma-fields table td.selected-left {
-  padding-left: 0;
-  border-left-width: 1px;
-}
-.karma-fields table td.selected-right {
-  padding-right: 0;
-  border-right-width: 2px;
-}
-.karma-fields table td.selected-top {
-  padding-top: 0;
-  border-top-width: 1px;
-}
-.karma-fields table td.selected-bottom {
-  padding-bottom: 0;
-  border-bottom-width: 2px;
+  background-color: white;
 } */
 
 
@@ -292,7 +279,7 @@
 /* Table Header
 --------------------------------------*/
 
-.karma-fields table th {
+/* .karma-fields table th {
   user-select: none;
 }
 .karma-fields table th.table-header-index {
@@ -338,12 +325,12 @@
 .karma-fields table.grid tr td:first-child,
 .karma-fields table.grid tr th:first-child {
   text-align:center;
-}
+} */
 
 /* Grid
 --------------------------------------*/
 
-.karma-fields table.grid td {
+/* .karma-fields table.grid td {
   position: relative;
   box-sizing: border-box;
 }
@@ -360,40 +347,19 @@
 
 
 .karma-fields table.grid td {
-  /* background-image: url(http://localhost:8888/arsenic/wp-content/plugins/karma-editor/plugins/karma-fields/dashicons/admin-users.svg);
-  background-repeat: no-repeat;
-  background-position: top 5px right 5px;
-  background-size: 0;
-  transition: background-size 300ms ease-in-out; */
-  /* animation: animatedBackgroundOut 3s linear 1 backwards; */
 }
 .karma-fields table.grid td.test {
-  /* background-size: 15px; */
-}
-
-
-/* @keyframes animatedBackgroundOut {
-  from {
-    background-size: 35px;
-  }
-  to {
-    background-size: 0;
-  }
-}
-@keyframes animatedBackgroundIn {
-  from {
-    background-size: 35px;
-  }
-  to {
-    background-size: 0;
-  }
 } */
+
 
 
 /* Grid Text Input
 --------------------------------------*/
 
-.karma-fields table.grid td input.text {
+
+
+
+/* .karma-fields table.grid td input.text {
   margin: 0;
   padding: 8px 5px;
   border: 0;
@@ -405,7 +371,6 @@
   line-height: inherit;
   border-radius: 0;
 
-  /* background-color: #f1f1f1; */
   color: #535c63;
 
 }
@@ -417,53 +382,23 @@
 .karma-fields table td input,
 .karma-fields table td textarea,
 .karma-fields table td button {
-  background-color: transparent; /* #efebea; */
+  background-color: transparent;
 }
 
 .karma-fields table td textarea {
   padding: 5px 5px;
 }
 
-
-/* .karma-fields table.grid td.modified input.text {
-  background-image: url(../dashicons/pets.svg);
-  background-position: center right;
-  background-repeat: no-repeat;
-  background-blend-mode: overlay;
-} */
-
-
-/* .karma-fields table.grid td.modified {
-
-  background-color: gray;
-  background-image: repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.5) 35px, rgba(255,255,255,.5) 70px);
-} */
-
-/* .karma-fields table.grid td.modified::after {
-  content: "";
-  position: absolute;
-  top:0;
-  right: 0;
-  width: 20px;
-  height: 20px;
-  background-image: url(../dashicons/marker.svg);
-  background-position: center;
-  background-repeat: no-repeat;
-
-  opacity: 0.25;
-} */
-
-
 .karma-fields table.grid td.modified input {
   color: black;
-}
+} */
 
 
 
 /* Grid Textarea
 --------------------------------------*/
 
-.karma-fields table.grid td textarea {
+/* .karma-fields table.grid td textarea {
   resize: none;
   display: block;
   width: 100%;
@@ -478,7 +413,7 @@
 }
 .karma-fields table.grid td.modified textarea {
   color: black;
-}
+} */
 
 
 
@@ -486,17 +421,17 @@
 /* Grid Index
 --------------------------------------*/
 
-.karma-fields table.grid .row-index {
+/* .karma-fields table.grid .row-index {
   padding: 8px 5px;
   user-select: none;
-}
+} */
 
 
 
 /* Grid Dropdown
 --------------------------------------*/
 
-.karma-fields table.grid select {
+/* .karma-fields table.grid select {
   margin: 0;
   border: none;
   width: 100%;
@@ -507,21 +442,12 @@
 .karma-fields table.grid select:focus {
   outline: none;
   box-shadow: none;
-}
+} */
 
 /* Grid Cell Button
 --------------------------------------*/
 
-.karma-fields table.grid td button {
-  /* display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
-  padding: 1px;
-  box-sizing: border-box;
-  border: 0;
-  height: 100%;
-  width: 100%; */
+/* .karma-fields table.grid td button {
 
   border: none;
   width: 20px;
@@ -532,7 +458,6 @@
   cursor: pointer;
 
 
-  /* border: 0 solid #7d8993; */
 }
 .karma-fields table.grid td button:focus {
   box-shadow: none;
@@ -540,56 +465,9 @@
 }
 .karma-fields table.grid td button svg {
   display: block;
-  /* height: 30px;
-  width: 30px; */
-}
 
-
-/* .karma-fields table.grid td {
-  position: relative;
-} */
-
-/* .karma-fields table.grid td .on-off-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-} */
-/* .karma-fields table.grid td.selected .on-off-container button {
-  background-color: white;
 }
-.karma-fields table.grid td.selected-left .on-off-container button {
-  padding-left: 0;
-  border-left-width: 1px;
-}
-.karma-fields table.grid td.selected-right .on-off-container button {
-  padding-right: 0;
-  border-right-width: 1px;
-}
-.karma-fields table.grid td.selected-top .on-off-container button {
-  padding-top: 0;
-  border-top-width: 1px;
-}
-.karma-fields table.grid td.selected-bottom .on-off-container button {
-  padding-bottom: 0;
-  border-bottom-width: 1px;
-} */
-
-/* .karma-fields .icon {
-  width: 25px;
-  height: 25px;
-}
-.karma-fields .on-off .icon {
-  background-repeat: no-repeat;
-}
-.karma-fields .on-off .icon.off {
-  background-image: url(../dashicons/no-alt.svg);
-}
-.karma-fields .on-off .icon.on {
-  background-image: url(../dashicons/yes.svg);
-} */
-
+ */
 
 
 
@@ -671,17 +549,24 @@ td.modified .on-off svg path {
 --------------------------------------*/
 
 .karma-fields .table-footer {
-  position: sticky;
+  position: fixed;
   /* width: 100%; */
+  z-index: 3;
+  left: 160px;
+  right: 0;
   bottom: 0;
-  background-color: #24282d;
-  color: #f3f5f6;
+  background-color: #f1f1f1;
+  border-top: 1px solid #c3c4c7;
+  /* color: #f3f5f6; */
   /* min-height: 50px;
   display: flex;
   justify-content: space-between; */
-  margin: 20px -20px 0;
+  /* margin: 20px -20px 0; */
   /* padding: 0 20px; */
   user-select: none;
+}
+body.folded .karma-fields .table-footer {
+  left: 36px;
 }
 /* .karma-fields .table-footer {
   position: fixed;
@@ -703,7 +588,7 @@ td.modified .on-off svg path {
   display: flex;
   justify-content: space-between;
   padding: 0 15px;
-  min-height: 50px;
+  min-height: 60px;
 }
 
 
@@ -721,74 +606,108 @@ td.modified .on-off svg path {
   margin: 0 5px;
 }
 
+.karma-fields .table-footer .table-pagination {
+  font-size: 14px;
+}
+.karma-fields .table-footer.modal-open .table-pagination {
+  display: none;
+}
+.karma-fields .table-footer:not(.modal-open) .table-modal-nav {
+  display: none;
+}
+
 
 
 
 /* Table Footer Button
 --------------------------------------*/
 
-.karma-fields .button {
-  color: #f1f1f1;
+button.karma-button {
+  color: #0173aa;
+  display: flex;
+  align-items: center;
   /* border-color: #f3f5f6; */
+  height: auto;
+  padding: 4px 17px;
+  padding: 6px 12px;
   border: none;
-  background-color: #535c63;;
+  background-color: transparent;
   box-shadow: none;
   text-shadow: none;
   border-width: 1px;
-  border-radius: 3px;
-  font-weight: bold;
+  border-radius: 2px;
+  /* font-weight: bold; */
   font-size: 14px;
   position: relative;
+  border: 1px solid transparent;
+
+  cursor: pointer;
+
+
+
   /* box-shadow: inset 1px 3px 8px #f1f1f126; */
 }
-.karma-fields .table-footer .button:hover,
-.karma-fields .table-footer .button:focus,
-.karma-fields .table-footer .button.active {
-  box-shadow: none;
-  outline: none;
-  border: none;
-}
-.karma-fields .table-footer .button:focus {
+button.karma-button.primary {
+  background-color: #0173aa;
   color: #f1f1f1;
-  background-color: #535c63;
+  box-shadow: none;
 }
-.karma-fields .table-footer .button:hover,
-.karma-fields .table-footer .button.active {
-  color: #535c63;
-  background-color: #f1f1f1;
+button.karma-button:hover,
+button.karma-button:focus,
+button.karma-button.active {
+  box-shadow: none;
+  border: none;
+  background-color: transparent;
+  outline: none;
+  color: #0173aa;
+  border: 1px solid rgb(0, 124, 186);
+  /* outline: 1px solid rgb(0, 124, 186); */
+  /* box-shadow: 0 0 1px 1px rgb(0, 124, 186); */
+}
+
+button.karma-button.primary:hover,
+button.karma-button.primary.active,
+button.karma-button.primary:focus {
+  background-color: #006ba1;
+  color: #f1f1f1;
+  box-shadow: none;
 }
 
 
-.karma-fields .table-footer .button[disabled] {
-  color: #535c63 !important;
+
+
+button.karma-button[disabled] {
+  color: #c3c4c7 !important;
   background-color: transparent !important;
-  border: none !important;
+  /* border: none !important; */
+  border: 1px solid transparent !important;
   box-shadow: none !important;
   text-shadow: none !important;
+  cursor: default;
+}
+button.karma-button.primary[disabled] {
+  background-color: #c3c4c7 !important;
+  color: #f1f1f1 !important;
+  border: 1px solid #c3c4c7 !important;
 }
 
-.karma-fields .table-footer .karma-icon {
+.karma-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* width: 2.5em;
-  height: 2.5em;
-  padding: 1px; */
 
-
-  /* box-sizing: content-box; */
 }
 
 
-.karma-fields .table-footer .karma-icon svg {
-  width: 21px;
-  height: 21px;
+.karma-icon svg {
+  width: 1.75em;
+  height: 1.75em;
 }
-.karma-fields .table-footer .karma-icon svg path {
-  fill: #f1f1f1;
+.karma-icon svg path {
+  fill: rgb(114, 119, 124);
 }
 
-.karma-fields .table-footer button:focus .karma-icon svg path {
+/* .karma-fields .table-footer button:focus .karma-icon svg path {
   fill: #f1f1f1;
 }
 .karma-fields .table-footer button:hover .karma-icon svg path {
@@ -802,9 +721,12 @@ td.modified .on-off svg path {
 }
 .karma-fields .table-footer button.primary:enabled:hover .karma-icon svg path {
   fill: #f1f1f1;
-}
+} */
 
-.karma-fields .table-footer button:not(:hover) .karma-field-spinner {
+button.karma-button > .karma-field-spinner {
+  border-color: #0173aa transparent #0173aa #0173aa;
+}
+button.karma-button.primary > .karma-field-spinner {
   border-color: #f1f1f1 transparent #f1f1f1 #f1f1f1;
 }
 
@@ -817,25 +739,8 @@ td.modified .on-off svg path {
   fill: #5f6469;
 }
 
-.karma-fields .table-footer button.primary {
-  /* background-color: #0173aa;
-  border-color: #f3f5f6;
-  color: #f3f5f6; */
-  /* color: #535c63; */
-  color: white;
-  /* background-color: #f3f5f6; */
-  background-color: #0173aa
 
-}
-.karma-fields .table-footer button.primary:hover {
-  /* background-color: #0173aa;
-  border-color: #f3f5f6;
-  color: #f3f5f6; */
-  /* color: #f3f5f6;
-  background-color: #25282d; */
-  background-color: #ececec;
 
-}
 
 /* Table Footer Delete Button
 --------------------------------------*/
@@ -936,8 +841,10 @@ td.modified .on-off svg path {
 
 .karma-field-spinner {
   display: none;
+  flex-shrink: 0;
 }
-.loading .karma-field-spinner {
+.loading .karma-field-spinner,
+.loading:not(.load-inside) + .karma-field-spinner {
   display: inline-block;
   width: 0.75em;
   height: 0.75em;;
@@ -962,11 +869,13 @@ td.modified .on-off svg path {
 /* Fields
 --------------------------------------*/
 
-.karma-field label {
+.karma-fields label {
   font-weight: bold;
+  font-size: 0.875em;
   vertical-align: baseline;
-  margin: 3px 0;
+  margin: 0;
   display: block;
+  color: #535c63;
 }
 
 
@@ -974,16 +883,16 @@ td.modified .on-off svg path {
 /* Text-input Field
 --------------------------------------*/
 
-.karma-fields input.text,
 .karma-fields textarea {
   box-shadow: none;
   border-radius: 0;
   box-sizing: border-box;
 }
-.karma-fields input.text:focus,
 .karma-fields textarea:focus {
-  outline-color: #7d8993;
-  outline-offset: -2px;
+  /* outline-color: #7d8993;
+  outline-offset: -2px; */
+  outline: none;
+  /* border-color: #2c3338; */
 }
 
 
@@ -992,7 +901,7 @@ td.modified .on-off svg path {
 --------------------------------------*/
 
 .karma-fields textarea {
-  padding: 10px;
+  padding: 5px;
   width: 100%;
 }
 
@@ -1006,7 +915,7 @@ td.modified .on-off svg path {
 .karma-field label {
   font-weight: bold;
   vertical-align: baseline;
-  margin: 3px 0;
+  margin: 0;
   display: block;
 }
 .karma-field .file-input-thumbs {
@@ -1016,7 +925,7 @@ td.modified .on-off svg path {
 }
 .karma-field-file,
 .karma-field-files {
-  display: inline-block;
+  /* display: inline-block; */
 }
 
 
@@ -1048,21 +957,21 @@ td.modified .on-off svg path {
 /* Dropdown Field
 --------------------------------------*/
 
-.karma-field select:focus {
+/* .karma-field select:focus {
   color: inherit;
   border-color: inherit;
   box-shadow: none;
-}
+} */
 
 
 
 /* Checkbox Field
 --------------------------------------*/
 
-.karma-field .checkbox-container label.description {
+/* .karma-field .checkbox-container label.description {
   display: inline-block;
 
-}
+} */
 
 
 
@@ -1116,9 +1025,13 @@ td.modified .on-off svg path {
 /* Group
 --------------------------------------*/
 
+/* .karma-field-group {
+  flex-grow: 1;
+}
+
 .karma-field-group>:not(.karma-field-group) {
   margin: 0 0 1em;
-}
+} */
 .karma-field-group label {
   display: block;
 }
@@ -1130,12 +1043,6 @@ td.modified .on-off svg path {
 .karma-field-group-container.display-block>*>label {
   display: block;
 } */
-.karma-field-group.display-block>* {
-}
-.karma-field-group.display-block>*>label {
-  /* display: block; */
-  /* margin-top: 10px; */
-}
 
 
 /* Group Display Flex
@@ -1154,18 +1061,44 @@ td.modified .on-off svg path {
   box-sizing: border-box;
 } */
 
-.karma-field-group.display-flex {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  margin: 0 -5px 0;
+.karma-field-container {
+  margin: -0.75em -10px;
+  flex-grow: 1;
 }
-.karma-field-group.display-flex>* {
-  margin: 0 5px 1em;
-  /* width: 100%;
-  min-width: 480px; */
+.karma-field-container.display-flex {
+  display: flex;
+  flex-wrap: wrap;
+}
+.karma-field-group {
+  flex-grow: 1;
+}
+.karma-field-frame {
+  padding: 0.75em 10px;
   box-sizing: border-box;
 }
+.karma-field-separator {
+  flex-grow: 0;
+  padding: 0;
+  border-bottom: 1px solid #c3c4c7;
+  margin: 1em 0;
+  width: 100%;
+}
+
+.karma-field-container.disabled label {
+  color: #c3c4c7;
+}
+
+
+@media (min-width: 600px) {
+  .karma-field-separator {
+    border-bottom: none;
+    border-right: 1px solid #c3c4c7;
+    margin: -0.75em 0;
+    width: auto;
+  }
+}
+
+
 
 
 
@@ -1190,12 +1123,29 @@ td.modified .on-off svg path {
   min-width: 150px;
   vertical-align: baseline;
 } */
-.karma-field-group.display-table {
+.karma-field-container.display-table {
   display: table;
+  margin: 0;
 }
-.karma-field-group.display-table>* {
+.karma-field-container.display-table>.karma-field-frame {
+  padding: 0;
   display: table-row;
 }
+.karma-field-container.display-table>.karma-field-frame>label,
+.karma-field-container.display-table>.karma-field-frame>.karma-field-item {
+  padding-top: 2px;
+  display: table-cell;
+  margin: 0;
+}
+.karma-field-container.display-table>.karma-field-frame>label {
+  vertical-align: baseline;
+  padding-right: 10px;
+}
+.karma-field-container.display-table>.karma-field-frame>.karma-field-item {
+  padding-left: 10px;
+}
+
+/*
 .karma-field-group.display-table>*>* {
   display: table-cell;
   padding: 0 5px;
@@ -1208,43 +1158,4 @@ td.modified .on-off svg path {
   font-weight: bolder;
   min-width: 150px;
   vertical-align: baseline;
-}
-
-
-/* Arsenic
---------------------------------------*/
-
-.karma-fields .spectacle-details {
-  /* display: flex; */
-  /* padding: 1em 0 0; */
-  margin-top: 0.5em;
-}
-.karma-fields .spectacle-details-row {
-  display: flex;
-}
-.karma-fields .spectacle-details label {
-  margin: 0;
-  flex-basis: 180px;
-}
-.karma-fields .spectacle-details.disable label {
-  color: #adb6bd;
-  font-weight: normal;
-}
-.karma-fields .spectacle-details input {
-  width: 50px;
-  padding: 0 5px;
-  margin: 1px 5px;
-  border-radius: 0;
-  border: 1px solid #adb6bd;
-  background-color: white;
-  outline: none;
-  min-height: 0;
-  line-height: 1.25em;
-}
-.karma-fields .spectacle-details input:disabled {
-  background-color: #f1f1f1;
-}
-.karma-fields .spectacle-details input:read-only {
-  background-color: #f1f1f1;
-  color: #535c63;
-}
+} */

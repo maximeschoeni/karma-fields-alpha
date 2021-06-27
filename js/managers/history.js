@@ -22,6 +22,9 @@ KarmaFieldsAlpha.History = {
 	instances: {},
 	getInstance: function(field) {
 		let driver = field.getRoot().resource.driver || "default";
+		return this.getDriverInstance(driver);
+	},
+	getDriverInstance: function(driver) {
 		if (!this.instances[driver]) {
 			this.instances[driver] = {
 				index: 0,
@@ -30,12 +33,13 @@ KarmaFieldsAlpha.History = {
 		}
 		return this.instances[driver];
 	},
-	update: function(field) {
+	update: function(field, driver) {
 		let state = field.getId()+(field.state && "-"+field.state || "");
-		let instance = this.getInstance(field);
+		// let instance = this.getInstance(field);
+		let instance = this.getDriverInstance(driver || this.getDriver());
 		if (state !== instance.state) {
 			while (instance.max > instance.index) {
-				field.getRoot().delete(instance.max);
+				field.getRoot().history.delete(instance.max); // !!! Field must be a descendant of Form
 				instance.max--;
 			}
 			instance.index++;
@@ -44,8 +48,21 @@ KarmaFieldsAlpha.History = {
 		}
 		return instance.index;
 	},
-	getIndex: function(field) {
+	save: function(field, driver, withUpdate) {
+		if (withUpdate) {
+			this.update(field, driver);
+		}
+		let index = this.getDriverInstance(driver || this.getDriver()).index;
+		field.history.undos[index] = field.value;
+	},
+	getIndex: function(field, driver) {
 		return this.getInstance(field).index;
+	},
+	getDriver: function(field) {
+		return field.getRoot().resource.driver || "default";
+	},
+	getDriverIndex: function(driver) {
+		return this.getDriverInstance(driver).index;
 	},
 	undo: function(field) {
 		let instance = this.getInstance(field);

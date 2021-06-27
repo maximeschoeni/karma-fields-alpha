@@ -71,7 +71,7 @@ KarmaFieldsAlpha.fields.group = function(field) {
 							// if (child.resource.grandChildren) {
 							// 	this.children = this.children.concat(this.children, child.resource.grandChildren.map(function(resource) {
 							// 		let childValue = child.getValue();
-							// 		let grandChild = child.getChild(childValue) || KarmaFieldsAlpha.Field({
+							// 		let grandChild = child.getDescendant(childValue) || KarmaFieldsAlpha.Field({
 							// 			key: childValue,
 							// 			...resource
 							// 		}, child);

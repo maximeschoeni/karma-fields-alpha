@@ -1,170 +1,417 @@
-// KarmaFieldsAlpha.fieldsOptions.files = {
-//   datatype: "array"
-// };
+KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
 
-KarmaFieldsAlpha.fields.files = {};
+  constructor(resource) {
+    super(resource);
 
-KarmaFieldsAlpha.fields.files.create = function(resource) {
-  let field = KarmaFieldsAlpha.Field(resource);
-  field.datatype = "array";
-  field.data.uploader = {
-    frame: null,
-    open: function () {
-      if (!this.frame) {
-        let mimeTypes = field.resource.file && (field.resource.file.type || field.resource.file.types)
-          || field.resource.mime_types
-          || field.resource.mime_type
-          || field.resource.mimeTypes
-          || field.resource.mimeType
-          || field.resource.mimetypes
-          || field.resource.mimetype;
-        // enable video
-        wp.media.controller.GalleryAdd = wp.media.controller.GalleryAdd.extend({
-          initialize: function() {
-            if ( ! this.get('library') ) {
-              this.set( 'library', wp.media.query(mimeTypes ? { type: mimeTypes } : null) );
+    this.datatype = "array";
+
+  }
+
+  createUploader(resource) {
+    const field = this;
+    const uploader = {
+      frame: null,
+      open: function () {
+        if (!this.frame) {
+          let mimeTypes = resource.file && (resource.file.type || resource.file.types)
+            || resource.mime_types
+            || resource.mime_type
+            || resource.mimeTypes
+            || resource.mimeType
+            || resource.mimetypes
+            || resource.mimetype;
+          // enable video
+          wp.media.controller.GalleryAdd = wp.media.controller.GalleryAdd.extend({
+            initialize: function() {
+              if ( ! this.get('library') ) {
+                this.set( 'library', wp.media.query(mimeTypes ? { type: mimeTypes } : null) );
+              }
+              wp.media.controller.Library.prototype.initialize.apply( this, arguments );
             }
-            wp.media.controller.Library.prototype.initialize.apply( this, arguments );
-          }
-        });
-        wp.media.controller.GalleryEdit = wp.media.controller.GalleryEdit.extend({
-          activate: function() {
-            var library = this.get('library');
-            if (mimeTypes) {
-              library.props.set( 'type', mimeTypes );
+          });
+          wp.media.controller.GalleryEdit = wp.media.controller.GalleryEdit.extend({
+            activate: function() {
+              var library = this.get('library');
+              if (mimeTypes) {
+                library.props.set( 'type', mimeTypes );
+              }
+              this.get('library').observe( wp.Uploader.queue );
+              this.frame.on( 'content:render:browse', this.gallerySettings, this );
+              wp.media.controller.Library.prototype.activate.apply( this, arguments );
             }
-            this.get('library').observe( wp.Uploader.queue );
-            this.frame.on( 'content:render:browse', this.gallerySettings, this );
-            wp.media.controller.Library.prototype.activate.apply( this, arguments );
+          });
+          wp.media.view.Settings.Gallery = wp.media.view.Settings.Gallery.extend({
+            render: function() {
+              return this;
+            }
+          });
+          let ids = field.getValue();
+          if (ids.length) {
+            this.frame = wp.media.gallery.edit('[gallery ids="'+ids.join(",")+'"]');
+          } else {
+            this.frame = wp.media({
+              frame: "post",
+              state: "gallery-edit",
+              type: mimeTypes || ["image"],
+              editing: true,
+              multiple: true  // Set to true to allow multiple files to be selected
+            });
           }
-        });
-        wp.media.view.Settings.Gallery = wp.media.view.Settings.Gallery.extend({
-          render: function() {
-            return this;
-          }
-        });
-        let ids = field.getValue();
-        if (ids.length) {
-          this.frame = wp.media.gallery.edit('[gallery ids="'+ids.join(",")+'"]');
-        } else {
-          this.frame = wp.media({
-            frame: "post",
-            state: "gallery-edit",
-            type: mimeTypes || ["image"],
-            editing: true,
-            multiple: true  // Set to true to allow multiple files to be selected
+          this.frame.on("update",function(items) {
+            field.triggerEvent("history");
+            field.setValue(items.map(function(item) {
+              return item.attributes.id;
+            }));
+            field.triggerEvent("change", true);
+            field.triggerEvent("set");
           });
         }
-        this.frame.on("update",function(items) {
-          field.setValue(items.map(function(item) {
-            return item.attributes.id;
-          }));
-          field.trigger("render");
-        });
+        this.frame.open();
       }
-      this.frame.open();
-    }
-  };
-  return field;
-};
+    };
+    return uploader;
+  }
 
-KarmaFieldsAlpha.fields.files.build = function(field) {
-  return {
-    class: "field-file gallery",
-    clear: true,
-    init: function(container) {
-      field.events.render = function() {
-        container.parent.render();
-      };
-    },
-    update: function(container) {
-      let unloadedIds = [];
+  build() {
+    const field = this;
 
-      this.children = field.getValue().map(function(id) {
-        let file = field.data.files && field.data.files[id];
-        if (!file) {
-          unloadedIds.push(id);
-        }
-        return {
-          class: "image-frame type-"+(file && file.type.startsWith("image") && "image" || "file"),
-          init: function() {
-            this.element.addEventListener("click", function(event) {
-              event.preventDefault();
-              field.data.uploader.open();
-            });
+    return {
+			class: "karma-field-"+field.resource.type,
+			init: function(container) {
+				// field.events.set = function() {
+				// 	container.render(true); // -> when field value is changed by outside
+				// }
+				if (field.resource.style) {
+					this.element.style = field.resource.style;
+				}
+			},
+			update: function(container) {
+        this.child = {
+          class: "field-file gallery",
+          clear: true,
+          init: function(container) {
+            // field.events.render = function() {
+            //   container.parent.render();
+            // };
           },
-          child: file && {
-            tag: "img",
-            init: function() {
-              this.element.src = file.src;
-              this.element.width = file.width;
-              this.element.height = file.height;
+          update: function(fileContainer) {
+
+            if (field.hasValue()) {
+              let ids = field.getValue();
+              if (ids.length) {
+                if (field.hasFiles(ids)) {
+                  this.children = field.getFiles(ids).map(function(file) {
+                    return {
+                      class: "image-frame type-"+(file && file.type.startsWith("image") && "image" || "file"),
+                      init: function() {
+                        this.element.addEventListener("click", function(event) {
+                          event.preventDefault();
+                          field.data.uploader.open();
+                        });
+                      },
+                      child: {
+                        tag: "img",
+                        init: function() {
+                          this.element.src = file.src;
+                          this.element.width = file.width;
+                          this.element.height = file.height;
+                        }
+                      } || {
+                        class: "karma-field-spinner"
+                      }
+                    };
+                  });
+                } else {
+                  this.children = ids.map(function(id) {
+                    return {
+                      class: "image-frame",
+                      child: {
+                        class: "karma-field-spinner"
+                      }
+                    };
+                  });
+                  field.fetchIds(ids).then(function(result) {
+                    if (result) { // -> prevent infinite loop if file is not found
+                      container.render(true);
+                    }
+                  });
+                }
+              } else {
+                this.children = [
+                  {
+                    class: "image-frame type-file",
+                    update: function() {
+                      this.element.onclick = function(event) {
+                        event.preventDefault();
+                        field.data.uploader.open();
+                      };
+                    },
+                    child: {
+                      tag: "button",
+                      class: "add",
+                      init: function() {
+                        this.element.onclick = function(event) {
+                          event.preventDefault();
+                          field.data.uploader.open();
+                        };
+                      },
+                      update: function() {
+                        this.element.textContent = "Add files";
+                      }
+                    }
+                  }
+                ];
+              }
+              this.children.push({
+                class: "field-control",
+                update: function() {
+                  this.children = [];
+                  if (field.getValue().length) {
+                    // this.children.push({
+                    //   tag: "button",
+                    //   class: "edit",
+                    //   init: function() {
+                    //     this.element.textContent = "Edit";
+                    //     this.element.id = field.getId();
+                    //     this.element.addEventListener("click", function(event) {
+                    //       event.preventDefault();
+                    //       field.data.uploader.open();
+                    //     });
+                    //   }
+                    // });
+                    this.children.push({
+                      tag: "button",
+                      class: "delete",
+                      init: function() {
+                        this.element.textContent = "Remove";
+                        this.element.addEventListener("click", function(event) {
+                          event.preventDefault();
+                          field.triggerEvent("history");
+                          field.setValue([]);
+                          field.triggerEvent("change", true);
+                          field.triggerEvent("set");
+                          // container.parent.render(true);
+                        });
+                      }
+                    });
+                  } else {
+                    // this.children.push({
+                    //   tag: "button",
+                    //   class: "insert",
+                    //   init: function() {
+                    //     this.element.textContent = "Add";
+                    //     this.element.id = field.getId();
+                    //     this.element.addEventListener("click", function(event) {
+                    //       event.preventDefault();
+                    //       field.data.uploader.open();
+                    //     });
+                    //   }
+                    // });
+                  }
+                }
+              });
+            } else {
+              this.child = {
+                class: "image-frame type-file",
+                child: {
+                  class: "karma-field-spinner"
+                }
+              };
+    					field.fetchValue().then(function(value) {
+    						container.render(true);
+    					});
             }
-          } || {
-            class: "karma-field-spinner"
+            field.events.modify = function() {
+              container.element.classList.toggle("modified", field.isModified());
+            }
+            field.events.load = function() {
+              container.element.classList.toggle("loading", field.loading > 0);
+            }
+            field.events.set = function() {
+              container.render(true);
+            }
+
+            field.triggerEvent("load");
+            field.triggerEvent("modify");
           }
         };
-      });
-      if (unloadedIds.length) {
-        this.element.classList.add("loading");
-        field.trigger("files", unloadedIds).then(function(results) {
-          if (!field.data.files) {
-            field.data.files = {};
-          }
-          results.forEach(function(image) {
-            field.data.files[image.id] = image;
-          });
-          container.parent.render(true);
-        });
-      };
-      this.children.push({
-        class: "field-control",
-        update: function() {
-          this.children = [];
-          if (field.getValue().length) {
-            this.children.push({
-              tag: "button",
-              class: "edit",
-              init: function() {
-                this.element.textContent = "Edit";
-                this.element.id = field.getId();
-                this.element.addEventListener("click", function(event) {
-                  event.preventDefault();
-                  field.data.uploader.open();
-                });
-              }
-            });
-            this.children.push({
-              tag: "button",
-              class: "delete",
-              init: function() {
-                this.element.textContent = "Remove";
-                this.element.addEventListener("click", function(event) {
-                  event.preventDefault();
-                  field.setValue("");
-                  container.parent.render(true);
-                });
-              }
-            });
-          } else {
-            this.children.push({
-              tag: "button",
-              class: "insert",
-              init: function() {
-                this.element.textContent = "Add";
-                this.element.id = field.getId();
-                this.element.addEventListener("click", function(event) {
-                  event.preventDefault();
-                  field.data.uploader.open();
-                });
-              }
-            });
-          }
-        }
-      });
-    }
-  };
-};
+      }
+    };
+
+  }
+
+}
+
+
+
+//
+// // KarmaFieldsAlpha.fieldsOptions.files = {
+// //   datatype: "array"
+// // };
+//
+// KarmaFieldsAlpha.fields.files = {};
+//
+// KarmaFieldsAlpha.fields.files.create = function(resource) {
+//   let field = KarmaFieldsAlpha.Field(resource);
+//   field.datatype = "array";
+//   field.data.uploader = {
+//     frame: null,
+//     open: function () {
+//       if (!this.frame) {
+//         let mimeTypes = field.resource.file && (field.resource.file.type || field.resource.file.types)
+//           || field.resource.mime_types
+//           || field.resource.mime_type
+//           || field.resource.mimeTypes
+//           || field.resource.mimeType
+//           || field.resource.mimetypes
+//           || field.resource.mimetype;
+//         // enable video
+//         wp.media.controller.GalleryAdd = wp.media.controller.GalleryAdd.extend({
+//           initialize: function() {
+//             if ( ! this.get('library') ) {
+//               this.set( 'library', wp.media.query(mimeTypes ? { type: mimeTypes } : null) );
+//             }
+//             wp.media.controller.Library.prototype.initialize.apply( this, arguments );
+//           }
+//         });
+//         wp.media.controller.GalleryEdit = wp.media.controller.GalleryEdit.extend({
+//           activate: function() {
+//             var library = this.get('library');
+//             if (mimeTypes) {
+//               library.props.set( 'type', mimeTypes );
+//             }
+//             this.get('library').observe( wp.Uploader.queue );
+//             this.frame.on( 'content:render:browse', this.gallerySettings, this );
+//             wp.media.controller.Library.prototype.activate.apply( this, arguments );
+//           }
+//         });
+//         wp.media.view.Settings.Gallery = wp.media.view.Settings.Gallery.extend({
+//           render: function() {
+//             return this;
+//           }
+//         });
+//         let ids = field.getValue();
+//         if (ids.length) {
+//           this.frame = wp.media.gallery.edit('[gallery ids="'+ids.join(",")+'"]');
+//         } else {
+//           this.frame = wp.media({
+//             frame: "post",
+//             state: "gallery-edit",
+//             type: mimeTypes || ["image"],
+//             editing: true,
+//             multiple: true  // Set to true to allow multiple files to be selected
+//           });
+//         }
+//         this.frame.on("update",function(items) {
+//           field.setValue(items.map(function(item) {
+//             return item.attributes.id;
+//           }));
+//           field.trigger("render");
+//         });
+//       }
+//       this.frame.open();
+//     }
+//   };
+//   return field;
+// };
+//
+// KarmaFieldsAlpha.fields.files.build = function(field) {
+//   return {
+//     class: "field-file gallery",
+//     clear: true,
+//     init: function(container) {
+//       field.events.render = function() {
+//         container.parent.render();
+//       };
+//     },
+//     update: function(container) {
+//       let unloadedIds = [];
+//
+//       this.children = field.getValue().map(function(id) {
+//         let file = field.data.files && field.data.files[id];
+//         if (!file) {
+//           unloadedIds.push(id);
+//         }
+//         return {
+//           class: "image-frame type-"+(file && file.type.startsWith("image") && "image" || "file"),
+//           init: function() {
+//             this.element.addEventListener("click", function(event) {
+//               event.preventDefault();
+//               field.data.uploader.open();
+//             });
+//           },
+//           child: file && {
+//             tag: "img",
+//             init: function() {
+//               this.element.src = file.src;
+//               this.element.width = file.width;
+//               this.element.height = file.height;
+//             }
+//           } || {
+//             class: "karma-field-spinner"
+//           }
+//         };
+//       });
+//       if (unloadedIds.length) {
+//         this.element.classList.add("loading");
+//         field.trigger("files", unloadedIds).then(function(results) {
+//           if (!field.data.files) {
+//             field.data.files = {};
+//           }
+//           results.forEach(function(image) {
+//             field.data.files[image.id] = image;
+//           });
+//           container.parent.render(true);
+//         });
+//       };
+//       this.children.push({
+//         class: "field-control",
+//         update: function() {
+//           this.children = [];
+//           if (field.getValue().length) {
+//             this.children.push({
+//               tag: "button",
+//               class: "edit",
+//               init: function() {
+//                 this.element.textContent = "Edit";
+//                 this.element.id = field.getId();
+//                 this.element.addEventListener("click", function(event) {
+//                   event.preventDefault();
+//                   field.data.uploader.open();
+//                 });
+//               }
+//             });
+//             this.children.push({
+//               tag: "button",
+//               class: "delete",
+//               init: function() {
+//                 this.element.textContent = "Remove";
+//                 this.element.addEventListener("click", function(event) {
+//                   event.preventDefault();
+//                   field.setValue("");
+//                   container.parent.render(true);
+//                 });
+//               }
+//             });
+//           } else {
+//             this.children.push({
+//               tag: "button",
+//               class: "insert",
+//               init: function() {
+//                 this.element.textContent = "Add";
+//                 this.element.id = field.getId();
+//                 this.element.addEventListener("click", function(event) {
+//                   event.preventDefault();
+//                   field.data.uploader.open();
+//                 });
+//               }
+//             });
+//           }
+//         }
+//       });
+//     }
+//   };
+// };
 
 //
 //

@@ -1,61 +1,71 @@
-KarmaFieldsAlpha.fields.form = {};
-KarmaFieldsAlpha.fields.form.create = function(resource) {
-	let field = KarmaFieldsAlpha.fields.group.create(resource);
+KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
-	// overrided in post-field.php
-	// field.events.output = function(value) {
-	// 	return this.submit(value);
-	// };
+	// constructor(resource, domain, parent) {
+	// 	super(resource, domain || new KarmaFieldsAlpha.Domain(), parent);
 	//
+	// }
+
+	initField() {
+		const field = this;
+		this.events.change = function(currentField, value) {
+			return field.bubble("submit", currentField, value); // this.submit();
+		};
+
+		this.events.submit = async function() {
+			let values = field.getModifiedValue();
+
+			if (values) {
+				KarmaFieldsAlpha.Form.cache = {};
+				return this.save(values);
+				// return KarmaFieldsAlpha.Form.update(resource.driver, values).then(function(results) {
+				// 	// field.updateOriginal();
+				// 	field.setValue(values, "set"); // -> unmodify fields
+				// 	// field.setValue(results, "set"); // -> update value (false or true -> no effect)
+				// 	// field.triggerEvent("modify");
+				// 	// field.triggerEvent("set");
+				// 	return results;
+				// });
+			}
+		};
+	}
 
 
-	field.events.submit = function() {
-		let values = {};
-		values[field.resource.driver] = {};
-		values[field.resource.driver][field.resource.key] = field.getModifiedValue() || {};
 
-		return KarmaFieldsAlpha.Form.update(field.resource.driver, values).then(function(results) {
+	fetch(queryString) {
+		return KarmaFieldsAlpha.Form.fetch2(this.resource.driver, queryString);
+  }
+
+	getDriver() {
+		console.warn("Deprecated function getDriver");
+		return this.resource.driver;
+	}
+
+	// getPath() {
+	// 	return [];
+	// }
+
+	readPath(keys) {
+		return this.domain.readPath(keys.join("/"));
+	}
+
+	writePath(keys, rawValue) {
+		this.domain.writePath(keys.join("/"), rawValue);
+	}
+
+	getFromPath(keys) {
+		const field = this;
+		return KarmaFieldsAlpha.Form.get(this.resource.driver, keys.join("/"));
+	}
+
+	save(values) {
+		const field = this;
+
+		return KarmaFieldsAlpha.Form.update(this.resource.driver, values).then(function(results) {
+			// field.setValue(values, "set"); // -> unmodify fields
+			field.initValue(values, true);
+			field.initValue(results, true);
 			return results;
 		});
-	};
+	}
 
-	field.events.change = function(currentField) {
-		currentField.history.save(); // -> should move on field level
-
-
-		// console.log();
-		// let values = {};
-		// values[field.resource.driver] = {};
-		// values[field.resource.driver][field.resource.key] = field.getModifiedValue() || {};
-		return field.triggerEvent("submit");
-	};
-	field.events.init = function(currentField) {
-		if (currentField.resource.key) {
-			KarmaFieldsAlpha.Form.get(field.resource.driver, field.resource.key+"/"+currentField.resource.key).then(function(results) {
-				currentField.setValue(results, "set");
-			});
-		}
-	};
-	field.events.fetch = function(currentField) {
-		if (currentField.resource.key) {
-			return KarmaFieldsAlpha.Form.fetch(field.resource.driver, "querykey", {
-				key: currentField.resource.key
-			}).then(function(results) {
-				return results;
-			});
-		}
-	};
-	field.events.files = function(ids) {
-		return KarmaFieldsAlpha.Form.fetch(field.resource.driver, "queryfiles", {
-			ids: ids.join(",")
-		}).then(function(results) {
-			return results;
-		});
-	};
-
-	return field;
-}
-
-KarmaFieldsAlpha.fields.form.build = function(field) {
-	return KarmaFieldsAlpha.fields.group.build(field);
-}
+};

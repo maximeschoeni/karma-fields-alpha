@@ -1,11 +1,71 @@
 
+
+
+/* WP Layout
+--------------------------------------*/
+
+/* #wpbody-content {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 0px);
+
+  padding-bottom: 0;
+  z-index: 1;
+  position: relative;
+} */
+
+
+#wpwrap {
+  display: flex;
+}
+#adminmenumain {
+  background-color: #23282d;
+}
+#adminmenuback {
+  display: none;
+}
+#adminmenuwrap {
+  float: none !important;
+  flex-shrink: 0;
+  position: static !important;
+
+}
+#adminmenu {
+  margin: 0;
+}
+#wpcontent {
+  margin: 0 0 40px 20px;
+  display: flex;
+  /* overflow: auto; */
+  height: auto;
+  padding: 0;
+  flex-grow: 1;
+}
+#wpbody {
+  display: flex;
+  flex-grow: 1;
+}
+#wpbody-content {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  float: none;
+  width: auto;
+  flex-grow: 1;
+}
+
+
+
+
 .karma-fields {
-    margin-top: 10px;
-    margin-right: 20px;
+  margin: 10px 20px 0 0;
+    /* margin-right: 20px; */
 }
 
 /* Buttons
 --------------------------------------*/
+
+/*
 .karma-fields button {
   cursor: pointer;
   background-color: #f6f7f7;
@@ -13,7 +73,7 @@
   padding: 6px 12px;
   color: #2271b1;
   margin: 0;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 .karma-fields button:hover {
   color: #24282d;
@@ -31,15 +91,15 @@
   padding: 0;
   color: #d63638;
   text-decoration: underline;
-}
+} */
 
 
 .karma-fields button .karma-icon {
-  width: 20px;
-  height: 20px;
+  /* width: 20px;
+  height: 20px; */
 }
 .karma-fields button.loading .button-content {
-  display: none;
+  /* display: none; */
 }
 
 /* .karma-fields button .karma-icon path {
@@ -50,6 +110,17 @@
 } */
 
 
+/* Item
+--------------------------------------*/
+
+.karma-field-item  {
+  display: flex;
+  align-items: center;
+}
+
+
+
+
 /* File
 --------------------------------------*/
 
@@ -58,24 +129,36 @@
   flex-wrap: wrap;
   /* align-items: flex-end; */
   vertical-align: middle;
-  margin: -5px;
+  margin: -0px;
 }
 /* .karma-fields .field-file .image-container {
   display: flex;
   flex-wrap: wrap;
 } */
 .karma-fields .field-file .image-frame {
-  border: 1px solid #888888;
+  border: 1px solid #c3c4c7;
+  /* background-color: #f6f7f7; */
+  border-radius: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 150px;
   height: 150px;
   cursor: pointer;
-  margin: 5px;
+  margin: 0px;
+}
+.karma-field-file .image-frame .image-container {
+  display: flex;
+}
+.karma-field-file.loading .image-frame .image-container {
+  display: none;
+}
+.karma-field-file.loading .image-frame .button-container {
+  display: none;
 }
 .karma-fields .field-file .image-frame.type-image {
   border: none;
+  background-color: transparent;
 }
 .karma-fields .field-file .image-frame.type-image img {
   display: block;
@@ -85,13 +168,16 @@
   height: 100%;
   border: none;
 }
-.karma-fields .field-file .field-control {
+.karma-fields .field-file .field-control  {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin: 5px;
 }
+.karma-fields .field-file .field-control button {
 
+  margin: 5px;
+}
 
 /* .karma-fields .field-file .file-thumb button {
   padding: 0 10px;
@@ -162,7 +248,10 @@
 
   display: grid;
   grid-gap: 1px;
-  margin: 1px;
+  margin: 0 0 32px;
+  background-color: #c3c4c7;
+  border: 1px solid #c3c4c7;
+
   /* background-color: #f1f1f1; */
   /* grid-template-columns: 40px auto 1fr; */
 }
@@ -176,19 +265,23 @@
   border-right-width: 1px;
   border-bottom-width: 1px; */
   text-align: left;
-  padding: 1px;
+  padding: 0;
   color: #535c63;
 
   display: flex;
-  outline: 1px solid #7e8993;
+  /* outline: 1px solid #7e8993; */
 }
 .karma-fields .table .flying {
   position: relative;
   z-index: 99999;
 }
 .karma-fields .table .th {
-  background-color: #d4d8db;
-  padding: 5px;
+  /* background-color: #f6f7f7; */
+  background-color: #f0f0f1;
+  font-weight: bold;
+  font-size: 0.875em;
+  line-height: 1.2em;
+  padding: 10px 5px;
   user-select: none;
   justify-content: space-between;
   align-items: center;
@@ -205,6 +298,10 @@
 .karma-fields .table .td.modified {
   color: black;
 }
+.karma-fields .table .td > div {
+  display: flex;
+  width: 100%;
+}
 
 
 
@@ -213,6 +310,13 @@
 
 .karma-fields .table .th a {
   color: inherit;
+  padding: 0 5px;
+}
+.karma-fields .table .th a:first-child {
+  padding-left: 0;
+}
+.karma-fields .table .th a:last-child {
+  padding-right: 0;
 }
 .karma-fields .table .th a.header-cell-order {
   display: block;
@@ -221,23 +325,25 @@
   cursor: pointer;
   background-image: url(../dashicons/sort.svg);
   background-repeat: no-repeat;
-  mix-blend-mode: overlay;
+  /* mix-blend-mode: overlay; */
+  opacity: 0.15;
 }
 .karma-fields .table .th a.header-cell-order:hover {
-  mix-blend-mode: normal;
+  /* mix-blend-mode: normal; */
+  opacity: 0.5;
 }
 .karma-fields .table .th a.header-cell-order.asc {
   background-image: url(../dashicons/arrow-up.svg);
-  mix-blend-mode: normal;
+  opacity: 0.5;
 }
 .karma-fields .table .th a.header-cell-order.desc {
   background-image: url(../dashicons/arrow-down.svg);
-  mix-blend-mode: normal;
+  opacity: 0.5;
 }
 .karma-fields .loading .table .th a.header-cell-order,
 .karma-fields .table .th a.header-cell-order.loading {
   background-image: none;
-  mix-blend-mode: normal;
+  opacity: 0.5;
 }
 
 
@@ -246,6 +352,7 @@
 --------------------------------------*/
 
 .karma-fields .table .td input.text,
+.karma-fields .table .td input.date,
 .karma-fields .table .td textarea {
   margin: 0;
   padding: 5px 5px;
@@ -257,7 +364,8 @@
   color: inherit;
   height: 100%;
 }
-.karma-fields .table .td input.text:focus {
+.karma-fields .table .td input.text:focus,
+.karma-fields .table .td input.date:focus {
   box-shadow: none;
 }
 
@@ -269,22 +377,7 @@
 }
 
 
-/* Grid Dropdown
---------------------------------------*/
 
-.karma-fields .table select {
-  margin: 0;
-  border: none;
-  width: 100%;
-  max-width: none;
-  background-color: transparent;
-  padding-left: 5px;
-  padding-right: 21px;
-}
-.karma-fields .table select:focus {
-  outline: none;
-  box-shadow: none;
-}
 
 /* Grid Cell Button
 --------------------------------------*/
@@ -319,10 +412,76 @@
 }
 
 
-
-
-/* Grid Dropdown
+/* Grid Cell Files
 --------------------------------------*/
-.karma-fields .table .dropdown-container {
+
+.karma-fields .table .td .field-file {
+  flex-wrap: nowrap;
+  margin: 0;
+}
+.karma-fields .table .td .field-file .field-control button.edit {
+  display: none;
+}
+.karma-fields .table .td .field-file .image-frame {
+  border: none;
+  width: 75px;
+  height: 75px;
+  cursor: pointer;
+  margin: 0;
+}
+
+
+
+
+
+/* PPP Selector
+--------------------------------------*/
+
+.ppp-selector {
   display: flex;
+  flex-direction: column-reverse;
+}
+.ppp-selector-options {
+  position: relative;
+  display: none;
+}
+.ppp-selector:focus-within .ppp-selector-options {
+
+/* .ppp-selector button:focus + .ppp-selector-options { */
+  display: block;
+}
+.ppp-selector-options ul {
+  margin: 0;
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  background-color: #f1f1f1;
+  /* border-radius: 3px; */
+  border: 1px solid #c3c4c7;
+
+}
+.ppp-selector-options ul li {
+  margin: 0;
+  border-bottom: 1px solid #c3c4c7;
+}
+.ppp-selector-options ul li:last-child {
+  border-bottom: none;
+}
+.ppp-selector-options ul li label {
+  /* white-space: nowrap; */
+  padding: 5px 12px;
+  /* border-bottom: 1px solid #c3c4c7; */
+}
+.ppp-selector-options ul li button {
+  width: 100%;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+}
+.ppp-selector-options ul li button:hover {
+  border: none;
+  background-color: white;
+}
+.ppp-selector-options ul li button:focus {
+  border: none;
 }

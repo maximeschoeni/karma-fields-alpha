@@ -1,0 +1,44 @@
+
+/* Dropdown
+--------------------------------------*/
+
+.karma-fields select.karma-field {
+
+  border-color: #c3c4c7;
+}
+.karma-fields select.karma-field:focus {
+  box-shadow: none;
+  background-color: white;
+}
+
+/* Table Dropdown
+--------------------------------------*/
+
+.karma-field-table select {
+  background-color: #f0f0f1;
+  height: auto;
+  box-shadow: none;
+}
+
+.karma-field-table .table select.karma-field {
+  border: none;
+  margin: 0;
+  border-radius: 0;
+}
+
+
+
+
+/* .karma-fields .table select {
+  margin: 0;
+  border: none;
+  width: 100%;
+  max-width: none;
+  background-color: transparent;
+  padding-left: 5px;
+  padding-right: 21px;
+}
+.karma-fields .table select:focus {
+  outline: none;
+  box-shadow: none;
+} */

@@ -1,325 +1,745 @@
+KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
-KarmaFieldsAlpha.fields.table = function(field) {
+  constructor(resource, domain, parent) {
+    super(resource, domain, parent);
 
-  return {
-    class: "karma-field-table",
-    init: function(container) {
+    const field = this;
 
-      field.data.filters = KarmaFieldsAlpha.Field(field.resource.filters);
+    window.karma_table = this; // -> debug
+    this.domain.name = "Table"; // -> debug
 
-      field.data.filters.events.change = function(currentField) {
-        currentField.data.loading = true;
-        currentField.history.save();
-        currentField.trigger("update");
 
-        return field.trigger("queryTable").then(function() {
-          currentField.data.loading = false;
-          container.render(true);
-        });
-      },
-      field.data.filters.events.fetch = function(currentField) {
-        return field.trigger("fetch", currentField);
+    // compat!
+    resource.columns = resource.columns.filter(function(column) {
+      if (column.type === "index") {
+        resource.index = column;
+        return false;
       }
+      return true;
+    });
+
+    // select
+    this.select = new KarmaFieldsAlpha.SelectionManager();
+    this.select.events.copy = function() {
+      field.copy(this.selection);
+			// if (navigator.clipboard && navigator.clipboard.writeText) {
+			// 	var rows = [];
+      //   const ids = field.ids.getValue();
+			// 	for (var j = 0; j < this.selection.height; j++) {
+			// 		var cols = [];
+      //     const row = field.getDirectChild(ids[j+this.selection.y]);
+      //     // console.log(row);
+			// 		for (var i = 0; i < this.selection.width; i++) {
+      //       const cell = row.children[i+1+this.selection.x];
+      //       const value = cell.exportValue();
+      //       cols.push(value);
+			// 		}
+			// 		rows.push(cols.join("\t"));
+			// 	}
+			// 	if (rows.length) {
+			// 		var text = rows.join("\n");
+			// 		navigator.clipboard.writeText(text);
+			// 	}
+			// }
+    }
+    this.select.events.paste = function() {
+      field.paste(this.selection);
+      // const x = this.selection.x;
+      // const y = this.selection.y;
+      // const ids = field.ids.getValue();
+			// navigator.clipboard.readText().then(function(text) {
+			// 	if (text) {
+			// 		var rows = text.split(/[\r\n]+/).map(function(row) {
+			// 			return row.split("\t");
+			// 		});
+      //     field.triggerEvent("history", true);
+			// 		for (var j = 0; j < rows.length; j++) {
+      //       const rowField = field.getDirectChild(ids[j+y]);
+			// 			for (var i = 0; i < rows[j].length; i++) {
+      //         const cellField = rowField.children[i+1+x];
+      //         const value = rows[j][i];
+      //         cellField.importValue(value);
+      //         cellField.triggerEvent("modify");
+      //         cellField.triggerEvent("set");
+			// 			}
+			// 		}
+			// 		field.triggerEvent("change", true);
+			// 	}
+			// });
+    }
 
 
-      field.data.orderby = KarmaFieldsAlpha.Field({
-        key: "orderby",
-        type: "hidden",
-        value: field.resource.orderby
-      }, null, {
-        change: function(currentField) {
-          currentField.history.save();
-        }
+
+
+
+    this.pagination = new KarmaFieldsAlpha.fields.tablePagination(resource, this.domain, this);
+    this.pagination.events.change = function() {
+      return field.query().then(function() {
+        field.try("render");
       });
-      field.data.order = KarmaFieldsAlpha.Field({
-        key: "order",
-        type: "hidden",
-        value: field.resource.columns.find(function(column) {
-          return !field.resource.orderby || column.field && column.field.key === field.resource.orderby;
-        }).order || "asc"
-      }, null, {
-        change: function(currentField) {
-          currentField.history.save();
-        }
+    }
+
+    this.ordering = new KarmaFieldsAlpha.fields.tableOrdering(resource, this.domain, this);
+    this.ordering.events.change = function() {
+      return field.pagination.page.updateValue(1).then(function() {
+        return field.query();
+      }).then(function() {
+        field.try("render");
       });
-      field.data.page = KarmaFieldsAlpha.Field({
-        key: "page",
-        type: "hidden",
-        value: 1,
-        datatype: "number"
-      }, null, {
-        change: function(currentField) {
-          currentField.history.save();
-        }
-      });
-      field.data.ppp = KarmaFieldsAlpha.Field({
-        key: "ppp",
-        type: "hidden",
-        value: field.resource.ppp || 50,
-        datatype: "number"
-      });
-
-      field.data.count = KarmaFieldsAlpha.Field({
-        key: "count",
-        type: "hidden",
-        datatype: "number"
-      }, null, {
-        change: function(currentField) {
-          currentField.history.save();
-        }
-      });
-      field.data.ids = KarmaFieldsAlpha.Field({
-        key: "ids",
-        type: "hidden",
-        datatype: "array"
-      }, null, {
-        change: function(currentField) {
-          currentField.history.save();
-        }
-      });
-
-      field.events.render = function() {
-        container.render();
-      }
-
-      field.events.change = function(currentField) {
-        KarmaFieldsAlpha.History.update(currentField);
-        currentField.history.save();
-
-        field.trigger("renderFooter");
-      };
-
-      field.events.createRow = function(value) {
-        let row = field.getChild(value.id) || field.createChild({
-          key: value.id
-        });
-        let trashField = row.getChild("trash") || row.createChild({
-          key: "trash"
-        });
-        field.resource.columns.forEach(function(column) {
-          if (column.field) {
-            let cell = row.getChild(column.field.key) || row.createChild(column.field);
-            if (value[column.field.key] === undefined) {
-              child.data.loading = true;
-              child.trigger("update");
-              KarmaFieldsAlpha.Form.get(field.resource.driver, value.id+"/"+column.field.key).then(function(value) {
-                child.data.loading = false;
-                child.setValue(value, "set");
-              });
-
-            } else {
-              cell.setValue(value[column.field.key], "set");
-            }
-          }
-        });
-      };
-
-      field.events.queryTable = function() {
-
-        let params = Object.assign({
-          orderby: field.data.orderby.getValue(),
-          order: field.data.order.getValue(),
-          page: field.data.page.getValue(),
-          ppp: field.data.ppp.getValue()
-        }, field.data.filters.getValue());
-
-        return KarmaFieldsAlpha.Form.fetch(field.resource.driver, "querytable", params).then(function(results) {
-          field.data.count.setValue(results.count, "set");
-          field.data.ids.setValue(results.items.map(function(item) {
-            return item.id;
-          }), "set");
-          results.items.forEach(function(item) {
-            field.trigger("createRow", item);
-  				});
-          return results;
-        });
-      };
-
-      field.events.sync = function() {
-        let value = field.getModifiedValue();
-        return KarmaFieldsAlpha.Form.update(field.resource.driver, value).then(function(results) {
-          field.setValue(value, "set");
-          // return field.events.queryTable();
-        });
-      };
-
-      field.events.add = function() {
-        return KarmaFieldsAlpha.Form.add(field.resource.driver, field.data.filters.getValue()).then(function(value) {
-          field.trigger("createRow", value);
-          field.data.ids.setValue([value.id].concat(ids.getValue()), "change");
-          return value;
-        });
-      };
-
-      field.events.remove = function() {
-        let rows = field.data.select && field.data.select.getSelectedRows().map(function(cell) {
-          return cell.field;
-        });
-        if (rows) {
-          field.data.ids.setValue(ids.getValue().filter(function(id) {
-            return !rows.some(function(row) {
-              row.resource.key == id;
-            });
-          }), "change");
-          // field.trigger("render", true);
-        }
-      }
-
-      field.events.fetch = function(currentField) {
-
-        let params = field.data.filters.getValue();
-        params.key = currentField.resource.key;
-
-        // don't send self value
-        if (params[currentField.resource.key]) {
-          params[currentField.resource.key] = undefined;
-        }
-
-        return KarmaFieldsAlpha.Form.fetch(field.resource.driver, "querykey", params).then(function(results) {
-          return results;
-        });
-      };
-
-
-      field.events.reorder = function(column) {
-        if (field.data.orderby.getValue() === column.field.key) {
-          field.data.order.setValue(field.data.order.getValue() === "asc" ? "desc" : "asc", "change");
-        } else {
-          field.data.order.setValue(column.order || "asc", "change");
-          field.data.orderby.setValue(column.field.key, "change");
-        }
-        field.data.page.setValue(1, "change");
-        return field.trigger("queryTable");
-      }
-
-
-      if (!field.data.order.getValue() && field.data.orderby.getValue() === column.field.key) {
-        field.data.order.setValue(column.order || "asc", "set");
-      }
+    }
 
 
 
-      // let orderbyColumn = field.resource.orderby && field.resource.columns.find(function(column) {
-      //   return column.field && column.field.key === field.resource.orderby;
-      // }) || field.resource.columns.find(function(column) {
-      //   return column.field && column.field.key;
+
+
+    // filters
+
+    this.filters = new KarmaFieldsAlpha.fields.group(resource.filters, this.domain, this);
+
+    this.filters.events.change = function(target) {
+      // field.pagination.page.setValue(1);
+      // // this.clearOptions();
+      // return field.query().then(function() {
+      //   field.try("render");
       // });
-      // if (orderbyColumn) {
-      //   field.data.orderby.set(orderbyColumn.field.key, "set");
-      //   field.data.order.set(orderbyColumn.order || "asc", "set");
+      return field.pagination.page.updateValue(1).then(function() {
+        return field.query();
+      }).then(function() {
+        field.try("render");
+      });
+    }
+
+    this.filters.events.optionparams = function(origin) {
+      let params = this.getValue();
+
+      // don't send self value
+      if (params[origin.resource.key]) {
+        params[origin.resource.key] = undefined;
+      }
+
+      return params;
+
+      // return this.getValueAsync().then(function(params) {
+      //   // don't send self value
+      //   if (params[origin.resource.key]) {
+      //     params[origin.resource.key] = undefined;
+      //   }
+      //   return params;
+      // });
+
+    }
+
+    // this.addChild(this.filters);
+
+    // this.filters.events.fetch = function(currentField, params) {
+    //
+    //   // Object.assign(params, field.filters.getValue());
+    //   //
+    //   // // don't send value of target field
+    //   // if (params[currentField.resource.key]) {
+    //   //   params[currentField.resource.key] = undefined;
+    //   // }
+    //
+    //   return field.queryOptions(field.resource.driver, params);
+    //
+		// };
+
+    // this.filters.getDriver = function() {
+    //   return field.resource.driver;
+    // }
+
+
+    // modal
+    this.modal = new KarmaFieldsAlpha.fields.field({
+      key: "modal"
+    }, this.domain, this);
+
+    this.modal.events.change = function() {
+      field.try("render");
+      return Promise.resolve();
+    }
+
+
+
+
+    // this.data.ids = new KarmaFieldsAlpha.fields.field({
+    this.ids = new KarmaFieldsAlpha.fields.tableCol({
+      key: "ids"
+    }, this.domain, this);
+
+
+
+    this.content = new KarmaFieldsAlpha.fields.form({
+      driver: resource.driver
+      // key: "content"
+    }, this.domain, this);
+
+    this.content.events.history = function(targetField) {
+      // console.log("updatehistory", targetField);
+      field.domain.update(targetField.getId(), targetField.state);
+    };
+
+    this.content.events.openmodal = function(modalField) {
+      document.activeElement.blur();
+      return field.modal.changeValue(modalField.parent.resource.key);
+
+      // field.modal.setValue(modalField.parent.resource.key);
+      //
+      // field.triggerEvent("render");
+    }
+
+    this.content.events.closemodal = function(modalField) {
+      // let rowId = field.modal.getValue();
+      // field.selectRow(rowId);
+      // field.modal.setValue("");
+      // field.triggerEvent("render");
+
+      return field.modal.getValueAsync().then(function(rowId) {
+        field.selectRow(rowId);
+        field.modal.changeValue("");
+      });
+
+
+    }
+
+    this.content.events.optionparams = function(origin) {
+      let params = field.filters.getValue();
+
+      // don't send self value
+      // if (params[origin.resource.key]) {
+      //   params[origin.resource.key] = undefined;
       // }
 
+      return params;
 
+      // return field.filters.getValueAsync();
+    }
 
-      field.data.loading = true;
-      field.trigger("update");
-      field.trigger("queryTable").then(function(results) {
-        field.data.loading = false;
-        container.render();
+    // -> for link fields
+    this.content.events.nav = function(targetField) {
+      // let value = {};
+      // value[targetField.resource.key] = targetField.getValue();
+      // field.setValue(value);
+      // targetField.startLoad();
+      // return field.query().then(function() {
+      //   targetField.endLoad();
+      //   field.triggerEvent("render");
+      // });
+      targetField.startLoad();
+      return targetField.getValueAsync().then(function(value) {
+        const wrap = {};
+        wrap[targetField.resource.key] = value;
+        return field.updateValue(wrap);
+      }).then(function() {
+        return field.query()
+      }).then(function() {
+        targetField.endLoad();
+        field.try("render");
+      });
+    };
+    // this.addChild(this.content);
+  }
+
+  readPath(keys) {
+    return this.domain.readPath(keys.join("/"));
+  }
+
+  writePath(keys, rawValue) {
+    this.domain.writePath(keys.join("/"), rawValue);
+  }
+
+  fetch(queryString) {
+		return KarmaFieldsAlpha.Form.fetch2(this.resource.driver, queryString);
+  }
+
+  getFromPath() {
+    return;
+  }
+
+  // setValue(value, context) {
+  //   this.ordering.setValue(value, context);
+  //   this.pagination.setValue(value, context);
+  //   this.modal.setValue(value.id || "", context);
+  //   this.filters.setValue(value, context);
+  // }
+
+  getValue() {
+    return {
+      // order: this.ordering.order.getValue(),
+      // orderby: this.ordering.orderby.getValue(),
+      // page: this.pagination.page.getValue(),
+      // ppp: this.pagination.ppp.getValue(),
+      ...this.ordering.getValue(),
+      ...this.pagination.getValue(),
+      ...this.filters.getValue()
+    };
+  }
+
+  getValueAsync() {
+		const field = this;
+		return Promise.all([
+      this.ordering.orderby,
+      this.ordering.order,
+      this.pagination.page,
+      this.pagination.ppp,
+      this.filters
+    ].map(function(child) {
+			return child.getValueAsync();
+		})).then(function(values) {
+			return values.reduce(function(acc, value, index) {
+				const child = field.children[index];
+				if (child.resource.key) {
+					acc[child.resource.key] = value;
+				} else {
+					Object.assign(acc, value);
+				}
+        return acc;
+			}, {});
+		});
+	}
+
+  query() {
+    const field = this;
+
+    // let params = {
+    //   orderby: this.ordering.orderby.getValue(),
+    //   order: this.ordering.order.getValue(),
+    //   page: this.pagination.page.getValue(),
+    //   ppp: this.pagination.ppp.getValue(),
+    //   ...this.filters.getValue()
+    // };
+
+    let params = this.getValue();
+
+    // return this.getValueAsync().then(function(params) {
+    //   return KarmaFieldsAlpha.Form.query(field.resource.driver, params);
+    // }).then(function(results) {
+
+    return KarmaFieldsAlpha.Form.query(field.resource.driver, params).then(function(results) {
+
+      if (results.items.some(function(item) {
+        return !item.id || typeof item.id !== "string";
+      })) {
+        console.error("Invalid item.id");
+      }
+
+      field.pagination.count.updateValue(results.count);
+
+      const ids = results.items.map(function(item) {
+        return item.id;
       });
 
-    },
-    update: function(container) {
+      return field.ids.updateValue(ids).then(function() {
 
-      this.children = [
+        results.items.forEach(function(item) {
+          const row = field.content.getChild(item.id) || field.content.createChild({
+            type: "tableRow",
+            key: item.id
+          });
+          row.create(field.resource.columns || []);
+          // row.setValue(item, "set");
+          row.initValue(item);
+        });
+        return results;
+      });
+    });
+  };
 
+  sync() {
+    const field = this;
+    KarmaFieldsAlpha.Form.cache = {};
+    return this.content.bubble("submit").then(function(results) {
+      if (results === false) {
+        return field.query();
+      } else if (results && typeof results === "object") {
 
-        {
-          class: "table-header",
-          init: function(header) {
-            field.events.renderHeader = function(clean) {
-              header.render(clean);
+        // update all values from results
+        // for (let key in results) {
+        //   const item = results[key];
+        //   if (item.id) {
+        //     const row = field.content.getDirectChild(item.id) || field.content.createChild({
+        //       type: "tableRow",
+        //       key: item.id
+        //     });
+        //     row.create(field.resource.columns || []);
+        //     row.setValue(item, "set");
+        //     if (key !== item.id) {
+        //       field.ids.replace(key, item.id, "set");
+        //     }
+        //
+        //   }
+        // }
+        for (let key in results) {
+          const item = results[key];
+          if (item.id) {
+            if (key !== item.id) {
+              field.ids.replace(key, item.id);
             }
-          },
-          update: function() {
-            this.child = field.resource.filters && KarmaFieldsAlpha.fields[field.resource.filters.type || "group"](field.data.filters);
           }
-        },
+        }
+
+
+      }
+      return results;
+    });
+    // const value = this.getModifiedValue();
+    // const field = this;
+    // return KarmaFieldsAlpha.Form.update(this.resource.driver, value).then(function(results) {
+    //   // field.updateOriginal();
+    //   field.setValue(value, "set");
+    // });
+  };
+
+  add() {
+    const field = this;
+    return KarmaFieldsAlpha.Form.add(this.resource.driver, this.filters.getValue()).then(function(results) {
+
+      let id = (results.id || results).toString();
+
+      let row = field.content.createChild({
+        type: "tableRow",
+        value: 1,
+        key: id
+      });
+
+
+      row.create(field.resource.columns);
+      row.fill(field.resource.columns);
+      // row.trash.initValue(1);
+      row.trash.backup();
+      return row.trash.changeValue(0).then(function() {
+        return field.ids.add(id);
+      }).then(function() {
+        return id;
+      });
+      // trash.triggerEvent("change", true);
+      // field.ids.add(id, "set");
+      //
+      // return id;
+    });
+  }
+
+  // this.element.disabled = !(field.select.selection && field.select.selection.width === field.select.grid.width);
+
+  async remove() {
+    const field = this;
+
+    if (field.select.selection && field.select.selection.width === field.select.grid.width) {
+
+      // let ids = field.ids.getValue().slice(field.select.selection.y, field.select.selection.y+field.select.selection.height);
+      // if (ids.length) {
+      //   field.content.getDirectChild(ids[0]).trash.triggerEvent("history", true);
+      //   ids.forEach(function(id) {
+      //     field.ids.remove(id, "noop");
+      //     field.content.getDirectChild(id).trash.setValue(1, "noop");
+      //   });
+      //   this.triggerEvent("change", true);
+      // }
+      return field.ids.getValueAsync().then(function(ids) {
+        console.log(field.select);
+        ids = ids.slice(field.select.selection.y, field.select.selection.y+field.select.selection.height);
+        if (ids.length) {
+          field.content.getChild(ids[0]).trash.backup();
+          return Promise.all(ids.map(function(id) {
+            return field.ids.remove(id).then(function() {
+              field.content.getChild(id).trash.updateValue(1);
+            })
+          })).then(function() {
+            return field.content.bubble("change");
+          });
+        }
+      });
+    }
+  }
+
+  getModal(rowId) {
+    let row = rowId && this.content.getChild(rowId);
+    let modal = row && row.children.find(function(child) {
+      return child instanceof KarmaFieldsAlpha.fields.modal;
+    });
+    if (modal) {
+      return modal;
+    }
+  }
+
+  getCurrentModal() {
+    // let rowId = this.modal.getValue();
+    // return rowId && this.getModal(rowId);
+    const field = this;
+    return this.modal.getValueAsync().then(function(rowId) {
+      return rowId && field.getModal(rowId);
+    });
+  }
+
+  selectRow(rowId) {
+    // let ids = this.ids.getValue();
+    // let index = ids.indexOf(rowId);
+    // if (index > -1) {
+    //   this.select.setFocus({x:0, y:index});
+    // }
+    const field = this;
+    this.ids.getValueAsync().then(function(ids) {
+      let index = ids.indexOf(rowId);
+      if (index > -1) {
+        field.select.setFocus({x:0, y:index});
+      }
+    });
+
+  }
+
+  copy(selection) {
+    const field = this;
+    // if (navigator.clipboard && navigator.clipboard.writeText) {
+    //   var rows = [];
+    //   const ids = this.ids.getValue();
+    //
+    //   for (var j = 0; j < selection.height; j++) {
+    //     var cols = [];
+    //     const row = this.content.getDirectChild(ids[j+selection.y]);
+    //     for (var i = 0; i < selection.width; i++) {
+    //       const cell = row.children[i+1+selection.x];
+    //       const value = cell.exportValue();
+    //       cols.push(value);
+    //     }
+    //     rows.push(cols.join("\t"));
+    //   }
+    //   if (rows.length) {
+    //     var text = rows.join("\n");
+    //     navigator.clipboard.writeText(text);
+    //   }
+    // }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return this.ids.getValueAsync().then(function(ids) {
+        var rows = [];
+        for (var j = 0; j < selection.height; j++) {
+          var cols = [];
+          const row = this.content.getChild(ids[j+selection.y]);
+          for (var i = 0; i < selection.width; i++) {
+            const cell = row.children[i+1+selection.x];
+            const valuePromise = cell.exportValue();
+            cols.push(valuePromise);
+          }
+          rows.push(cols);
+        }
+      });
+
+
+      if (rows.length) {
+        Promise.all(rows.map(function(cols) {
+          return Promise.all(cols).then(function(cols) {
+            return cols.join("\t");
+          });
+        })).then(function(rows) {
+          return rows.join("\n");
+        }).then(function(text) {
+          navigator.clipboard.writeText(text);
+        });
+
+      }
+    }
+  }
+
+  paste(selection) {
+    // const field = this;
+    // const x = selection.x;
+    // const y = selection.y;
+    // const ids = this.ids.getValue();
+    // navigator.clipboard.readText().then(function(text) {
+    //   if (text) {
+    //     var rows = text.split(/[\r\n]+/).map(function(row) {
+    //       return row.split("\t");
+    //     });
+    //     // -> should create rows if rows.length + y > ids.length
+    //     field.triggerEvent("history", true);
+    //     for (var j = 0; j < rows.length; j++) {
+    //       const rowField = field.content.getDirectChild(ids[j+y]);
+    //       for (var i = 0; i < rows[j].length; i++) {
+    //         const cellField = rowField.children[i+1+x];
+    //         const value = rows[j][i];
+    //         cellField.importValue(value);
+    //         cellField.triggerEvent("modify");
+    //         cellField.triggerEvent("set");
+    //       }
+    //     }
+    //     field.content.triggerEvent("change", true);
+    //   }
+    // });
+
+    const field = this;
+    const x = selection.x;
+    const y = selection.y;
+    const ids = this.ids.getValue();
+    navigator.clipboard.readText().then(function(text) {
+      if (text) {
+        var rows = text.split(/[\r\n]+/).map(function(row) {
+          return row.split("\t");
+        });
+        // -> should create rows if rows.length + y > ids.length
+        field.backup();
+        const promises = [];
+        for (var j = 0; j < rows.length; j++) {
+          const rowField = field.content.getChild(ids[j+y]);
+          for (var i = 0; i < rows[j].length; i++) {
+            const cellField = rowField.children[i+1+x];
+            const value = rows[j][i];
+            const promise = cellField.importValue(value);
+            promises.push(promise);
+          }
+        }
+        return Promise.all(promises).then(function() {
+          return field.content.bubble("change");
+        });
+      }
+    });
+  }
+
+  editAll(conductor, value) {
+    if (this.select && this.select.selection && this.select.focusRect && this.select.selection.height > 1) {
+      const selection = this.select.selection;
+      const focusRect = this.select.focusRect;
+      const field = this;
+      const x = selection.x;
+      const y = selection.y;
+      return this.ids.getValueAsync().then(function(ids) {
+        // return conductor.getValueAsync().then(function(value) {
+          field.backup();
+          const promises = [];
+          for (var j = 0; j < selection.height; j++) {
+            const rowField = field.content.getChild(ids[j+y]);
+            const cellField = rowField.children[focusRect.x+1];
+            if (cellField !== conductor) {
+              const promise = cellField.importValue(value);
+              promises.push(promise);
+            }
+          }
+          return Promise.all(promises);
+        // });
+      });
+    } else {
+      return Promise.resolve();
+    }
+  }
+
+  build() {
+    const field = this;
+
+    return {
+      class: "karma-field-table",
+      init: function(container) {
+
+        // field.ordering.events.render = function() {
+        //   container.render();
+        // };
+        // field.filters.events.render = function() {
+        //   container.render();
+        // };
+        // field.pagination.events.render = function() {
+        //   container.render();
+        // };
+
+        // for modals + filters + order + pagination
+        field.render = function() {
+          container.render();
+        };
 
 
 
 
-        // table body
-        {
-          class: "table-body",
-          init: function(tableBody) {
-            field.events.update = function() {
-              tableBody.element.classList.toggle("loading", field.data.loading ? true : false);
-            };
-            field.events.render = function(clean) {
-              tableBody.render(clean);
+        // -> first load table
+        // container.element.classList.add("loading");
+        field.query().then(function(results) {
+          // container.element.classList.remove("loading");
+
+          container.render();
+        });
+      },
+      update: function(container) {
+
+
+
+
+
+        this.children = [
+          {
+            class: "table-header",
+            children: [
+              {
+                tag: "h1",
+                init: function() {
+                  this.element.textContent = field.resource.title || "";
+                }
+              },
+              field.filters.build()
+            ]
+          },
+
+          // modal
+          {
+            class: "modal-container",
+            update: function(modalContainer) {
+              // let modal = field.getCurrentModal();
+              // if (modal) {
+              //   this.children = [
+              //     modal.buildModal()
+              //   ];
+              //   document.body.style.overflow = "hidden";
+              // } else {
+              //   this.children = [];
+              //   document.body.style.overflow = "visible";
+              // }
+              field.getCurrentModal().then(function(modal) {
+                if (modal) {
+                  modalContainer.children = [
+                    modal.buildModal()
+                  ];
+                  document.body.style.overflow = "hidden";
+                } else {
+                  modalContainer.children = [];
+                  document.body.style.overflow = "visible";
+                }
+                modalContainer.render();
+              });
             }
           },
-          update: function() {
-            field.trigger("update");
-          },
-          child: {
-            class: "table grid",
-            clear: true,
-            init: function(table) {
-              field.data.select = KarmaFieldsAlpha.selectors.grid();
-              field.data.select.onSelect = function() {
-                // field.parent.directory.footer.trigger("update");
-              }
-              field.events.render = function(clean) {
-                table.render(clean);
-              }
-            },
-            update: function(table) {
 
+          // table body
+          {
+            class: "table-body",
+            child: {
+              class: "table grid",
+              // clear: true,
+              init: function(table) {
+                field.select.register(this.element);
+                field.content.events.init = function(targetField, element) {
+                  let indexCol = field.resource.index || field.resource.index === undefined ? 1 : 0;
+                  let count = table.element.children.length;
+                  let col = (count-1)%(field.resource.columns.length+indexCol) - indexCol;
+                  let row = Math.floor((count-1)/(field.resource.columns.length+indexCol)) - 1;
+                  field.select.registerCell(element, col, row);
+                }
+              },
+              update: function(table) {
+                this.children = [];
+                let widths = [];
 
-              // const header = field.parent.get("header");
-              // const order = header.get("order");
-              // const orderby = header.get("orderby");
-              // const page = header.get("page");
-              // const ppp = header.get("ppp");
-
-              field.data.select.init();
-
-              this.element.style.gridTemplateColumns = field.resource.columns.map(function(column, colIndex) {
-                return column.width || "1fr";
-              }).join(" ");
-
-              // this.children = [];
-
-              this.children = field.resource.columns.map(function(column, colIndex) {
-                if (column.type === "index") {
-                  return {
-                    class: "th table-header-index",
+                // table header index cell
+                if (field.resource.index || field.resource.index === undefined) {
+                  this.children.push({
+                    class: "th table-header-index karma-field",
                     init: function() {
-                      this.element.textContent = column.title || "#";
-                      this.element.addEventListener("mousedown", function(event) {
-                        field.data.select.onIndexHeaderMouseDown();
-                      });
-                      this.element.addEventListener("mousemove", function(event) {
-                        field.data.select.onIndexHeaderMouseMove();
-                      });
-                      this.element.addEventListener("mouseup", function(event) {
-                        field.data.select.onIndexHeaderMouseUp();
-                        event.stopPropagation();
-                      });
+                      this.element.textContent = field.resource.index && field.resource.index.title || "#";
+                      field.select.registerHeaderIndex(this.element);
                     }
-                  }
-                } else {
-                  return {
-                    class: "th",
+                  });
+                  widths.push(field.resource.index && field.resource.index.width || "auto");
+                }
+
+                // table header cells
+                field.resource.columns.forEach(function(column, colIndex) {
+                  table.children.push({
+                    class: "th karma-field",
                     init: function() {
-                      if (column.main) {
-                        this.element.classList.add("main");
-                      }
-                      // if (column.width) {
-                      //   this.element.style.width = column.width;
-                      // }
-                      this.element.addEventListener("mousedown", function(event) {
-                        field.data.select.onHeaderMouseDown(colIndex);
-                      });
-                      this.element.addEventListener("mousemove", function(event) {
-                        field.data.select.onHeaderMouseMove(colIndex);
-                      });
-                      this.element.addEventListener("mouseup", function(event) {
-                        field.data.select.onHeaderMouseUp(colIndex);
-                        event.stopPropagation();
-                      });
+                      field.select.registerHeader(this.element, colIndex);
                     },
                     update: function(th) {
                       this.children = [
@@ -332,408 +752,921 @@ KarmaFieldsAlpha.fields.table = function(field) {
                         }
                       ];
                       if (column.sortable) {
-                        this.children.push({
-                          tag: "a",
-                          class: "header-cell-order",
-                          child: {
-          									class: "karma-field-spinner"
-          								},
-                          init: function(a) {
-                            // if (!field.data.order.getValue() && field.data.orderby.getValue() === column.field.key) {
-                            //   field.data.order.setValue(column.order || "asc", "set");
-                            // }
-                            this.element.addEventListener("click", function() {
-                              a.element.classList.add("loading");
+                        this.children.push(field.ordering.build(column));
+                      }
+                    }
+                  });
+                  widths.push(column.width || "1fr");
+                });
 
-                              field.trigger("reorder", column).then(function() { // ! should use field.resource.children[colIndex]
-                                a.element.classList.remove("loading");
-                                // field.trigger("render", true);
+                // table body cells
+                if (field.ids.getValue().length) {
+                  field.ids.getValue().forEach(function(id, rowIndex) {
+
+                    let rowField = field.content.getChild(id);
+
+                    if (field.resource.index || field.resource.index === undefined) {
+                      table.children.push({
+                        class: "th table-row-index karma-field",
+                        init: function() {
+                          field.select.registerIndex(this.element, rowIndex);
+                        },
+                        update: function() {
+                          let page = field.pagination.page.getValue();
+                          let ppp = field.pagination.ppp.getValue();
+                          this.element.textContent = (page - 1)*ppp + rowIndex + 1;
+                        }
+                      });
+                    }
+
+                    field.resource.columns.forEach(function(column, colIndex) {
+
+                      let cellField = rowField.getChild(column.field.key) || rowField.createChild(column.field);
+                      table.children.push(
+                        cellField.build()
+                      );
+                    });
+                  });
+                }
+
+                this.element.style.gridTemplateColumns = widths.join(" ");
+              }
+            }
+          },
+
+          // table footer
+          {
+            class: "table-footer",
+            init: function(footer) {
+
+              // field.events.renderFooter = function() {
+              //   footer.render();
+              // }
+
+              field.content.events.change = function(targetField, value) {
+
+                return field.editAll(targetField, value).then(function() {
+                  footer.render();
+                });
+
+              };
+
+
+              field.events.change = function(targetField) {
+                console.error("deprecated: use field.content.triggerEvent('change')");
+                footer.render();
+              };
+
+
+              field.select.events.select = function() {
+                footer.render();
+              };
+
+            },
+            update: function(footer) {
+
+              field.modal.getValueAsync().then(function(modal) {
+                footer.element.classList.toggle("modal-open", modal || false);
+              });
+
+
+              this.children = [
+                {
+                  class: "footer-bar",
+                  children: [
+                    {
+                      class: "footer-group table-info",
+                      children: [
+                        // {
+                        //   tag: "button",
+                        //   class: "button footer-item",
+                        //   init: function(item) {
+                        //     this.element.title = "Reload";
+                        //     this.element.textContent = "Reload";
+                        //     this.element.addEventListener("click", function(event) {
+                        //       item.element.classList.add("loading");
+                        //
+                        //       // empty cache
+                        //       KarmaFieldsAlpha.Form.cache = {};
+                        //
+                        //       // -> still need to reboot fields options
+                        //
+                        //       field.query().then(function() {
+                        //         item.element.classList.remove("loading");
+                        //         container.render();
+                        //       });
+                        //     });
+                        //   }
+                        // },
+                        {
+                          tag: "button",
+                          class: "karma-button footer-item primary",
+                          init: function(button) {
+                            this.element.title = "Save";
+                            this.element.addEventListener("click", function(event) {
+                              button.element.classList.add("loading");
+                              field.sync().then(function() {
+                                button.element.classList.remove("loading");
+                                button.element.blur();
                                 container.render();
                               });
                             });
                           },
+                          children: [
+                            {
+                              tag: "span",
+                              class: "button-content",
+                              init: function() {
+                                this.element.textContent = "Save";
+                              }
+                            },
+                            {
+            									class: "karma-field-spinner"
+            								}
+                          ],
                           update: function() {
-                            this.element.classList.toggle("asc", field.data.orderby.getValue() === column.field.key && field.data.order.getValue() === "asc");
-                            this.element.classList.toggle("desc", field.data.orderby.getValue() === column.field.key && field.data.order.getValue() === "desc");
+                            const modifiedValues = field.content.getModifiedValue();
+                            this.element.disabled = !modifiedValues;
                           }
-                        });
-                      }
-                    }
-                  };
-                }
-              });
-
-
-
-              if (field.data.ids.getValue().length) {
-                field.data.ids.getValue().forEach(function(id, rowIndex) {
-
-
-                  // let rowField = field.get(id) || field.createChild({
-                  //   key: id
-                  // });
-                  let rowField = field.getChild(id) || field.trigger("createRow", {
-                    key: id
-                  });
-
-                  field.resource.columns.forEach(function(column, colIndex) {
-                    if (column.type === "index") {
-                      table.children.push({
-                        class: "th table-row-index",
-                        init: function() {
-                          this.element.addEventListener("mousedown", function(event) {
-                            if (event.button === 0) {
-                              field.data.select.onIndexCellMouseDown(rowIndex);
-                            }
-                          });
-                          this.element.addEventListener("mousemove", function() {
-                            field.data.select.onIndexCellMouseMove(rowIndex);
-                          });
-                          this.element.addEventListener("mouseup", function(event) {
-                            field.data.select.onIndexCellMouseUp(rowIndex);
-                            event.stopPropagation();
-                          });
                         },
-                        update: function() {
-                          this.element.textContent = ((field.data.page.getValue()-1)*field.data.ppp.getValue())+rowIndex+1;
-                        }
-                      });
-                    } else {
-                      let cellField = rowField.getChild(column.field.key) || rowField.createChild(column.field);
-                      table.children.push({
-                        class: "td",
-                        init: function(cell) {
-                          this.element.addEventListener("mousedown", function(event) {
-                            if (event.button === 0) {
-                              field.data.select.onCellMouseDown(colIndex, rowIndex);
+                        {
+                          tag: "button",
+                          class: "karma-button footer-item",
+                          children: [
+                            // new KarmaFieldsAlpha.fields.icon({
+                            //   type: "icon",
+                            //   value: "undo.svg"
+                            // }).build()
+                            {
+                              init: function() {
+                                this.element.textContent = "Undo";
+                              }
                             }
-                          });
-                          this.element.addEventListener("mousemove", function() {
-                            field.data.select.onCellMouseMove(colIndex, rowIndex);
-                          });
-                          this.element.addEventListener("mouseup", function(event) {
-                            field.data.select.onCellMouseUp(colIndex, rowIndex);
-                            event.stopPropagation();
-                          });
-                          if (column.style) {
-                            this.element.style = column.style;
-                          }
-                          cellField.events.update = function() {
-                            cell.element.classList.toggle("loading", cellField.data.loading ? true : false);
-                            cell.element.classList.toggle("modified", cellField.value !== cellField.originalValue);
-                          };
-                          cellField.events.render = function() {
-                            cell.render();
-                          };
-                        },
-                        update: function(cell) {
-                          cellField.trigger("update");
-                          this.child = KarmaFieldsAlpha.fields[column.field.type || "group"](cellField);
-                          field.data.select.addField(colIndex, rowIndex, this.element, cellField);
-                        }
-                      });
-                    }
-                  });
-                });
-              }
-            }
-          }
-        },
+                          ],
+                          init: function(item) {
+                            this.element.title = "Undo";
+                            this.element.addEventListener("click", function(event) {
+                              field.domain.undo();
+                              // field.clearValue();
+                              // field.content.clearValue();
 
-        // table footer
-        {
-          class: "table-footer",
-          init: function(footer) {
-            field.events.renderFooter = function() {
-              footer.render();
-            };
-          },
-          update: function(footer) {
-
-            this.children = [
-              {
-                class: "footer-bar",
-                children: [
-                  {
-                    class: "footer-group table-info",
-                    children: [
-                      {
-                        tag: "button",
-                        class: "button footer-item",
-                        children: [
-                          {
-                            class: "table-spinner button-content",
-                            child: KarmaFieldsAlpha.includes.icon({
-                              file: KarmaFieldsAlpha.icons_url+"/update.svg"
-                            })
-                          },
-                          {
-                            class: "karma-field-spinner"
-                          }
-                        ],
-                        init: function(item) {
-                          this.element.title = "Reload";
-                          this.element.addEventListener("click", function(event) {
-                            item.element.classList.add("loading");
-
-                            // empty cache
-                            KarmaFieldsAlpha.Form.cache = {};
-
-                            field.trigger("queryTable").then(function() {
-                              item.element.classList.remove("loading");
-                              field.trigger("render");
-                              item.element.blur();
-                            });
-                          });
-                          this.element.addEventListener("mouseup", function(event) {
-                            event.stopPropagation();
-                          });
-                        }
-                      },
-                      {
-                        tag: "button",
-                        class: "button footer-item",
-                        init: function(button) {
-                          this.element.title = "Save";
-                          this.element.addEventListener("click", function(event) {
-                            button.element.classList.add("loading");
-
-                            field.trigger("sync").then(function() {
-                              button.element.classList.remove("loading");
-                              button.element.blur();
                               container.render();
                             });
-
-                          });
-                          this.element.addEventListener("mouseup", function(event) {
-                            event.stopPropagation();
-                          });
+                          },
+                          update: function() {
+                            this.element.disabled = field.domain.index === 0;
+                          }
                         },
-                        children: [
+                        {
+                          tag: "button",
+                          class: "karma-button footer-item",
+                          children: [
+                            // child: new KarmaFieldsAlpha.fields.icon({
+                            //   type: "icon",
+                            //   value: "redo.svg"
+                            // }).build(),
+                            {
+                              init: function() {
+                                this.element.textContent = "Redo";
+                              }
+                            }
+                          ],
+                          init: function(button) {
+                            this.element.title = "Redo";
+                            this.element.addEventListener("click", function(event) {
+                              field.domain.redo();
+
+                              // field.clearValue();
+                              // field.content.clearValue();
+
+                              container.render();
+                            });
+                          },
+                          update: function(button) {
+                            this.element.disabled = field.domain.index >= field.domain.max;
+                          }
+                        },
+                        {
+                          tag: "button",
+                          class: "karma-button footer-item",
+                          children: [
+                            // new KarmaFieldsAlpha.fields.icon({
+                            //   type: "icon",
+                            //   value: "plus-alt2.svg"
+                            // }).build(),
+                            {
+                              init: function() {
+                                this.element.textContent = "Add";
+                              }
+                            },
+                            {
+                              class: "karma-field-spinner"
+                            }
+                          ],
+                          init: function(button) {
+                            this.element.title = "Add";
+                            this.element.addEventListener("click", function(event) {
+                              button.element.classList.add("loading");
+                              field.add().then(function() {
+                                button.element.classList.remove("loading");
+                                container.render(true);
+                              });
+                            });
+                          },
+                          update: function(element) {
+                            this.element.disabled = field.resource.can_add === false || field.resource.can_add && !(new Function("element", "field", field.resource.can_add))(this.element, field);
+                          }
+                        },
+                        {
+                          tag: "button",
+                          class: "karma-button footer-item",
+                          children: [
+                            // new KarmaFieldsAlpha.fields.icon({
+                            //   type: "icon",
+                            //   value: "trash.svg"
+                            // }).build(),
+                            {
+                              init: function() {
+                                this.element.textContent = "Delete";
+                              }
+                            }
+                          ],
+
+                          init: function(item) {
+                            this.element.title = "Delete";
+                            this.element.onmousedown = function(event) {
+                              event.preventDefault(); // prevent current table cell losing focus
+                              this.onmouseup = function(event) {
+                                field.remove().then(function() {
+                                  field.select.removeFocus();
+                                  container.render(true);
+                                });
+
+                              };
+                            };
+                          },
+                          update: function(element) {
+                            this.element.disabled = !(field.select.selection && field.select.selection.width === field.select.grid.width);
+                          }
+                        }
+                      ]
+                    },
+                    field.pagination.build(),
+                    {
+                      class: "footer-group table-modal-nav",
+                      clear: true,
+                      update: function() {
+                        this.children = [
                           {
-                            tag: "span",
-                            class: "button-content",
-                            init: function() {
-                              this.element.textContent = "Save";
+                            tag: "button",
+                            class: "karma-button footer-item",
+                            init: function(button) {
+                              this.element.innerText = "<";
+                            },
+                            update: function(button) {
+                              this.element.onclick = function() {
+                                // const rowId = field.modal.getValue();
+                                // const next = field.ids.getPrev(rowId);
+                                // if (next) {
+                                //   field.modal.setValue(next);
+                                //   field.triggerEvent("render");
+                                // }
+                                field.modal.getValueAsync().then(function(id) {
+                                  return field.ids.getPrev(id);
+                                }).then(function(id) {
+                                  field.modal.write(id);
+                                  field.triggerEvent("render");
+                                });
+                              };
+                              // const currentRowId = field.modal.getValue();
+                              // this.element.disabled = field.ids.getPrev(currentRowId) ? false : true;
+                              field.modal.getValueAsync().then(function(currentRowId) {
+                                return field.ids.getPrev(currentRowId);
+                              }).then(function(id) {
+                                button.element.disabled = id ? false : true;
+                              });
                             }
                           },
                           {
-          									class: "karma-field-spinner"
-          								}
-                        ],
-                        update: function() {
-                          this.element.disabled = !field.getModifiedValue();
+                            tag: "button",
+                            class: "karma-button footer-item",
+                            init: function(button) {
+                              this.element.innerText = ">";
+                            },
+                            update: function(button) {
+                              this.element.onclick = function() {
+                                // const rowId = field.modal.getValue();
+                                // const next = field.ids.getNext(rowId);
+                                //
+                                // if (next) {
+                                //   field.modal.setValue(next);
+                                //   field.triggerEvent("render");
+                                // }
+                                field.modal.getValueAsync().then(function(id) {
+                                  return field.ids.getNext(id);
+                                }).then(function(id) {
+                                  field.modal.write(id);
+                                  field.triggerEvent("render");
+                                });
+                              };
+                              // const currentRowId = field.modal.getValue();
+                              // this.element.disabled = field.ids.getNext(currentRowId) ? false : true;
+
+                              field.modal.getValueAsync().then(function(currentRowId) {
+                                return field.ids.getNext(currentRowId);
+                              }).then(function(id) {
+                                button.element.disabled = id ? false : true;
+                              });
+                            }
+                          }
+                        ];
+                      }
+                    }
+                  ]
+                }
+              ];
+            }
+          }
+        ];
+      }
+
+
+    };
+  }
+
+
+
+}
+
+
+KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.container {
+
+  constructor(resource, domain, parent) {
+    super(resource, domain, parent);
+
+    // if (this.parent.resource.column) {
+    //   this.parent.resource.columns.forEach(function(column) {
+    //     if (column.field) {
+    //       row.createChild(column.field);
+    //     }
+    //   });
+    // }
+
+    this.trash = this.createChild({
+      key: "trash",
+      type: "field"
+    });
+
+  }
+
+  // initValue(item) {
+  //
+  //   if (item.id && this.resource.key !== item.id) {
+  //      field.ids.replace(key, item.id, "set");
+  //    }
+  // }
+
+  create(columns) {
+    const field = this;
+    columns.forEach(function(column) {
+      if (column.field) {
+        const child = field.createChild(column.field);
+
+        // child.getEmpty()
+        child.updateValue();
+      }
+    });
+  }
+
+  // fill(columns) {
+  //   const field = this;
+  //   this.children.forEach(function(child) {
+  //     child.fill();
+  //   });
+  // }
+
+}
+
+KarmaFieldsAlpha.fields.tableCol = class TableCol extends KarmaFieldsAlpha.fields.field {
+
+  // constructor(resource, domain, parent) {
+  //   super(resource, domain, parent);
+  //   this.datatype = "array";
+  // }
+
+  getEmpty() {
+    return [];
+  }
+
+  stringify(value) {
+
+    return JSON.stringify(value);
+  }
+
+  parse(value) {
+    return JSON.parse(value);
+  }
+
+  add(item) {
+    // let values = this.getValue();
+    // values.push(item);
+    // this.setValue(values, context);
+    const field = this;
+    return this.getValueAsync().then(function(values) {
+      values.push(item);
+      return field.saveValue(values, false, true);
+    });
+  }
+
+  // async add(item) {
+  //   let values = await this.getValueAsync();
+  //   values.push(item);
+  //   return this.updateValue(values);
+  // }
+
+  remove(item, updateSelf, noBubble) {
+    // let values = this.getValue();
+    // values = values.filter(function(value) {
+    //   return item !== value;
+    // });
+    // this.setValue(values, context);
+    const field = this;
+    return this.getValueAsync().then(function(values) {
+      values = values.filter(function(value) {
+        return item !== value;
+      });
+      return field.saveValue(values, false, true);
+    });
+  }
+
+  replace(item, newItem) {
+    // const values = this.getValue();
+    // const index = values.indexOf(item);
+    // if (index > -1) {
+    //   values.splice(index, 1, newItem);
+    //   this.setValue(values, context);
+    // }
+    const field = this;
+    return this.getValueAsync().then(function(values) {
+      const index = values.indexOf(item);
+      if (index > -1) {
+        values.splice(index, 1, newItem);
+        return field.saveValue(values, false, true);
+      }
+    });
+  }
+
+  getPrev(rowId) {
+    // let ids = this.getValue();
+    // let index = ids.indexOf(rowId);
+    // if (index > 0) {
+    //   return ids[index-1];
+    // }
+    this.getValueAsync().then(function(ids) {
+      let index = ids.indexOf(rowId);
+      if (index > 0) {
+        return ids[index-1];
+      }
+    });
+  }
+
+  getNext(rowId) {
+    // let ids = this.getValue();
+    // let index = ids.indexOf(rowId);
+    // if (index > -1 && index < ids.length - 1) {
+    //   return ids[index+1];
+    // }
+    this.getValueAsync().then(function(ids) {
+      let index = ids.indexOf(rowId);
+      if (index > -1 && index < ids.length - 1) {
+        return ids[index+1];
+      }
+    });
+  }
+
+}
+
+// KarmaFieldsAlpha.fields.tableCol.datatype = "array";
+
+
+
+KarmaFieldsAlpha.fields.tablePagination = class TablePagination extends KarmaFieldsAlpha.fields.field {
+
+  constructor(resource, domain, parent) {
+    super(resource, domain, parent);
+
+    this.page = new KarmaFieldsAlpha.fields.field({
+      key: "page",
+      value: 1
+    }, this.domain, this);
+    // this.page.datatype = "number";
+    // this.page.setValue(1);
+
+    this.ppp = new KarmaFieldsAlpha.fields.field({
+      key: "ppp",
+      value: resource.ppp || 50
+    }, this.domain, this);
+    // this.ppp.datatype = "number";
+    // this.ppp.setValue(resource.ppp || 50);
+
+    this.count = new KarmaFieldsAlpha.fields.field({
+      key: "count",
+      value: 0
+    }, this.domain, this);
+    // this.count.datatype = "number";
+    //
+    // this.addChildren(this.page, this.ppp, this.count);
+
+
+
+
+  }
+
+  getValue() {
+    return {
+      page: this.page.getValue(),
+      ppp: this.ppp.getValue()
+    };
+  }
+
+  getValueAsync() {
+    return this.super.getValueAsync().then(function(value) {
+      value.count = undefined;
+    });
+  }
+
+  // setValue(value, context) {
+  //   this.page.setValue(value.page || 1);
+  //   this.ppp.setValue(value.ppp || this.resource.ppp, context);
+  // }
+
+  build() {
+    const field = this;
+
+    return {
+      class: "footer-group table-pagination",
+      update: function() {
+
+        this.children = [
+          // {
+          //   class: "footer-item",
+          //   update: function() {
+          //     let num = field.count.getValue();
+          //     this.element.textContent = num ? num + " items" : "";
+          //   }
+          // },
+          {
+            class: "ppp-selector footer-item",
+            init: function() {
+              this.element.tabIndex = "-1"; // for safari
+            },
+            children: [
+              {
+                tag: "button",
+                class: "karma-button current-page footer-item",
+                update: function() {
+                  let num = field.count.getValue();
+                  this.element.textContent = num ? num + " items" : "";
+                }
+              },
+              {
+                class: "ppp-selector-options",
+                child: {
+                  tag: "ul",
+                  children: [
+                    {
+                      tag: "li",
+                      child: {
+                        tag: "label",
+                        init: function() {
+                          this.element.textContent = "Items per page";
                         }
                       },
-                      {
+                    }
+                  ].concat([
+                    {key: 50, value: "50"},
+                    {key: 100, value: "100"},
+                    {key: 200, value: "200"},
+                    {key: 0, value: "all"}
+                  ].map(function(item) {
+                    return {
+                      tag: "li",
+                      child: {
                         tag: "button",
-                        class: "button footer-item",
-                        child: KarmaFieldsAlpha.includes.icon({
-                          file: KarmaFieldsAlpha.icons_url+"/undo.svg"
-                        }),
-                        init: function(item) {
-                          this.element.title = "Undo";
-                          this.element.addEventListener("click", function(event) {
-                            KarmaFieldsAlpha.History.undo(field);
-                            container.render();
-                          });
-                          this.element.addEventListener("mouseup", function(event) {
-                            event.stopPropagation();
-                          });
-                        },
-                        update: function() {
-                          this.element.disabled = KarmaFieldsAlpha.History.getIndex(field) === 0;
-                        }
-                      },
-                      {
-                        tag: "button",
-                        class: "button footer-item",
-                        child: KarmaFieldsAlpha.includes.icon({
-                          file: KarmaFieldsAlpha.icons_url+"/redo.svg"
-                        }),
+                        class: "karma-button",
                         init: function(button) {
-                          this.element.title = "Redo";
-                          this.element.addEventListener("click", function(event) {
-                            KarmaFieldsAlpha.History.redo(field);
-                            container.render();
-                          });
-                          this.element.addEventListener("mouseup", function(event) {
-                            event.stopPropagation();
-                          });
-                        },
-                        update: function(button) {
-                          let instance = KarmaFieldsAlpha.History.getInstance(field);
-                          this.element.disabled = instance.index >= instance.max;
-                        }
-                      },
-                      {
-                        tag: "button",
-                        class: "button footer-item",
-                        child: KarmaFieldsAlpha.includes.icon({
-                          file: KarmaFieldsAlpha.icons_url+"/plus-alt2.svg"
-                        }),
-                        init: function(button) {
-                          this.element.title = "Add";
-                          this.element.addEventListener("click", function(event) {
+                          this.element.textContent = item.value;
+                          this.element.onclick = function() {
+                            field.ppp.setValue(item.key);
                             button.element.classList.add("loading");
-                            field.trigger("add").then(function() {
+                            field.bubble("change").then(function() {
                               button.element.classList.remove("loading");
-                              field.trigger("render", true);
+                              // button.element.blur();
+                              document.activeElement.blur(); // for safari
                             });
-                          });
-                          this.element.addEventListener("mouseup", function(event) {
-                            event.stopPropagation();
-                          });
+                          }
                         },
-                        update: function(element) {
-                          this.element.disabled = field.resource.can_add === false || field.resource.can_add && !(new Function("element", "field", field.resource.can_add))(this.element, field);
-                        }
-                      },
-                      {
-                        tag: "button",
-                        class: "button footer-item",
-                        child: KarmaFieldsAlpha.includes.icon({
-                          file: KarmaFieldsAlpha.icons_url+"/trash.svg"
-                        }),
-                        init: function(item) {
-                          this.element.title = "Delete";
-                          this.element.addEventListener("click", function(event) {
-                            field.trigger("remove");
-                          });
-                          this.element.addEventListener("mouseup", function(event) {
-                            event.stopPropagation();
-                          });
-                        },
-                        update: function(element) {
-                          this.element.disabled = field.resource.can_delete === false || field.data.select.getSelectedRows().length === 0;
+                        child: {
+                          class: "karma-field-spinner"
                         }
                       }
-                    ]
-                  },
-                  {
-                    class: "footer-group table-pagination",
-                    update: function() {
-                      this.children = [
-                        {
-                          tag: "p",
-                          class: "footer-item",
-                          update: function() {
-                            let num = field.data.count.getValue();
-                            this.element.textContent = num ? num + " items" : "";
-                          }
-                        },
-                        {
-                          tag: "button",
-                          class: "button footer-item",
-                          init: function(button) {
-                            this.element.innerText = "«";
-                            this.element.addEventListener("click", function() {
-                              field.data.page.setValue(1, "change");
-                              button.element.classList.add("loading");
-                              field.trigger("queryTable").then(function() {
-                                button.element.classList.remove("loading");
-                                field.trigger("render");
-                              });
-                            });
-                          },
-                          update: function() {
-                            // let num = field.data.count.getValue();
-                            // let page = field.data.page.getValue();
-                            // let ppp = field.data.ppp.getValue();
-                            this.element.style.display = field.data.count.getValue() > field.data.ppp.getValue() ? "block" : "none";
-                            this.element.disabled = (field.data.page.getValue() == 1);
-                          }
-                        },
-                        {
-                          tag: "button",
-                          class: "button footer-item",
-                          init: function(button) {
-                            this.element.innerText = "‹";
-                            this.element.addEventListener("click", function() {
-                              field.data.page.setValue(Math.max(field.data.page.getValue()-1, 1), "change");
-                              button.element.classList.add("loading");
-                              field.trigger("queryTable").then(function() {
-                                button.element.classList.remove("loading");
-                                field.trigger("render");
-                              });
-                            });
-                          },
-                          update: function() {
-                            // let num = field.data.count.getValue();
-                            // let page = field.parent.get("header").get("page").value;
-                            // let ppp = field.parent.get("header").get("ppp").value;
-                            this.element.style.display = field.data.count.getValue() > field.data.ppp.getValue() ? "block" : "none";
-                            this.element.disabled = (field.data.page.getValue() === 1);
-                          }
-                        },
-                        {
-                          class: "current-page footer-item",
-                          update: function() {
-                            // let num = field.data.count.getValue();
-                            // let page = field.parent.get("header").get("page").value;
-                            // let ppp = field.parent.get("header").get("ppp").value;
-                            this.element.style.display = field.data.count.getValue() > field.data.ppp.getValue() ? "block" : "none";
-                            this.element.textContent = field.data.count.getValue() && field.data.page.getValue()+" / "+Math.ceil(field.data.count.getValue()/field.data.ppp.getValue()) || "";
-                          }
-                        },
-                        {
-                          tag: "button",
-                          class: "button footer-item",
-                          init: function(button) {
-                            this.element.innerText = "›";
-                            this.element.addEventListener("click", function() {
-                              field.data.page.setValue(field.data.page.getValue()+1, "change"); // -> should check max!
-                              button.element.classList.add("loading");
-                              field.trigger("queryTable").then(function() {
-                                button.element.classList.remove("loading");
-                                field.trigger("render");
-                              });
-                            });
-                          },
-                          update: function() {
-                            // let num = field.data.count.getValue();
-                            // let page = field.parent.get("header").get("page").value;
-                            // let ppp = field.parent.get("header").get("ppp").value;
-                            this.element.style.display = field.data.count.getValue() > field.data.ppp.getValue() ? "block" : "none";
-                            this.element.disabled = field.data.page.getValue() >= Math.ceil(field.data.count.getValue()/field.data.ppp.getValue());
-                          }
-                        },
-                        {
-                          tag: "button",
-                          class: "button footer-item",
-                          init: function(button) {
-                            this.element.innerText = "»";
-                            this.element.addEventListener("click", function() {
-                              // let num = field.data.count.getValue();
-                              // let page = field.parent.get("header").get("page");
-                              // let ppp = field.parent.get("header").get("ppp").value;
-                              field.data.page.setValue(Math.ceil(field.data.count.getValue()/field.data.ppp.getValue()), "change");
-                              button.element.classList.add("loading");
-                              field.trigger("queryTable").then(function() {
-                                button.element.classList.remove("loading");
-                                field.trigger("render");
-                              });
-                            });
-                          },
-                          update: function() {
-                            // let num = field.data.count.getValue();
-                            // let page = field.parent.get("header").get("page").value;
-                            // let ppp = field.parent.get("header").get("ppp").value;
-                            this.element.style.display = field.data.count.getValue() > field.data.ppp.getValue() ? "block" : "none";
-                            this.element.disabled = field.data.page.getValue() >= Math.ceil(field.data.count.getValue()/field.data.ppp.getValue());
-                          }
-                        }
-                      ];
-                    }
-                  }
-                ]
+                    };
+                  }))
+                }
               }
-            ];
+            ]
+          },
+          {
+            tag: "button",
+            class: "karma-button footer-item",
+            init: function(button) {
+              this.element.innerText = "«";
+              this.element.addEventListener("click", function() {
+                const page = field.page.getValue();
+                if (page > 0) {
+                  // field.page.setValue(1);
+                  // button.element.classList.add("loading");
+                  // field.triggerEvent("change", true).then(function() {
+                  //   button.element.classList.remove("loading");
+                  //   // field.triggerEvent("render");
+                  // });
+                  button.element.classList.add("loading");
+                  field.page.saveValue(1).then(function() {
+                    button.element.classList.remove("loading");
+                  });
+                }
+              });
+            },
+            update: function() {
+              const count = field.count.getValue();
+              const page = field.page.getValue();
+              const ppp = field.ppp.getValue();
+
+              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+              this.element.disabled = (page == 1);
+            }
+          },
+          {
+            tag: "button",
+            class: "karma-button footer-item",
+            init: function(button) {
+              this.element.innerText = "‹";
+              this.element.addEventListener("click", function() {
+                const page = field.page.getValue();
+                if (page > 0) {
+                  // field.page.setValue(page - 1);
+                  // button.element.classList.add("loading");
+                  // field.triggerEvent("change", true).then(function() {
+                  //   button.element.classList.remove("loading");
+                  //   // field.triggerEvent("render");
+                  // });
+                  button.element.classList.add("loading");
+                  field.page.saveValue(page-1).then(function() {
+                    button.element.classList.remove("loading");
+                  });
+                }
+              });
+            },
+            update: function() {
+              const count = field.count.getValue();
+              const page = field.page.getValue();
+              const ppp = field.ppp.getValue();
+
+              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+              this.element.disabled = (page === 1);
+            }
+          },
+          // {
+          //   class: "ppp-selector footer-item",
+          //   children: [
+          //     {
+          //       tag: "button",
+          //       class: "karma-button current-page footer-item",
+          //       update: function() {
+          //         const count = field.count.getValue();
+          //         const page = field.page.getValue();
+          //         const ppp = field.ppp.getValue();
+          //
+          //         this.element.style.display = count > ppp ? "block" : "none";
+          //         this.element.textContent = count && page+" / "+Math.ceil(count/ppp) || "";
+          //       }
+          //     },
+          //     {
+          //       class: "ppp-selector-options",
+          //       child: {
+          //         tag: "ul",
+          //         children: [
+          //           {
+          //             tag: "li",
+          //             child: {
+          //               tag: "label",
+          //               init: function() {
+          //                 this.element.textContent = "Items per page";
+          //               }
+          //             },
+          //           }
+          //         ].concat([
+          //           {key: 50, value: "50"},
+          //           {key: 100, value: "100"},
+          //           {key: 200, value: "200"},
+          //           {key: 0, value: "all"}
+          //         ].map(function(item) {
+          //           return {
+          //             tag: "li",
+          //             child: {
+          //               tag: "button",
+          //               class: "karma-button",
+          //               init: function(button) {
+          //                 this.element.textContent = item.value;
+          //                 this.element.onclick = function() {
+          //                   field.ppp.setValue(item.key);
+          //                   button.element.classList.add("loading");
+          //                   field.triggerEvent("change", true).then(function() {
+          //                     button.element.classList.remove("loading");
+          //                     button.element.blur();
+          //                   });
+          //                 }
+          //               },
+          //               child: {
+          //                 class: "karma-field-spinner"
+          //               }
+          //             }
+          //           };
+          //         }))
+          //       }
+          //     }
+          //   ]
+          // },
+          {
+            class: "current-page footer-item",
+            update: function() {
+              const count = field.count.getValue();
+              const page = field.page.getValue();
+              const ppp = field.ppp.getValue();
+
+              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+              this.element.textContent = count && page+" / "+Math.ceil(count/ppp) || "";
+            }
+          },
+          {
+            tag: "button",
+            class: "karma-button footer-item",
+            init: function(button) {
+              this.element.innerText = "›";
+              this.element.addEventListener("click", function() {
+                const count = field.count.getValue();
+                const page = field.page.getValue();
+                const ppp = field.ppp.getValue();
+                const numPage = Math.ceil(count/ppp);
+
+                if (page < numPage) {
+                  // field.page.setValue(page+1);
+                  // button.element.classList.add("loading");
+                  // field.triggerEvent("change", true).then(function() {
+                  //   button.element.classList.remove("loading");
+                  //   // field.triggerEvent("render");
+                  // });
+
+                  button.element.classList.add("loading");
+                  field.page.saveValue(page+1).then(function() {
+                    button.element.classList.remove("loading");
+                  });
+                }
+              });
+            },
+            update: function() {
+              const count = field.count.getValue();
+              const page = field.page.getValue();
+              const ppp = field.ppp.getValue();
+              const numPage = Math.ceil(count/ppp);
+
+              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+              this.element.disabled = page >= numPage;
+            }
+          },
+          {
+            tag: "button",
+            class: "karma-button footer-item",
+            init: function(button) {
+              this.element.innerText = "»";
+              this.element.addEventListener("click", function() {
+                const count = field.count.getValue();
+                const page = field.page.getValue();
+                const ppp = field.ppp.getValue();
+                const numPage = Math.ceil(count/ppp);
+
+                if (page < numPage) {
+                  // field.page.setValue(numPage);
+                  // button.element.classList.add("loading");
+                  // field.triggerEvent("change", true).then(function() {
+                  //   button.element.classList.remove("loading");
+                  //   // field.triggerEvent("render");
+                  // });
+                  button.element.classList.add("loading");
+                  field.page.saveValue(numPage).then(function() {
+                    button.element.classList.remove("loading");
+                  });
+                }
+              });
+            },
+            update: function(button) {
+              const count = field.count.getValue();
+              const page = field.page.getValue();
+              const ppp = field.ppp.getValue();
+              const numPage = Math.ceil(count/ppp);
+
+              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+              this.element.disabled = page >= numPage;
+            }
           }
-        }
-      ];
+        ];
+      }
+    };
+  }
+}
+
+
+
+KarmaFieldsAlpha.fields.tableOrdering = class TableOrdering extends KarmaFieldsAlpha.fields.field {
+
+  constructor(resource, domain, parent) {
+    super(resource, domain, parent);
+
+    this.orderby = new KarmaFieldsAlpha.fields.field({
+      key: "orderby",
+      value: resource.orderby
+    }, this.domain, this);
+
+    this.order = new KarmaFieldsAlpha.fields.field({
+      key: "order",
+      value: this.getDefaultOrder() || "asc"
+    }, this.domain, this);
+
+    // this.addChildren(this.orderby, this.order);
+
+  }
+
+  // getValue() {
+  //   return {
+  //     order: this.order.getValue(),
+  //     orderby: this.orderby.getValue()
+  //   };
+  // }
+  //
+  // setValue(value, context) {
+  //   this.orderby.setValue(value.orderby || this.resource.orderby || "", context);
+  //   this.order.setValue(value.order || this.getDefaultOrder(), context);
+  // }
+
+  getDefaultOrder() {
+    let column = this.resource.orderby && this.resource.columns.find(function(column) {
+      return column.field && column.field.key === this.resource.orderby;
+    }, this);
+    return column && column.field.order || "asc";
+  }
+
+  reorder(column) {
+    const field = this;
+    if (this.orderby.getValue() === column.field.key) {
+      this.order.setValue(this.order.getValue() === "asc" ? "desc" : "asc");
+    } else {
+      this.order.setValue(column.order || "asc");
+      this.orderby.setValue(column.field.key);
     }
+    // return this.triggerEvent("change", true).then(function() {
+    //   field.triggerEvent("render");
+    // });
+  }
 
+  build(column) {
+    const field = this;
 
-  };
+    return {
+      tag: "a",
+      class: "header-cell-order",
+      child: {
+        class: "karma-field-spinner"
+      },
+      init: function(a) {
+        this.element.onclick = function() {
+          a.element.classList.add("loading");
+          // field.reorder(column).then(function() {
+          //   a.element.classList.remove("loading");
+          //   field.triggerEvent("change", true);
+          // });
+
+          field.reorder(column);
+          field.triggerEvent("change", true).then(function() {
+            a.element.classList.remove("loading");
+          });
+        };
+      },
+      update: function() {
+        const orderby = field.orderby.getValue();
+        const order = field.order.getValue();
+        this.element.classList.toggle("asc", orderby === column.field.key && order === "asc");
+        this.element.classList.toggle("desc", orderby === column.field.key && order === "desc");
+      }
+    };
+  }
 }

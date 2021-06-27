@@ -1,0 +1,109 @@
+
+/* Input
+--------------------------------------*/
+
+
+.karma-fields input.text,
+.karma-fields textarea {
+  flex-grow: 1;
+  box-shadow: none;
+  box-sizing: border-box;
+  border-color: #c3c4c7;
+
+
+  border-radius: 2px;
+}
+.karma-fields input.text:focus,
+.karma-fields textarea:focus {
+  outline: none;
+  background-color: white;
+  flex-grow: 1;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.karma-fields  input[type=number] {
+  height: auto;
+}
+
+.karma-field-input {
+  /* display: flex;
+  align-items: center;
+  flex-wrap: wrap; */
+}
+.karma-field-input label {
+  /* width: 100%; */
+}
+.karma-field-input input {
+  margin: 0;
+}
+
+.karma-fields input[type=number]::-webkit-inner-spin-button {
+  appearance: none;
+}
+.karma-fields input:read-only {
+  color: #a0a0a0;
+}
+
+.karma-field-input-datalist {
+  display: flex;
+}
+
+
+
+/* Table Input
+--------------------------------------*/
+
+.karma-field-table input,
+.karma-field-table textarea {
+  background-color: #f0f0f1;
+}
+
+
+.karma-field-table .table input,
+.karma-field-table .table textarea {
+  border: none;
+  margin: 0;
+  border-radius: 0;
+  min-width: 40px;
+  min-height: 40px;
+  box-shadow: none;
+
+  /* bug firefox: */
+  user-drag: none;
+  -webkit-user-drag: none;
+  -moz-user-select: none;
+
+/* user-select: none;
+-webkit-user-select: none;
+-ms-user-select: none; */
+
+}
+
+
+
+/* Datalist
+--------------------------------------*/
+.karma-field-input-datalist {
+  display: flex;
+  flex-grow: 1;
+}
+
+
+
+
+
+/*
+.karma-fields input.loading {
+  background: repeating-linear-gradient(60deg, white 0px, white 50px, #f1f1f1 50px, #f1f1f1 100px);
+  background-size: 200% 100%;
+  animation: slide 10s infinite linear;
+}
+@keyframes slide {
+	0%{
+		background-position-x: 0%;
+	}
+	100% {
+		background-position-x: 100%;
+	}
+} */

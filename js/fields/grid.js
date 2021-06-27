@@ -212,8 +212,8 @@ KarmaFieldsAlpha.fields.grid.create = function(resource) {
 
   field.data.creationForm.events.submit = function() {
     field.setValue({
-      width: field.data.creationForm.getChild("width").getValue() || 1,
-      height: field.data.creationForm.getChild("height").getValue() || 1
+      width: field.data.creationForm.getDescendant("width").getValue() || 1,
+      height: field.data.creationForm.getDescendant("height").getValue() || 1
     }, "set");
     field.triggerEvent("render");
   }

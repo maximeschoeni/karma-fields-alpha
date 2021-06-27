@@ -40,6 +40,8 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
           }
 
+          $results = apply_filters('karma_fields_driver_taxonomy_query_key_results', $results, $terms, $taxonomy, $params);
+
         }
 
         return $results;

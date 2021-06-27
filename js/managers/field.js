@@ -24,6 +24,7 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 		events: events || {},
 		// events: resource || {},
 		requests: {},
+    loading: 0,
 
 		fieldId: KarmaFieldsAlpha.FieldID++, // -> debug
 
@@ -51,11 +52,19 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 			this.children.push(child);
 			child.parent = this;
 		},
+    addChildren: function(children) {
+			this.children = children;
+      for (let i = 0; i < children.length; i++) {
+        children[i].parent = this;
+      }
+		},
 		createChild: function(resource) {
 			let child = KarmaFieldsAlpha.createField(resource);
 			this.addChild(child);
       return child;
 		},
+
+    // deprecated
 		getResourceAttribute: function(attribute) {
 			if (this.resource[attribute] !== undefined) {
 				return this.resource[attribute];
@@ -63,6 +72,8 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 				return this.parent.getResourceAttribute(attribute);
 			}
 		},
+
+    // deprecated
     getAttribute: function(attribute) {
 			if (this[attribute] !== undefined) {
 				return this[attribute];
@@ -73,29 +84,33 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 
     // deprecated
 		get: function(key) {
-			return this.getChild(key);
+			return this.getDescendant(key);
 		},
 
-		getChild: function(key) {
+		getDescendant: function(key) {
 			for (let i = 0; i < this.children.length; i++) {
 				if (this.children[i].resource.key === key) {
 					return this.children[i];
 				} else if (!this.children[i].resource.key) {
-					const child = this.children[i].getChild(key);
+					const child = this.children[i].getDescendant(key);
 					if (child) {
 						return child;
 					}
 				}
 			}
 		},
+
+    // deprecated
 		getByKeyPath: function(keys) {
 			if (keys.length === 1) {
-				return this.getChild(keys[0]);
+				return this.getDescendant(keys[0]);
 			} else if (keys.length > 1) {
 				keys.shift();
 				return this.getByKeyPath(keys);
 			}
 		},
+
+    // deprecated
 		getByPath: function(path) {
 			return this.getByKeyPath(path.split("/"));
 		},
@@ -108,6 +123,7 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 				return this.parent.trigger.call(this.parent, eventName, ...param);
 			}
 		},
+
 		triggerEvent: function(eventName, bubbleUp, target, ...params) {
 			if (this.events[eventName] && typeof this.events[eventName] === "function") {
 				return this.events[eventName](target || this, ...params);
@@ -126,7 +142,8 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
         return Promise.reject("field has no key");
       } else if (this.resource.driver) {
         return KarmaFieldsAlpha.Form.fetch(this.resource.driver, "querykey", {
-  				key: key
+  				key: key,
+          ...this.resource.args || {}
   			});
       } else if (this.parent) {
         return this.parent.fetch(targetField);
@@ -144,10 +161,13 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 
 
     // not tested yet!!
-    init: function(targetField, path) {
-      if (!targetField) {
-        targetField = this;
+    init: function() {
+      if (this.value === undefined) {
+        return this.fetchKey(targetField);
       }
+    },
+
+    fetchKey: function(targetField, path) {
       if (!path) {
         path = [];
       }
@@ -155,11 +175,13 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
         path.unshift(targetField.resource.key);
       }
       if (this.resource.driver && path.length) {
+        // targetField.loading++;
         KarmaFieldsAlpha.Form.get(this.resource.driver, path.join("/")).then(function(results) {
+          // targetField.loading--;
           targetField.setValue(results, "set");
         });
       } else if (this.parent) {
-        return this.parent.init(targetField, path);
+        return this.parent.fetchKey(targetField, path);
       }
     },
 
@@ -192,6 +214,12 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
         return this.parse(this.value);
       }
 		},
+    updateOriginal: function() {
+      this.originalValue = this.value;
+		},
+    isModified: function() {
+      return this.originalValue === this.value;
+    },
 
 		getValue: function() {
       return this.parse(this.value);
@@ -228,7 +256,7 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 			// if (this.children.length) {
 			// 	if (value && typeof value === "object") {
 			// 		for (let key in value) {
-			// 			const child = this.getChild(key);
+			// 			const child = this.getDescendant(key);
 			// 			if (child) {
 			// 				child.setValue(value[key], context);
 			// 			}
@@ -263,6 +291,8 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 			// 	// }
 			// }
 
+      let response;
+
       if (value === undefined) {
         return;
       }
@@ -278,20 +308,22 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 
 			if (context === "set") {
 				this.originalValue = value;
-				this.history.save();
-				this.triggerEvent("render");
+				// this.history.save();
+				this.triggerEvent("set", true); // -> will save history
 
 			}
 			if (context === "undo") {
 				// this.trigger("render");
 			}
 			if (context === "change" && value !== this.lastValue) {
-				this.triggerEvent("change", true);
+				response = this.triggerEvent("change", true);
 			}
 
 			this.isModified = value !== this.originalValue;
 			this.lastValue = value;
 			this.triggerEvent("update");
+
+      return response;
 		},
 		getPath: function(fromField) {
 			let keys = [];
@@ -338,7 +370,8 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 					if (!value) {
 						value = [];
 					} else if (!Array.isArray(value)) {
-						value = [JSON.parse(value)];
+						// value = [JSON.parse(value)];
+            value = [value];
 					}
 					break;
 
@@ -349,7 +382,8 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 					break;
 
 				case "boolean":
-					value = value && JSON.parse(value) === true || false;
+					// value = value && JSON.parse(value) === true || false;
+          value = !!value;
 					break;
 			}
 
@@ -378,6 +412,27 @@ KarmaFieldsAlpha.Field = function(resource, parent, events) {
 			}
 			return value || "";
 		},
+    getDefault: function() {
+      let value;
+      switch (this.datatype || this.resource.datatype) {
+        case "object":
+					value = {};
+					break;
+				case "array":
+					value = [];
+					break;
+				case "number":
+					value = 0;
+					break;
+				case "boolean":
+					value = false;
+					break;
+				default:
+					value = "";
+					break;
+			}
+      return value;
+    },
 
 
 		// build: function() {

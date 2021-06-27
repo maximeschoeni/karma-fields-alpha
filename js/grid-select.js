@@ -189,8 +189,11 @@ KarmaFieldsAlpha.selectors.grid = function(tableManager) {
 			var items = [];
 			var rect = this.getSelectionRect();
 			for (var y = rect.top; y < rect.top+rect.height; y++) {
-				if (rect.left === 0 && rect.width === this.rect.width) {
-					var cell = this.getCell(0, y);
+
+				if (rect.left === 1 && rect.width === this.rect.width - 1) {
+
+
+					var cell = this.getCell(1, y);
 					if (cell) {
 						items.push(cell);
 					}
@@ -258,6 +261,7 @@ KarmaFieldsAlpha.selectors.grid = function(tableManager) {
 				for (var j = 0; j < rect.height; j++) {
 					var x = rect.left+i;
 					var y = rect.top+j;
+
 					if (this.grid[x][y]) {
 
 
@@ -466,7 +470,7 @@ KarmaFieldsAlpha.selectors.grid = function(tableManager) {
 			}
 		},
 		onIndexCellMouseDown: function(y) {
-			var rect = manager.createRect(0, y, manager.rect.width, 1);
+			var rect = manager.createRect(1, y, manager.rect.width, 1);
 			if (manager.selectionRect && manager.selectionRect.equals(rect)) {
 				manager.select();
 			} else {

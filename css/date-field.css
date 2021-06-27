@@ -1,32 +1,46 @@
 /* popup */
 
-.date-popup-container {
+
+.karma-field-date {
+  /* display: flex; */
+}
+
+.karma-field-date input {
+
+}
+.karma-field-date.selected input {
+  background-color: #ffffff;
+}
+/* .karma-field-date input:focus {
+  outline: none;
+	box-shadow: none;
+  border-color: #2271b1;
+} */
+
+
+.karma-field-date .date-popup-container {
 	position: relative;
 	z-index: 100000;
-	/* display: none; */
 }
-.karma-field-date.open .date-popup-container {
-	/* display: block; */
-}
-.date-popup-container.open-down {
-	/* order: 2; */
-}
-.karma-popup {
+.karma-field-date .karma-popup {
 	position: absolute;
 	bottom: 2px;
 	z-index: 100;
 	width: 245px;
-	height: 308px;
+	/* height: 308px; */
 	user-select: none;
-
-	box-shadow: 0 5px 15px rgba(0,0,0,.7);
-	background: #fcfcfc;
 }
-.date-popup-container.open-down .karma-popup {
-	top: 32px;
+.karma-field-date .karma-popup .karma-calendar {
+  box-shadow: 0 5px 15px rgba(0,0,0,.7);
+  background: #fcfcfc;
+  padding-bottom: 10px;
+}
+
+.karma-field-date .date-popup-container.open-down .karma-popup {
+	top: 100%;
 	bottom: auto;
 }
-.karma-popup-header {
+.karma-field-date .karma-popup-header {
 	position: absolute;
 	width: 100%;
 	padding: 20px 20px;
@@ -34,17 +48,18 @@
 	border-bottom: 1px solid #ddd;
 	height: 70px;
 }
-.karma-popup-header h1 {
+.karma-field-date .karma-popup-header h1 {
 	font-size: 18px;
 	margin: 5px 0;
 }
-.karma-popup-body {
+.karma-field-date .karma-popup-body {
 	position: absolute;
 	position: absolute;
 	width: 100%;
 	top: 70px;
 	bottom: 70px;
 }
+/*
 .karma-column-container {
 	display: table;
 	width: 100%;
@@ -66,7 +81,8 @@
 	box-sizing: border-box;
 	margin: 0;
 	width: 100%;
-}
+} */
+
 .karma-popup-footer {
 	position: absolute;
 	width: 100%;

@@ -47,7 +47,13 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       if ($post) {
 
-        if ($this->is_postfield($key)) {
+        $check = apply_filters('karma_fields_posts_driver_get', null, $post, $key);
+
+        if ($check !== null) {
+
+          return $check;
+
+        } else if ($this->is_postfield($key)) {
 
           return $post->$key;
 
@@ -69,19 +75,29 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         } else {
 
-          $meta = get_post_meta($post->ID, $key);
+          if (registered_meta_key_exists('post', $key)) {
 
-          if (count($meta) === 1) {
-
-            return $meta[0];
-
-          } else if (count($meta) > 1) {
-
-            return $meta;
+            return get_registered_metadata('post', $post->ID, $key);
 
           } else {
 
-            return '';
+            return get_post_meta($post->ID, $key);
+
+            // $meta = get_post_meta($post->ID, $key);
+            //
+            // if (count($meta) === 1) {
+            //
+            //   return $meta[0];
+            //
+            // } else if (count($meta) > 1) {
+            //
+            //   return $meta;
+            //
+            // } else {
+            //
+            //   return '';
+            //
+            // }
 
           }
 
@@ -97,12 +113,14 @@ Class Karma_Fields_Alpha_Driver_Posts {
 	 * update
 	 */
   public function update($data) {
+    global $wpdb;
 
     foreach ($data as $id => $item) {
 
       $args = array();
 
       $id = intval($id);
+
 
       foreach ($item as $key => $value) {
 
@@ -126,37 +144,51 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
           default:
 
-            if (taxonomy_exists($key) && is_array($value)) {
+            if (taxonomy_exists($key) && is_array($value)) { // -> taxonomy
 
               $value = array_filter(array_map('intval', $value));
 
               wp_set_post_terms($id, $value, $key);
 
-            } else {
+            } else { // -> meta
 
-              if (is_array($value)) {
+              if (registered_meta_key_exists('post', $key)) {
 
-                $current_value = get_post_meta($id, $key);
-
-                $to_delete = array_diff($current_value, $value);
-
-                $to_add = array_diff($value, $current_value);
-
-                foreach ($to_delete as $val) {
-
-                  delete_post_meta($id, $key, $val);
-
-                }
-
-                foreach ($to_add as $val) {
-
-                  add_post_meta($id, $key, $val);
-
-                }
+                $object_subtype = get_object_subtype('post', $id);
+                $meta_keys = get_registered_meta_keys('post', $object_subtype);
+                $single = $meta_keys[$key]['single'];
 
               } else {
 
+                $single = !is_array($value);
+
+              }
+
+              if ($single) {
+
                 update_post_meta($id, $key, $value);
+
+              } else if (is_array($value)) {
+
+                $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = %s AND post_id = %d", $key, $id ) );
+
+                for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
+
+                  if (isset($value[$i], $meta_ids[$i])) {
+
+                    update_metadata_by_mid( 'post', $meta_ids[$i], $value[$i]);
+
+                  } else if (isset($value[$i])) {
+
+                    add_metadata( 'post', $id, $key, $value[$i] );
+
+                  } else if (isset($meta_ids[$i])) {
+
+                    delete_metadata_by_mid( 'post', $meta_ids[$i] );
+
+                  }
+
+                }
 
               }
 
@@ -179,6 +211,8 @@ Class Karma_Fields_Alpha_Driver_Posts {
     return true;
   }
 
+
+
   /**
 	 * add
 	 */
@@ -188,36 +222,39 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     $id = wp_insert_post($item);
 
-    return $id;
+    // return $id;
+    $item['id'] = $id;
+
+    return $item;
 
   }
 
-  /**
-	 * fetch
-	 */
-  public function fetch($request, $params) {
-
-    switch($request) {
-
-      case 'querytable':
-        return $this->query_table($params);
-
-      case 'querykey':
-        return $this->query_key($params);
-
-      case 'queryfiles':
-        return $this->query_files($params);
-
-    }
-
-  }
+  // /**
+	//  * fetch
+	//  */
+  // public function fetch($request, $params) {
+  //
+  //   switch($request) {
+  //
+  //     case 'querytable':
+  //       return $this->query_table($params);
+  //
+  //     case 'querykey':
+  //       return $this->query_key($params);
+  //
+  //     case 'queryfiles':
+  //       return $this->query_files($params);
+  //
+  //   }
+  //
+  // }
 
 
 
   /**
 	 * query
 	 */
-  public function query_table($params) {
+  public function query($params) {
 
     $output = array();
 
@@ -406,10 +443,12 @@ Class Karma_Fields_Alpha_Driver_Posts {
   }
 
 
+
+
   /**
-	 * query_key
+	 * fetch
 	 */
-  public function query_key($params) {
+  public function fetch($request, $params) {
     global $wpdb;
 
     $key = isset($params['key']) ? $params['key'] : null;
@@ -484,7 +523,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     }
 
-    $args = apply_filters('karma_fields_driver_posts_query_key_args', $args, $key, $params);
+    $args = apply_filters('karma_fields_driver_posts_query_key_args', $args, $params, $key);
 
     $query = new WP_Query($args);
 
@@ -495,13 +534,13 @@ Class Karma_Fields_Alpha_Driver_Posts {
       $query->the_post();
 
       $results['items'][] = array(
-        'key' => $query->post->ID,
+        'key' => (string) $query->post->ID,
         'name' => get_the_title($query->post->ID)
       );
 
     }
 
-    return apply_filters('karma_fields_driver_posts_query_key_results', $results, $query, $key, $params);
+    return apply_filters('karma_fields_driver_posts_query_key_results', $results, $query, $params, $key);
 
     // }
 
@@ -557,6 +596,115 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
   }
 
+
+
+
+
+  // function update_metadata_array( $meta_type, $object_id, $meta_key, $meta_array ) {
+  //     global $wpdb;
+  //
+  //     if ( ! $meta_type || ! $meta_key || ! is_numeric( $object_id ) ) {
+  //         return false;
+  //     }
+  //
+  //     $object_id = absint( $object_id );
+  //     if ( ! $object_id ) {
+  //         return false;
+  //     }
+  //
+  //     $table = _get_meta_table( $meta_type );
+  //     if ( ! $table ) {
+  //         return false;
+  //     }
+  //
+  //     $meta_subtype = get_object_subtype( $meta_type, $object_id );
+  //
+  //     $column    = sanitize_key( $meta_type . '_id' );
+  //     $id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
+  //
+  //     // expected_slashed ($meta_key)
+  //     $raw_meta_key = $meta_key;
+  //     $meta_key     = wp_unslash( $meta_key );
+  //
+  //     $meta_array = array_filter($meta_array, function($value) {
+  //       return isset($value);
+  //     });
+  //
+  //     $meta_values = array();
+  //
+  //     foreach ( $meta_array as $meta_value ) {
+  //
+  //       $meta_value = wp_unslash( $meta_value );
+  //       $meta_value = sanitize_meta( $meta_key, $meta_value, $meta_type, $meta_subtype );
+  //       $meta_values[] = $meta_value;
+  //
+  //     }
+  //
+  //
+  //     /**
+  //      * Short-circuits updating metadata array of a specific type.
+  //      *
+  //      * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
+  //      * (post, comment, term, user, or any other type with an associated meta table).
+  //      * Returning a non-null value will effectively short-circuit the function.
+  //      *
+  //      * @since xxxx
+  //      *
+  //      * @param null|bool $check      Whether to allow updating metadata for the given type.
+  //      * @param int       $object_id  ID of the object metadata is for.
+  //      * @param string    $meta_key   Metadata key.
+  //      * @param array     $meta_array Metadata values. Array of scalar or serializable items.
+  //      */
+  //     $check = apply_filters( "update_{$meta_type}_metadata_array", null, $object_id, $meta_key, $meta_array );
+  //
+  //     if ( null !== $check ) {
+  //         return (bool) $check;
+  //     }
+  //
+  //     // Compare existing value to new value if no prev value given and the key exists only once.
+  //     // if ( empty( $prev_value ) ) {
+  //     //     $old_value = get_metadata_raw( $meta_type, $object_id, $meta_key );
+  //     //     if ( is_countable( $old_value ) && count( $old_value ) === 1 ) {
+  //     //         if ( $old_value[0] === $meta_value ) {
+  //     //             return false;
+  //     //         }
+  //     //     }
+  //     // }
+  //
+  //     // $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT $id_column FROM $table WHERE meta_key = %s AND $column = %d", $meta_key, $object_id ) );
+  //     // if ( empty( $meta_ids ) ) {
+  //     //     return add_metadata( $meta_type, $object_id, $raw_meta_key, $passed_value );
+  //     // }
+  //
+  //     $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $table WHERE meta_key = %s AND $column = %d", $meta_key, $object_id ) );
+  //
+  //     // maybe filter null values in $meta_array?
+  //
+  //
+  //
+  //
+  //     for ( $i = 0; $i < max(count($meta_values), count($meta_ids)); $i++ ) {
+  //
+  //       if (isset($meta_values[$i], $meta_ids[$i])) {
+  //
+  //         update_metadata_by_mid( $meta_type, $meta_ids[$i], $meta_values[$i]);
+  //
+  //       } else if (isset($meta_array[$i])) {
+  //
+  //         add_metadata( $meta_type, $object_id, $raw_meta_key, $meta_array[$i] );
+  //
+  //       } else if (isset($current_values[$i])) {
+  //
+  //         $meta_id = $current_results[$i]->meta_id;
+  //
+  //         delete_metadata_by_mid( $meta_type, $meta_id );
+  //
+  //       }
+  //
+  //     }
+  //
+  //     return true;
+  // }
 
 
 

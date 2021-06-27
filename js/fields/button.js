@@ -8,9 +8,10 @@ KarmaFieldsAlpha.fields.button.create = function(resource) {
 			field.data.currentIcon = iconName;
 			KarmaFieldsAlpha.getAsset(KarmaFieldsAlpha.icons_url+"/"+iconName+".svg").then(function(result) {
 				field.data.icon = result;
-				requestAnimationFrame(function() {
-					field.triggerEvent("render");
-				});
+				field.triggerEvent("render");
+				// requestAnimationFrame(function() {
+				// 	field.triggerEvent("render");
+				// });
 			});
 		}
 	}

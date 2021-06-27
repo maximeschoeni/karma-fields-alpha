@@ -1,36 +1,78 @@
 
-/* Table
+/* Array
 --------------------------------------*/
 
-.karma-fields .karma-field-array .array {
+.karma-field-array {
+  flex-grow: 1;
+}
+.karma-fields .array {
   display: grid;
   grid-gap: 1px;
-  margin: 1px 1px 1em;
+  margin: 1px 0 1em;
+  background-color: #c3c4c7;
+  border: 1px solid #c3c4c7;
+  border-radius: 2px;
+  min-height: 2em;
 }
-
-.karma-fields .karma-field-array .array .th,
-.karma-fields .karma-field-array .array .td {
+.karma-fields .array.empty {
+  display: none;
+}
+.karma-fields .array .th {
+  padding: 5px;
+  font-weight: bold;
+}
+.karma-fields .array .th,
+.karma-fields .array .td {
   box-sizing: border-box;
-  text-align: left;
-  padding: 1px;
   background-color: white;
-
   display: flex;
-  outline: 1px solid #7e8993;
+  background-color: #f1f1f1;
+  /* outline: 1px solid #7e8993; */
+
+  transition: transform 100ms;
 }
 
 
-.karma-fields .karma-field-array .array .td.array-index {
+.karma-fields .array .td.array-index {
   align-items: center;
   padding: 0 4px;
-  background-color: #f1f1f1;
+  min-width: 30px;
+  /* background-color: #f1f1f1; */
   cursor: grab;
+  font-weight: bold;
 }
-.karma-fields .karma-field-array .array .td.array-index.grabbing {
+.karma-fields .array .td.array-index.grabbing {
   cursor: grabbing;
 }
 
-.karma-fields .karma-field-array .array select {
+.karma-fields .array .drag {
+  outline: 1px solid #c3c4c7;
+  transition: none;
+}
+
+.karma-fields .array.dragging {
+  user-select: none;
+}
+
+
+
+
+/* Select
+--------------------------------------*/
+
+.karma-fields .array .karma-field-dropdown {
+  width: 100%;
+}
+.karma-fields .array select {
+  margin: 0;
+  border: none;
+  width: 100%;
+  max-width: none;
+  background-color: transparent;
+  padding-left: 5px;
+  padding-right: 21px;
+}
+.karma-fields .array select {
   margin: 0;
   border: none;
   width: 100%;
@@ -44,7 +86,11 @@
   box-shadow: none;
 }
 
-.karma-fields .karma-field-array .array .td button {
+
+/* Button
+--------------------------------------*/
+
+.karma-fields .array .td.array-delete button {
   border: none;
   width: 100%;
   height: 100%;
@@ -56,15 +102,52 @@
   align-items: center;
   justify-content: center;
 }
-.karma-fields .karma-field-array .array .td button:focus {
+.karma-fields .array .td button:focus {
   box-shadow: none;
   outline: none;
 }
-.karma-fields .karma-field-array .array .td button svg {
+.karma-fields .array .td button svg {
   display: block;
   width: 20px;
   height: 20px;
 }
-.karma-fields .karma-field-array .array .td button .karma-icon {
+.karma-fields .array .td button .karma-icon {
   width: 20px;
+}
+
+
+/* Input
+--------------------------------------*/
+
+.karma-fields .array .td input {
+  width: 100%;
+  border: none;
+  padding: 0 5px;
+  margin: 0;
+}
+.karma-fields .array .td input:focus {
+}
+.karma-fields .array  label {
+  display: none;
+}
+.karma-fields .array .karma-field-input {
+  flex-grow: 1;
+  align-items: stretch;
+}
+
+
+
+/* File
+--------------------------------------*/
+
+.karma-fields .array .field-file .image-frame {
+  width: 80px;
+  height: 80px;
+  border: none;
+}
+.karma-fields .array .field-file .image-frame img {
+  max-width: 50px;
+}
+.karma-fields .array .field-file .field-control {
+  display: none;
 }
