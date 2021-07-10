@@ -11,45 +11,84 @@ KarmaFieldsAlpha.SelectionManager = class {
     }
   }
 
-	register(element) {
-		const manager = this;
+	// register(element) {
+	// 	const manager = this;
+  //
+	// 	element.onmouseup = function(event) {
+	// 		if (manager.selection) {
+	// 			manager.trigger("select");
+	// 		}
+	// 	}
+  // }
 
-		element.onmouseup = function(event) {
-			if (manager.selection) {
-				manager.trigger("select");
-			}
-		}
+  registerTable(element, width, height, hasIndex, hasHeader) {
+
+
+    this.grid = new KarmaFieldsAlpha.Grid();
+
+    let child = element.firstChild;
+    let i = 0;
+
+    hasIndex = hasIndex && 1 || 0;
+    hasHeader = hasHeader && 1 || 0;
+
+    while (child) {
+
+      const x = i%(width + hasIndex);
+      const y = Math.floor(i/(width + hasIndex));
+
+      if (x === 0 && y === 0 && hasIndex && hasHeader) {
+        this.registerHeaderIndex(child);
+      } else if (x === 0 && hasIndex) {
+        this.registerIndex(child, y-hasHeader);
+      } else if (y === 0 && hasHeader) {
+        this.registerHeader(child, x-hasIndex);
+      } else {
+        this.registerCell(child, x-hasIndex, y-hasHeader);
+      }
+
+      i++;
+      child = child.nextSibling;
+    }
+
+    element.onmouseup = event => {
+      if (this.selection) {
+        this.trigger("select");
+      }
+    }
+
   }
 
   registerCell(element, col, row) {
-		const manager = this;
+		// const manager = this;
+
 
     const x = col;
     const y = row;
 
 		this.grid.set(col, row, element);
 
-		element.onfocus = function() {
+		element.onfocus = () => {
 			// manager.startSelection(new KarmaFieldsAlpha.Rect(col, row, 1, 1));
-			manager.startSelection({x: col, y:row, width: 1, height: 1});
+			this.startSelection({x: col, y:row, width: 1, height: 1});
 		}
-		element.onfocusout = function(event) {
-			manager.endSelection();
-		}
-
-		element.onmousemove = function(event) {
-
-			manager.growSelection({x: col, y:row, width: 1, height: 1});
+		element.onfocusout = (event) => {
+			this.endSelection();
 		}
 
-    element.onkeydown = function(event) {
-      if (event.metaKey && event.key === "c" && manager.selection) {
+		element.onmousemove = (event) => {
+
+			this.growSelection({x: col, y:row, width: 1, height: 1});
+		}
+
+    element.onkeydown = (event) => {
+      if (event.metaKey && event.key === "c" && this.selection) {
         event.preventDefault();
-        manager.trigger("copy");
+        this.trigger("copy");
     	}
-      if (event.metaKey && event.key === "v" && manager.selection) {
+      if (event.metaKey && event.key === "v" && this.selection) {
         event.preventDefault();
-        manager.trigger("paste");
+        this.trigger("paste");
     	}
       // if (event.key === "ArrowUp") {
       //   event.preventDefault();
@@ -123,6 +162,10 @@ KarmaFieldsAlpha.SelectionManager = class {
 
   }
 
+
+
+
+
 	registerIndex(element, row) {
 		const manager = this;
 
@@ -173,8 +216,6 @@ KarmaFieldsAlpha.SelectionManager = class {
 	growSelection(r) {
 
 		if (this.focusRect && event.buttons === 1) {
-
-
 
 			if (this.selection) {
 				this.unpaint(this.selection);

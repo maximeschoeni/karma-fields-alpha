@@ -1,5 +1,11 @@
 KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container {
 
+	updateState(state) {
+		super.updateState(state);
+    this.try("onState", state);
+	}
+
+
 	buildFrame(field) {
 
 		return {
@@ -9,6 +15,29 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 					this.element.style = field.resource.style;
 				}
 			},
+			// update: function(container) {
+			// 	this.children = [];
+			// 	if (field.resource.label) {
+			// 		this.children.push({
+			// 			tag: "label",
+			// 			init: function(label) {
+			// 				if (field.resource.label) {
+			// 					this.element.htmlFor = field.getId();
+			// 					this.element.textContent = field.resource.label;
+			// 				}
+			// 			}
+			// 		});
+			// 	}
+			// 	this.children.push({
+			// 		class: "karma-field-item",
+			// 		children: [
+			// 			field.build(),
+			// 			{
+			// 				class: "karma-field-spinner"
+			// 			}
+			// 		]
+			// 	});
+			// }
 			update: function(container) {
 				this.children = [];
 				if (field.resource.label) {
@@ -22,15 +51,29 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 						}
 					});
 				}
+				this.children.push(field.build());
 				this.children.push({
-					class: "karma-field-item",
-					children: [
-						field.build(),
-						{
-							class: "karma-field-spinner"
-						}
-					]
+					class: "karma-field-spinner"
 				});
+
+				// this.children.push({
+				// 	class: "karma-field-item",
+				// 	children: [
+				// 		{
+				// 			tag: "label",
+				// 			init: function(label) {
+				// 				if (field.resource.label) {
+				// 					this.element.htmlFor = field.getId();
+				// 					this.element.textContent = field.resource.label;
+				// 				}
+				// 			}
+				// 		},
+				// 		field.build(),
+				// 		{
+				// 			class: "karma-field-spinner"
+				// 		}
+				// 	]
+				// });
 			}
 		};
 	}
@@ -39,18 +82,21 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 		const field = this;
 
 		return {
-			class: "karma-field-container display-"+(field.resource.display || "block"),
+			class: "karma-field karma-field-container display-"+(field.resource.display || "block"),
 			init: function() {
 				// if (field.resource.style) {
+				// 	console.log(field.resource);
 				// 	this.element.style = field.resource.style;
 				// }
 			},
 			update: function(group) {
-				this.element.classList.toggle("disabled", field.bubble("disabled") || false);
+				// this.element.classList.toggle("disabled", field.bubble("disabled") || false);
+
+				field.onState = function(state) {
+					group.element.classList.toggle("disabled", state === "disabled");
+				}
 
 				this.children = field.children.map(function(child) {
-
-					// child.disabled = field.disabled;
 
 					if (child instanceof KarmaFieldsAlpha.fields.separator) {
 

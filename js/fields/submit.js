@@ -13,8 +13,14 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 		}
 	}
 
-	updateState() {
-		this.try("onState", this.parent.getModifiedValue() ? this.getState() : "disabled");
+	// updateState() {
+	// 	this.try("onState", this.parent.getModifiedValue() ? this.getState() : "disabled");
+	// }
+
+	updateState(state) {
+		// console.log(state);
+		// console.trace();
+		this.try("onState", this.parent.getModifiedValue() ? state : "disabled");
 	}
 
 	getModifiedValue() {
@@ -22,6 +28,10 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 	}
 
 	getFromPath() {}
+
+	async getRemoteValue() {
+    return;
+  }
 
 	build() {
 		const field = this;
@@ -63,7 +73,7 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 				field.onState = function(state) {
 					button.element.disabled = state === "disabled";
 				}
-				field.update();
+				// field.update();
 			}
 		};
 

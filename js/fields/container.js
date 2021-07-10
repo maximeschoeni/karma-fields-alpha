@@ -12,7 +12,7 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 
 	setValue(value, context) {
 
-		console.warn("Deprecated function setValue");
+		// console.warn("Deprecated function setValue");
 
 		// if (value && typeof value === "object") {
 		// 	for (let key in value) {
@@ -145,17 +145,31 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	// 	});
 	// }
 
-	updateState() {
+	updateState(state) {
 		this.children.forEach(function(child) {
-			child.updateState();
+			child.updateState(state);
 		});
 	}
 
 	fill(columns) {
-    this.children.forEach(function(child) {
-      child.fill();
-    });
+		console.error("Deprecated function fill");
+
+    // this.children.forEach(function(child) {
+    //   child.fill();
+    // });
   }
+
+	reset() {
+		this.children.forEach(function(child) {
+			child.reset();
+		});
+	}
+
+	// update() {
+	// 	this.children.forEach(function(child) {
+	// 		child.update();
+	// 	});
+	// };
 
 	// not used
 	// updateDependency() {

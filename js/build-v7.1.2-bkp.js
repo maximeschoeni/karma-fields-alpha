@@ -11,9 +11,9 @@ KarmaFieldsAlpha.build = function(args, parent, element, clean) {
 					let child = this.element.firstElementChild;
 					while (i < children.length || child) {
 						let next = child && child.nextElementSibling;
-						// if (children[i]) {
-						// 	children[i].parent = this;
-						// }
+						if (children[i]) {
+							children[i].parent = this;
+						}
 						KarmaFieldsAlpha.build(children[i], this.element, child, clean);
 						i++;
 						child = next;
@@ -58,20 +58,9 @@ KarmaFieldsAlpha.build = function(args, parent, element, clean) {
 		}
 
 		if (args.update) {
-			// if (args.class && args.class.indexOf("arsenic-container") > -1) {
-			// 	console.log("update", args, typeof args.child);
-			// }
 			args.update(args);
-
-
-
-
 		}
-		if (args.render) {
-
-			// if (args.class && args.class.indexOf("arsenic-container") > -1) {
-			// 	console.log("render", args, typeof args.child);
-			// }
+		if (args.render && !args.skipRender) {
 			args.render(clean);
 		}
 	} else if (element) {

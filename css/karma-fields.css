@@ -98,9 +98,7 @@
   /* width: 20px;
   height: 20px; */
 }
-.karma-fields button.loading .button-content {
-  /* display: none; */
-}
+
 
 /* .karma-fields button .karma-icon path {
   fill: #32373c;
@@ -116,26 +114,44 @@
 .karma-field-item  {
   display: flex;
   align-items: center;
-}
 
+  /* display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr; */
+}
+/* .karma-field-item label {
+  grid-area: 1 / 1 / 1 / 1;
+}
+.karma-field-item .karma-field {
+  grid-area: 2 / 1 / 3 / 3;
+}
+.karma-field-item .karma-field-spinner {
+  grid-area: 1 / 2 / 2 / 3;
+} */
 
 
 
 /* File
 --------------------------------------*/
 
-.karma-fields .field-file {
+.karma-file {
   display: inline-flex;
   flex-wrap: wrap;
   /* align-items: flex-end; */
   vertical-align: middle;
   margin: -0px;
+
+  max-width: 260px;
 }
-/* .karma-fields .field-file .image-container {
-  display: flex;
-  flex-wrap: wrap;
-} */
-.karma-fields .field-file .image-frame {
+.karma-file.loading {
+  flex-grow: 0.5;
+  min-height: 150px;
+}
+.karma-file.loading .image-frame,
+.karma-file.loading .field-control {
+  display: none;
+}
+.karma-file .image-frame {
   border: 1px solid #c3c4c7;
   /* background-color: #f6f7f7; */
   border-radius: 2px;
@@ -145,65 +161,107 @@
   width: 150px;
   height: 150px;
   cursor: pointer;
-  margin: 0px;
+  margin: 0px 10px 0 0;
 }
-.karma-field-file .image-frame .image-container {
+.karma-file .image-frame .image-container {
   display: flex;
 }
-.karma-field-file.loading .image-frame .image-container {
-  display: none;
+.karma-file .image-frame .image-container.type-image {
+  background-color: #c3c4c7;
 }
-.karma-field-file.loading .image-frame .button-container {
-  display: none;
+.karma-file .image-frame.type-image {
+  /* border: none;
+  background-color: transparent; */
 }
-.karma-fields .field-file .image-frame.type-image {
-  border: none;
-  background-color: transparent;
-}
-.karma-fields .field-file .image-frame.type-image img {
-  display: block;
+.karma-file .image-frame img {
+  /* display: block;
   object-fit: cover;
   object-position: center;
   width: 100%;
   height: 100%;
-  border: none;
+  border: none; */
 }
-.karma-fields .field-file .field-control  {
+.karma-file .field-control  {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  margin: 5px;
-}
-.karma-fields .field-file .field-control button {
-
-  margin: 5px;
 }
 
-/* .karma-fields .field-file .file-thumb button {
-  padding: 0 10px;
-}
-.karma-fields .field-file .file-thumb button:hover {
-  text-decoration: underline;
-}
-.karma-fields .field-file .file-thumb button:focus {
-  outline: none;
-}
-.karma-fields .field-file .file-thumb button.insert,
-.karma-fields .field-file .file-thumb .wait {
-  width: 150px;
-  height: 150px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid black;
-} */
 
+.karma-field-table .karma-file .image-frame {
+  border: none;
+  border-radius: 0;
+  width: 80px;
+  height: 80px;
+  margin: 0;
+}
+.karma-field-table .karma-file .field-control  {
+  display: none;
+}
+
+.karma-field-table .karma-file.selected a {
+  background-color: white;
+}
 
 
 /* Files
 --------------------------------------*/
 
-.karma-fields .field-file .file-thumb {
+.karma-files {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.karma-files.loading {
+  flex-grow: 0.5;
+  height: 150px;
+}
+.karma-files .gallery {
+  display: flex;
+  /* flex-wrap: wrap; */
+  border: 1px solid #c3c4c7;
+  cursor: pointer;
+}
+.karma-files.loading .gallery,
+.karma-files.loading .field-control {
+  display: none;
+}
+.karma-files .gallery .images-container {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 150px;
+}
+.karma-files .gallery .images-container .image-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-basis: 0;
+  min-width: 15px;
+  max-width: 150px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+.karma-files .gallery .images-container .image-container img {
+  display: block;
+}
+.karma-files .gallery .add-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+.karma-files.loading .gallery .add-container .add {
+  /* display: none; */
+}
+.karma-files .field-control {
+  margin: 10px 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+/* .karma-fields .field-file .file-thumb {
   display: flex;
   align-items: flex-end;
 }
@@ -232,7 +290,7 @@
   justify-content: center;
   align-items: center;
   border: 1px solid black;
-}
+} */
 
 
 

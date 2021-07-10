@@ -15,7 +15,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 			let values = field.getModifiedValue();
 
 			if (values) {
-				KarmaFieldsAlpha.Form.cache = {};
+				// KarmaFieldsAlpha.Form.cache = {};
 				return this.save(values);
 				// return KarmaFieldsAlpha.Form.update(resource.driver, values).then(function(results) {
 				// 	// field.updateOriginal();
@@ -53,19 +53,18 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	}
 
 	getFromPath(keys) {
-		const field = this;
 		return KarmaFieldsAlpha.Form.get(this.resource.driver, keys.join("/"));
 	}
 
-	save(values) {
-		const field = this;
+	async save(values) {
+		const results = await KarmaFieldsAlpha.Form.update(this.resource.driver, values);
 
-		return KarmaFieldsAlpha.Form.update(this.resource.driver, values).then(function(results) {
-			// field.setValue(values, "set"); // -> unmodify fields
-			field.initValue(values, true);
-			field.initValue(results, true);
-			return results;
-		});
+		this.initValue(values, true);
+		this.initValue(results, true);
+		// await this.update();
+
+		return results;
 	}
+
 
 };

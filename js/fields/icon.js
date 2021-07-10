@@ -1,6 +1,6 @@
 KarmaFieldsAlpha.fields.icon = class extends KarmaFieldsAlpha.fields.field {
 
-  load(file) {
+  loadFile(file) {
     if (!KarmaFieldsAlpha.fields.icon.files[file]) {
       KarmaFieldsAlpha.fields.icon.files[file] = fetch(KarmaFieldsAlpha.icons_url+"/"+file).then(function(response) {
         return response.text();
@@ -16,8 +16,7 @@ KarmaFieldsAlpha.fields.icon = class extends KarmaFieldsAlpha.fields.field {
       class: "karma-icon",
       render: null,
       init: function(icon) {
-        field.load(field.resource.value).then(function(results) {
-
+        field.loadFile(field.resource.value).then(function(results) {
           icon.element.innerHTML = results;
         });
       }
@@ -27,7 +26,13 @@ KarmaFieldsAlpha.fields.icon = class extends KarmaFieldsAlpha.fields.field {
 };
 
 KarmaFieldsAlpha.fields.icon.files = {};
-
+KarmaFieldsAlpha.fields.icon.create = function(name) {
+  const icon = new KarmaFieldsAlpha.fields.icon({
+    type: "icon",
+    value: name
+  });
+  return icon.build();
+}
 
 // KarmaFieldsAlpha.fields.icon = {};
 // KarmaFieldsAlpha.fields.icon.files = {};

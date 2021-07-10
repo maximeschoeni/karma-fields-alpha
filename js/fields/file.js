@@ -63,7 +63,7 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
             });
             if (attachments.length) {
               field.backup();
-              field.updateChangeValue(attachments[0].id);
+              field.changeValue(attachments[0].id);
               // .then(function() {
               //   field.try("onSet", attachments[0].id);
               // });
@@ -71,11 +71,10 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
           });
           this.addFrame.on("open", function() {
             let selection = uploader.addFrame.state().get("selection");
-            field.getValueAsync().then(function(value) {
-              if (value) {
-                selection.add(wp.media.attachment(value));
-              }
-            });
+            const value = field.getValue();
+            if (value) {
+              selection.add(wp.media.attachment(value));
+            }
           });
         }
         this.addFrame.open();
@@ -91,6 +90,10 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
   getEmpty() {
     return 0;
   }
+
+  // convert(value) {
+  //   return value && parseInt(value) || 0;
+  // }
 
   validate(value) {
     const field = this;
@@ -146,89 +149,86 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
 
   buildContent(value) {
     const field = this;
-    return {
-      class: "field-file",
-      children: [
-        {
-          tag: "a",
-          class: "image-frame",
-          update: function(frame) {
-            this.element.onclick = function(event) {
-              event.preventDefault();
-              field.uploader.open();
-            };
-          },
-          children: [
-            {
-              class: "image-container",
-              update: function() {
-                if (value) {
-                  const file = field.getFile(value);
-                  this.children = [{
-                    tag: "img",
-                    update: function() {
-                      this.element.src = file.src;
-                      this.element.width = file.width;
-                      this.element.height = file.height;
-                    }
-                  }];
-                  this.element.classList.toggle("type-image", file.type.startsWith("image"));
-                } else {
-                  this.children = [];
-                }
-              }
-            },
-            {
-              class: "button-container",
-              update: function() {
-                if (value) {
-                  this.children = [];
-                } else {
-                  this.children = [{
-                    class: "add",
-                    update: function() {
-                      this.element.textContent = "Add file";
-                    }
-                  }];
-                }
-              }
-            },
-            {
-              class: "karma-field-spinner"
-            }
-          ]
+    return [
+      {
+        tag: "a",
+        class: "image-frame",
+        update: function(frame) {
+          this.element.onclick = function(event) {
+            event.preventDefault();
+            field.uploader.open();
+          };
         },
-        {
-          class: "field-control",
-          update: function() {
-            if (value) {
-              this.children = [{
-                tag: "button",
-                class: "delete",
-                update: function() {
-                  this.element.textContent = "Remove";
-                  this.element.addEventListener("click", function(event) {
-                    event.preventDefault();
-                    field.backup();
-                    field.updateChangeValue(0);
-                  });
-                }
-              }];
-            } else {
-              this.children = [];
+        children: [
+          {
+            class: "image-container",
+            update: function() {
+              if (value) {
+                const file = field.getFile(value);
+                this.children = [{
+                  tag: "img",
+                  update: function() {
+                    this.element.src = file.src;
+                    this.element.width = file.width;
+                    this.element.height = file.height;
+                  }
+                }];
+                this.element.classList.toggle("type-image", file.type.startsWith("image"));
+              } else {
+                this.children = [];
+              }
+            }
+          },
+          {
+            class: "button-container",
+            update: function() {
+              if (value) {
+                this.children = [];
+              } else {
+                this.children = [{
+                  class: "add",
+                  update: function() {
+                    this.element.textContent = "Add file";
+                  }
+                }];
+              }
             }
           }
+          // ,
+          // {
+          //   class: "karma-field-spinner"
+          // }
+        ]
+      },
+      {
+        class: "field-control",
+        update: function() {
+          if (value) {
+            this.children = [{
+              tag: "button",
+              class: "delete button",
+              update: function() {
+                this.element.textContent = "Remove";
+                this.element.addEventListener("click", function(event) {
+                  event.preventDefault();
+                  field.backup();
+                  field.changeValue(0);
+                });
+              }
+            }];
+          } else {
+            this.children = [];
+          }
         }
-      ]
-    };
+      }
+    ];
   }
 
   build() {
     const field = this;
 
     return {
-			class: "load-inside karma-field-"+field.resource.type,
-      clear: true,
+			class: "karma-file karma-field",
 			init: function(container) {
 				if (field.resource.style) {
 					this.element.style = field.resource.style;
@@ -238,10 +238,8 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
 			},
 			update: function(container) {
 
-        container.child = field.buildContent(0);
-
         field.onSet = function(value) {
-          container.child = field.buildContent(value);
+          container.children = field.buildContent(value);
           container.render();
         }
         field.onModified = function(modified) {

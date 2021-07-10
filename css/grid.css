@@ -602,7 +602,7 @@ body.folded .karma-fields .table-footer {
   align-items: center;
   /* margin: 0 5px; */
 }
-.karma-fields .table-footer .footer-item {
+.karma-fields .table-footer .footer-group>button.karma-button {
   margin: 0 5px;
 }
 
@@ -624,7 +624,8 @@ body.folded .karma-fields .table-footer {
 
 button.karma-button {
   color: #0173aa;
-  display: flex;
+  display: grid;
+  grid-template-areas: "button";
   align-items: center;
   /* border-color: #f3f5f6; */
   height: auto;
@@ -652,9 +653,9 @@ button.karma-button.primary {
   color: #f1f1f1;
   box-shadow: none;
 }
+button.karma-button.active,
 button.karma-button:hover,
-button.karma-button:focus,
-button.karma-button.active {
+button.karma-button:focus {
   box-shadow: none;
   border: none;
   background-color: transparent;
@@ -663,6 +664,9 @@ button.karma-button.active {
   border: 1px solid rgb(0, 124, 186);
   /* outline: 1px solid rgb(0, 124, 186); */
   /* box-shadow: 0 0 1px 1px rgb(0, 124, 186); */
+}
+button.karma-button:active {
+  border-color: transparent;
 }
 
 button.karma-button.primary:hover,
@@ -685,11 +689,19 @@ button.karma-button[disabled] {
   text-shadow: none !important;
   cursor: default;
 }
-button.karma-button.primary[disabled] {
+.primary[disabled] {
   background-color: #c3c4c7 !important;
   color: #f1f1f1 !important;
   border: 1px solid #c3c4c7 !important;
 }
+
+button.karma-button .button-content {
+  grid-area: button;
+}
+button.karma-button.loading .button-content {
+  visibility: hidden;
+}
+
 
 .karma-icon {
   display: flex;
@@ -724,6 +736,8 @@ button.karma-button.primary[disabled] {
 } */
 
 button.karma-button > .karma-field-spinner {
+  grid-area: button;
+  justify-self: center;
   border-color: #0173aa transparent #0173aa #0173aa;
 }
 button.karma-button.primary > .karma-field-spinner {
@@ -846,8 +860,8 @@ button.karma-button.primary > .karma-field-spinner {
 .loading .karma-field-spinner,
 .loading:not(.load-inside) + .karma-field-spinner {
   display: inline-block;
-  width: 0.75em;
-  height: 0.75em;;
+  width: 0.6em;
+  height: 0.6em;;
   margin: 0 0.5em;
   vertical-align: middle;
   border-color: #535c63 transparent #535c63 #535c63;
@@ -1075,7 +1089,24 @@ button.karma-button.primary > .karma-field-spinner {
 .karma-field-frame {
   padding: 0.75em 10px;
   box-sizing: border-box;
+
+
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
 }
+.karma-field-frame label {
+  grid-area: 1 / 1 / 1 / 1;
+}
+.karma-field-frame .karma-field {
+  grid-area: 2 / 1 / 3 / 3;
+}
+.karma-field-frame .karma-field-spinner {
+  grid-area: 1 / 2 / 2 / 3;
+}
+
+
+
 .karma-field-separator {
   flex-grow: 0;
   padding: 0;

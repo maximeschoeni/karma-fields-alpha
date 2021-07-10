@@ -18,28 +18,6 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 		}
 	}
 
-	// update() {
-	// 	const field = this;
-	// 	return super.update().then(function(value) {
-	// 		if (field.resource.options) {
-	// 			let options = field.prepareOptions(field.resource.options);
-	// 			field.try("onOptions", options, value, "resource");
-	// 			return value;
-  //     } else {
-	// 			field.startLoad();
-	// 			// let params = field.getOptionParams();
-	// 			// let queryString = KarmaFieldsAlpha.Form.encodeParams(params);
-	// 			return field.fetchOptions().then(function(options) {
-	// 				options = field.prepareOptions(options);
-	// 				let queryString = field.getOptionsParamString();
-	// 				field.try("onOptions", options, value, queryString);
-	// 				field.endLoad();
-	// 				return value;
-	// 			});
-	// 		}
-	// 	});
-  // }
-
 	update() {
 		const field = this;
 		return super.update().then(function(value) {
@@ -76,7 +54,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 	exportValue() {
 		const field = this;
-		return this.super().then(function(value) {
+		return super.exportValue().then(function(value) {
 			return field.getOptionsAsync().then(function(options) {
 				const option = options.find(function(option) {
 					return option.key === value;
@@ -85,6 +63,10 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 			});
 		});
   }
+
+	// getEmpty() {
+	// 	return this.resource.empty || "";
+	// }
 
   // importValue(value) {
 	// 	const options = this.getOptions();
@@ -108,11 +90,19 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 	validate(value) {
 
-		return this.getOptionsAsync().then(function(options) {
+		return this.getOptionsAsync().then(options => {
 			if (options.length) {
-				if (!options.some(function(option) {
-					return option.key === value;
-				})) {
+				if (!options.some(option => option.key === value)) {
+
+					// value = options[0].key;
+					//
+	        // // only save if value is different
+					// const rawValue = this.stringify(value);
+	        // if (validatedRawValue !== rawValue) {
+	        //   rawValue = validatedRawValue;
+	        //   this.write(rawValue);
+	        // }
+
 					return options[0].key;
 				}
 			}
@@ -127,9 +117,16 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 		options.forEach(function(option) {
       option.key = option.key.toString(); //this.convert(option.key, "string", this.resource.datatype || this.datatype);
     });
+		if (this.resource.empty !== undefined) {
+			options.unshift({
+				key: this.resource.empty,
+				name: this.resource.empty_option_name || "–"
+			});
+		}
+		// deprecated
 		if (this.resource.novalue !== undefined) {
 			options.unshift({
-				key: this.getEmpty(this.resource.datatype),
+				key: this.getEmpty(),
 				name: this.resource.novalue === true && "-" || this.resource.novalue
 			});
 		}
@@ -196,11 +193,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 				return {
 					tag: "option",
 					update: function() {
-						if (option.count && field.resource.count) {
-							this.element.textContent = option.name + " ("+option.count+")";
-						} else {
-							this.element.textContent = option.name;
-						}
+						this.element.textContent = option.name + (option.count && field.resource.count && " ("+option.count+")" || "");
 						this.element.value = option.key;
 						if (value === option.key) {
 							this.element.selected = true;

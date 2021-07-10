@@ -17,6 +17,10 @@ KarmaFieldsAlpha.Form = {
 	},
 
 	fetch: function(driver, handle, params) {
+		// if (typeof handle === "string") {
+		// 	console.error("DEPRECATED handle param, Form.fetch()");
+		// }
+
 
 		let file = KarmaFieldsAlpha.restURL+"/fetch/"+driver+"/"+handle+this.encodeParams(params);
 		// if (params) {
@@ -30,6 +34,7 @@ KarmaFieldsAlpha.Form = {
 		// 		file += "?"+listParams.join("&");
 		// 	}
 		// }
+
 
 		if (this.cache[file] === undefined) {
 			this.cache[file] = fetch(file, {
@@ -57,6 +62,9 @@ KarmaFieldsAlpha.Form = {
 		// 		file += "?"+listParams.join("&");
 		// 	}
 		// }
+
+		// console.log(file, this.cache[file]);
+		// console.trace();
 
 		if (this.cache[file] === undefined) {
 			this.cache[file] = fetch(file, {
@@ -117,11 +125,8 @@ KarmaFieldsAlpha.Form = {
 				},
 			}).then(function(response) {
 				return response.json();
-				// if (!cache || cache.slice(-5) === ".json") {
-				// 	return response.json();
-				// } else {
-				// 	return response.text();
-				// }
+			}).catch(function(error) {
+				console.log(error);
 			});
 		}
 		return this.cache[file];

@@ -1,6 +1,6 @@
 KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
-	
+
 
 	build() {
 		const field = this;
