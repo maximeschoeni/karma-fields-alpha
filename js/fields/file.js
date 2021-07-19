@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField {
 
   constructor(resource, domain, parent) {
     super(resource, domain, parent);
@@ -10,13 +10,11 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
   }
 
   exportValue() {
-    const field = this;
-    this.getValueAsync().then(function(value) {
-      if (value) {
-        return field.getFile(value).original_url;
-      }
-      return "";
-    });
+    const value = this.getValue()
+    if (value) {
+      return this.getFile(value).original_url;
+    }
+    return "";
 
     // this.getValueAsync().then(function(value) {
     //   const file = field.getFile(value);
@@ -58,14 +56,14 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
           };
           this.addFrame = wp.media(args);
           this.addFrame.on("select", function() {
-            let attachments = uploader.addFrame.state().get("selection").toJSON().map(function(attachment) {
-              return attachment;
-            });
+            let attachments = uploader.addFrame.state().get("selection").toJSON().map(attachment => attachment);
             if (attachments.length) {
               field.backup();
-              field.changeValue(attachments[0].id);
-              // .then(function() {
-              //   field.try("onSet", attachments[0].id);
+              field.setDeltaValue(attachments[0].id);
+              field.render();
+              // field.updateValue(attachments[0].id).then(function() {
+              //   debugger;
+              //   field.render();
               // });
             }
           });
@@ -83,60 +81,46 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
     return uploader;
   }
 
-  fetch(queryString) {
+  // fetch(queryString) {
+  getRemoteOptions(queryString) {
 		return KarmaFieldsAlpha.Form.fetch2(this.resource.driver || "attachment", queryString);
   }
 
-  getEmpty() {
-    return 0;
-  }
 
   // convert(value) {
   //   return value && parseInt(value) || 0;
   // }
 
-  validate(value) {
-    const field = this;
+  async validate(value) {
     value = parseInt(value);
-
-    if (!value || isNaN(value)) {
-      return Promise.resolve(0);
-    } else if (this.hasFiles([value])) {
-      return Promise.resolve(value);
-    } else {
-      return this.fetchIds([value]).then(function() {
-        return value;
-      });
+    if (value && !isNaN(value) && !this.getFile(value)) {
+      await this.fetchIds([value]);
     }
+    return value;
   }
 
-  fetchIds(ids) {
-    const field = this;
+  async fetchIds(ids) {
     let queryString = this.getOptionsParamString({ids: ids});
-    return this.fetch(queryString).then(function(results) {
-      field.setFiles(results);
-      return results; // -> not sure if order matches!
-    }).catch(function() {
-      return 0;
-    });
+    const results = await this.getRemoteOptions(queryString);
+    // if (results[0] && results[0].src) {
+    //   await fetch(results[0].src);
+    // }
+    this.setFiles(results);
+    return results;
   }
 
   hasFiles(ids) {
-    return ids.every(function(id) {
-      return this.getFile(id);
-    }, this);
+    return ids.every(id => this.getFile(id));
   }
 
   setFiles(files) {
-    files.forEach(function(file) {
+    files.forEach(file => {
       this.setFile(file.id, file);
-    }, this);
+    });
   }
 
   getFiles(ids) {
-    return ids.map(function(id) {
-      return this.files[id];
-    }, this);
+    return ids.map(id => this.files[id]);
   }
 
   getFile(id) {
@@ -209,11 +193,12 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
               class: "delete button",
               update: function() {
                 this.element.textContent = "Remove";
-                this.element.addEventListener("click", function(event) {
+                this.element.onclick = async (event) => {
                   event.preventDefault();
                   field.backup();
-                  field.changeValue(0);
-                });
+                  await field.updateValue(0);
+                  field.render();
+                };
               }
             }];
           } else {
@@ -225,330 +210,56 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
   }
 
   build() {
-    const field = this;
-
     return {
 			class: "karma-file karma-field",
-			init: function(container) {
-				if (field.resource.style) {
-					this.element.style = field.resource.style;
-				}
-        this.element.setAttribute('tabindex', '-1');
-        field.init(this.element);
+			init: container => {
+				// if (field.resource.style) {
+				// 	container.element.style = field.resource.style;
+				// }
+        container.element.setAttribute('tabindex', '-1');
+        this.init(container.element);
 			},
-			update: function(container) {
+			update: async container => {
 
-        field.onSet = function(value) {
-          container.children = field.buildContent(value);
-          container.render();
-        }
-        field.onModified = function(modified) {
-					container.element.classList.toggle("modified", modified);
-				}
-				field.onLoad = function(loading) {
-          container.element.classList.toggle("loading", loading);
-				}
+        // this.render = async () => {
 
-        field.update();
-			}
+        container.element.classList.add("loading");
+
+        const value = await this.update();
+
+        container.children = this.buildContent(value);
+
+        // await container.render();
+
+        container.element.classList.toggle("modified", this.modified);
+
+
+        // }
+
+        // this.render();
+
+        // field.onSet = function(value) {
+        //
+        //   container.render();
+        // }
+        // field.onModified = function(modified) {
+				// 	container.element.classList.toggle("modified", modified);
+				// }
+				// field.onLoad = function(loading) {
+        //   container.element.classList.toggle("loading", loading);
+				// }
+
+
+
+
+        // container.render();
+
+			},
+      complete: container => {
+        container.element.classList.remove("loading");
+      }
 		};
 
   }
 
 }
-
-
-
-
-// KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
-//
-//   constructor(resource, domain, parent) {
-//     super(resource, domain, parent);
-//
-//     // this.datatype = "number";
-//     this.files = {};
-//     this.uploader = this.createUploader(resource);
-//
-//   }
-//
-//
-//
-//   createUploader(resource) {
-//     const field = this;
-//     const uploader = {
-//       addFrame: null,
-//       // imageId: null,
-//       open: function () {
-//         if (!this.addFrame) {
-//           var args = {
-//             title: "Select file",
-//             button: {
-//               text: "Use this file"
-//             },
-//             library: {
-//               type: resource.file && (resource.file.type || resource.file.types)
-//                 || resource.mime_types
-//                 || resource.mimeTypes
-//                 || resource.mimetypes
-//                 || resource.mimeType
-//                 || resource.mimetype
-//                 || resource.mime_type
-//                 || "image" //'application/font-woff'
-//             },
-//             multiple: true
-//           };
-//           this.addFrame = wp.media(args);
-//           this.addFrame.on("select", function() {
-//             let attachments = uploader.addFrame.state().get("selection").toJSON().map(function(attachment) {
-//               return attachment;
-//             });
-//             if (attachments.length) {
-//               field.backup();
-//               field.updateChangeValue(attachments[0].id);
-//               // .then(function() {
-//               //   field.try("onSet", attachments[0].id);
-//               // });
-//             }
-//           });
-//           this.addFrame.on("open", function() {
-//             let selection = uploader.addFrame.state().get("selection");
-//             field.getValueAsync().then(function(value) {
-//               if (value) {
-//                 selection.add(wp.media.attachment(value));
-//               }
-//             });
-//           });
-//         }
-//         this.addFrame.open();
-//       }
-//     };
-//     return uploader;
-//   }
-//
-//   fetch(queryString) {
-// 		return KarmaFieldsAlpha.Form.fetch2(this.resource.driver || "attachment", queryString);
-//   }
-//
-//   getEmpty() {
-//     return 0;
-//   }
-//
-//   validate(value) {
-//     const field = this;
-//     value = parseInt(value);
-//
-//     if (!value || isNaN(value)) {
-//       return Promise.resolve(0);
-//     } else if (this.hasFiles([value])) {
-//       return Promise.resolve(value);
-//     } else {
-//       return this.fetchIds([value]).then(function() {
-//         return value;
-//       });
-//     }
-//   }
-//
-//   fetchIds(ids) {
-//     const field = this;
-//     let queryString = this.getOptionsParamString({ids: ids});
-//     return this.fetch(queryString).then(function(results) {
-//       field.setFiles(results);
-//       return results; // -> not sure if order matches!
-//     }).catch(function() {
-//       return 0;
-//     });
-//   }
-//
-//   hasFiles(ids) {
-//     return ids.every(function(id) {
-//       return this.getFile(id);
-//     }, this);
-//   }
-//
-//   setFiles(files) {
-//     files.forEach(function(file) {
-//       this.setFile(file.id, file);
-//     }, this);
-//   }
-//
-//   getFiles(ids) {
-//     return ids.map(function(id) {
-//       return this.files[id];
-//     }, this);
-//   }
-//
-//   getFile(id) {
-//     return this.files[id];
-//   }
-//
-//   setFile(id, file) {
-//     this.files[id] = file;
-//   }
-//
-//   build() {
-//     const field = this;
-//
-//     return {
-// 			class: "karma-field-"+field.resource.type,
-//       clear: true,
-// 			init: function(container) {
-// 				// field.events.set = function() {
-// 				// 	container.render(true); // -> when field value is changed by outside
-// 				// }
-// 				if (field.resource.style) {
-// 					this.element.style = field.resource.style;
-// 				}
-// 			},
-// 			update: function(container) {
-// 				this.children = [
-//
-//           {
-//             class: "field-file",
-//             // clear: true,
-//             update: function(filesContainer) {
-//
-//               field.onSet = function(value) {
-//
-//                 if (value) {
-//                   let file = field.getFile(value);
-//
-//                   let type = file.type.startsWith("image") && "image" || "file";
-//                   filesContainer.children = [
-//                     {
-//                       tag: "a",
-//                       class: "image-frame",
-//                       update: function(frame) {
-//                         this.element.onclick = function(event) {
-//                           event.preventDefault();
-//                           field.uploader.open();
-//                         };
-//                       },
-//                       children: [
-//                         {
-//                           class: "image-container type-"+type,
-//                           child: {
-//                             tag: "img",
-//                             update: function() {
-//                               this.element.src = file.src;
-//                               this.element.width = file.width;
-//                               this.element.height = file.height;
-//                             }
-//                           }
-//                         },
-//                         {
-//                           class: "button-container",
-//                           children: []
-//                         },
-//                         {
-//                           class: "karma-field-spinner"
-//                         }
-//                       ]
-//                     },
-//                     {
-//                       class: "field-control",
-//                       child: {
-//                         tag: "button",
-//                         class: "delete",
-//                         update: function() {
-//                           this.element.textContent = "Remove";
-//                           this.element.addEventListener("click", function(event) {
-//                             event.preventDefault();
-//                             field.backup();
-//                             field.updateChangeValue(0);
-//                           });
-//                         }
-//                       }
-//                     }
-//                   ];
-//                 } else {
-//                   filesContainer.children = [
-//                     {
-//                       tag: "a",
-//                       class: "image-frame",
-//                       update: function(frame) {
-//                         this.element.onclick = function(event) {
-//                           event.preventDefault();
-//                           field.uploader.open();
-//                         };
-//                       },
-//                       children: [
-//                         {
-//                           class: "image-container",
-//                           children: []
-//                         },
-//                         {
-//                           class: "button-container",
-//                           child: {
-//                             // tag: "button",
-//                             class: "add",
-//                             update: function() {
-//                               // this.element.onclick = function(event) {
-//                               //   event.preventDefault();
-//                               //   field.data.uploader.open();
-//                               // };
-//                               this.element.textContent = "Add file";
-//                             }
-//                           }
-//                         },
-//                         {
-//                           class: "karma-field-spinner",
-//                         }
-//                       ]
-//                     },
-//                     {
-//                       class: "field-control",
-//                       children: []
-//                     }
-//                   ];
-//                 }
-//
-//                 filesContainer.render();
-//               };
-//
-//               this.children = [
-//                 {
-//                   tag: "a",
-//                   class: "image-frame",
-//                   update: function(frame) {
-//                     this.element.onclick = null;
-//                   },
-//                   children: [
-//                     {
-//                       class: "image-container",
-//                       children: []
-//                     },
-//                     {
-//                       class: "button-container",
-//                       children: []
-//                     },
-//                     {
-//                       class: "karma-field-spinner",
-//                     }
-//                   ]
-//                 },
-//                 {
-//                   class: "field-control",
-//                   children: []
-//                 }
-//               ];
-//
-//               field.onModified = function(modified) {
-//       					filesContainer.element.classList.toggle("modified", modified);
-//       				}
-//       				field.onLoad = function(loading) {
-//                 filesContainer.element.classList.toggle("loading", loading);
-//       					// container.element.classList.toggle("loading", field.loading > 0);
-//       				}
-//
-//
-//               field.update();
-//             }
-//           }
-//         ];
-// 			}
-// 		};
-//
-//   }
-//
-// }
-//

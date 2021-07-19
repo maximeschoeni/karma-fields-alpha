@@ -162,7 +162,7 @@ KarmaFieldsAlpha.fields.tablePagination = class TablePagination extends KarmaFie
             class: "karma-button footer-item",
             init: function(button) {
               this.element.innerText = "«";
-              this.element.addEventListener("click", function() {
+              this.element.addEventListener("click", async function() {
                 const page = field.page.getValue();
                 if (page > 0) {
                   // field.page.setValue(1);
@@ -172,9 +172,15 @@ KarmaFieldsAlpha.fields.tablePagination = class TablePagination extends KarmaFie
                   //   // field.triggerEvent("render");
                   // });
                   button.element.classList.add("loading");
-                  field.page.changeValue(1).then(function() {
-                    button.element.classList.remove("loading");
-                  });
+                  field.page.setValue(1);
+                  console.log(field.parent);
+                  await field.parent.query();
+
+                  button.element.classList.remove("loading");
+
+                  // field.page.changeValue(1).then(function() {
+                  //   button.element.classList.remove("loading");
+                  // });
                 }
               });
             },
@@ -294,7 +300,7 @@ KarmaFieldsAlpha.fields.tablePagination = class TablePagination extends KarmaFie
             class: "karma-button footer-item",
             init: function(button) {
               this.element.innerText = "›";
-              this.element.addEventListener("click", function() {
+              this.element.addEventListener("click", async function() {
                 const count = field.count.getValue();
                 const page = field.page.getValue();
                 const ppp = field.ppp.getValue();
@@ -309,9 +315,16 @@ KarmaFieldsAlpha.fields.tablePagination = class TablePagination extends KarmaFie
                   // });
 
                   button.element.classList.add("loading");
-                  field.page.changeValue(page+1).then(function() {
-                    button.element.classList.remove("loading");
-                  });
+                  field.page.setValue(page+1);
+                  await field.parent.query();
+                  await field.parent.content.update();
+
+                  button.element.classList.remove("loading");
+
+                  // button.element.classList.add("loading");
+                  // field.page.changeValue(page+1).then(function() {
+                  //   button.element.classList.remove("loading");
+                  // });
                 }
               });
             },

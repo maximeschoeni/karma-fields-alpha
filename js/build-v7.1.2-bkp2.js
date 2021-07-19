@@ -1,14 +1,15 @@
 /**
- * build (V7.1)
+ * build (V7.5)
  */
 KarmaFieldsAlpha.build = function(args, parent, element, clean) {
 	if (args) {
 		if (args.render === undefined) {
 			args.render = function(clean) {
 				if (this.children || this.child) {
-					let children = this.children || [this.child];
+					const children = this.children || [this.child];
 					let i = 0;
 					let child = this.element.firstElementChild;
+					const promises = [];
 					while (i < children.length || child) {
 						let next = child && child.nextElementSibling;
 						// if (children[i]) {

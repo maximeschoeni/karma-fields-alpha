@@ -104,23 +104,42 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 		});
 	}
 
-	getModifiedValue() {
-		let value;
-		this.children.forEach(function(child) {
-			let childValue = child.getModifiedValue();
-			if (childValue !== undefined) {
-				if (!value) {
-					value = {};
-				}
-				if (child.resource.key) {
-					value[child.resource.key] = childValue;
-				} else {
-					Object.assign(value, childValue);
-				}
-			}
-		});
-		return value;
-	}
+	// getModifiedValue() {
+	// 	// let value;
+	// 	// this.children.forEach(function(child) {
+	// 	// 	let childValue = child.getModifiedValue();
+	// 	// 	if (childValue !== undefined) {
+	// 	// 		if (!value) {
+	// 	// 			value = {};
+	// 	// 		}
+	// 	// 		if (child.resource.key) {
+	// 	// 			value[child.resource.key] = childValue;
+	// 	// 		} else {
+	// 	// 			Object.assign(value, childValue);
+	// 	// 		}
+	// 	// 	}
+	// 	// });
+	// 	// return value;
+	//
+	// 	return Promise.all(this.children.map(function(child) {
+	// 		return child.getModifiedValue();
+	// 	})).then(values => {
+	// 		return values.reduce((acc, value, index) => {
+	// 			if (value !== undefined) {
+	// 				if (!acc) {
+	// 					acc = {};
+	// 				}
+	// 				const child = this.children[index];
+	// 				if (child.resource.key) {
+	// 					acc[child.resource.key] = value;
+	// 				} else {
+	// 					Object.assign(acc, value);
+	// 				}
+	// 				return acc;
+	// 			}
+	// 		}, undefined);
+	// 	});
+	// }
 
 	updateOriginal() {
 		console.error("Deprecated function updateOriginal");
@@ -164,6 +183,12 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 			child.reset();
 		});
 	}
+
+	async update() {
+
+    // await Promise.all(this.children.map(child => child.update()));
+  }
+
 
 	// update() {
 	// 	this.children.forEach(function(child) {

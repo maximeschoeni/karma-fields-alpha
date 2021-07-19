@@ -10,6 +10,7 @@ KarmaFieldsAlpha.Form = {
 				}
 			}
 			if (array.length) {
+				array.sort();
 				return "?"+array.join("&");
 			}
 		}
@@ -50,48 +51,43 @@ KarmaFieldsAlpha.Form = {
 		return this.cache[file];
 	},
 	fetch2: function(driver, queryString) {
-		let file = KarmaFieldsAlpha.restURL+"/fetch/"+driver+queryString;
-		// if (params) {
-		// 	const listParams = [];
-		// 	for (var key in params) {
-		// 		if (params[key]) {
-		// 			listParams.push(encodeURI(key) + "=" + encodeURI(params[key]));
-		// 		}
-		// 	}
-		// 	if (listParams.length) {
-		// 		file += "?"+listParams.join("&");
-		// 	}
+		// let file = KarmaFieldsAlpha.restURL+"/fetch/"+driver+queryString;
+		//
+		// if (this.cache[file] === undefined) {
+		// 	this.cache[file] = fetch(file, {
+		// 		cache: "default", // force-cache
+		// 		headers: {
+		//       'Content-Type': 'application/json',
+		//       'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+		//     },
+		// 	}).then(function(response) {
+		// 		return response.json();
+		// 	});
 		// }
+		// return this.cache[file];
 
-		// console.log(file, this.cache[file]);
-		// console.trace();
+		let file = KarmaFieldsAlpha.restURL+"/fetch/"+driver+queryString;
 
-		if (this.cache[file] === undefined) {
-			this.cache[file] = fetch(file, {
-				cache: "default", // force-cache
-				headers: {
-		      'Content-Type': 'application/json',
-		      'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
-		    },
-			}).then(function(response) {
-				return response.json();
-			});
-		}
-		return this.cache[file];
-		// // let file = KarmaFieldsAlpha.restURL+"/fetch/"+queryString;
-		// return fetch(file, {
-		// 	cache: "default", // force-cache
-		// 	headers: {
-		// 		'Content-Type': 'application/json',
-		// 		'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
-		// 	},
-		// }).then(function(response) {
-		// 	return response.json();
-		// });
+		// if (this.cache[file] === undefined) {
+			// this.cache[file] =
+		return fetch(file, {
+			cache: "default", // force-cache
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+			},
+		}).then(function(response) {
+			return response.json();
+		});
+		// }
+		// return this.cache[file];
 	},
 
 	query: function(driver, params) {
-		let file = KarmaFieldsAlpha.restURL+"/query/"+driver+this.encodeParams(params);
+		if (typeof params !== "string") {
+			params = this.encodeParams(params);
+		}
+		let file = KarmaFieldsAlpha.restURL+"/query/"+driver+params;
 
 		if (this.cache[file] === undefined) {
 			this.cache[file] = fetch(file, {
@@ -109,27 +105,34 @@ KarmaFieldsAlpha.Form = {
 
 	get: function(...path) {
 
-		// let file;
-		// if (cache && KarmaFieldsAlpha.cacheURL) {
-		// 	file = KarmaFieldsAlpha.cacheURL+"/"+driver+"/"+path+"/"+cache;
-		// } else {
-		// 	file = KarmaFieldsAlpha.restURL+"/get/"+driver+"/"+path;
+		// let file = KarmaFieldsAlpha.restURL+"/get/"+path.join("/");
+		// if (this.cache[file] === undefined) {
+		// 	this.cache[file] = fetch(file, {
+		// 		cache: "reload",
+		// 		headers: {
+		// 			'Content-Type': 'application/json',
+		// 			'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+		// 		},
+		// 	}).then(function(response) {
+		// 		return response.json();
+		// 	}).catch(function(error) {
+		// 		console.log(error);
+		// 	});
 		// }
+		// return this.cache[file];
+
 		let file = KarmaFieldsAlpha.restURL+"/get/"+path.join("/");
-		if (this.cache[file] === undefined) {
-			this.cache[file] = fetch(file, {
-				cache: "reload",
-				headers: {
-					'Content-Type': 'application/json',
-					'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
-				},
-			}).then(function(response) {
-				return response.json();
-			}).catch(function(error) {
-				console.log(error);
-			});
-		}
-		return this.cache[file];
+		return fetch(file, {
+			cache: "reload",
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+			},
+		}).then(function(response) {
+			return response.json();
+		}).catch(function(error) {
+			console.log(error);
+		});
 	},
 
 	update: function(driver, values) {

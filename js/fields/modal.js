@@ -3,16 +3,16 @@ KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.container 
 	constructor(resource, domain) {
 		super(resource, domain);
 
-		this.handle = new KarmaFieldsAlpha.fields.field(resource.handle, this.domain);
-		this.content = new KarmaFieldsAlpha.fields.group(resource.content, this.domain);
+		this.handle = new KarmaFieldsAlpha.fields.field(resource.handle, this.domain, this);
+		this.content = new KarmaFieldsAlpha.fields.group(resource.content, this.domain, this);
 
     // this.filters.events.change = function(target) {
     //   return field.query().then(function() {
     //     field.filters.triggerEvent("render");
     //   });
     // }
-		this.addChild(this.handle);
-		this.addChild(this.content);
+		// this.addChild(this.handle);
+		// this.addChild(this.content);
 
 
 		// update handle when edited in modal
@@ -26,22 +26,22 @@ KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.container 
 
 	}
 
-	setValue(value, context) {
-
-
-
-		super.setValue(value, context);
-		//
-		// if (value && typeof value === "object") {
-		// 	for (let key in value) {
-		// 		const child = this.getDescendant(key);
-		// 		if (child) {
-		//
-		// 			child.setValue(value[key], context);
-		// 		}
-		// 	}
-		// }
-	}
+	// setValue(value, context) {
+	//
+	//
+	//
+	// 	super.setValue(value, context);
+	// 	//
+	// 	// if (value && typeof value === "object") {
+	// 	// 	for (let key in value) {
+	// 	// 		const child = this.getDescendant(key);
+	// 	// 		if (child) {
+	// 	//
+	// 	// 			child.setValue(value[key], context);
+	// 	// 		}
+	// 	// 	}
+	// 	// }
+	// }
 
 
 	buildModal() {

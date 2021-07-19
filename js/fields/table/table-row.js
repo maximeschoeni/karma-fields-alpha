@@ -12,13 +12,11 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
     // }
 
   initField() {
-
     this.trash = this.createChild({
       key: "trash",
-      type: "field",
+      type: "numberField",
       value: 0
     });
-
   }
 
   // fill() {
@@ -42,9 +40,21 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
   }
 
   fill(columns) {
-    this.children.forEach(child => {
-      child.initValue(child.getDefault());
-    });
+    return Promise.all(this.children.map(async child => {
+      child.setValue(await child.getDefault());
+    }));
   }
 
 }
+
+
+// KarmaFieldsAlpha.fields.numberField = class extends KarmaFieldsAlpha.fields.field {
+//
+//   getEmpty() {
+//     return 0;
+//   }
+//   convert(value) {
+//     return value && Number(value) || 0;
+//   }
+//
+// }

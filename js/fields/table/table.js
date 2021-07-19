@@ -86,29 +86,74 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
 
-    this.pagination = new KarmaFieldsAlpha.fields.tablePagination(resource, this.domain, this);
-    this.pagination.events.change = function() {
-      return field.query().then(function() {
-        // field.try("onSetHeader");
-        field.try("onSetBody");
-        field.try("onSetFooter");
+    // this.pagination = new KarmaFieldsAlpha.fields.tablePagination(resource, this.domain, this);
+    // this.pagination.events.change = function() {
+    //   return field.query().then(function() {
+    //     // field.try("onSetHeader");
+    //     field.try("onSetBody");
+    //     field.try("onSetFooter");
+    //
+    //
+    //     // field.try("render");
+    //   });
+    // }
+
+    this.page = new KarmaFieldsAlpha.fields.field({
+      type: "numberField",
+      key: "page",
+      value: 1
+    }, this.domain, this);
+
+    this.ppp = new KarmaFieldsAlpha.fields.field({
+      type: "numberField",
+      key: "ppp",
+      value: this.resource.ppp || 50
+    }, this.domain, this);
+
+    this.count = new KarmaFieldsAlpha.fields.field({
+      type: "numberField",
+      key: "count",
+      value: 0
+    }, this.domain, this);
+
+    this.queryString = new KarmaFieldsAlpha.fields.field({
+      key: "query"
+    }, this.domain, this);
 
 
-        // field.try("render");
-      });
+
+    // this.ordering = new KarmaFieldsAlpha.fields.tableOrdering(resource, this.domain, this);
+    // this.ordering.events.change = function() {
+    //   field.page.seValue(1);
+    //   field.query().then(function() {
+    //     // field.try("render");
+    //
+    //     // field.try("onSetHeader");
+    //     field.try("onSetBody");
+    //     field.try("onSetFooter");
+    //   });
+    // }
+
+    this.orderby = this.createChild({
+      type: "field",
+      key: "orderby",
+      value: this.resource.orderby
+    });
+
+    this.order = this.createChild({
+      type: "field",
+      key: "order",
+      value: "asc"
+    });
+
+    const column = this.resource.orderby && this.resource.columns.find(column => {
+      return column.field && column.field.key === this.resource.orderby;
+    });
+    if (column && column.field.order) {
+      this.initValue(column.field.order);
     }
 
-    this.ordering = new KarmaFieldsAlpha.fields.tableOrdering(resource, this.domain, this);
-    this.ordering.events.change = function() {
-      field.pagination.page.seValue(1);
-      field.query().then(function() {
-        // field.try("render");
 
-        // field.try("onSetHeader");
-        field.try("onSetBody");
-        field.try("onSetFooter");
-      });
-    }
 
 
 
@@ -119,38 +164,49 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     this.filters = new KarmaFieldsAlpha.fields.group(resource.filters, this.domain, this);
 
     this.filters.events.change = async (target, value) => {
-      // field.pagination.page.setValue(1);
-      // // this.clearOptions();
-      // return field.query().then(function() {
-      //   field.try("render");
-      // });
-
-      // this.bubble("history", target);
-
-
-      this.pagination.page.setValue(1);
-
-
-      await this.query();
 
 
 
-      this.try("onSetHeader");
-      this.try("onSetBody");
-      this.try("onSetFooter");
+      this.page.setValue(1);
 
-      // return .then(() => {
-      //   return field.query();
-      // }).then(function() {
-      //   // field.try("render");
+      await this.update();
+
+      // console.log(this.getValue(), this.modified, this.ids.getValue());
+
+      if (this.modified) {
+        await this.render();
+      }
+
+      // await this.render();
+
+      // this.promise = this.promise && this.promise.then(() => {
+      //   this.update();
+      // }) || this.update();
       //
+      // await this.promise;
+
+      // await this.update();
+
+
+      // await this.enqueue(this.update());
+      // if (this.modified) {
       //
+      //   // await this.render();
+      //   await this.enqueue(this.render());
       //
-      // });
+      // }
+
     }
 
-    this.filters.events.optionparams = function(origin) {
+
+    this.filters.events.optionparams = function(origin, optionparamlist) {
+
+      console.error("deprecated event optionparams");
+      if (optionparamlist) {
+
+      }
       let params = this.getValue();
+
 
       // don't send self value
       if (params[origin.resource.key]) {
@@ -209,8 +265,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
     // this.data.ids = new KarmaFieldsAlpha.fields.field({
-    this.ids = new KarmaFieldsAlpha.fields.tableCol({
-      key: "ids"
+    this.ids = new KarmaFieldsAlpha.fields.arrayField({
+      key: "ids",
+      datatype: "numberField"
     }, this.domain, this);
 
 
@@ -250,6 +307,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     }
 
     this.content.events.optionparams = function(origin) {
+      console.error("deprecated event optionparams");
       let params = field.filters.getValue();
 
       // don't send self value
@@ -260,6 +318,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       return params;
 
       // return field.filters.getValueAsync();
+    }
+
+    this.content.getRelatedValue = key => {
+      return this.filters.getRelatedValue(key);
     }
 
     // -> for link fields
@@ -299,8 +361,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
     this.content.events.change = async function(targetField, value) {
-      await field.editAll(targetField, value)
-      field.try("onSetFooter");
+      await field.editAll(targetField, value);
+      await field.renderFooter();
     };
 
     // this.addChild(this.content);
@@ -309,21 +371,84 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     // this.controls = new KarmaFieldsAlpha.fields.tableControl(field);
   }
 
-  readPath(keys) {
-    return this.domain.readPath(keys.join("/"));
+
+  // getDefaultOrder() {
+  //   const column = this.resource.orderby && this.resource.columns.find(column => {
+  //     return column.field && column.field.key === this.resource.orderby;
+  //   });
+  //   return column && column.field.order || "asc";
+  // }
+
+  async enqueue(promise) {
+
+    if (this.promise) {
+      this.promise = this.promise.then(() => promise);
+    } else {
+      this.promise = promise;
+    }
+    // await this.promise;
+    // this.promise = promise;
+    // return await this.promise;
+
+    return this.promise;
   }
 
-  writePath(keys, rawValue) {
-    this.domain.writePath(keys.join("/"), rawValue);
-  }
 
-  fetch(queryString) {
-		return KarmaFieldsAlpha.Form.fetch2(this.resource.driver, queryString);
-  }
+  // readPath(keys) {
+  //   return this.domain.readPath(keys.join("/"));
+  // }
+  //
+  // writePath(keys, rawValue) {
+  //   this.domain.writePath(keys.join("/"), rawValue);
+  // }
 
-  getFromPath() {
+  // fetch(queryString) {
+	// 	return KarmaFieldsAlpha.Form.fetch2(this.resource.driver, queryString);
+  // }
+
+  async getRemoteValue() {
     return;
   }
+
+  async setRemoteValue() {
+  }
+
+
+
+  async update() {
+    // let paramString = this.getValue();
+    // this.modified = paramString !== this.getOriginal(["paramString"]);
+    //
+    // if (this.modified) {
+    //   this.setOriginal(paramString, ["paramString"]);
+    //   await this.query();
+    // }
+
+    let paramString = this.getValue();
+
+
+    if (paramString !== this.getFormOriginal(["paramString"])) {
+      this.setFormOriginal(paramString, ["paramString"]);
+      await this.query();
+      this.modified = true;
+    } else {
+      this.modified = false;
+    }
+  }
+
+  async render() {
+    //
+  }
+
+  async renderFooter() {
+    //
+  }
+
+
+
+  // getFromPath() {
+  //   return;
+  // }
 
   // setValue(value, context) {
   //   this.ordering.setValue(value, context);
@@ -333,78 +458,107 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
   // }
 
   getValue() {
-    return {
+    const params = {
       // order: this.ordering.order.getValue(),
       // orderby: this.ordering.orderby.getValue(),
       // page: this.pagination.page.getValue(),
       // ppp: this.pagination.ppp.getValue(),
-      ...this.ordering.getValue(),
-      ...this.pagination.getValue(),
+      page: this.page.getValue(),
+      ppp: this.ppp.getValue() || 1000,
+      order: this.order.getValue(),
+      orderby: this.orderby.getValue(),
       ...this.filters.getValue()
     };
+
+    return KarmaFieldsAlpha.Form.encodeParams(params);
   }
 
-  getValueAsync() {
-		const field = this;
-		return Promise.all([
-      this.ordering.orderby,
-      this.ordering.order,
-      this.pagination.page,
-      this.pagination.ppp,
-      this.filters
-    ].map(function(child) {
-			return child.getValueAsync();
-		})).then(function(values) {
-			return values.reduce(function(acc, value, index) {
-				const child = field.children[index];
-				if (child.resource.key) {
-					acc[child.resource.key] = value;
-				} else {
-					Object.assign(acc, value);
-				}
-        return acc;
-			}, {});
-		});
-	}
+  // getValueAsync() {
+	// 	const field = this;
+	// 	return Promise.all([
+  //     this.ordering.orderby,
+  //     this.ordering.order,
+  //     this.pagination.page,
+  //     this.pagination.ppp,
+  //     this.filters
+  //   ].map(function(child) {
+	// 		return child.getValueAsync();
+	// 	})).then(function(values) {
+	// 		return values.reduce(function(acc, value, index) {
+	// 			const child = field.children[index];
+	// 			if (child.resource.key) {
+	// 				acc[child.resource.key] = value;
+	// 			} else {
+	// 				Object.assign(acc, value);
+	// 			}
+  //       return acc;
+	// 		}, {});
+	// 	});
+	// }
 
   async query() {
     // const field = this;
-    let params = await this.getValue();
+    // let params = await this.getValue();
+    //
+    //
+    // if (!params.ppp) {
+    //   console.error("no ppp");
+    //   return false;
+    // }
+    // const paramString = KarmaFieldsAlpha.Form.encodeParams(params);
+    //
+    // if (paramString === this.lastParamString) {
+    //   return false;
+    // }
+    // this.lastParamString = paramString;
 
+    // if (this.modified) {
 
-    const results = await KarmaFieldsAlpha.Form.query(this.resource.driver, params);
+      let paramString = this.getValue();
 
-    if (results.items.length && results.items.some(item => !item.id || typeof item.id !== "string")) {
-      console.log(results.items);
-      console.error("Invalid item.id");
-    }
+      // await this.queryResults;
+      //
+      // this.queryResults = this.content.getRemoteTable(paramString, this.resource.driver);
+      //
+      // const results = await this.queryResults;
 
-    this.pagination.count.setValue(results.count);
+      const results = await this.content.getRemoteTable(paramString, this.resource.driver);
 
-    const ids = results.items.map(function(item) {
-      return item.id;
-    });
+      if (results.items.length && results.items.some(item => !item.id || typeof item.id !== "string")) {
+        console.log(results.items);
+        console.error("Invalid item.id");
+      }
 
-    this.ids.setValue(ids);
+      this.count.setValue(results.count);
 
-
-
-    results.items.forEach(item => {
-      const row = this.content.getChild(item.id) || this.content.createChild({
-        type: "tableRow",
-        key: item.id
+      const ids = results.items.map(function(item) {
+        return item.id;
       });
-      row.create(this.resource.columns || []);
-      // row.setValue(item, "set");
 
-      row.initValue(item);
-    });
-    return results;
+      this.ids.setValue(ids);
+
+      results.items.forEach(item => {
+        const row = this.content.getChild(item.id) || this.content.createChild({
+          type: "tableRow",
+          key: item.id
+        });
+        row.create(this.resource.columns || []);
+        // row.setValue(item, "set");
+
+        row.initValue(item);
+      });
+
+      return results;
+    // }
+
+
   };
 
   async sync() {
     // KarmaFieldsAlpha.Form.cache = {};
-    const results = await this.content.bubble("submit");
+    // const results = await this.content.bubble("submit");
+
+    const results = await this.content.save();
 
     if (results === false) {
       return this.query();
@@ -456,28 +610,32 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
   async add(num, noBackup) {
     const results = await KarmaFieldsAlpha.Form.add(this.resource.driver, {num: num || 1})
 
+    if (!noBackup) {
+      this.content.backup(["add"]);
+      // this.backup(["add"]);
+    }
+
     const ids = results.map(item => (item.id || item).toString());
-    const rows = ids.map(id => {
+    const rows = await Promise.all(ids.map(async id => {
       let row = this.content.createChild({
         type: "tableRow",
         key: id
       });
       row.create(this.resource.columns);
-      row.fill(this.resource.columns);
+      await row.fill(this.resource.columns);
       // row.trash.initValue(1);
+
       row.trash.initValue(1);
       return row;
-    });
+    }));
 
     // if (rows.length) {
     //   rows[0].trash.backup();
     // }
-    if (!noBackup) {
-      this.content.backup("add");
-    }
 
 
-    await this.ids.add(ids);
+
+    this.ids.add(ids);
 
     // for (let i = 0; i < rows.length; i++) {
     //   await rows[i].trash.saveValue(0, false, true);
@@ -571,14 +729,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
   // }
 
   async remove() {
-    const field = this;
-
     if (this.select.selection && this.select.selection.width === this.select.grid.width) {
       let ids = this.ids.getValue();
       ids = ids.slice(this.select.selection.y, this.select.selection.y+this.select.selection.height);
       if (ids.length) {
         // field.content.getChild(ids[0]).trash.backup();
-        this.content.bubble("history", this.content, "remove");
+        // this.content.bubble("history", this.content, "remove");
+        this.content.backup(["remove"]);
+        // this.backup(["remove"]);
         this.ids.remove(ids);
         // await Promise.all(ids.map(function(id) {
         //   return this.content.getChild(id).trash.saveValue(1, false, true);
@@ -603,10 +761,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
   getCurrentModal() {
     // let rowId = this.modal.getValue();
     // return rowId && this.getModal(rowId);
-    const field = this;
-    return this.modal.getValueAsync().then(function(rowId) {
-      return rowId && field.getModal(rowId);
-    });
+    const rowId = this.modal.getValue();
+    return rowId && this.getModal(rowId);
   }
 
   selectRow(rowId) {
@@ -615,13 +771,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     // if (index > -1) {
     //   this.select.setFocus({x:0, y:index});
     // }
-    const field = this;
-    this.ids.getValueAsync().then(function(ids) {
-      let index = ids.indexOf(rowId);
-      if (index > -1) {
-        field.select.setFocus({x:0, y:index});
-      }
-    });
+    const ids = this.ids.getValue();
+    let index = ids.indexOf(rowId);
+    if (index > -1) {
+      this.select.setFocus({x:0, y:index});
+    }
 
   }
 
@@ -699,7 +853,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     const field = this;
     const x = selection.x;
     const y = selection.y;
-    const ppp = await this.pagination.ppp.getValueAsync();
+    const ppp = await this.ppp.getValueAsync();
     let ids = await this.ids.getValueAsync();
     const text = await navigator.clipboard.readText();
 
@@ -709,7 +863,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       });
       // rows = rows.slice(0, ppp-y);
 
-      field.content.backup("paste");
+      field.content.backup(["paste"]);
 
       if (rows.length > ids.length-y) {
         await this.add(rows.length-(ids.length-y), false);
@@ -739,7 +893,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       const focusRect = this.select.focusRect;
       const x = selection.x;
       const y = selection.y;
-      const id = this.ids.getValue();
+      const ids = this.ids.getValue();
       // return this.ids.getValueAsync().then(function(ids) {
         // return conductor.getValueAsync().then(function(value) {
           field.backup();
@@ -747,12 +901,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
           for (var j = 0; j < selection.height; j++) {
             const rowField = this.content.getChild(ids[j+y]);
             const cellField = rowField.children[focusRect.x+1];
-            if (cellField !== conductor) {
+            if (cellField !== field) {
               const promise = cellField.importValue(value);
               promises.push(promise);
             }
           }
-          return Promise.all(promises);
+          await Promise.all(promises);
+
+          await this.render();
         // });
       // });
     }
@@ -793,7 +949,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
           }
         ];
         if (column.sortable) {
-          th.children.push(this.ordering.build(column));
+          const orderBtn = new KarmaFieldsAlpha.fields.tableControls.order();
+          th.children.push(orderBtn.build(column, this));
         }
       }
     };
@@ -803,23 +960,20 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     return {
       class: "th table-row-index karma-field",
       update: th => {
-        let page = this.pagination.page.getValue();
-        let ppp = this.pagination.ppp.getValue();
+        let page = this.page.getValue();
+        let ppp = this.ppp.getValue();
         th.element.textContent = (page - 1)*ppp + rowIndex + 1;
-
-
-        // this.pagination.getValueAsync().then(value => {
-        //   th.element.textContent = (value.page - 1)*value.ppp + rowIndex + 1;
-        // });
       }
     };
   }
 
   buildGrid() {
-
     return {
       class: "table grid",
       update: async grid => {
+
+        // await 0; // -> delay rendering in order to registerTable after rendering
+
         grid.children = [];
 
         // table header index cell
@@ -850,7 +1004,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
         //   });
         // });
 
-        const ids = await this.ids.getValue();
+        const ids = this.ids.getValue();
 
         ids.forEach((id, rowIndex) => {
           if (this.hasIndex()) {
@@ -858,7 +1012,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
           }
           const rowField = this.content.getChild(id);
           this.getColumns().forEach((column, colIndex) => {
-            grid.children.push(rowField.getChild(column.field.key).build());
+            const cellField = rowField.getChild(column.field.key);
+            cellField.render = grid.render;
+            grid.children.push(cellField.build());
           });
         });
 
@@ -866,9 +1022,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
           return column.width || "1fr";
         })).join(" ");
 
-
-        grid.render();
-
+      },
+      complete: grid => {
         this.select.registerTable(grid.element, this.getColumns().length, this.content.children.length, this.hasIndex(), this.hasHeader());
       }
     };
@@ -896,20 +1051,16 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
                 //   field.modal.setValue(next);
                 //   field.triggerEvent("render");
                 // }
-                field.modal.getValueAsync().then(function(id) {
-                  return field.ids.getPrev(id);
-                }).then(function(id) {
-                  field.modal.write(id);
-                  field.triggerEvent("render");
-                });
-              };
-              // const currentRowId = field.modal.getValue();
+                const id = field.modal.getValue();
+                const prevId = field.ids.getPrev(id);
+                field.modal.setValue(prevId);
+                field.try("onSetModal");
+              }
+                // const currentRowId = field.modal.getValue();
               // this.element.disabled = field.ids.getPrev(currentRowId) ? false : true;
-              field.modal.getValueAsync().then(function(currentRowId) {
-                return field.ids.getPrev(currentRowId);
-              }).then(function(id) {
-                button.element.disabled = id ? false : true;
-              });
+              const currentRowId = field.modal.getValue();
+              const prevId = field.ids.getPrev(currentRowId);
+              button.element.disabled = prevId ? false : true;
             }
           },
           {
@@ -927,21 +1078,28 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
                 //   field.modal.setValue(next);
                 //   field.triggerEvent("render");
                 // }
-                field.modal.getValueAsync().then(function(id) {
-                  return field.ids.getNext(id);
-                }).then(function(id) {
-                  field.modal.write(id);
-                  field.triggerEvent("render");
-                });
+                // field.modal.getValueAsync().then(function(id) {
+                //   return field.ids.getNext(id);
+                // }).then(function(id) {
+                //   field.modal.write(id);
+                //   field.triggerEvent("render");
+                // });
+                const id = field.modal.getValue();
+                const nextId = field.ids.getNext(id);
+                field.modal.setValue(nextId);
+                field.try("onSetModal");
               };
               // const currentRowId = field.modal.getValue();
               // this.element.disabled = field.ids.getNext(currentRowId) ? false : true;
 
-              field.modal.getValueAsync().then(function(currentRowId) {
-                return field.ids.getNext(currentRowId);
-              }).then(function(id) {
-                button.element.disabled = id ? false : true;
-              });
+              // field.modal.getValueAsync().then(function(currentRowId) {
+              //   return field.ids.getNext(currentRowId);
+              // }).then(function(id) {
+              //   button.element.disabled = id ? false : true;
+              // });
+              const currentRowId = field.modal.getValue();
+              const nextId = field.ids.getNext(currentRowId);
+              button.element.disabled = nextId ? false : true;
             }
           }
         ];
@@ -988,7 +1146,41 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
             });
           }
         },
-        this.pagination.build(),
+        {
+          class: "footer-group table-pagination",
+          update: group => {
+            let buttons = [
+              {
+                type: "ppp"
+              },
+              {
+                type: "firstPage",
+                name: "«"
+              },
+              {
+                type: "prevPage",
+                name: "‹"
+              },
+              {
+                type: "currentPage",
+              },
+              {
+                type: "nextPage",
+                name: "›"
+              },
+              {
+                type: "lastPage",
+                name: "»"
+              }
+            ];
+            group.children = buttons.map(resource => {
+              if (KarmaFieldsAlpha.fields.tableControls[resource.type]) {
+                const button = new KarmaFieldsAlpha.fields.tableControls[resource.type](resource);
+                return button.build(this);
+              }
+            });
+          }
+        },
         this.buildModalNav()
       ]
     };
@@ -1001,27 +1193,34 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       init: container => {
 
         // DEPRECATED for modals + filters + order + pagination
-        this.render = () => {
-          console.error("deprecated field.render!");
-        };
+        // this.render = () => {
+        //   console.error("deprecated field.render!");
+        // };
+
+
 
 
 
 
         // -> first load table
-        this.query().then(results => {
-          this.try("onSetHeader");
-          this.try("onSetModal");
-          this.try("onSetBody");
-          this.try("onSetFooter");
-        });
+        // this.query().then(results => {
+        //   this.try("onSetHeader");
+        //   this.try("onSetModal");
+        //   this.try("onSetBody");
+        //   this.try("onSetFooter");
+        // });
       },
-      update: container => {
+      update: async container => {
+
+        this.render = container.render;
+
+        await this.update();
+
         container.children = [
           {
             class: "table-header",
             update: (header) => {
-              this.onSetHeader = () => {
+              // this.onSetHeader = () => {
                 header.children = [
                   {
                     tag: "h1",
@@ -1031,8 +1230,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
                   },
                   this.filters.build()
                 ];
-                header.render();
-              }
+                // header.render();
+              // }
             }
           },
 
@@ -1040,20 +1239,19 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
           {
             class: "modal-container",
             update: modalContainer => {
-              this.onSetModal = () => {
-                this.getCurrentModal().then(modal => {
-                  if (modal) {
-                    modalContainer.children = [
-                      modal.buildModal()
-                    ];
-                    document.body.style.overflow = "hidden";
-                  } else {
-                    modalContainer.children = [];
-                    document.body.style.overflow = "visible";
-                  }
-                  modalContainer.render();
-                });
-              }
+              // this.onSetModal = () => {
+              //   const modal = this.getCurrentModal();
+              //   if (modal) {
+              //     modalContainer.children = [
+              //       modal.buildModal()
+              //     ];
+              //     document.body.style.overflow = "hidden";
+              //   } else {
+              //     modalContainer.children = [];
+              //     document.body.style.overflow = "visible";
+              //   }
+              //   modalContainer.render();
+              // }
 
             }
           },
@@ -1061,11 +1259,16 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
           // table body
           {
             class: "table-body",
-            update: body => {
-              this.onSetBody = () => {
-                body.child = this.buildGrid();
-                body.render();
-              }
+            update: async body => {
+              // this.onSetBody = async () => {
+              //   body.child = await this.buildGrid();
+              //
+              //   await body.render();
+              // }
+
+              this.content.render = body.render();
+
+              body.child = this.buildGrid();
             }
           },
 
@@ -1073,569 +1276,23 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
           {
             class: "table-footer",
             update: footer => {
+              this.renderFooter = footer.render;
 
-              this.modal.getValueAsync().then(modal => {
-                footer.element.classList.toggle("modal-open", modal || false);
-              });
+              const modal = this.modal.getValue();
+              footer.element.classList.toggle("modal-open", modal || false);
 
-              this.onSetFooter = () => {
-                footer.child = this.buildFooterBar();
-                footer.render();
-              }
+              // this.onSetFooter = () => {
+              //   footer.child = this.buildFooterBar();
+              //   footer.render();
+              // }
+              footer.child = this.buildFooterBar();
             }
           }
         ];
+
       }
 
     };
   }
-
-  // build() {
-  //   const field = this;
-  //
-  //   return {
-  //     class: "karma-field-table",
-  //     init: function(container) {
-  //
-  //
-  //
-  //
-  //       // field.ordering.events.render = function() {
-  //       //   container.render();
-  //       // };
-  //       // field.filters.events.render = function() {
-  //       //   container.render();
-  //       // };
-  //       // field.pagination.events.render = function() {
-  //       //   container.render();
-  //       // };
-  //
-  //       // for modals + filters + order + pagination
-  //       field.render = function() {
-  //
-  //         // console.log("render");
-  //         container.render();
-  //       };
-  //
-  //
-  //
-  //
-  //       // -> first load table
-  //       // container.element.classList.add("loading");
-  //       field.query().then(function(results) {
-  //         // container.element.classList.remove("loading");
-  //
-  //         // container.render();
-  //
-  //         field.try("onSetHeader");
-  //         field.try("onSetModal");
-  //         field.try("onSetBody");
-  //         field.try("onSetFooter");
-  //       });
-  //     },
-  //     update: function(container) {
-  //
-  //
-  //       this.children = [
-  //         {
-  //           class: "table-header",
-  //           update: (header) => {
-  //             field.onSetHeader = () => {
-  //               header.children = [
-  //                 {
-  //                   tag: "h1",
-  //                   init: function() {
-  //                     this.element.textContent = field.resource.title || "";
-  //                   }
-  //                 },
-  //                 field.filters.build()
-  //               ];
-  //               header.render();
-  //             }
-  //           }
-  //           // children: [
-  //           //   {
-  //           //     tag: "h1",
-  //           //     init: function() {
-  //           //       this.element.textContent = field.resource.title || "";
-  //           //     }
-  //           //   },
-  //           //   field.filters.build()
-  //           // ]
-  //         },
-  //
-  //         // modal
-  //         {
-  //           class: "modal-container",
-  //           update: function(modalContainer) {
-  //             // let modal = field.getCurrentModal();
-  //             // if (modal) {
-  //             //   this.children = [
-  //             //     modal.buildModal()
-  //             //   ];
-  //             //   document.body.style.overflow = "hidden";
-  //             // } else {
-  //             //   this.children = [];
-  //             //   document.body.style.overflow = "visible";
-  //             // }
-  //
-  //             field.onSetModal = () => {
-  //               field.getCurrentModal().then(modal => {
-  //                 if (modal) {
-  //                   modalContainer.children = [
-  //                     modal.buildModal()
-  //                   ];
-  //                   document.body.style.overflow = "hidden";
-  //                 } else {
-  //                   modalContainer.children = [];
-  //                   document.body.style.overflow = "visible";
-  //                 }
-  //                 modalContainer.render();
-  //               });
-  //             }
-  //
-  //           }
-  //         },
-  //
-  //         // table body
-  //         {
-  //           class: "table-body",
-  //           update: function(body) {
-  //             field.onSet = () => {
-  //               body.children = field.buildGrid();
-  //               body.render();
-  //               field.select.register(body.element);
-  //             }
-  //           }
-  //
-  //
-  //           // child: {
-  //           //   class: "table grid",
-  //           //
-  //           //
-  //           //
-  //           //   // // clear: true,
-  //           //   // init: function(table) {
-  //           //   //   // field.select.register(this.element);
-  //           //   //   // field.content.events.init = function(targetField, element) {
-  //           //   //   //   let indexCol = field.resource.index || field.resource.index === undefined ? 1 : 0;
-  //           //   //   //   let count = table.element.children.length;
-  //           //   //   //   let col = (count-1)%(field.resource.columns.length+indexCol) - indexCol;
-  //           //   //   //   let row = Math.floor((count-1)/(field.resource.columns.length+indexCol)) - 1;
-  //           //   //   //   field.select.registerCell(element, col, row);
-  //           //   //   // }
-  //           //   // },
-  //           //   // update: function(table) {
-  //           //   //   this.children = [];
-  //           //   //   let widths = [];
-  //           //   //
-  //           //   //   // table header index cell
-  //           //   //   if (field.resource.index || field.resource.index === undefined) {
-  //           //   //     this.children.push({
-  //           //   //       class: "th table-header-index karma-field",
-  //           //   //       init: function() {
-  //           //   //         this.element.textContent = field.resource.index && field.resource.index.title || "#";
-  //           //   //         field.select.registerHeaderIndex(this.element);
-  //           //   //       }
-  //           //   //     });
-  //           //   //     widths.push(field.resource.index && field.resource.index.width || "auto");
-  //           //   //   }
-  //           //   //
-  //           //   //   // table header cells
-  //           //   //   field.resource.columns.forEach(function(column, colIndex) {
-  //           //   //     table.children.push({
-  //           //   //       class: "th karma-field",
-  //           //   //       init: function() {
-  //           //   //         field.select.registerHeader(this.element, colIndex);
-  //           //   //       },
-  //           //   //       update: function(th) {
-  //           //   //         this.children = [
-  //           //   //           {
-  //           //   //             tag: "a",
-  //           //   //             class: "header-cell-title",
-  //           //   //             init: function() {
-  //           //   //               this.element.textContent = column.title;
-  //           //   //             }
-  //           //   //           }
-  //           //   //         ];
-  //           //   //         if (column.sortable) {
-  //           //   //           this.children.push(field.ordering.build(column));
-  //           //   //         }
-  //           //   //       }
-  //           //   //     });
-  //           //   //     widths.push(column.width || "1fr");
-  //           //   //   });
-  //           //   //
-  //           //   //   // table body cells
-  //           //   //   if (field.ids.getValue().length) {
-  //           //   //     field.ids.getValue().forEach(function(id, rowIndex) {
-  //           //   //
-  //           //   //       let rowField = field.content.getChild(id);
-  //           //   //
-  //           //   //       if (field.resource.index || field.resource.index === undefined) {
-  //           //   //         table.children.push({
-  //           //   //           class: "th table-row-index karma-field",
-  //           //   //           init: function() {
-  //           //   //             field.select.registerIndex(this.element, rowIndex);
-  //           //   //           },
-  //           //   //           update: function() {
-  //           //   //             let page = field.pagination.page.getValue();
-  //           //   //             let ppp = field.pagination.ppp.getValue();
-  //           //   //             this.element.textContent = (page - 1)*ppp + rowIndex + 1;
-  //           //   //           }
-  //           //   //         });
-  //           //   //       }
-  //           //   //
-  //           //   //       field.resource.columns.forEach(function(column, colIndex) {
-  //           //   //
-  //           //   //         let cellField = rowField.getChild(column.field.key) || rowField.createChild(column.field);
-  //           //   //         const args = cellField.build();
-  //           //   //         table.children.push(args);
-  //           //   //       });
-  //           //   //     });
-  //           //   //   }
-  //           //   //
-  //           //   //   this.element.style.gridTemplateColumns = widths.join(" ");
-  //           //   // }
-  //           // }
-  //         },
-  //
-  //         // table footer
-  //         {
-  //           class: "table-footer",
-  //           init: function(footer) {
-  //
-  //             // field.events.renderFooter = function() {
-  //             //   footer.render();
-  //             // }
-  //
-  //
-  //
-  //           },
-  //           update: function(footer) {
-  //
-  //             field.modal.getValueAsync().then(function(modal) {
-  //               footer.element.classList.toggle("modal-open", modal || false);
-  //             });
-  //
-  //             // field.content.events.change = function(targetField, value) {
-  //             //
-  //             //   return field.editAll(targetField, value).then(function() {
-  //             //     footer.render();
-  //             //   });
-  //             //
-  //             // };
-  //
-  //
-  //             // field.select.events.select = function() {
-  //             //   footer.render();
-  //             // };
-  //
-  //             field.onSetFooter = () => {
-  //
-  //             }
-  //
-  //             this.children = [
-  //               this.buildFooterBar();
-  //             ];
-  //
-  //             // this.children = [
-  //             //   {
-  //             //     class: "footer-bar",
-  //             //     children: [
-  //             //       {
-  //             //         class: "footer-group table-info",
-  //             //         update: function() {
-  //             //           let buttons = field.resource.controls || [
-  //             //             {
-  //             //               type: "save",
-  //             //               name: "Save"
-  //             //             },
-  //             //             {
-  //             //               type: "undo",
-  //             //               name: "Undo"
-  //             //             },
-  //             //             {
-  //             //               type: "redo",
-  //             //               name: "Redo"
-  //             //             },
-  //             //             {
-  //             //               type: "add",
-  //             //               name: "Add"
-  //             //             },
-  //             //             {
-  //             //               type: "delete",
-  //             //               name: "Delete"
-  //             //             }
-  //             //           ];
-  //             //           this.children = buttons.map(function(resource) {
-  //             //             if (KarmaFieldsAlpha.fields.tableControls[resource.type]) {
-  //             //               const button = new KarmaFieldsAlpha.fields.tableControls[resource.type]();
-  //             //               return button.build(field, resource);
-  //             //             }
-  //             //           });
-  //             //         }
-  //             //       },
-  //             //       // {
-  //             //       //   class: "footer-group table-info",
-  //             //       //   children: [
-  //             //       //     // {
-  //             //       //     //   tag: "button",
-  //             //       //     //   class: "button footer-item",
-  //             //       //     //   init: function(item) {
-  //             //       //     //     this.element.title = "Reload";
-  //             //       //     //     this.element.textContent = "Reload";
-  //             //       //     //     this.element.addEventListener("click", function(event) {
-  //             //       //     //       item.element.classList.add("loading");
-  //             //       //     //
-  //             //       //     //       // empty cache
-  //             //       //     //       KarmaFieldsAlpha.Form.cache = {};
-  //             //       //     //
-  //             //       //     //       // -> still need to reboot fields options
-  //             //       //     //
-  //             //       //     //       field.query().then(function() {
-  //             //       //     //         item.element.classList.remove("loading");
-  //             //       //     //         container.render();
-  //             //       //     //       });
-  //             //       //     //     });
-  //             //       //     //   }
-  //             //       //     // },
-  //             //       //     {
-  //             //       //       tag: "button",
-  //             //       //       class: "karma-button footer-item primary",
-  //             //       //       init: function(button) {
-  //             //       //         this.element.title = "Save";
-  //             //       //         this.element.addEventListener("click", function(event) {
-  //             //       //           button.element.classList.add("loading");
-  //             //       //           field.sync().then(function() {
-  //             //       //             button.element.classList.remove("loading");
-  //             //       //             button.element.blur();
-  //             //       //             container.render();
-  //             //       //           });
-  //             //       //         });
-  //             //       //       },
-  //             //       //       children: [
-  //             //       //         {
-  //             //       //           tag: "span",
-  //             //       //           class: "button-content",
-  //             //       //           init: function() {
-  //             //       //             this.element.textContent = "Save";
-  //             //       //           }
-  //             //       //         },
-  //             //       //         {
-  //           	// 			// 					class: "karma-field-spinner"
-  //           	// 			// 				}
-  //             //       //       ],
-  //             //       //       update: function() {
-  //             //       //         const modifiedValues = field.content.getModifiedValue();
-  //             //       //         this.element.disabled = !modifiedValues;
-  //             //       //       }
-  //             //       //     },
-  //             //       //     {
-  //             //       //       tag: "button",
-  //             //       //       class: "karma-button footer-item",
-  //             //       //       children: [
-  //             //       //         // new KarmaFieldsAlpha.fields.icon({
-  //             //       //         //   type: "icon",
-  //             //       //         //   value: "undo.svg"
-  //             //       //         // }).build()
-  //             //       //         {
-  //             //       //           init: function() {
-  //             //       //             this.element.textContent = "Undo";
-  //             //       //           }
-  //             //       //         }
-  //             //       //       ],
-  //             //       //       init: function(item) {
-  //             //       //         this.element.title = "Undo";
-  //             //       //         this.element.addEventListener("click", function(event) {
-  //             //       //           field.domain.undo();
-  //             //       //           // field.clearValue();
-  //             //       //           // field.content.clearValue();
-  //             //       //
-  //             //       //           container.render();
-  //             //       //         });
-  //             //       //       },
-  //             //       //       update: function() {
-  //             //       //         this.element.disabled = field.domain.index === 0;
-  //             //       //       }
-  //             //       //     },
-  //             //       //     {
-  //             //       //       tag: "button",
-  //             //       //       class: "karma-button footer-item",
-  //             //       //       children: [
-  //             //       //         // child: new KarmaFieldsAlpha.fields.icon({
-  //             //       //         //   type: "icon",
-  //             //       //         //   value: "redo.svg"
-  //             //       //         // }).build(),
-  //             //       //         {
-  //             //       //           init: function() {
-  //             //       //             this.element.textContent = "Redo";
-  //             //       //           }
-  //             //       //         }
-  //             //       //       ],
-  //             //       //       init: function(button) {
-  //             //       //         this.element.title = "Redo";
-  //             //       //         this.element.addEventListener("click", function(event) {
-  //             //       //           field.domain.redo();
-  //             //       //
-  //             //       //           // field.clearValue();
-  //             //       //           // field.content.clearValue();
-  //             //       //
-  //             //       //           container.render();
-  //             //       //         });
-  //             //       //       },
-  //             //       //       update: function(button) {
-  //             //       //         this.element.disabled = field.domain.index >= field.domain.max;
-  //             //       //       }
-  //             //       //     },
-  //             //       //     {
-  //             //       //       tag: "button",
-  //             //       //       class: "karma-button footer-item",
-  //             //       //       children: [
-  //             //       //         // new KarmaFieldsAlpha.fields.icon({
-  //             //       //         //   type: "icon",
-  //             //       //         //   value: "plus-alt2.svg"
-  //             //       //         // }).build(),
-  //             //       //         {
-  //             //       //           init: function() {
-  //             //       //             this.element.textContent = "Add";
-  //             //       //           }
-  //             //       //         },
-  //             //       //         {
-  //             //       //           class: "karma-field-spinner"
-  //             //       //         }
-  //             //       //       ],
-  //             //       //       init: function(button) {
-  //             //       //         this.element.title = "Add";
-  //             //       //         this.element.addEventListener("click", function(event) {
-  //             //       //           button.element.classList.add("loading");
-  //             //       //           field.add().then(function() {
-  //             //       //             button.element.classList.remove("loading");
-  //             //       //             container.render(true);
-  //             //       //           });
-  //             //       //         });
-  //             //       //       },
-  //             //       //       update: function(element) {
-  //             //       //         this.element.disabled = field.resource.can_add === false || field.resource.can_add && !(new Function("element", "field", field.resource.can_add))(this.element, field);
-  //             //       //       }
-  //             //       //     },
-  //             //       //     {
-  //             //       //       tag: "button",
-  //             //       //       class: "karma-button footer-item",
-  //             //       //       children: [
-  //             //       //         // new KarmaFieldsAlpha.fields.icon({
-  //             //       //         //   type: "icon",
-  //             //       //         //   value: "trash.svg"
-  //             //       //         // }).build(),
-  //             //       //         {
-  //             //       //           init: function() {
-  //             //       //             this.element.textContent = "Delete";
-  //             //       //           }
-  //             //       //         }
-  //             //       //       ],
-  //             //       //
-  //             //       //       init: function(item) {
-  //             //       //         this.element.title = "Delete";
-  //             //       //         this.element.onmousedown = function(event) {
-  //             //       //           event.preventDefault(); // prevent current table cell losing focus
-  //             //       //           this.onmouseup = function(event) {
-  //             //       //             field.remove().then(function() {
-  //             //       //               field.select.removeFocus();
-  //             //       //               container.render();
-  //             //       //             });
-  //             //       //
-  //             //       //           };
-  //             //       //         };
-  //             //       //       },
-  //             //       //       update: function(element) {
-  //             //       //         this.element.disabled = !(field.select.selection && field.select.selection.width === field.select.grid.width);
-  //             //       //       }
-  //             //       //     }
-  //             //       //   ]
-  //             //       // },
-  //             //       field.pagination.build(),
-  //             //       {
-  //             //         class: "footer-group table-modal-nav",
-  //             //         clear: true,
-  //             //         update: function() {
-  //             //           this.children = [
-  //             //             {
-  //             //               tag: "button",
-  //             //               class: "karma-button footer-item",
-  //             //               init: function(button) {
-  //             //                 this.element.innerText = "<";
-  //             //               },
-  //             //               update: function(button) {
-  //             //                 this.element.onclick = function() {
-  //             //                   // const rowId = field.modal.getValue();
-  //             //                   // const next = field.ids.getPrev(rowId);
-  //             //                   // if (next) {
-  //             //                   //   field.modal.setValue(next);
-  //             //                   //   field.triggerEvent("render");
-  //             //                   // }
-  //             //                   field.modal.getValueAsync().then(function(id) {
-  //             //                     return field.ids.getPrev(id);
-  //             //                   }).then(function(id) {
-  //             //                     field.modal.write(id);
-  //             //                     field.triggerEvent("render");
-  //             //                   });
-  //             //                 };
-  //             //                 // const currentRowId = field.modal.getValue();
-  //             //                 // this.element.disabled = field.ids.getPrev(currentRowId) ? false : true;
-  //             //                 field.modal.getValueAsync().then(function(currentRowId) {
-  //             //                   return field.ids.getPrev(currentRowId);
-  //             //                 }).then(function(id) {
-  //             //                   button.element.disabled = id ? false : true;
-  //             //                 });
-  //             //               }
-  //             //             },
-  //             //             {
-  //             //               tag: "button",
-  //             //               class: "karma-button footer-item",
-  //             //               init: function(button) {
-  //             //                 this.element.innerText = ">";
-  //             //               },
-  //             //               update: function(button) {
-  //             //                 this.element.onclick = function() {
-  //             //                   // const rowId = field.modal.getValue();
-  //             //                   // const next = field.ids.getNext(rowId);
-  //             //                   //
-  //             //                   // if (next) {
-  //             //                   //   field.modal.setValue(next);
-  //             //                   //   field.triggerEvent("render");
-  //             //                   // }
-  //             //                   field.modal.getValueAsync().then(function(id) {
-  //             //                     return field.ids.getNext(id);
-  //             //                   }).then(function(id) {
-  //             //                     field.modal.write(id);
-  //             //                     field.triggerEvent("render");
-  //             //                   });
-  //             //                 };
-  //             //                 // const currentRowId = field.modal.getValue();
-  //             //                 // this.element.disabled = field.ids.getNext(currentRowId) ? false : true;
-  //             //
-  //             //                 field.modal.getValueAsync().then(function(currentRowId) {
-  //             //                   return field.ids.getNext(currentRowId);
-  //             //                 }).then(function(id) {
-  //             //                   button.element.disabled = id ? false : true;
-  //             //                 });
-  //             //               }
-  //             //             }
-  //             //           ];
-  //             //         }
-  //             //       }
-  //             //     ]
-  //             //   }
-  //             // ];
-  //           }
-  //         }
-  //       ];
-  //     }
-  //
-  //
-  //   };
-  // }
-
-
 
 }

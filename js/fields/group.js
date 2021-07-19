@@ -56,6 +56,8 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 					class: "karma-field-spinner"
 				});
 
+				field.render = container.render;
+
 				// this.children.push({
 				// 	class: "karma-field-item",
 				// 	children: [
@@ -79,41 +81,30 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 	}
 
 	build() {
-		const field = this;
+		// const field = this;
 
 		return {
-			class: "karma-field karma-field-container display-"+(field.resource.display || "block"),
-			init: function() {
+			class: "karma-field karma-field-container display-"+(this.resource.display || "block"),
+			init: () => {
 				// if (field.resource.style) {
 				// 	console.log(field.resource);
 				// 	this.element.style = field.resource.style;
 				// }
 			},
-			update: function(group) {
+			update: group => {
 				// this.element.classList.toggle("disabled", field.bubble("disabled") || false);
+				// this.onState = function(state) {
+				// 	group.element.classList.toggle("disabled", state === "disabled");
+				// }
 
-				field.onState = function(state) {
-					group.element.classList.toggle("disabled", state === "disabled");
-				}
+				group.element.classList.toggle("disabled", this.getState() === "disabled");
 
-				this.children = field.children.map(function(child) {
-
+				group.children = this.children.map(child => {
 					if (child instanceof KarmaFieldsAlpha.fields.separator) {
-
 						return child.build();
-
-					// if (child instanceof KarmaFieldsAlpha.fields.group) {
-					//
-					// 	return field.buildFrame(child);
-
-						// return child.build();
-
 					} else {
-
-						return field.buildFrame(child);
-
+						return this.buildFrame(child);
 					}
-
 				});
 
 			}

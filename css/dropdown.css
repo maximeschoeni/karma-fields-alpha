@@ -28,6 +28,11 @@
 
 
 
+.wp-core-ui .karma-fields select.loading {
+  background: transparent;
+}
+
+
 
 /* .karma-fields .table select {
   margin: 0;

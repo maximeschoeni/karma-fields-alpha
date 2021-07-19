@@ -5,43 +5,76 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 	// }
 
 
-	getOptionsAsync() {
-		const field = this;
-		if (this.resource.options) {
-			const options = field.prepareOptions(this.resource.options)
-			return Promise.resolve(options);
-		} else {
-			return field.fetchOptions().then(function(options) {
-				options = field.prepareOptions(options);
-				return options;
-			});
-		}
-	}
+	// async getOptionsAsync() {
+	// 	// if (this.resource.options) {
+	// 	// 	return this.prepareOptions(this.resource.options)
+	// 	// } else {
+	// 	// 	return this.fetchOptions().then(options => {
+	// 	// 		return this.prepareOptions(options);
+	// 	// 	});
+	// 	// }
+	//
+	// 	const options = this.fetchOptions();
+	// 	return this.prepareOptions(options);
+	// }
 
-	update() {
-		const field = this;
-		return super.update().then(function(value) {
-			if (field.resource.options) {
-				let options = field.prepareOptions(field.resource.options);
-				field.try("onOptions", options, value, "resource");
-				return value;
-      } else {
-				return field.load(field.fetchOptions().then(function(options) {
-					options = field.prepareOptions(options);
-					let queryString = field.getOptionsParamString();
-					field.try("onOptions", options, value, queryString);
-					return value;
-				}));
-			}
-		});
+	// convert(value) {
+	// 	if (this.resource.datatype === "number") {
+	// 		return Number(value) || 0;
+	// 	}
+	// 	// else if (this.resource.datatype === "string") {
+	// 	// 	return value && value.toString() || "";
+	// 	// }
+	// 	return value;
+	// }
+
+	async updateOptions() {
+		// const field = this;
+		// return super.update().then(function(value) {
+		// 	if (field.resource.options) {
+		// 		let options = field.prepareOptions(field.resource.options);
+		// 		field.try("onOptions", options, value, "resource");
+		// 		return value;
+    //   } else {
+		// 		return field.load(field.fetchOptions().then(function(options) {
+		// 			options = field.prepareOptions(options);
+		// 			let queryString = field.getOptionsParamString();
+		// 			field.try("onOptions", options, value, queryString);
+		// 			return value;
+		// 		}));
+		// 	}
+		// });
+
+		// const value = await super.update();
+		const options = await this.load(this.fetchOptions());
+		const queryString = this.getOptionsParamString();
+
+		this.try("onOptions", options, value, queryString);
+
+		// return super.update().then(function(value) {
+		// 	if (field.resource.options) {
+		// 		let options = field.prepareOptions(field.resource.options);
+		// 		field.try("onOptions", options, value, "resource");
+		// 		return value;
+    //   } else {
+		// 		return field.load(field.fetchOptions().then(function(options) {
+		// 			options = field.prepareOptions(options);
+		// 			let queryString = field.getOptionsParamString();
+		// 			field.try("onOptions", options, value, queryString);
+		// 			return value;
+		// 		}));
+		// 	}
+		// });
   }
 
-	fetch(queryString) {
-		if (this.resource.driver) {
-			return KarmaFieldsAlpha.Form.fetch2(this.resource.driver, queryString);
-		} else {
-			return super.fetch(queryString);
-		}
+	getRemoteOptions(queryString, driver) {
+		// if (this.resource.driver) {
+		// 	return KarmaFieldsAlpha.Form.fetch2(this.resource.driver, queryString);
+		// } else {
+		// 	return super.fetch(queryString);
+		// }
+
+		return super.getRemoteOptions(queryString, this.resource.driver);
   }
 
 
@@ -55,7 +88,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 	exportValue() {
 		const field = this;
 		return super.exportValue().then(function(value) {
-			return field.getOptionsAsync().then(function(options) {
+			return field.fetchOptions().then(function(options) {
 				const option = options.find(function(option) {
 					return option.key === value;
 				});
@@ -88,48 +121,65 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 	// 	});
 	// }
 
-	validate(value) {
+	async getDefault() {
+		const options = await this.fetchOptions();
+		if (this.resource.default !== undefined && options.some(option => option.key === this.resource.default)) {
+			return this.resource.default;
+		}
+		if (options.length) {
+			return options[0].key;
+		}
+		return this.getEmpty();
+	}
 
-		return this.getOptionsAsync().then(options => {
-			if (options.length) {
-				if (!options.some(option => option.key === value)) {
-
-					// value = options[0].key;
-					//
-	        // // only save if value is different
-					// const rawValue = this.stringify(value);
-	        // if (validatedRawValue !== rawValue) {
-	        //   rawValue = validatedRawValue;
-	        //   this.write(rawValue);
-	        // }
-
-					return options[0].key;
-				}
-			}
-			return value;
-		});
+	async validate(value) {
+		const options = this.fetchOptions();
+		if (options.length && !options.some(option => option.key === value)) {
+			return options[0].key;
+		}
+		return value;
   }
 
-	prepareOptions(options) {
-		options = options.filter(function(option) {
-			return option.key;
-		});
-		options.forEach(function(option) {
-      option.key = option.key.toString(); //this.convert(option.key, "string", this.resource.datatype || this.datatype);
-    });
-		if (this.resource.empty !== undefined) {
-			options.unshift({
-				key: this.resource.empty,
-				name: this.resource.empty_option_name || "–"
-			});
+	async fetchOptions() {
+		let options = await super.fetchOptions();
+	// }
+	//
+	// prepareOptions(options) {
+
+		if (options.some(option => option.key === undefined)) {
+			console.error("Missing key options");
 		}
+
+
+
+		if (this.resource.empty !== undefined) {
+			options = [{
+				key: this.convert(this.resource.empty),
+				name: this.resource.empty_option_name || "–"
+			}].concat(options);
+
+			// options.unshift({
+			// 	key: this.convert(this.resource.empty),
+			// 	name: this.resource.empty_option_name || "–"
+			// });
+		}
+
 		// deprecated
 		if (this.resource.novalue !== undefined) {
-			options.unshift({
+			// options.unshift({
+			// 	key: this.getEmpty(),
+			// 	name: this.resource.novalue === true && "-" || this.resource.novalue
+			// });
+			options = [{
 				key: this.getEmpty(),
 				name: this.resource.novalue === true && "-" || this.resource.novalue
-			});
+			}].concat(options);
 		}
+
+		options.forEach(option => {
+      option.key = option.key.toString();
+    });
+
 		return options;
 	}
 
@@ -206,44 +256,74 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 	}
 
 	build() {
-		const field = this;
 
 		return {
 			tag: "select",
 			class: "dropdown karma-field",
-			init: function(dropdown) {
-				if (field.resource.label) {
-					this.element.id = field.getId();
+			init: dropdown => {
+				if (this.resource.label) {
+					dropdown.element.id = this.getId();
 				}
-				field.init(this.element);
+				this.init(dropdown.element);
 			},
-			update: function(dropdown) {
+			update: async dropdown => {
 
-				this.element.onchange = function() {
-					field.backup();
-					field.changeValue(this.value);
+				dropdown.element.onchange = async() => {
+					this.backup();
+					dropdown.element.classList.add("loading");
+					await this.changeValue(dropdown.element.value);
+					dropdown.element.classList.toggle("modified", this.modified);
+					dropdown.element.classList.remove("loading");
 				}
 
-				field.onOptions = function(options, value, queryString) {
-					if (queryString !== dropdown.element.getAttribute("querystring")) {
-						dropdown.children = field.buildOptions(options, value);
-						dropdown.render(true);
-						dropdown.element.setAttribute("querystring", queryString);
-					}
-				}
-				field.onLoad = function(loading) {
-					dropdown.element.classList.toggle("loading", loading);
-				}
-				field.onSet = function(value) {
+				// field.onOptions = function(options, value, queryString) {
+				// 	if (queryString !== dropdown.element.getAttribute("querystring")) {
+				// 		dropdown.children = field.buildOptions(options, value);
+				// 		//dropdown.render(true);
+				// 		dropdown.clean = true;
+				// 		dropdown.element.setAttribute("querystring", queryString);
+				// 	}
+				// }
+				// field.onLoad = function(loading) {
+				// 	dropdown.element.classList.toggle("loading", loading);
+				// }
+				// field.onSet = function(value) {
+				// 	dropdown.element.value = value;
+				// }
+				// field.onModified = function(isModified) {
+				// 	dropdown.element.classList.toggle("modified", isModified);
+				// }
+
+				// console.log(this.getPath());
+				// console.trace();
+
+				dropdown.element.classList.add("loading");
+
+				const value = await this.update();
+				const options = await this.fetchOptions();
+				const queryString = this.getOptionsParamString();
+
+				if (queryString !== dropdown.element.getAttribute("querystring")) {
+					// console.log("y", this.getPath());
+					dropdown.children = this.buildOptions(options, value);
+					dropdown.element.setAttribute("querystring", queryString);
+					dropdown.clean = true;
+				} else {
+					// console.log("x", this.getPath(), dropdown.children, dropdown.child);
+					// dropdown.children = undefined;
 					dropdown.element.value = value;
-				}
-				field.onModified = function(isModified) {
-					dropdown.element.classList.toggle("modified", isModified);
+					dropdown.clean = false;
+
 				}
 
-				// field.fetchValue();
-				// field.fetchOptions();
-				field.update();
+				dropdown.element.classList.toggle("modified", this.modified);
+				dropdown.element.classList.remove("loading");
+
+
+
+
+
+
 			}
 		};
 	}

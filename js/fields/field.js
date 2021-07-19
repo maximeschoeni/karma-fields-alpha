@@ -7,6 +7,8 @@ KarmaFieldsAlpha.fields.field = class Field {
 		this.children = [];
 		this.resource = resource || {};
 		this.data = {}; // deprecated
+    this.delta = {}; // deprecated (moved to Form)
+    this.base = {}; // deprecated
 		this.events = {};
     this.loading = 0; // deprecated
     this.history = {}; // deprecated
@@ -14,21 +16,16 @@ KarmaFieldsAlpha.fields.field = class Field {
     this.datatype = "string";  // deprecated
 		this.fieldId = Field.fieldId++;
 
-
-    this.events.get = function(keys, origin) {
-      console.error("Deprecated event get. Use function get");
-
-      // if (this.resource.key) {
-      //   keys.unshift(this.resource.key);
-      // }
-      // return this.triggerUp("get", keys, origin);
-    };
-
-    this.path = this.getPath();
+    // this.path = this.getPath() || "";
+    // this.driver = this.getDriver() || this;
 
     if (this.resource.value !== undefined) {
       // this.setValue(this.resource.value, "noop");
       this.initValue(this.resource.value);
+
+      // this.setDeltaValue(this.resource.value);
+
+      // this.setOriginal(this.resource.value);
     }
 
     this.initField();
@@ -38,40 +35,6 @@ KarmaFieldsAlpha.fields.field = class Field {
   			this.createChild(this.resource.children[i]);
   		}
   	}
-
-
-
-    // if (this.resource.originalValue !== undefined) {
-    //   this.originalValue = this.sanitize(this.resource.originalValue);
-    // }
-
-
-
-    // let field = this;
-    // this.history = {
-    //   undos: {},
-    //   save: function() {
-    //     let index = KarmaFieldsAlpha.History.getIndex(field);
-    //     this.undos[index] = field.value;
-    //   },
-    //   go: function(index) {
-    //     if (this.undos[index]) {
-    //       field.setValue(this.undos[index], "undo");
-    //     }
-    //     field.children.forEach(function(child) {
-    //       child.history.go(index);
-    //     });
-    //   },
-    //   delete: function(index) {
-    //     this.undos[index] = undefined;
-    //     field.children.forEach(function(child) {
-    //       child.history.delete(index);
-    //     });
-    //   }
-    // }
-
-
-
 
   }
 
@@ -94,13 +57,17 @@ KarmaFieldsAlpha.fields.field = class Field {
   addChild(child) {
     this.children.push(child);
     child.parent = this;
+    // child.initField();  // -> ! rowField utilise initField pour ajouter un champs trash
   }
 
   addChildren(children) {
-    this.children = children;
-    for (let i = 0; i < children.length; i++) {
-      children[i].parent = this;
-    }
+    children.forEach(child => {
+      this.addChild(child);
+    });
+    // this.children = children;
+    // for (let i = 0; i < children.length; i++) {
+    //   children[i].parent = this;
+    // }
   }
 
   createField(resource, parent) {
@@ -114,18 +81,57 @@ KarmaFieldsAlpha.fields.field = class Field {
     return child;
   }
 
+  // -> for dropdown in filters
+  getRelatedValue(key) {
+    let descendant = this.getDescendant(key);
+    if (descendant) {
+      return descendant.getValue();
+    } else if (this.parent) {
+      return this.parent.getRelatedValue(key);
+    }
+  }
+
   getDescendant(key) {
     for (let i = 0; i < this.children.length; i++) {
       if (this.children[i].resource.key === key) {
         return this.children[i];
       } else if (!this.children[i].resource.key) {
-        const child = this.children[i].getDescendant(key);
-        if (child) {
-          return child;
+        const descendant = this.children[i].getDescendant(key);
+        if (descendant) {
+          return descendant;
         }
       }
     }
   }
+
+  getDescendants(key) {
+    let descendants = [];
+    for (let i = 0; i < this.children.length; i++) {
+      if (this.children[i].resource.key === key) {
+
+        descendants.push(this.children[i]);
+      } else if (!this.children[i].resource.key) {
+        // const child = this.children[i].getDescendant(key);
+        // if (child) {
+        //   return child;
+        // }
+        descendants = descendants.concat(this.children[i].getDescendants(key));
+      }
+    }
+    return descendants;
+  }
+
+  getFieldsByPath(keys) {
+		let key = keys.shift();
+		let fields = this.getDescendants(key);
+		if (keys.length > 0) {
+			fields = fields.reduce((acc, field) => {
+        acc = acc.concat(field.getFieldsByPath(keys));
+        return acc;
+      }, []);
+		}
+		return fields;
+	}
 
   //deprecated: use getChild
   getDirectChild(key) {
@@ -149,6 +155,18 @@ KarmaFieldsAlpha.fields.field = class Field {
     return keys;
   }
 
+  getKeyPath(keys) {
+    if (!keys) {
+      keys = [];
+    } else if (!Array.isArray(keys)) {
+      keys = [keys];
+    }
+    if (this.resource.key) {
+      keys.unshift(this.resource.key);
+    }
+    return keys;
+  }
+
 
   triggerEvent(eventName, bubbleUp, target, ...params) {
     console.warn("Deprecated function triggerEvent");
@@ -163,18 +181,6 @@ KarmaFieldsAlpha.fields.field = class Field {
   contains(field) {
     return field && (field.parent === this || this.contains(field.parent));
   }
-
-
-  // bubbleUp(eventName, target, ...params) {
-  //   if (this.parent) {
-  //     if (this.parent.events[eventName] && typeof this.parent.events[eventName] === "function") {
-  //       return this.parent.events[eventName].call(this, target || this, ...params);
-  //     } else {
-  //       return this.parent.bubbleUp(eventName, target || this, ...params);
-  //     }
-  //   }
-  // }
-
 
   triggerUp(eventName, ...params) {
     if (this.parent) {
@@ -194,27 +200,13 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   triggerDown(eventName, ...params) {
     console.error("Deprecated function triggerDown");
-    // this.children.forEach(function(child) {
-    //   if (child.events[eventName] && typeof child.events[eventName] === "function") {
-    //     child.events[eventName].call(child, ...params);
-    //   } else {
-    //     child.triggerDown(eventName, ...params);
-    //   }
-    // });
+
   }
-
-  // dispatch(eventName, ...params) {
-  //   const event = new KarmaFieldAlpha.Event(eventName, ...params);
-  //   if (this.hooks[eventName]) {
-  //     event.call()
-  //   }
-  //
-  // }
-
 
 
   try(eventName, ...params) {
     if (this[eventName] && typeof this[eventName] === "function") {
+      // console.error("Deprecated function try");
       return this[eventName](...params);
     }
   }
@@ -225,23 +217,29 @@ KarmaFieldsAlpha.fields.field = class Field {
     console.error("Deprecated function updateDependency");
   }
 
-  getModifiedValue() {
-    // const path = this.getPath();
-    const rawValue = this.read();
-    if (rawValue !== undefined && rawValue !== this.originalValue) {
-      return this.parse(rawValue);
-    }
+  // async getModifiedValue() {
+  //   // const path = this.getPath();
+  //   // const rawValue = this.read();
+  //   // if (rawValue !== undefined && rawValue !== this.originalValue) {
+  //   //   return this.parse(rawValue);
+  //   // }
+  //
+  //   debugger;
+  //
+  //   const deltaValue = this.getDeltaValue();
+  //   if (deltaValue !== undefined) {
+  //     const baseValue = await this.getRawBaseValue();
+  //     if (deltaValue !== baseValue) {
+  //       return this.parse(deltaValue);
+  //     }
+  //   }
+  // }
 
-    // if (this.isModified()) {
-    //   let value = this.getValue();
-    //   // value = this.convert(value, this.datatype, this.resource.datatype);
-    //   if (this.resource.output_datatype) {
-    //     value = this.convert(value, this.resource.datatype || this.datatype, this.resource.output_datatype);
-    //   }
-    //   if (value !== null) {
-    //     return value;
-    //   }
-    // }
+  getModifiedValue() {
+    return this.parent && this.parent.getModifiedValue();
+  }
+  hasModifiedValue() {
+    return this.parent && this.parent.hasModifiedValue();
   }
 
   // maybe deprecated -> use setValue
@@ -252,167 +250,29 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
   isModified() {
-    console.warn("Deprecated function isModified");
-    return this.read(this.getPath()) !== this.originalValue;
+    // console.warn("Deprecated function isModified");
+    // return this.read(this.getPath()) !== this.originalValue;
+    const value = this.getValue();
+    return value !== undefined && value !== this.getOriginal();
   }
 
-  // getDefaultRawValue() {
+  // getValue() {
+  //   // console.warn("Deprecated function getValue");
+  //   let value;
+  //   let rawValue = this.read();
+  //   if (rawValue === undefined) {
+  //     rawValue = this.originalValue;
+  //   }
+  //   if (rawValue === undefined) {
+  //     value = this.getDefault();
+  //   } else {
+  //     value = this.parse(rawValue);
+  //   }
   //
-  //   return this.resource.value && this.sanitize(this.resource.value);
-  // }
-
-  getValue() {
-    // console.warn("Deprecated function getValue");
-    let value;
-    let rawValue = this.read();
-    if (rawValue === undefined) {
-      rawValue = this.originalValue;
-    }
-    if (rawValue === undefined) {
-      value = this.getDefault();
-    } else {
-      value = this.parse(rawValue);
-    }
-
-    return value;
-  }
-
-  // get(keys) {
-  //   if (!keys) {
-  //     keys = [];
-  //   }
-  //   if (this.resource.key) {
-  //     keys.unshift(this.resource.key);
-  //   }
-  //   if (this.parent) {
-  //     return this.parent.get(keys);
-  //   }
-  // }
-  //
-  // change(value) {
-  //   const field = this;
-  //   this.setValue(value);
-  //   const promise = this.bubble("change", this);
-  //   if (promise) {
-  //     field.startLoad();
-  //     return promise.then(function() {
-  //       field.endLoad();
-  //     });
-  //   }
+  //   return value;
   // }
 
 
-
-  fetchValue() {
-    console.warn("Deprecated function fetchValue. Use update()");
-    this.update();
-
-    // const field = this;
-    // if (!this.promiseValue) {
-    //   let promise = this.get(); //bubble("get", [], this);
-    //   if (promise) {
-    //     field.startLoad();
-    //     this.promiseValue = promise.then(function(value) {
-    //       field.endLoad();
-    //       value = field.prepare(value); //
-    //       // value = field.convert(value, field.resource.output_datatype || typeof value, field.resource.datatype || field.datatype);
-    //       value = field.sanitize(value, "input");
-    //
-    //       return field.validate(value).then(function() {
-    //         if (value === null && !field.resource.null) {
-    //           // value = field.getDefault();
-    //           return field.fetchDefault().then(function(value) {
-    //             if (value !== undefined) {
-    //               field.change(value);
-    //               field.try("onSet", value);
-    //               field.triggerEvent("set"); // compat
-    //             }
-    //             // field.setValue(value);
-    //             // field.triggerEvent("change", true);
-    //             // field.triggerEvent("set");
-    //
-    //             // field.triggerEvent("modify");
-    //             return value;
-    //           });
-    //         } else {
-    //           field.setValue(value, "set");
-    //           // field.try("onSet", value);
-    //           // field.triggerEvent("set"); // compat
-    //           // field.setValue(value, "set");
-    //           // field.triggerEvent("set", value);
-    //           // field.triggerEvent("modify");
-    //           return value;
-    //         }
-    //       });
-    //     });
-    //   } else {
-    //     this.promiseValue = field.fetchDefault().then(function(value) {
-    //       // field.setValue(value);
-    //       // field.triggerEvent("change", true);
-    //
-    //       // console.log(value);
-    //
-    //       field.try("onSet", value);
-    //       field.triggerEvent("set"); // compat
-    //       field.change(value);
-    //     });
-    //   }
-    //
-    //
-    //   // let value = field.read();
-    //   // if (value === undefined) {
-    //   //
-    //   //
-    //   //
-    //   // } else {
-    //   //   value = field.parse(value);
-    //   //
-    //   //   field.try("onSet", value);
-    //   //   this.triggerEvent("set"); // compat
-    //   //   this.promiseValue = Promise.resolve(value);
-    //   // }
-    // }
-    //
-    // return this.promiseValue;
-    //
-    //
-    // // return this.getDefault();
-    //
-    // //
-    // //
-    // //
-    // // if (!this.promiseValue) {
-    // //
-    // //   let promise = this.bubble("get", [], this);
-    // //
-    // //   this.promiseValue = promise.then(function(value) {
-    // //     field.endLoad();
-    // //     value = field.prepare(value); //
-    // //     value = field.convert(value, field.resource.output_datatype || typeof value, field.resource.datatype || field.datatype);
-    // //     value = field.sanitize(value);
-    // //     if (value === null && !field.resource.null) {
-    // //       value = field.getDefault();
-    // //       field.setValue(value);
-    // //       field.triggerEvent("change", true);
-    // //     } else {
-    // //       field.setValue(value, "set");
-    // //       // field.originalValue = field.getRawValue();
-    // //     }
-    // //     field.triggerEvent("set");
-    // //     field.triggerEvent("modify");
-    // //
-    // //     return field.getValue();
-    // //   });
-    // // }
-    // //
-    // // if (this.promiseValue) {
-    // //   field.startLoad();
-    // //   return this.promiseValue
-    // // } else {
-    // //
-    // //   return Promise.resolve(this.getDefault());
-    // // }
-  }
 
   clearValue() {
     console.warn("Deprecated function clearValue");
@@ -424,204 +284,75 @@ KarmaFieldsAlpha.fields.field = class Field {
     return this.read(this.getPath()) !== undefined;
   }
 
-  getDefault() {
-    if (this.resource.default !== undefined) {
-      return this.resource.default;
-    }
-    // else if (this.resource.value !== undefined) {
-    //   return this.resource.value;
-    // }
-    return this.getEmpty();
-  }
-
-  // fetchDefault() {
-  //   return this.validate(this.getDefault());
-  // }
-
-  validate(value) {
-    return Promise.resolve(value);
-  }
-
-
-  // read() {
-  //   // const path = this.bubble("path");
-  //   // return this.domain.readPath(path);
-  //
-  //   // return this.bubble("read", this.getPath());
-  //
-  //   // this.historyMin = Math.min(this.historyMax, this.domain.index);
-  //   // while (this.history[this.historyMin] === undefined && this.historyMin > 0) {
-  //   //   this.historyMin--;
-  //   // }
-  //   // return this.history[this.historyMin];
-  // }
-
-  // read(keys) {
-  //   if (!keys) {
-  //     keys = [];
-  //   }
-  //   if (this.resource.key) {
-  //     keys.unshift(this.resource.key);
-  //   }
-  //   if (this.parent) {
-  //     return this.parent.read(keys);
-  //   }
-  // };
-
   readPath(path) {
+    console.error("Deprecated function readPath");
     if (this.parent) {
       return this.parent.readPath(path);
     }
   };
 
   read() {
+    console.error("Deprecated function read");
     const path = this.getPath();
     return this.readPath(path);
   };
 
   writePath(path, rawValue) {
+    console.error("Deprecated function writePath");
     if (this.parent) {
       return this.parent.writePath(path, rawValue);
     }
   };
 
   write(rawValue) {
+    console.error("Deprecated function write");
     const path = this.getPath();
     this.parent.writePath(path, rawValue);
   };
 
-  getFromPath(path) {
+  async getFromPath(path) {
+    console.error("Deprecated function getFromPath");
+
+    const value = await KarmaFieldsAlpha.Form.get(this.resource.driver || "nodriver", path);
+
+
     if (this.parent) {
       return this.parent.getFromPath(path);
     }
   };
 
-
   get() {
+    console.error("Deprecated function get");
     const path = this.getPath();
     return path.length && this.parent && this.parent.getFromPath(path) || Promise.resolve();
   };
 
-  // save(value) {
-  //   return this.bubble("save", this);
-  //   // !
-  //
-  //   // return this.parent && this.parent.save(value);
-  //   // if (this.parent) {
-  //   //   const container = this.parent.save(value);
-  //   // }
-  //   // if (this.resource.key) {
-  //   //   container[this.resource.key] = value;
-  //   // }
-  //   // return container;
-  // };
-
-
   initValue(value, updateField) {
-  //   console.warn("Deprecated function initValue");
-  //
-  //   if (value !== undefined) {
-  //     value = this.convert(value);
-  //     const rawvalue = this.stringify(value);
-  //     this.write(rawvalue);
-  //     this.originalValue = rawvalue;
-  //
-  //     if (updateField) {
-  //       this.try("onModified", false);
-  //       this.try("onSet", value);
-  //     }
-  //   }
-  // }
-  //
-  // setOriginal(value) {
-    // value is already "prepared"
     if (value !== undefined) {
       value = this.convert(value);
-      this.originalValue = this.stringify(value);
-      // if (this.originalValue === undefined) {
-      //   this.originalValue = rawvalue;
-      // }
-      // this.originalValue = rawvalue;
-      // this.try("onModified", false);
 
+      // this.setDeltaValue(value);
+      this.setOriginal(value);
+
+      this.modified = false;
 
       if (updateField) {
         this.try("onModified", false);
         this.try("onSet", value);
       }
     }
-
-    // if (value === undefined) {
-    //   value = this.getDefault();
-    //   value = await this.load(this.validate(value);
-    //   const rawvalue = this.stringify(value);
-    //   this.write(rawValue);
-    //
-    //   this.try("onModified", true);
-    //   this.try("onSet", value);
-    // }
-    //
-    // value = await this.load(this.validate(value);
-    // const validatedRawValue = this.stringify(value);
-    //
-    // // only save if value is different
-    // if (validatedRawValue !== rawValue) {
-    //   rawValue = validatedRawValue;
-    //   this.write(rawValue);
-    // }
-
-
   }
 
+  async getDefault() {
+    if (this.resource.default !== undefined) {
+      return this.resource.default;
+    }
+    return this.getEmpty();
+  }
 
-
-  // async initValue(value, updateField) {
-  //   if (value !== undefined) {
-  //     value = this.convert(value);
-  //     await this.load(this.validate(value).then(value => {
-  //       const rawvalue = this.stringify(value);
-  //       this.write(rawvalue);
-  //       this.originalValue = rawvalue;
-  //       if (updateField) {
-  //         this.try("onModified", true);
-  //         this.try("onSet", value);
-  //       }
-  //     })); // -> need validation because of type file
-  //   }
-  // }
-
-
-  // changeValue(value) {
-  //   return this.saveValue(value);
-  //   // const field = this;
-  //   // const path = this.getPath();
-  //   // field.startLoad();
-  //   //
-  //   // return Promise.resolve(value).then(function(value) {
-  //   //   return field.validate(value);
-  //   // }).then(function(value) {
-  //   //   if (value !== undefined) {
-  //   //     const rawValue = field.stringify(value);
-  //   //     field.write(path, rawValue);
-  //   //     field.try("onModified", rawValue === field.originalValue);
-  //   //     return field.bubble("change", field, value);
-  //   //   }
-  //   // }).then(function() {
-  //   //   field.endLoad();
-  //   // });
-  // }
-
-  // load(promise) {
-  //   const field = this;
-  //   this.loadingPromise = Promise.resolve(this.loadingPromise).then(function() {
-  //     field.try("onLoad", true);
-  //     return promise.then(function(result) {
-  //       field.try("onLoad", false);
-  //       return result;
-  //     });
-  //   });
-  //   return this.loadingPromise;
-  // }
+  async validate(value) {
+    return value;
+  }
 
   async load(promise) {
     this.try("onLoad", true);
@@ -632,58 +363,7 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   updateChangeValue(value) {
     console.error("Deprecated function updateChangeValue");
-
-    // return this.saveValue(value, true);
-    // const field = this;
-    //
-    // // field.startLoad();
-    // //
-    // // return Promise.resolve(value).then(function(value) {
-    // //   return field.validate(value);
-    // // }).then(function(value) {
-    // //   if (value !== undefined) {
-    // //     const rawValue = field.stringify(value);
-    // //     field.write(path, rawValue);
-    // //     field.try("onSet", value);
-    // //     field.try("onModified", rawValue === field.originalValue);
-    // //     return field.bubble("change", field, value);
-    // //   }
-    // // }).then(function() {
-    // //   field.endLoad();
-    // // });
-    //
-    // return this.load(field.validate(value).then(function(value) {
-    //   if (value !== undefined) {
-    //     const rawValue = field.stringify(value);
-    //     const path = field.getPath();
-    //     field.write(path, rawValue);
-    //     field.try("onSet", value);
-    //     field.try("onModified", rawValue === field.originalValue);
-    //     return field.bubble("change", field, value);
-    //   }
-    // }));
-
   }
-
-  // updateValue(value) {
-  //   return this.saveValue(value, true, true);
-  //
-  //   // const field = this;
-  //   // const path = this.getPath();
-  //   // field.startLoad();
-  //   // return Promise.resolve(value).then(function(value) {
-  //   //   return field.validate(value);
-  //   // }).then(function(value) {
-  //   //   if (value !== undefined) {
-  //   //     const rawValue = field.stringify(value);
-  //   //     field.write(path, rawValue);
-  //   //     field.try("onSet", value);
-  //   //     field.try("onModified", rawValue === field.originalValue);
-  //   //     field.endLoad();
-  //   //     return value;
-  //   //   }
-  //   // });
-  // }
 
   setValueAsync(value, updateSelf, noBubble) {
     console.warn("Deprecated function setValueAsync.");
@@ -694,8 +374,6 @@ KarmaFieldsAlpha.fields.field = class Field {
       this.changeValue(value, noBubble);
     }
 
-
-    // return this.saveValue(value, updateSelf, noBubble);
   }
 
   saveValue(value, updateSelf, noBubble) {
@@ -707,381 +385,255 @@ KarmaFieldsAlpha.fields.field = class Field {
 
     this.changeValue(value);
 
-    // const field = this;
-    // return this.load(field.validate(value).then(function(value) {
-    //   if (value !== undefined) {
-    //     const rawValue = field.stringify(value);
-    //     field.write(rawValue);
-    //     if (updateSelf) {
-    //       field.try("onSet", value);
-    //     }
-    //     field.try("onModified", rawValue === this.originalValue);
-    //     // field.try("onState", field.getState());
-    //     if (!noBubble) {
-    //       return Promise.resolve(field.bubble("change", field, value)).then(function() {
-    //         return value;
-    //       });
-    //     }
-    //   }
-    //   return value;
-    // }));
   }
 
+  getValue() {
+    return this.getDeltaValue() ?? this.getOriginal();
+  }
 
   setValue(value) {
-    const rawValue = this.stringify(value);
-    this.write(rawValue);
-    // this.try("onModified", rawValue === this.originalValue);
+    this.setDeltaValue(value);
   }
 
   async changeValue(value) {
     // no validation
-    const rawValue = this.stringify(value);
-    this.write(rawValue);
-    this.try("onModified", rawValue === this.originalValue);
-    await this.load(this.bubble("change", this, value));
+    this.setValue(value);
+    const originalValue = this.getOriginal();
 
-    return value;
+    this.modified = value === originalValue;
+
+    this.try("onModified", value === originalValue);
+    // await this.load(this.bubble("change", this, value));
+    await this.bubble("change", this, value);
   }
 
   async updateValue(value) {
-    // const value = await this.load(this.validate(value)); // -> because of files
-    // if (validatedValue !== value) {
-    //   this.setValue(validatedValue);
-    //   value = validatedValue;
-    //   // this.write(rawValue); // -> for dropdown (if validation make value change)
-    //   // rawValue = this.stringify(value);
-    // }
+    // value = await this.load(this.validate(value));
+    value = await this.validate(value);
 
-    const rawValue = this.stringify(value);
-    this.write(rawValue);
+    this.setValue(value);
+    const originalValue = this.getOriginal();
+
+    this.modified = value === originalValue;
 
     this.try("onSet", value);
-    this.try("onModified", rawValue === this.originalValue);
+    this.try("onModified", value === originalValue);
   }
 
-  // getValueAsync() {
-  //   const field = this;
-  //   let rawValue = field.read();
+  edit() {
+    return this.parent && this.parent.edit();
+  }
+
+  async getValueAsync() {
+    return this.getDeltaValue() ?? this.getOriginal() ?? this.fetchValue() ?? this.getDefault();
+  }
+
+  getOriginal() {
+    return this.getFormOriginal();
+  }
+
+  setOriginal(value) {
+    this.setFormOriginal(value);
+  }
+
+  getFormOriginal(keys) {
+    keys = this.getKeyPath(keys);
+    return this.parent && this.parent.getFormOriginal(keys);
+  }
+
+  setFormOriginal(value, keys) {
+    keys = this.getKeyPath(keys);
+    this.parent && this.parent.setFormOriginal(value, keys);
+  }
+
+  async fetchValue() {
+    let value = await this.getRemoteValue();
+    value = this.prepare(value);
+    if (value !== undefined) {
+      value = this.convert(value);
+      this.setOriginal(value);
+    }
+    return value;
+  }
+
+  // async getRawBaseValue() {
+  //   let rawValue = this.getCache();
   //   if (rawValue === undefined) {
-  //     return this.get().then(function(value) {
-  //       value = field.prepare(value);
-  //       if (value === undefined) {
-  //         value = field.getDefault();
-  //       }
-  //       return value;
-  //     });
-  //   } else {
-  //     return Promise.resolve(field.parse(rawValue));
+  //     let value = await this.getRemoteValue();
+  //     value = this.prepare(value);
+  //     if (value !== undefined) {
+  //       value = this.convert(value);
+  //       rawValue = this.stringify(value);
+  //       this.setCache(rawValue);
+  //     }
   //   }
+  //   return rawValue;
   // }
 
-  // async getValueAsync(forceReload) {
-  //   let rawValue = this.read();
+
+  getRemoteValue(keys) {
+    keys = this.getKeyPath(keys);
+    return this.parent && this.parent.getRemoteValue(keys);
+  }
+
+  // setRemoteValue(rawValue, keys) {
+  //   keys = this.getKeyPath(keys);
+  //   this.parent && this.parent.setRemoteValue(rawValue, keys);
+  //   // this.driver.base[this.path] = Promise.resolve(rawValue);
+  // }
+
+  getRawValue() {
+    console.error("Deprecated function getRawValue");
+
+    // let rawValue = this.read();
+    // if (rawValue === undefined) {
+    //   rawValue = this.originalValue;
+    // }
+    // return rawValue;
+  }
+
+  // async update() {
   //   let value;
+  //   let rawValue = this.getRawValue();
+  //
   //   if (rawValue === undefined) {
-  //     if (this.baseValue === undefined || forceReload) {
-  //       value = await this.load(this.get());
-  //       value = this.prepare(value);
-  //       value = this.convert(value);
-  //     } else {
-  //       value = this.parse(this.baseValue);
+  //     value = await this.load(this.getRemoteValue());
+  //
+  //     if (value === undefined) {
+  //       value = this.getDefault();
   //     }
   //   } else {
   //     value = this.parse(rawValue);
   //   }
+  //
+  //   value = await this.load(this.validate(value));
+  //   const validRawValue = this.stringify(value);
+  //
+  //   // only save if value is different
+  //   if (validRawValue !== rawValue) {
+  //
+  //     rawValue = validRawValue;
+  //     this.write(rawValue);
+  //     await this.load(Promise.resolve(this.bubble("change", this, value)));
+  //   }
+  //
+  //   this.try("onModified", rawValue === this.originalValue);
+  //   this.try("onSet", value);
+  //
   //   return value;
   // }
 
-  async getValueAsync(forceReload) {
-    let rawValue = this.getRawValue();
-    if (rawValue === undefined || forceReload) {
-      return this.getRemoteValue();
-    } else {
-      return this.parse(rawValue);
-    }
-  }
-
-  async getRemoteValue() {
-    let value = await this.get();
-    value = this.prepare(value);
-    this.initValue(value);
-    // if (value === undefined) {
-    //   this.baseValue = undefined;
-    // } else {
-    //   this.baseValue = this.stringify(value);
-    //   // value = this.convert(value);
-    // }
-    return value;
-  }
-
-  getRawValue() {
-    let rawValue = this.read();
-    if (rawValue === undefined) {
-      rawValue = this.originalValue;
-    }
-    return rawValue;
-  }
-
-  // updateTEST() {
-  //   const field = this;
-  //   let rawValue = field.read();
-  //
-  //   // console.log(rawValue, this.resource.key, this);
-  // }
-
-  // update() {
-  //   const field = this;
-  //   const path = this.getPath();
-  //   // console.log("update", path);
-  //   // field.try("onState", field.getState());
-  //   if (!path.length) {
-  //     return Promise.resolve();
-  //   }
-  //   let rawValue = field.read();
-  //   if (rawValue === undefined) {
-  //     return this.load(this.get().then(function(value) {
-  //       value = field.prepare(value);
-  //       value = field.convert(value);
-  //       return value;
-  //     })).then(function(value) {
-  //       if (value === undefined) {
-  //         return field.saveValue(field.getDefault(), true, false);
-  //       } else {
-  //         return field.saveValue(value, true, true);
-  //       }
-  //     });
-  //   } else {
-  //     const value = field.parse(rawValue);
-  //     field.try("onSet", value);
-  //     field.try("onModified", rawValue === field.originalValue);
-  //     return Promise.resolve(value);
-  //   }
-  // }
-
-
-
-
-
-
-
-
   async update() {
-    // const path = this.getPath();
+
+    // let deltaValue = this.getDeltaValue();
+    // let baseValue = await this.load(this.getRawBaseValue());
+    // let value;
     //
-    // if (!path.length) {
-    //   return;
+    // if (deltaValue !== undefined) {
+    //   value = this.parse(deltaValue);
+    // } else if (baseValue !== undefined) {
+    //   value = this.parse(baseValue);
+    //   value = await this.load(this.validate(value));
+    // } else {
+    //   value = await this.getDefault();
     // }
-    let value;
-    let rawValue = this.getRawValue();
-    // if (rawValue === undefined) {
-    //   rawValue = this.baseValue;
+    //
+    // const validRawValue = this.stringify(value);
+    //
+    // // only save if deltaValue is undefined
+    // if (deltaValue === undefined) {
+    //   this.setDeltaValue(validRawValue);
+    //   await this.load(Promise.resolve(this.bubble("change", this, value)));
     // }
+    //
+    // this.try("onModified", validRawValue === baseValue);
+    // this.try("onSet", value);
 
-    if (rawValue === undefined) {
-      value = await this.load(this.getRemoteValue());
+    // debugger;
 
-      if (value === undefined) {
-        value = this.getDefault();
+    let originalValue = this.getOriginal();
+    let deltaValue = this.getValue();
+    let value = deltaValue ?? originalValue;
 
-
-
-        // await this.saveValue(value, true, false);
-        // await this.changeValue(value);
-        // const rawValue = this.stringify(value);
-        // this.write(rawValue);
-        //
-        // await this.load(this.bubble("change", this, value));
-
-      // } else {
-        // await this.saveValue(value, true, true);
-
-        // value = await this.load(this.validate(value);
-        // const validatedRawValue = this.stringify(value);
-        //
-        // // only save if value is different
-        // if (validatedRawValue !== rawValue) {
-        //   rawValue = validatedRawValue;
-        //   this.write(rawValue);
-        // }
-
-      }
-    } else {
-      value = this.parse(rawValue);
-
-      // value = await this.load(this.validate(value)); // not sure this is necessary!
-      //
-      // // await this.updateValue(value);
-      //
-      // this.try("onModified", rawValue === this.originalValue);
-      //
-      // // const validatedValue = await this.load(this.validate(value)); // -> because of files
-      // // if (validatedValue !== value) {
-      // //   this.write(rawValue); // -> for dropdown (if validation make value change)
-      // //   rawValue = this.stringify(value);
-      // // }
-      // //
-      // //
-      // //
-      // this.try("onSet", value);
-      // this.try("onModified", rawValue === this.originalValue);
+    if (value === undefined) {
+      // value = await this.load(this.fetchValue());
+      value = await this.fetchValue();
     }
-
-    value = await this.load(this.validate(value));
-    const validRawValue = this.stringify(value);
+    if (value === undefined) {
+      // value = await this.load(this.getDefault());
+      value = await this.getDefault();
+    } else {
+      // value = await this.load(this.validate(value));
+      value = await this.validate(value);
+    }
 
     // only save if value is different
-    if (validRawValue !== rawValue) {
-
-      rawValue = validRawValue;
-      this.write(rawValue);
-      await this.load(Promise.resolve(this.bubble("change", this, value)));
+    if (value !== originalValue) {
+      this.setValue(value);
+      // await this.load(this.bubble("change", this, value));
     }
 
-    this.try("onModified", rawValue === this.originalValue);
+    this.modified = value === originalValue;
+
+    this.try("onModified", value === originalValue);
     this.try("onSet", value);
 
     return value;
   }
 
+  getDeltaValue(keys) {
+    keys = this.getKeyPath(keys);
+    return this.parent && this.parent.getDeltaValue(keys);
+  }
+
+  setDeltaValue(rawValue, keys) {
+    keys = this.getKeyPath(keys);
+    this.parent && this.parent.setDeltaValue(rawValue, keys);
+  }
+
+  removeDeltaValue(keys) {
+    keys = this.getKeyPath(keys);
+    return this.parent && this.parent.removeDeltaValue(keys);
+  }
 
 
-  // update() {
-  //   const field = this;
-  //   const path = this.getPath();
-  //   let rawValue = this.read(path);
-  //   if (rawValue === undefined) {
-  //     // value is unset
-  //     field.startLoad();
-  //     return this.get(path).then(function(value) {
-  //       value = field.prepare(value);
-  //
-  //       if (value === undefined) {
-  //         // value is not found
-  //         value = field.getDefault();
-  //       } else {
-  //         rawValue = field.stringify(value);
-  //         field.originalValue = rawValue;
-  //       }
-  //
-  //       return Promise.resolve(value).then(function(value) {
-  //
-  //         return field.validate(value);
-  //       }).then(function(value) {
-  //         field.endLoad();
-  //         if (value !== undefined) {
-  //
-  //           rawValue = field.stringify(value);
-  //           field.write(path, rawValue);
-  //           field.try("onSet", value);
-  //           field.try("onModified", rawValue === field.originalValue);
-  //           if (rawValue !== field.originalValue) {
-  //             return field.bubble("change", field, value);
-  //           }
-  //         }
-  //       });
-  //     });
-  //   } else {
-  //     let value = field.parse(rawValue);
-  //     field.try("onSet", value);
-  //     field.try("onModified", rawValue === field.originalValue);
-  //     return Promise.resolve();
-  //   }
-  // }
+  // experimental
+  getDeltaValue2() {
+    const value = this.parent && this.parent.getDeltaValue2();
+    if (value && this.resource.key) {
+      return value[this.resource.key];
+    }
+    return value;
+  }
+  // experimental
+  setDeltaValue2(value) {
+    const wrap = this.parent && this.parent.getDeltaValue2();
+    if (this.resource.key) {
+      value = {[this.resource.key]: value};
+    }
+    if (wrap) {
+      Object.assign(wrap, value);
+    } else {
+      this.parent.setDeltaValue2(value);
+    }
+  }
 
-  // setValue(value, context) { // context = {'change' | 'set' | 'undo'}
-  //
-  //   console.warn("Deprecated function setValue");
-  //
-  //   if (context === "set") {
-  //     // this.updateValue(value, true, true);
-  //     this.setOriginal(value);
-  //   } else {
-  //     this.updateValue(value);
-  //   }
-  //
-  //   // return;
-  //   //
-  //   // let response;
-  //   //
-  //   // if (value === undefined) {
-  //   //   return;
-  //   // }
-  //   //
-  //   // // value = this.convert(value, typeof value, this.resource.datatype || this.datatype);
-  //   // value = this.sanitize(value, "import");
-  //   // value = this.stringify(value);
-  //   //
-  //   //
-  //   // // if (!context) {
-  //   // //   context = "change";
-  //   // // }
-  //   //
-  //   // if (context === "change") {
-  //   //   this.triggerEvent("history", true);
-  //   // }
-  //   //
-  //   // this.write(value);
-  //   //
-  //   // // this.isDifferent = this.history[this.domain.index] !== value;
-  //   //
-  //   // if (context === "set") {
-  //   //   this.originalValue = value;
-  //   //   this.try("onSet", value);
-  //   //   this.triggerEvent("set"); // compat
-  //   //
-  //   //   // this.triggerEvent("set");
-  //   //   // this.saveHistory();
-  //   //   // this.triggerEvent("set", true); // -> will save history
-  //   //
-  //   // }
-  //   //
-  //   // if (context === "undo") {
-  //   //   this.triggerEvent("set");
-  //   //   // this.triggerEvent("undo");
-  //   // }
-  //   //
-  //   // if (context === "change" || context === "default") {
-  //   //   response = this.triggerEvent("change", true);
-  //   // }
-  //   //
-  //   //
-  //   //
-  //   //
-  //   // // this.isModified = value !== this.originalValue;
-  //   // // this.lastValue = value;
-  //   //
-  //   // // this.triggerEvent("set"); // -> reload node
-  //   //
-  //   // return response;
-  // }
+
+
 
   getClosest(type) {
     console.error("Deprecated function getClosest");
 
-    // if (this.resource.type === type) {
-    //   return this;
-    // } else {
-    //   return this.parent.getClosest(type);
-    // }
   }
 
   findAncestor(callback) {
     console.error("Deprecated function findAncestor");
-    // if (callback(this)) {
-    //   return this;
-    // } else if (this.parent) {
-    //   return this.parent.findAncestor(callback);
-    // }
+
   }
 
   getRoot() {
     console.error("Deprecated function getRoot");
-    // if (this.parent) {
-    //   return this.parent.getRoot();
-    // } else {
-    //   return this;
-    // }
+
   }
 
   // not used !!
@@ -1095,19 +647,16 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   stringify(value) {
+    console.error("Deprecated function stringify");
     return value;
   }
 
   parse(value) {
+    console.error("Deprecated function parse");
     return value;
   }
 
   getEmpty() {
-
-    // if (this.resource.key === "trash") {
-    //   console.log(this.resource.value);
-    //   console.trace();
-    // }
     return "";
   }
 
@@ -1126,12 +675,6 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   sanitize(value, context) {
     console.error("Deprecated function sanitize. Use validate");
-
-    // if (context === "input") {
-    //   return this.convert(value, this.resource.output_datatype || typeof value, this.resource.datatype || this.datatype);
-    // } else { // "import"
-    //   return this.convert(value, typeof value, this.resource.datatype || this.datatype);
-    // }
   }
 
   // ??
@@ -1149,41 +692,30 @@ KarmaFieldsAlpha.fields.field = class Field {
     }
   }
 
+  render() {
+    //
+  }
+
   // history API
   saveHistory() {
     this.backup();
   }
-  backup(state) {
+  backup(keys) {
+    keys = this.getKeyPath(keys);
+    // if (!keys) {
+    //   keys = [];
+    // } else if (!Array.isArray(keys)) {
+    //   keys = [keys];
+    // }
+    // if (this.resource.key) {
+    //   keys.unshift(this.resource.key);
+    // }
     // this.triggerEvent("history", true);
-    this.bubble("history", this, state);
+    // this.bubble("history", this, state);
+    this.parent && this.parent.backup(keys);
   }
 
 
-
-  // getHistoryIndex() {
-  //   let driver = this.getRoot().resource.driver;
-  //   return KarmaFieldsAlpha.History.getDriverIndex(driver);
-  // }
-  // historySave() {
-  //   let index = KarmaFieldsAlpha.History.getIndex(field);
-  //   this.history[index] = this.getValue();
-  // }
-  //
-  // historyGo(index) {
-  //   if (this.history[index]) {
-  //     this.setValue(this.history[index], "undo");
-  //   }
-  //   this.children.forEach(function(child) {
-  //     child.historyGo(index);
-  //   });
-  // }
-  //
-  // historyDelete(index) {
-  //   this.history[index] = undefined;
-  //   this.children.forEach(function(child) {
-  //     child.historyDelete(index);
-  //   });
-  // }
 
   // query API
   queryOptions(driver, params) {
@@ -1218,8 +750,8 @@ KarmaFieldsAlpha.fields.field = class Field {
     this.triggerEvent("options");
   }
 
-  fetch(queryString) {
-    return this.parent && this.parent.fetch(queryString) || Promise.resolve([]);
+  async getRemoteOptions(queryString, driver) {
+    return this.parent && this.parent.getRemoteOptions(queryString, driver);
 
     // this.promiseOptions = KarmaFieldsAlpha.Form.fetch2(driver, queryString).then(function(results) {
     //   field.setOptions(results.items || results || []);
@@ -1232,57 +764,28 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   getDriver() {
     console.error("Deprecated function getDriver.");
-    return this.parent && this.parent.getDriver();
+    // return this.parent && this.parent.getDriver();
   }
 
-  fetchOptions() {
-    const field = this;
-    const queryString = this.getOptionsParamString();
-    return this.fetch(queryString).then(function(options) {
-      return options.items || options || [];
-      //return field.prepareOptions(options.items || options || []);
-    });
 
-
+  // !! this method is specifique for dropdown
+  async fetchOptions() {
     // const field = this;
-    //
-    // if (!this.promiseOptions) {
-    //   if (this.resource.options) {
-    //     this.setOptions(this.resource.options);
-    //     this.promiseOptions = Promise.resolve(this.getOptions()).then(function(options) {
-    //       field.try("onOptions", options, "resource");
-    //     });
-    //   } else {
-    //     const queryString = this.getOptionsParamString(params);
-    //     const driver = this.getDriver();
-    //     if (driver && queryString) {
-    //       this.startLoad();
-    //       this.promiseOptions = KarmaFieldsAlpha.Form.fetch2(driver, queryString).then(function(results) {
-    //         field.setOptions(results.items || results || []);
-    //         field.endLoad();
-    //         field.try("onOptions", field.getOptions(), queryString);
-    //         return field.getOptions();
-    //       });
-    //     } else {
-    //       this.promiseOptions = Promise.resolve([]);
-    //     }
-    //   }
-    // }
-    // return this.promiseOptions;
+    // const queryString = this.getOptionsParamString();
+    // return this.fetch(queryString).then(function(options) {
+    //   return options.items || options || [];
+    //   //return field.prepareOptions(options.items || options || []);
+    // });
 
+    if (this.resource.options) {
+      return this.resource.options;
+    }
 
-
-
-
+    const queryString = this.getOptionsParamString();
+    const options = await this.getRemoteOptions(queryString);
+    return options.items || options || [];
   }
 
-  // maybeFetchOptions(params) {
-  //   if (this.hasOptions()) {
-  //     return Promise.resolve(this.data.options);
-  //   } else {
-  //     return this.fetchOptions(params);
-  //   }
-  // }
 
   prepareOptions(options) {
     return options;
@@ -1295,16 +798,30 @@ KarmaFieldsAlpha.fields.field = class Field {
     if (this.resource.params) {
       Object.assign(params, this.resource.params);
     }
+
+
     if (this.resource.args) {
+      console.warn("deprecated args property");
       Object.assign(params, this.resource.args);
     }
 
-    Object.assign(params, this.triggerUp("optionparams", this));
-    // return KarmaFieldsAlpha.form.encodeParams(params);
+    // Object.assign(params, this.triggerUp("optionparams", this, this.resource.optionparamlist));
+    if (this.resource.optionparamlist) {
+      this.resource.optionparamlist.reduce((acc, key) => {
+        acc[key] = this.getRelatedValue(key);
+        return acc;
+      }, params);
+    }
+
+
     return params;
   }
 
   getOptionsParamString(params) {
+
+    if (this.resource.options) {
+      return "resource";
+    }
     // console.warn("Deprecated function fetchOptions.");
     params = this.getOptionsParams(params);
     // let queryString = KarmaFieldsAlpha.Form.encodeParams(params);
@@ -1346,12 +863,7 @@ KarmaFieldsAlpha.fields.field = class Field {
     // value = this.parse(value || "");
     // return Promise.resolve(value);
 
-    let value = this.getValue();
-    if (value === undefined) {
-      value = this.getDefault();
-    }
-
-    return value;
+    return this.getValueAsync();
   }
 
   importValue(value) {
@@ -1366,19 +878,26 @@ KarmaFieldsAlpha.fields.field = class Field {
 	// 	this.try("onState", state);
 	// }
 
-  updateState(state) {
-		// this.try("onState", this.getState());
-    this.try("onState", state);
-	}
+  // updateState(state) {
+	// 	// this.try("onState", this.getState());
+  //   this.try("onState", state);
+	// }
 
   reset() {
+    console.error("Deprecated function reset.");
 		this.originalValue = undefined;
 	}
 
-  // getState() {
-  //   return this.parent && this.parent.getState() || "";
-  // }
+  getState() {
+    return this.parent && this.parent.getState() || this.state || "";
+  }
 
+  edit() {
+    return this.parent && this.parent.edit();
+  }
+  submit() {
+    return this.parent && this.parent.submit();
+  }
 
 
 };

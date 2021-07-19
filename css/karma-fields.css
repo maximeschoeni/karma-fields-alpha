@@ -135,13 +135,13 @@
 --------------------------------------*/
 
 .karma-file {
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
-  /* align-items: flex-end; */
+  align-items: flex-end;
   vertical-align: middle;
   margin: -0px;
 
-  max-width: 260px;
+  /* max-width: 260px; */
 }
 .karma-file.loading {
   flex-grow: 0.5;
@@ -204,27 +204,41 @@
 }
 
 
+.karma-field-frame.karma-field-file {
+  grid-template-columns: 150px 1fr;
+}
+.karma-field-frame.karma-field-file .karma-field-spinner,
+.karma-field-frame.karma-field-files .karma-field-spinner {
+  grid-area: 2 / 1 / 3 / 2;
+}
+
+
+
+
+
 /* Files
 --------------------------------------*/
 
 .karma-files {
-  flex-grow: 1;
+  /* flex-grow: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; */
+  justify-content: flex-end;
 }
 .karma-files.loading {
-  flex-grow: 0.5;
-  height: 150px;
+  /* flex-grow: 0.5;
+  height: 150px; */
 }
 .karma-files .gallery {
   display: flex;
+  width: 100%;
   /* flex-wrap: wrap; */
   border: 1px solid #c3c4c7;
   cursor: pointer;
 }
-.karma-files.loading .gallery,
-.karma-files.loading .field-control {
-  display: none;
+.karma-files.loading .gallery .images-container,
+.karma-files.loading .add-container {
+  visibility: hidden;
 }
 .karma-files .gallery .images-container {
   display: flex;

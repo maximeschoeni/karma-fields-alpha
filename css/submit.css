@@ -11,8 +11,16 @@
   border-color: #1f6196;
   color: #f6f7f7;
 }
-.karma-fields button.karma-submit:disabled {
+/* .karma-fields button.karma-submit:disabled {
   border-color: #a7aaad;
   background-color: transparent;
   color: #a7aaad;
+} */
+
+button.karma-submit[disabled] {
+  border-color: #c3c4c7 !important;
+}
+
+.karma-fields button.karma-submit.loading span {
+  visibility: hidden;
 }

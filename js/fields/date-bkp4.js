@@ -144,10 +144,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
                               let sqlDate = KarmaFieldsAlpha.Calendar.format(day.date, field.resource.output_format);
                               field.date = null;
                               field.backup();
-                              field.setValue(sqlDate);
-                              field.edit();
-                              field.render();
-                              // field.updateChangeValue(sqlDate);
+                              field.updateChangeValue(sqlDate);
                             }
                             let sqlDate = KarmaFieldsAlpha.Calendar.format(day.date, field.resource.output_format);
                             this.element.classList.toggle("active", value === sqlDate);
@@ -169,90 +166,82 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
 
 
   build() {
-    // const field = this;
+    const field = this;
 
     return {
       class: "karma-field karma-field-date",
-      init: (container) => {
-        container.element.setAttribute('tabindex', '-1');
-        this.init(container.element);
+      init: function(container) {
+        this.element.setAttribute('tabindex', '-1');
+        field.init(this.element);
       },
-      update: container => {
-        container.element.classList.add("loading");
-        container.children = [
-          {
-            class: "date-popup-container",
-            update: (popup) => {
-              // field.onUpdatePopup = function(value) {
-              const value = this.getValue();
+      children: [
+        {
+          class: "date-popup-container",
+          update: function(popup) {
+            field.onUpdatePopup = function(value) {
               popup.element.classList.toggle("open-down", popup.element.getBoundingClientRect().top+window.pageYOffset < 500);
-              popup.children = this.date && [this.buildPopup(value)] || [];
-                // popup.render();
-              // }
-            }
-          },
-          {
-            tag: "input",
-            class: "text date karma-field-input",
-            init: (input) => {
-              input.element.type = "text";
-              input.element.id = this.getId();
-            },
-            update: async (input) => {
-
-              if (this.resource.readonly) {
-                input.element.readOnly = true;
-              } else {
-                input.element.onkeyup = () => {
-                  let inputDate = KarmaFieldsAlpha.Calendar.parse(input.element.value, this.format);
-                  if (inputDate) {
-                    this.date = inputDate;
-                    var sqlDate = KarmaFieldsAlpha.Calendar.format(this.date, this.resource.output_format);
-                    this.setValue(sqlDate);
-                    this.edit();
-                    this.render();
-                    // this.changeValue(sqlDate).then(function() {
-                    //   field.try("onUpdatePopup", sqlDate);
-                    // });
-                  }
-                  input.element.classList.toggle("valid-date", inputDate);
-                };
-                input.element.onfocus = () => {
-                  const value = this.getValue();
-                  this.date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format) || new Date();
-                  this.render();
-
-                  // this.getValueAsync().then(function(value) {
-                  //   this.date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format) || new Date();
-                  //   this.try("onUpdatePopup", value);
-                  // });
-                };
-                input.element.onfocusout = () => {
-                  this.date = null;
-                  if (!KarmaFieldsAlpha.Calendar.parse(input.element.value, this.format)) {
-                    // field.changeValue("");
-                    this.setValue("");
-                    this.edit();
-                  }
-                  this.render();
-                };
-              }
-
-              // field.onSet = function(value) {
-              const value = await this.update();
-              container.element.classList.toggle("modified", this.modified);
-
-              let date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);
-              input.element.value = date && KarmaFieldsAlpha.Calendar.format(date, this.format) || "";
-              if (!this.date) {
-                input.element.blur();
-              }
-            },
-            complete: input => {
-              container.element.classList.remove("loading");
+              popup.children = field.date && [field.buildPopup(value)] || [];
+              popup.render();
             }
           }
-        ]
+        },
+        {
+          tag: "input",
+          class: "text date karma-field-input",
+          init: function(input) {
+            this.element.type = "text";
+            this.element.id = field.getId();
+          },
+          update: function(input) {
+
+            if (field.resource.readonly) {
+              this.element.readOnly = true;
+            } else {
+              this.element.onkeyup = function() {
+                let inputDate = KarmaFieldsAlpha.Calendar.parse(this.value, field.format);
+                if (inputDate) {
+                  field.date = inputDate;
+                  var sqlDate = KarmaFieldsAlpha.Calendar.format(field.date, field.resource.output_format);
+                  field.changeValue(sqlDate).then(function() {
+                    field.try("onUpdatePopup", sqlDate);
+                  });
+                }
+                this.classList.toggle("valid-date", inputDate);
+              };
+              this.element.onfocus = function() {
+                field.getValueAsync().then(function(value) {
+                  field.date = value && KarmaFieldsAlpha.Calendar.parse(value, field.resource.output_format) || new Date();
+                  field.try("onUpdatePopup", value);
+                });
+              };
+              this.element.onfocusout = function() {
+                field.date = null;
+                if (!KarmaFieldsAlpha.Calendar.parse(this.value, field.format)) {
+                  field.changeValue("");
+                }
+                field.try("onUpdatePopup");
+              };
+            }
+
+            field.onSet = function(value) {
+              let date = value && KarmaFieldsAlpha.Calendar.parse(value, field.resource.output_format);
+              input.element.value = date && KarmaFieldsAlpha.Calendar.format(date, field.format) || "";
+
+              if (!field.date) {
+                input.element.blur();
+              }
+            }
+            field.update();
+          }
+        }
+      ],
+      update: function(container) {
+        field.onModified = function(modified) {
+          container.element.classList.toggle("modified", modified);
+        }
+        field.onLoad = function(loading) {
+          container.element.classList.toggle("loading", loading);
+        }
       }
     };
   }
