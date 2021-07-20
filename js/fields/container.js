@@ -87,21 +87,34 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 		return value;
 	}
 
-	getValueAsync() {
-		const field = this;
-		return Promise.all(this.children.map(function(child) {
-			return child.getValueAsync();
-		})).then(function(values) {
-			return values.reduce(function(acc, value, index) {
-				const child = field.children[index];
-				if (child.resource.key) {
-					acc[child.resource.key] = value;
-				} else {
-					Object.assign(acc, value);
-				}
-				return acc;
-			}, {});
-		});
+	// getValueAsync() {
+	// 	const field = this;
+	// 	return Promise.all(this.children.map(function(child) {
+	// 		return child.getValueAsync();
+	// 	})).then(function(values) {
+	// 		return values.reduce(function(acc, value, index) {
+	// 			const child = field.children[index];
+	// 			if (child.resource.key) {
+	// 				acc[child.resource.key] = value;
+	// 			} else {
+	// 				Object.assign(acc, value);
+	// 			}
+	// 			return acc;
+	// 		}, {});
+	// 	});
+	// }
+
+	async getValueAsync() {
+		const values = await Promise.all(this.children.map(child => child.getValueAsync()));
+		return values.reduce((acc, value, index) => {
+			const child = this.children[index];
+			if (child.resource.key) {
+				acc[child.resource.key] = value;
+			} else {
+				Object.assign(acc, value);
+			}
+			return acc;
+		}, {});
 	}
 
 	// getModifiedValue() {

@@ -38,6 +38,8 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				// 	});
 				// }
 				this.init(input.element);
+
+				this.render = input.render;
 			},
 			update: async input => {
 
@@ -53,7 +55,10 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 						// this.promise = this.changeValue(input.element.value);
 						// await this.promise;
 
-						await this.changeValue(input.element.value);
+						// await this.changeValue(input.element.value);
+						// debugger;
+						this.setValue(input.element.value);
+						await this.edit();
 
 						// const value = input.element.value;
 						// this.setDeltaValue(value);

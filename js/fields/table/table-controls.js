@@ -134,7 +134,7 @@ KarmaFieldsAlpha.fields.tableControls.undo = class extends KarmaFieldsAlpha.fiel
       field.setHistoryIndex(field.content.historyIndex);
 
       element.classList.add("loading");
-      await field.update();
+      // await field.update();
       await field.render();
       element.classList.remove("loading");
 
@@ -190,7 +190,7 @@ KarmaFieldsAlpha.fields.tableControls.redo = class extends KarmaFieldsAlpha.fiel
       field.setHistoryIndex(field.content.historyIndex-0);
 
       element.classList.add("loading");
-      await field.update();
+      // await field.update();
       await field.render();
       element.classList.remove("loading");
 
@@ -301,7 +301,7 @@ KarmaFieldsAlpha.fields.tableControls.reload = class extends KarmaFieldsAlpha.fi
       // debugger;
 
       element.classList.add("loading");
-      await field.update();
+      // await field.update();
       await field.render();
       element.classList.remove("loading");
 
@@ -331,7 +331,7 @@ KarmaFieldsAlpha.fields.tableControls.firstPage = class extends KarmaFieldsAlpha
       if (page > 0) {
         element.classList.add("loading");
         field.page.setValue(1);
-        await field.update();
+        // await field.update();
         await field.render();
         element.classList.remove("loading");
       }
@@ -352,9 +352,19 @@ KarmaFieldsAlpha.fields.tableControls.prevPage = class extends KarmaFieldsAlpha.
       if (page > 0) {
         element.classList.add("loading");
         field.page.setValue(page-1);
-        await field.update();
+        // await field.update();
+
+        // requestIdleCallback( async () => {
+        //   await field.render();
+        //   element.classList.remove("loading");
+        // });
+
         await field.render();
         element.classList.remove("loading");
+
+
+
+
       }
     }
   }
@@ -373,7 +383,7 @@ KarmaFieldsAlpha.fields.tableControls.nextPage = class extends KarmaFieldsAlpha.
       if (page < numPage) {
         element.classList.add("loading");
         field.page.setValue(page+1);
-        await field.update();
+        // await field.update();
         await field.render();
         element.classList.remove("loading");
       }
@@ -394,7 +404,7 @@ KarmaFieldsAlpha.fields.tableControls.lastPage = class extends KarmaFieldsAlpha.
       if (page < numPage) {
         element.classList.add("loading");
         field.page.setValue(numPage);
-        await field.update();
+        // await field.update();
         await field.render();
         element.classList.remove("loading");
       }
@@ -445,7 +455,7 @@ KarmaFieldsAlpha.fields.tableControls.ppp = class extends KarmaFieldsAlpha.field
       field.ppp.setValue(item.key);
       field.page.setValue(1);
       element.classList.add("loading");
-      await field.update();
+      // await field.update();
       await field.render();
       element.classList.remove("loading");
 
@@ -481,9 +491,10 @@ KarmaFieldsAlpha.fields.tableControls.order = class {
         const orderby = field.orderby.getValue();
         const order = field.order.getValue();
         a.element.onclick = async event => {
+          event.preventDefault();
           a.element.classList.add("loading");
           this.reorder(column, field);
-          await field.update();
+          // await field.update();
           await field.render();
           a.element.classList.remove("loading");
         };

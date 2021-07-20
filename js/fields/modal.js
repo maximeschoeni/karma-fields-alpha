@@ -1,10 +1,10 @@
 KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.container {
 
-	constructor(resource, domain) {
-		super(resource, domain);
+	constructor(resource, parent, form) {
+		super(resource, parent, form);
 
-		this.handle = new KarmaFieldsAlpha.fields.field(resource.handle, this.domain, this);
-		this.content = new KarmaFieldsAlpha.fields.group(resource.content, this.domain, this);
+		this.handle = new KarmaFieldsAlpha.fields.field(resource.handle, this, this);
+		this.content = new KarmaFieldsAlpha.fields.group(resource.content, this, this);
 
     // this.filters.events.change = function(target) {
     //   return field.query().then(function() {

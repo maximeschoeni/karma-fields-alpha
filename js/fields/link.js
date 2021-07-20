@@ -1,61 +1,106 @@
 KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.field {
 
-	constructor(resource, domain) {
-		super(resource, domain);
+	// constructor(resource, domain) {
+	// 	super(resource, domain);
+	//
+	// 	if (this.resource.driver) {
+	// 		const driver = this.resource.driver;
+	// 		this.events.fetch = function(field, params) {
+	// 			return field.queryOptions(driver, params);
+	// 		};
+	// 	}
+	//
+	// }
 
+	getRemoteOptions(paramString) {
 		if (this.resource.driver) {
-			const driver = this.resource.driver;
-			this.events.fetch = function(field, params) {
-				return field.queryOptions(driver, params);
-			};
+			return super.getRemoteOptions(paramString, this.resource.driver);
 		}
+	}
 
+	// getParamString(sep) {
+	// 	const params = {
+	// 		key: this.resource.key,
+	// 		[this.resource.key]: this.getValue(),
+	// 		...this.resource.params
+	// 	};
+	//
+	// 	return KarmaFieldsAlpha.Form.encodeParams(params, sep || "");
+	// }
+
+	// async update() {
+	// 	const value = await super.update();
+	// 	const queryString = KarmaFieldsAlpha.Form.encodeParams({
+	// 		key: this.resource.key
+	// 	}, "?"); //this.getParamString("?"); // "?"+key+"="+field.resource.key
+	// 	const results = await this.getRemoteOptions(queryString);
+	// 	const options = results.items || results || [];
+	// 	const option = options.find(option => option.key === value);
+	// 	return option && option.name || value;
+	// }
+
+	async updateOptions() {
+		const value = this.getValue();
+		const queryString = KarmaFieldsAlpha.Form.encodeParams({
+			key: this.resource.key
+		}, "?"); //this.getParamString("?"); // "?"+key+"="+field.resource.key
+		const results = await this.getRemoteOptions(queryString);
+		const options = results.items || results || [];
+		const option = options.find(option => option.key === value);
+		return option && option[this.resource.option_property || "name"] || value;
+	}
+
+
+	// difference with KarmaFieldsAlpha.Form.encodeParams: params values can be empty
+	encodeParams(params) {
+		const array = [];
+		for (var key in params) {
+			if (params[key] !== undefined && params[key] !== null) {
+				array.push(encodeURIComponent(key) + "=" + encodeURIComponent(params[key].toString()));
+			}
+		}
+		array.sort();
+		return array.join("&");
 	}
 
 	build() {
-		const field = this;
-
 		return {
 			tag: "a",
 			class: "text karma-field",
-			init: function(input) {
-				this.element.setAttribute('tabindex', '-1');
-				if (!field.hasValue()) {
-					field.fetchValue().then(function(value) {
-						field.triggerEvent("set");
-						field.triggerEvent("modify");
-					});
-				}
-				field.init(this.element);
+			init: a => {
+				a.element.setAttribute('tabindex', '-1');
+				this.init(a.element);
 			},
-			update: function(input) {
+			update: async a => {
+				a.element.classList.add("loading");
+				const value = await this.update();
+				if (this.resource.href) {
+					a.element.href = this.resource.href;
+					// +"#"+this.encodeParams({
+					// 	[this.resource.target_key || this.resource.key]: value,
+					// 	...this.resource.target_params
+					// }); //this.getParamString("#");
 
-				this.element.onclick = function() {
-					field.triggerEvent("nav", true);
 				}
-				field.events.modify = function() {
-					input.element.classList.toggle("modified", field.isModified());
-				}
-				field.events.load = function() {
-					input.element.classList.toggle("loading", field.loading > 0);
-				}
-				field.events.set = function() {
-					let value = field.getValue();
-					if (field.resource.fetchName) {
-						field.maybeFetchOptions({key: field.resource.key}).then(function(options) {
-							let option = field.getOptions().find(function(option) {
-								return option.key === value;
-							});
-							input.element.innerHTML = option && option.name || "";
-						});
-					} else {
-						input.element.innerHTML = value || "";
+				a.element.onclick = async (event) => {
+					a.element.classList.add("loading");
+					// await this.bubble("nav", {
+					// 	[this.resource.target_key || this.resource.key]: value,
+					// 	...this.resource.target_params
+					// });
+					const form = this.resource.target_driver && KarmaFieldsAlpha.fields.form.getForm(this.resource.target_driver) || this.form;
+					form.setDeltaValue(value, [this.resource.target_key || this.resource.key]);
+					for (let path in this.resource.target_params) {
+						form.setDeltaValue(this.resource.target_params[path], [path]);
 					}
+					if (!this.resource.href) {
+						this.form.render();
+					}
+					a.element.classList.remove("loading");
 				}
-
-				field.triggerEvent("load");
-				field.triggerEvent("set");
-				field.triggerEvent("modify");
+				const optionValue = await this.updateOptions();
+				a.element.innerHTML = optionValue;
+				a.element.classList.remove("loading");
 			}
 		};
 	}

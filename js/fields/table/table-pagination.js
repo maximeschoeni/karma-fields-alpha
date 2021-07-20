@@ -11,21 +11,21 @@ KarmaFieldsAlpha.fields.tablePagination = class TablePagination extends KarmaFie
     this.page = new KarmaFieldsAlpha.fields.field({
       key: "page",
       value: 1
-    }, this.domain, this);
+    }, this, this);
     // this.page.datatype = "number";
     // this.page.setValue(1);
 
     this.ppp = new KarmaFieldsAlpha.fields.field({
       key: "ppp",
       value: this.resource.ppp || 50
-    }, this.domain, this);
+    }, this, this);
     // this.ppp.datatype = "number";
     // this.ppp.setValue(resource.ppp || 50);
 
     this.count = new KarmaFieldsAlpha.fields.field({
       key: "count",
       value: 0
-    }, this.domain, this);
+    }, this, this);
     // this.count.datatype = "number";
     //
     // this.addChildren(this.page, this.ppp, this.count);

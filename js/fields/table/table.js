@@ -1,13 +1,14 @@
+KarmaFieldsAlpha.tables = {};
+
 KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
-  constructor(resource, domain, parent) {
-    super(resource, domain, parent);
+  constructor(resource, parent, form) {
+    super(resource, parent);
 
     const field = this;
 
-    window.karma_table = this; // -> debug
-    this.domain.name = "Table"; // -> debug
-
+    // window.karma_table = this; // -> debug
+    KarmaFieldsAlpha.tables[resource.driver] = this;
 
     // compat!
     resource.columns = resource.columns.filter(function(column) {
@@ -102,23 +103,23 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       type: "numberField",
       key: "page",
       value: 1
-    }, this.domain, this);
+    }, this, this);
 
     this.ppp = new KarmaFieldsAlpha.fields.field({
       type: "numberField",
       key: "ppp",
       value: this.resource.ppp || 50
-    }, this.domain, this);
+    }, this, this);
 
     this.count = new KarmaFieldsAlpha.fields.field({
       type: "numberField",
       key: "count",
       value: 0
-    }, this.domain, this);
+    }, this, this);
 
     this.queryString = new KarmaFieldsAlpha.fields.field({
       key: "query"
-    }, this.domain, this);
+    }, this, this);
 
 
 
@@ -161,7 +162,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
     // filters
 
-    this.filters = new KarmaFieldsAlpha.fields.group(resource.filters, this.domain, this);
+    this.filters = new KarmaFieldsAlpha.fields.group(resource.filters, this, this);
 
     this.filters.events.change = async (target, value) => {
 
@@ -169,15 +170,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
       this.page.setValue(1);
 
-      await this.update();
+      // await this.update();
 
-      // console.log(this.getValue(), this.modified, this.ids.getValue());
 
-      if (this.modified) {
-        await this.render();
-      }
+      // if (this.modified) {
+      //   await this.render();
+      // }
 
-      // await this.render();
+      await this.render();
 
       // this.promise = this.promise && this.promise.then(() => {
       //   this.update();
@@ -248,7 +248,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     // modal
     this.modal = new KarmaFieldsAlpha.fields.field({
       key: "modal"
-    }, this.domain, this);
+    }, this, this);
 
     this.modal.events.change = function() {
       // field.try("render");
@@ -268,19 +268,20 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     this.ids = new KarmaFieldsAlpha.fields.arrayField({
       key: "ids",
       datatype: "numberField"
-    }, this.domain, this);
+    }, this, this);
 
 
 
     this.content = new KarmaFieldsAlpha.fields.form({
       driver: resource.driver
       // key: "content"
-    }, new KarmaFieldsAlpha.Domain(), this);
+    }, this);
 
     this.content.events.history = function(targetField, state) {
+      console.log("Deprecated Event history");
       // console.log("updatehistory", targetField);
-      this.domain.update(targetField.getId(), state);
-      field.domain.index = this.domain.index;
+      // this.domain.update(targetField.getId(), state);
+      // field.domain.index = this.domain.index;
     };
 
     this.content.events.openmodal = function(modalField) {
@@ -325,7 +326,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     }
 
     // -> for link fields
-    this.content.events.nav = async function(targetField) {
+    this.content.events.nav = params => {
 
       // targetField.startLoad();
       // return targetField.getValueAsync().then(function(value) {
@@ -348,13 +349,18 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       // wrap[targetField.resource.key] = targetField.getValue();
       // field.setValue(wrap);
 
-      field.setValue({[targetField.resource.key]: targetField.getValue()});
+      // field.setValue({[targetField.resource.key]: targetField.getValue()});
+      //
+      // await targetField.load(field.query());
+      //
+      // field.try("onSetHeader");
+      // field.try("onSetBody");
+      // field.try("onSetFooter");
 
-      await targetField.load(field.query());
+      // const paramString = KarmaFieldsAlpha.Form.encodeParams({...this.getValue(), ...params}, "");
 
-      field.try("onSetHeader");
-      field.try("onSetBody");
-      field.try("onSetFooter");
+      this.setValue(params);
+      return this.render();
 
 
     };
@@ -369,6 +375,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
     // this.controls = new KarmaFieldsAlpha.fields.tableControl(field);
+
+
+    if (location.hash) {
+      this.setParamString(location.hash.slice(1));
+    }
   }
 
 
@@ -424,7 +435,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     //   await this.query();
     // }
 
-    let paramString = this.getValue();
+
+
+    let paramString = this.getParamString();
 
 
     if (paramString !== this.getFormOriginal(["paramString"])) {
@@ -470,7 +483,55 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       ...this.filters.getValue()
     };
 
+    return params; //KarmaFieldsAlpha.Form.encodeParams(params);
+  }
+
+  async getValueAsync() {
+		return {
+      ...this.getValue(),
+      ...await this.filters.getValueAsync()
+    }
+	}
+
+
+
+  setValue(params) {
+    for (let key in params) {
+      this.setDeltaValue(params[key], [key]);
+    }
+    // paramString.split("&").forEach((item) => {
+    //   const parts = item.split("=");
+    //   let key, value;
+    //   if (parts.length === 2) {
+    //     key = decodeURIComponent(parts[0]);
+    //     value = decodeURIComponent(parts[1]);
+    //   }
+    //   if (key && value) {
+    //     this.setDeltaValue(value, [key]);
+    //   }
+    // });
+  }
+
+  getParamString() {
+    const params = this.getValue();
     return KarmaFieldsAlpha.Form.encodeParams(params);
+  }
+
+  async getParamStringAsync() {
+    const params = await this.getValueAsync();
+    return KarmaFieldsAlpha.Form.encodeParams(params);
+  }
+
+  setParamString(paramString) {
+    paramString.split("&").forEach((item) => {
+      const parts = item.split("=");
+      let key, value;
+      if (parts.length === 2) {
+        key = decodeURIComponent(parts[0]);
+        value = decodeURIComponent(parts[1]);
+      }
+      this.setDeltaValue(value, [key]);
+    });
   }
 
   // getValueAsync() {
@@ -514,7 +575,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
     // if (this.modified) {
 
-      let paramString = this.getValue();
+      // let paramString = this.getParamString();
+      let paramString = this.getFormOriginal(["paramString"])
+
+      // console.log(paramString);
 
       // await this.queryResults;
       //
@@ -1013,7 +1077,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
           const rowField = this.content.getChild(id);
           this.getColumns().forEach((column, colIndex) => {
             const cellField = rowField.getChild(column.field.key);
-            cellField.render = grid.render;
+            // cellField.render = grid.render;
             grid.children.push(cellField.build());
           });
         });
@@ -1200,7 +1264,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
 
-
+        this.render = container.render;
 
         // -> first load table
         // this.query().then(results => {
@@ -1212,83 +1276,90 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       },
       update: async container => {
 
-        this.render = container.render;
+
 
         await this.update();
 
-        container.children = [
-          {
-            class: "table-header",
-            update: (header) => {
-              // this.onSetHeader = () => {
-                header.children = [
-                  {
-                    tag: "h1",
-                    init: h1 => {
-                      h1.element.textContent = this.resource.title || "";
-                    }
-                  },
-                  this.filters.build()
-                ];
-                // header.render();
-              // }
+        if (this.modified) {
+          container.children = [
+            {
+              class: "table-header",
+              update: (header) => {
+                // this.onSetHeader = () => {
+                  header.children = [
+                    {
+                      tag: "h1",
+                      init: h1 => {
+                        h1.element.textContent = this.resource.title || "";
+                      }
+                    },
+                    this.filters.build()
+                  ];
+                  // header.render();
+                // }
+              }
+            },
+
+            // modal
+            {
+              class: "modal-container",
+              update: modalContainer => {
+                // this.onSetModal = () => {
+                //   const modal = this.getCurrentModal();
+                //   if (modal) {
+                //     modalContainer.children = [
+                //       modal.buildModal()
+                //     ];
+                //     document.body.style.overflow = "hidden";
+                //   } else {
+                //     modalContainer.children = [];
+                //     document.body.style.overflow = "visible";
+                //   }
+                //   modalContainer.render();
+                // }
+
+              }
+            },
+
+            // table body
+            {
+              class: "table-body",
+              update: async body => {
+                // this.onSetBody = async () => {
+                //   body.child = await this.buildGrid();
+                //
+                //   await body.render();
+                // }
+
+                this.content.render = body.render;
+
+                body.child = this.buildGrid();
+              },
+              complete: () => {
+                this.renderFooter();
+              }
+            },
+
+            // table footer
+            {
+              class: "table-footer",
+              update: footer => {
+                this.renderFooter = footer.render;
+
+                const modal = this.modal.getValue();
+                footer.element.classList.toggle("modal-open", modal || false);
+
+                // this.onSetFooter = () => {
+                //   footer.child = this.buildFooterBar();
+                //   footer.render();
+                // }
+                footer.child = this.buildFooterBar();
+              }
             }
-          },
+          ];
+        }
 
-          // modal
-          {
-            class: "modal-container",
-            update: modalContainer => {
-              // this.onSetModal = () => {
-              //   const modal = this.getCurrentModal();
-              //   if (modal) {
-              //     modalContainer.children = [
-              //       modal.buildModal()
-              //     ];
-              //     document.body.style.overflow = "hidden";
-              //   } else {
-              //     modalContainer.children = [];
-              //     document.body.style.overflow = "visible";
-              //   }
-              //   modalContainer.render();
-              // }
 
-            }
-          },
-
-          // table body
-          {
-            class: "table-body",
-            update: async body => {
-              // this.onSetBody = async () => {
-              //   body.child = await this.buildGrid();
-              //
-              //   await body.render();
-              // }
-
-              this.content.render = body.render();
-
-              body.child = this.buildGrid();
-            }
-          },
-
-          // table footer
-          {
-            class: "table-footer",
-            update: footer => {
-              this.renderFooter = footer.render;
-
-              const modal = this.modal.getValue();
-              footer.element.classList.toggle("modal-open", modal || false);
-
-              // this.onSetFooter = () => {
-              //   footer.child = this.buildFooterBar();
-              //   footer.render();
-              // }
-              footer.child = this.buildFooterBar();
-            }
-          }
-        ];
 
       }
 

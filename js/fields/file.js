@@ -1,7 +1,7 @@
 KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField {
 
-  constructor(resource, domain, parent) {
-    super(resource, domain, parent);
+  constructor(resource, parent, form) {
+    super(resource, parent, form);
 
     // this.datatype = "number";
     this.files = {};
@@ -59,7 +59,7 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
             let attachments = uploader.addFrame.state().get("selection").toJSON().map(attachment => attachment);
             if (attachments.length) {
               field.backup();
-              field.setDeltaValue(attachments[0].id);
+              field.setValue(attachments[0].id);
               field.render();
               // field.updateValue(attachments[0].id).then(function() {
               //   debugger;
@@ -218,6 +218,8 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
 				// }
         container.element.setAttribute('tabindex', '-1');
         this.init(container.element);
+
+        this.render = container.render;
 			},
 			update: async container => {
 

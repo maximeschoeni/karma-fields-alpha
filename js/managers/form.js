@@ -1,7 +1,7 @@
 KarmaFieldsAlpha.Form = {
 	cache: {},
 
-	encodeParams: function(params) {
+	encodeParams: function(params, separator) {
 		if (params) {
 			const array = [];
 			for (var key in params) {
@@ -11,7 +11,7 @@ KarmaFieldsAlpha.Form = {
 			}
 			if (array.length) {
 				array.sort();
-				return "?"+array.join("&");
+				return (separator ?? "?")+array.join("&");
 			}
 		}
 		return "";

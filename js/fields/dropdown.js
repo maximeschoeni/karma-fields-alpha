@@ -46,7 +46,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 		// });
 
 		// const value = await super.update();
-		const options = await this.load(this.fetchOptions());
+		const options = await this.fetchOptions();
 		const queryString = this.getOptionsParamString();
 
 		this.try("onOptions", options, value, queryString);
@@ -299,6 +299,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 				dropdown.element.classList.add("loading");
 
+				
 				const value = await this.update();
 				const options = await this.fetchOptions();
 				const queryString = this.getOptionsParamString();

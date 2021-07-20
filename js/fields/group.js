@@ -56,7 +56,7 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 					class: "karma-field-spinner"
 				});
 
-				field.render = container.render;
+				// field.render = container.render;
 
 				// this.children.push({
 				// 	class: "karma-field-item",
@@ -85,11 +85,13 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 
 		return {
 			class: "karma-field karma-field-container display-"+(this.resource.display || "block"),
-			init: () => {
+			init: group => {
 				// if (field.resource.style) {
 				// 	console.log(field.resource);
 				// 	this.element.style = field.resource.style;
 				// }
+				this.render = group.render;
+
 			},
 			update: group => {
 				// this.element.classList.toggle("disabled", field.bubble("disabled") || false);

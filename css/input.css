@@ -13,6 +13,10 @@
 
   border-radius: 2px;
 }
+.karma-fields input.text.modified,
+.karma-fields textarea.modified {
+  color: black;
+}
 .karma-fields input.text:focus,
 .karma-fields textarea:focus {
   outline: none;
@@ -44,7 +48,6 @@
 .karma-fields input:read-only {
   color: #a0a0a0;
 }
-
 .karma-field-input-datalist {
   display: flex;
 }

@@ -80,7 +80,7 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha', $plugin_url . '/js/media.js', array(), $this->version, true);
 				// wp_enqueue_script('karma-fields', $plugin_url . '/js/karma-fields.js', array(), $this->version, true); // -> extensions must comme after this!
 
-				wp_enqueue_script('karma-fields-alpha-build', $plugin_url . '/js/build-v7.5.js', array('karma-fields-alpha'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-build', $plugin_url . '/js/build-v7.6.js', array('karma-fields-alpha'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-calendar', $plugin_url . '/js/calendar.js', array('karma-fields-alpha'), $this->version, true);
 
 

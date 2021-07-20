@@ -8,7 +8,10 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 
 	initField() {
 		this.parent.events.change = () => {
-			this.update();
+			this.render();
+		}
+		this.parent.edit = () => {
+			this.render();
 		}
 	}
 
@@ -27,6 +30,8 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 				this.init(button.element);
 			},
 			update: button => {
+				this.render = button.render;
+				
 				button.element.onclick = async event => {
 					event.preventDefault();
 
@@ -35,13 +40,18 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 					// await field.bubble("submit");
 					await this.submit();
 					button.element.classList.remove("loading");
-					this.update();
+					// this.update();
 				}
-				this.update = () => {
-					button.element.disabled = !this.parent.hasModifiedValue() || this.getState() === "disabled";
-				}
-				this.update();
+				button.element.disabled = !this.parent.hasModifiedValue() || this.getState() === "disabled";
+
+				// this.update = () => {
+				// 	button.element.disabled = !this.parent.hasModifiedValue() || this.getState() === "disabled";
+				// }
+				// this.update();
 			}
+			// complete: () => {
+			// 	button.element.classList.remove("loading");
+			// }
 		};
 
 	}

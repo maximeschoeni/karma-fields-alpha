@@ -1,8 +1,7 @@
 
 KarmaFieldsAlpha.fields.field = class Field {
 
-  constructor(resource, domain, parent) {
-    this.domain = domain || new KarmaFieldsAlpha.Domain(); // deprecated
+  constructor(resource, parent, form) {
     this.parent = parent;
 		this.children = [];
 		this.resource = resource || {};
@@ -15,6 +14,8 @@ KarmaFieldsAlpha.fields.field = class Field {
     // this.historyIndex = 0;
     this.datatype = "string";  // deprecated
 		this.fieldId = Field.fieldId++;
+
+    this.form = form || this;
 
     // this.path = this.getPath() || "";
     // this.driver = this.getDriver() || this;
@@ -43,8 +44,8 @@ KarmaFieldsAlpha.fields.field = class Field {
     return new KarmaFieldsAlpha.fields[resource && resource.type || "group"];
   }
 
-  static create(resource, domain, parent) {
-    return new KarmaFieldsAlpha.fields[resource && resource.type || "group"](resource, domain, parent);
+  static create(resource, parent, form) {
+    return new KarmaFieldsAlpha.fields[resource && resource.type || "group"](resource, parent, form);
   }
 
   initField() {
@@ -72,11 +73,11 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   createField(resource, parent) {
     console.warn("Deprecated function createField. Use createChild");
-    return Field.create(resource, this.domain, parent);
+    return Field.create(resource, parent, this.form);
   }
 
   createChild(resource) {
-    const child = Field.create(resource, this.domain, this);
+    const child = Field.create(resource, this, this.form);
     this.addChild(child);
     return child;
   }
@@ -119,6 +120,10 @@ KarmaFieldsAlpha.fields.field = class Field {
       }
     }
     return descendants;
+  }
+
+  getSibling(key) {
+    return this.parent && this.getChild(key);
   }
 
   getFieldsByPath(keys) {
@@ -208,6 +213,14 @@ KarmaFieldsAlpha.fields.field = class Field {
     if (this[eventName] && typeof this[eventName] === "function") {
       // console.error("Deprecated function try");
       return this[eventName](...params);
+    }
+  }
+
+  bubbleUp(callback, ...params) {
+    if (this[callback]) {
+      return this[callback](...params);
+    } else {
+      return this.parent && this.parent.bubbleUp(callback, ...params);
     }
   }
 
@@ -400,9 +413,9 @@ KarmaFieldsAlpha.fields.field = class Field {
     this.setValue(value);
     const originalValue = this.getOriginal();
 
-    this.modified = value === originalValue;
+    this.modified = value !== originalValue;
 
-    this.try("onModified", value === originalValue);
+    // this.try("onModified", value === originalValue);
     // await this.load(this.bubble("change", this, value));
     await this.bubble("change", this, value);
   }
@@ -416,8 +429,8 @@ KarmaFieldsAlpha.fields.field = class Field {
 
     this.modified = value === originalValue;
 
-    this.try("onSet", value);
-    this.try("onModified", value === originalValue);
+    // this.try("onSet", value);
+    // this.try("onModified", value === originalValue);
   }
 
   edit() {
@@ -555,8 +568,12 @@ KarmaFieldsAlpha.fields.field = class Field {
     let deltaValue = this.getValue();
     let value = deltaValue ?? originalValue;
 
+      // console.log(this.getPath(), value);
+
     if (value === undefined) {
       // value = await this.load(this.fetchValue());
+
+
       value = await this.fetchValue();
     }
     if (value === undefined) {
@@ -573,10 +590,10 @@ KarmaFieldsAlpha.fields.field = class Field {
       // await this.load(this.bubble("change", this, value));
     }
 
-    this.modified = value === originalValue;
+    this.modified = value !== originalValue;
 
-    this.try("onModified", value === originalValue);
-    this.try("onSet", value);
+    // this.try("onModified", value === originalValue);
+    // this.try("onSet", value);
 
     return value;
   }

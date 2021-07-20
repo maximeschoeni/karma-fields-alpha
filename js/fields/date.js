@@ -1,19 +1,27 @@
 
 KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
 
-  constructor(resource, domain, parent) {
-		super(resource, domain, parent);
+  constructor(resource, parent, form) {
+		super(resource, parent, form);
 
 		this.format = resource.format || "dd/mm/yyyy";
 	}
 
-  validate(value) {
+  // validate(value) {
+  //   value = value.toString();
+  //   const base = "1900-01-01 00:00:00";
+  //   const format = this.resource.output_format || "yyyy-mm-dd hh:ii:ss";
+  //   value = value.slice(0, format.length);
+  //   value = value.padEnd(format.length, base.slice(value.length));
+  //   return Promise.resolve(value);
+  // }
+  convert(value) {
     value = value.toString();
     const base = "1900-01-01 00:00:00";
     const format = this.resource.output_format || "yyyy-mm-dd hh:ii:ss";
     value = value.slice(0, format.length);
     value = value.padEnd(format.length, base.slice(value.length));
-    return Promise.resolve(value);
+    return value;
   }
 
   exportValue() {
@@ -176,6 +184,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
       init: (container) => {
         container.element.setAttribute('tabindex', '-1');
         this.init(container.element);
+        this.render = container.render;
       },
       update: container => {
         container.element.classList.add("loading");
@@ -186,6 +195,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
               // field.onUpdatePopup = function(value) {
               const value = this.getValue();
               popup.element.classList.toggle("open-down", popup.element.getBoundingClientRect().top+window.pageYOffset < 500);
+
               popup.children = this.date && [this.buildPopup(value)] || [];
                 // popup.render();
               // }

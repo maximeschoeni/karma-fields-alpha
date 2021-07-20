@@ -1,13 +1,15 @@
 
 KarmaFieldsAlpha.cache = {};
-
+KarmaFieldsAlpha.forms = {};
 
 KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
-	constructor(resource, domain, parent) {
-		super(resource, domain || new KarmaFieldsAlpha.Domain(), parent);
+	constructor(resource, parent, form) {
+		super(resource, parent);
 
 		this.useCache = resource.use_cache ?? true;
+		console.log(this.useCache, this.resource.driver);
+		this.useLocalStorage = resource.useLocalStorage ?? true;
 
 		this.delta = {};
 		this.original = {};
@@ -16,6 +18,9 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		this.historyIndex = 0;
 		this.historyMax = 0;
 		this.history = {};
+
+		// debug
+		KarmaFieldsAlpha.forms[resource.driver] = this;
 
 	}
 
@@ -77,7 +82,9 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	getRemoteOptions(queryString, driver) {
 		driver = driver || this.resource.driver || "nodriver";
 		const promise = this.getCache("options", driver, queryString) ?? KarmaFieldsAlpha.Form.fetch2(driver, queryString);
+
 		this.updateCache("options", driver, queryString, promise);
+
 		return promise;
 
 
@@ -213,7 +220,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 	getDeltaValue(keys) {
 		const path = keys.join("/");
-    return this.delta[path];
+    return this.delta[path] ?? localStorage.getItem(this.resource.driver+"/"+path);
   }
 
 	removeDeltaValue(keys) {
@@ -226,8 +233,10 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 		if (this.original[path] !== value) {
 			this.delta[path] = value;
+			this.useLocalStorage && localStorage.setItem(this.resource.driver+"/"+path, value);
 		} else {
 			this.delta[path] = undefined;
+			this.useLocalStorage && localStorage.removeItem(this.resource.driver+"/"+path);
 		}
 
 
@@ -242,6 +251,10 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 	async save() {
 		const values = await this.getModifiedValue();
+
+		for (let path in this.delta) {
+			this.useLocalStorage && localStorage.removeItem(this.resource.driver+"/"+path);
+		}
 
 		this.delta = {};
 
@@ -402,3 +415,12 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 
 };
+
+KarmaFieldsAlpha.fields.form.getForm = function(driverName) {
+	if (!KarmaFieldsAlpha.forms[driverName]) {
+		KarmaFieldsAlpha.forms[driverName] = new KarmaFieldsAlpha.fields.form({
+			driver: driverName
+		})
+	}
+	return KarmaFieldsAlpha.forms[driverName];
+}

@@ -159,6 +159,8 @@ KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fie
     let value = super.getValue();
     if (value !== undefined) {
       value = JSON.parse(value);
+    } else {
+      value = this.getEmpty();
     }
     return value;
   }

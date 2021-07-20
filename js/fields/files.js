@@ -72,9 +72,11 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
   }
 
   getValue() {
-    let value = super.getValue();
+    let value = this.getDeltaValue();
     if (value !== undefined) {
       value = JSON.parse(value);
+    } else {
+      value = this.getOriginal();
     }
     return value;
   }
@@ -255,6 +257,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
 			init: container => {
         container.element.setAttribute('tabindex', '-1');
         this.init(container.element);
+        this.render = container.render;
 			},
 			update: async container => {
         container.element.classList.add("loading");
