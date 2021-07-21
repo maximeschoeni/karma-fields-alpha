@@ -87,6 +87,9 @@ KarmaFieldsAlpha.Form = {
 		if (typeof params !== "string") {
 			params = this.encodeParams(params);
 		}
+		if (!params.startsWith("?")) {
+			params = "?"+params;
+		}
 		let file = KarmaFieldsAlpha.restURL+"/query/"+driver+params;
 
 		if (this.cache[file] === undefined) {

@@ -59,7 +59,7 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
             let attachments = uploader.addFrame.state().get("selection").toJSON().map(attachment => attachment);
             if (attachments.length) {
               field.backup();
-              field.setValue(attachments[0].id);
+              field.setValue(attachments[0].id.toString());
               field.render();
               // field.updateValue(attachments[0].id).then(function() {
               //   debugger;
@@ -86,14 +86,12 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
 		return KarmaFieldsAlpha.Form.fetch2(this.resource.driver || "attachment", queryString);
   }
 
-
-  // convert(value) {
-  //   return value && parseInt(value) || 0;
-  // }
+  convert(value) {
+    return value.toString();
+  }
 
   async validate(value) {
-    value = parseInt(value);
-    if (value && !isNaN(value) && !this.getFile(value)) {
+    if (value && !this.getFile(value)) {
       await this.fetchIds([value]);
     }
     return value;
@@ -193,10 +191,10 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
               class: "delete button",
               update: function() {
                 this.element.textContent = "Remove";
-                this.element.onclick = async (event) => {
+                this.element.onclick = (event) => {
                   event.preventDefault();
                   field.backup();
-                  await field.updateValue(0);
+                  field.setValue("");
                   field.render();
                 };
               }
@@ -213,49 +211,15 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
     return {
 			class: "karma-file karma-field",
 			init: container => {
-				// if (field.resource.style) {
-				// 	container.element.style = field.resource.style;
-				// }
         container.element.setAttribute('tabindex', '-1');
         this.init(container.element);
-
         this.render = container.render;
 			},
 			update: async container => {
-
-        // this.render = async () => {
-
         container.element.classList.add("loading");
-
         const value = await this.update();
-
         container.children = this.buildContent(value);
-
-        // await container.render();
-
         container.element.classList.toggle("modified", this.modified);
-
-
-        // }
-
-        // this.render();
-
-        // field.onSet = function(value) {
-        //
-        //   container.render();
-        // }
-        // field.onModified = function(modified) {
-				// 	container.element.classList.toggle("modified", modified);
-				// }
-				// field.onLoad = function(loading) {
-        //   container.element.classList.toggle("loading", loading);
-				// }
-
-
-
-
-        // container.render();
-
 			},
       complete: container => {
         container.element.classList.remove("loading");

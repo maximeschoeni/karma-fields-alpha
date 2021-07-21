@@ -8,7 +8,6 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		super(resource, parent);
 
 		this.useCache = resource.use_cache ?? true;
-		console.log(this.useCache, this.resource.driver);
 		this.useLocalStorage = resource.useLocalStorage ?? true;
 
 		this.delta = {};
@@ -220,28 +219,52 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 	getDeltaValue(keys) {
 		const path = keys.join("/");
-    return this.delta[path] ?? localStorage.getItem(this.resource.driver+"/"+path);
+    // return this.delta[path] ?? localStorage.getItem(this.resource.driver+"/"+path);
+		return localStorage.getItem(this.resource.driver+"/"+path) ?? undefined;
   }
 
 	removeDeltaValue(keys) {
 		const path = keys.join("/");
-    delete this.delta[path];
+    // this.delta[path] = undefined;
+		// this.useLocalStorage && localStorage.removeItem(this.resource.driver+"/"+path);
+		localStorage.removeItem(this.resource.driver+"/"+path);
+		this.writeHistory(path, undefined);
   }
 
   setDeltaValue(value, keys) {
 		const path = keys.join("/");
 
-		if (this.original[path] !== value) {
-			this.delta[path] = value;
-			this.useLocalStorage && localStorage.setItem(this.resource.driver+"/"+path, value);
-		} else {
-			this.delta[path] = undefined;
-			this.useLocalStorage && localStorage.removeItem(this.resource.driver+"/"+path);
-		}
-
+		// if (this.original[path] !== value && value !== undefined) {
+		// 	// this.delta[path] = value;
+		// 	localStorage.setItem(this.resource.driver+"/"+path, value);
+		// } else {
+		// 	// this.delta[path] = undefined;
+		// 	localStorage.removeItem(this.resource.driver+"/"+path);
+		// }
+		this.setLocalValue(path, value);
 
 		// console.log(path, value, this.historyIndex);
 		this.writeHistory(path, value);
+  }
+
+	setLocalValue(path, value) {
+		if (this.original[path] !== value && value !== undefined) {
+			localStorage.setItem(this.resource.driver+"/"+path, value);
+		} else {
+			localStorage.removeItem(this.resource.driver+"/"+path);
+		}
+	}
+
+
+	getDeltaPathes() {
+		const pathes = [];
+		for (let i = 0; i < localStorage.length; i++) {
+			let path = localStorage.key(i);
+			if (path.startsWith(this.resource.driver+"/")) {
+				pathes.push(path);
+			}
+  	}
+		return pathes;
   }
 
 
@@ -252,11 +275,14 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	async save() {
 		const values = await this.getModifiedValue();
 
-		for (let path in this.delta) {
-			this.useLocalStorage && localStorage.removeItem(this.resource.driver+"/"+path);
-		}
+		// for (let path in this.delta) {
+		// 	this.useLocalStorage && localStorage.removeItem(this.resource.driver+"/"+path);
+		// }
+		this.getDeltaPathes().forEach(path => {
+			localStorage.removeItem(path);
+		});
 
-		this.delta = {};
+		// this.delta = {};
 
 		if (values) {
 			const results = await KarmaFieldsAlpha.Form.update(this.resource.driver, values);
@@ -268,22 +294,28 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	}
 
 	hasModifiedValue() {
-		for (let path in this.delta) {
-			if (this.delta[path] !== undefined && this.delta[path] !== this.original[path]) {
-				return true;
-			}
-		}
-		return false;
+		return this.getDeltaPathes().length > 0;
+		// for (let path in this.delta) {
+		// 	if (this.delta[path] !== undefined && this.delta[path] !== this.original[path]) {
+		// 		return true;
+		// 	}
+		// }
+		// return false;
 	}
 
 	getModifiedValue() {
-		const value = {};
-		for (let path in this.delta) {
-			if (this.delta[path] !== undefined && this.delta[path] !== this.original[path]) {
-				this.setObjectValue(path.split("/"), this.delta[path], value);
-			}
-		}
-		return value;
+		return this.getDeltaPathes().reduce((object, path) => {
+			const value = localStorage.getItem(path);
+			this.setObjectValue(path.split("/"), value, object);
+			return object;
+		}, {})[this.resource.driver];
+		// const value = {};
+		// for (let path in this.delta) {
+		// 	if (this.delta[path] !== undefined && this.delta[path] !== this.original[path]) {
+		// 		this.setObjectValue(path.split("/"), this.delta[path], value);
+		// 	}
+		// }
+		// return value;
 	}
 
 	setObjectValue(keys, value, object) {
@@ -364,6 +396,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	// async undo() {
 	undo() {
 		// let fields = [];
+		// debugger;
 		if (this.historyIndex > 0) {
 			for (let path in this.history[this.historyIndex]) {
 				// let index = this.historyIndex-1;
@@ -371,9 +404,11 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 				// 	index--;
 				// }
 				// this.delta[path] = this.history[index][path];
-				this.delta[path] = this.getLastEntry(path);
 
-				// fields = fields.concat(this.getFieldsByPath(path.split("/")));
+				// this.delta[path] = this.getLastEntry(path);
+				const value = this.getLastEntry(path);
+				this.setLocalValue(path, value);
+
 			}
 
 			this.historyIndex--;
@@ -399,7 +434,15 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 			this.historyIndex++;
 			for (let path in this.history[this.historyIndex]) {
 				if (this.history[this.historyIndex] && this.history[this.historyIndex][path] !== undefined) {
-					this.delta[path] = this.history[this.historyIndex][path];
+					// this.delta[path] = this.history[this.historyIndex][path];
+					// localStorage.setItem(this.resource.driver+"/"+path, this.history[this.historyIndex][path]);
+					// let value = this.history[this.historyIndex][path];
+					// if (value === undefined) {
+					// 	localStorage.removeItem(this.resource.driver+"/"+path);
+					// } else {
+					// 	localStorage.setItem(this.resource.driver+"/"+path, value);
+					// }
+					this.setLocalValue(path, this.history[this.historyIndex][path]);
 				}
 			}
 			this.historyId = undefined;
@@ -420,7 +463,7 @@ KarmaFieldsAlpha.fields.form.getForm = function(driverName) {
 	if (!KarmaFieldsAlpha.forms[driverName]) {
 		KarmaFieldsAlpha.forms[driverName] = new KarmaFieldsAlpha.fields.form({
 			driver: driverName
-		})
+		});
 	}
 	return KarmaFieldsAlpha.forms[driverName];
 }

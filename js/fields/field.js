@@ -160,14 +160,14 @@ KarmaFieldsAlpha.fields.field = class Field {
     return keys;
   }
 
-  getKeyPath(keys) {
+  getKeyPath(keys, useAlias) {
     if (!keys) {
       keys = [];
     } else if (!Array.isArray(keys)) {
       keys = [keys];
     }
     if (this.resource.key) {
-      keys.unshift(this.resource.key);
+      keys.unshift(useAlias && this.resource.alias || this.resource.key);
     }
     return keys;
   }
@@ -450,7 +450,7 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   getFormOriginal(keys) {
-    keys = this.getKeyPath(keys);
+    keys = this.getKeyPath(keys, true);
     return this.parent && this.parent.getFormOriginal(keys);
   }
 
@@ -485,7 +485,7 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
   getRemoteValue(keys) {
-    keys = this.getKeyPath(keys);
+    keys = this.getKeyPath(keys, true);
     return this.parent && this.parent.getRemoteValue(keys);
   }
 
@@ -599,7 +599,7 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   getDeltaValue(keys) {
-    keys = this.getKeyPath(keys);
+    keys = this.getKeyPath(keys, true);
     return this.parent && this.parent.getDeltaValue(keys);
   }
 
@@ -610,7 +610,7 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   removeDeltaValue(keys) {
     keys = this.getKeyPath(keys);
-    return this.parent && this.parent.removeDeltaValue(keys);
+    this.parent && this.parent.removeDeltaValue(keys);
   }
 
 

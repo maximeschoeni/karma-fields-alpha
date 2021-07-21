@@ -14,8 +14,8 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
   initField() {
     this.trash = this.createChild({
       key: "trash",
-      type: "numberField",
-      value: 0
+      type: "field",
+      default: "0"
     });
   }
 

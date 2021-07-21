@@ -158,7 +158,8 @@ KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fie
   getValue() {
     let value = super.getValue();
     if (value !== undefined) {
-      value = JSON.parse(value);
+      // value = JSON.parse(value);
+      value = value.split(",");
     } else {
       value = this.getEmpty();
     }
@@ -167,7 +168,9 @@ KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fie
 
   setValue(values) {
     if (values !== undefined) {
-      super.setValue(JSON.stringify(values));
+      values = values.join(",");
+      super.setValue(values);
+      // super.setValue(JSON.stringify(values));
     }
   }
 

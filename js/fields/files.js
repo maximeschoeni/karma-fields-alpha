@@ -51,9 +51,9 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
               multiple: true  // Set to true to allow multiple files to be selected
             });
           }
-          this.frame.on("update",function(items) {
+          this.frame.on("update", function(items) {
             field.backup();
-            field.setValue(items.map(item => item.attributes.id));
+            field.setValue(items.map(item => item.attributes.id.toString()));
             field.edit();
             field.render();
 
@@ -108,11 +108,11 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
   convert(value) {
     if (!Array.isArray(value)) {
       if (Number(value)) {
-        return [value];
+        return [value.toString()];
       }
       return [];
     }
-    return value.map(item => Number(item));
+    return value.map(item => item.toString());
   }
 
   getEmpty() {
@@ -120,10 +120,10 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
   }
 
   async validate(values) {
-    values = values.filter(id => id && !isNaN(id));
+    values = values.filter(id => Number(id));
     const missingIds = values.filter(id => !this.getFile([id]));
     if (missingIds.length) {
-      await Promise.all(missingIds.map(id => this.fetchIds([id])));
+      await this.fetchIds(missingIds);
     }
     return values;
   }

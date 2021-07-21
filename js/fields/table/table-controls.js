@@ -320,7 +320,7 @@ KarmaFieldsAlpha.fields.tableControls.reload = class extends KarmaFieldsAlpha.fi
 
 KarmaFieldsAlpha.fields.tableControls.firstPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
-    const count = field.count.getValue();
+    const count = field.getCount(); // field.count.getValue();
     const page = field.page.getValue();
     const ppp = field.ppp.getValue();
 
@@ -340,7 +340,7 @@ KarmaFieldsAlpha.fields.tableControls.firstPage = class extends KarmaFieldsAlpha
 }
 KarmaFieldsAlpha.fields.tableControls.prevPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
-    const count = field.count.getValue();
+    const count = field.getCount(); // field.count.getValue();
     const page = field.page.getValue();
     const ppp = field.ppp.getValue();
 
@@ -371,7 +371,7 @@ KarmaFieldsAlpha.fields.tableControls.prevPage = class extends KarmaFieldsAlpha.
 }
 KarmaFieldsAlpha.fields.tableControls.nextPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
-    const count = field.count.getValue();
+    const count = field.getCount(); // field.count.getValue();
     const page = field.page.getValue();
     const ppp = field.ppp.getValue();
     const numPage = Math.ceil(count/ppp);
@@ -392,7 +392,7 @@ KarmaFieldsAlpha.fields.tableControls.nextPage = class extends KarmaFieldsAlpha.
 }
 KarmaFieldsAlpha.fields.tableControls.lastPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
-    const count = field.count.getValue();
+    const count = field.getCount(); // field.count.getValue();
     const page = field.page.getValue();
     const ppp = field.ppp.getValue();
     const numPage = Math.ceil(count/ppp);
@@ -417,7 +417,7 @@ KarmaFieldsAlpha.fields.tableControls.currentPage = class {
     return {
       class: "current-page footer-item",
       update: item => {
-        const count = field.count.getValue();
+        const count = field.getCount(); // field.count.getValue();
         const page = field.page.getValue();
         const ppp = field.ppp.getValue();
 
@@ -442,7 +442,7 @@ KarmaFieldsAlpha.fields.tableControls.ppp = class extends KarmaFieldsAlpha.field
   }
 
   buildMain(element, field) {
-    let num = field.count.getValue();
+    let num = field.getCount(); // field.count.getValue();
     element.textContent = num ? num + " items" : "";
   }
 
