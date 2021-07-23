@@ -36,6 +36,7 @@
   align-items: center;
   padding: 0 5px;
   cursor: pointer;
+  text-decoration: none;
 }
 .karma-field-table a:focus {
   box-shadow: none;
@@ -605,6 +606,9 @@ body.folded .karma-fields .table-footer {
 .karma-fields .table-footer .footer-group>button.karma-button {
   margin: 0 5px;
 }
+.karma-fields .table-footer button.hidden {
+  display: none;
+}
 
 .karma-fields .table-footer .table-pagination {
   font-size: 14px;
@@ -627,10 +631,12 @@ button.karma-button {
   display: grid;
   grid-template-areas: "button";
   align-items: center;
+  justify-content: center;
   /* border-color: #f3f5f6; */
   height: auto;
   /* padding: 4px 17px; */
-  padding: 3px 12px;
+  padding: 3px 10px;
+  min-width: 40px;
   border: none;
   background-color: transparent;
   box-shadow: none;
@@ -700,6 +706,10 @@ button.karma-button .button-content {
 }
 button.karma-button.loading .button-content {
   visibility: hidden;
+}
+button.karma-button .karma-field-spinner {
+  grid-area: button;
+  margin: 0;
 }
 
 
@@ -860,8 +870,8 @@ button.karma-button.primary > .karma-field-spinner {
 .loading .karma-field-spinner,
 .loading:not(.load-inside) + .karma-field-spinner {
   display: inline-block;
-  width: 0.6em;
-  height: 0.6em;;
+  width: 0.5em;
+  height: 0.5em;
   margin: 0 0.75em;
   vertical-align: middle;
   /* border-color: #535c63 transparent #535c63 #535c63; */

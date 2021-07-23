@@ -321,16 +321,18 @@ KarmaFieldsAlpha.fields.tableControls.reload = class extends KarmaFieldsAlpha.fi
 KarmaFieldsAlpha.fields.tableControls.firstPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
     const count = field.getCount(); // field.count.getValue();
-    const page = field.page.getValue();
-    const ppp = field.ppp.getValue();
+    const page = Number(field.getParam("page") || 1); // field.page.getValue();
+    const ppp = Number(field.getParam("ppp") || 100); // field.ppp.getValue();
 
-    element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+    // element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+    element.classList.toggle("hidden", ppp < 1 || count < ppp);
     element.disabled = (page == 1);
     element.onclick = async (event) => {
-      const page = field.page.getValue();
+      // const page = field.page.getValue();
       if (page > 0) {
         element.classList.add("loading");
-        field.page.setValue(1);
+        // field.page.setValue(1);
+        field.setParam("page", page-1);
         // await field.update();
         await field.render();
         element.classList.remove("loading");
@@ -341,17 +343,18 @@ KarmaFieldsAlpha.fields.tableControls.firstPage = class extends KarmaFieldsAlpha
 KarmaFieldsAlpha.fields.tableControls.prevPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
     const count = field.getCount(); // field.count.getValue();
-    const page = field.page.getValue();
-    const ppp = field.ppp.getValue();
+    const page = Number(field.getParam("page") || 1); // field.page.getValue();
+    const ppp = Number(field.getParam("ppp") || 100); // field.ppp.getValue();
 
-    element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+    // element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+    element.classList.toggle("hidden", ppp < 1 || count < ppp);
     element.disabled = (page === 1);
 
     element.onclick = async (event) => {
-      const page = field.page.getValue();
+      // const page = field.page.getValue();
       if (page > 0) {
         element.classList.add("loading");
-        field.page.setValue(page-1);
+        field.setParam("page", page-1);
         // await field.update();
 
         // requestIdleCallback( async () => {
@@ -371,18 +374,20 @@ KarmaFieldsAlpha.fields.tableControls.prevPage = class extends KarmaFieldsAlpha.
 }
 KarmaFieldsAlpha.fields.tableControls.nextPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
-    const count = field.getCount(); // field.count.getValue();
-    const page = field.page.getValue();
-    const ppp = field.ppp.getValue();
+    const count = field.getCount();
+    const page = Number(field.getParam("page") || 1);
+    const ppp = Number(field.getParam("ppp") || 100);
     const numPage = Math.ceil(count/ppp);
 
-    element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+    // element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+    element.classList.toggle("hidden", ppp < 1 || count < ppp);
     element.disabled = page >= numPage;
 
     element.onclick = async (event) => {
       if (page < numPage) {
         element.classList.add("loading");
-        field.page.setValue(page+1);
+        // field.page.setValue(page+1);
+        field.setParam("page", page+1);
         // await field.update();
         await field.render();
         element.classList.remove("loading");
@@ -392,18 +397,20 @@ KarmaFieldsAlpha.fields.tableControls.nextPage = class extends KarmaFieldsAlpha.
 }
 KarmaFieldsAlpha.fields.tableControls.lastPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
-    const count = field.getCount(); // field.count.getValue();
-    const page = field.page.getValue();
-    const ppp = field.ppp.getValue();
+    const count = field.getCount();
+    const page = Number(field.getParam("page") || 1);
+    const ppp = Number(field.getParam("ppp") || 100);
     const numPage = Math.ceil(count/ppp);
 
-    element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+    // element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+    element.classList.toggle("hidden", ppp < 1 || count < ppp);
     element.disabled = page >= numPage;
 
     element.onclick = async (event) => {
       if (page < numPage) {
         element.classList.add("loading");
-        field.page.setValue(numPage);
+        // field.page.setValue(numPage);
+        field.setParam("page", numPage);
         // await field.update();
         await field.render();
         element.classList.remove("loading");
@@ -417,11 +424,12 @@ KarmaFieldsAlpha.fields.tableControls.currentPage = class {
     return {
       class: "current-page footer-item",
       update: item => {
-        const count = field.getCount(); // field.count.getValue();
-        const page = field.page.getValue();
-        const ppp = field.ppp.getValue();
+        const count = field.getCount();
+        const page = Number(field.getParam("page") || 1);
+        const ppp = Number(field.getParam("ppp") || 100);
 
-        item.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+        // item.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
+        item.element.classList.toggle("hidden", ppp < 1 || count < ppp);
         item.element.textContent = count && page+" / "+Math.ceil(count/ppp) || "";
       }
     }
@@ -447,13 +455,16 @@ KarmaFieldsAlpha.fields.tableControls.ppp = class extends KarmaFieldsAlpha.field
   }
 
   buildOption(element, item, field) {
-    const ppp = field.ppp.getValue();
+    // const ppp = field.ppp.getValue();
+    const ppp = Number(field.getParam("ppp") || 100);
     element.classList.toggle("active", ppp == item.key);
 
     element.onclick = async (event) => {
 
-      field.ppp.setValue(item.key);
-      field.page.setValue(1);
+      field.setParam("ppp", item.key);
+      field.setParam("page", 1);
+      // field.ppp.setValue(item.key);
+      // field.page.setValue(1);
       element.classList.add("loading");
       // await field.update();
       await field.render();
@@ -470,13 +481,14 @@ KarmaFieldsAlpha.fields.tableControls.ppp = class extends KarmaFieldsAlpha.field
 KarmaFieldsAlpha.fields.tableControls.order = class {
 
   reorder(column, field) {
-    const orderby = field.orderby.getValue();
-    const order = field.order.getValue();
+    const orderby = field.getParam("orderby");
+    const order = field.getParam("order");
+
     if (orderby === column.field.key) {
-      field.order.setValue(order === "asc" ? "desc" : "asc");
+      field.setParam("order", order === "asc" ? "desc" : "asc");
     } else {
-      field.order.setValue(column.order || "asc");
-      field.orderby.setValue(column.field.key);
+      field.setParam("order", column.order || "asc");
+      field.setParam("orderby", column.field.key);
     }
   }
 
@@ -488,8 +500,11 @@ KarmaFieldsAlpha.fields.tableControls.order = class {
         class: "karma-field-spinner"
       },
       update: a => {
-        const orderby = field.orderby.getValue();
-        const order = field.order.getValue();
+        // const orderby = field.orderby.getValue();
+        // const order = field.order.getValue();
+        const orderby = field.getParam("orderby");
+        const order = field.getParam("order") || column.order;
+
         a.element.onclick = async event => {
           event.preventDefault();
           a.element.classList.add("loading");

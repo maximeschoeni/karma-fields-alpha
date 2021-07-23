@@ -420,6 +420,14 @@ KarmaFieldsAlpha.fields.field = class Field {
     await this.bubble("change", this, value);
   }
 
+  editValue(value) {
+    // no validation
+    this.setValue(value);
+    const originalValue = this.getOriginal();
+    this.modified = value !== originalValue;
+    return this.edit();
+  }
+
   async updateValue(value) {
     // value = await this.load(this.validate(value));
     value = await this.validate(value);

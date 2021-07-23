@@ -8,6 +8,11 @@
 		let field = KarmaFieldsAlpha.fields.field.create(resource);
 
 		KarmaFieldsAlpha.build({
+			init: container => {
+				window.onhashchange = () => {
+					container.render();
+				}
+			},
 			child: field.build(),
 		}, container);
 	});

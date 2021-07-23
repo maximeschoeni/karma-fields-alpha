@@ -166,14 +166,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
       this.page.setValue(1);
-
-      // await this.update();
-
-
-      // if (this.modified) {
-      //   await this.render();
-      // }
-
       await this.render();
 
       // this.promise = this.promise && this.promise.then(() => {
@@ -193,6 +185,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       //
       // }
 
+    }
+
+    this.filters.edit = async (target, value) => {
+      this.setParam("page", 1);
+      await this.render();
     }
 
 
@@ -393,7 +390,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     if (column && column.field.order) {
       nav.order = column.field.order;
     }
-    location.hash = this.encodeParams(nav);
+    const hash = this.encodeParams(nav);
+    history.replaceState(null, null, "#"+hash);
 
 
     this.nav = KarmaFieldsAlpha.fields.form.getForm("nav");
@@ -485,7 +483,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     nav[path] = value;
     hash = this.encodeParams(nav);
     this.nav.writeHistory("nav", hash);
-    location.hash = "#"+hash;
+    // location.hash = "#"+hash;
+    history.replaceState(null, null, "#"+hash);
   }
 
 	getDeltaPathes() {
@@ -575,9 +574,20 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     // });
 
 
-    let hash = encodeParams(params);
+    let hash = this.encodeParams(params);
     this.writeHistory("nav", hash);
-    location.hash = "#"+hash;
+    // location.hash = "#"+hash;
+    history.replaceState(null, null, "#"+hash);
+  }
+
+  getParam(key) {
+    return this.getValue()[key];
+  }
+
+  setParam(key, value) {
+    const params = this.getValue();
+    params[key] = value;
+    this.setValue(params);
   }
 
   // getParamString() {
@@ -668,7 +678,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       }
 
       // this.count.setValue(results.count);
-      this.count = results.count;
+      this.count = parseInt(results.count || 0);
 
       // const ids = results.items.map(function(item) {
       //   return item.id;
@@ -700,7 +710,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     // KarmaFieldsAlpha.Form.cache = {};
     // const results = await this.content.bubble("submit");
 
-    // this.queriedIds = this.getCurrentIds(); // extra ids are to be deleted -> merge to queriedIds
+    this.queriedIds = this.getCurrentIds();
+    this.content.ids.removeDeltaValue();
 
     const results = await this.content.save();
 
@@ -799,8 +810,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     }));
 
 
-    this.queriedIds = ids.concat(this.queriedIds);
-    //this.content.ids.add(ids);
+    // this.queriedIds = ids.concat(this.queriedIds);
+    this.content.ids.add(ids);
 
     // for (let i = 0; i < rows.length; i++) {
     //   await rows[i].trash.saveValue(0, false, true);
@@ -1097,15 +1108,18 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
   }
 
   getIds() {
+    console.error("Deprecated getIds()");
     // return this.content.ids.getValue().concat(this.content.children.map(child => child.resource.id));
     return this.queriedIds;
   }
   getCurrentIds() {
     // return this.content.ids.getValue().concat(this.queriedIds || []);
-    return this.queriedIds;
+    // return this.queriedIds;
+    return this.content.ids.getValue().concat(this.queriedIds);
   }
+
   getCount() {
-    return this.queriedIds.length;
+    return this.count + this.content.ids.getValue().length;
   }
 
 
@@ -1154,8 +1168,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     return {
       class: "th table-row-index karma-field",
       update: th => {
-        let page = this.page.getValue();
-        let ppp = this.ppp.getValue();
+        // let page = this.page.getValue();
+        // let ppp = this.ppp.getValue();
+        let page = Number(this.getParam("page")) || 1;
+        let ppp = Number(this.getParam("ppp")) || 100;
         th.element.textContent = (page - 1)*ppp + rowIndex + 1;
       }
     };
@@ -1202,7 +1218,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
         // const ids = this.getCurrentIds();
 
 
-        const rows = this.queriedIds.map(id => this.content.getChild(id) || this.content.createChild({
+        const rows = this.getCurrentIds().map(id => this.content.getChild(id) || this.content.createChild({
           type: "tableRow",
           key: id
         })).filter(row => row.trash.getValue() !== "1").forEach((rowField, rowIndex) => {

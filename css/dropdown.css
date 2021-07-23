@@ -18,6 +18,7 @@
   background-color: #f0f0f1;
   height: auto;
   box-shadow: none;
+  max-width: none;
 }
 
 .karma-field-table .table select.karma-field {

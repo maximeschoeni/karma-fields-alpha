@@ -18,6 +18,8 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		this.historyMax = 0;
 		this.history = {};
 
+		this.initHistory();
+
 		// debug
 		KarmaFieldsAlpha.forms[resource.driver] = this;
 
@@ -346,8 +348,17 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 
 
-
-
+	initHistory() {
+		const pathes = this.getDeltaPathes();
+		if (pathes.length) {
+			this.backup("init");
+			pathes.forEach(path => {
+				const relativePath = path.slice(this.resource.driver.length+1);
+				const value = localStorage.getItem(path);
+				this.writeHistory(relativePath, value);
+			});
+		}
+	}
 
 	backup(keys) {
 		super.backup(keys);

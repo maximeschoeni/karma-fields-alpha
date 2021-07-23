@@ -10,33 +10,12 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 			class: "text karma-field",
 			init: input => {
 				input.element.type = this.resource.input_type || "text"; // compat
-				// field.triggerEvent("init", this.element);
 				if (this.resource.label) {
 					input.element.id = this.getId();
 				}
-
-				// // not used yet
-				// this.element.addEventListener("focus", function() {
-				// 	field.triggerEvent("focus", true);
-				// });
-				// // not used yet
-				// this.element.addEventListener("focusout", function() {
-				// 	field.triggerEvent("focusout", true);
-				// });
-
 				if (this.resource.input) {
 					Object.assign(input.element, this.resource.input);
 				}
-
-				// if (!field.hasValue()) {
-				// 	field.fetchValue().then(function(value) {
-				// 		// field.endLoad();
-				// 		field.triggerEvent("set");
-				// 		field.triggerEvent("modify");
-				// 		// input.value = value;
-				// 		// input.element.classList.remove("loading");
-				// 	});
-				// }
 				this.init(input.element);
 
 				this.render = input.render;
@@ -47,61 +26,19 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 					input.element.readOnly = true;
 				} else {
 					input.element.oninput = async event => {
-
 						this.backup();
 						input.element.classList.add("loading");
-
-						// await this.promise;
-						// this.promise = this.changeValue(input.element.value);
-						// await this.promise;
-
-						// await this.changeValue(input.element.value);
-						// debugger;
-						this.setValue(input.element.value);
-						await this.edit();
-
-						// const value = input.element.value;
-						// this.setDeltaValue(value);
-				    // const originalValue = this.getOriginal();
-				    // this.modified = value === originalValue;
-						//
-						// await this.promise;
-				    // this.promise = this.bubble("change", this, value);
-						// await this.promise;
-
-
-
+						await this.editValue(input.element.value);
 						input.element.classList.remove("loading");
 						input.element.classList.toggle("modified", this.modified);
 					};
 				}
-
-				// field.onLoad = function(loading) {
-				// 	input.element.classList.toggle("loading", loading);
-				// }
-				// field.onModified = function(modified) {
-				// 	input.element.classList.toggle("modified", modified);
-				// }
-				// field.onSet = function(value) {
-				// 	input.element.value = value;
-				// }
-				// field.onState = function(state) {
-				// 	input.element.disabled = state === "disabled";
-				// }
-
 				input.element.classList.add("loading");
 				const value = await this.update();
 				input.element.value = value;
 				input.element.classList.toggle("modified", this.modified);
 				input.element.classList.remove("loading");
-				// field.onSet = function(value) {
-				// 	input.element.value = value;
-				// }
-				// this.onState = function(state) {
-				// 	input.element.disabled = state === "disabled";
-				// }
 				input.element.disabled = this.getState() === "disabled";
-
 			}
 		};
 	}
