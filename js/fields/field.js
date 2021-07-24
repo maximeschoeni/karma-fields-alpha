@@ -441,9 +441,6 @@ KarmaFieldsAlpha.fields.field = class Field {
     // this.try("onModified", value === originalValue);
   }
 
-  edit() {
-    return this.parent && this.parent.edit();
-  }
 
   async getValueAsync() {
     return this.getDeltaValue() ?? this.getOriginal() ?? this.fetchValue() ?? this.getDefault();
@@ -477,131 +474,38 @@ KarmaFieldsAlpha.fields.field = class Field {
     return value;
   }
 
-  // async getRawBaseValue() {
-  //   let rawValue = this.getCache();
-  //   if (rawValue === undefined) {
-  //     let value = await this.getRemoteValue();
-  //     value = this.prepare(value);
-  //     if (value !== undefined) {
-  //       value = this.convert(value);
-  //       rawValue = this.stringify(value);
-  //       this.setCache(rawValue);
-  //     }
-  //   }
-  //   return rawValue;
-  // }
-
 
   getRemoteValue(keys) {
     keys = this.getKeyPath(keys, true);
     return this.parent && this.parent.getRemoteValue(keys);
   }
 
-  // setRemoteValue(rawValue, keys) {
-  //   keys = this.getKeyPath(keys);
-  //   this.parent && this.parent.setRemoteValue(rawValue, keys);
-  //   // this.driver.base[this.path] = Promise.resolve(rawValue);
-  // }
-
   getRawValue() {
     console.error("Deprecated function getRawValue");
-
-    // let rawValue = this.read();
-    // if (rawValue === undefined) {
-    //   rawValue = this.originalValue;
-    // }
-    // return rawValue;
   }
-
-  // async update() {
-  //   let value;
-  //   let rawValue = this.getRawValue();
-  //
-  //   if (rawValue === undefined) {
-  //     value = await this.load(this.getRemoteValue());
-  //
-  //     if (value === undefined) {
-  //       value = this.getDefault();
-  //     }
-  //   } else {
-  //     value = this.parse(rawValue);
-  //   }
-  //
-  //   value = await this.load(this.validate(value));
-  //   const validRawValue = this.stringify(value);
-  //
-  //   // only save if value is different
-  //   if (validRawValue !== rawValue) {
-  //
-  //     rawValue = validRawValue;
-  //     this.write(rawValue);
-  //     await this.load(Promise.resolve(this.bubble("change", this, value)));
-  //   }
-  //
-  //   this.try("onModified", rawValue === this.originalValue);
-  //   this.try("onSet", value);
-  //
-  //   return value;
-  // }
 
   async update() {
 
-    // let deltaValue = this.getDeltaValue();
-    // let baseValue = await this.load(this.getRawBaseValue());
-    // let value;
-    //
-    // if (deltaValue !== undefined) {
-    //   value = this.parse(deltaValue);
-    // } else if (baseValue !== undefined) {
-    //   value = this.parse(baseValue);
-    //   value = await this.load(this.validate(value));
-    // } else {
-    //   value = await this.getDefault();
-    // }
-    //
-    // const validRawValue = this.stringify(value);
-    //
-    // // only save if deltaValue is undefined
-    // if (deltaValue === undefined) {
-    //   this.setDeltaValue(validRawValue);
-    //   await this.load(Promise.resolve(this.bubble("change", this, value)));
-    // }
-    //
-    // this.try("onModified", validRawValue === baseValue);
-    // this.try("onSet", value);
-
-    // debugger;
-
     let originalValue = this.getOriginal();
-    let deltaValue = this.getValue();
-    let value = deltaValue ?? originalValue;
-
-      // console.log(this.getPath(), value);
+    let deltaValue = this.getDeltaValue();
+    let value = deltaValue ?? originalValue ?? this.resource.value;
 
     if (value === undefined) {
-      // value = await this.load(this.fetchValue());
-
-
       value = await this.fetchValue();
     }
     if (value === undefined) {
-      // value = await this.load(this.getDefault());
       value = await this.getDefault();
     } else {
-      // value = await this.load(this.validate(value));
       value = await this.validate(value);
     }
 
-    // only save if value is different
+    // set delta if value is different from original
     if (value !== originalValue) {
-      this.setValue(value);
-      // await this.load(this.bubble("change", this, value));
+      this.setDeltaValue(value);
+      // await this.edit();
     }
 
     this.modified = value !== originalValue;
-
-    // this.try("onModified", value === originalValue);
-    // this.try("onSet", value);
 
     return value;
   }
@@ -922,6 +826,14 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
   submit() {
     return this.parent && this.parent.submit();
+  }
+
+  getParam(key) {
+    return this.parent && this.parent.getParam(key);
+  }
+
+  setParam(key, value) {
+    this.parent && this.parent.setParam(key, value);
   }
 
 

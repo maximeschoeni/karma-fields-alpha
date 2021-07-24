@@ -91,7 +91,7 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
   }
 
   async validate(value) {
-    if (value && !this.getFile(value)) {
+    if (Number(value) && !this.getFile(value)) {
       await this.fetchIds([value]);
     }
     return value;
@@ -145,7 +145,7 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
           {
             class: "image-container",
             update: function() {
-              if (value) {
+              if (Number(value)) {
                 const file = field.getFile(value);
                 this.children = [{
                   tag: "img",
@@ -155,7 +155,7 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
                     this.element.height = file.height;
                   }
                 }];
-                this.element.classList.toggle("type-image", file.type.startsWith("image"));
+                this.element.classList.toggle("type-image", file && file.type && file.type.startsWith("image") || false);
               } else {
                 this.children = [];
               }

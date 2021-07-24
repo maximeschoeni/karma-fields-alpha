@@ -519,3 +519,41 @@ KarmaFieldsAlpha.fields.tableControls.order = class {
     };
   }
 }
+
+KarmaFieldsAlpha.fields.tableControls.prevModal = class extends KarmaFieldsAlpha.fields.tableControls.button {
+  update(element, field) {
+    const ids = field.getCurrentIds();
+    let id = field.getParam("id");
+    let index = ids.indexOf(id);
+    element.disabled = index < 1;
+
+    element.onclick = async (event) => {
+      if (index > 0) {
+        id = ids[index-1];
+        element.classList.add("loading");
+        field.setParam("id", id);
+        await field.render();
+        element.classList.remove("loading");
+      }
+    }
+  }
+}
+
+KarmaFieldsAlpha.fields.tableControls.nextModal = class extends KarmaFieldsAlpha.fields.tableControls.button {
+  update(element, field) {
+    const ids = field.getCurrentIds();
+    let id = field.getParam("id");
+    let index = ids.indexOf(id);
+    element.disabled = index === -1 || index >= ids.length - 1;
+
+    element.onclick = async (event) => {
+      if (index > -1 && index < ids.length - 1) {
+        id = ids[index+1];
+        element.classList.add("loading");
+        field.setParam("id", id);
+        await field.render();
+        element.classList.remove("loading");
+      }
+    }
+  }
+}

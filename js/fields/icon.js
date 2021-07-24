@@ -10,13 +10,11 @@ KarmaFieldsAlpha.fields.icon = class extends KarmaFieldsAlpha.fields.field {
   }
 
   build() {
-    const field = this;
-
     return {
       class: "karma-icon",
       render: null,
-      init: function(icon) {
-        field.loadFile(field.resource.value).then(function(results) {
+      init: icon => {
+        this.loadFile(this.resource.value).then(results => {
           icon.element.innerHTML = results;
         });
       }

@@ -1,4 +1,24 @@
 
+/*
+Cache handling:
+
+
+caches.open("x").then(cache => {
+	cache.put("/aa/bb", new Response("asdfasdfasdf", {
+		status: 200,
+		headers: {
+			"Content-Type": "application/json"
+		}
+	}));
+});
+
+caches.open("x").then(cache => {
+	return cache.match("/aa/bb").then(r => r.text())
+})
+
+
+*/
+
 KarmaFieldsAlpha.cache = {};
 KarmaFieldsAlpha.forms = {};
 
@@ -103,12 +123,43 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		// return KarmaFieldsAlpha.Form.fetch2(driver || this.resource.driver, queryString);
   }
 
-	getRemoteTable(queryString, driver) {
+	async getRemoteTable(queryString, driver) {
 		if (!driver) {
 			driver = this.resource.driver || "nodriver";
 		}
 		const promise = this.getCache("tables", driver, queryString) ?? KarmaFieldsAlpha.Form.query(driver, queryString);
 		this.updateCache("tables", driver, queryString, promise);
+
+		// console.log(await promise);
+		//
+		// const data = await promise;
+		// const items = data.items || data || [];
+		//
+		// const cache = await caches.open(driver);
+		//
+		// console.time();
+		//
+		// for (let i = 0; i < items.length; i++) {
+		//
+		// 	for (let key in items[i]) {
+		//
+		// 		// console.log(key, items[i][key]);
+		//
+		// 		cache.put("/"+items[i].id+"/"+key, new Response(items[i][key], {
+		// 			status: 200,
+		// 			headers: {
+		// 				"Content-Type": "application/json"
+		// 			}
+		// 		}));
+		//
+		// 	}
+		//
+		// }
+		//
+		// console.timeEnd();
+
+
+
 		return promise;
 
 		// if (!KarmaFieldsAlpha.cache.tables) {
@@ -207,6 +258,13 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	getFormOriginal(keys) {
 		const path = keys.join("/");
     return this.original[path];
+
+
+
+
+
+
+
   }
 
 	removeFormOriginal(keys) {

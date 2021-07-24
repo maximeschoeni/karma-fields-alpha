@@ -101,17 +101,17 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     //   });
     // }
 
-    this.page = new KarmaFieldsAlpha.fields.field({
-      type: "numberField",
-      key: "page",
-      value: 1
-    }, this, this);
-
-    this.ppp = new KarmaFieldsAlpha.fields.field({
-      type: "numberField",
-      key: "ppp",
-      value: this.resource.ppp || 50
-    }, this, this);
+    // this.page = new KarmaFieldsAlpha.fields.field({
+    //   type: "numberField",
+    //   key: "page",
+    //   value: 1
+    // }, this, this);
+    //
+    // this.ppp = new KarmaFieldsAlpha.fields.field({
+    //   type: "numberField",
+    //   key: "ppp",
+    //   value: this.resource.ppp || 50
+    // }, this, this);
 
     // this.count = new KarmaFieldsAlpha.fields.field({
     //   type: "numberField",
@@ -119,9 +119,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     //   value: 0
     // }, this, this);
 
-    this.queryString = new KarmaFieldsAlpha.fields.field({
-      key: "query"
-    }, this, this);
+    // this.queryString = new KarmaFieldsAlpha.fields.field({
+    //   key: "query"
+    // }, this, this);
 
 
 
@@ -137,17 +137,17 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     //   });
     // }
 
-    this.orderby = this.createChild({
-      type: "field",
-      key: "orderby",
-      value: this.resource.orderby
-    });
-
-    this.order = this.createChild({
-      type: "field",
-      key: "order",
-      value: "asc"
-    });
+    // this.orderby = this.createChild({
+    //   type: "field",
+    //   key: "orderby",
+    //   value: this.resource.orderby
+    // });
+    //
+    // this.order = this.createChild({
+    //   type: "field",
+    //   key: "order",
+    //   value: "asc"
+    // });
 
 
 
@@ -165,7 +165,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
 
-      this.page.setValue(1);
+      this.setParam("page", 1);
       await this.render();
 
       // this.promise = this.promise && this.promise.then(() => {
@@ -240,20 +240,20 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
     // modal
-    this.modal = new KarmaFieldsAlpha.fields.field({
-      key: "modal"
-    }, this, this);
-
-    this.modal.events.change = function() {
-      // field.try("render");
-
-      // field.try("onSetHeader");
-      // field.try("onSetBody");
-      field.try("onSetFooter");
-
-
-      return Promise.resolve();
-    }
+    // this.modal = new KarmaFieldsAlpha.fields.field({
+    //   key: "modal"
+    // }, this, this);
+    //
+    // this.modal.events.change = function() {
+    //   // field.try("render");
+    //
+    //   // field.try("onSetHeader");
+    //   // field.try("onSetBody");
+    //   field.try("onSetFooter");
+    //
+    //
+    //   return Promise.resolve();
+    // }
 
 
 
@@ -279,28 +279,28 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
       // field.domain.index = this.domain.index;
     };
 
-    this.content.events.openmodal = function(modalField) {
-      document.activeElement.blur();
-      return field.modal.changeValue(modalField.parent.resource.key);
-
-      // field.modal.setValue(modalField.parent.resource.key);
-      //
-      // field.triggerEvent("render");
-    }
-
-    this.content.events.closemodal = function(modalField) {
-      // let rowId = field.modal.getValue();
-      // field.selectRow(rowId);
-      // field.modal.setValue("");
-      // field.triggerEvent("render");
-
-      return field.modal.getValueAsync().then(function(rowId) {
-        field.selectRow(rowId);
-        field.modal.changeValue("");
-      });
-
-
-    }
+    // this.content.events.openmodal = function(modalField) {
+    //   document.activeElement.blur();
+    //   return field.modal.changeValue(modalField.parent.resource.key);
+    //
+    //   // field.modal.setValue(modalField.parent.resource.key);
+    //   //
+    //   // field.triggerEvent("render");
+    // }
+    //
+    // this.content.events.closemodal = function(modalField) {
+    //   // let rowId = field.modal.getValue();
+    //   // field.selectRow(rowId);
+    //   // field.modal.setValue("");
+    //   // field.triggerEvent("render");
+    //
+    //   return field.modal.getValueAsync().then(function(rowId) {
+    //     field.selectRow(rowId);
+    //     field.modal.changeValue("");
+    //   });
+    //
+    //
+    // }
 
     this.content.events.optionparams = function(origin) {
       console.error("deprecated event optionparams");
@@ -363,6 +363,13 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
     this.content.events.change = async function(targetField, value) {
       await field.editAll(targetField, value);
+      await field.renderModal();
+      await field.renderFooter();
+    };
+
+    this.content.edit = async () => {
+      await field.editAll();
+      await field.renderModal();
       await field.renderFooter();
     };
 
@@ -379,8 +386,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     } else {
       nav = {};
     }
-    nav.page = this.page.getValue() || 1;
-    nav.ppp = this.ppp.getValue() || 100;
+    nav.page = Number(this.getParam("page")) || 1;
+    nav.ppp = Number(this.getParam("ppp")) || 100;
     if (this.resource.orderby) {
       nav.orderby = this.resource.orderby;
     }
@@ -529,10 +536,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
   async render() {
     //
   }
-
   async renderFooter() {
     //
   }
+  async renderModal() {
+    //
+  }
+
+
 
   getValue() {
     // const params = {
@@ -936,22 +947,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     }
   }
 
-  getModal(rowId) {
-    let row = rowId && this.content.getChild(rowId);
-    let modal = row && row.children.find(function(child) {
-      return child instanceof KarmaFieldsAlpha.fields.modal;
-    });
-    if (modal) {
-      return modal;
-    }
-  }
-
-  getCurrentModal() {
-    // let rowId = this.modal.getValue();
-    // return rowId && this.getModal(rowId);
-    const rowId = this.modal.getValue();
-    return rowId && this.getModal(rowId);
-  }
 
   selectRow(rowId) {
     // let ids = this.ids.getValue();
@@ -1078,28 +1073,32 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     }
   }
 
-  async editAll(field, value) {
+  async editAll() {
     // console.log(conductor, value);
-    if (field && this.select && this.select.selection && this.select.focusRect && this.select.selection.height > 1) {
-      const selection = this.select.selection;
-      const focusRect = this.select.focusRect;
-      const x = selection.x;
-      const y = selection.y;
+    if (this.select && this.select.selection && this.select.focusRect && this.select.selection.height > 1) {
+      // const selection = this.select.selection;
+      // const focusRect = this.select.focusRect;
+      // const x = selection.x;
+      // const y = selection.y;
       // const ids = this.ids.getValue();
+
       let ids = this.getCurrentIds();
+      let field = this.content.getChild(ids[this.select.focusRect.y]).children[this.select.focusRect.x+1];
+      let value = field.getValue();
       // return this.ids.getValueAsync().then(function(ids) {
         // return conductor.getValueAsync().then(function(value) {
           field.backup();
-          const promises = [];
-          for (var j = 0; j < selection.height; j++) {
-            const rowField = this.content.getChild(ids[j+y]);
-            const cellField = rowField.children[focusRect.x+1];
-            if (cellField !== field) {
-              const promise = cellField.importValue(value);
-              promises.push(promise);
+          // const promises = [];
+          for (var j = 0; j < this.select.selection.height; j++) {
+            if (j+this.select.selection.y !== this.select.focusRect.y) {
+              const rowField = this.content.getChild(ids[j+this.select.selection.y]);
+              const cellField = rowField.children[this.select.focusRect.x+1];
+              cellField.setValue(value);
+              // const promise = cellField.importValue(value);
+              // promises.push(promise);
             }
           }
-          await Promise.all(promises);
+          // await Promise.all(promises);
 
           await this.render();
         // });
@@ -1141,6 +1140,41 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
   hasHeader() {
     return true;
+  }
+
+  // getModal(rowId) {
+  //   let row = rowId && this.content.getChild(rowId);
+  //   let modal = row && row.children.find(function(child) {
+  //     return child instanceof KarmaFieldsAlpha.fields.modal;
+  //   });
+  //   if (modal) {
+  //     return modal;
+  //   }
+  // }
+
+
+
+
+  getModalField() {
+    const column = this.resource.columns.find(column => column.field && column.field.type === "modal");
+
+    if (column) {
+      // const key = column.field.modalkey || "id";
+      const value = this.getParam("id");
+
+
+      if (value) {
+        const rowField = this.content.getChild(value);
+
+        return rowField && rowField.children.find(child => child.resource.type === "modal");
+        // modalContainer.children = [
+        //   field.buildModal(value, column.field)
+        // ];
+      }
+      // else {
+      //   modalContainer.children = [];
+      // }
+    }
   }
 
   buildHeaderCell(column) {
@@ -1255,82 +1289,82 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
   }
 
-  buildModalNav() {
-    const field = this;
-    return {
-      class: "footer-group table-modal-nav",
-      clear: true,
-      update: function() {
-        this.children = [
-          {
-            tag: "button",
-            class: "karma-button footer-item",
-            init: function(button) {
-              this.element.innerText = "<";
-            },
-            update: function(button) {
-              this.element.onclick = function() {
-                // const rowId = field.modal.getValue();
-                // const next = field.ids.getPrev(rowId);
-                // if (next) {
-                //   field.modal.setValue(next);
-                //   field.triggerEvent("render");
-                // }
-                const id = field.modal.getValue();
-                const prevId = field.ids.getPrev(id);
-                field.modal.setValue(prevId);
-                field.try("onSetModal");
-              }
-                // const currentRowId = field.modal.getValue();
-              // this.element.disabled = field.ids.getPrev(currentRowId) ? false : true;
-              const currentRowId = field.modal.getValue();
-              const prevId = field.ids.getPrev(currentRowId);
-              button.element.disabled = prevId ? false : true;
-            }
-          },
-          {
-            tag: "button",
-            class: "karma-button footer-item",
-            init: function(button) {
-              this.element.innerText = ">";
-            },
-            update: function(button) {
-              this.element.onclick = function() {
-                // const rowId = field.modal.getValue();
-                // const next = field.ids.getNext(rowId);
-                //
-                // if (next) {
-                //   field.modal.setValue(next);
-                //   field.triggerEvent("render");
-                // }
-                // field.modal.getValueAsync().then(function(id) {
-                //   return field.ids.getNext(id);
-                // }).then(function(id) {
-                //   field.modal.write(id);
-                //   field.triggerEvent("render");
-                // });
-                const id = field.modal.getValue();
-                const nextId = field.ids.getNext(id);
-                field.modal.setValue(nextId);
-                field.try("onSetModal");
-              };
-              // const currentRowId = field.modal.getValue();
-              // this.element.disabled = field.ids.getNext(currentRowId) ? false : true;
-
-              // field.modal.getValueAsync().then(function(currentRowId) {
-              //   return field.ids.getNext(currentRowId);
-              // }).then(function(id) {
-              //   button.element.disabled = id ? false : true;
-              // });
-              const currentRowId = field.modal.getValue();
-              const nextId = field.ids.getNext(currentRowId);
-              button.element.disabled = nextId ? false : true;
-            }
-          }
-        ];
-      }
-    };
-  }
+  // buildModalNav() {
+  //   const field = this;
+  //   return {
+  //     class: "footer-group table-modal-nav",
+  //     clear: true,
+  //     update: function() {
+  //       this.children = [
+  //         {
+  //           tag: "button",
+  //           class: "karma-button footer-item",
+  //           init: function(button) {
+  //             this.element.innerText = "<";
+  //           },
+  //           update: function(button) {
+  //             this.element.onclick = function() {
+  //               // const rowId = field.modal.getValue();
+  //               // const next = field.ids.getPrev(rowId);
+  //               // if (next) {
+  //               //   field.modal.setValue(next);
+  //               //   field.triggerEvent("render");
+  //               // }
+  //               const id = field.modal.getValue();
+  //               const prevId = field.ids.getPrev(id);
+  //               field.modal.setValue(prevId);
+  //               field.try("onSetModal");
+  //             }
+  //               // const currentRowId = field.modal.getValue();
+  //             // this.element.disabled = field.ids.getPrev(currentRowId) ? false : true;
+  //             const currentRowId = field.modal.getValue();
+  //             const prevId = field.ids.getPrev(currentRowId);
+  //             button.element.disabled = prevId ? false : true;
+  //           }
+  //         },
+  //         {
+  //           tag: "button",
+  //           class: "karma-button footer-item",
+  //           init: function(button) {
+  //             this.element.innerText = ">";
+  //           },
+  //           update: function(button) {
+  //             this.element.onclick = function() {
+  //               // const rowId = field.modal.getValue();
+  //               // const next = field.ids.getNext(rowId);
+  //               //
+  //               // if (next) {
+  //               //   field.modal.setValue(next);
+  //               //   field.triggerEvent("render");
+  //               // }
+  //               // field.modal.getValueAsync().then(function(id) {
+  //               //   return field.ids.getNext(id);
+  //               // }).then(function(id) {
+  //               //   field.modal.write(id);
+  //               //   field.triggerEvent("render");
+  //               // });
+  //               const id = field.modal.getValue();
+  //               const nextId = field.ids.getNext(id);
+  //               field.modal.setValue(nextId);
+  //               field.try("onSetModal");
+  //             };
+  //             // const currentRowId = field.modal.getValue();
+  //             // this.element.disabled = field.ids.getNext(currentRowId) ? false : true;
+  //
+  //             // field.modal.getValueAsync().then(function(currentRowId) {
+  //             //   return field.ids.getNext(currentRowId);
+  //             // }).then(function(id) {
+  //             //   button.element.disabled = id ? false : true;
+  //             // });
+  //             const currentRowId = field.modal.getValue();
+  //             const nextId = field.ids.getNext(currentRowId);
+  //             button.element.disabled = nextId ? false : true;
+  //           }
+  //         }
+  //       ];
+  //     }
+  //   };
+  // }
 
 
   buildFooterBar() {
@@ -1374,42 +1408,76 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
         {
           class: "footer-group table-pagination",
           update: group => {
-            let buttons = [
-              {
-                type: "ppp"
-              },
-              {
-                type: "firstPage",
-                name: "«"
-              },
-              {
-                type: "prevPage",
-                name: "‹"
-              },
-              {
-                type: "currentPage",
-              },
-              {
-                type: "nextPage",
-                name: "›"
-              },
-              {
-                type: "lastPage",
-                name: "»"
-              }
-            ];
-            group.children = buttons.map(resource => {
-              if (KarmaFieldsAlpha.fields.tableControls[resource.type]) {
-                const button = new KarmaFieldsAlpha.fields.tableControls[resource.type](resource);
-                return button.build(this);
-              }
-            });
+            const modal = this.getParam("id");
+            if (modal) {
+              group.children = [];
+            } else {
+              let buttons = [
+                {
+                  type: "ppp"
+                },
+                {
+                  type: "firstPage",
+                  name: "«"
+                },
+                {
+                  type: "prevPage",
+                  name: "‹"
+                },
+                {
+                  type: "currentPage",
+                },
+                {
+                  type: "nextPage",
+                  name: "›"
+                },
+                {
+                  type: "lastPage",
+                  name: "»"
+                }
+              ];
+              group.children = buttons.map(resource => {
+                if (KarmaFieldsAlpha.fields.tableControls[resource.type]) {
+                  const button = new KarmaFieldsAlpha.fields.tableControls[resource.type](resource);
+                  return button.build(this);
+                }
+              });
+            }
+          }
+        },
+        {
+          class: "footer-group modal-navigation",
+          update: group => {
+            const modal = this.getParam("id");
+
+            if (modal) {
+              let buttons = [
+                {
+                  type: "prevModal",
+                  name: "‹"
+                },
+                {
+                  type: "nextModal",
+                  name: "›"
+                }
+              ];
+              group.children = buttons.map(resource => {
+                if (KarmaFieldsAlpha.fields.tableControls[resource.type]) {
+                  const button = new KarmaFieldsAlpha.fields.tableControls[resource.type](resource);
+                  return button.build(this);
+                }
+              });
+            } else {
+              group.children = [];
+            }
           }
         }
         // this.buildModalNav()
       ]
     };
   }
+
+
 
   build() {
 
@@ -1478,7 +1546,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
                 //   }
                 //   modalContainer.render();
                 // }
-
+                const field = this.getModalField();
+                modalContainer.children = field && [field.buildModal()] || [];
+                this.renderModal = modalContainer.render;
               }
             },
 
@@ -1507,8 +1577,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
               update: footer => {
                 this.renderFooter = footer.render;
 
-                const modal = this.modal.getValue();
-                footer.element.classList.toggle("modal-open", modal || false);
+                // const modal = this.modal.getValue();
+                // footer.element.classList.toggle("modal-open", modal || false);
 
                 // this.onSetFooter = () => {
                 //   footer.child = this.buildFooterBar();

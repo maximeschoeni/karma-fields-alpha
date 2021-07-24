@@ -100,8 +100,25 @@ KarmaFieldsAlpha.Form = {
 		      'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
 		    },
 			}).then(function(response) {
+
 				return response.json();
 			});
+
+
+
+			// const cache = caches.open(driver).then(cache => {
+			// 	cache.add(file);
+			// });
+
+
+
+
+
+
+
+
+
+
 		}
 		return this.cache[file];
 	},

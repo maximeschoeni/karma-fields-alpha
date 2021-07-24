@@ -140,15 +140,17 @@
   align-items: flex-end;
   vertical-align: middle;
   margin: -0px;
-
-  /* max-width: 260px; */
+  z-index: 2;
 }
 .karma-file.loading {
   flex-grow: 0.5;
-  min-height: 150px;
+  min-height: 152px;
 }
 .karma-file.loading .image-frame,
 .karma-file.loading .field-control {
+  /* display: none; */
+}
+.karma-file.loading .image-frame .button-container {
   display: none;
 }
 .karma-file .image-frame {
@@ -188,18 +190,18 @@
 }
 
 
-.karma-field-table .karma-file .image-frame {
+.karma-field-table .table .karma-file .image-frame {
   border: none;
   border-radius: 0;
   width: 80px;
   height: 80px;
   margin: 0;
 }
-.karma-field-table .karma-file .field-control  {
+.karma-field-table .table .karma-file .field-control  {
   display: none;
 }
 
-.karma-field-table .karma-file.selected a {
+.karma-field-table .table .karma-file.selected a {
   background-color: white;
 }
 
