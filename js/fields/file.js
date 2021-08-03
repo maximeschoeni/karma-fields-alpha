@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField {
+KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
 
   constructor(resource, parent, form) {
     super(resource, parent, form);
@@ -9,11 +9,24 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
 
   }
 
-  exportValue() {
-    const value = this.getValue()
-    if (value) {
-      return this.getFile(value).original_url;
+  async exportValue(singleCol) {
+
+    const value = await this.fetchValue();
+
+    // if (singleCol) {
+    //   if (Number(value)) {
+    //     const file = this.getFile(value);
+    //     if (file) {
+    //       const response = await fetch(file.original_src);
+    //       const blob = await response.blob();
+    //       return blob;
+    //     }
+    //   }
+    // } else
+    if (Number(value)) {
+      return this.getFile(value).original_src;
     }
+
     return "";
 
     // this.getValueAsync().then(function(value) {
@@ -31,11 +44,10 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
 
 
   createUploader(resource) {
-    const field = this;
     const uploader = {
       addFrame: null,
       // imageId: null,
-      open: function () {
+      open: (imageId) => {
         if (!this.addFrame) {
           var args = {
             title: "Select file",
@@ -55,23 +67,25 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
             multiple: true
           };
           this.addFrame = wp.media(args);
-          this.addFrame.on("select", function() {
-            let attachments = uploader.addFrame.state().get("selection").toJSON().map(attachment => attachment);
-            if (attachments.length) {
-              field.backup();
-              field.setValue(attachments[0].id.toString());
-              field.render();
-              // field.updateValue(attachments[0].id).then(function() {
-              //   debugger;
-              //   field.render();
-              // });
+          this.addFrame.on("select", async () => {
+            let attachments = this.addFrame.state().get("selection").toJSON().map(attachment => attachment);
+            if (attachments[0] && attachments[0].id) {
+              this.backup();
+              imageId = attachments[0].id.toString();
+              await this.editValue(imageId);
+              // await this.edit();
+              await this.render();
+              // console.log(attachments[0].id.toString());
             }
           });
-          this.addFrame.on("open", function() {
-            let selection = uploader.addFrame.state().get("selection");
-            const value = field.getValue();
-            if (value) {
-              selection.add(wp.media.attachment(value));
+          this.addFrame.on("open", () => {
+            let selection = this.addFrame.state().get("selection");
+            // const value = await this.getValue();
+            // if (value) {
+            //   selection.add(wp.media.attachment(value));
+            // }
+            if (imageId) {
+              selection.add(wp.media.attachment(imageId));
             }
           });
         }
@@ -86,12 +100,17 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
 		return KarmaFieldsAlpha.Form.fetch2(this.resource.driver || "attachment", queryString);
   }
 
-  convert(value) {
-    return value.toString();
-  }
+  // convert(value) {
+  //   return value.toString();
+  // }
 
   async validate(value) {
-    if (Number(value) && !this.getFile(value)) {
+    if (!Number(value)) {
+      value = this.resource.default || "";
+      if (!this.resource.readonly) {
+        await this.setValue(value);
+      }
+    } else if (!this.getFile(value)) {
       await this.fetchIds([value]);
     }
     return value;
@@ -130,77 +149,74 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
   }
 
   buildContent(value) {
-    const field = this;
     return [
       {
-        tag: "a",
+        // tag: "a",
         class: "image-frame",
-        update: function(frame) {
-          this.element.onclick = function(event) {
+        update: frame => {
+          frame.element.onclick = event => {
             event.preventDefault();
-            field.uploader.open();
+            if (!this.resource.readonly) {
+              this.uploader.open(value);
+            }
           };
         },
         children: [
           {
             class: "image-container",
-            update: function() {
+            update: container => {
               if (Number(value)) {
-                const file = field.getFile(value);
-                this.children = [{
+                const file = this.getFile(value);
+                container.children = [{
                   tag: "img",
-                  update: function() {
-                    this.element.src = file.src;
-                    this.element.width = file.width;
-                    this.element.height = file.height;
+                  update: src => {
+                    src.element.src = file.src;
+                    src.element.width = file.width;
+                    src.element.height = file.height;
                   }
                 }];
-                this.element.classList.toggle("type-image", file && file.type && file.type.startsWith("image") || false);
+                container.element.classList.toggle("type-image", file && file.type && file.type.startsWith("image") || false);
               } else {
-                this.children = [];
+                container.children = [];
               }
             }
           },
           {
             class: "button-container",
-            update: function() {
-              if (value) {
-                this.children = [];
-              } else {
-                this.children = [{
+            update: container => {
+              if (Number(value)) {
+                container.children = [];
+              } else if (!this.resource.readonly) {
+                container.children = [{
                   class: "add",
-                  update: function() {
-                    this.element.textContent = "Add file";
+                  update: button => {
+                    button.element.textContent = "Add file";
                   }
                 }];
               }
             }
           }
-          // ,
-          // {
-          //   class: "karma-field-spinner"
-          // }
         ]
       },
       {
         class: "field-control",
-        update: function() {
-          if (value) {
-            this.children = [{
+        update: container => {
+          if (Number(value)) {
+            container.children = [{
               tag: "button",
               class: "delete button",
-              update: function() {
-                this.element.textContent = "Remove";
-                this.element.onclick = (event) => {
+              update: button => {
+                button.element.textContent = "Remove";
+                button.element.onclick = async (event) => {
                   event.preventDefault();
-                  field.backup();
-                  field.setValue("");
-                  field.render();
+                  this.backup();
+                  await this.editValue("");
+                  this.render();
                 };
               }
             }];
           } else {
-            this.children = [];
+            container.children = [];
           }
         }
       }
@@ -216,10 +232,14 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.numberField
         this.render = container.render;
 			},
 			update: async container => {
+
         container.element.classList.add("loading");
-        const value = await this.update();
+        let value = await this.fetchValue();
+        value = await this.validate(value);
+
+        let modified = this.isModified();
         container.children = this.buildContent(value);
-        container.element.classList.toggle("modified", this.modified);
+        container.element.classList.toggle("modified", modified);
 			},
       complete: container => {
         container.element.classList.remove("loading");

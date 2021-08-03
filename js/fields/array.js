@@ -1,50 +1,210 @@
+
 KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
-  // constructor(resource, domain) {
-  //   super(resource, domain);
+  // getDeltaValue(keys) {
+  //   // let values = this.getValue();
+  //   let values = super.getDeltaValue();
+  //   if (values) {
+  //     values = JSON.parse(values);
   //
-  //   this.datatype = "array";
+  //     let index = keys[0];
+  //     let key = keys[1];
+  //     if (values[index]) {
+  //       return values[index][key];
+  //     }
+  //   }
+  // }
+  // setDeltaValue(value, keys) {
+  //   // let values = this.getValue();
+  //   let values = super.getDeltaValue();
+  //   if (values === undefined) {
+  //     values = [];
+  //   } else {
+  //     values = JSON.parse(values);
+  //   }
   //
+  //   let index = keys[0];
+  //   let key = keys[1];
+  //   if (!values[index]) {
+  //     values[index] = {};
+  //   }
+  //   values[index][key] = value;
+  //   // this.setValue(values);
+  //
+  //   super.setDeltaValue(JSON.stringify(values));
+  // }
+  //
+  //
+  //
+  // getValue() {
+  //
+  //
+  //   let value = super.getDeltaValue();
+  //   if (value === undefined) {
+  //     value = super.getOriginal();
+  //   }
+  //   value = JSON.parse(value);
+  //   return value;
+  // }
+  //
+  // setValue(values) {
+  //   if (values !== undefined) {
+  //     super.setValue(JSON.stringify(values));
+  //   }
+  // }
+  //
+  // getFormOriginal(keys) {
+  //   // let values = this.getOriginal();
+  //   let values = super.getFormOriginal();
+  //   if (values) {
+  //     values = JSON.parse(values);
+  //     let index = keys[0];
+  //     let key = keys[1];
+  //     if (values[index]) {
+  //       return values[index][key];
+  //     }
+  //   }
+  // }
+  //
+  // setFormOriginal(value, keys) {
+  //   // let values = this.getOriginal();
+  //   let values = super.getFormOriginal();
+  //   if (values) {
+  //     values = JSON.parse(values);
+  //   } else {
+  //     values = [];
+  //   }
+  //
+  //   let index = keys[0];
+  //   let key = keys[1];
+  //   if (!values[index]) {
+  //     values[index] = {};
+  //   }
+  //   values[index][key] = value;
+  //   // this.setOriginal(values);
+  //   super.setFormOriginal(JSON.stringify(values));
+  // }
+  //
+  //
+  //
+  // async getRemoteValue(keys) {
+  //   let values = await super.getRemoteValue();
+  //   if (values) {
+  //     let index = keys[0];
+  //     let key = keys[1];
+  //     if (values[index]) {
+  //       return values[index][key];
+  //     }
+  //   }
+  // }
+  //
+  // async fetchValue() {
+  //   let value = await super.getRemoteValue();
+  //   value = this.prepare(value);
+  //   if (value !== undefined) {
+  //     value = this.convert(value);
+  //     // this.setOriginal(value);
+  //     super.setFormOriginal(JSON.stringify(value));
+  //   }
+  //   return value;
+  // }
+  //
+
+  // async getValue(pathKeys) {
+  //   // pathKeys = this.getKeyPath(pathKeys);
+  //
+  //   let array = await this.getArray();
+	// 	// array = JSON.parse(value);
+  //   return KarmaFieldsAlpha.DeepObject.get(array, pathKeys);
+  // }
+  //
+  // async setValue(value, keys) {
+  //   let array = await this.getArray();
+	// 	// array = JSON.parse(value);
+	// 	KarmaFieldsAlpha.DeepObject.assign(array, keys, value);
+	// 	this.setArray(array);
   // }
 
-  getEmpty() {
-    return {};
+  async fetchValue(pathKeys, driver) {
+    // pathKeys = this.getKeyPath(pathKeys);
+
+    let array = await this.fetchArray();
+		// array = JSON.parse(value);
+    return KarmaFieldsAlpha.DeepObject.get(array, pathKeys);
   }
 
-  prepare(value) {
-    if (Array.isArray(value)) {
-      return value;
-    }
-    return [value];
+  // async editValue(value, keys) {
+  //   // let array = await this.fetchArray();
+	// 	// // array = JSON.parse(value);
+	// 	// KarmaFieldsAlpha.DeepObject.assign(array, keys, value);
+	// 	await this.setValue(value);
+  //   return this.edit();
+  // }
+
+  async setValue(value, keys) {
+    if (keys && keys.length) {
+      let array = await this.fetchArray();
+      KarmaFieldsAlpha.DeepObject.assign(array, keys, value);
+  		return super.setValue(array);
+		}
+    return super.setValue(value);
   }
 
-  stringify(value) {
-    return JSON.stringify(value);
+
+  async edit() {
+    await super.edit();
+    return this.render();
   }
 
-  parse(value) {
-    return JSON.parse(value);
-  }
 
-  getValueAsync() {
-    return Promise.all(this.children.map(child => child.getValueAsync()));
-  }
+  // async update() {
+  //   // let originalValue = this.getFormOriginal(null, true);
+  //   //
+  //   // if (originalValue === undefined) {
+  //   //   await this.downloadValue();
+  //   //   originalValue = this.getFormOriginal(null, true);
+  //   // }
+  //   //
+  //   // let deltaValue = this.getDeltaValue(null, true);
+  //   //
+  //   // let value = deltaValue ?? originalValue;
+  //   //
+  //   // if (value === undefined) {
+  //   //   value = await this.getDefault();
+  //   // }
+  //
+  //   let value = this.getArray();
+  //
+  //   return value;
+  // }
 
-  getFromPath() {
-    return;
-  }
 
-  saveValue(values, update, noBub) {
-    this.children = [];
-    values.forEach(value => {
-      const rowField = this.createChild({
-        type: "arrayRow"
-      });
-      rowField.create(this.resource.columns);
-      rowField.initValue(value);
-    });
-    return super.saveValue(values, update, noBub);
-  }
+  // getOriginal() {
+  //   let value = super.getOriginal();
+  //   if (value !== undefined) {
+  //     value = JSON.parse(value);
+  //   }
+  //   return value;
+  // }
+  //
+  // setOriginal(values) {
+  //   if (values !== undefined) {
+  //     super.setOriginal(JSON.stringify(values));
+  //   }
+  // }
+
+  // convert(value) {
+  //   if (value && typeof value === "string") {
+  //     return JSON.parse(value);
+  //   }
+  //   return value || [];
+  // }
+  //
+  // getEmpty() {
+  //   return [];
+  // }
+
+
 
   hasUniqueColumn() {
     if (this.resource.unique !== undefined) {
@@ -69,7 +229,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       if (!this.resource.columns.some(column => column.type === "delete")) {
         this.columns.push({
           type: "delete",
-          width: "30px"
+          width: "50px"
         });
       }
     }
@@ -83,74 +243,136 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
   }
 
   async swap(index1, index2) {
-    const value = await this.getValueAsync();
-    const item1 = value[index1];
-    value[index1] = value[index2];
-    value[index2] = item1;
-    await this.saveValue(value, true);
-    return value;
+    // let values = super.getDeltaValue();
+    // if (values) {
+    //   values = JSON.parse(values);
+    // } else {
+    //   values = [];
+    // }
+    //
+    const values = await this.fetchArray();
+    const item1 = values[index1];
+    values[index1] = values[index2];
+    values[index2] = item1;
+    return this.setValue(values);
+    //
+    // super.setDeltaValue(JSON.stringify(values));
   }
 
   async delete(rowIndex) {
-    let values = await field.getValueAsync();
-    this.backup();
-    values = values.filter((item, index) => index !== rowIndex);
-    await this.saveValue(values, true);
-    return values;
+    // let values = field.getValue();
+    // let values = super.getDeltaValue();
+    // if (values) {
+    //   values = JSON.parse(values);
+    // } else {
+    //   values = [];
+    // }
+    //
+    // values = values.filter((item, index) => index !== rowIndex);
+    //
+    // // this.backup();
+    //
+    // super.setDeltaValue(JSON.stringify(values));
+
+    const values = await this.fetchArray();
+    values.splice(rowIndex, 1);
+    return this.setValue(values);
   }
 
   async add() {
-    this.backup();
-    let values = await this.getValueAsync();
+    // this.backup();
+    // let values = this.getValue();
+    // values.push({});
+    // this.setValue(values);
+
+    // let values = super.getDeltaValue();
+    // if (values) {
+    //   values = JSON.parse(values);
+    // } else {
+    //   values = [];
+    // }
+    // values.push({});
+    // super.setDeltaValue(JSON.stringify(values));
+
+    // let value = this.getDeltaValue(null, true) ?? this.getFormOriginal(null, true) ?? {};
+    // value = Object.values(value);
+    //
+    // const rowField = this.getChild(value.length.toString()) || this.createChild({
+    //   key: value.length.toString(),
+    //   type: "container"
+    // });
+    //
+    // this.getColumns().forEach((column) => {
+    //   if (column.field && column.field.key) {
+    //     const cellField = rowField.getChild(column.field.key) || rowField.createChild(column.field);
+    //     cellField.getDefault();
+    //     cellField.setDeltaValue();
+    //
+    //   }
+    // }
+
+    const values = await this.fetchArray();
     values.push({});
-    await this.saveValue(values, true);
-    return values;
+    return this.setValue(values);
   }
 
   buildContent(values) {
     return [
       {
-        class: "array",
+        class: "array table",
         update: table => {
           table.children = [];
-          if (!this.children.length) {
-            table.element.classList.add("empty");
-          }
+          // if (!this.children.length) {
+          //   table.element.classList.add("empty");
+          // }
           let manager = new KarmaFieldsAlpha.Orderer(table.element);
 
           manager.events.change = (index, originalIndex) => {
             this.swap(index, originalIndex);
+            this.edit();
           }
 
           // CSS Grid Layout
           table.element.style.gridTemplateColumns = this.getColumns().map(column => column.width || "1fr").join(" ");
 
           // Header
-          if (this.children.length && this.hasHeader()) {
-            table.children = table.children.concat(this.getColumns().map(column => {
-              return {
+
+          if (this.hasHeader()) {
+            this.getColumns().forEach(column => {
+              table.children.push({
                 class: "th",
                 init: th => {
                   th.element.textContent = column.header || column.field && column.field.label || "";
                 }
-              }
-            }));
+              });
+            });
           }
 
           // Body
-          if (this.children.length) {
 
-            this.children.forEach((rowField, rowIndex) => {
+          if (values.length) {
 
-              // const rowField = new KarmaFieldsAlpha.fields.container({
-              //   key: rowIndex
-              // }, this.domain, this);
 
-              table.children = table.children.concat(this.getColumns().map((column, colIndex) => {
+            values.forEach((value, rowIndex) => {
+
+
+
+              const rowField = this.getChild(rowIndex.toString()) || this.createChild({
+                key: rowIndex.toString(),
+                type: "container"
+              });
+
+
+
+              // table.children = table.children.concat(
+
+              this.getColumns().forEach((column, colIndex) => {
+
+                // this.getColumns().map((column, colIndex) => {
 
                 if (column.type === "index") {
 
-                  return {
+                  table.children.push({
                     class: "td array-index",
                     init: td => {
                       manager.registerItem(td.element, colIndex, rowIndex, "index");
@@ -158,11 +380,11 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
                     update: td => {
                       td.element.textContent = rowIndex+1;
                     }
-                  };
+                  });
 
                 } else if (column.type === "delete") {
 
-                  return {
+                  table.children.push({
                     class: "td array-delete",
                     init: td => {
                       manager.registerItem(td.element, colIndex, rowIndex, "delete");
@@ -170,44 +392,35 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
                     child: {
                       tag: "button",
                       init: button => {
-                        button.element.onclick = event => {
-                          this.delete(rowIndex)
+                        button.element.onclick = async (event) => {
+                          event.preventDefault();
+                          this.backup();
+                          button.element.classList.add("loading");
+                          await this.delete(rowIndex);
+                          await this.edit();
+                          await this.render();
+                          button.element.classList.remove("loading");
+
                         };
                         button.element.textContent = "Delete";
                       },
                       // child: KarmaFieldsAlpha.fields.icon.create("trash.svg")
                     }
-                  }
+                  })
 
                 } else if (column.field && column.field.key) {
 
+                  const cellField = rowField.getChild(column.field.key) || rowField.createChild(column.field);
 
-                  // childField.events.change = function(cellField) {
-                  //   let value = field.getValue();
-                  //
-                  //   if (field.hasUniqueColumn()) {
-                  //     value[rowIndex] = childField.getValue();
-                  //   } else {
-                  //     if (!value[rowIndex] || typeof value[rowIndex] !== "object") {
-                  //       value[rowIndex] = {};
-                  //     }
-                  //     value[rowIndex][column.field.key] = childField.getValue();
-                  //   }
-                  //   field.triggerEvent("history", true);
-                  //   field.setValue(value);
-                  //   field.triggerEvent("change", true);
-                  // }
-
-
-                  return {
+                  table.children.push({
                     class: "td array-cell",
                     init: td => {
                       manager.registerItem(td.element, colIndex, rowIndex, "field");
                     },
-                    child: rowField.getChild(column.field.key).build()
-                  };
+                    child: cellField.build()
+                  });
                 }
-              }));
+              }); //);
             });
           }
         }
@@ -218,14 +431,17 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
           tag: "button",
           init: button => {
             button.element.textContent = this.resource.add_button_name || "Add Row";
-            button.element.onclick = event => {
+            button.element.onclick = async (event) => {
               event.preventDefault();
-              this.add();
-              // field.triggerEvent("history", true);
-              // let value = field.getValue();
-              // field.setValue(value.concat([field.data.unique ? "" : {}]));
-              // field.triggerEvent("change", true);
-              // container.render(true);
+              // debugger;
+
+              this.backup();
+              button.element.classList.add("loading");
+              await this.add();
+              await this.render();
+              await this.edit();
+              button.element.classList.remove("loading");
+
             };
           }
         }
@@ -238,21 +454,24 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
     return {
       class: "karma-field-array",
       init: container => {
-        if (this.resource.style) {
-					container.element.style = this.resource.style;
-				}
+        this.render = container.render;
       },
-      update: container => {
+      update: async container => {
 
-        this.onSet = value => {
-          container.children = this.buildContent(value);
-          container.render(true);
-        }
-        this.onLoad = loading => {
-          //container.element.classList.toggle("loading", loading);
-        }
+        const values = await this.fetchArray();
 
-        this.update();
+        container.children = this.buildContent(values);
+
+
+        // this.onSet = value => {
+        //   container.children = this.buildContent(value);
+        //   container.render(true);
+        // }
+        // this.onLoad = loading => {
+        //   //container.element.classList.toggle("loading", loading);
+        // }
+
+
       }
     };
   }

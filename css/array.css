@@ -14,6 +14,9 @@
   border-radius: 2px;
   min-height: 2em;
 }
+.karma-fields .table.array {
+  margin-bottom: 10px;
+}
 .karma-fields .array.empty {
   display: none;
 }

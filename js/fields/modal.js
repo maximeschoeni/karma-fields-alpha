@@ -123,7 +123,7 @@ KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.link {
 								init: button => {
 									button.element.onclick = () => {
 										this.setParam(this.resource.modal_key || "id", null);
-										this.edit();
+										this.editFull();
 									}
 								}
 							}

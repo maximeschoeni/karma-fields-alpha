@@ -41,7 +41,8 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
 
   fill(columns) {
     return Promise.all(this.children.map(async child => {
-      child.setValue(await child.getDefault());
+      const value = await child.getDefault();
+      return child.setValue(value);
     }));
   }
 

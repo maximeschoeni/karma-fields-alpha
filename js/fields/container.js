@@ -10,35 +10,81 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	// 	});
 	// }
 
-	setValue(value, context) {
 
-		// console.warn("Deprecated function setValue");
 
-		// if (value && typeof value === "object") {
-		// 	for (let key in value) {
-		// 		const child = this.getDescendant(key);
-		// 		if (child) {
-		// 			child.setValue(value[key], context);
-		// 		}
-		// 	}
-		// }
 
-		if (value && typeof value === "object") {
-			this.children.forEach(function(child) {
-				if (child.resource.key) {
-					child.setValue(value[child.resource.key], context);
-				} else {
-					child.setValue(value, context);
-				}
-			});
+	setValue(value, keys) {
+		if (keys && keys.length) {
+			return super.setValue(value, keys);
+		} else if (value && typeof value === "object") {
+			return Promise.all(this.children.map(child => {
+				return child.setValue(child.resource.key ? value[child.resource.key] : value);
+			}));
 		}
-
-
-
-
 	}
 
+	removeValue(keys) {
+		if (keys && keys.length) {
+			super.removeValue(keys);
+		} else {
+			this.children.forEach(child => {
+				child.removeValue();
+			});
+		}
+  }
+
+	getValue(keys) {
+		if (keys && keys.length) {
+			return super.getValue(keys);
+		} else {
+			// const values = await Promise.all(this.children.map(child => child.getValue()));
+			const values = this.children.map(child => child.getValue());
+			return values.reduce((acc, value, index) => {
+				const child = this.children[index];
+				if (child.resource.key) {
+					acc[child.resource.key] = value;
+				} else {
+					Object.assign(acc, value);
+				}
+				return acc;
+			}, {});
+		}
+	}
+
+	async getChildrenValue() {
+		console.error("deprecated getChildrenValue");
+		return this.getValue();
+		// const values = await Promise.all(this.children.map(child => child.getChildrenValue()));
+		// return values.reduce((acc, value, index) => {
+		// 	const child = this.children[index];
+		// 	if (child.resource.key) {
+		// 		acc[child.resource.key] = value;
+		// 	} else {
+		// 		Object.assign(acc, value);
+		// 	}
+		// 	return acc;
+		// }, {});
+	}
+
+	setChildrenValue(value) {
+		console.error("deprecated setChildrenValue");
+		// return Promise.all(this.children.map(child => child.setChildrenValue(child.resource.key ? value[child.resource.key] : value)));
+		// this.children.forEach(child => {
+		// 	child.setChildrenValue(child.resource.key ? value[child.resource.key] : value);
+		// });
+		this.setValue();
+	}
+
+	// removeChildrenValue() {
+	// 	// await Promise.all(this.children.map(child => child.removeChildrenValue()));
+	// 	// console.error("deprecated removeChildrenValue");
+	// 	// this.removeValue();
+	//
+	// 	this.children.map(child => child.removeChildrenValue())
+	// }
+
 	initValue(value, updateField) {
+		console.error("deprecated initValue");
 		if (value && typeof value === "object") {
 			this.children.forEach(function(child) {
 				if (child.resource.key) {
@@ -51,6 +97,7 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	}
 
 	updateValue(value) {
+		console.error("deprecated updateValue");
 		this.saveValue(value, true, true);
 		// if (value && typeof value === "object") {
 		// 	return Promise.all(this.children.map(function(child) {
@@ -64,6 +111,7 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	}
 
 	saveValue(value, updateSelf, noBubble) {
+		console.error("deprecated saveValue");
 		if (value && typeof value === "object") {
 			return Promise.all(this.children.map(function(child) {
 				if (child.resource.key) {
@@ -75,17 +123,17 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 		}
 	}
 
-	getValue() {
-		let value = {};
-		this.children.forEach(function(child) {
-			if (child.resource.key) {
-				value[child.resource.key] = child.getValue();
-			} else {
-				Object.assign(value, child.getValue());
-			}
-		});
-		return value;
-	}
+	// getValue() {
+	// 	let value = {};
+	// 	this.children.forEach(function(child) {
+	// 		if (child.resource.key) {
+	// 			value[child.resource.key] = child.getValue();
+	// 		} else {
+	// 			Object.assign(value, child.getValue());
+	// 		}
+	// 	});
+	// 	return value;
+	// }
 
 	// getValueAsync() {
 	// 	const field = this;
@@ -104,18 +152,7 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	// 	});
 	// }
 
-	async getValueAsync() {
-		const values = await Promise.all(this.children.map(child => child.getValueAsync()));
-		return values.reduce((acc, value, index) => {
-			const child = this.children[index];
-			if (child.resource.key) {
-				acc[child.resource.key] = value;
-			} else {
-				Object.assign(acc, value);
-			}
-			return acc;
-		}, {});
-	}
+
 
 	// getModifiedValue() {
 	// 	// let value;
@@ -162,11 +199,13 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	};
 
 	getKey(key) {
+		console.error("Deprecated function getKey");
 		let child = this.getDescendant(key);
 		child.getValue(value, context);
 	}
 
 	setKey(key, value, context) {
+		console.error("Deprecated function setKey");
 		let child = this.getDescendant(key);
 		child.setValue(value, context);
 	}
@@ -178,6 +217,7 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	// }
 
 	updateState(state) {
+		console.error("Deprecated function updateState");
 		this.children.forEach(function(child) {
 			child.updateState(state);
 		});
@@ -192,15 +232,16 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
   }
 
 	reset() {
+		console.error("Deprecated function reset");
 		this.children.forEach(function(child) {
 			child.reset();
 		});
 	}
 
-	async update() {
-
-    // await Promise.all(this.children.map(child => child.update()));
-  }
+	// async update() {
+	//
+  //   // await Promise.all(this.children.map(child => child.update()));
+  // }
 
 
 	// update() {

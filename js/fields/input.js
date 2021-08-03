@@ -1,7 +1,14 @@
 KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
-	convert(value) {
-		return value.toString();
+	async fetchValue() {
+		let value = await super.fetchValue();
+		if (!value && value !== "") {
+			value = this.resource.default || "";
+			if (!this.resource.readonly) {
+				await this.setValue(value);
+			}
+		}
+		return value;
 	}
 
 	build() {
@@ -21,22 +28,26 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				this.render = input.render;
 			},
 			update: async input => {
+				input.element.classList.add("loading");
+				let value = await this.fetchValue();
+				let modified = this.isModified();
 
-				if (this.resource.readonly) {
+				if (this.resource.readonly || this.resource.input && this.resource.input.readOnly) {
 					input.element.readOnly = true;
 				} else {
 					input.element.oninput = async event => {
 						this.backup();
-						input.element.classList.add("loading");
+						input.element.classList.add("editing");
 						await this.editValue(input.element.value);
-						input.element.classList.remove("loading");
-						input.element.classList.toggle("modified", this.modified);
+						modified = this.isModified();
+
+						input.element.classList.remove("editing");
+						input.element.classList.toggle("modified", modified);
 					};
 				}
-				input.element.classList.add("loading");
-				const value = await this.update();
+
 				input.element.value = value;
-				input.element.classList.toggle("modified", this.modified);
+				input.element.classList.toggle("modified", modified);
 				input.element.classList.remove("loading");
 				input.element.disabled = this.getState() === "disabled";
 			}

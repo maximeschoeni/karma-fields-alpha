@@ -5,7 +5,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
     const field = this;
     const uploader = {
       frame: null,
-      open: function () {
+      open: function (ids) {
         if (!this.frame) {
           let mimeTypes = resource.file && (resource.file.type || resource.file.types)
             || resource.mime_types
@@ -39,7 +39,11 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
               return this;
             }
           });
-          let ids = field.getValue();
+
+          // let ids = field.getArray();
+          // debugger;
+          ids = ids.filter(id => Number(id));
+
           if (ids.length) {
             this.frame = wp.media.gallery.edit('[gallery ids="'+ids.join(",")+'"]');
           } else {
@@ -53,17 +57,11 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
           }
           this.frame.on("update", function(items) {
             field.backup();
-            field.setValue(items.map(item => item.attributes.id.toString()));
+            field.setArray(items.map(item => item.attributes.id.toString()));
             field.edit();
             field.render();
-
-            // field.triggerEvent("history");
-            // field.setValue(items.map(function(item) {
-            //   return item.attributes.id;
-            // }));
-            // field.triggerEvent("change", true);
-            // field.triggerEvent("set");
           });
+
         }
         this.frame.open();
       }
@@ -71,62 +69,91 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
     return uploader;
   }
 
-  getValue() {
-    let value = this.getDeltaValue();
-    if (value !== undefined) {
-      value = JSON.parse(value);
-    } else {
-      value = this.getOriginal();
-    }
-    return value;
-  }
+  // getValue() {
+  //   let value = this.getDeltaValue();
+  //   if (value !== undefined) {
+  //     value = JSON.parse(value);
+  //   } else {
+  //     value = this.getOriginal();
+  //   }
+  //   return value;
+  // }
+  //
+  // setValue(values) {
+  //   if (values !== undefined) {
+  //     super.setValue(JSON.stringify(values));
+  //   }
+  // }
+  //
+  // getOriginal() {
+  //   let value = super.getOriginal();
+  //   if (value !== undefined) {
+  //     value = JSON.parse(value);
+  //   }
+  //   return value;
+  // }
+  //
+  // setOriginal(values) {
+  //   if (values !== undefined) {
+  //     super.setOriginal(JSON.stringify(values));
+  //   }
+  // }
 
-  setValue(values) {
-    if (values !== undefined) {
-      super.setValue(JSON.stringify(values));
-    }
-  }
+  // prepare(value) {
+  //   return value;
+  // }
+  //
+  // convert(value) {
+  //   if (!Array.isArray(value)) {
+  //     if (Number(value)) {
+  //       return [value.toString()];
+  //     }
+  //     return [];
+  //   }
+  //   return value.map(item => item.toString());
+  // }
 
-  getOriginal() {
-    let value = super.getOriginal();
-    if (value !== undefined) {
-      value = JSON.parse(value);
-    }
-    return value;
-  }
+  // getEmpty() {
+  //   return [];
+  // }
 
-  setOriginal(values) {
-    if (values !== undefined) {
-      super.setOriginal(JSON.stringify(values));
-    }
-  }
+  // async validate(values) {
+  //   values = values.filter(id => Number(id));
+  //   const missingIds = values.filter(id => !this.getFile([id]));
+  //   if (missingIds.length) {
+  //     await this.fetchIds(missingIds);
+  //   }
+  //   return values;
+  // }
 
-  prepare(value) {
-    return value;
-  }
-
-  convert(value) {
-    if (!Array.isArray(value)) {
-      if (Number(value)) {
-        return [value.toString()];
-      }
-      return [];
-    }
-    return value.map(item => item.toString());
-  }
-
-  getEmpty() {
-    return [];
-  }
+  // async downloadValue() {
+  //   return this.getRemoteValue(null, null, "array");
+  // }
 
   async validate(values) {
-    values = values.filter(id => Number(id));
-    const missingIds = values.filter(id => !this.getFile([id]));
+    const validValues = values.filter(id => Number(id));
+
+    if (validValues !== values) {
+      await this.setValue(values);
+    }
+
+    const missingIds = validValues.filter(id => !this.getFile([id]));
+
     if (missingIds.length) {
       await this.fetchIds(missingIds);
     }
-    return values;
+
+    return validValues;
   }
+
+  // async update() {
+  //
+  //   let values = await this.getArray();
+  //
+  //   value = await this.validate(values);
+  //
+  //   return values;
+  // }
 
   // validate(value) {
   //   const field = this;
@@ -152,7 +179,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
         update: function(gallery) {
           this.element.onclick = function(event) {
             event.preventDefault();
-            field.uploader.open();
+            field.uploader.open(value);
           };
         },
         children: [
@@ -204,7 +231,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
                 this.element.addEventListener("click", function(event) {
                   event.preventDefault();
                   field.backup();
-                  field.setValue([]);
+                  field.setArray([]);
                   field.edit();
                   field.render();
                 });
@@ -261,9 +288,11 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
 			},
 			update: async container => {
         container.element.classList.add("loading");
-        const value = await this.update();
-        container.children = this.buildContent(value);
-        container.element.classList.toggle("modified", this.modified);
+        let values = await this.fetchArray();
+        values = await this.validate(values);
+        let modified = this.isModified();
+        container.children = this.buildContent(values);
+        container.element.classList.toggle("modified", modified);
 			},
       complete: container => {
         container.element.classList.remove("loading");

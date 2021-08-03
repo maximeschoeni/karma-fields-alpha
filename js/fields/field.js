@@ -86,7 +86,7 @@ KarmaFieldsAlpha.fields.field = class Field {
   getRelatedValue(key) {
     let descendant = this.getDescendant(key);
     if (descendant) {
-      return descendant.getValue();
+      return descendant.fetchValue();
     } else if (this.parent) {
       return this.parent.getRelatedValue(key);
     }
@@ -262,12 +262,6 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
 
-  isModified() {
-    // console.warn("Deprecated function isModified");
-    // return this.read(this.getPath()) !== this.originalValue;
-    const value = this.getValue();
-    return value !== undefined && value !== this.getOriginal();
-  }
 
   // getValue() {
   //   // console.warn("Deprecated function getValue");
@@ -341,6 +335,8 @@ KarmaFieldsAlpha.fields.field = class Field {
   };
 
   initValue(value, updateField) {
+    console.error("Deprecated initValue");
+
     if (value !== undefined) {
       value = this.convert(value);
 
@@ -368,6 +364,8 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   async load(promise) {
+    console.error("Deprecated load");
+
     this.try("onLoad", true);
     const result = await promise;
     this.try("onLoad", false);
@@ -400,42 +398,35 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   }
 
-  getValue() {
-    return this.getDeltaValue() ?? this.getOriginal();
-  }
 
-  setValue(value) {
-    this.setDeltaValue(value);
-  }
+
 
   async changeValue(value) {
     // no validation
     this.setValue(value);
-    const originalValue = this.getOriginal();
+    // const originalValue = this.getOriginal();
 
-    this.modified = value !== originalValue;
+    // this.modified = value !== originalValue;
+    this.modified = this.isModified();
 
     // this.try("onModified", value === originalValue);
     // await this.load(this.bubble("change", this, value));
     await this.bubble("change", this, value);
   }
 
-  editValue(value) {
-    // no validation
-    this.setValue(value);
-    const originalValue = this.getOriginal();
-    this.modified = value !== originalValue;
-    return this.edit();
-  }
+
 
   async updateValue(value) {
+    console.error("Deprecated updateValue");
     // value = await this.load(this.validate(value));
-    value = await this.validate(value);
+    // value = await this.validate(value);
 
     this.setValue(value);
-    const originalValue = this.getOriginal();
+    // const originalValue = this.getOriginal();
+    //
+    // this.modified = value === originalValue;
 
-    this.modified = value === originalValue;
+    this.modified = this.isModified();
 
     // this.try("onSet", value);
     // this.try("onModified", value === originalValue);
@@ -443,41 +434,61 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
   async getValueAsync() {
+    console.error("Deprecated getValueAsync");
     return this.getDeltaValue() ?? this.getOriginal() ?? this.fetchValue() ?? this.getDefault();
   }
 
+
+
   getOriginal() {
+    console.error("Deprecated getOriginal");
+
     return this.getFormOriginal();
   }
 
+
   setOriginal(value) {
+    console.error("Deprecated setOriginal");
     this.setFormOriginal(value);
   }
 
+  // recursiveGetOriginal(keys) {
+  //   keys = this.getKeyPath(keys, true);
+  //   return this.parent && this.parent.recursiveGetOriginal(keys);
+  // }
+
   getFormOriginal(keys) {
+    console.error("Deprecated getFormOriginal");
     keys = this.getKeyPath(keys, true);
     return this.parent && this.parent.getFormOriginal(keys);
   }
 
   setFormOriginal(value, keys) {
+    console.error("Deprecated setFormOriginal");
     keys = this.getKeyPath(keys);
     this.parent && this.parent.setFormOriginal(value, keys);
   }
 
-  async fetchValue() {
-    let value = await this.getRemoteValue();
-    value = this.prepare(value);
-    if (value !== undefined) {
-      value = this.convert(value);
-      this.setOriginal(value);
-    }
-    return value;
+
+
+  async downloadValue() {
+    console.error("DEprecated downloadValue");
+    return this.getRemoteValue()
   }
 
 
-  getRemoteValue(keys) {
+  // recursiveGetRemote(keys) {
+  //   keys = this.getKeyPath(keys, true);
+  //   return this.parent && this.parent.recursiveGetRemote(keys);
+  // }
+  // getRemote() {
+  //   return this.recursiveGetRemote();
+  // }
+
+  getRemoteValue(keys, driver) {
+    console.error("DEprecated getRemoteValue");
     keys = this.getKeyPath(keys, true);
-    return this.parent && this.parent.getRemoteValue(keys);
+    return this.parent && this.parent.getRemoteValue(keys, driver);
   }
 
   getRawValue() {
@@ -485,45 +496,124 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   async update() {
+    console.error("Deprecated function update");
+    let value = await this.getValue() ?? this.resource.value ?? await this.getDefault();
 
-    let originalValue = this.getOriginal();
-    let deltaValue = this.getDeltaValue();
-    let value = deltaValue ?? originalValue ?? this.resource.value;
+    // let originalValue = this.getFormOriginal() ?? await this.downloadValue();
+    //
+    // let deltaValue = this.getDeltaValue();
+    //
+    // let value = deltaValue ?? originalValue ?? this.resource.value ?? await this.getDefault();
 
-    if (value === undefined) {
-      value = await this.fetchValue();
-    }
-    if (value === undefined) {
-      value = await this.getDefault();
-    } else {
-      value = await this.validate(value);
-    }
+    // if (value === undefined) {
+    //   value = await this.getDefault();
+    // } else {
+    //   value = await this.validate(value);
+    // }
 
-    // set delta if value is different from original
-    if (value !== originalValue) {
-      this.setDeltaValue(value);
-      // await this.edit();
-    }
+    // not all field need to autoset value (like readonly)
+    // if (value !== originalValue) {
+    //   this.setDeltaValue(value);
+    //   // await this.edit();
+    // }
 
-    this.modified = value !== originalValue;
+    // this.modified = value !== originalValue;
+
+    this.modified = this.isModified();
 
     return value;
   }
 
-  getDeltaValue(keys) {
+
+  isModified(value, keys) {
     keys = this.getKeyPath(keys, true);
-    return this.parent && this.parent.getDeltaValue(keys);
+    // console.warn("Deprecated function isModified");
+    // return this.read(this.getPath()) !== this.originalValue;
+    // const value = this.getValue();
+    // return value !== undefined && value !== this.getOriginal();
+    return this.parent && this.parent.isModified(value, keys);
   }
 
-  setDeltaValue(rawValue, keys) {
-    keys = this.getKeyPath(keys);
-    this.parent && this.parent.setDeltaValue(rawValue, keys);
+
+  fetchValue(keys, driver) {
+    keys = this.getKeyPath(keys, true);
+    if (keys.length && this.parent) {
+      return this.parent.fetchValue(keys, driver);
+    }
   }
 
-  removeDeltaValue(keys) {
-    keys = this.getKeyPath(keys);
-    this.parent && this.parent.removeDeltaValue(keys);
+  async editValue(value) {
+    // keys = this.getKeyPath(keys, true);
+    // if (keys.length && this.parent) {
+    //   return this.parent.editValue(value, keys);
+    // }
+
+    await this.setValue(value);
+    return this.edit();
   }
+
+  getValue(keys) {
+    keys = this.getKeyPath(keys);
+    if (keys.length && this.parent) {
+      return this.parent.getValue(keys);
+    }
+  }
+
+
+  // maybe async
+  setValue(value, keys) {
+    keys = this.getKeyPath(keys);
+    if (keys.length && this.parent) {
+      return this.parent.setValue(value, keys);
+    }
+  }
+
+  removeValue(keys) {
+    keys = this.getKeyPath(keys);
+    if (keys.length && this.parent) {
+      this.parent.removeValue(keys);
+    }
+  }
+
+
+  fetchArray(keys, driver) {
+    keys = this.getKeyPath(keys);
+    if (keys.length && this.parent) {
+      return this.parent.fetchArray(keys, driver);
+    }
+  }
+
+  // editArray(array, keys) {
+  //   this.setValue(array, keys);
+  //   return this.edit();
+  // }
+
+  // = getDeltaArray
+  // getArray(keys) {
+  //   // return this.fetchArray(keys);
+  //   // keys = this.getKeyPath(keys);
+  //   // return this.parent && this.parent.getArray(keys, driver);
+  //
+  //   let value = this.getDeltaValue(keys);
+  //   return value && JSON.parse(value) || [];
+  // }
+
+  // setArray(array, keys) {
+  //   // keys = this.getKeyPath(keys);
+  //   // return this.parent && this.parent.setArray(array, keys);
+  //
+  //   array = JSON.stringify(array);
+  //   return this.setDeltaValue(array, keys);
+  //   // return this.editArray(array, keys);
+  //
+  // }
+
+  // removeArray(keys) {
+  //   // keys = this.getKeyPath(keys);
+  //   // return this.parent && this.parent.removeArray(array, keys);
+  //
+  //   this.removeDeltaValue(keys);
+  // }
 
 
   // experimental
@@ -824,6 +914,12 @@ KarmaFieldsAlpha.fields.field = class Field {
   edit() {
     return this.parent && this.parent.edit();
   }
+
+  // ??
+  editFull() {
+    return this.parent && this.parent.editFull();
+  }
+
   submit() {
     return this.parent && this.parent.submit();
   }
@@ -835,6 +931,16 @@ KarmaFieldsAlpha.fields.field = class Field {
   setParam(key, value) {
     this.parent && this.parent.setParam(key, value);
   }
+  setParams(params) {
+    this.parent && this.parent.setParams(params);
+  }
+
+  // getChildrenDeltaValue() {
+  //   const flatObj = {};
+  //   this.children.forEach(child => {
+  //     Object.assign(flatObj, );
+  //   });
+  // }
 
 
 };

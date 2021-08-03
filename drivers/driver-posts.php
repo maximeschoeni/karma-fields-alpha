@@ -77,11 +77,11 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
           if (registered_meta_key_exists('post', $key)) {
 
-            return get_registered_metadata('post', $post->ID, $key);
+            $value = get_registered_metadata('post', $post->ID, $key);
 
           } else {
 
-            return get_post_meta($post->ID, $key);
+            $value = get_post_meta($post->ID, $key);
 
             // $meta = get_post_meta($post->ID, $key);
             //
@@ -100,6 +100,8 @@ Class Karma_Fields_Alpha_Driver_Posts {
             // }
 
           }
+
+          return apply_filters('karma_fields_posts_driver_get_meta', $value, $key, $post->ID);
 
         }
 
@@ -163,6 +165,9 @@ Class Karma_Fields_Alpha_Driver_Posts {
                 $single = !is_array($value);
 
               }
+
+              // var_dump($single, $id, $value, $key);
+
 
               if ($single) {
 

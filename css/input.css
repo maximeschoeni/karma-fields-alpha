@@ -57,22 +57,23 @@
 /* Table Input
 --------------------------------------*/
 
-.karma-field-table input,
-.karma-field-table textarea {
+.table input,
+.table textarea {
   background-color: #f0f0f1;
 }
-.karma-field-table .selected input,
-.karma-field-table .selected textarea {
+.table .selected input,
+.table .selected textarea {
   background-color: white;
 }
 
 
-.karma-field-table .table input,
-.karma-field-table .table textarea {
+.table input,
+.table textarea {
   border: none;
   margin: 0;
   border-radius: 0;
-  min-width: 40px;
+  min-width: 100%;
+  width: 120px;
   min-height: 40px;
   box-shadow: none;
 
@@ -86,6 +87,11 @@
 -ms-user-select: none; */
 
 }
+.table .karma-field-date input {
+  height: 100%;
+}
+
+
 
 
 

@@ -18,14 +18,15 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 
 	build() {
 		return {
-			tag: "p",
+			tag: "span",
 			class: "text karma-field",
-			init: p => {
-				a.element.setAttribute('tabindex', '-1');
+			init: span => {
+				span.element.setAttribute('tabindex', '-1');
 			},
 			update: async input => {
 				input.element.classList.add("loading");
-				input.element.innerHTML = await this.update();
+				const value = await this.update();
+				input.element.innerHTML = value;
 				input.element.classList.remove("loading");
 			}
 		};

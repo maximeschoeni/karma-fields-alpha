@@ -114,23 +114,23 @@
 
 KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fields.field {
 
-  prepare(value) {
-    return value;
-  }
-
-  convert(value) {
-    if (!Array.isArray(value)) {
-      if (Number(value)) {
-        return [value];
-      }
-      return [];
-    }
-    return value;
-  }
-
-  getEmpty() {
-    return [];
-  }
+  // prepare(value) {
+  //   return value;
+  // }
+  //
+  // convert(value) {
+  //   if (!Array.isArray(value)) {
+  //     if (Number(value)) {
+  //       return [value];
+  //     }
+  //     return [];
+  //   }
+  //   return value;
+  // }
+  //
+  // getEmpty() {
+  //   return [];
+  // }
 
   // getValue() {
   //   return this.children.map(child => child.getValue()).filter(value => value !== undefined);
@@ -155,26 +155,37 @@ KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fie
   //   }
   // }
 
-  getValue() {
-    let value = super.getValue();
-    if (value !== undefined) {
-      // value = JSON.parse(value);
-      value = value.split(",");
-    } else {
-      value = this.getEmpty();
-    }
-    return value;
-  }
+  // getValue() {
+  //   let value = super.getValue();
+  //   if (value !== undefined) {
+  //     // value = JSON.parse(value);
+  //     value = value.split(",");
+  //   } else {
+  //     value = this.getEmpty();
+  //   }
+  //   return value;
+  // }
+  //
+  // setValue(values) {
+  //   if (values !== undefined) {
+  //     values = values.join(",");
+  //     super.setValue(values);
+  //     // super.setValue(JSON.stringify(values));
+  //   }
+  // }
 
-  setValue(values) {
-    if (values !== undefined) {
-      values = values.join(",");
-      super.setValue(values);
-      // super.setValue(JSON.stringify(values));
-    }
-  }
+  // getDeltaValue(keys) {
+  //   const value = super.getDeltaValue(keys);
+  //   return value && JSON.parse(value) || [];
+  // }
+  //
+  // setDeltaValue(value, keys) {
+  //   value = value && JSON.parse(value) || [];
+  //   super.setDeltaValue(value, keys);
+  // }
 
   getOriginal() {
+    console.error("deprecated getOriginal");
     let value = super.getOriginal();
     if (value !== undefined) {
       value = JSON.parse(value);
@@ -183,43 +194,47 @@ KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fie
   }
 
   setOriginal(values) {
+    console.error("deprecated setOriginal");
     if (values !== undefined) {
       super.setOriginal(JSON.stringify(values));
     }
   }
 
-  add(items) {
-    let values = this.getValue().concat(items);
-    this.setValue(values);
+  async add(items) {
+    let values = await this.getValue();
+    values = values.concat(items);
+    return this.setValue(values);
   }
 
-  remove(items) {
-    let values = this.getValue();
+  async remove(items) {
+    let values = await this.getValue();
     values = values.filter(function(value) {
       return items.indexOf(value) === -1;
     });
-    this.setValue(values);
+    return this.setValue(values);
   }
 
-  replace(item, newItem) {
-    const values = this.getValue();
+  async replace(item, newItem) {
+    const values = await this.getValue();
     const index = values.indexOf(item);
     if (index > -1) {
       values.splice(index, 1, newItem);
-      this.setValue(values, context);
+      await this.setValue(values, context);
     }
   }
 
-  getPrev(rowId) {
-    let ids = this.getValue();
+  async getPrev(rowId) {
+    console.error("deprecated getPrev");
+    let ids = await this.getArray();
     let index = ids.indexOf(rowId);
     if (index > 0) {
       return ids[index-1];
     }
   }
 
-  getNext(rowId) {
-    let ids = this.getValue();
+  async getNext(rowId) {
+    console.error("deprecated getNext");
+    let ids = await this.getArray();
     let index = ids.indexOf(rowId);
     if (index > -1 && index < ids.length - 1) {
       return ids[index+1];
@@ -231,12 +246,35 @@ KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fie
 
 KarmaFieldsAlpha.fields.number = class TableCol extends KarmaFieldsAlpha.fields.field {
 
-  empty() {
-    return 0;
+
+  // async getValue() {
+  //   const value = await super.getValue();
+  //   return Number(value) || 0;
+  // }
+  //
+  // async setValue(value) {
+  //   value = value.toString();
+  //   return super.setValue(value);
+  // }
+
+  async fetchValue() {
+    const value = await super.fetchValue();
+    return Number(value) || 0;
   }
 
-  convert(value) {
-    return value && Number(value) || 0;
+  // editValue(value) {
+  //   this.setDeltaValue(value);
+  //   return this.edit();
+  // }
+
+  setValue(value) {
+    value = value.toString();
+    return super.setValue(value);
+  }
+
+  getValue() {
+    value = super.getValue();
+    return Number(value) || 0;
   }
 
 }

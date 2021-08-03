@@ -132,10 +132,12 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 		return this.getEmpty();
 	}
 
-	async validate(value) {
-		const options = this.fetchOptions();
-		if (options.length && !options.some(option => option.key === value)) {
-			return options[0].key;
+	async fetchValue() {
+		let value = await super.fetchValue();
+		const options = await this.fetchOptions();
+		if (options.length && !this.resource.readonly && !options.some(option => option.key === value)) {
+			value = options[0].key;
+			await this.setValue(value);
 		}
 		return value;
   }
@@ -268,13 +270,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 			},
 			update: async dropdown => {
 
-				dropdown.element.onchange = async() => {
-					this.backup();
-					dropdown.element.classList.add("loading");
-					await this.changeValue(dropdown.element.value);
-					dropdown.element.classList.toggle("modified", this.modified);
-					dropdown.element.classList.remove("loading");
-				}
+
 
 				// field.onOptions = function(options, value, queryString) {
 				// 	if (queryString !== dropdown.element.getAttribute("querystring")) {
@@ -299,8 +295,10 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 				dropdown.element.classList.add("loading");
 
-				
-				const value = await this.update();
+
+				let value = await this.fetchValue();
+				//value = await this.validate(value);
+				let modified = this.isModified();
 				const options = await this.fetchOptions();
 				const queryString = this.getOptionsParamString();
 
@@ -315,6 +313,26 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 					dropdown.element.value = value;
 					dropdown.clean = false;
 
+				}
+
+
+				if (this.resource.readonly) {
+					dropdown.element.disabled = true;
+				} else {
+					dropdown.element.onchange = async() => {
+						this.backup();
+						dropdown.element.classList.add("loading");
+						await this.editValue(dropdown.element.value);
+						// await this.edit();
+						modified = this.isModified();
+						dropdown.element.classList.toggle("modified", modified);
+						dropdown.element.classList.remove("loading");
+					}
+				}
+
+				if (this.resource.condition) {
+					const condition = await this.getRelatedValue(this.resource.condition.key)
+					dropdown.element.classList.toggle("hidden", condition !== this.resource.condition.value);
 				}
 
 				dropdown.element.classList.toggle("modified", this.modified);

@@ -14,6 +14,8 @@
 		let resource = <?php echo json_encode($args); ?>;
 		let id = <?php echo $post_id; ?>;
 
+
+
 		// let field = new KarmaFieldsAlpha.fields.form({
 		// 	type: "form",
 		// 	key: id,
@@ -32,14 +34,28 @@
 			]
 		});
 
+		input.form.addEventListener("submit", function() {
+			field.getDeltaPathes().forEach(path => {
+				localStorage.removeItem(path);
+			});
+		});
+
 		window.karma_field = field; // -> debug
 
 		// override form output event
-		field.events.change = function(currentField) {
+		// field.events.change = function(currentField) {
+		//
+		// 	// let values = {};
+		// 	// values[field.resource.driver] = {};
+		// 	// values[field.resource.driver][id] = field.getModifiedValue() || {};
+		//
+		// 	let values = {};
+		// 	values[field.resource.driver] = field.getModifiedValue() || {};
+		//
+		// 	input.value = JSON.stringify(values);
+		// }
 
-			// let values = {};
-			// values[field.resource.driver] = {};
-			// values[field.resource.driver][id] = field.getModifiedValue() || {};
+		field.edit = function() {
 
 			let values = {};
 			values[field.resource.driver] = field.getModifiedValue() || {};

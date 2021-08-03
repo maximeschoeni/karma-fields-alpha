@@ -320,20 +320,16 @@ KarmaFieldsAlpha.fields.tableControls.reload = class extends KarmaFieldsAlpha.fi
 
 KarmaFieldsAlpha.fields.tableControls.firstPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
-    const count = field.getCount(); // field.count.getValue();
-    const page = Number(field.getParam("page") || 1); // field.page.getValue();
-    const ppp = Number(field.getParam("ppp") || 100); // field.ppp.getValue();
+    const count = field.getCount();
+    const page = Number(field.getParam("page") || 1);
+    const ppp = Number(field.getParam("ppp") || 100);
 
-    // element.style.display = ppp > 0 && count > ppp ? "block" : "none";
     element.classList.toggle("hidden", ppp < 1 || count < ppp);
     element.disabled = (page == 1);
     element.onclick = async (event) => {
-      // const page = field.page.getValue();
       if (page > 0) {
         element.classList.add("loading");
-        // field.page.setValue(1);
         field.setParam("page", page-1);
-        // await field.update();
         await field.render();
         element.classList.remove("loading");
       }
@@ -342,32 +338,20 @@ KarmaFieldsAlpha.fields.tableControls.firstPage = class extends KarmaFieldsAlpha
 }
 KarmaFieldsAlpha.fields.tableControls.prevPage = class extends KarmaFieldsAlpha.fields.tableControls.button {
   update(element, field) {
-    const count = field.getCount(); // field.count.getValue();
-    const page = Number(field.getParam("page") || 1); // field.page.getValue();
-    const ppp = Number(field.getParam("ppp") || 100); // field.ppp.getValue();
+    const count = field.getCount();
+    const page = Number(field.getParam("page") || 1);
+    const ppp = Number(field.getParam("ppp") || 100);
 
-    // element.style.display = ppp > 0 && count > ppp ? "block" : "none";
     element.classList.toggle("hidden", ppp < 1 || count < ppp);
     element.disabled = (page === 1);
 
     element.onclick = async (event) => {
-      // const page = field.page.getValue();
       if (page > 0) {
         element.classList.add("loading");
         field.setParam("page", page-1);
-        // await field.update();
-
-        // requestIdleCallback( async () => {
-        //   await field.render();
-        //   element.classList.remove("loading");
-        // });
 
         await field.render();
         element.classList.remove("loading");
-
-
-
-
       }
     }
   }
@@ -379,16 +363,13 @@ KarmaFieldsAlpha.fields.tableControls.nextPage = class extends KarmaFieldsAlpha.
     const ppp = Number(field.getParam("ppp") || 100);
     const numPage = Math.ceil(count/ppp);
 
-    // element.style.display = ppp > 0 && count > ppp ? "block" : "none";
     element.classList.toggle("hidden", ppp < 1 || count < ppp);
     element.disabled = page >= numPage;
 
     element.onclick = async (event) => {
       if (page < numPage) {
         element.classList.add("loading");
-        // field.page.setValue(page+1);
         field.setParam("page", page+1);
-        // await field.update();
         await field.render();
         element.classList.remove("loading");
       }
@@ -402,16 +383,13 @@ KarmaFieldsAlpha.fields.tableControls.lastPage = class extends KarmaFieldsAlpha.
     const ppp = Number(field.getParam("ppp") || 100);
     const numPage = Math.ceil(count/ppp);
 
-    // element.style.display = ppp > 0 && count > ppp ? "block" : "none";
     element.classList.toggle("hidden", ppp < 1 || count < ppp);
     element.disabled = page >= numPage;
 
     element.onclick = async (event) => {
       if (page < numPage) {
         element.classList.add("loading");
-        // field.page.setValue(numPage);
         field.setParam("page", numPage);
-        // await field.update();
         await field.render();
         element.classList.remove("loading");
       }
@@ -428,7 +406,6 @@ KarmaFieldsAlpha.fields.tableControls.currentPage = class {
         const page = Number(field.getParam("page") || 1);
         const ppp = Number(field.getParam("ppp") || 100);
 
-        // item.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
         item.element.classList.toggle("hidden", ppp < 1 || count < ppp);
         item.element.textContent = count && page+" / "+Math.ceil(count/ppp) || "";
       }
@@ -450,12 +427,11 @@ KarmaFieldsAlpha.fields.tableControls.ppp = class extends KarmaFieldsAlpha.field
   }
 
   buildMain(element, field) {
-    let num = field.getCount(); // field.count.getValue();
+    let num = field.getCount();
     element.textContent = num ? num + " items" : "";
   }
 
   buildOption(element, item, field) {
-    // const ppp = field.ppp.getValue();
     const ppp = Number(field.getParam("ppp") || 100);
     element.classList.toggle("active", ppp == item.key);
 
@@ -463,14 +439,10 @@ KarmaFieldsAlpha.fields.tableControls.ppp = class extends KarmaFieldsAlpha.field
 
       field.setParam("ppp", item.key);
       field.setParam("page", 1);
-      // field.ppp.setValue(item.key);
-      // field.page.setValue(1);
       element.classList.add("loading");
-      // await field.update();
       await field.render();
       element.classList.remove("loading");
 
-      // element.blur();
       document.activeElement.blur(); // for safari
     }
   }
@@ -500,8 +472,6 @@ KarmaFieldsAlpha.fields.tableControls.order = class {
         class: "karma-field-spinner"
       },
       update: a => {
-        // const orderby = field.orderby.getValue();
-        // const order = field.order.getValue();
         const orderby = field.getParam("orderby");
         const order = field.getParam("order") || column.order;
 
@@ -509,7 +479,7 @@ KarmaFieldsAlpha.fields.tableControls.order = class {
           event.preventDefault();
           a.element.classList.add("loading");
           this.reorder(column, field);
-          // await field.update();
+
           await field.render();
           a.element.classList.remove("loading");
         };
@@ -532,7 +502,8 @@ KarmaFieldsAlpha.fields.tableControls.prevModal = class extends KarmaFieldsAlpha
         id = ids[index-1];
         element.classList.add("loading");
         field.setParam("id", id);
-        await field.render();
+        await field.renderModal();
+        await field.renderFooter();
         element.classList.remove("loading");
       }
     }
@@ -551,7 +522,8 @@ KarmaFieldsAlpha.fields.tableControls.nextModal = class extends KarmaFieldsAlpha
         id = ids[index+1];
         element.classList.add("loading");
         field.setParam("id", id);
-        await field.render();
+        await field.renderModal();
+        await field.renderFooter();
         element.classList.remove("loading");
       }
     }

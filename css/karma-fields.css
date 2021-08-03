@@ -158,7 +158,7 @@
   /* background-color: #f6f7f7; */
   border-radius: 2px;
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   justify-content: center;
   width: 150px;
   height: 150px;
@@ -167,22 +167,29 @@
 }
 .karma-file .image-frame .image-container {
   display: flex;
+  align-items: center;
 }
 .karma-file .image-frame .image-container.type-image {
-  background-color: #c3c4c7;
+  align-items: stretch;
+}
+.karma-file .image-frame .image-container.type-image img {
+  /* background-color: #c3c4c7; */
+
+  background-image: linear-gradient(45deg, #dadada 25%, transparent 25%), linear-gradient(-45deg, #dadada 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #dadada 75%), linear-gradient(-45deg, transparent 75%, #dadada 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 .karma-file .image-frame.type-image {
   /* border: none;
   background-color: transparent; */
+
 }
-.karma-file .image-frame img {
-  /* display: block;
-  object-fit: cover;
-  object-position: center;
-  width: 100%;
-  height: 100%;
-  border: none; */
+
+.karma-file .image-frame .button-container {
+  display: flex;
+  align-items: center;
 }
+
 .karma-file .field-control  {
   display: flex;
   flex-direction: column;
@@ -190,21 +197,42 @@
 }
 
 
-.karma-field-table .table .karma-file .image-frame {
+
+
+.table .karma-file {
+  background-color: #f0f0f1;
+}
+.table .karma-file.loading {
+  min-height: 80px;
+}
+.table .karma-file .image-frame {
   border: none;
   border-radius: 0;
   width: 80px;
   height: 80px;
   margin: 0;
 }
-.karma-field-table .table .karma-file .field-control  {
+.table .karma-file .field-control  {
   display: none;
 }
-
-.karma-field-table .table .karma-file.selected a {
+.table .karma-file.selected .image-frame {
   background-color: white;
 }
-
+.table .karma-file .image-frame img {
+  display: block;
+  /* object-fit: cover; */
+  /* width: 100%;
+  height: 100%; */
+  max-width: 100%;
+  height: auto;
+}
+.table .selected .karma-file .image-frame img {
+  opacity: 0.5;
+}
+.table .selected .karma-file,
+.table .selected .karma-file .image-frame .image-container.type-image {
+  background-color: white;
+}
 
 .karma-field-frame.karma-field-file {
   grid-template-columns: 150px 1fr;

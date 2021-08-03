@@ -15,51 +15,52 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
   //   value = value.padEnd(format.length, base.slice(value.length));
   //   return Promise.resolve(value);
   // }
-  convert(value) {
-    value = value.toString();
+  async validate(value) {
+    const validValue = value.toString();
     const base = "1900-01-01 00:00:00";
     const format = this.resource.output_format || "yyyy-mm-dd hh:ii:ss";
-    value = value.slice(0, format.length);
-    value = value.padEnd(format.length, base.slice(value.length));
-    return value;
+    validValue = validValue.slice(0, format.length);
+    validValue = validValue.padEnd(format.length, base.slice(validValue.length));
+    if (validValue !== value) {
+      await this.setValue(validValue);
+    }
+    return validValue;
   }
 
-  exportValue() {
-    this.getValueAsync().then(function(value) {
-      if (KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
-        return value;
-      }
-      return '';
-    });
+  async exportValue() {
+    let value = await this.fetchValue();
+    if (KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
+      return value;
+    }
+    return '';
   }
 
-  importValue(value, context) {
+  async importValue(value, context) {
     const date = KarmaFieldsAlpha.Calendar.parse(value, this.resource.import_format || this.resource.format);
     if (date) {
       return this.updateValue(KarmaFieldsAlpha.Calendar.format(date, this.resource.import_format || this.resource.format));
-    } else {
-      return Promise.resolve("");
     }
+    return "";
   }
 
   // not used yet
-  keyChange(input, dir) {
-    const field = this;
-    let value = this.getValue();
-    this.date = KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);
-    let index = input.selectionStart || 0;
-    if (this.format[index] === "y" || this.format[index-1] === "y") {
-      this.date.setFullYear(this.date.getFullYear() + dir);
-    } else if (this.format[index] === "m" || this.format[index-1] === "m") {
-      this.date.setMonth(this.date.getMonth() + dir);
-    } else if (this.format[index] === "d" || this.format[index-1] === "d") {
-      this.date.setDate(this.date.getDate() + dir);
-    }
-
-    input.setSelectionRange(index, index);
-    let sqlDate = KarmaFieldsAlpha.Calendar.format(this.date, this.resource.output_format);
-    field.setValue(sqlDate);
-  };
+  // keyChange(input, dir) {
+  //   const field = this;
+  //   let value = this.getValue();
+  //   this.date = KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);
+  //   let index = input.selectionStart || 0;
+  //   if (this.format[index] === "y" || this.format[index-1] === "y") {
+  //     this.date.setFullYear(this.date.getFullYear() + dir);
+  //   } else if (this.format[index] === "m" || this.format[index-1] === "m") {
+  //     this.date.setMonth(this.date.getMonth() + dir);
+  //   } else if (this.format[index] === "d" || this.format[index-1] === "d") {
+  //     this.date.setDate(this.date.getDate() + dir);
+  //   }
+  //
+  //   input.setSelectionRange(index, index);
+  //   let sqlDate = KarmaFieldsAlpha.Calendar.format(this.date, this.resource.output_format);
+  //   field.setValue(sqlDate);
+  // };
 
 
   buildPopup(value) {
@@ -152,8 +153,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
                               let sqlDate = KarmaFieldsAlpha.Calendar.format(day.date, field.resource.output_format);
                               field.date = null;
                               field.backup();
-                              field.setValue(sqlDate);
-                              field.edit();
+                              field.editValue(sqlDate);
                               field.render();
                               // field.updateChangeValue(sqlDate);
                             }
@@ -186,19 +186,19 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
         this.init(container.element);
         this.render = container.render;
       },
-      update: container => {
+      update: async (container) => {
+        let value = await this.fetchValue();
+        value = await this.validate(value);
         container.element.classList.add("loading");
+
+
         container.children = [
           {
             class: "date-popup-container",
-            update: (popup) => {
-              // field.onUpdatePopup = function(value) {
-              const value = this.getValue();
+            update: popup => {
+              // const value = await this.getValue();
               popup.element.classList.toggle("open-down", popup.element.getBoundingClientRect().top+window.pageYOffset < 500);
-
               popup.children = this.date && [this.buildPopup(value)] || [];
-                // popup.render();
-              // }
             }
           },
           {
@@ -208,18 +208,18 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
               input.element.type = "text";
               input.element.id = this.getId();
             },
-            update: async (input) => {
+            update: (input) => {
+
 
               if (this.resource.readonly) {
                 input.element.readOnly = true;
               } else {
-                input.element.onkeyup = () => {
+                input.element.onkeyup = async () => {
                   let inputDate = KarmaFieldsAlpha.Calendar.parse(input.element.value, this.format);
                   if (inputDate) {
                     this.date = inputDate;
                     var sqlDate = KarmaFieldsAlpha.Calendar.format(this.date, this.resource.output_format);
-                    this.setValue(sqlDate);
-                    this.edit();
+                    await this.editValue(sqlDate);
                     this.render();
                     // this.changeValue(sqlDate).then(function() {
                     //   field.try("onUpdatePopup", sqlDate);
@@ -227,29 +227,22 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
                   }
                   input.element.classList.toggle("valid-date", inputDate);
                 };
-                input.element.onfocus = () => {
-                  const value = this.getValue();
+                input.element.onfocus = async () => {
+                  // const value = await this.fetchValue();
                   this.date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format) || new Date();
                   this.render();
-
-                  // this.getValueAsync().then(function(value) {
-                  //   this.date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format) || new Date();
-                  //   this.try("onUpdatePopup", value);
-                  // });
                 };
-                input.element.onfocusout = () => {
+                input.element.onfocusout = async () => {
                   this.date = null;
                   if (!KarmaFieldsAlpha.Calendar.parse(input.element.value, this.format)) {
                     // field.changeValue("");
-                    this.setValue("");
-                    this.edit();
+                    await this.editValue("");
                   }
                   this.render();
                 };
               }
 
-              // field.onSet = function(value) {
-              const value = await this.update();
+
               container.element.classList.toggle("modified", this.modified);
 
               let date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);

@@ -4,7 +4,7 @@
 
 Class Karma_Fields_Alpha {
 
-	public $version = '20';
+	public $version = '21';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -135,7 +135,7 @@ Class Karma_Fields_Alpha {
 
 
 				// deprecated
-				wp_enqueue_script('karma-fields-alpha-textinput', $plugin_url . '/js/fields/textinput.js', array('karma-fields-alpha'), $this->version, true);
+				// wp_enqueue_script('karma-fields-alpha-textinput', $plugin_url . '/js/fields/textinput.js', array('karma-fields-alpha'), $this->version, true);
 
 
 
@@ -150,13 +150,14 @@ Class Karma_Fields_Alpha {
 				// wp_enqueue_script('karma-utils-object', $plugin_url . '/js/utils/object.js', array('karma-fields-alpha'), $this->version, true);
 				// wp_enqueue_script('karma-transfer', $plugin_url . '/js/transfer-manager.js', array('karma-fields-alpha'), $this->version, true);
 				wp_enqueue_script('karma-fields-manager-selection', $plugin_url . '/js/managers/selection-manager.js', array('karma-fields-alpha'), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-flat-object', $plugin_url . '/js/utils/flat-object.js', array(), $this->version, true);
 
 				// includes
 				// wp_enqueue_script('karma-fields-includes-icon', $plugin_url . '/js/includes/icon.js', array('karma-fields-alpha'), $this->version, true);
 
 				// managers
-				wp_enqueue_script('karma-fields-manager-history', $plugin_url . '/js/managers/history.js', array('karma-fields-alpha'), $this->version, true);
-				wp_enqueue_script('karma-fields-manager-field', $plugin_url . '/js/managers/field.js', array('karma-fields-alpha'), $this->version, true);
+				// wp_enqueue_script('karma-fields-manager-history', $plugin_url . '/js/managers/history.js', array('karma-fields-alpha'), $this->version, true);
+				// wp_enqueue_script('karma-fields-manager-field', $plugin_url . '/js/managers/field.js', array('karma-fields-alpha'), $this->version, true);
 				wp_enqueue_script('karma-fields-manager-form', $plugin_url . '/js/managers/form.js', array('karma-fields-alpha'), $this->version, true);
 				// wp_enqueue_script('table-manager', $plugin_url . '/js/managers/table-manager.js', array('karma-fields-alpha', 'karma-manager-history'), $this->version, true);
 				// wp_enqueue_script('field-manager', $plugin_url . '/js/managers/field-manager.js', array('karma-fields-alpha', 'karma-manager-history'), $this->version, true);
@@ -297,6 +298,10 @@ Class Karma_Fields_Alpha {
 
 									// -> should verify permissions here
 
+									// echo '<pre>';
+									// var_dump($data);
+
+
 									if (method_exists($driver, 'update')) {
 
 										$driver->update($data);
@@ -304,6 +309,10 @@ Class Karma_Fields_Alpha {
 									}
 
 								}
+
+								// die();
+
+
 
 							}
 
