@@ -330,10 +330,10 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 					}
 				}
 
-				if (this.resource.condition) {
-					const condition = await this.getRelatedValue(this.resource.condition.key)
-					dropdown.element.classList.toggle("hidden", condition !== this.resource.condition.value);
-				}
+				// if (this.resource.condition) {
+				// 	const condition = await this.getRelatedValue(this.resource.condition.key)
+				// 	dropdown.element.classList.toggle("hidden", condition !== this.resource.condition.value);
+				// }
 
 				dropdown.element.classList.toggle("modified", this.modified);
 				dropdown.element.classList.remove("loading");

@@ -15,7 +15,6 @@
 		let id = <?php echo $post_id; ?>;
 
 
-
 		// let field = new KarmaFieldsAlpha.fields.form({
 		// 	type: "form",
 		// 	key: id,

@@ -10,27 +10,33 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 
 		return {
 			class: "karma-field-frame karma-field-"+field.resource.type,
-			init: function(container) {
+			init: (container) => {
 				if (field.resource.style) {
-					this.element.style = field.resource.style;
+					console.log(field.resource.style, container.element);
+					container.element.style = field.resource.style;
 				}
 			},
 
-			update: function(container) {
-				this.children = [];
+			update: async (container) => {
+				if (field.resource.condition) {
+					const condition = await this.getRelatedValue(field.resource.condition.key);
+					container.element.classList.toggle("hidden", condition !== field.resource.condition.value);
+				}
+
+				container.children = [];
 				if (field.resource.label) {
-					this.children.push({
+					container.children.push({
 						tag: "label",
-						init: function(label) {
+						init: (label) => {
 							if (field.resource.label) {
-								this.element.htmlFor = field.getId();
-								this.element.textContent = field.resource.label;
+								label.element.htmlFor = field.getId();
+								label.element.textContent = field.resource.label;
 							}
 						}
 					});
 				}
-				this.children.push(field.build());
-				this.children.push({
+				container.children.push(field.build());
+				container.children.push({
 					class: "karma-field-spinner"
 				});
 			}

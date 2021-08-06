@@ -35,6 +35,9 @@
   transition: transform 100ms;
 }
 
+.karma-fields .array .td.drag {
+  z-index: 99999;
+}
 
 .karma-fields .array .td.array-index {
   align-items: center;

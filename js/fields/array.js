@@ -234,12 +234,21 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       }
     }
     return this.columns;
+    // return (this.resource.columns || []).filter(column => column.field);
   }
 
   hasHeader() {
     return this.getColumns().some(function(column) {
       return column.header || column.field && column.field.label;
     });
+  }
+
+  hasIndex() {
+    return true;
+  }
+
+  hasDelete() {
+    return true;
   }
 
   async swap(index1, index2) {
@@ -319,110 +328,127 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
   buildContent(values) {
     return [
       {
-        class: "array table",
-        update: table => {
-          table.children = [];
-          // if (!this.children.length) {
-          //   table.element.classList.add("empty");
-          // }
-          let manager = new KarmaFieldsAlpha.Orderer(table.element);
+        class:"array-table-container",
+        update: container => {
+          container.children = values.length && [{
+            class: "array table",
+            init: table => {
+              this.manager = new KarmaFieldsAlpha.Orderer(table.element);
 
-          manager.events.change = (index, originalIndex) => {
-            this.swap(index, originalIndex);
-            this.edit();
-          }
-
-          // CSS Grid Layout
-          table.element.style.gridTemplateColumns = this.getColumns().map(column => column.width || "1fr").join(" ");
-
-          // Header
-
-          if (this.hasHeader()) {
-            this.getColumns().forEach(column => {
-              table.children.push({
-                class: "th",
-                init: th => {
-                  th.element.textContent = column.header || column.field && column.field.label || "";
-                }
-              });
-            });
-          }
-
-          // Body
-
-          if (values.length) {
-
-
-            values.forEach((value, rowIndex) => {
+              this.manager.events.change = async (index, originalIndex) => {
+                await this.swap(index, originalIndex);
+                return super.edit();
+              }
+              if (this.resource.gridTemplateRows) {
+                table.element.style.gridTemplateRows = this.resource.gridTemplateRows;
+              }
+              if (this.resource.gridAutoRows) {
+                table.element.style.gridAutoRows = this.resource.gridAutoRows;
+              }
+            },
+            update: table => {
+              table.children = [];
+              // if (!this.children.length) {
+              //   table.element.classList.add("empty");
+              // }
 
 
 
-              const rowField = this.getChild(rowIndex.toString()) || this.createChild({
-                key: rowIndex.toString(),
-                type: "container"
-              });
+              // CSS Grid Layout
+              table.element.style.gridTemplateColumns = this.getColumns().map(column => column.width || "1fr").join(" ");
 
 
 
-              // table.children = table.children.concat(
+              // Header
 
-              this.getColumns().forEach((column, colIndex) => {
-
-                // this.getColumns().map((column, colIndex) => {
-
-                if (column.type === "index") {
-
+              if (this.hasHeader()) {
+                this.getColumns().forEach(column => {
                   table.children.push({
-                    class: "td array-index",
-                    init: td => {
-                      manager.registerItem(td.element, colIndex, rowIndex, "index");
-                    },
-                    update: td => {
-                      td.element.textContent = rowIndex+1;
+                    class: "th",
+                    init: th => {
+                      th.element.textContent = column.header || column.field && column.field.label || "";
                     }
                   });
+                });
+              }
 
-                } else if (column.type === "delete") {
+              // Body
 
-                  table.children.push({
-                    class: "td array-delete",
-                    init: td => {
-                      manager.registerItem(td.element, colIndex, rowIndex, "delete");
-                    },
-                    child: {
-                      tag: "button",
-                      init: button => {
-                        button.element.onclick = async (event) => {
-                          event.preventDefault();
-                          this.backup();
-                          button.element.classList.add("loading");
-                          await this.delete(rowIndex);
-                          await this.edit();
-                          await this.render();
-                          button.element.classList.remove("loading");
+              if (values.length) {
 
-                        };
-                        button.element.textContent = "Delete";
+
+                values.forEach((value, rowIndex) => {
+
+                  const rowField = this.getChild(rowIndex.toString()) || this.createChild({
+                    key: rowIndex.toString(),
+                    type: "container"
+                  });
+
+                  let colIndex = 0;
+
+                  if (this.hasIndex()) {
+
+                    table.children.push({
+                      class: "td array-index",
+                      init: td => {
+                        this.manager.registerItem(td.element, 0, rowIndex, "index");
                       },
-                      // child: KarmaFieldsAlpha.fields.icon.create("trash.svg")
-                    }
-                  })
+                      update: td => {
+                        td.element.textContent = rowIndex+1;
+                      }
+                    });
 
-                } else if (column.field && column.field.key) {
+                    colIndex++;
+                  }
 
-                  const cellField = rowField.getChild(column.field.key) || rowField.createChild(column.field);
+                  this.getColumns().filter(column => column.field).forEach((column, index) => {
 
-                  table.children.push({
-                    class: "td array-cell",
-                    init: td => {
-                      manager.registerItem(td.element, colIndex, rowIndex, "field");
-                    },
-                    child: cellField.build()
+                    const cellField = rowField.children[index] || rowField.createChild(column.field);
+
+                    table.children.push({
+                      class: "td array-cell",
+                      init: td => {
+                        this.manager.registerItem(td.element, colIndex, rowIndex, "field");
+                      },
+                      child: cellField.build()
+                    });
+
+                    colIndex++;
                   });
-                }
-              }); //);
-            });
-          }
+
+                  if (this.hasDelete()) {
+
+                    table.children.push({
+                      class: "td array-delete",
+                      init: td => {
+                        this.manager.registerItem(td.element, colIndex, rowIndex, "delete");
+                      },
+                      child: {
+                        tag: "button",
+                        init: button => {
+                          button.element.onclick = async (event) => {
+                            event.preventDefault();
+                            this.backup();
+                            button.element.classList.add("loading");
+                            await this.delete(rowIndex);
+                            await this.edit();
+                            await this.render();
+                            button.element.classList.remove("loading");
+
+                          };
+                          button.element.textContent = this.resource.delete_button_name || "Delete";
+                        },
+                        // child: KarmaFieldsAlpha.fields.icon.create("trash.svg")
+                      }
+                    });
+
+                    colIndex++;
+                  }
+
+                });
+              }
+            }
+          }] || [];
         }
       },
       {

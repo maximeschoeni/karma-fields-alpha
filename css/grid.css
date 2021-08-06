@@ -1122,6 +1122,13 @@ button.karma-button.primary > .karma-field-spinner {
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto 1fr;
 }
+.array .karma-field-frame {
+  grid-template-rows: auto 1fr;
+  align-items: stretch;
+}
+.karma-field-frame.hidden {
+  display: none;
+}
 .karma-field-frame label {
   grid-area: 1 / 1 / 1 / 1;
 }
@@ -1201,7 +1208,7 @@ button.karma-button.primary > .karma-field-spinner {
   /* display: grid; */
   /* grid-template-columns: 1fr auto auto; */
   grid-template-columns: auto auto 1fr;
-  align-items: baseline;
+  align-items: flex-start;
   grid-column-gap: 20px;
 }
 .karma-field-container.display-table>.karma-field-frame:first-child {

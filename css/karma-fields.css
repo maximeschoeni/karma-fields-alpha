@@ -235,7 +235,7 @@
 }
 
 .karma-field-frame.karma-field-file {
-  grid-template-columns: 150px 1fr;
+  /* grid-template-columns: 150px 1fr; */
 }
 .karma-field-frame.karma-field-file .karma-field-spinner,
 .karma-field-frame.karma-field-files .karma-field-spinner {
