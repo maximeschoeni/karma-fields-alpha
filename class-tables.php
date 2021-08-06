@@ -292,26 +292,30 @@ Class Karma_Fields_Alpha {
 
 							if ($input) {
 
-								foreach ($input as $driver_name => $data) {
+								// foreach ($input as $driver_name => $data) {
+								//
+								// 	$driver = $this->get_driver($driver_name);
+								//
+								// 	// -> should verify permissions here
+								//
+								// 	if (method_exists($driver, 'update')) {
+								//
+								// 		$driver->update($data);
+								//
+								// 	}
+								//
+								// }
 
-									$driver = $this->get_driver($driver_name);
 
-									// -> should verify permissions here
+								$driver = $this->get_driver('posts');
 
-									// echo '<pre>';
-									// var_dump($data);
+								// -> should verify permissions here
 
+								if (method_exists($driver, 'update')) {
 
-									if (method_exists($driver, 'update')) {
-
-										$driver->update($data);
-
-									}
+									$driver->update($input);
 
 								}
-
-								// die();
-
 
 
 							}

@@ -106,9 +106,9 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
 
   async validate(value) {
     if (!Number(value)) {
-      value = this.resource.default || "";
-      if (!this.resource.readonly) {
-        await this.setValue(value);
+      const defaultValue = this.resource.default || "";
+      if (value !== defaultValue && !this.resource.readonly) {
+        await this.setValue(defaultValue);
       }
     } else if (!this.getFile(value)) {
       await this.fetchIds([value]);

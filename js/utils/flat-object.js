@@ -33,6 +33,7 @@ KarmaFieldsAlpha.DeepObject.get = function(object, pathKeys) {
 
 /**
  * KarmaFieldsAlpha.FlatObject.fromDeep({"a": {"b": 5, "c":6}}); // -> {"a/b": 5, "a/c": 6}
+ * KarmaFieldsAlpha.FlatObject.fromDeep({"a": {"b": 5, "c":6}}, "d"); // -> {"d/a/b": 5, "d/a/c": 6}
  */
 KarmaFieldsAlpha.FlatObject.fromDeep = function(deepObject, path) {
   const flatObject = {};

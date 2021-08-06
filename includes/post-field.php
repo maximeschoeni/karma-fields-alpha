@@ -33,11 +33,11 @@
 			]
 		});
 
-		input.form.addEventListener("submit", function() {
-			field.getDeltaPathes().forEach(path => {
-				localStorage.removeItem(path);
-			});
-		});
+		// input.form.addEventListener("submit", function() {
+		// 	field.getDeltaPathes().forEach(path => {
+		// 		localStorage.removeItem(path);
+		// 	});
+		// });
 
 		window.karma_field = field; // -> debug
 
@@ -54,13 +54,51 @@
 		// 	input.value = JSON.stringify(values);
 		// }
 
-		field.edit = function() {
+		// field.edit = function() {
+		// 	let values = {};
+		// 	values[field.resource.driver] = field.getModifiedValue() || {};
+		// 	input.value = JSON.stringify(values);
+		// }
 
-			let values = {};
-			values[field.resource.driver] = field.getModifiedValue() || {};
-
-			input.value = JSON.stringify(values);
+		field.getDeltaValue = function(path) {
+			const delta = this.getDeltaObject();
+			return delta[path];
 		}
+		field.setDeltaValue = function(value, path) {
+			const delta = this.getDeltaObject();
+			if (this.original[path] !== value && value !== undefined) {
+				delta[path] = value;
+			} else {
+				delete delta[path];
+			}
+			this.setDeltaObject(delta);
+		}
+		field.removeDeltaValue = function(path) {
+			this.setDeltaValue(undefined, path);
+		}
+		field.getDeltaObject = function() {
+			if (!this.deltaCache) {
+				const deepObject = JSON.parse(input.value || "{}");
+				const flatObject = KarmaFieldsAlpha.FlatObject.fromDeep(deepObject);
+				this.deltaCache = this.sanitizeObject(flatObject);
+			}
+			return this.deltaCache;
+		}
+		field.setDeltaObject = function(flatObject) {
+			flatObject = this.parseObject(flatObject);
+			const deepObject = KarmaFieldsAlpha.FlatObject.toDeep(flatObject);
+			input.value = JSON.stringify(deepObject);
+			this.deltaCache = null;
+		}
+		field.emptyDelta = function() {
+			input.value = "";
+		}
+		field.hasDelta = function() {
+			// not sure if actually used...
+			const delta = this.getDeltaObject();
+			return Object.values(delta).length > 0;
+		}
+
 
 		KarmaFieldsAlpha.build({
 			child: field.build(),

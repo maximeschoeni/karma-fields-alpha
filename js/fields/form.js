@@ -39,7 +39,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		this.historyMax = 0;
 		this.history = {};
 
-		this.initHistory();
+		// this.initHistory(); -> moved in table
 
 		// debug
 		KarmaFieldsAlpha.forms[resource.driver] = this;
@@ -48,10 +48,10 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 	initField() {
 		const field = this;
-		this.events.change = function(currentField, value) {
-			// return field.bubble("submit"); //
-			field.submit();
-		};
+		// this.events.change = function(currentField, value) {
+		// 	// return field.bubble("submit"); //
+		// 	field.submit();
+		// };
 
 		this.events.submit = async function() {
 			console.error("Deprecated event submit");
@@ -148,14 +148,6 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 			}
 			return id;
 		});
-
-		// this.stringifyTable(results.items || results || []);
-		//
-		// KarmaFieldsAlpha.FlatObject.assign(this.original, results.items || results || []);
-
-		// for (path in flatObj) {
-		// 	// localStorage.setItem(path, flatObj[path]);
-		// }
 
 
 		return {
@@ -309,53 +301,83 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		return value;
 	}
 
+	sanitizeObject(flatObject) {
+		const obj = {};
+		for (let path in flatObject) {
+			obj[path] = this.sanitize(flatObject[path], path);
+		}
+		return obj;
+	}
+
+	parseObject(flatObject) {
+		const obj = {};
+		for (let path in flatObject) {
+			obj[path] = this.parse(flatObject[path], path);
+		}
+		return obj;
+	}
+
 	getOriginalValue(path) {
-		// const path = keys.join("/");
 		return this.original[path];
   }
 
 	removeOriginalValue(path) {
-		// const path = keys.join("/");
     delete this.original[path];
   }
 
   setOriginalValue(value, path) {
-		// const path = keys.join("/");
 		this.original[path] = value;
   }
 
 	getDeltaValue(path) {
-		// const path = keys.join("/");
 		let value = localStorage.getItem(this.resource.driver+"/"+path) ?? undefined;
-
-		// if (this.types[path] === "json") {
-		// 	value = JSON.parse(value);
-		// }
 		return value;
   }
 
 	setDeltaValue(value, path) { // overrided with async by arrays
-		// const path = keys.join("/");
-		// value = value.toString();
-		// value = this.sanitize(value);
-
 		if (this.original[path] !== value && value !== undefined) {
 			localStorage.setItem(this.resource.driver+"/"+path, value);
 		} else {
 			localStorage.removeItem(this.resource.driver+"/"+path);
 		}
-
-		// this.setLocalValue(path, value);
-
   }
 
 	removeDeltaValue(path) {
-		// const path = keys.join("/");
-    // this.delta[path] = undefined;
-		// this.useLocalStorage && localStorage.removeItem(this.resource.driver+"/"+path);
-
 		localStorage.removeItem(this.resource.driver+"/"+path);
-		// this.writeHistory(path, undefined);
+  }
+
+	getDeltaObject() {
+		const flatObject = {};
+		const dir = this.resource.driver+"/";
+		for (let i = 0; i < localStorage.length; i++) {
+			let path = localStorage.key(i);
+			if (path.startsWith(dir)) {
+				flatObject[path.slice(dir.length)] = localStorage.get(path);
+			}
+  	}
+		return flatObject;
+  }
+
+
+	emptyDelta() {
+		const dir = this.resource.driver+"/";
+		for (let i = 0; i < localStorage.length; i++) {
+			let path = localStorage.key(i);
+			if (path.startsWith(dir)) {
+				localStorage.removeItem(path);
+			}
+  	}
+  }
+
+	hasDelta() {
+		const dir = this.resource.driver+"/";
+		for (let i = 0; i < localStorage.length; i++) {
+			let path = localStorage.key(i);
+			if (path.startsWith(dir)) {
+				return true;
+			}
+  	}
+		return false;
   }
 
 	async fetchValue(keys, driver) {
@@ -365,36 +387,13 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		return this.parse(value, path);
   }
 
-	// editValue(value, keys) {
-	// 	const path = keys.join("/");
-	//
-	// 	value = this.sanitize(value, path);
-	//
-	// 	this.setDeltaValue(value, keys);
-	//
-	// 	return this.edit();
-	// }
-
 	getValue(keys, driver) {
 		const path = keys.join("/");
-		// const originalValue = this.getOriginalValue(path);
 		let value = this.getDeltaValue(path); // ?? originalValue;
 		return this.parse(value, path);
-
-		// console.error("deprecated getValue");
-		// return this.getDeltaValue(keys);
-		// let value = this.getDeltaValue(keys);
-		// const path = keys.join("/");
-		//
-		// if (this.types[path] === "json") {
-		// 	value = JSON.parse(value);
-		// }
-		// return value;
 	}
 
   setValue(value, keys) {
-		// console.error("deprecated setValue");
-		// this.setDeltaValue(value, keys)
 		const path = keys.join("/");
 		value = this.sanitize(value, path);
 		this.setDeltaValue(value, path);
@@ -405,29 +404,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		const path = keys.join("/");
 		this.removeDeltaValue(path);
 		this.writeHistory(path, undefined);
-
-		// const path = keys.join("/");
-		//
-		// localStorage.removeItem(this.resource.driver+"/"+path);
-		//
-		// this.writeHistory(path);
   }
-
-	// setLocalValue(path, value) {
-	// 	this.setDeltaValue(value, path);
-	// }
-
-	// getDeltaArray(keys) {
-	// 	let value = this.getDeltaValue(keys);
-	// 	return JSON.parse(value);
-  // }
-	//
-	// setArrayValue(value, arrayKeys, keys) {
-	// 	let array = this.getDeltaValue(arrayKeys);
-	// 	array = JSON.parse(value);
-	// 	KarmaFieldsAlpha.DeepObject.assign(array, keys, value);
-	// 	this.setArray(array, arrayKeys);
-  // }
 
 	async fetchArray(keys, driver) {
 		const path = keys.join("/");
@@ -464,171 +441,94 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 
 
-	getDeltaPathes() {
-		return this.getDeltaSubpathes(this.resource.driver);
-		// const pathes = [];
-		// for (let i = 0; i < localStorage.length; i++) {
-		// 	let path = localStorage.key(i);
-		// 	if (path.startsWith(this.resource.driver+"/")) {
-		// 		pathes.push(path);
-		// 	}
-  	// }
-		// return pathes;
-  }
+	// getDeltaPathes() {
+	// 	return this.getDeltaSubpathes(this.resource.driver);
+  // }
+	//
+	// getDeltaSubpathes(dirPath) {
+	// 	const subpathes = [];
+	// 	for (let i = 0; i < localStorage.length; i++) {
+	// 		let path = localStorage.key(i);
+	// 		if (path.startsWith(dirPath+"/")) {
+	// 			subpathes.push(path);
+	// 		}
+  // 	}
+	// 	return subpathes;
+  // }
 
-	getDeltaSubpathes(dirPath) {
-		const subpathes = [];
-		for (let i = 0; i < localStorage.length; i++) {
-			let path = localStorage.key(i);
-			if (path.startsWith(dirPath+"/")) {
-				subpathes.push(path);
-			}
-  	}
-		return subpathes;
-  }
-
-	/**
-	 * rootPath must have trailing slash
-	 * return flatObject
-	 */
-	sliceDelta(dirPath) { // need trailing slash
-		const flatObj = {};
-		for (let i = 0; i < localStorage.length; i++) {
-			let path = localStorage.key(i);
-			if (path.startsWith(dirPath)) {
-				const subpath = path.slice(dirPath.length);
-				flatObj[subpath] = localStorage.getItem(path);
-			}
-  	}
-		return flatObj;
-  }
-
-	/**
-	 * merge flatObject to localStorage
-	 */
-	assignDelta(flatObject, dirPath) { // need trailing slash
-		for (let path in flatObject) {
-			// localStorage.setItem((dirPath && dirPath+path || path), flatObject[path]);
-			// this.setLocalValue((dirPath && dirPath+path || path), flatObject[path]);
-			this.setDeltaValue(flatObject[path], dirPath && dirPath+path || path);
-			// this.writeHistory(path, flatObject[path]);
-  	}
-  }
-
-	/**
-	 * remove all delta whose path begins width dirPath
-	 */
-	removeDelta(dirPath) { // need trailing slash
-		const flatObj = this.sliceDelta(dirPath);
-		for (let subpath in flatObj) {
-			localStorage.removeItem(dirPath+subpath, flatObject[subpath]);
-		}
-  }
+	// /**
+	//  * rootPath must have trailing slash
+	//  * return flatObject
+	//  */
+	// sliceDelta(dirPath) { // need trailing slash
+	// 	const flatObj = {};
+	// 	for (let i = 0; i < localStorage.length; i++) {
+	// 		let path = localStorage.key(i);
+	// 		if (path.startsWith(dirPath)) {
+	// 			const subpath = path.slice(dirPath.length);
+	// 			flatObj[subpath] = localStorage.getItem(path);
+	// 		}
+  // 	}
+	// 	return flatObj;
+  // }
+	//
+	// /**
+	//  * merge flatObject to deltas
+	//  */
+	// assignDelta(flatObject, dirPath) { // need trailing slash
+	// 	for (let path in flatObject) {
+	// 		this.setDeltaValue(flatObject[path], dirPath && dirPath+path || path);
+  // 	}
+  // }
+	//
+	// /**
+	//  * remove all delta whose path begins width dirPath
+	//  */
+	// removeDelta(dirPath) { // need trailing slash
+	// 	const flatObj = this.sliceDelta(dirPath);
+	// 	for (let subpath in flatObj) {
+	// 		localStorage.removeItem(dirPath+subpath, flatObject[subpath]);
+	// 	}
+  // }
 
 
-
-
-	// getModifiedValue() {
-	// 	return this.delta;
-	// }
 
 	async save() {
-		const values = await this.getModifiedValue();
+		// const values = await this.getModifiedValue();
 
-		this.getDeltaPathes().forEach(path => {
-			localStorage.removeItem(path);
-		});
+		// this.getDeltaPathes().forEach(path => {
+		// 	localStorage.removeItem(path);
+		// });
+
+		const flatObj = this.getDeltaObject();
+		const values = KarmaFieldsAlpha.FlatObject.toDeep(this.parseObject(flatObject));
+
+		this.emptyDelta();
 
 		if (values) {
-			const flatObj = KarmaFieldsAlpha.FlatObject.fromDeep(values);
 			const results = await KarmaFieldsAlpha.Form.update(this.resource.driver, values);
 			if (results) {
 				KarmaFieldsAlpha.FlatObject.assign(flatObj, results);
 			}
 			for (let path in flatObj) {
-				let value = flatObj[path];
-				if (typeof value === "number") {
-					value = value.toString();
-				} else if (typeof value !== "string") {
-					this.types[path] = "json";
-					value = JSON.stringify(value);
-				}
-				this.original[path] = value;
+				this.original[path] = this.sanitize(flatObj[path], path);
 			}
-
-
-
-
-			//
-			// if (results && typeof results === "object") {
-			// 	for (let id in results) {
-			// 		let row = results[id];
-			// 		for (let key in row) {
-			// 			const path = id+"/"+key;
-			// 			let value = row[key];
-			// 			if (typeof value === "number") {
-			// 				value = value.toString();
-			// 			} else if (typeof value !== "string") {
-			// 				this.types[path] = "json";
-			// 				value = JSON.stringify(value);
-			// 			}
-			// 			this.original[path] = value;
-			// 		}
-			// 	});
-			// }
-
 		}
 
 		return values;
 	}
 
 	hasModifiedValue() {
-		return this.getDeltaPathes().length > 0;
-		// for (let path in this.delta) {
-		// 	if (this.delta[path] !== undefined && this.delta[path] !== this.original[path]) {
-		// 		return true;
-		// 	}
-		// }
-		// return false;
+		console.error("deprecated hasModifiedValue");
+		return this.hasDelta();
 	}
 
+	// probably deprecated...
 	getModifiedValue() {
-		// return this.getDeltaPathes().reduce((object, path) => {
-		// 	const value = localStorage.getItem(path);
-		// 	KarmaFieldsAlpha.assignFromPath(object, path.split("/"), value)
-		// 	// this.setObjectValue(path.split("/"), value, object);
-		// 	return object;
-		// }, {})[this.resource.driver];
-
-		const flatObject = this.sliceDelta(this.resource.driver+"/");
-
-		for (let path in flatObject) {
-			if (this.types[path] === "json") {
-				flatObject[path] = JSON.parse(flatObject[path]);
-			}
-		}
+		let flatObject = this.getDeltaObject();
+		flatObject = parseObject(flatObject);
 		return KarmaFieldsAlpha.FlatObject.toDeep(flatObject);
-
 	}
-
-	// setObjectValue(keys, value, object) {
-	// 	let key = keys.shift();
-	// 	if (!object[key] || !typeof object[key] === "object") {
-	// 		object[key] = {};
-	// 	}
-	// 	if (keys.length > 0) {
-	// 		this.setObjectValue(keys, value, object[key]);
-	// 	} else {
-	// 		object[key] = value;
-	// 	}
-	// }
-
-
-	// clear() {
-	// 	KarmaFieldsAlpha.cache = {};
-	// 	this.original = {};
-	// }
-
 
 	getState() {
     return this.state || "";
@@ -638,16 +538,28 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 
 
-
+	/**
+	 * At start set an history step if there is unsaved changes
+	 */
 	initHistory() {
-		const pathes = this.getDeltaPathes();
-		if (pathes.length) {
+		// const pathes = this.getDeltaPathes();
+		// if (pathes.length) {
+		// 	this.backup("init");
+		// 	pathes.forEach(path => {
+		// 		const relativePath = path.slice(this.resource.driver.length+1);
+		// 		const value = localStorage.getItem(path);
+		// 		this.writeHistory(relativePath, value);
+		// 	});
+		// }
+
+		const flatObject = this.getDeltaObject();
+		if (Object.values(flatObject).length) {
 			this.backup("init");
-			pathes.forEach(path => {
-				const relativePath = path.slice(this.resource.driver.length+1);
-				const value = localStorage.getItem(path);
-				this.writeHistory(relativePath, value);
-			});
+			for (let path in flatObject) {
+				// const relativePath = path.slice(this.resource.driver.length+1);
+				// const value = ;
+				this.writeHistory(path, flatObject[path]);
+			}
 		}
 	}
 
@@ -695,29 +607,16 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		}
 	}
 
-	// async undo() {
 	undo() {
-		// let fields = [];
-		// debugger;
 		if (this.historyIndex > 0) {
 			for (let path in this.history[this.historyIndex]) {
-				// let index = this.historyIndex-1;
-				// while (index > 0 && (!this.history[index] || this.history[index][path] === undefined)) {
-				// 	index--;
-				// }
-				// this.delta[path] = this.history[index][path];
-
-				// this.delta[path] = this.getLastEntry(path);
 				const value = this.getLastEntry(path);
-				// this.setLocalValue(path, value);
 				this.setDeltaValue(value, path);
 
 			}
 
 			this.historyIndex--;
 			this.historyId = undefined;
-
-			// await Promise.all(fields.map(field => field.update()));
 		}
 	}
 
@@ -726,9 +625,6 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		while (index > 0 && (!this.history[index] || this.history[index][path] === undefined)) {
 			index--;
 		}
-		// if (this.history[index]) {
-		// 	return this.history[index][path];
-		// }
 		return this.history[index] && this.history[index][path] || this.original[path];
 	}
 
@@ -737,15 +633,6 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 			this.historyIndex++;
 			for (let path in this.history[this.historyIndex]) {
 				if (this.history[this.historyIndex] && this.history[this.historyIndex][path] !== undefined) {
-					// this.delta[path] = this.history[this.historyIndex][path];
-					// localStorage.setItem(this.resource.driver+"/"+path, this.history[this.historyIndex][path]);
-					// let value = this.history[this.historyIndex][path];
-					// if (value === undefined) {
-					// 	localStorage.removeItem(this.resource.driver+"/"+path);
-					// } else {
-					// 	localStorage.setItem(this.resource.driver+"/"+path, value);
-					// }
-					// this.setLocalValue(path, this.history[this.historyIndex][path]);
 					this.setDeltaValue(this.history[this.historyIndex][path], path);
 				}
 			}
@@ -772,196 +659,3 @@ KarmaFieldsAlpha.fields.form.getForm = function(driverName) {
 	}
 	return KarmaFieldsAlpha.forms[driverName];
 }
-
-//
-//
-// /**
-//  * KarmaFieldsAlpha.assignFromPath({}, ["a", "b"], 3); // -> {"a":{"b":3}}
-//  */
-// KarmaFieldsAlpha.assignFromPath = function(object, pathKeys, value) {
-//   let key = pathKeys.shift();
-//   if (!object[key] || typeof object[key] !== "object") {
-//     object[key] = {};
-//   }
-//   if (pathKeys.length > 0) {
-//     this.assignFromPath(object[key], pathKeys, value);
-//   } else {
-//     object[key] = value;
-//   }
-// }
-// /**
-//  * KarmaFieldsAlpha.getFromPath({"a": {"b": 5}}, ["a", "b"]); // -> 5
-//  */
-// KarmaFieldsAlpha.getFromPath = function(object, pathKeys) {
-// 	if (pathKeys.length) {
-//     let key = pathKeys.shift();
-// 		if (object && typeof object === "object") {
-// 			return this.getFromPath(object[key], pathKeys);
-// 		}
-// 	} else {
-// 		return object;
-// 	}
-// };
-// /**
-//  * KarmaFieldsAlpha.toPathArray({"a": {"b": 5, "c":6}}); // -> {"a/b": 5, "a/c": 6}
-//  */
-// KarmaFieldsAlpha.toFlatObject = function(deepObject, path) {
-//   const flatObject = {};
-//   if (deepObject && typeof deepObject === "object") {
-//     for (let key in deepObject) {
-//       Object.assign(flatObject, this.toFlatObject(deepObject[key], (path && path+"/" || "")+key));
-//     }
-//   } else {
-//     flatObject[path] = deepObject;
-//   }
-//   return flatObject;
-// }
-// /**
-//  * KarmaFieldsAlpha.toPathArray({"a/b": 5, "a/c": 6}); // -> {"a": {"b": 5, "c":6}}
-//  */
-// KarmaFieldsAlpha.toDeepObject = function(flatObject) {
-// 	let deepObject;
-// 	for (let path in flatObject) {
-// 		if (!deepObject) {
-// 			deepObject = {};
-// 		}
-// 		KarmaFieldsAlpha.assignFromPath(deepObject, path.split("/"), flatObject[path]);
-// 	}
-// 	return deepObject;
-// }
-//
-// /**
-//  * KarmaFieldsAlpha.sliceFlatObject({"a/b": 5, "a/c": 6, "d": 7}, "a/"); // -> {"b": 5, "c":6}
-//  */
-// KarmaFieldsAlpha.sliceFlatObject = function(flatObject, dirPath) {
-// 	const subFlatObj = {};
-// 	for (let path in flatObject) {
-// 		if (path.startsWith(dirPath)) {
-// 			const subpath = path.slice(dirPath.length);
-// 			subFlatObj[subpath] = flatObject[path];
-// 		}
-// 	}
-// 	return subFlatObj;
-// }
-//
-// /**
-//  * KarmaFieldsAlpha.countFlatObject({"a/b": 5, "a/c": 6, "d": 7}, "a/"); // -> 2
-//  */
-// KarmaFieldsAlpha.countFlatObject = function(flatObject, dirPath) {
-// 	let num = 0;
-// 	for (let path in flatObject) {
-// 		if (path.startsWith(dirPath)) {
-// 			num++;
-// 		}
-// 	}
-// 	return num;
-// }
-//
-
-// class KarmaFieldsAlpha.Object = {
-//
-// 	constructor() {
-// 	}
-//
-// 	assignFromPath(pathKeys, value) {
-// 	  let key = pathKeys.shift();
-// 	  if (!this[key] || typeof this[key] !== "object") {
-// 	    this[key] = {};
-// 	  }
-// 	  if (pathKeys.length > 0) {
-// 			const child = new KarmaFieldsAlpha.Object(this[key]);
-// 	    child.assignFromPath(pathKeys, value);
-// 	  } else {
-// 	    this[key] = value;
-// 	  }
-// 	}
-//
-// 	flatten(path) {
-// 		const flatObject = {};
-//
-// 		for (let key in this) {
-// 			const child = new KarmaFieldsAlpha.Object(this[key]);
-// 			Object.assign(flatObject, child.flatten(path && path+"/"+key || key));
-// 		}
-//
-//
-// 	  if (this && typeof this === "object") {
-//
-// 	  } else {
-// 	    flatObject[path] = this.item;
-// 	  }
-// 	  return flatObject;
-// 	}
-//
-// 	toObject() {
-// 		const deepObject = {};
-// 		for (let path in this) {
-// 			// KarmaFieldsAlpha.assignFromPath(deepObject, path.split("/"), flatObject[path]);
-//
-// 			const pathKeys = path.split("/");
-// 			let key = pathKeys.shift();
-//
-// 			const flatObject = new KarmaFieldsAlpha.FlatObject();
-// 			flatObject[pathKeys.join("/")];
-//
-// 			Object.assign(deepObject, flatObject.toObject());
-//
-//
-//
-//
-//
-// 		  if (!this.item[key] || typeof this.item[key] !== "object") {
-// 		    this.item[key] = {};
-// 		  }
-// 		  if (keys.length > 0) {
-// 				const child = new this.FlatObject(this.item[key])
-// 		    child.assignFromPath(pathKeys, value);
-// 		  } else {
-// 		    this[key] = value;
-// 		  }
-//
-// 		}
-// 		return deepObject;
-//
-// 	}
-//
-// 	/**
-// 	 * KarmaFieldsAlpha.toPathArray({"a/b": 5, "a/c": 6}); // -> {"a": {"b": 5, "c":6}}
-// 	 */
-// 	KarmaFieldsAlpha.toDeepObject = function(flatObject) {
-// 		const deepObject = {};
-// 		for (let path in flatObject) {
-//
-// 			KarmaFieldsAlpha.assignFromPath(deepObject, path.split("/"), flatObject[path]);
-// 		}
-// 		return deepObject;
-// 	}
-//
-// 	// assignFromPath(pathKeys, value) {
-// 	//   let key = pathKeys.shift();
-// 	//   if (!this.item[key] || typeof this.item[key] !== "object") {
-// 	//     this.item[key] = {};
-// 	//   }
-// 	//   if (keys.length > 0) {
-// 	// 		const child = new this.FlatObject(this.item[key])
-// 	//     child.assignFromPath(pathKeys, value);
-// 	//   } else {
-// 	//     this[key] = value;
-// 	//   }
-// 	// }
-//
-// }
-//
-// /**
-//  * KarmaFieldsAlpha.getFromPath({"a": {"b": 5}}, ["a", "b"]); // -> 5
-//  */
-// KarmaFieldsAlpha.getFromPath = function(object, pathKeys) {
-// 	if (pathKeys.length) {
-//     let key = pathKeys.shift();
-// 		if (object && typeof object === "object") {
-// 			return this.getFromPath(object[key], pathKeys);
-// 		}
-// 	} else {
-// 		return object;
-// 	}
-// };

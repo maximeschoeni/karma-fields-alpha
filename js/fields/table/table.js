@@ -93,6 +93,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     this.content.types["ids"] = "json";
     this.content.original["ids"] = "[]";
 
+    this.content.initHistory();
+
+
     this.content.events.history = function(targetField, state) {
       console.log("Deprecated Event history");
       // console.log("updatehistory", targetField);
