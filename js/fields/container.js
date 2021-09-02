@@ -10,16 +10,34 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	// 	});
 	// }
 
+	render() {
+    this.children.forEach(child => {
+      child.render();
+
+      // console.log(child);
+    });
+  }
+
+	fill(value) {
+    return Promise.all(this.children.map(async child => child.fill(value)));
+  }
 
 
-
-	setValue(value, keys) {
+	setValue(value, keys, type) {
 		if (keys && keys.length) {
-			return super.setValue(value, keys);
+			return super.setValue(value, keys, type);
 		} else if (value && typeof value === "object") {
 			return Promise.all(this.children.map(child => {
 				return child.setValue(child.resource.key ? value[child.resource.key] : value);
 			}));
+		}
+	}
+
+	write(keys) {
+		if (keys && keys.length) {
+			return super.write(keys);
+		} else {
+			return this.children.map(child => child.write());
 		}
 	}
 
@@ -33,9 +51,9 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 		}
   }
 
-	getValue(keys) {
+	getValue(keys, type) {
 		if (keys && keys.length) {
-			return super.getValue(keys);
+			return super.getValue(keys, type);
 		} else {
 			// const values = await Promise.all(this.children.map(child => child.getValue()));
 			const values = this.children.map(child => child.getValue());
@@ -223,13 +241,13 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 		});
 	}
 
-	fill(columns) {
-		console.error("Deprecated function fill");
-
-    // this.children.forEach(function(child) {
-    //   child.fill();
-    // });
-  }
+	// fill(columns) {
+	// 	console.error("Deprecated function fill");
+	//
+  //   // this.children.forEach(function(child) {
+  //   //   child.fill();
+  //   // });
+  // }
 
 	reset() {
 		console.error("Deprecated function reset");
@@ -268,5 +286,18 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
   //   });
   // }
 
+
+	find(path) {
+		if (this.resource.key) {
+			if (this.resource.key === path) {
+				return this;
+			} else if (this.children.length && path.startsWith(this.resource.key+"/")) {
+				path = path.slice(this.resource.key.length+1);
+				return this.children.find(child => child.find(path));
+			}
+		} else {
+			return this.children.find(child => child.find(path));
+		}
+	}
 
 }

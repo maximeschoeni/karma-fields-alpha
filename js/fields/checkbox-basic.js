@@ -27,9 +27,10 @@ KarmaFieldsAlpha.fields.checkbox_basic = class extends KarmaFieldsAlpha.fields.f
 			init: checkbox => {
 				checkbox.element.type = "checkbox";
 				checkbox.element.id = this.getId();
-				this.init(checkbox.element);
+				// this.init(checkbox.element);
 			},
 			update: async checkbox => {
+				this.render = checkbox.render;
 				checkbox.element.classList.add("loading");
 				const value = await this.fetchValue();
 				let modified = this.isModified();

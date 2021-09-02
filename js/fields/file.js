@@ -96,32 +96,54 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
   }
 
   // fetch(queryString) {
-  getRemoteOptions(queryString) {
-		return KarmaFieldsAlpha.Form.fetch2(this.resource.driver || "attachment", queryString);
-  }
+  // getRemoteOptions(queryString) {
+  //   return super.getRemoteOptions(queryString, this.resource.driver || "attachment");
+	// 	// return KarmaFieldsAlpha.Form.fetch2(this.resource.driver || "attachment", queryString);
+  // }
 
   // convert(value) {
   //   return value.toString();
   // }
 
+
+  isEmpty(value) {
+    return !value || value === this.resource.empty;
+  }
+
   async validate(value) {
-    if (!Number(value)) {
-      const defaultValue = this.resource.default || "";
-      if (value !== defaultValue && !this.resource.readonly) {
-        await this.setValue(defaultValue);
+    if (this.isEmpty(value)) {
+      const defaultValue = this.resource.default || this.resource.empty || "";
+      if (value !== defaultValue) {
+        value = defaultValue;
+        if (!this.resource.readonly) {
+          await this.setValue(value);
+        }
       }
-    } else if (!this.getFile(value)) {
+    }
+    if (!this.isEmpty(value) && !this.getFile(value)) {
       await this.fetchIds([value]);
     }
     return value;
+
+
+    // if (!Number(value)) {
+    //   const defaultValue = this.resource.default || "";
+    //   if (value !== defaultValue && !this.resource.readonly) {
+    //     await this.setValue(defaultValue);
+    //   }
+    // } else if (!this.getFile(value)) {
+    //   await this.fetchIds([value]);
+    // }
+    // return value;
   }
 
   async fetchIds(ids) {
     let queryString = this.getOptionsParamString({ids: ids});
-    const results = await this.getRemoteOptions(queryString);
+    const results = await this.getRemoteOptions(queryString, this.resource.driver || "attachment"); // "ids="+ids.join(",")
     // if (results[0] && results[0].src) {
     //   await fetch(results[0].src);
     // }
+
     this.setFiles(results);
     return results;
   }
@@ -148,79 +170,194 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
     this.files[id] = file;
   }
 
-  buildContent(value) {
-    return [
-      {
-        // tag: "a",
-        class: "image-frame",
-        update: frame => {
-          frame.element.onclick = event => {
-            event.preventDefault();
-            if (!this.resource.readonly) {
-              this.uploader.open(value);
-            }
-          };
-        },
-        children: [
-          {
-            class: "image-container",
-            update: container => {
-              if (Number(value)) {
-                const file = this.getFile(value);
-                container.children = [{
-                  tag: "img",
-                  update: src => {
-                    src.element.src = file.src;
-                    src.element.width = file.width;
-                    src.element.height = file.height;
-                  }
-                }];
-                container.element.classList.toggle("type-image", file && file.type && file.type.startsWith("image") || false);
-              } else {
-                container.children = [];
-              }
-            }
-          },
-          {
-            class: "button-container",
-            update: container => {
-              if (Number(value)) {
-                container.children = [];
-              } else if (!this.resource.readonly) {
-                container.children = [{
-                  class: "add",
-                  update: button => {
-                    button.element.textContent = "Add file";
-                  }
-                }];
-              }
-            }
-          }
-        ]
-      },
-      {
-        class: "field-control",
-        update: container => {
-          if (Number(value)) {
-            container.children = [{
-              tag: "button",
-              class: "delete button",
-              update: button => {
-                button.element.textContent = "Remove";
-                button.element.onclick = async (event) => {
-                  event.preventDefault();
-                  this.backup();
-                  await this.editValue("");
-                  this.render();
-                };
-              }
-            }];
-          } else {
-            container.children = [];
-          }
-        }
+  // buildContent(value) {
+  //   return [
+  //     {
+  //       // tag: "a",
+  //       class: "image-frame",
+  //       update: frame => {
+  //         frame.element.onclick = event => {
+  //           event.preventDefault();
+  //           if (!this.resource.readonly) {
+  //             this.uploader.open(value);
+  //           }
+  //         };
+  //       },
+  //       children: [
+  //         {
+  //           class: "image-container",
+  //           update: container => {
+  //             if (!this.isEmpty(value)) {
+  //               const file = this.getFile(value);
+  //               container.children = file && [{
+  //                 tag: "img",
+  //                 update: src => {
+  //                   src.element.src = file.src;
+  //                   src.element.width = file.width;
+  //                   src.element.height = file.height;
+  //                 }
+  //               }] || [];
+  //               container.element.classList.toggle("type-image", file && file.type && file.type.startsWith("image") || false);
+  //             } else {
+  //               container.children = [];
+  //             }
+  //           }
+  //         },
+  //         {
+  //           class: "button-container",
+  //           update: container => {
+  //             if (!this.isEmpty(value)) {
+  //               container.children = [];
+  //             } else if (!this.resource.readonly) {
+  //               container.children = [{
+  //                 class: "add",
+  //                 update: button => {
+  //                   button.element.textContent = "Add file";
+  //                 }
+  //               }];
+  //             }
+  //           }
+  //         },
+  //         {
+  //           class: "field-control",
+  //           update: container => {
+  //             if (!this.isEmpty(value)) {
+  //               container.children = [{
+  //                 tag: "button",
+  //                 class: "delete button",
+  //                 update: button => {
+  //                   button.element.textContent = "Remove";
+  //                   button.element.onclick = async (event) => {
+  //                     event.preventDefault();
+  //                     this.backup();
+  //                     await this.editValue("");
+  //                     this.render();
+  //                   };
+  //                 }
+  //               }];
+  //             } else {
+  //               container.children = [];
+  //             }
+  //           }
+  //         }
+  //       ]
+  //     }
+  //
+  //   ];
+  // }
+
+  // build() {
+  //   return {
+	// 		class: "karma-file karma-field",
+	// 		init: container => {
+  //       container.element.setAttribute('tabindex', '-1');
+  //       this.init(container.element);
+  //       this.render = container.render;
+	// 		},
+	// 		update: async container => {
+  //
+  //       container.element.classList.add("loading");
+  //
+  //       let value = await this.fetchValue();
+  //       value = await this.validate(value);
+  //
+  //       let modified = this.isModified();
+  //       container.children = this.buildContent(value);
+  //       container.element.classList.toggle("modified", modified);
+	// 		},
+  //     complete: container => {
+  //       container.element.classList.remove("loading");
+  //     }
+	// 	};
+  //
+  // }
+
+
+
+  // buildImageContainer(value) {
+  //   return {
+  //     class: "image-container",
+  //     update: container => {
+  //       if (Number(value)) {
+  //         const file = this.getFile(value);
+  //         container.children = file && [{
+  //           tag: "img",
+  //           update: src => {
+  //             src.element.src = file.src;
+  //             src.element.width = file.width;
+  //             src.element.height = file.height;
+  //           }
+  //         }] || [];
+  //         container.element.classList.toggle("type-image", file && file.type && file.type.startsWith("image") || false);
+  //       } else {
+  //         container.children = [];
+  //       }
+  //     }
+  //   };
+  // }
+
+  buildImage(file) {
+    return {
+      tag: "img",
+      update: src => {
+        src.element.src = file.src;
+        src.element.width = file.width;
+        src.element.height = file.height;
       }
-    ];
+    };
+  }
+
+  buildImageContainer(value) {
+    return {
+      class: "image-container",
+      update: container => {
+        const file = !this.isEmpty(value) && this.getFile(value);
+        container.child = file && this.buildImage(file);
+        container.element.classList.toggle("type-image", file && file.type && file.type.startsWith("image") || false);
+      }
+    }
+  }
+
+  // buildAddButtonContainer(value) {
+  //   return {
+  //     class: "button-container",
+  //     update: container => {
+  //       if (Number(value)) {
+  //         container.children = [];
+  //       } else if (!this.resource.readonly) {
+  //         container.children = [{
+  //           class: "add",
+  //           update: button => {
+  //             button.element.textContent = "Add file";
+  //           }
+  //         }];
+  //       }
+  //     }
+  //   };
+  // }
+  buildAddButton() {
+    return {
+      class: "add",
+      update: button => {
+        button.element.textContent = "Add file";
+      }
+    };
+  }
+
+  buildDeleteButton() {
+    return {
+      tag: "button",
+      class: "delete button",
+      update: button => {
+        button.element.textContent = "Remove";
+        button.element.onclick = async (event) => {
+          event.preventDefault();
+          this.backup();
+          await this.editValue(this.resource.empty || "");
+          this.render();
+        };
+      }
+    };
   }
 
   build() {
@@ -228,24 +365,217 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
 			class: "karma-file karma-field",
 			init: container => {
         container.element.setAttribute('tabindex', '-1');
-        this.init(container.element);
+        // this.init(container.element);
+			},
+      update: container => {
         this.render = container.render;
-			},
-			update: async container => {
+      },
+      children: [
+        {
+          class: "image-frame",
+          update: async frame => {
+            frame.element.classList.add("loading");
 
-        container.element.classList.add("loading");
-        let value = await this.fetchValue();
-        value = await this.validate(value);
+            let value = await this.fetchValue();
+            value = await this.validate(value);
 
-        let modified = this.isModified();
-        container.children = this.buildContent(value);
-        container.element.classList.toggle("modified", modified);
-			},
-      complete: container => {
-        container.element.classList.remove("loading");
-      }
+            let modified = this.isModified();
+
+            frame.element.classList.toggle("has-image", !this.isEmpty(value));
+
+            frame.children = [
+              this.buildImageContainer(value),
+              this.buildAddButton()
+            ];
+
+            frame.element.classList.toggle("modified", modified);
+
+            frame.element.onclick = event => {
+              event.preventDefault();
+              if (!this.resource.readonly) {
+                this.uploader.open(value);
+              }
+            };
+          },
+          complete: container => {
+            container.element.classList.remove("loading");
+          }
+        },
+        {
+          class: "field-control",
+          update: async container => {
+            let value = await this.fetchValue();
+            value = await this.validate(value);
+            // container.children = Number(value) ? [this.buildDeleteButton()] : [];
+            container.child = !this.isEmpty(value) && this.buildDeleteButton();
+          }
+        }
+      ]
 		};
 
   }
+
+  //
+  // buildImageFrame() {
+  //
+  // }
+  //
+  // build() {
+  //   return {
+	// 		class: "karma-file karma-field",
+	// 		init: container => {
+  //       container.element.setAttribute('tabindex', '-1');
+  //       this.init(container.element);
+  //       this.render = container.render;
+	// 		},
+  //     children: [
+  //       {
+  //         // tag: "a",
+  //         class: "image-frame",
+  //         update: frame => {
+  //           container.element.classList.add("loading");
+  //
+  //           let value = await this.fetchValue();
+  //           value = await this.validate(value);
+  //
+  //           let modified = this.isModified();
+  //           container.children = this.buildImageFrame(value);
+  //           container.element.classList.toggle("modified", modified);
+  //         }
+  //       }
+  //     ],
+	// 		update: async container => {
+  //
+  //
+	// 		},
+  //     complete: container => {
+  //       container.element.classList.remove("loading");
+  //     }
+	// 	};
+  //
+  // }
+
+
+
+  //
+  // buildImageContainer(value) {
+  //   return {
+  //     class: "image-container",
+  //     update: container => {
+  //       if (Number(value)) {
+  //         const file = this.getFile(value);
+  //         container.children = file && [{
+  //           tag: "img",
+  //           update: src => {
+  //             src.element.src = file.src;
+  //             src.element.width = file.width;
+  //             src.element.height = file.height;
+  //           }
+  //         }] || [];
+  //         container.element.classList.toggle("type-image", file && file.type && file.type.startsWith("image") || false);
+  //       } else {
+  //         container.children = [];
+  //       }
+  //     }
+  //   };
+  // }
+  // buildButtonContainer(value) {
+  //   return {
+  //     class: "button-container",
+  //     update: container => {
+  //       if (Number(value)) {
+  //         container.children = [];
+  //       } else if (!this.resource.readonly) {
+  //         container.children = [{
+  //           class: "add",
+  //           update: button => {
+  //             button.element.textContent = "Add file";
+  //           }
+  //         }];
+  //       }
+  //     }
+  //   };
+  // }
+  //
+  // buildDeleteButton(value) {
+  //   return {
+  //     tag: "button",
+  //     class: "delete button",
+  //     update: button => {
+  //       button.element.textContent = "Remove";
+  //       button.element.onclick = async (event) => {
+  //         event.preventDefault();
+  //         this.backup();
+  //         await this.editValue("");
+  //         this.render();
+  //       };
+  //     }
+  //   };
+  // }
+  //
+  // build() {
+  //   return {
+	// 		class: "karma-file karma-field",
+	// 		init: container => {
+  //       container.element.setAttribute('tabindex', '-1');
+  //       this.init(container.element);
+  //       this.render = container.render;
+  //
+	// 		},
+  //     children: [
+  //       {
+  //         // tag: "a",
+  //         class: "image-frame",
+  //         update: frame => {
+  //           frame.element.onclick = event => {
+  //             event.preventDefault();
+  //             if (!this.resource.readonly) {
+  //               this.uploader.open(value);
+  //             }
+  //           };
+  //
+  //         }
+  //       },
+  //       {
+  //         class: "field-control",
+  //         update: container => {
+  //           if (Number(value)) {
+  //             container.children = [{
+  //               tag: "button",
+  //               class: "delete button",
+  //               update: button => {
+  //                 button.element.textContent = "Remove";
+  //                 button.element.onclick = async (event) => {
+  //                   event.preventDefault();
+  //                   this.backup();
+  //                   await this.editValue("");
+  //                   this.render();
+  //                 };
+  //               }
+  //             }];
+  //           } else {
+  //             container.children = [];
+  //           }
+  //         }
+  //       }
+  //     ],
+	// 		update: async container => {
+  //
+  //       container.element.classList.add("loading");
+  //
+  //       let value = await this.fetchValue();
+  //       value = await this.validate(value);
+  //
+  //       let modified = this.isModified();
+  //       container.children = this.buildContent(value);
+  //       container.element.classList.toggle("modified", modified);
+	// 		},
+  //     complete: container => {
+  //       container.element.classList.remove("loading");
+  //     }
+	// 	};
+  //
+  // }
+
 
 }

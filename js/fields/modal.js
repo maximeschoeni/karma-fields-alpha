@@ -22,6 +22,14 @@ KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.link {
     this.content = this.createChild(this.resource.content);
   }
 
+	render() {
+
+		// super.render();
+
+		this.text.render();
+	}
+
+
 	// setValue(value, context) {
 	//
 	//
@@ -98,48 +106,95 @@ KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.link {
 	// 	return this.handle.build();
 	// }
 
-	buildModal() {
+	// buildModal() {
+	//
+	// 	return {
+	// 		class: "karma-modal",
+	// 		children: [
+	// 			{
+	// 				class: "karma-modal-header",
+	// 				children: [
+	// 					{
+	// 						tag: "h2",
+	// 						init: h2 => {
+	// 							h2.element.textContent = this.resource.title || "Edit";
+	// 						}
+	// 					},
+	// 					{
+	// 						tag: "button",
+	// 						child: new KarmaFieldsAlpha.fields.icon({
+	// 							type: "icon",
+	// 							value: "no-alt.svg"
+	// 						}).build(),
+	// 						init: button => {
+	// 							button.element.onclick = async () => {
+	// 								button.element.classList.add("loading");
+	// 								this.setParam(this.resource.modal_key || "id", null);
+	// 								await this.editParam();
+	// 								button.element.classList.remove("loading");
+	// 								// this.editFull();
+	// 							}
+	// 						}
+	// 					}
+	// 				]
+	// 			},
+	// 			{
+	// 				class: "karma-modal-body karma-field-frame",
+	// 				update: frame => {
+	// 					//frame.child = this.content.build();
+	// 				}
+	// 			}
+	// 		]
+	// 	};
+	//
+	// }
 
-		return {
-			class: "karma-modal",
-			update: container => {
 
-				container.children = [
-					{
-						class: "karma-modal-header",
-						children: [
-							{
-								tag: "h2",
-								init: h2 => {
-									h2.element.textContent = this.resource.title || "Edit";
-								}
-							},
-							{
-								tag: "button",
-								child: new KarmaFieldsAlpha.fields.icon({
-									type: "icon",
-									value: "no-alt.svg"
-								}).build(),
-								init: button => {
-									button.element.onclick = () => {
-										this.setParam(this.resource.modal_key || "id", null);
-										this.editFull();
-									}
-								}
-							}
-						]
-					},
-					{
-						class: "karma-modal-body karma-field-frame",
-						update: frame => {
-							frame.child = this.content.build();
-						}
-					}
-				];
-			}
-		};
-
-	}
+	// buildModal() {
+	//
+	// 	return {
+	// 		class: "karma-modal",
+	// 		update: container => {
+	//
+	// 			container.children = [
+	// 				{
+	// 					class: "karma-modal-header",
+	// 					children: [
+	// 						{
+	// 							tag: "h2",
+	// 							init: h2 => {
+	// 								h2.element.textContent = this.resource.title || "Edit";
+	// 							}
+	// 						},
+	// 						{
+	// 							tag: "button",
+	// 							child: new KarmaFieldsAlpha.fields.icon({
+	// 								type: "icon",
+	// 								value: "no-alt.svg"
+	// 							}).build(),
+	// 							init: button => {
+	// 								button.element.onclick = async () => {
+	// 									button.element.classList.add("loading");
+	// 									this.setParam(this.resource.modal_key || "id", null);
+	// 									await this.editParam();
+	// 									button.element.classList.remove("loading");
+	// 									// this.editFull();
+	// 								}
+	// 							}
+	// 						}
+	// 					]
+	// 				},
+	// 				{
+	// 					class: "karma-modal-body karma-field-frame",
+	// 					update: frame => {
+	// 						frame.child = this.content.build();
+	// 					}
+	// 				}
+	// 			];
+	// 		}
+	// 	};
+	//
+	// }
 
 
 

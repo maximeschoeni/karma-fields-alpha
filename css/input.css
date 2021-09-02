@@ -66,9 +66,8 @@
   background-color: white;
 }
 
-
-.table input,
-.table textarea {
+.karma-fields .table input.text,
+.karma-fields .table textarea {
   border: none;
   margin: 0;
   border-radius: 0;
@@ -106,17 +105,29 @@
 
 
 
-/*
-.karma-fields input.loading {
-  background: repeating-linear-gradient(60deg, white 0px, white 50px, #f1f1f1 50px, #f1f1f1 100px);
+
+.karma-field-input input.loading,
+.karma-field-textarea textarea.loading,
+.karma-field-dropdown select.loading,
+.karma-field-dropdown select.editing,
+button.karma-button.loading,
+.karma-fields-navigation .karma-field-table .table-header .total-items.loading,
+.karma-fields-navigation .karma-field-table .table-header .table-pagination.loading,
+
+.karma-field.karma-file .image-frame.loading,
+.karma-field.karma-files .gallery.loading,
+.karma-field-table.loading .karma-field-frame.karma-modal-body,
+.karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header button.loading,
+.karma-field-table.loading .table-body {
+  /* background: repeating-linear-gradient(60deg, white 0px, white 50px, #f1f1f1 50px, #f1f1f1 100px);
   background-size: 200% 100%;
-  animation: slide 10s infinite linear;
+  animation: slide 10s infinite linear; */
+  background: repeating-linear-gradient(45deg, #ececec 0px, #ececec 25%, #f1f1f1 25%, #f1f1f1 50%);
+  background-size: 100px 100px;
+  animation: slide 1s infinite linear;
 }
 @keyframes slide {
-	0%{
-		background-position-x: 0%;
-	}
 	100% {
-		background-position-x: 100%;
+		background-position-x: -100px;
 	}
-} */
+}

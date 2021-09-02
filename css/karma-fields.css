@@ -138,62 +138,71 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  vertical-align: middle;
-  margin: -0px;
+  gap: 10px;
+  /* vertical-align: middle; */
+  /* margin: -0px; */
   z-index: 2;
+
+
 }
-.karma-file.loading {
-  flex-grow: 0.5;
-  min-height: 152px;
-}
-.karma-file.loading .image-frame,
-.karma-file.loading .field-control {
-  /* display: none; */
-}
-.karma-file.loading .image-frame .button-container {
+
+/* .karma-file .image-frame.loading .button-container {
   display: none;
-}
+} */
+
 .karma-file .image-frame {
-  border: 1px solid #c3c4c7;
-  /* background-color: #f6f7f7; */
-  border-radius: 2px;
+
   display: flex;
-  /* align-items: center; */
+  align-items: center;
   justify-content: center;
+
+  cursor: pointer;
+
+  outline: 1px solid #c3c4c7;
+  border-radius: 2px;
+
   width: 150px;
   height: 150px;
-  cursor: pointer;
-  margin: 0px 10px 0 0;
+  /* margin: 0px 10px 0 0; */
 }
 .karma-file .image-frame .image-container {
   display: flex;
   align-items: center;
+}
+.karma-file .image-frame.loading .image-container,
+.karma-file .image-frame.loading .add,
+.karma-file .image-frame.has-image .add {
+  display: none;
+}
+.karma-file .image-frame.loading::after {
+  content: "...";
+  /* align-self: center; */
+  /* grid-area: 1 / 1; */
 }
 .karma-file .image-frame .image-container.type-image {
   align-items: stretch;
 }
 .karma-file .image-frame .image-container.type-image img {
   /* background-color: #c3c4c7; */
-
-  background-image: linear-gradient(45deg, #dadada 25%, transparent 25%), linear-gradient(-45deg, #dadada 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #dadada 75%), linear-gradient(-45deg, transparent 75%, #dadada 75%);
+  background-image: linear-gradient(45deg, #cecece 25%, transparent 25%), linear-gradient(-45deg, #cecece 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #cecece 75%), linear-gradient(-45deg, transparent 75%, #cecece 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-}
-.karma-file .image-frame.type-image {
-  /* border: none;
-  background-color: transparent; */
 
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-
 .karma-file .image-frame .button-container {
-  display: flex;
-  align-items: center;
+  /* display: flex;
+  align-items: center; */
 }
 
 .karma-file .field-control  {
-  display: flex;
+  /* display: flex;
   flex-direction: column;
   justify-content: flex-end;
+
+  grid-column: 2; */
 }
 
 
@@ -239,10 +248,13 @@
 }
 .karma-field-frame.karma-field-file .karma-field-spinner,
 .karma-field-frame.karma-field-files .karma-field-spinner {
-  grid-area: 2 / 1 / 3 / 2;
+  /* grid-area: 2 / 1 / 3 / 2; */
+  grid-area: 2 / 1;
 }
 
-
+/* .karma-field-frame.karma-field-file .karma-field-spinner::after {
+  content: "...";
+} */
 
 
 
@@ -261,19 +273,27 @@
 }
 .karma-files .gallery {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  min-height: 150px;
   width: 100%;
   /* flex-wrap: wrap; */
-  border: 1px solid #c3c4c7;
+  outline: 1px solid #c3c4c7;
   cursor: pointer;
 }
-.karma-files.loading .gallery .images-container,
-.karma-files.loading .add-container {
-  visibility: hidden;
+.karma-files .gallery.loading .images-container,
+.karma-files .gallery.loading .add {
+  display: none;
+}
+.karma-files .gallery.loading::after {
+  content: "...";
 }
 .karma-files .gallery .images-container {
   display: flex;
   flex-wrap: wrap;
-  min-height: 150px;
+  /* min-height: 150px; */
+
 }
 .karma-files .gallery .images-container .image-container {
   display: flex;
@@ -288,21 +308,18 @@
 .karma-files .gallery .images-container .image-container img {
   display: block;
 }
-.karma-files .gallery .add-container {
+.karma-files .gallery .add {
   flex-grow: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
   padding: 10px;
 }
-.karma-files.loading .gallery .add-container .add {
-  /* display: none; */
-}
+
 .karma-files .field-control {
-  margin: 10px 0;
-  display: flex;
-  justify-content: flex-end;
+  /* display: flex;
+  justify-content: flex-end; */
 }
+
 
 
 /* .karma-fields .field-file .file-thumb {

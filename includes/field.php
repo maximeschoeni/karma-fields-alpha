@@ -13,7 +13,7 @@
 					container.render();
 				}
 			},
-			child: field.build(),
+			child: field.build()
 		}, container);
 	});
 </script>

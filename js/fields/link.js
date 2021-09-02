@@ -15,6 +15,8 @@ KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.container {
 		return this.text.exportValue(singleCol);
 	}
 
+	
+
 	build() {
 		return {
 			tag: "a",
@@ -27,7 +29,7 @@ KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.container {
 			},
 			update: async a => {
 				a.element.classList.add("loading");
-				const link = await this.link.update();
+				const link = await this.link.fetchValue();
 				// const text = await this.text.update();
 
 				if (this.link.resource.href) {
@@ -41,6 +43,17 @@ KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.container {
 					// }); //this.getParamString("#");
 
 				} else {
+					let params = KarmaFieldsAlpha.History.getParamsObject();
+					params.set(this.resource.link.key, link);
+
+					if (this.resource.params) {
+						for (key in this.resource.params) {
+							params.set(key, this.resource.params[key]);
+						}
+					}
+
+					a.element.href = "#"+params.toString();
+
 					a.element.onclick = async event => {
 						event.preventDefault();
 						// if (this.resource.params) {
@@ -50,11 +63,15 @@ KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.container {
 						// }
 						// this.setParam(this.resource.link.key, link);
 						a.element.classList.add("editing");
-						this.setParams({
-							[this.resource.link.key]: link,
-							...this.resource.params
-						});
-						await this.editFull();
+
+						KarmaFieldsAlpha.History.backup();
+						KarmaFieldsAlpha.History.setParamsObject(params);
+						// KarmaFieldsAlpha.History.setParams({
+						// 	[this.resource.link.key]: link,
+						// 	...this.resource.params
+						// });
+						await this.editParam();
+						// await this.editFull();
 						a.element.classList.remove("editing");
 					}
 				}

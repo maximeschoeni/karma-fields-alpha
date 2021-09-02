@@ -28,44 +28,44 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 	// 	return value;
 	// }
 
-	async updateOptions() {
-		// const field = this;
-		// return super.update().then(function(value) {
-		// 	if (field.resource.options) {
-		// 		let options = field.prepareOptions(field.resource.options);
-		// 		field.try("onOptions", options, value, "resource");
-		// 		return value;
-    //   } else {
-		// 		return field.load(field.fetchOptions().then(function(options) {
-		// 			options = field.prepareOptions(options);
-		// 			let queryString = field.getOptionsParamString();
-		// 			field.try("onOptions", options, value, queryString);
-		// 			return value;
-		// 		}));
-		// 	}
-		// });
-
-		// const value = await super.update();
-		const options = await this.fetchOptions();
-		const queryString = this.getOptionsParamString();
-
-		this.try("onOptions", options, value, queryString);
-
-		// return super.update().then(function(value) {
-		// 	if (field.resource.options) {
-		// 		let options = field.prepareOptions(field.resource.options);
-		// 		field.try("onOptions", options, value, "resource");
-		// 		return value;
-    //   } else {
-		// 		return field.load(field.fetchOptions().then(function(options) {
-		// 			options = field.prepareOptions(options);
-		// 			let queryString = field.getOptionsParamString();
-		// 			field.try("onOptions", options, value, queryString);
-		// 			return value;
-		// 		}));
-		// 	}
-		// });
-  }
+	// async updateOptions() {
+	// 	// const field = this;
+	// 	// return super.update().then(function(value) {
+	// 	// 	if (field.resource.options) {
+	// 	// 		let options = field.prepareOptions(field.resource.options);
+	// 	// 		field.try("onOptions", options, value, "resource");
+	// 	// 		return value;
+  //   //   } else {
+	// 	// 		return field.load(field.fetchOptions().then(function(options) {
+	// 	// 			options = field.prepareOptions(options);
+	// 	// 			let queryString = field.getOptionsParamString();
+	// 	// 			field.try("onOptions", options, value, queryString);
+	// 	// 			return value;
+	// 	// 		}));
+	// 	// 	}
+	// 	// });
+	//
+	// 	// const value = await super.update();
+	// 	const options = await this.fetchOptions();
+	// 	const queryString = await this.getOptionsParamString();
+	//
+	// 	this.try("onOptions", options, value, queryString);
+	//
+	// 	// return super.update().then(function(value) {
+	// 	// 	if (field.resource.options) {
+	// 	// 		let options = field.prepareOptions(field.resource.options);
+	// 	// 		field.try("onOptions", options, value, "resource");
+	// 	// 		return value;
+  //   //   } else {
+	// 	// 		return field.load(field.fetchOptions().then(function(options) {
+	// 	// 			options = field.prepareOptions(options);
+	// 	// 			let queryString = field.getOptionsParamString();
+	// 	// 			field.try("onOptions", options, value, queryString);
+	// 	// 			return value;
+	// 	// 		}));
+	// 	// 	}
+	// 	// });
+  // }
 
 	getRemoteOptions(queryString, driver) {
 		// if (this.resource.driver) {
@@ -147,7 +147,6 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 	// }
 	//
 	// prepareOptions(options) {
-
 		if (options.some(option => option.key === undefined)) {
 			console.error("Missing key options");
 		}
@@ -156,7 +155,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 		if (this.resource.empty !== undefined) {
 			options = [{
-				key: this.convert(this.resource.empty),
+				key: this.resource.empty,
 				name: this.resource.empty_option_name || "–"
 			}].concat(options);
 
@@ -266,10 +265,10 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 				if (this.resource.label) {
 					dropdown.element.id = this.getId();
 				}
-				this.init(dropdown.element);
+				// this.init(dropdown.element);
 			},
 			update: async dropdown => {
-
+				this.render = dropdown.render;
 
 
 				// field.onOptions = function(options, value, queryString) {
@@ -321,12 +320,20 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 				} else {
 					dropdown.element.onchange = async() => {
 						this.backup();
-						dropdown.element.classList.add("loading");
+						dropdown.element.classList.add("editing");
+
+						if (this.resource.retrodependencies) {
+							this.resource.retrodependencies.forEach(key => {
+								this.parent && this.parent.removeValue([key]);
+								// KarmaFieldsAlpha.History.removeParam(key);
+							});
+						}
 						await this.editValue(dropdown.element.value);
 						// await this.edit();
 						modified = this.isModified();
+
 						dropdown.element.classList.toggle("modified", modified);
-						dropdown.element.classList.remove("loading");
+						dropdown.element.classList.remove("editing");
 					}
 				}
 

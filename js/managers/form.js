@@ -66,7 +66,16 @@ KarmaFieldsAlpha.Form = {
 		// }
 		// return this.cache[file];
 
-		let file = KarmaFieldsAlpha.restURL+"/fetch/"+driver+queryString;
+
+		// compat
+		if (queryString.startsWith("?")) {
+			queryString = queryString.slice(1);
+		}
+
+		let file = KarmaFieldsAlpha.restURL+"/fetch/"+driver+"?"+queryString;
+
+
+
 
 		// if (this.cache[file] === undefined) {
 			// this.cache[file] =
@@ -81,6 +90,31 @@ KarmaFieldsAlpha.Form = {
 		});
 		// }
 		// return this.cache[file];
+	},
+
+	fetch3: function(queryString) {
+		let file = KarmaFieldsAlpha.restURL+"/fetch/"+queryString;
+		return fetch(file, {
+			cache: "default", // force-cache
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+			},
+		}).then(function(response) {
+			return response.json();
+		});
+	},
+	query2: function(queryString) {
+		let file = KarmaFieldsAlpha.restURL+"/query/"+queryString;
+		return fetch(file, {
+			cache: "default", // force-cache
+			headers: {
+	      'Content-Type': 'application/json',
+	      'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+	    },
+		}).then(function(response) {
+			return response.json();
+		});
 	},
 
 	query: function(driver, params) {
@@ -103,19 +137,15 @@ KarmaFieldsAlpha.Form = {
 
 				return response.json();
 			});
-
-			// const cache = caches.open(driver).then(cache => {
-			// 	cache.add(file);
-			// });
-
-
 		}
 		return this.cache[file];
 	},
 
+
+
 	get: function(...path) {
 
-		let file = KarmaFieldsAlpha.restURL+"/get/"+path.join("/");
+		let file = KarmaFieldsAlpha.restURL+this.querypath.join("/");
 		return fetch(file, {
 			cache: "reload",
 			headers: {

@@ -58,7 +58,7 @@
 /* Tables Header
 --------------------------------------*/
 .karma-field-table .table-header {
-  margin: 1em 0;
+  /* margin: 1em 0; */
 }
 /* .karma-field-table.grid .filter-node-children {
   display: flex;
@@ -635,14 +635,14 @@ body.folded .karma-fields .table-footer {
 button.karma-button {
   color: #0173aa;
   display: grid;
-  grid-template-areas: "button";
+  /* grid-template-areas: "button"; */
   align-items: center;
   justify-content: center;
   /* border-color: #f3f5f6; */
   height: auto;
   /* padding: 4px 17px; */
-  padding: 3px 10px;
-  min-width: 40px;
+  padding: 5px 10px;
+  min-width: 35px;
   border: none;
   background-color: transparent;
   box-shadow: none;
@@ -650,9 +650,9 @@ button.karma-button {
   border-width: 1px;
   border-radius: 2px;
   /* font-weight: bold; */
-  font-size: 14px;
+  font-size: 12px;
   position: relative;
-  border: 1px solid transparent;
+  border: 1px solid #0173aa;
 
   cursor: pointer;
 
@@ -662,6 +662,7 @@ button.karma-button {
 }
 button.karma-button.primary {
   background-color: #0173aa;
+  border-color: #0173aa;
   color: #f1f1f1;
   box-shadow: none;
 }
@@ -669,16 +670,16 @@ button.karma-button.active,
 button.karma-button:hover,
 button.karma-button:focus {
   box-shadow: none;
-  border: none;
-  background-color: transparent;
+  background-color: white;
   outline: none;
-  color: #0173aa;
-  border: 1px solid rgb(0, 124, 186);
+
+  /* color: #0173aa;
+  border: 1px solid #0173aa; */
   /* outline: 1px solid rgb(0, 124, 186); */
   /* box-shadow: 0 0 1px 1px rgb(0, 124, 186); */
 }
 button.karma-button:active {
-  border-color: transparent;
+  /* border-color: transparent; */
 }
 
 button.karma-button.primary:hover,
@@ -696,7 +697,7 @@ button.karma-button[disabled] {
   color: #c3c4c7 !important;
   background-color: transparent !important;
   /* border: none !important; */
-  border: 1px solid transparent !important;
+  border: 1px solid #c3c4c7 !important;
   box-shadow: none !important;
   text-shadow: none !important;
   cursor: default;
@@ -707,17 +708,31 @@ button.karma-button[disabled] {
   border: 1px solid #c3c4c7 !important;
 }
 
+
+button.karma-button.loading::after {
+  content: "...";
+  grid-area: 1 / 1;
+}
+
+
+button.karma-button.loading {
+  color: #c3c4c7;
+  border: 1px solid #c3c4c7 ;
+}
+
 button.karma-button .button-content {
-  grid-area: button;
+  grid-area: 1 / 1;
 }
 button.karma-button.loading .button-content {
   visibility: hidden;
 }
 button.karma-button .karma-field-spinner {
-  grid-area: button;
+  grid-area: 1 / 1;
   margin: 0;
 }
-
+button.karma-button.loading .karma-field-spinner::after {
+  content: "...";
+}
 
 .karma-icon {
   display: flex;
@@ -752,12 +767,12 @@ button.karma-button .karma-field-spinner {
 } */
 
 button.karma-button > .karma-field-spinner {
-  grid-area: button;
+  /* grid-area: button; */
   justify-self: center;
-  border-color: #0173aa transparent #0173aa #0173aa;
+  /* border-color: #0173aa transparent #0173aa #0173aa; */
 }
 button.karma-button.primary > .karma-field-spinner {
-  border-color: #f1f1f1 transparent #f1f1f1 #f1f1f1;
+  /* border-color: #f1f1f1 transparent #f1f1f1 #f1f1f1; */
 }
 
 
@@ -868,19 +883,17 @@ button.karma-button.primary > .karma-field-spinner {
 
 /* Table Spinner
 --------------------------------------*/
-
+/*
 .karma-field-spinner {
   display: none;
   flex-shrink: 0;
 }
 .loading .karma-field-spinner,
 .loading:not(.load-inside) + .karma-field-spinner {
-  display: inline-block;
   width: 0.5em;
   height: 0.5em;
   margin: 0 0.75em;
   vertical-align: middle;
-  /* border-color: #535c63 transparent #535c63 #535c63; */
   border-color: #c3c4c7 transparent #c3c4c7 #c3c4c7;
   border-color: #555 transparent #555 #555;
   border-style: solid;
@@ -902,6 +915,10 @@ button.karma-button.primary > .karma-field-spinner {
     transform: rotate(1turn);
   }
 }
+ */
+
+
+
 
 
 
@@ -1107,6 +1124,7 @@ button.karma-button.primary > .karma-field-spinner {
 .karma-field-container.display-flex {
   display: flex;
   flex-wrap: wrap;
+  gap: 1px;
 }
 .karma-field-group {
   flex-grow: 1;
@@ -1118,9 +1136,12 @@ button.karma-button.primary > .karma-field-spinner {
   align-items: center;
 
   display: grid;
-  /* grid-template-columns: 1fr auto; */
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto 1fr;
+  grid-template-columns: 1fr auto;
+  /* grid-template-columns: auto 1fr; */
+  /* grid-template-rows: auto auto 1fr; */
+  grid-template-rows: min-content min-content;
+
+  flex-basis: 320px;
 }
 .array .karma-field-frame {
   grid-template-rows: auto 1fr;
@@ -1130,47 +1151,66 @@ button.karma-button.primary > .karma-field-spinner {
   display: none;
 }
 .karma-field-frame label {
-  grid-area: 1 / 1 / 1 / 1;
+  grid-area: 1 / 1;
 }
 .karma-field-frame .karma-field {
-  grid-area: 2 / 1 / 3 / 3;
+  /* grid-area: 2 / 1 / 3 / 3; */
+
+  grid-column: 1 / span 2;
+  grid-row: 2;
 }
 .karma-field-frame .karma-field-spinner {
   /* grid-area: 1 / 2 / 2 / 3; */
 
   /* for dropdown:  */
-  grid-area: 2 / 2 / 3 / 3;
+  /* grid-area: 2 / 2 / 3 / 3; */
+  grid-area: 2 / 2;
   /* align-self: center; */
   justify-self: center;
 }
 
 /* submit:  */
 .karma-field-frame.karma-field-submit .karma-field-spinner {
-  grid-area: 2 / 1 / 3 / 3;
+  grid-area: 2 / 2;
 }
 
 
-.karma-field-separator {
+
+
+.karma-field-frame.karma-field-group.final {
+  padding: 1.5em;
+}
+.karma-field-frame.final {
+  background-color: #f1f1f1;
+}
+
+/* -> embed fields in post edit page: */
+.karma-fields-post .karma-field-frame.final {
+  background-color: transparent;
+}
+
+
+/* .karma-field-separator {
   flex-grow: 0;
   padding: 0;
   border-bottom: 1px solid #c3c4c7;
   margin: 1em 0;
   width: 100%;
-}
+} */
 
 .karma-field-container.disabled label {
   color: #c3c4c7;
 }
 
 
-@media (min-width: 600px) {
+/* @media (min-width: 600px) {
   .karma-field-separator {
     border-bottom: none;
     border-right: 1px solid #c3c4c7;
     margin: -0.75em 0;
     width: auto;
   }
-}
+} */
 
 
 

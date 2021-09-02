@@ -2,6 +2,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 	async fetchValue() {
 		let value = await super.fetchValue();
+		
 		if (!value && value !== "") {
 			value = this.resource.default || "";
 			if (!this.resource.readonly) {
@@ -23,11 +24,11 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				if (this.resource.input) {
 					Object.assign(input.element, this.resource.input);
 				}
-				this.init(input.element);
-
-				this.render = input.render;
+				// this.init(input.element);
 			},
 			update: async input => {
+				this.render = input.render;
+
 				input.element.classList.add("loading");
 				let value = await this.fetchValue();
 				let modified = this.isModified();

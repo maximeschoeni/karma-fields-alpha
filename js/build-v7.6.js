@@ -32,15 +32,17 @@ KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 		if (args.update) {
 			await args.update(args);
 		}
-		if (args.children || args.child) {
-			const children = args.children || [args.child];
+		if (args.child !== undefined) {
+			args.children = args.child && [args.child] || [];
+		}
+		if (args.children) {
 			let i = 0;
 			let child = args.element.firstElementChild;
 			const promises = [];
-			while (i < children.length) {
+			while (i < args.children.length) {
 				let next = child && child.nextElementSibling;
-				promises.push(KarmaFieldsAlpha.build(children[i], args.element, child, args.clean));
-				// await KarmaFieldsAlpha.build(children[i], args.element, child, args.clean);
+				promises.push(KarmaFieldsAlpha.build(args.children[i], args.element, child, args.clean));
+				// await KarmaFieldsAlpha.build(args.children[i], args.element, child, args.clean);
 				i++;
 				child = next;
 			}
@@ -50,7 +52,6 @@ KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 				args.element.removeChild(child);
 				child = next;
 			}
-
 		}
 		// if (args.children || args.child) {
 		// 	const children = args.children || [args.child];

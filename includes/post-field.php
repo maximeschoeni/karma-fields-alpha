@@ -1,4 +1,4 @@
-<div id="karma-fields-post-<?php echo $post_id; ?>-field-<?php echo $index; ?>-container" class="karma-fields"></div>
+<div id="karma-fields-post-<?php echo $post_id; ?>-field-<?php echo $index; ?>-container" class="karma-fields karma-fields-post"></div>
 <input type="hidden" name="karma-fields-items[]" id="karma-fields-post-<?php echo $post_id; ?>-input-<?php echo $index; ?>">
 
 <?php
@@ -60,44 +60,91 @@
 		// 	input.value = JSON.stringify(values);
 		// }
 
-		field.getDeltaValue = function(path) {
-			const delta = this.getDeltaObject();
-			return delta[path];
-		}
-		field.setDeltaValue = function(value, path) {
-			const delta = this.getDeltaObject();
-			if (this.original[path] !== value && value !== undefined) {
-				delta[path] = value;
-			} else {
-				delete delta[path];
-			}
-			this.setDeltaObject(delta);
-		}
-		field.removeDeltaValue = function(path) {
-			this.setDeltaValue(undefined, path);
-		}
-		field.getDeltaObject = function() {
-			if (!this.deltaCache) {
+		field.delta = {
+			getValue: function(path) {
+				return KarmaFieldsAlpha.Type.stringify(this.getObject()[path]);
+			},
+			setValue: function(value, path) {
+				const delta = this.getObject();
+				if (KarmaFieldsAlpha.Gateway.original[path] !== value && value !== undefined && value !== null) {
+					delta[path] = KarmaFieldsAlpha.Type.parse(value);
+				} else {
+					delete delta[path];
+				}
+				this.setObject(delta);
+			},
+			removeValue: function(path) {
+				this.setDelta(undefined, path);
+			},
+			getObject: function() {
 				const deepObject = JSON.parse(input.value || "{}");
 				const flatObject = KarmaFieldsAlpha.FlatObject.fromDeep(deepObject);
-				this.deltaCache = this.sanitizeObject(flatObject);
+				return flatObject;
+				// if (!this.cache) {
+				// 	const deepObject = JSON.parse(input.value || "{}");
+				// 	const flatObject = KarmaFieldsAlpha.FlatObject.fromDeep(deepObject);
+				// 	this.cache = KarmaFieldsAlpha.Type.sanitizeObject(flatObject);
+				// }
+				// return this.cache;
+			},
+			setObject: function(flatObject) {
+				// flatObject = KarmaFieldsAlpha.Type.parseObject(flatObject);
+				const deepObject = KarmaFieldsAlpha.FlatObject.toDeep(flatObject);
+				input.value = JSON.stringify(deepObject);
+				// this.cache = null;
+			},
+			empty: function() {
+				input.value = "";
+			},
+			has: function() {
+				return Object.values(this.getObject()).length > 0;
 			}
-			return this.deltaCache;
+		};
+
+		field.getDelta = function() {
+			return this.delta;
 		}
-		field.setDeltaObject = function(flatObject) {
-			flatObject = this.parseObject(flatObject);
-			const deepObject = KarmaFieldsAlpha.FlatObject.toDeep(flatObject);
-			input.value = JSON.stringify(deepObject);
-			this.deltaCache = null;
-		}
-		field.emptyDelta = function() {
-			input.value = "";
-		}
-		field.hasDelta = function() {
-			// not sure if actually used...
-			const delta = this.getDeltaObject();
-			return Object.values(delta).length > 0;
-		}
+		//
+		//
+		//
+		// field.getDeltaValue = function(path) {
+		// 	const delta = this.getDeltaObject();
+		// 	return delta[path];
+		// }
+		// field.setDeltaValue = function(value, path) {
+		// 	const delta = this.getDeltaObject();
+		// 	if (this.original[path] !== value && value !== undefined) {
+		// 		delta[path] = value;
+		// 	} else {
+		// 		delete delta[path];
+		// 	}
+		// 	this.setDeltaObject(delta);
+		// }
+		// field.removeDeltaValue = function(path) {
+		// 	this.setDeltaValue(undefined, path);
+		// }
+		// field.getDeltaObject = function() {
+		// 	if (!this.deltaCache) {
+		// 		const deepObject = JSON.parse(input.value || "{}");
+		// 		const flatObject = KarmaFieldsAlpha.FlatObject.fromDeep(deepObject);
+		// 		this.deltaCache = this.sanitizeObject(flatObject);
+		// 	}
+		// 	return this.deltaCache;
+		// }
+		// field.setDeltaObject = function(flatObject) {
+		// 	flatObject = this.parseObject(flatObject);
+		// 	const deepObject = KarmaFieldsAlpha.FlatObject.toDeep(flatObject);
+		// 	input.value = JSON.stringify(deepObject);
+		// 	this.deltaCache = null;
+		// }
+		// field.emptyDelta = function() {
+		// 	input.value = "";
+		// }
+		// field.hasDelta = function() {
+		// 	// not sure if actually used...
+		// 	const delta = this.getDeltaObject();
+		// 	return Object.values(delta).length > 0;
+		// }
 
 
 		KarmaFieldsAlpha.build({

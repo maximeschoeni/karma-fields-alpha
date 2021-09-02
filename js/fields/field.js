@@ -5,24 +5,26 @@ KarmaFieldsAlpha.fields.field = class Field {
     this.parent = parent;
 		this.children = [];
 		this.resource = resource || {};
-		this.data = {}; // deprecated
-    this.delta = {}; // deprecated (moved to Form)
-    this.base = {}; // deprecated
-		this.events = {};
-    this.loading = 0; // deprecated
-    this.history = {}; // deprecated
+		// this.data = {}; // deprecated
+    // this.delta = {}; // deprecated (moved to Form)
+    // this.base = {}; // deprecated
+		this.events = {}; // deprecated
+    // this.loading = 0; // deprecated
+    // this.history = {}; // deprecated
     // this.historyIndex = 0;
-    this.datatype = "string";  // deprecated
+    // this.datatype = "string";  // deprecated
 		this.fieldId = Field.fieldId++;
 
-    this.form = form || this;
+    // this.form = form || this; // deprecated
 
     // this.path = this.getPath() || "";
     // this.driver = this.getDriver() || this;
 
     if (this.resource.value !== undefined) {
       // this.setValue(this.resource.value, "noop");
-      this.initValue(this.resource.value);
+      // this.initValue(this.resource.value);
+
+      this.setValue(this.resource.value);
 
       // this.setDeltaValue(this.resource.value);
 
@@ -82,15 +84,31 @@ KarmaFieldsAlpha.fields.field = class Field {
     return child;
   }
 
-  // -> for dropdown in filters
-  getRelatedValue(key) {
-    let descendant = this.getDescendant(key);
-    if (descendant) {
-      return descendant.fetchValue();
-    } else if (this.parent) {
-      return this.parent.getRelatedValue(key);
+  find(path) {
+    if (this.resource.key === path) {
+      return this;
     }
+	}
+
+  getType() {
+    // string
   }
+
+
+  // -> for dropdown in filters
+  // getSiblingValue(keys) {
+  //   return this.parent && this.parent.getValue(keys);
+  // }
+
+  // getRelatedValue(key) {
+  //   console.error("Deprecated function getRelatedValue");
+  //   let descendant = this.getDescendant(key);
+  //   if (descendant) {
+  //     return descendant.fetchValue();
+  //   } else if (this.parent) {
+  //     return this.parent.getRelatedValue(key);
+  //   }
+  // }
 
   getDescendant(key) {
     for (let i = 0; i < this.children.length; i++) {
@@ -122,9 +140,9 @@ KarmaFieldsAlpha.fields.field = class Field {
     return descendants;
   }
 
-  getSibling(key) {
-    return this.parent && this.getChild(key);
-  }
+  // getSibling(key) {
+  //   return this.parent && this.getChild(key);
+  // }
 
   getFieldsByPath(keys) {
 		let key = keys.shift();
@@ -138,11 +156,11 @@ KarmaFieldsAlpha.fields.field = class Field {
 		return fields;
 	}
 
-  //deprecated: use getChild
-  getDirectChild(key) {
-    console.warn("Deprecated function getDirectChild. Use getChild");
-    return this.getChild(key);
-  }
+  // //deprecated: use getChild
+  // getDirectChild(key) {
+  //   console.warn("Deprecated function getDirectChild. Use getChild");
+  //   return this.getChild(key);
+  // }
 
   getChild(key) {
     for (let i = 0; i < this.children.length; i++) {
@@ -160,28 +178,48 @@ KarmaFieldsAlpha.fields.field = class Field {
     return keys;
   }
 
-  getKeyPath(keys, useAlias) {
-    if (!keys) {
-      keys = [];
-    } else if (!Array.isArray(keys)) {
-      keys = [keys];
-    }
+  getKeyPath(keys = []) {
+    // if (!keys) {
+    //   keys = [];
+    // } else if (!Array.isArray(keys)) {
+    //   keys = [keys];
+    // }
     if (this.resource.key) {
-      keys.unshift(useAlias && this.resource.alias || this.resource.key);
+      keys.unshift(this.resource.key);
     }
     return keys;
   }
 
+  createPath(path) {
+    // if (!keys) {
+    //   keys = [];
+    // } else if (!Array.isArray(keys)) {
+    //   keys = [keys];
+    // }
 
-  triggerEvent(eventName, bubbleUp, target, ...params) {
-    console.warn("Deprecated function triggerEvent");
-
-    if (this.events[eventName] && typeof this.events[eventName] === "function") {
-      return this.events[eventName].call(this, target || this, ...params);
-    } else if (bubbleUp && this.parent) {
-      return this.parent.triggerEvent(eventName, true, target || this, ...params);
+    if (this.resource.key) {
+      if (path) {
+        path = "/" + path;
+      }
+      path = this.resource.key + path;
     }
+    return path;
   }
+
+  // getKeyPath(keys) {
+  //   return [this.resource.key||[], ...keys||[]];
+  // }
+
+
+  // triggerEvent(eventName, bubbleUp, target, ...params) {
+  //   console.warn("Deprecated function triggerEvent");
+  //
+  //   if (this.events[eventName] && typeof this.events[eventName] === "function") {
+  //     return this.events[eventName].call(this, target || this, ...params);
+  //   } else if (bubbleUp && this.parent) {
+  //     return this.parent.triggerEvent(eventName, true, target || this, ...params);
+  //   }
+  // }
 
   contains(field) {
     return field && (field.parent === this || this.contains(field.parent));
@@ -203,10 +241,10 @@ KarmaFieldsAlpha.fields.field = class Field {
     // }
   }
 
-  triggerDown(eventName, ...params) {
-    console.error("Deprecated function triggerDown");
-
-  }
+  // triggerDown(eventName, ...params) {
+  //   console.error("Deprecated function triggerDown");
+  //
+  // }
 
 
   try(eventName, ...params) {
@@ -225,10 +263,10 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
 
-  // not used
-  updateDependency() {
-    console.error("Deprecated function updateDependency");
-  }
+  // // not used
+  // updateDependency() {
+  //   console.error("Deprecated function updateDependency");
+  // }
 
   // async getModifiedValue() {
   //   // const path = this.getPath();
@@ -248,17 +286,17 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   }
   // }
 
-  getModifiedValue() {
-    return this.parent && this.parent.getModifiedValue();
-  }
-  hasModifiedValue() {
-    return this.parent && this.parent.hasModifiedValue();
-  }
-
-  // maybe deprecated -> use setValue
-  updateOriginal() {
-    console.error("Deprecated function updateOriginal");
-  }
+  // getModifiedValue() {
+  //   return this.parent && this.parent.getModifiedValue();
+  // }
+  // hasModifiedValue() {
+  //   return this.parent && this.parent.hasModifiedValue();
+  // }
+  //
+  // // maybe deprecated -> use setValue
+  // updateOriginal() {
+  //   console.error("Deprecated function updateOriginal");
+  // }
 
 
 
@@ -281,76 +319,76 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
 
-  clearValue() {
-    console.warn("Deprecated function clearValue");
-  }
-
-  // depreacated
-  hasValue() {
-    console.warn("Deprecated function hasValue");
-    return this.read(this.getPath()) !== undefined;
-  }
-
-  readPath(path) {
-    console.error("Deprecated function readPath");
-    if (this.parent) {
-      return this.parent.readPath(path);
-    }
-  };
-
-  read() {
-    console.error("Deprecated function read");
-    const path = this.getPath();
-    return this.readPath(path);
-  };
-
-  writePath(path, rawValue) {
-    console.error("Deprecated function writePath");
-    if (this.parent) {
-      return this.parent.writePath(path, rawValue);
-    }
-  };
-
-  write(rawValue) {
-    console.error("Deprecated function write");
-    const path = this.getPath();
-    this.parent.writePath(path, rawValue);
-  };
-
-  async getFromPath(path) {
-    console.error("Deprecated function getFromPath");
-
-    const value = await KarmaFieldsAlpha.Form.get(this.resource.driver || "nodriver", path);
-
-
-    if (this.parent) {
-      return this.parent.getFromPath(path);
-    }
-  };
-
-  get() {
-    console.error("Deprecated function get");
-    const path = this.getPath();
-    return path.length && this.parent && this.parent.getFromPath(path) || Promise.resolve();
-  };
-
-  initValue(value, updateField) {
-    console.error("Deprecated initValue");
-
-    if (value !== undefined) {
-      value = this.convert(value);
-
-      // this.setDeltaValue(value);
-      this.setOriginal(value);
-
-      this.modified = false;
-
-      if (updateField) {
-        this.try("onModified", false);
-        this.try("onSet", value);
-      }
-    }
-  }
+  // clearValue() {
+  //   console.warn("Deprecated function clearValue");
+  // }
+  //
+  // // depreacated
+  // hasValue() {
+  //   console.warn("Deprecated function hasValue");
+  //   return this.read(this.getPath()) !== undefined;
+  // }
+  //
+  // readPath(path) {
+  //   console.error("Deprecated function readPath");
+  //   if (this.parent) {
+  //     return this.parent.readPath(path);
+  //   }
+  // };
+  //
+  // read() {
+  //   console.error("Deprecated function read");
+  //   const path = this.getPath();
+  //   return this.readPath(path);
+  // };
+  //
+  // writePath(path, rawValue) {
+  //   console.error("Deprecated function writePath");
+  //   if (this.parent) {
+  //     return this.parent.writePath(path, rawValue);
+  //   }
+  // };
+  //
+  // write(rawValue) {
+  //   console.error("Deprecated function write");
+  //   const path = this.getPath();
+  //   this.parent.writePath(path, rawValue);
+  // };
+  //
+  // async getFromPath(path) {
+  //   console.error("Deprecated function getFromPath");
+  //
+  //   const value = await KarmaFieldsAlpha.Form.get(this.resource.driver || "nodriver", path);
+  //
+  //
+  //   if (this.parent) {
+  //     return this.parent.getFromPath(path);
+  //   }
+  // };
+  //
+  // get() {
+  //   console.error("Deprecated function get");
+  //   const path = this.getPath();
+  //   return path.length && this.parent && this.parent.getFromPath(path) || Promise.resolve();
+  // };
+  //
+  // initValue(value, updateField) {
+  //   console.error("Deprecated initValue");
+  //
+  //   if (value !== undefined) {
+  //     value = this.convert(value);
+  //
+  //     // this.setDeltaValue(value);
+  //     this.setOriginal(value);
+  //
+  //     this.modified = false;
+  //
+  //     if (updateField) {
+  //       this.try("onModified", false);
+  //       this.try("onSet", value);
+  //     }
+  //   }
+  // }
 
   async getDefault() {
     if (this.resource.default !== undefined) {
@@ -359,122 +397,132 @@ KarmaFieldsAlpha.fields.field = class Field {
     return this.getEmpty();
   }
 
-  async validate(value) {
-    return value;
-  }
-
-  async load(promise) {
-    console.error("Deprecated load");
-
-    this.try("onLoad", true);
-    const result = await promise;
-    this.try("onLoad", false);
-    return result;
-  }
-
-  updateChangeValue(value) {
-    console.error("Deprecated function updateChangeValue");
-  }
-
-  setValueAsync(value, updateSelf, noBubble) {
-    console.warn("Deprecated function setValueAsync.");
-
-    if (updateSelf) {
-      this.updateValue(value);
-    } else {
-      this.changeValue(value, noBubble);
+  async fill(value) {
+    if (value === undefined) {
+      value = await this.getDefault();
     }
-
-  }
-
-  saveValue(value, updateSelf, noBubble) {
-    console.warn("Deprecated function saveValue.");
-
-    if (updateSelf || noBubble) {
-      console.error("Deprecated function saveValue.");
-    }
-
-    this.changeValue(value);
-
+    return this.setValue(value);
   }
 
 
+  //
+  // async validate(value) {
+  //   return value;
+  // }
+
+  // async load(promise) {
+  //   console.error("Deprecated load");
+  //
+  //   this.try("onLoad", true);
+  //   const result = await promise;
+  //   this.try("onLoad", false);
+  //   return result;
+  // }
+  //
+  // updateChangeValue(value) {
+  //   console.error("Deprecated function updateChangeValue");
+  // }
+  //
+  // setValueAsync(value, updateSelf, noBubble) {
+  //   console.warn("Deprecated function setValueAsync.");
+  //
+  //   if (updateSelf) {
+  //     this.updateValue(value);
+  //   } else {
+  //     this.changeValue(value, noBubble);
+  //   }
+  //
+  // }
+  //
+  // saveValue(value, updateSelf, noBubble) {
+  //   console.warn("Deprecated function saveValue.");
+  //
+  //   if (updateSelf || noBubble) {
+  //     console.error("Deprecated function saveValue.");
+  //   }
+  //
+  //   this.changeValue(value);
+  //
+  // }
 
 
-  async changeValue(value) {
-    // no validation
-    this.setValue(value);
-    // const originalValue = this.getOriginal();
-
-    // this.modified = value !== originalValue;
-    this.modified = this.isModified();
-
-    // this.try("onModified", value === originalValue);
-    // await this.load(this.bubble("change", this, value));
-    await this.bubble("change", this, value);
-  }
 
 
-
-  async updateValue(value) {
-    console.error("Deprecated updateValue");
-    // value = await this.load(this.validate(value));
-    // value = await this.validate(value);
-
-    this.setValue(value);
-    // const originalValue = this.getOriginal();
-    //
-    // this.modified = value === originalValue;
-
-    this.modified = this.isModified();
-
-    // this.try("onSet", value);
-    // this.try("onModified", value === originalValue);
-  }
-
-
-  async getValueAsync() {
-    console.error("Deprecated getValueAsync");
-    return this.getDeltaValue() ?? this.getOriginal() ?? this.fetchValue() ?? this.getDefault();
-  }
+  // async changeValue(value) {
+  //   console.error("Deprecated changeValue");
+  //   // no validation
+  //   this.setValue(value);
+  //   // const originalValue = this.getOriginal();
+  //
+  //   // this.modified = value !== originalValue;
+  //   this.modified = this.isModified();
+  //
+  //   // this.try("onModified", value === originalValue);
+  //   // await this.load(this.bubble("change", this, value));
+  //   await this.bubble("change", this, value);
+  // }
 
 
 
-  getOriginal() {
-    console.error("Deprecated getOriginal");
+  // async updateValue(value) {
+  //   console.error("Deprecated updateValue");
+  //   // value = await this.load(this.validate(value));
+  //   // value = await this.validate(value);
+  //
+  //   this.setValue(value);
+  //   // const originalValue = this.getOriginal();
+  //   //
+  //   // this.modified = value === originalValue;
+  //
+  //   this.modified = this.isModified();
+  //
+  //   // this.try("onSet", value);
+  //   // this.try("onModified", value === originalValue);
+  // }
 
-    return this.getFormOriginal();
-  }
 
-
-  setOriginal(value) {
-    console.error("Deprecated setOriginal");
-    this.setFormOriginal(value);
-  }
+  // async getValueAsync() {
+  //   console.error("Deprecated getValueAsync");
+  //   return this.getDeltaValue() ?? this.getOriginal() ?? this.fetchValue() ?? this.getDefault();
+  // }
+  //
+  //
+  //
+  // getOriginal() {
+  //   console.error("Deprecated getOriginal");
+  //
+  //   return this.getFormOriginal();
+  // }
+  //
+  //
+  // setOriginal(value) {
+  //   console.error("Deprecated setOriginal");
+  //   this.setFormOriginal(value);
+  // }
 
   // recursiveGetOriginal(keys) {
   //   keys = this.getKeyPath(keys, true);
   //   return this.parent && this.parent.recursiveGetOriginal(keys);
   // }
 
-  getFormOriginal(keys) {
-    console.error("Deprecated getFormOriginal");
-    keys = this.getKeyPath(keys, true);
-    return this.parent && this.parent.getFormOriginal(keys);
-  }
-
-  setFormOriginal(value, keys) {
-    console.error("Deprecated setFormOriginal");
-    keys = this.getKeyPath(keys);
-    this.parent && this.parent.setFormOriginal(value, keys);
-  }
-
-
-
-  async downloadValue() {
-    console.error("DEprecated downloadValue");
-    return this.getRemoteValue()
-  }
+  // getFormOriginal(keys) {
+  //   console.error("Deprecated getFormOriginal");
+  //   keys = this.getKeyPath(keys, true);
+  //   return this.parent && this.parent.getFormOriginal(keys);
+  // }
+  //
+  // setFormOriginal(value, keys) {
+  //   console.error("Deprecated setFormOriginal");
+  //   keys = this.getKeyPath(keys);
+  //   this.parent && this.parent.setFormOriginal(value, keys);
+  // }
+  //
+  //
+  //
+  // async downloadValue() {
+  //   console.error("DEprecated downloadValue");
+  //   return this.getRemoteValue()
+  // }
 
 
   // recursiveGetRemote(keys) {
@@ -485,44 +533,44 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   return this.recursiveGetRemote();
   // }
 
-  getRemoteValue(keys, driver) {
-    console.error("DEprecated getRemoteValue");
-    keys = this.getKeyPath(keys, true);
-    return this.parent && this.parent.getRemoteValue(keys, driver);
-  }
-
-  getRawValue() {
-    console.error("Deprecated function getRawValue");
-  }
-
-  async update() {
-    console.error("Deprecated function update");
-    let value = await this.getValue() ?? this.resource.value ?? await this.getDefault();
-
-    // let originalValue = this.getFormOriginal() ?? await this.downloadValue();
-    //
-    // let deltaValue = this.getDeltaValue();
-    //
-    // let value = deltaValue ?? originalValue ?? this.resource.value ?? await this.getDefault();
-
-    // if (value === undefined) {
-    //   value = await this.getDefault();
-    // } else {
-    //   value = await this.validate(value);
-    // }
-
-    // not all field need to autoset value (like readonly)
-    // if (value !== originalValue) {
-    //   this.setDeltaValue(value);
-    //   // await this.edit();
-    // }
-
-    // this.modified = value !== originalValue;
-
-    this.modified = this.isModified();
-
-    return value;
-  }
+  // getRemoteValue(keys, driver) {
+  //   console.error("DEprecated getRemoteValue");
+  //   keys = this.getKeyPath(keys, true);
+  //   return this.parent && this.parent.getRemoteValue(keys, driver);
+  // }
+  //
+  // getRawValue() {
+  //   console.error("Deprecated function getRawValue");
+  // }
+  //
+  // async update() {
+  //   console.error("Deprecated function update");
+  //   let value = await this.getValue() ?? this.resource.value ?? await this.getDefault();
+  //
+  //   // let originalValue = this.getFormOriginal() ?? await this.downloadValue();
+  //   //
+  //   // let deltaValue = this.getDeltaValue();
+  //   //
+  //   // let value = deltaValue ?? originalValue ?? this.resource.value ?? await this.getDefault();
+  //
+  //   // if (value === undefined) {
+  //   //   value = await this.getDefault();
+  //   // } else {
+  //   //   value = await this.validate(value);
+  //   // }
+  //
+  //   // not all field need to autoset value (like readonly)
+  //   // if (value !== originalValue) {
+  //   //   this.setDeltaValue(value);
+  //   //   // await this.edit();
+  //   // }
+  //
+  //   // this.modified = value !== originalValue;
+  //
+  //   this.modified = this.isModified();
+  //
+  //   return value;
+  // }
 
 
   isModified(value, keys) {
@@ -534,11 +582,10 @@ KarmaFieldsAlpha.fields.field = class Field {
     return this.parent && this.parent.isModified(value, keys);
   }
 
-
-  fetchValue(keys, driver) {
+  fetchValue(keys, expectedType, type) {
     keys = this.getKeyPath(keys, true);
     if (keys.length && this.parent) {
-      return this.parent.fetchValue(keys, driver);
+      return this.parent.fetchValue(keys, type, expectedType);
     }
   }
 
@@ -552,19 +599,19 @@ KarmaFieldsAlpha.fields.field = class Field {
     return this.edit();
   }
 
-  getValue(keys) {
+  getValue(keys, type) {
     keys = this.getKeyPath(keys);
     if (keys.length && this.parent) {
-      return this.parent.getValue(keys);
+      return this.parent.getValue(keys, type);
     }
   }
 
 
   // maybe async
-  setValue(value, keys) {
+  setValue(value, keys, type) {
     keys = this.getKeyPath(keys);
     if (keys.length && this.parent) {
-      return this.parent.setValue(value, keys);
+      return this.parent.setValue(value, keys, type);
     }
   }
 
@@ -575,11 +622,38 @@ KarmaFieldsAlpha.fields.field = class Field {
     }
   }
 
-
-  fetchArray(keys, driver) {
+  /**
+   * Write history current step. Used for every cell of a row before deleting row
+   */
+  write(keys) {
     keys = this.getKeyPath(keys);
     if (keys.length && this.parent) {
-      return this.parent.fetchArray(keys, driver);
+      return this.parent.write(keys);
+    }
+  }
+
+
+  fetchArray(keys) {
+    return this.fetchValue(keys, "array", "json");
+
+    // keys = this.getKeyPath(keys);
+    // if (keys.length && this.parent) {
+    //   return this.parent.fetchArray(keys, "json", "array");
+    // }
+  }
+
+
+  registerType(type, keys) {
+    keys = this.getKeyPath(keys, true);
+    if (this.parent) {
+      this.parent.registerType(type, keys);
+    }
+  }
+
+  registerValue(value, keys) {
+    keys = this.getKeyPath(keys, true);
+    if (this.parent) {
+      this.parent.registerValue(value, keys);
     }
   }
 
@@ -640,61 +714,61 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
 
-  getClosest(type) {
-    console.error("Deprecated function getClosest");
-
-  }
-
-  findAncestor(callback) {
-    console.error("Deprecated function findAncestor");
-
-  }
-
-  getRoot() {
-    console.error("Deprecated function getRoot");
-
-  }
-
-  // not used !!
-  fill() {
-    console.error("Deprecated function fill");
-    // this.initValue(this.getDefault());
-  }
-
-  convert(value) {
-    return value;
-  }
-
-  stringify(value) {
-    console.error("Deprecated function stringify");
-    return value;
-  }
-
-  parse(value) {
-    console.error("Deprecated function parse");
-    return value;
-  }
+  // getClosest(type) {
+  //   console.error("Deprecated function getClosest");
+  //
+  // }
+  //
+  // findAncestor(callback) {
+  //   console.error("Deprecated function findAncestor");
+  //
+  // }
+  //
+  // getRoot() {
+  //   console.error("Deprecated function getRoot");
+  //
+  // }
+  //
+  // // not used !!
+  // fill() {
+  //   console.error("Deprecated function fill");
+  //   // this.initValue(this.getDefault());
+  // }
+  //
+  // convert(value) {
+  //   return value;
+  // }
+  //
+  // stringify(value) {
+  //   console.error("Deprecated function stringify");
+  //   return value;
+  // }
+  //
+  // parse(value) {
+  //   console.error("Deprecated function parse");
+  //   return value;
+  // }
 
   getEmpty() {
     return "";
   }
 
-  convertTo(value, type) {
-    console.error("Deprecated function findAncestor");
-
-    // return this.convert(value, this.resource.datatype || this.datatype, type);
-  }
-
-  prepare(value) {
-    if (Array.isArray(value)) {
-      return value.shift();
-    }
-    return value;
-  }
-
-  sanitize(value, context) {
-    console.error("Deprecated function sanitize. Use validate");
-  }
+  // convertTo(value, type) {
+  //   console.error("Deprecated function findAncestor");
+  //
+  //   // return this.convert(value, this.resource.datatype || this.datatype, type);
+  // }
+  //
+  // prepare(value) {
+  //   if (Array.isArray(value)) {
+  //     return value.shift();
+  //   }
+  //   return value;
+  // }
+  //
+  // sanitize(value, context) {
+  //   console.error("Deprecated function sanitize. Use validate");
+  // }
 
   // ??
   build() {
@@ -737,40 +811,41 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
   // query API
-  queryOptions(driver, params) {
-    console.error("Deprecated function queryOptions. Use ??");
-    return KarmaFieldsAlpha.Form.fetch(driver, "querykey", params);
-  }
-
-  queryKey(driver, path) {
-    console.error("Deprecated function queryOptions. Use ??");
-    return KarmaFieldsAlpha.Form.get(driver, path);
-  }
+  // queryOptions(driver, params) {
+  //   console.error("Deprecated function queryOptions. Use ??");
+  //   return KarmaFieldsAlpha.Form.fetch(driver, "querykey", params);
+  // }
+  //
+  // queryKey(driver, path) {
+  //   console.error("Deprecated function queryOptions. Use ??");
+  //   return KarmaFieldsAlpha.Form.get(driver, path);
+  // }
 
 
   init(element) {
+    console.warn("deprecated Field::init");
     // this.triggerEvent("init", 1, this, element);
     this.bubble("init", this, element);
   }
 
 
   // option API
-  hasOptions() {
-    console.warn("Deprecated function hasOptions.");
-    return this.data.options !== undefined;
-  }
-  getOptions() {
-    console.warn("Deprecated function getOptions.");
-    return this.data.options || [];
-  }
-  setOptions(options) {
-    console.warn("Deprecated function setOptions.");
-    this.data.options = options;
-    this.triggerEvent("options");
-  }
+  // hasOptions() {
+  //   console.warn("Deprecated function hasOptions.");
+  //   return this.data.options !== undefined;
+  // }
+  // getOptions() {
+  //   console.warn("Deprecated function getOptions.");
+  //   return this.data.options || [];
+  // }
+  // setOptions(options) {
+  //   console.warn("Deprecated function setOptions.");
+  //   this.data.options = options;
+  //   this.triggerEvent("options");
+  // }
 
-  async getRemoteOptions(queryString, driver) {
-    return this.parent && this.parent.getRemoteOptions(queryString, driver);
+  getRemoteOptions(queryString, driver) {
+    return this.parent && this.parent.getRemoteOptions(queryString, driver) || [];
 
     // this.promiseOptions = KarmaFieldsAlpha.Form.fetch2(driver, queryString).then(function(results) {
     //   field.setOptions(results.items || results || []);
@@ -781,10 +856,10 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
 
-  getDriver() {
-    console.error("Deprecated function getDriver.");
-    // return this.parent && this.parent.getDriver();
-  }
+  // getDriver() {
+  //   console.error("Deprecated function getDriver.");
+  //   // return this.parent && this.parent.getDriver();
+  // }
 
 
   // !! this method is specifique for dropdown
@@ -800,8 +875,11 @@ KarmaFieldsAlpha.fields.field = class Field {
       return this.resource.options;
     }
 
+
+
+
     const queryString = this.getOptionsParamString();
-    const options = await this.getRemoteOptions(queryString);
+    const options = await this.getRemoteOptions(queryString, this.resource.driver);
     return options.items || options || [];
   }
 
@@ -810,70 +888,96 @@ KarmaFieldsAlpha.fields.field = class Field {
     return options;
   }
 
-  getOptionsParams(params) {
-    if (!params) {
-      params = {key: this.resource.key};
-    }
-    if (this.resource.params) {
-      Object.assign(params, this.resource.params);
-    }
+  // async getOptionsParams(params) {
+  //   if (!params) {
+  //     params = {key: this.resource.key};
+  //   }
+  //   if (this.resource.params) {
+  //     Object.assign(params, this.resource.params);
+  //   }
+  //
+  //
+  //   if (this.resource.args) {
+  //     console.warn("deprecated args property");
+  //     Object.assign(params, this.resource.args);
+  //   }
+  //
+  //   // Object.assign(params, this.triggerUp("optionparams", this, this.resource.optionparamlist));
+  //   const dependencies = this.resource.optionparamlist || this.resource.dependencies;
+  //   if (dependencies) {
+  //     Promise.all(dependencies.map(key => this.getRelatedValue(key))).reduce((acc, value, index) => {
+  //       acc[key] = ;
+  //       return acc;
+  //     }, params);
+  //   }
+  //
+  //
+  //   return params;
+  // }
 
-
-    if (this.resource.args) {
-      console.warn("deprecated args property");
-      Object.assign(params, this.resource.args);
-    }
-
-    // Object.assign(params, this.triggerUp("optionparams", this, this.resource.optionparamlist));
-    if (this.resource.optionparamlist) {
-      this.resource.optionparamlist.reduce((acc, key) => {
-        acc[key] = this.getRelatedValue(key);
-        return acc;
-      }, params);
-    }
-
-
-    return params;
-  }
-
-  getOptionsParamString(params) {
+  getOptionsParamString(args) {
 
     if (this.resource.options) {
+
       return "resource";
+
+    } else {
+
+      const params = new URLSearchParams({...args, ...this.resource.params});
+
+      params.set("key", this.resource.key);
+
+      const dependencies = this.resource.optionparamlist || this.resource.dependencies;
+      if (dependencies) {
+        dependencies.forEach(key => {
+          const value = this.parent && this.parent.getValue([key]);
+          // const value = KarmaFieldsAlpha.History.getParam(key);
+          if (value) {
+            params.set(key, value);
+          }
+        });
+      }
+
+      return params.toString();
     }
     // console.warn("Deprecated function fetchOptions.");
-    params = this.getOptionsParams(params);
+    // params = await this.getOptionsParams(params);
     // let queryString = KarmaFieldsAlpha.Form.encodeParams(params);
     // const driver = this.getDriver();
     // if (driver && queryString) {
     //   return driver+"/deprecated"+queryString;
     // }
-    return KarmaFieldsAlpha.Form.encodeParams(params);
+    // return KarmaFieldsAlpha.Form.encodeParams(params);
   }
 
-  clearOptions() {
-    console.error("Deprecated function clearOptions.");
-    // this.promiseOptions = undefined;
+  // clearOptions() {
+  //   console.error("Deprecated function clearOptions.");
+  //   // this.promiseOptions = undefined;
+  //
+  // }
 
+  // async
+  addRemoteItem(num, driver) {
+    return this.parent && this.parent.addRemoteItem(num, driver) || [];
   }
 
-
-  // loading API
-  startLoad() {
-    console.error("Deprecated function startLoad.");
-
-		this.loading++;
-		// this.triggerEvent("load", true, this, this.loading > 0);
-    this.try("onLoad", this.loading > 0);
-	}
-
-	endLoad() {
-    console.error("Deprecated function endLoad.");
-
-		this.loading--;
-		// this.triggerEvent("load", true, this, this.loading > 0);
-    this.try("onLoad", this.loading > 0);
-	}
+  //
+  // // loading API
+  // startLoad() {
+  //   console.error("Deprecated function startLoad.");
+  //
+	// 	this.loading++;
+	// 	// this.triggerEvent("load", true, this, this.loading > 0);
+  //   this.try("onLoad", this.loading > 0);
+	// }
+  //
+	// endLoad() {
+  //   console.error("Deprecated function endLoad.");
+  //
+	// 	this.loading--;
+	// 	// this.triggerEvent("load", true, this, this.loading > 0);
+  //   this.try("onLoad", this.loading > 0);
+	// }
 
   // import/export API
   async exportValue() {
@@ -882,13 +986,13 @@ KarmaFieldsAlpha.fields.field = class Field {
     // value = this.parse(value || "");
     // return Promise.resolve(value);
 
-    return this.getValueAsync();
+    return this.fetchValue();
   }
 
   importValue(value) {
     // this.setValue(value, context);
     // return this.saveValue(value, true, true);
-    return this.updateValue(value);
+    return this.setValue(value);
   }
 
 
@@ -902,10 +1006,10 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   this.try("onState", state);
 	// }
 
-  reset() {
-    console.error("Deprecated function reset.");
-		this.originalValue = undefined;
-	}
+  // reset() {
+  //   console.error("Deprecated function reset.");
+	// 	this.originalValue = undefined;
+	// }
 
   getState() {
     return this.parent && this.parent.getState() || this.state || "";
@@ -917,6 +1021,7 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   // ??
   editFull() {
+    console.warn("deprecated editFull");
     return this.parent && this.parent.editFull();
   }
 
@@ -924,23 +1029,200 @@ KarmaFieldsAlpha.fields.field = class Field {
     return this.parent && this.parent.submit();
   }
 
-  getParam(key) {
-    return this.parent && this.parent.getParam(key);
+
+  getDelta() {
+    return this.parent && this.parent.getDelta();
   }
 
-  setParam(key, value) {
-    this.parent && this.parent.setParam(key, value);
-  }
-  setParams(params) {
-    this.parent && this.parent.setParams(params);
-  }
 
-  // getChildrenDeltaValue() {
-  //   const flatObj = {};
-  //   this.children.forEach(child => {
-  //     Object.assign(flatObj, );
-  //   });
+  // getParam(key) {
+  //   return this.getParamsObject().get(key);
   // }
+  //
+  // setParam(key, value) {
+  //   const params = this.getParamsObject();
+  //
+  //   if (value && params.get(key) !== value || !value && params.has(key)) {
+  //   // if (params.get(key) != value) {
+  //     if (value) {
+  //       params.set(key, value);
+  //     } else {
+  //       params.delete(key);
+  //     }
+  //     params.sort();
+  //     this.setParamString(params.toString());
+  //   }
+  //
+  //
+  //   // const params = this.getParamsObject();
+  //   // let paramString = params.toString();
+  //   // params.set(key, value);
+  //   // params.sort();
+  //   // if (params.toString() !== paramString) {
+  //   //   this.setParamString(params.toString(), replace);
+  //   //   this.editParam();
+  //   // }
+  //   // this.setParams({[key]: value}, replace);
+  // }
+  //
+  // removeParam(key) {
+  //   const params = this.getParamsObject();
+  //   if (params.has(key)) {
+  //     params.delete(key);
+  //     this.setParamString(params.toString());
+  //   }
+  // }
+  //
+  // setParams(params) {
+  //   const paramsObject = this.getParamsObject();
+  //   let paramString = paramsObject.toString();
+  //   for (let key in params) {
+  //     const value = params[key];
+  //     if (value) {
+  //       paramsObject.set(key, value);
+  //     } else {
+  //       paramsObject.delete(key);
+  //     }
+  //     // paramsObject.set(key, params[key]);
+  //   }
+  //   paramsObject.sort();
+  //   if (paramsObject.toString() !== paramString) {
+  //     this.setParamString(paramsObject.toString());
+  //     // await this.editParam();
+  //   }
+  // }
+  //
+  // editParam(clean) {
+  //   return this.parent && this.parent.editParam(clean);
+  // }
+  //
+  // getParamsObject() {
+  //   return new URLSearchParams(this.getParamString());
+  // }
+  //
+  // getParamString() {
+  //   return location.hash.slice(1);
+  // }
+  //
+  // setParamString(paramString) {
+  //   history.replaceState(null, null, "#"+paramString);
+  //
+  //   // if (replace) {
+  //   //   history.replaceState(null, null, "#"+paramString);
+  //   // } else {
+  //   //   history.pushState(null, null, "#"+paramString);
+  //   // }
+  // }
+
+
+  editParam(clean) {
+    return this.parent && this.parent.editParam(clean);
+  }
+
+
+
+  //
+  //
+  // getParam(key) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.getParam(key);
+  // }
+  //
+  // setParam(key, value) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.setParam(key, value);
+  // }
+  //
+  // removeParam(key) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.removeParam(key);
+  // }
+  //
+  // setParams(params) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.setParams(params);
+  // }
+  //
+  // getParamsObject() {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.getParamsObject();
+  // }
+  //
+  // getParamString() {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.getParamString();
+  // }
+  //
+  // setParamString(paramString) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.setParamString(paramString);
+  // }
+  //
+
+
+  // request(callback, path = "", ...args) {
+  //
+  //   path = this.createPath(path);
+  //
+  //   if (this[callback]) {
+  //     return this[callback](path, ...args);
+  //   } else if (this.parent) {
+  //     return this.parent.request(callback, path, ...args);
+  //   }
+  // }
+
+
+
+  // getOriginalValue(path) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.getOriginalValue(path);
+  // }
+  //
+  // removeOriginalValue(path) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.removeOriginalValue(path);
+  // }
+  //
+  // setOriginalValue(value, path) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.setOriginalValue(value, path);
+  // }
+  //
+  // getDeltaValue(path) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.getDeltaValue(path);
+  // }
+  //
+  // setDeltaValue(value, path) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.setDeltaValue(value, path);
+  // }
+  //
+  // removeDeltaValue(path) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.removeDeltaValue(path);
+  // }
+  //
+  // getDelta() {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.getDelta();
+  // }
+  //
+  // emptyDelta() {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.emptyDelta();
+  // }
+  //
+  // hasDelta() {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.hasDelta();
+  // }
+  //
+  // writeHistory(path, value) {
+  //   console.error("DEPRECATED");
+  //   return KarmaFieldsAlpha.History.writeHistory(path, value);
+  // }
+
 
 
 };

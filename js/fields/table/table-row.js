@@ -12,11 +12,47 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
     // }
 
   initField() {
+
     this.trash = this.createChild({
       key: "trash",
       type: "field",
       default: "0"
     });
+
+    if (this.resource.columns) {
+      this.resource.columns.forEach(column => {
+        if (column.field) {
+          this.createChild(column.field);
+        }
+      });
+    }
+
+  }
+
+  // render() {
+  //   this.children.forEach(child => {
+  //     child.render();
+  //
+  //     console.log(child);
+  //   });
+  // }
+
+  async edit() {
+
+    await super.edit();
+
+    await this.render();
+
+  }
+
+
+  fetchValue(keys) {
+
+    if (keys && keys[0] === "id") {
+      return this.resource.key;
+    }
+
+    return super.fetchValue(keys);
   }
 
   // fill() {
@@ -32,6 +68,7 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
   // }
 
   create(columns) {
+    console.error("Deprecated create");
     columns.forEach(column => {
       if (column.field) {
         this.createChild(column.field);
@@ -39,12 +76,9 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
     });
   }
 
-  fill(columns) {
-    return Promise.all(this.children.map(async child => {
-      const value = await child.getDefault();
-      return child.setValue(value);
-    }));
-  }
+  // fill(columns) {
+  //   return Promise.all(this.children.map(async child => child.fill()));
+  // }
 
 }
 

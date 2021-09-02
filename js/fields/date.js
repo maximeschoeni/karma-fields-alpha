@@ -15,17 +15,54 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
   //   value = value.padEnd(format.length, base.slice(value.length));
   //   return Promise.resolve(value);
   // }
-  async validate(value) {
-    const validValue = value.toString();
-    const base = "1900-01-01 00:00:00";
-    const format = this.resource.output_format || "yyyy-mm-dd hh:ii:ss";
-    validValue = validValue.slice(0, format.length);
-    validValue = validValue.padEnd(format.length, base.slice(validValue.length));
-    if (validValue !== value) {
-      await this.setValue(validValue);
-    }
-    return validValue;
+  // validate(value) {
+  //
+  //   if (typeof value !== "string" || !KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
+  //     value = "";
+  //     this.setValue(value);
+  //   }
+  //   return value;
+  //
+  //   // let validValue = value || "";
+  //   // const base = "0000-00-00 00:00:00";
+  //   // const format = this.resource.output_format || "yyyy-mm-dd hh:ii:ss";
+  //   // validValue = validValue.slice(0, format.length);
+  //   // validValue = validValue.padEnd(format.length, base.slice(validValue.length));
+  //   // if (validValue !== value) {
+  //   //   await this.setValue(validValue);
+  //   // }
+  //   // return validValue;
+  // }
+
+  getEmpty() {
+    return this.resource.empty || this.resource.output_format === 'yyyy-mm-dd' && '0000-00-00' || '0000-00-00 00:00:00';
   }
+
+
+  isEmpty(value) {
+    return !value || value === this.getEmpty();
+  }
+
+  validate(value) {
+    if (this.isEmpty(value)) {
+      const defaultValue = this.resource.default || this.getEmpty();
+      if (value !== defaultValue) {
+        value = defaultValue;
+        if (!this.resource.readonly) {
+          this.setValue(value);
+        }
+      }
+    }
+    if (!this.isEmpty(value) && !KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
+      value = this.getEmpty();
+    }
+    return value;
+  }
+
+
+  // isEmpty(value) {
+  //   return !value || value === this.resource.empty
+  // }
 
   async exportValue() {
     let value = await this.fetchValue();
@@ -183,12 +220,12 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
       class: "karma-field karma-field-date",
       init: (container) => {
         container.element.setAttribute('tabindex', '-1');
-        this.init(container.element);
-        this.render = container.render;
+        // this.init(container.element);
       },
       update: async (container) => {
+        this.render = container.render;
         let value = await this.fetchValue();
-        value = await this.validate(value);
+        value = this.validate(value);
         container.element.classList.add("loading");
 
 
@@ -229,7 +266,12 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
                 };
                 input.element.onfocus = async () => {
                   // const value = await this.fetchValue();
-                  this.date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format) || new Date();
+                  // this.date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format) || new Date();
+                  if (this.isEmpty(value)) {
+                    this.date = new Date();
+                  } else {
+                    this.date = KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);
+                  }
                   this.render();
                 };
                 input.element.onfocusout = async () => {
@@ -245,8 +287,15 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
 
               container.element.classList.toggle("modified", this.modified);
 
-              let date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);
-              input.element.value = date && KarmaFieldsAlpha.Calendar.format(date, this.format) || "";
+              if (this.isEmpty(value)) {
+                input.element.value = ""
+              } else {
+                let date = KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);
+                input.element.value = KarmaFieldsAlpha.Calendar.format(date, this.format);
+              }
+
+              // let date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);
+              // input.element.value = date && KarmaFieldsAlpha.Calendar.format(date, this.format) || "";
               if (!this.date) {
                 input.element.blur();
               }

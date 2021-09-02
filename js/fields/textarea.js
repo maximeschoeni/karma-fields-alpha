@@ -11,11 +11,13 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				if (this.resource.input) {
 					Object.assign(input.element, this.resource.input);
 				}
-				this.init(input.element);
-				this.render = input.render;
+				// this.init(input.element);
+
 			},
 			update: async input => {
+				this.render = input.render;
 				input.element.classList.add("loading");
+				input.element.value = "";
 				let value = await this.fetchValue();
 				let modified = this.isModified();
 

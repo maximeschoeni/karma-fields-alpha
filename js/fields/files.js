@@ -1,5 +1,10 @@
 KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
 
+  initField() {
+    this.registerType("json");
+	}
+
+
 
   createUploader(resource) {
     const field = this;
@@ -57,7 +62,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
           }
           this.frame.on("update", function(items) {
             field.backup();
-            field.setArray(items.map(item => item.attributes.id.toString()));
+            field.setValue(items.map(item => item.attributes.id.toString()));
             field.edit();
             field.render();
           });
@@ -170,134 +175,222 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
   // }
 
 
-  buildContent(value) {
-    const field = this;
-    return [
-      {
-        tag: "a",
-        class: "gallery",
-        update: function(gallery) {
-          this.element.onclick = function(event) {
-            event.preventDefault();
-            field.uploader.open(value);
-          };
-        },
-        children: [
-          {
-            class: "images-container",
-            update: function() {
-              this.children = value.map(function(image_id) {
-                const file = field.getFile(image_id);
-                const type = file.type.startsWith("image") ? "image" : "file";
-                return {
-                  class: "image-container",
-                  child: {
-                    tag: "img",
-                    update: function() {
-                      this.element.src = file.src;
-                      this.element.width = file.width;
-                      this.element.height = file.height;
-                    }
-                  }
-                };
-              });
-            }
-          },
-          {
-            class: "add-container",
-            children: [
-              {
-                class: "add",
-                update: function() {
-                  this.element.textContent = value.length ? "Add or edit files..." : "Add files...";
-                }
-              }
-              // {
-              //   class: "karma-field-spinner"
-              // }
-            ]
-          }
-        ]
-      },
-      {
-        class: "field-control",
-        update: function() {
-          if (value.length) {
-            this.children = [{
-              tag: "button",
-              class: "delete button",
-              update: function() {
-                this.element.textContent = "Remove";
-                this.element.addEventListener("click", function(event) {
-                  event.preventDefault();
-                  field.backup();
-                  field.setArray([]);
-                  field.edit();
-                  field.render();
-                });
-              }
-            }];
-          } else {
-            this.children = [];
-          }
-        }
-      }
-    ];
-  }
+  // buildContent(value) {
+  //   const field = this;
+  //   return [
+  //     {
+  //       tag: "a",
+  //       class: "gallery",
+  //       update: function(gallery) {
+  //         this.element.onclick = function(event) {
+  //           event.preventDefault();
+  //           field.uploader.open(value);
+  //         };
+  //       },
+  //       children: [
+  //         {
+  //           class: "images-container",
+  //           update: function() {
+  //             this.children = value.map(function(image_id) {
+  //               const file = field.getFile(image_id);
+  //               const type = file.type.startsWith("image") ? "image" : "file";
+  //               return {
+  //                 class: "image-container",
+  //                 child: {
+  //                   tag: "img",
+  //                   update: function() {
+  //                     this.element.src = file.src;
+  //                     this.element.width = file.width;
+  //                     this.element.height = file.height;
+  //                   }
+  //                 }
+  //               };
+  //             });
+  //           }
+  //         },
+  //         {
+  //           class: "add-container",
+  //           children: [
+  //             {
+  //               class: "add",
+  //               update: function() {
+  //                 this.element.textContent = value.length ? "Add or edit files..." : "Add files...";
+  //               }
+  //             }
+  //             // {
+  //             //   class: "karma-field-spinner"
+  //             // }
+  //           ]
+  //         }
+  //       ]
+  //     },
+  //     {
+  //       class: "field-control",
+  //       update: function() {
+  //         if (value.length) {
+  //           this.children = [{
+  //             tag: "button",
+  //             class: "delete button",
+  //             update: function() {
+  //               this.element.textContent = "Remove";
+  //               this.element.addEventListener("click", function(event) {
+  //                 event.preventDefault();
+  //                 field.backup();
+  //                 field.setArray([]);
+  //                 field.edit();
+  //                 field.render();
+  //               });
+  //             }
+  //           }];
+  //         } else {
+  //           this.children = [];
+  //         }
+  //       }
+  //     }
+  //   ];
+  // }
 
   // build() {
-  //   const field = this;
-  //
   //   return {
-	// 		class: "karma-files",
+	// 		class: "karma-files karma-file karma-field",
 	// 		init: container => {
-	// 			// if (this.resource.style) {
-	// 			// 	container.element.style = field.resource.style;
-	// 			// }
   //       container.element.setAttribute('tabindex', '-1');
   //       this.init(container.element);
+  //       this.render = container.render;
 	// 		},
-	// 		update: function(container) {
+	// 		update: async container => {
+  //       container.element.classList.add("loading");
+  //       let values = await this.fetchArray();
   //
-  //       // container.child = field.buildContent(0);
-  //
-  //       field.onSet = function(value) {
-  //         container.children = field.buildContent(value);
-  //         container.render();
-  //       }
-  //       field.onModified = function(modified) {
-	// 				container.element.classList.toggle("modified", modified);
-	// 			}
-	// 			field.onLoad = function(loading) {
-  //         container.element.classList.toggle("loading", loading);
-	// 			}
-  //
-  //       field.update();
-	// 		}
+  //       values = await this.validate(values);
+  //       let modified = this.isModified();
+  //       container.children = this.buildContent(values);
+  //       container.element.classList.toggle("modified", modified);
+	// 		},
+  //     complete: container => {
+  //       container.element.classList.remove("loading");
+  //     }
 	// 	};
-  //
   // }
+
+
+
+  // build() {
+  //   return {
+  //     class: "karma-files karma-file karma-field",
+  //     init: container => {
+  //       container.element.setAttribute('tabindex', '-1');
+  //       this.init(container.element);
+  //       this.render = container.render;
+  //     },
+  //     update: async container => {
+  //       container.element.classList.add("loading");
+  //       let values = await this.fetchArray();
+  //
+  //       values = await this.validate(values);
+  //       let modified = this.isModified();
+  //       container.children = this.buildContent(values);
+  //       container.element.classList.toggle("modified", modified);
+  //     },
+  //     complete: container => {
+  //       container.element.classList.remove("loading");
+  //     }
+  //   };
+  // }
+
+  buildDeleteButton() {
+    return {
+      tag: "button",
+      class: "delete button",
+      update: button => {
+        button.element.textContent = "Remove";
+        button.element.onclick = async (event) => {
+          event.preventDefault();
+          this.backup();
+          this.setValue([]);
+          this.edit();
+          this.render();
+        };
+      }
+    };
+  }
 
   build() {
     return {
 			class: "karma-files karma-file karma-field",
 			init: container => {
         container.element.setAttribute('tabindex', '-1');
-        this.init(container.element);
+			},
+      update: container => {
         this.render = container.render;
-			},
-			update: async container => {
-        container.element.classList.add("loading");
-        let values = await this.fetchArray();
-        values = await this.validate(values);
-        let modified = this.isModified();
-        container.children = this.buildContent(values);
-        container.element.classList.toggle("modified", modified);
-			},
-      complete: container => {
-        container.element.classList.remove("loading");
-      }
+      },
+      children: [
+        {
+          class: "gallery",
+          update: async gallery => {
+            gallery.element.classList.add("loading");
+
+            let values = await this.fetchArray() || [];
+            values = await this.validate(values);
+
+            let modified = this.isModified();
+
+            gallery.children = [
+              {
+                class: "images-container",
+                update: container => {
+                  container.children = values.map(image_id => this.buildImageContainer(image_id));
+                }
+              },
+              this.buildAddButton()
+            ];
+
+            gallery.element.classList.toggle("modified", modified);
+
+            gallery.element.onclick = event => {
+              event.preventDefault();
+              this.uploader.open(values);
+            };
+          },
+          complete: container => {
+            container.element.classList.remove("loading");
+          }
+        },
+        // {
+        //   class: "field-control",
+        //   update: function() {
+        //     if (value.length) {
+        //       this.children = [{
+        //         tag: "button",
+        //         class: "delete button",
+        //         update: function() {
+        //           this.element.textContent = "Remove";
+        //           this.element.addEventListener("click", function(event) {
+        //             event.preventDefault();
+        //             field.backup();
+        //             field.setArray([]);
+        //             field.edit();
+        //             field.render();
+        //           });
+        //         }
+        //       }];
+        //     } else {
+        //       this.children = [];
+        //     }
+        //   }
+        // },
+        {
+          class: "field-control",
+          update: async container => {
+            let values = await this.fetchArray() || [];
+            values = await this.validate(values);
+            // container.children = Number(value) ? [this.buildDeleteButton()] : [];
+            container.child = values.length && this.buildDeleteButton();
+          }
+        }
+      ]
 		};
+
   }
 
 }

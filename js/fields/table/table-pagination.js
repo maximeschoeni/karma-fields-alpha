@@ -1,380 +1,456 @@
 
+// require KarmaFieldsAlpha.fields.table
 
-KarmaFieldsAlpha.fields.tablePagination = class TablePagination extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.fields.table.Pagination = class {
 
-  // constructor(resource, domain, parent) {
-  //   super(resource, domain, parent);
-  //
-
-  initField() {
-
-    this.page = new KarmaFieldsAlpha.fields.field({
-      key: "page",
-      value: 1
-    }, this, this);
-    // this.page.datatype = "number";
-    // this.page.setValue(1);
-
-    this.ppp = new KarmaFieldsAlpha.fields.field({
-      key: "ppp",
-      value: this.resource.ppp || 50
-    }, this, this);
-    // this.ppp.datatype = "number";
-    // this.ppp.setValue(resource.ppp || 50);
-
-    this.count = new KarmaFieldsAlpha.fields.field({
-      key: "count",
-      value: 0
-    }, this, this);
-    // this.count.datatype = "number";
-    //
-    // this.addChildren(this.page, this.ppp, this.count);
-
-  }
-
-  getValue() {
+  static buildBasicButton(name, title) {
     return {
-      page: this.page.getValue(),
-      ppp: this.ppp.getValue()
-    };
-  }
-
-  getValueAsync() {
-    return this.super.getValueAsync().then(function(value) {
-      value.count = undefined;
-    });
-  }
-
-  // setValue(value, context) {
-  //   this.page.setValue(value.page || 1);
-  //   this.ppp.setValue(value.ppp || this.resource.ppp, context);
-  // }
-
-  build() {
-    const field = this;
-
-    return {
-      class: "footer-group table-pagination",
-      update: function() {
-
-        this.children = [
-          // {
-          //   class: "footer-item",
-          //   update: function() {
-          //     let num = field.count.getValue();
-          //     this.element.textContent = num ? num + " items" : "";
-          //   }
-          // },
-          {
-            class: "ppp-selector footer-item",
-            init: function() {
-              this.element.tabIndex = "-1"; // for safari
-            },
-            children: [
-              {
-                tag: "button",
-                class: "karma-button current-page footer-item",
-                update: function() {
-                  let num = field.count.getValue();
-                  this.element.textContent = num ? num + " items" : "";
-                }
-              },
-              {
-                class: "ppp-selector-options",
-                child: {
-                  tag: "ul",
-                  children: [
-                    {
-                      tag: "li",
-                      child: {
-                        tag: "label",
-                        init: function() {
-                          this.element.textContent = "Items per page";
-                        }
-                      },
-                    }
-                  ].concat([
-                    {key: 100, value: "100"},
-                    {key: 200, value: "200"},
-                    {key: 500, value: "500"},
-                    {key: 0, value: "all"}
-                  ].map(function(item) {
-                    // return {
-                    //   tag: "li",
-                    //   update: function(li) {
-                    //     const button = new KarmaFieldsAlpha.fields.tableControls.button({
-                    //       name: item.value
-                    //     });
-                    //
-                    //     button.update = element => {
-                    //       button.onLoad = loading => {
-                    //         element.classList.toggle("loading", loading);
-                    //       }
-                    //       field.ppp.getValueAsync().then(function(value) {
-                    //         element.classList.toggle("active", value == item.key);
-                    //       });
-                    //       element.onclick = async (event) => {
-                    //         await button.load(
-                    //           field.ppp.saveValue(item.key, false, false)
-                    //         );
-                    //         // element.blur();
-                    //         document.activeElement.blur(); // for safari
-                    //       }
-                    //     }
-                    //     li.child = button.build();
-                    //   }
-                    // };
-                    return {
-                      tag: "li",
-                      update: function(li) {
-                        const button = new KarmaFieldsAlpha.fields.tableControls.button({
-                          name: item.value
-                        });
-
-                        button.update = element => {
-                          button.onLoad = loading => {
-                            element.classList.toggle("loading", loading);
-                          }
-                          const value = field.ppp.getValue();
-                          element.classList.toggle("active", value == item.key);
-                          element.onclick = (event) => {
-                            field.ppp.setValue(item.key);
-                            button.load(
-                              // field.ppp.saveValue(item.key, false, false)
-                              field.bubble("change", field.ppp, item.key)
-                            );
-
-
-                            // element.blur();
-                            document.activeElement.blur(); // for safari
-                          }
-                        }
-                        li.child = button.build();
-                      }
-                    };
-                  }))
-                }
-              }
-            ]
-          },
-          {
-            tag: "button",
-            class: "karma-button footer-item",
-            init: function(button) {
-              this.element.innerText = "«";
-              this.element.addEventListener("click", async function() {
-                const page = field.page.getValue();
-                if (page > 0) {
-                  // field.page.setValue(1);
-                  // button.element.classList.add("loading");
-                  // field.triggerEvent("change", true).then(function() {
-                  //   button.element.classList.remove("loading");
-                  //   // field.triggerEvent("render");
-                  // });
-                  button.element.classList.add("loading");
-                  field.page.setValue(1);
-                  console.log(field.parent);
-                  await field.parent.query();
-
-                  button.element.classList.remove("loading");
-
-                  // field.page.changeValue(1).then(function() {
-                  //   button.element.classList.remove("loading");
-                  // });
-                }
-              });
-            },
-            update: function() {
-              const count = field.count.getValue();
-              const page = field.page.getValue();
-              const ppp = field.ppp.getValue();
-
-              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
-              this.element.disabled = (page == 1);
-            }
-          },
-          {
-            tag: "button",
-            class: "karma-button footer-item",
-            init: function(button) {
-              this.element.innerText = "‹";
-              this.element.addEventListener("click", function() {
-                const page = field.page.getValue();
-                if (page > 0) {
-                  // field.page.setValue(page - 1);
-                  // button.element.classList.add("loading");
-                  // field.triggerEvent("change", true).then(function() {
-                  //   button.element.classList.remove("loading");
-                  //   // field.triggerEvent("render");
-                  // });
-                  button.element.classList.add("loading");
-                  field.page.changeValue(page-1).then(function() {
-                    button.element.classList.remove("loading");
-                  });
-                }
-              });
-            },
-            update: function() {
-              const count = field.count.getValue();
-              const page = field.page.getValue();
-              const ppp = field.ppp.getValue();
-
-              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
-              this.element.disabled = (page === 1);
-            }
-          },
-          // {
-          //   class: "ppp-selector footer-item",
-          //   children: [
-          //     {
-          //       tag: "button",
-          //       class: "karma-button current-page footer-item",
-          //       update: function() {
-          //         const count = field.count.getValue();
-          //         const page = field.page.getValue();
-          //         const ppp = field.ppp.getValue();
-          //
-          //         this.element.style.display = count > ppp ? "block" : "none";
-          //         this.element.textContent = count && page+" / "+Math.ceil(count/ppp) || "";
-          //       }
-          //     },
-          //     {
-          //       class: "ppp-selector-options",
-          //       child: {
-          //         tag: "ul",
-          //         children: [
-          //           {
-          //             tag: "li",
-          //             child: {
-          //               tag: "label",
-          //               init: function() {
-          //                 this.element.textContent = "Items per page";
-          //               }
-          //             },
-          //           }
-          //         ].concat([
-          //           {key: 50, value: "50"},
-          //           {key: 100, value: "100"},
-          //           {key: 200, value: "200"},
-          //           {key: 0, value: "all"}
-          //         ].map(function(item) {
-          //           return {
-          //             tag: "li",
-          //             child: {
-          //               tag: "button",
-          //               class: "karma-button",
-          //               init: function(button) {
-          //                 this.element.textContent = item.value;
-          //                 this.element.onclick = function() {
-          //                   field.ppp.setValue(item.key);
-          //                   button.element.classList.add("loading");
-          //                   field.triggerEvent("change", true).then(function() {
-          //                     button.element.classList.remove("loading");
-          //                     button.element.blur();
-          //                   });
-          //                 }
-          //               },
-          //               child: {
-          //                 class: "karma-field-spinner"
-          //               }
-          //             }
-          //           };
-          //         }))
-          //       }
-          //     }
-          //   ]
-          // },
-          {
-            class: "current-page footer-item",
-            update: function() {
-              const count = field.count.getValue();
-              const page = field.page.getValue();
-              const ppp = field.ppp.getValue();
-
-              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
-              this.element.textContent = count && page+" / "+Math.ceil(count/ppp) || "";
-            }
-          },
-          {
-            tag: "button",
-            class: "karma-button footer-item",
-            init: function(button) {
-              this.element.innerText = "›";
-              this.element.addEventListener("click", async function() {
-                const count = field.count.getValue();
-                const page = field.page.getValue();
-                const ppp = field.ppp.getValue();
-                const numPage = Math.ceil(count/ppp);
-
-                if (page < numPage) {
-                  // field.page.setValue(page+1);
-                  // button.element.classList.add("loading");
-                  // field.triggerEvent("change", true).then(function() {
-                  //   button.element.classList.remove("loading");
-                  //   // field.triggerEvent("render");
-                  // });
-
-                  button.element.classList.add("loading");
-                  field.page.setValue(page+1);
-                  await field.parent.query();
-                  await field.parent.content.update();
-
-                  button.element.classList.remove("loading");
-
-                  // button.element.classList.add("loading");
-                  // field.page.changeValue(page+1).then(function() {
-                  //   button.element.classList.remove("loading");
-                  // });
-                }
-              });
-            },
-            update: function() {
-              const count = field.count.getValue();
-              const page = field.page.getValue();
-              const ppp = field.ppp.getValue();
-              const numPage = Math.ceil(count/ppp);
-
-              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
-              this.element.disabled = page >= numPage;
-            }
-          },
-          {
-            tag: "button",
-            class: "karma-button footer-item",
-            init: function(button) {
-              this.element.innerText = "»";
-              this.element.addEventListener("click", function() {
-                const count = field.count.getValue();
-                const page = field.page.getValue();
-                const ppp = field.ppp.getValue();
-                const numPage = Math.ceil(count/ppp);
-
-                if (page < numPage) {
-                  // field.page.setValue(numPage);
-                  // button.element.classList.add("loading");
-                  // field.triggerEvent("change", true).then(function() {
-                  //   button.element.classList.remove("loading");
-                  //   // field.triggerEvent("render");
-                  // });
-                  button.element.classList.add("loading");
-                  field.page.changeValue(numPage).then(function() {
-                    button.element.classList.remove("loading");
-                  });
-                }
-              });
-            },
-            update: function(button) {
-              const count = field.count.getValue();
-              const page = field.page.getValue();
-              const ppp = field.ppp.getValue();
-              const numPage = Math.ceil(count/ppp);
-
-              this.element.style.display = ppp > 0 && count > ppp ? "block" : "none";
-              this.element.disabled = page >= numPage;
-            }
+      tag: "button",
+      class: "karma-button footer-item",
+      init: (button) => {
+        button.element.title = title;
+      },
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name;
           }
-        ];
+        },
+        {
+          class: "karma-field-spinner"
+        }
+      ]
+    }
+  }
+
+
+  static buildFirstPageButton(field, name, title) {
+    return {
+      tag: "button",
+      class: "karma-button footer-item",
+      init: (button) => {
+        button.element.title = title || "First Page";
+      },
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name || "«";
+          }
+        },
+        {
+          class: "karma-field-spinner"
+        }
+      ],
+      update: button => {
+        const count = field.getCount();
+        const page = field.getPage();
+        const ppp = field.getPpp();
+
+        // button.element.classList.toggle("hidden", ppp < 1 || page === 1);
+        button.element.disabled = page === 1;
+        button.element.onclick = async (event) => {
+          if (page > 0) {
+            button.element.classList.add("loading");
+            KarmaFieldsAlpha.History.backup();
+            KarmaFieldsAlpha.History.setParam("page", 1);
+            await field.editParam();
+            // await field.render();
+            button.element.blur();
+            button.element.classList.remove("loading");
+          }
+        }
+      }
+    }
+  }
+
+
+  static buildPrevPageButton(field, name, title) {
+    return {
+      tag: "button",
+      class: "karma-button footer-item",
+      init: (button) => {
+        button.element.title = title || "Previous Page";
+      },
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name || "‹";
+          }
+        },
+        {
+          class: "karma-field-spinner"
+        }
+      ],
+      update: button => {
+        const count = field.getCount();
+        const page = field.getPage();
+        const ppp = field.getPpp();
+
+        // button.element.classList.toggle("hidden", ppp < 1 || page === 1);
+        button.element.disabled = (page === 1);
+        button.element.onclick = async (event) => {
+          if (page > 0) {
+            button.element.classList.add("loading");
+            KarmaFieldsAlpha.History.backup();
+            KarmaFieldsAlpha.History.setParam("page", page-1);
+            await field.editParam();
+            // await field.render();
+            button.element.blur();
+            button.element.classList.remove("loading");
+          }
+        }
+      }
+    }
+  }
+
+
+  static buildNextPageButton(field, name, title) {
+    return {
+      tag: "button",
+      class: "karma-button footer-item",
+      init: (button) => {
+        button.element.title = title || "Next Page";
+      },
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name || "›";
+          }
+        },
+        {
+          class: "karma-field-spinner"
+        }
+      ],
+      update: button => {
+        const count = field.getCount();
+        const page = field.getPage();
+        const ppp = field.getPpp();
+        const numPage = Math.ceil(count/ppp);
+
+        // button.element.classList.toggle("hidden", ppp < 1 || page >= numPage);
+        button.element.disabled = page >= numPage;
+
+        button.element.onclick = async (event) => {
+          if (page < numPage) {
+            button.element.classList.add("loading");
+            KarmaFieldsAlpha.History.backup();
+            KarmaFieldsAlpha.History.setParam("page", page+1);
+            // field.setParam("page", page+1);
+            await field.editParam();
+            // await field.render();
+            button.element.blur();
+            button.element.classList.remove("loading");
+          }
+        }
+      }
+    }
+  }
+
+
+  static buildLastPageButton(field, name, title) {
+    return {
+      tag: "button",
+      class: "karma-button footer-item",
+      init: (button) => {
+        button.element.title = title || "Last Page";
+      },
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name || "»";
+          }
+        },
+        {
+          class: "karma-field-spinner"
+        }
+      ],
+      update: button => {
+        const count = field.getCount();
+        const page = field.getPage();
+        const ppp = field.getPpp();
+        const numPage = Math.ceil(count/ppp);
+
+        // button.element.classList.toggle("hidden", ppp < 1 || page >= numPage);
+        button.element.disabled = page >= numPage;
+
+        button.element.onclick = async (event) => {
+          if (page < numPage) {
+            button.element.classList.add("loading");
+
+            KarmaFieldsAlpha.History.backup();
+            KarmaFieldsAlpha.History.setParam("page", numPage);
+            // field.setParam("page", numPage);
+            await field.editParam();
+            // await field.render();
+            button.element.blur();
+            button.element.classList.remove("loading");
+          }
+        }
+      }
+    }
+  }
+
+
+  static buildCurrentPageElement(field) {
+    return {
+      class: "current-page header-item",
+      update: item => {
+        const count = field.getCount();
+        const page = field.getPage();
+        const ppp = field.getPpp();
+        const numPage = Math.ceil(count/ppp);
+
+        item.element.classList.toggle("hidden", ppp < 1 || count < ppp);
+        item.element.textContent = count && page+" / "+numPage || "";
       }
     };
   }
+
+
+  static buildPPPButton(field) {
+
+    const options = [
+      {key: 100, value: "100 items/page"},
+      {key: 200, value: "200 items/page"},
+      {key: 500, value: "500 items/page"},
+      {key: 0, value: "all"}
+    ];
+
+    return {
+      class: "ppp-selector footer-item",
+      init: item => {
+        item.element.tabIndex = "-1"; // for safari
+      },
+      children: [
+        {
+          tag: "button",
+          class: "karma-button current-page footer-item",
+          update: item => {
+            let num = field.getCount();
+            item.element.textContent = num ? num + " items" : "";
+          }
+        },
+        {
+          class: "ppp-selector-options",
+          child: {
+            tag: "ul",
+            children: options.map(item => {
+              return {
+                tag: "li",
+                child: {
+                  tag: "button",
+                  class: "karma-button footer-item",
+                  init: (button) => {
+                    button.element.title = item.value;
+                  },
+                  children: [
+                    {
+                      tag: "span",
+                      class: "button-content",
+                      init: content => {
+                        content.element.innerHTML = item.value;
+                      }
+                    },
+                    {
+                      class: "karma-field-spinner"
+                    }
+                  ],
+                  update: button => {
+                    const ppp = field.getPpp();
+                    button.element.classList.toggle("active", ppp == item.key);
+                    button.element.onclick = async (event) => {
+                      // field.setParam("ppp", item.key);
+                      // field.setParam("page", 1);
+                      button.element.classList.add("loading");
+                      KarmaFieldsAlpha.History.backup();
+                      KarmaFieldsAlpha.History.setParams({
+                        page: 1,
+                        ppp: item.key
+                      });
+                      await field.editParam();
+                      // await field.render();
+                      button.element.classList.remove("loading");
+                      document.activeElement.blur(); // for safari
+                    }
+                  }
+                }
+              };
+            })
+          }
+        }
+      ]
+    }
+  }
+
+  static buildItemsTotal(field) {
+
+
+    return {
+      class: "total-items header-item",
+      init: item => {
+        item.element.tabIndex = "-1"; // for safari
+      },
+      update: item => {
+        item.element.classList.toggle("loading", field.queriedIds === undefined);
+        if (field.queriedIds === undefined) {
+          item.element.textContent = "";
+        } else {
+          // const num = field.getCount() + (field.ids.getValue() || []).length;
+          const num = field.getCount() + field.extraIds.length;
+          item.element.textContent = num + " elements";
+        }
+
+      }
+
+    }
+
+  }
+
+
+  static buildPrevModalButton(field, name, title) {
+    return {
+      tag: "button",
+      class: "karma-button",
+      init: (button) => {
+        button.element.title = title || "Previous";
+      },
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name || "‹";
+          }
+        }
+      ],
+      update: button => {
+        // const ids = field.getCurrentIds();
+        const ids = field.queriedIds;
+        let id = KarmaFieldsAlpha.History.getParam("id");
+        let index = ids && ids.indexOf(id) || -1;
+        button.element.disabled = index < 1;
+
+        button.element.onclick = async (event) => {
+          if (index > 0) {
+            id = ids[index-1];
+            button.element.classList.add("loading");
+            KarmaFieldsAlpha.History.backup();
+            KarmaFieldsAlpha.History.setParam("id", id);
+            await field.editParam();
+            // await field.renderModal();
+            // await field.renderFooter();
+            button.element.classList.remove("loading");
+          }
+        }
+      }
+    };
+  }
+
+
+  static buildNextModalButton(field, name, title) {
+    return {
+      tag: "button",
+      class: "karma-button",
+      init: (button) => {
+        button.element.title = title || "Next";
+      },
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name || "›";
+          }
+        }
+      ],
+      update: button => {
+        // const ids = field.getCurrentIds();
+        const ids = field.queriedIds;
+        let id = KarmaFieldsAlpha.History.getParam("id");
+        let index = ids && ids.indexOf(id) || -1;
+        button.element.disabled = index === -1 || index >= ids.length - 1;
+
+        button.element.onclick = async (event) => {
+          if (index > -1 && index < ids.length - 1) {
+            id = ids[index+1];
+            button.element.classList.add("loading");
+            KarmaFieldsAlpha.History.backup();
+            KarmaFieldsAlpha.History.setParam("id", id);
+            await field.editParam();
+            // await field.renderModal();
+            // await field.renderFooter();
+            button.element.classList.remove("loading");
+          }
+        }
+      }
+    };
+  }
+
+
+  static buildCloseModalButton(field, name, title) {
+    return {
+      tag: "button",
+      class: "karma-button",
+      // child: new KarmaFieldsAlpha.fields.icon({
+      //   type: "icon",
+      //   value: "no-alt.svg"
+      // }).build(),
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name || "×";
+          }
+        }
+      ],
+      init: button => {
+        button.element.title = title || "Close";
+        button.element.onclick = async () => {
+          button.element.classList.add("loading");
+          KarmaFieldsAlpha.History.backup();
+          KarmaFieldsAlpha.History.setParam("id", null);
+          await field.editParam();
+          button.element.classList.remove("loading");
+        }
+      }
+    }
+  }
+
+  static buildCloseTableButton(field, name, title) {
+    return {
+      tag: "button",
+      class: "karma-button",
+      children: [
+        {
+          tag: "span",
+          class: "button-content",
+          init: content => {
+            content.element.innerHTML = name || "×";
+          }
+        }
+      ],
+      init: button => {
+        button.element.title = title || "Close";
+        button.element.onclick = async () => {
+          button.element.classList.add("loading");
+          KarmaFieldsAlpha.History.backup();
+          KarmaFieldsAlpha.History.setParamString("");
+          await field.editParam();
+          button.element.classList.remove("loading");
+        }
+      }
+    }
+  }
+
 }

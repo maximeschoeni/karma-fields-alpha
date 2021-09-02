@@ -125,12 +125,21 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 	// 	this.setArray(array);
   // }
 
-  async fetchValue(pathKeys, driver) {
+  initField() {
+    this.registerType("json");
+	}
+
+  async fetchValue(pathKeys) {
     // pathKeys = this.getKeyPath(pathKeys);
 
-    let array = await this.fetchArray();
+    let array = await super.fetchValue(undefined, "array") || [];
 		// array = JSON.parse(value);
-    return KarmaFieldsAlpha.DeepObject.get(array, pathKeys);
+
+    if (pathKeys && pathKeys.length) {
+      return KarmaFieldsAlpha.DeepObject.get(array, pathKeys);
+    }
+
+    return array;
   }
 
   // async editValue(value, keys) {
@@ -143,7 +152,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
   async setValue(value, keys) {
     if (keys && keys.length) {
-      let array = await this.fetchArray();
+      let array = await super.fetchValue();
       KarmaFieldsAlpha.DeepObject.assign(array, keys, value);
   		return super.setValue(array);
 		}
@@ -484,7 +493,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       },
       update: async container => {
 
-        const values = await this.fetchArray();
+        const values = await this.fetchValue();
 
         container.children = this.buildContent(values);
 

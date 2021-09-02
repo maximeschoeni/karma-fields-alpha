@@ -114,6 +114,16 @@
 
 KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fields.field {
 
+  // initField() {
+  //
+  //   if (this.resource.key) {
+  //     KarmaFieldsAlpha.Gateway.types[this.resource.key] = "json";
+  //   }
+  //
+  //   super.initField();
+  // }
+
+
   // prepare(value) {
   //   return value;
   // }
@@ -184,62 +194,60 @@ KarmaFieldsAlpha.fields.arrayField = class TableCol extends KarmaFieldsAlpha.fie
   //   super.setDeltaValue(value, keys);
   // }
 
-  getOriginal() {
-    console.error("deprecated getOriginal");
-    let value = super.getOriginal();
-    if (value !== undefined) {
-      value = JSON.parse(value);
-    }
-    return value;
-  }
+  // getOriginal() {
+  //   console.error("deprecated getOriginal");
+  //   let value = super.getOriginal();
+  //   if (value !== undefined) {
+  //     value = JSON.parse(value);
+  //   }
+  //   return value;
+  // }
+  //
+  // setOriginal(values) {
+  //   console.error("deprecated setOriginal");
+  //   if (values !== undefined) {
+  //     super.setOriginal(JSON.stringify(values));
+  //   }
+  // }
 
-  setOriginal(values) {
-    console.error("deprecated setOriginal");
-    if (values !== undefined) {
-      super.setOriginal(JSON.stringify(values));
-    }
-  }
-
-  async add(items) {
-    let values = await this.getValue();
+  add(items) {
+    let values = this.getValue() || [];
     values = values.concat(items);
     return this.setValue(values);
   }
 
-  async remove(items) {
-    let values = await this.getValue();
-    values = values.filter(function(value) {
-      return items.indexOf(value) === -1;
-    });
-    return this.setValue(values);
+  remove(items) {
+    let values = this.getValue() || [];
+    values = values.filter(value => items.indexOf(value) === -1);
+    this.setValue(values);
   }
 
-  async replace(item, newItem) {
-    const values = await this.getValue();
+  replace(item, newItem) {
+    const values = this.getValue() || [];
     const index = values.indexOf(item);
     if (index > -1) {
       values.splice(index, 1, newItem);
-      await this.setValue(values, context);
+      this.setValue(values, context);
     }
   }
 
-  async getPrev(rowId) {
-    console.error("deprecated getPrev");
-    let ids = await this.getArray();
-    let index = ids.indexOf(rowId);
-    if (index > 0) {
-      return ids[index-1];
-    }
-  }
-
-  async getNext(rowId) {
-    console.error("deprecated getNext");
-    let ids = await this.getArray();
-    let index = ids.indexOf(rowId);
-    if (index > -1 && index < ids.length - 1) {
-      return ids[index+1];
-    }
-  }
+  // async getPrev(rowId) {
+  //   console.error("deprecated getPrev");
+  //   let ids = await this.getArray();
+  //   let index = ids.indexOf(rowId);
+  //   if (index > 0) {
+  //     return ids[index-1];
+  //   }
+  // }
+  //
+  // async getNext(rowId) {
+  //   console.error("deprecated getNext");
+  //   let ids = await this.getArray();
+  //   let index = ids.indexOf(rowId);
+  //   if (index > -1 && index < ids.length - 1) {
+  //     return ids[index+1];
+  //   }
+  // }
 
 }
 
