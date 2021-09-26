@@ -1,22 +1,38 @@
 
 KarmaFieldsAlpha.Delta = class {
 
+	// static update() {
+	// 	if (history.state) {
+	// 		for (let path in history.state) {
+	// 			this.prototype.setValue(history.state[path], path);
+	// 		}
+	// 	}
+	// }
+
+	writeHistory(path, value) {
+		if (value === undefined) {
+			value = null;
+		}
+		KarmaFieldsAlpha.History.writeHistory(this.suffix+path, value);
+	}
+
+
 	constructor(prefix) {
 		this.suffix = prefix || "karma/";
 
 	}
 
 	getValue(path) {
-		let value = localStorage.getItem(this.suffix+path);
-		return value;
+		return localStorage.getItem(this.suffix+path);
 	}
 
 	setValue(value, path) { // overrided with async by arrays
-		if (KarmaFieldsAlpha.Gateway.original[path] !== value && value !== undefined && value !== null) {
-			localStorage.setItem(this.suffix+path, value);
-		} else {
-			localStorage.removeItem(this.suffix+path);
-		}
+		// if (KarmaFieldsAlpha.Gateway.original[path] !== value && value !== undefined && value !== null) {
+		// 	localStorage.setItem(this.suffix+path, value);
+		// } else {
+		// 	localStorage.removeItem(this.suffix+path);
+		// }
+		localStorage.setItem(this.suffix+path, value);
 	}
 
 	removeValue(path) {

@@ -1,11 +1,13 @@
 KarmaFieldsAlpha.tables = {};
 
-KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
+KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
   constructor(resource, parent, form) {
     super(resource, parent);
 
     const field = this;
+
+
 
     // window.karma_table = this; // -> debug
     KarmaFieldsAlpha.tables[resource.driver] = this;
@@ -35,6 +37,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     field.select.events.select = function() {
       field.renderFooter();
     };
+
+
+    // table managment (extra ids)
+    this.tableManagment = new KarmaFieldsAlpha.fields.form({
+      driver: resource.driver,
+      prefix: "karma",
+      history: false
+    }, this);
 
 
     // filters
@@ -79,11 +89,31 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
 
 
+    // this.filters = new KarmaFieldsAlpha.fields.group({
+    //   children: [resource.filters],
+    //   history: false,
+    //   fetch: "none"
+    // }, this, this);
+    //
+    // this.filters.edit = () => {
+    //   KarmaFieldsAlpha.History.setParam("page", 1);
+    //   return this.editParam();
+    // };
+    //
+    // this.filters.getBuffer = () => {
+    //
+    // }
+
+
+
     // content
 
     this.content = new KarmaFieldsAlpha.fields.form({
-      driver: resource.driver
+      driver: resource.driver,
+      prefix: "karma/content"
     }, this);
+
+    // this.content.delta = new KarmaFieldsAlpha.Delta("karma/content/");
 
     // this.content.ids = new KarmaFieldsAlpha.fields.arrayField({
     //   key: "ids",
@@ -105,7 +135,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     // };
 
     this.content.edit = async () => {
-      await field.editAll();
+      // await field.editAll();
       // await field.renderModal();
 
       // await this.render();
@@ -144,10 +174,15 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     //
     // this.nav = KarmaFieldsAlpha.fields.form.getForm("nav");
 
-    const regex = new RegExp("^"+this.resource.driver+"/(\\d+)/id$");
-    this.extraIds = Object.keys(this.getDelta().getObject()).map(path => path.match(regex)).filter(match => match).map(match => match[1]);
-
-
+    // const regex = new RegExp("^"+this.resource.driver+"/(\\d+)/id$");
+    // this.extraIds = Object.keys(this.getDelta().getObject()).map(path => path.match(regex)).filter(match => match).map(match => match[1]);
+    //
+    //
+    // this.extraIds = new KarmaFieldsAlpha.fields.field();
+    //
+    // this.getDelta().getValue(this.resource.driver+"/ids");
+    //
+    // console.log(this.resource.key, this.getDelta().getObject());
 
     // const ids = this.getDelta().find(new RegExp(this.resource.driver+"/\\d+/id"));
     //
@@ -207,27 +242,54 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     this.options = new KarmaFieldsAlpha.fields.form({
       driver: "options",
       key: "options",
+
+      // storage: "local", // "input"
+      prefix: "karma/options", // -> used in localstorage + history state
+
+      history: false,
+      fetch: false
+
+
     }, this, this);
 
-    this.options.delta = new KarmaFieldsAlpha.Delta("karma-options/");
-
-    this.options.getValue = function(keys) {
-      const path = this.getKeyPath(keys).join("/");
-      let value = this.delta.getValue(path);
-      value = KarmaFieldsAlpha.Type.parse(value, path);
-      return value;
-    }
-    this.options.fetchValue = this.options.getValue();
-
-    this.options.setValue = function(value, keys) {
-      const path = this.getKeyPath(keys).join("/");
-      value = KarmaFieldsAlpha.Type.sanitize(value, path);
-      this.delta.setValue(value, path);
-    }
-
-
+    // this.options.delta = new KarmaFieldsAlpha.Delta("karma/options/");
+    //
+    // this.options.getValue = function(keys) {
+    //   const path = this.getKeyPath(keys).join("/");
+    //   let value = this.delta.getValue(path);
+    //   value = KarmaFieldsAlpha.Type.parse(value, path);
+    //   return value;
+    // }
+    // this.options.fetchValue = this.options.getValue();
+    //
+    // this.options.setValue = function(value, keys) {
+    //   const path = this.getKeyPath(keys).join("/");
+    //   value = KarmaFieldsAlpha.Type.sanitize(value, path);
+    //   this.delta.setValue(value, path);
+    // }
 
 
+
+
+  }
+
+  updateChildren() {
+		this.content.updateChildren();
+    this.options.updateChildren();
+    this.tableManagment.updateChildren();
+	}
+
+
+  getExtraIds() {
+    // const ids = this.getDelta().getValue(this.resource.driver+"/ids")
+    const ids = this.tableManagment.getDeltaValue("ids");
+    return ids && ids.split(",") || [];
+  }
+
+  setExtraIds(ids) {
+    const value = ids.join(",");
+    this.tableManagment.setDeltaValue("ids", value);
+    // this.getDelta().setValue(ids.join(","), this.resource.driver+"/ids");
   }
 
 
@@ -404,7 +466,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
     KarmaFieldsAlpha.History.backup();
 
-    this.extraIds = this.extraIds.concat(ids);
+    const extraIds = this.getExtraIds();
+    this.setExtraIds(extraIds.concat(ids));
+    // this.extraIds = this.extraIds.concat(ids);
 
     await Promise.all(rows.map(row => row.fill())); // -> also set trash to "0"
 
@@ -528,31 +592,46 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
     const text = await navigator.clipboard.readText();
 
     if (text) {
-      let rows = text.split(/[\r\n]+/).map(function(row) {
-        return row.split("\t");
-      });
+      let rows = text.split(/[\r\n]+/).map(row => row.split("\t"));
 
-      field.content.backup(["paste"]);
+      // write all fields
+      for (let j = 0; j < rows.length; j++) {
+        const rowField = this.content.getChild(ids[j+y]);
+        if (rowField) {
+          for (let i = 0; i < rows[j].length; i++) {
+            const cellField = rowField.children[i+1+x];
+            if (cellField) {
+              cellField.write();
+            }
+          }
+        }
+      }
 
       if (rows.length > ids.length-y) {
-        await this.add(rows.length-(ids.length-y), false);
+        await this.add(rows.length-(ids.length-y), false); // -> will backup
         ids = this.getCurrentIds();
+      } else {
+        KarmaFieldsAlpha.History.backup();
       }
 
       const promises = [];
       for (let j = 0; j < rows.length; j++) {
-        const rowField = field.content.getChild(ids[j+y]);
+        const rowField = this.content.getChild(ids[j+y]);
         for (let i = 0; i < rows[j].length; i++) {
           const cellField = rowField.children[i+1+x];
           const value = rows[j][i];
-          const promise = cellField.importValue(value).then(() => {
-            return cellField.render();
-          });
+          const promise = cellField.importValue(value);
+          // .then(() => {
+          //   return cellField.render();
+          // });
           promises.push(promise);
         }
       }
       await Promise.all(promises);
-      await field.content.bubble("change");
+      // await field.content.bubble("change");
+
+      await this.content.render();
+      await this.content.edit();
     }
   }
 
@@ -593,7 +672,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.form {
 
     // const ids = this.content.ids.getValue() || [];
     // const ids = this.ids.getValue() || [];
-    const ids = this.extraIds;
+    const ids = this.getExtraIds();
     return ids.concat(this.queriedIds || []);
   }
 

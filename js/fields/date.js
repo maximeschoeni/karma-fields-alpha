@@ -231,10 +231,10 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.field {
 
         container.children = [
           {
-            class: "date-popup-container",
+            class: "date-popup-container open-down",
             update: popup => {
               // const value = await this.getValue();
-              popup.element.classList.toggle("open-down", popup.element.getBoundingClientRect().top+window.pageYOffset < 500);
+              // popup.element.classList.toggle("open-down", popup.element.getBoundingClientRect().top+window.pageYOffset < 500);
               popup.children = this.date && [this.buildPopup(value)] || [];
             }
           },

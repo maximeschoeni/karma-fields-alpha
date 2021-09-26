@@ -306,7 +306,7 @@ KarmaFieldsAlpha.fields.table.Pagination = class {
           item.element.textContent = "";
         } else {
           // const num = field.getCount() + (field.ids.getValue() || []).length;
-          const num = field.getCount() + field.extraIds.length;
+          const num = field.getCount() + field.getExtraIds().length;
           item.element.textContent = num + " elements";
         }
 

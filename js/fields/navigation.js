@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.container {
 
   // constructor(resource, parent, form) {
   //   super(resource, parent, form);
@@ -22,6 +22,61 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.field
           this.update();
           container.render();
         });
+
+
+        window.addEventListener("keydown", function(event) {
+        	// if (event.metaKey && event.key === "c" && KarmaFieldsAlpha.events.onCopy) {
+        	// 	KarmaFieldsAlpha.events.onCopy(event);
+        	// }
+        	// if (event.metaKey && event.key === "v" && KarmaFieldsAlpha.events.onPast) {
+        	// 	KarmaFieldsAlpha.events.onPast(event);
+        	// }
+        	// if (event.metaKey && event.key === "a" && KarmaFieldsAlpha.events.onSelectAll) {
+        	// 	KarmaFieldsAlpha.events.onSelectAll(event);
+        	// }
+        	// if (event.metaKey && event.key === "s" && KarmaFieldsAlpha.events.onSave) {
+        	// 	KarmaFieldsAlpha.events.onSave(event);
+        	// }
+
+
+        	// if (event.metaKey && !event.shiftKey && event.key === "z") {
+          //   history.back();
+        	// }
+        	// if (event.metaKey && event.shiftKey && event.key === "z") {
+          //   history.forward();
+        	// }
+
+
+        	// if (event.key === "Backspace" && KarmaFieldsAlpha.events.onDelete) {
+        	// 	KarmaFieldsAlpha.events.onDelete(event);
+        	// }
+        	// if (event.key === "+" && KarmaFieldsAlpha.events.onAdd) {
+        	// 	KarmaFieldsAlpha.events.onAdd(event);
+        	// }
+          //
+        	// if (event.key === "ArrowUp" && KarmaFieldsAlpha.events.onArrowUp) {
+        	// 	KarmaFieldsAlpha.events.onArrowUp(event);
+        	// }
+        	// if (event.key === "ArrowDown" && KarmaFieldsAlpha.events.onArrowDown) {
+        	// 	KarmaFieldsAlpha.events.onArrowDown(event);
+        	// }
+        	// if (event.key === "ArrowLeft" && KarmaFieldsAlpha.events.onArrowLeft) {
+        	// 	KarmaFieldsAlpha.events.onArrowLeft(event);
+        	// }
+        	// if (event.key === "ArrowRight" && KarmaFieldsAlpha.events.onArrowRight) {
+        	// 	KarmaFieldsAlpha.events.onArrowRight(event);
+        	// }
+          //
+        	// KarmaFieldsAlpha.events.unload
+        	// if (event.key === "Backspace" && KarmaFieldsAlpha.events.onUnload) {
+        	// 	KarmaFieldsAlpha.events.onDelete(event);
+        	// }
+
+
+        	// console.log(event.key);
+        });
+
+
 
         // this.init();
       },
@@ -109,6 +164,7 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.field
   // }
 
   getDelta() {
+    console.log("Deprecated getDelta");
     if (!this.delta) {
       this.delta = new KarmaFieldsAlpha.Delta();
     }
@@ -120,11 +176,14 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.field
   }
 
   update() {
-		if (history.state) {
-			for (let path in history.state) {
-				this.delta.setValue(history.state[path], path);
-			}
-		}
+    // const delta = this.getDelta();
+		// if (history.state) {
+		// 	for (let path in history.state) {
+		// 		delta.setValue(history.state[path], path);
+		// 	}
+		// }
+
+    this.updateChildren();
 	}
 
 	/**

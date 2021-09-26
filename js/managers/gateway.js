@@ -25,8 +25,8 @@ KarmaFieldsAlpha.Gateway = class {
 			this.cache[queryString] = fetch(file, {
 				cache: "default", // force-cache
 				headers: {
-					'Content-Type': 'application/json',
-					'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+					"Content-Type": "application/json",
+					"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce
 				},
 			}).then(response => {
 				return response.json();
@@ -190,78 +190,21 @@ KarmaFieldsAlpha.Gateway = class {
 		// return value;
 	}
 
+	static async getValue3(expectedType, ...path) {
 
-	// static sanitizeValue(value) {
-	// 	if (typeof value !== "string") {
-	// 		value = value && JSON.stringify(value);
-	// 	}
-	// 	return value;
-	// }
-	//
-	// static parseValue(value) {
-	// 	if (type === "json") {
-	// 		return JSON.parse(value);
-	// 	} else if (type === "number") {
-	// 		return Number(value);
-	// 	}
-	// 	return value;
-	// }
-	//
-	// static sanitize(value, path) {
-	// 	// if (typeof value === "number") {
-	// 	// 	value = value.toString();
-	// 	// } else if (value && typeof value !== "string") {
-	// 	// 	value = JSON.stringify(value);
-	// 	// 	this.types[path] = "json";
-	// 	// }
-	// 	// return value;
-	//
-	//
-	// 	if (value !== null && value !== undefined) {
-	// 		// value = value.toString();
-	// 		const type = typeof value;
-	// 		if (type !== "string") {
-	// 			this.types[path] = "json";
-	// 			value = this.sanitizeValue(value, this.types[path]);
-	// 		}
-	// 	}
-	// 	return value;
-	// }
-	//
-	// static parse(value, path) {
-	// 	// if (this.types[path] === "json") {
-	// 	// 	value = value && JSON.parse(value) || null;
-	// 	// }
-	// 	if (value !== null && value !== undefined && this.types[path]) {
-	// 		// value = value.toString();
-	// 		value = this.parseValue(value, this.types[path]);
-	// 	}
-	// 	return value;
-	// }
-	//
-	// static sanitizeObject(flatObject) {
-	// 	const obj = {};
-	// 	for (let path in flatObject) {
-	// 		obj[path] = this.sanitize(flatObject[path], this.types[path]);
-	// 		// obj[path] = flatObject[path];
-	// 		// if (this.types[path] && obj[path] !== null && obj[path] !== undefined) {
-	// 		// 	obj[path] = this.sanitizeValue(obj[path], this.types[path]);
-	// 		// }
-	// 	}
-	// 	return obj;
-	// }
-	//
-	// static parseObject(flatObject) {
-	// 	const obj = {};
-	// 	for (let path in flatObject) {
-	// 		obj[path] = this.parse(flatObject[path], this.types[path]);
-	// 		// obj[path] = flatObject[path];
-	// 		// if (this.types[path] && obj[path] !== null && obj[path] !== undefined) {
-	// 		// 	obj[path] = this.parseValue(obj[path], this.types[path]);
-	// 		// }
-	// 	}
-	// 	return obj;
-	// }
+		let value = await this.get("get/"+path.join("/"));
+
+		if (expectedType !== "array" && Array.isArray(value)) {
+			value = value[0];
+		}
+
+		value = KarmaFieldsAlpha.Type3.sanitize(value, ...path);
+
+		this.setOriginal3(value, ...path);
+
+		return value;
+	}
+
 
 	async getRemoteArray(path) {
 		return this.getRemoteValue(path, "array");
@@ -281,6 +224,27 @@ KarmaFieldsAlpha.Gateway = class {
 
 	static hasValue(path) {
 		return this.original[path] !== undefined;
+	}
+
+	static getOriginal3(...path) {
+		return KarmaFieldsAlpha.DeepObject.get3(this.original, ...path);
+		// return this.original[path];
+	}
+
+	static removeOriginal(...path) {
+		KarmaFieldsAlpha.DeepObject.remove(this.original, ...path);
+		// delete this.original[path];
+	}
+
+	static setOriginal(value, ...path) {
+		KarmaFieldsAlpha.DeepObject.assign3(this.original, value, ...path);
+		// this.original[path] = value;
+	}
+
+	static hasValue(...path) {
+		return KarmaFieldsAlpha.DeepObject.has(this.original, ...path);
+		// return this.original[path] !== undefined;
+
 	}
 
 

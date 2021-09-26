@@ -330,6 +330,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
     // }
 
     const values = await this.fetchArray();
+
     values.push({});
     return this.setValue(values);
   }

@@ -4,7 +4,6 @@
 		function registerLinks(links, key) {
 			for (var i = 0; i < links.length; i++) {
 				links[i].addEventListener("click", function(event) {
-					console.log(key);
 					event.preventDefault();
 					location.hash = key; //"karma="+key;
 				});

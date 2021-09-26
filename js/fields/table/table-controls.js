@@ -613,10 +613,11 @@ KarmaFieldsAlpha.fields.table.Controls = class {
         }
       ],
       update: button => {
-        const delta = field.getDelta();
+        // const delta = field.getDelta();
         button.element.onclick = async (event) => {
           // if (field.content.hasDelta()) {
-          if (delta && delta.has()) {
+          // if (delta && delta.has()) {
+          if (field.content.hasDeltaEntry()) {
             button.element.classList.add("loading");
             await field.sync();
             await field.render();
@@ -625,7 +626,7 @@ KarmaFieldsAlpha.fields.table.Controls = class {
           }
         }
         // button.element.disabled = !field.content.hasDelta();
-        button.element.disabled = !delta || !delta.has();
+        button.element.disabled = !field.content.hasDeltaEntry();
 
       }
     };

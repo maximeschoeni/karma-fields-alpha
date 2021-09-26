@@ -32,16 +32,15 @@ KarmaFieldsAlpha.History = class {
 	static writeHistory(path, rawValue, prefix) { // rawValue may be null
 		const state = history.state || {};
 
-		// if (prefix) {
-		// 	if (!state[prefix]) {
-		// 		state[prefix] = {}
-		// 	}
-		// 	state[prefix][path] = rawValue;
-		// } else {
-		// 	state[path] = rawValue;
-		// }
+		if (prefix) {
+			if (!state[prefix]) {
+				state[prefix] = {}
+			}
+			state[prefix][path] = rawValue;
+		} else {
+			state[path] = rawValue;
+		}
 
-		KarmaFieldsAlpha.DeepObject.assign2(state, path, rawValue);
 
 
 		// console.log("writeHistory", path, rawValue, state);

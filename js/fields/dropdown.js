@@ -132,13 +132,53 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 		return this.getEmpty();
 	}
 
-	async fetchValue() {
-		let value = await super.fetchValue();
+	// async fetchValue() {
+	// 	let value = await super.fetchValue();
+	// 	const options = await this.fetchOptions();
+	// 	if (options.length && !this.resource.readonly && !options.some(option => option.key === value)) {
+	// 		value = options[0].key;
+	// 		await this.setValue(value);
+	// 	}
+	// 	return value;
+  // }
+
+	// isEmpty() {
+	// 	return value === "" || value === "0";
+	// }
+
+	// initField() {
+	// 	if (this.resource.datatype) {
+	// 		this.registerType(this.resource.datatype);
+	// 	}
+	// }
+	//
+	// parse(value) {
+	// 	if (this.resource.datatype === "number") {
+	// 		value = Number(value);
+	// 	}
+	// 	return value;
+	// }
+	//
+	// stringify(value) {
+	// 	if (this.resource.datatype === "number") {
+	// 		value = value.toString();
+	// 	}
+	// 	return value;
+	// }
+
+
+	async validate(value) {
+		if (value === "0") {
+			value = "";
+		}
 		const options = await this.fetchOptions();
+
 		if (options.length && !this.resource.readonly && !options.some(option => option.key === value)) {
 			value = options[0].key;
 			await this.setValue(value);
 		}
+
+
 		return value;
   }
 
@@ -296,10 +336,16 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 
 				let value = await this.fetchValue();
-				//value = await this.validate(value);
+
+
+
+				value = await this.validate(value);
+
+
 				let modified = this.isModified();
 				const options = await this.fetchOptions();
 				const queryString = this.getOptionsParamString();
+
 
 				if (queryString !== dropdown.element.getAttribute("querystring")) {
 					// console.log("y", this.getPath());
@@ -319,6 +365,8 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 					dropdown.element.disabled = true;
 				} else {
 					dropdown.element.onchange = async() => {
+
+						
 						this.backup();
 						dropdown.element.classList.add("editing");
 
@@ -328,8 +376,9 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 								// KarmaFieldsAlpha.History.removeParam(key);
 							});
 						}
-						await this.editValue(dropdown.element.value);
-						// await this.edit();
+						// await this.editValue(dropdown.element.value);
+						this.setValue(dropdown.element.value);
+						await this.edit();
 						modified = this.isModified();
 
 						dropdown.element.classList.toggle("modified", modified);

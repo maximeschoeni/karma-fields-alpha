@@ -46,65 +46,67 @@ KarmaFieldsAlpha.getAsset = function(url) {
 // 		});
 // 	})
 // };
-window.addEventListener("keydown", function(event) {
-	if (event.metaKey && event.key === "c" && KarmaFieldsAlpha.events.onCopy) {
-		KarmaFieldsAlpha.events.onCopy(event);
-	}
-	if (event.metaKey && event.key === "v" && KarmaFieldsAlpha.events.onPast) {
-		KarmaFieldsAlpha.events.onPast(event);
-	}
-	if (event.metaKey && event.key === "a" && KarmaFieldsAlpha.events.onSelectAll) {
-		KarmaFieldsAlpha.events.onSelectAll(event);
-	}
-	if (event.metaKey && event.key === "s" && KarmaFieldsAlpha.events.onSave) {
-		KarmaFieldsAlpha.events.onSave(event);
-	}
-	if (event.metaKey && !event.shiftKey && event.key === "z" && KarmaFieldsAlpha.events.onUndo) {
-		KarmaFieldsAlpha.events.onUndo(event);
-	}
-	if (event.metaKey && event.shiftKey && event.key === "z" && KarmaFieldsAlpha.events.onRedo) {
-		KarmaFieldsAlpha.events.onRedo(event);
-	}
-	if (event.key === "Backspace" && KarmaFieldsAlpha.events.onDelete) {
-		KarmaFieldsAlpha.events.onDelete(event);
-	}
-	if (event.key === "+" && KarmaFieldsAlpha.events.onAdd) {
-		KarmaFieldsAlpha.events.onAdd(event);
-	}
-
-	if (event.key === "ArrowUp" && KarmaFieldsAlpha.events.onArrowUp) {
-		KarmaFieldsAlpha.events.onArrowUp(event);
-	}
-	if (event.key === "ArrowDown" && KarmaFieldsAlpha.events.onArrowDown) {
-		KarmaFieldsAlpha.events.onArrowDown(event);
-	}
-	if (event.key === "ArrowLeft" && KarmaFieldsAlpha.events.onArrowLeft) {
-		KarmaFieldsAlpha.events.onArrowLeft(event);
-	}
-	if (event.key === "ArrowRight" && KarmaFieldsAlpha.events.onArrowRight) {
-		KarmaFieldsAlpha.events.onArrowRight(event);
-	}
-
-	KarmaFieldsAlpha.events.unload
-	if (event.key === "Backspace" && KarmaFieldsAlpha.events.onUnload) {
-		KarmaFieldsAlpha.events.onDelete(event);
-	}
 
 
-	// console.log(event.key);
-});
+// window.addEventListener("keydown", function(event) {
+// 	if (event.metaKey && event.key === "c" && KarmaFieldsAlpha.events.onCopy) {
+// 		KarmaFieldsAlpha.events.onCopy(event);
+// 	}
+// 	if (event.metaKey && event.key === "v" && KarmaFieldsAlpha.events.onPast) {
+// 		KarmaFieldsAlpha.events.onPast(event);
+// 	}
+// 	if (event.metaKey && event.key === "a" && KarmaFieldsAlpha.events.onSelectAll) {
+// 		KarmaFieldsAlpha.events.onSelectAll(event);
+// 	}
+// 	if (event.metaKey && event.key === "s" && KarmaFieldsAlpha.events.onSave) {
+// 		KarmaFieldsAlpha.events.onSave(event);
+// 	}
+// 	if (event.metaKey && !event.shiftKey && event.key === "z" && KarmaFieldsAlpha.events.onUndo) {
+// 		KarmaFieldsAlpha.events.onUndo(event);
+// 	}
+// 	if (event.metaKey && event.shiftKey && event.key === "z" && KarmaFieldsAlpha.events.onRedo) {
+// 		KarmaFieldsAlpha.events.onRedo(event);
+// 	}
+// 	if (event.key === "Backspace" && KarmaFieldsAlpha.events.onDelete) {
+// 		KarmaFieldsAlpha.events.onDelete(event);
+// 	}
+// 	if (event.key === "+" && KarmaFieldsAlpha.events.onAdd) {
+// 		KarmaFieldsAlpha.events.onAdd(event);
+// 	}
+//
+// 	if (event.key === "ArrowUp" && KarmaFieldsAlpha.events.onArrowUp) {
+// 		KarmaFieldsAlpha.events.onArrowUp(event);
+// 	}
+// 	if (event.key === "ArrowDown" && KarmaFieldsAlpha.events.onArrowDown) {
+// 		KarmaFieldsAlpha.events.onArrowDown(event);
+// 	}
+// 	if (event.key === "ArrowLeft" && KarmaFieldsAlpha.events.onArrowLeft) {
+// 		KarmaFieldsAlpha.events.onArrowLeft(event);
+// 	}
+// 	if (event.key === "ArrowRight" && KarmaFieldsAlpha.events.onArrowRight) {
+// 		KarmaFieldsAlpha.events.onArrowRight(event);
+// 	}
+//
+// 	KarmaFieldsAlpha.events.unload
+// 	if (event.key === "Backspace" && KarmaFieldsAlpha.events.onUnload) {
+// 		KarmaFieldsAlpha.events.onDelete(event);
+// 	}
+//
+//
+// 	// console.log(event.key);
+// });
 
-document.addEventListener("mouseup", function() {
-  if (KarmaFieldsAlpha.events.onClick) {
-    KarmaFieldsAlpha.events.onClick();
-  }
-});
-
-window.addEventListener("beforeunload", function() {
-	if (KarmaFieldsAlpha.events.onUnload) {
-		KarmaFieldsAlpha.events.onUnload();
-	}
-});
+// document.addEventListener("mouseup", function() {
+//   if (KarmaFieldsAlpha.events.onClick) {
+//     KarmaFieldsAlpha.events.onClick();
+//   }
+// });
+//
+// window.addEventListener("beforeunload", function() {
+// 	if (KarmaFieldsAlpha.events.onUnload) {
+// 		KarmaFieldsAlpha.events.onUnload();
+// 	}
+// });
 
 
 

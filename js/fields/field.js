@@ -94,6 +94,10 @@ KarmaFieldsAlpha.fields.field = class Field {
     // string
   }
 
+  updateChildren() {
+    // noop
+  }
+
 
   // -> for dropdown in filters
   // getSiblingValue(keys) {
@@ -177,6 +181,19 @@ KarmaFieldsAlpha.fields.field = class Field {
     }
     return keys;
   }
+
+  // join(path, key) {
+  //   return (path && key && path+"/"+key) || path || key || "";
+  // }
+
+  join(...keys) {
+    return keys.reduce((path, key) => path && key && path+"/"+key || path || key || "", "");
+  }
+
+  createPath(path) {
+    return this.join(this.resource.key, path);
+  }
+
 
   getKeyPath(keys = []) {
     // if (!keys) {
@@ -585,7 +602,7 @@ KarmaFieldsAlpha.fields.field = class Field {
   fetchValue(keys, expectedType, type) {
     keys = this.getKeyPath(keys, true);
     if (keys.length && this.parent) {
-      return this.parent.fetchValue(keys, type, expectedType);
+      return this.parent.fetchValue(keys, expectedType, type);
     }
   }
 
@@ -627,14 +644,26 @@ KarmaFieldsAlpha.fields.field = class Field {
    */
   write(keys) {
     keys = this.getKeyPath(keys);
+    if (this.resource.key) {
+      keys = [this.resource.key, ...keys];
+    }
     if (keys.length && this.parent) {
       return this.parent.write(keys);
     }
   }
 
+  // write(...path) {
+  //   if (this.resource.key) {
+  //     path = [this.resource.key, ...path];
+  //   }
+  //   if (path.length && this.parent) {
+  //     return this.parent.write(...path);
+  //   }
+  // }
+
 
   fetchArray(keys) {
-    return this.fetchValue(keys, "array", "json");
+    return this.fetchValue(keys, "array");
 
     // keys = this.getKeyPath(keys);
     // if (keys.length && this.parent) {
@@ -989,7 +1018,7 @@ KarmaFieldsAlpha.fields.field = class Field {
     return this.fetchValue();
   }
 
-  importValue(value) {
+  async importValue(value) {
     // this.setValue(value, context);
     // return this.saveValue(value, true, true);
     return this.setValue(value);
@@ -1031,8 +1060,13 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
   getDelta() {
-    return this.parent && this.parent.getDelta();
+    console.error("Deprecated getDelta");
+    return this.delta || this.parent && this.parent.getDelta();
   }
+
+
+
+
 
 
   // getParam(key) {

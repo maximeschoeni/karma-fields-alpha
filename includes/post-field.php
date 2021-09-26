@@ -60,50 +60,46 @@
 		// 	input.value = JSON.stringify(values);
 		// }
 
-		field.delta = {
-			getValue: function(path) {
-				return KarmaFieldsAlpha.Type.stringify(this.getObject()[path]);
-			},
-			setValue: function(value, path) {
+		field.buffer = {
+			get: function(path) {
 				const delta = this.getObject();
-				if (KarmaFieldsAlpha.Gateway.original[path] !== value && value !== undefined && value !== null) {
-					delta[path] = KarmaFieldsAlpha.Type.parse(value);
-				} else {
-					delete delta[path];
-				}
+				const value = KarmaFieldsAlpha.DeepObject.get(delta, path.split("/"));
+				return KarmaFieldsAlpha.Type.sanitize(value, path);
+			},
+			set: function(path, value) {
+				const delta = this.getObject();
+				value = KarmaFieldsAlpha.Type.parse(value, path);
+				KarmaFieldsAlpha.DeepObject.assign(delta, path.split("/"), value);
 				this.setObject(delta);
 			},
 			removeValue: function(path) {
-				this.setDelta(undefined, path);
+				this.set(path);
 			},
 			getObject: function() {
-				const deepObject = JSON.parse(input.value || "{}");
-				const flatObject = KarmaFieldsAlpha.FlatObject.fromDeep(deepObject);
-				return flatObject;
-				// if (!this.cache) {
-				// 	const deepObject = JSON.parse(input.value || "{}");
-				// 	const flatObject = KarmaFieldsAlpha.FlatObject.fromDeep(deepObject);
-				// 	this.cache = KarmaFieldsAlpha.Type.sanitizeObject(flatObject);
-				// }
-				// return this.cache;
+				return JSON.parse(input.value || "{}");
 			},
-			setObject: function(flatObject) {
-				// flatObject = KarmaFieldsAlpha.Type.parseObject(flatObject);
-				const deepObject = KarmaFieldsAlpha.FlatObject.toDeep(flatObject);
+			setObject: function(deepObject) {
 				input.value = JSON.stringify(deepObject);
-				// this.cache = null;
 			},
+			getEntries: function() {
+				const deepObject = this.getObject();
+				let flatObject = KarmaFieldsAlpha.FlatObject.fromDeep(deepObject);
+				flatObject = KarmaFieldsAlpha.Type.sanitizeObject(flatObject);
+				return flatObject;
+			}
 			empty: function() {
 				input.value = "";
 			},
-			has: function() {
+			hasEntry: function() {
 				return Object.values(this.getObject()).length > 0;
 			}
 		};
 
-		field.getDelta = function() {
-			return this.delta;
+		field.getBuffer = function() {
+			return this.buffer;
 		}
+
+
 		//
 		//
 		//

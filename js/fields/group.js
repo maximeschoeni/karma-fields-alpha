@@ -5,10 +5,11 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
   //   this.try("onState", state);
 	// }
 
-	
+
 
 	async match(condition) {
-		const value = await this.getRelatedValue(condition.key);
+		// const value = await this.getRelatedValue(condition.key);
+		const val = await this.parent.fetchValue([condition.key]);
 		switch (condition.comparison) {
 			case "<": return val < condition.value;
 			case ">": return val > condition.value;
@@ -38,10 +39,17 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 				if (field.resource.class) {
 					container.element.classList.add(field.resource.class);
 				}
+				if (field.resource.flex) {
+					container.element.style.flex = field.resource.flex;
+				}
 			},
 			update: async (container) => {
 				if (field.resource.condition) {
-					container.element.classList.toggle("hidden", await this.match(field.resource.condition));
+					const match = await this.match(field.resource.condition);
+					// console.log(match, field.resource, container.element);
+					container.element.classList.toggle("hidden", !match);
+
+
 				}
 
 				container.element.classList.toggle("final", !field.resource.children || !field.resource.children.some(child => child.type && child.type === "group"));

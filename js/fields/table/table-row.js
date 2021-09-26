@@ -41,7 +41,7 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
 
     await super.edit();
 
-    await this.render();
+    // await this.render();
 
   }
 

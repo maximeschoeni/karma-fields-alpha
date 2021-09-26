@@ -8,46 +8,45 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
   /**
 	 * fetch
 	 */
-  public function fetch($request, $params) {
+  public function fetch($params) {
 
-    if ($request  === 'querykey') {
+    if (isset($params['key'])) {
 
-      if (isset($params['key'])) {
+      $taxonomy = $params['key'];
 
-        $taxonomy = $params['key'];
+      $terms = get_terms(array(
+        'taxonomy' => $taxonomy,
+        'hide_empty' => false
+      ));
 
-        $terms = get_terms(array(
-          'taxonomy' => $taxonomy,
-          'hide_empty' => false
-        ));
 
-        $results = array();
-        $results['items'] = array();
 
-        if (is_wp_error($terms)) {
+      $results = array();
+      $results['items'] = array();
 
-          $results['error'] = $terms;
-          $results['taxonomy'] = $taxonomy;
+      if (is_wp_error($terms)) {
 
-        } else if ($terms) {
+        $results['error'] = $terms;
+        $results['taxonomy'] = $taxonomy;
 
-          foreach ($terms as $term) {
+      } else if ($terms) {
 
-            $results['items'][] = array(
-              'key' => $term->term_id,
-              'name' => $term->name
-            );
+        foreach ($terms as $term) {
 
-          }
-
-          $results = apply_filters('karma_fields_driver_taxonomy_query_key_results', $results, $terms, $taxonomy, $params);
+          $results['items'][] = array(
+            'key' => $term->term_id,
+            'name' => $term->name
+          );
 
         }
 
-        return $results;
+        $results = apply_filters('karma_fields_driver_taxonomy_query_key_results', $results, $terms, $taxonomy, $params);
+
       }
 
+      return $results;
     }
+
 
   }
 
