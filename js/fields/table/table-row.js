@@ -29,30 +29,45 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
 
   }
 
-  // render() {
-  //   this.children.forEach(child => {
-  //     child.render();
-  //
-  //     console.log(child);
-  //   });
-  // }
+  async edit(hard) {
 
-  async edit() {
-
-    await super.edit();
-
-    // await this.render();
-
+		if (hard) {
+			await this.render();
+		}
+    return super.edit();
   }
 
+  // render() {
+  //   return Promise.all(this.children.map(child => {
+  //     return child.render();
+  //   }));
+  // }
 
-  fetchValue(keys) {
+  // async edit() {
+  //
+  //   await super.edit();
+  //
+  //   // await this.render();
+  //
+  // }
 
-    if (keys && keys[0] === "id") {
+
+  fetchValue(expectedType, ...path) {
+
+    if (path.length === 1 && path[0] === "id") {
       return this.resource.key;
     }
 
-    return super.fetchValue(keys);
+    return super.fetchValue(expectedType, ...path);
+  }
+
+  getValue(...path) {
+
+    if (path.length === 1 && path[0] === "id") {
+      return this.resource.key;
+    }
+
+    return super.getValue(...path);
   }
 
   // fill() {

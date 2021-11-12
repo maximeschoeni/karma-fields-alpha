@@ -7,7 +7,10 @@ KarmaFieldsAlpha.History = class {
 
 	static backup() {
 		const paramString = location.hash.slice(1);
-		const state = history.state || {};
+		// const state = history.state || {};
+
+
+		console.log("history push state");
 
 		history.pushState({}, null, "#"+paramString);
 	}
@@ -29,7 +32,7 @@ KarmaFieldsAlpha.History = class {
 	// 	}
 	// }
 
-	static writeHistory(path, rawValue, prefix) { // rawValue may be null
+	static writeHistory(rawValue, ...path) { // rawValue may be null
 		const state = history.state || {};
 
 		// if (prefix) {
@@ -41,7 +44,8 @@ KarmaFieldsAlpha.History = class {
 		// 	state[path] = rawValue;
 		// }
 
-		KarmaFieldsAlpha.DeepObject.assign2(state, path, rawValue);
+		// KarmaFieldsAlpha.DeepObject.assign2(state, path, rawValue);
+		KarmaFieldsAlpha.DeepObject.assign3(state, rawValue, ...path);
 
 
 		// console.log("writeHistory", path, rawValue, state);
@@ -239,6 +243,9 @@ KarmaFieldsAlpha.History = class {
 		const state = history.state || {};
 
 		// console.log("setParamString", paramString);
+
+		// console.log(paramString);
+		// console.trace();
 
 
 		history.replaceState(state, null, "#"+paramString);

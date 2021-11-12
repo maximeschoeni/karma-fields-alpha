@@ -522,9 +522,9 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       $args['post_type'] = $key;
 
-    } else if (isset($params['post_type'])) {
+    } else if (isset($params['post_type']) && $params['post_type']) {
 
-      $args['post_type'] = $params['post_type'];
+      $args['post_type'] = explode(',', $params['post_type']);
 
     }
 

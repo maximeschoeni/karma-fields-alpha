@@ -318,17 +318,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     // this.queriedIds = this.getCurrentIds();
 
-
-    this.queriedIds = this.getBufferIds().concat(this.queriedIds);
+    // debugger;
 
     const results = await this.content.save();
 
-    // this.queriedIds = this.getExtraIds().concat(this.queriedIds);
-
-
+    this.queriedIds = this.getExtraIds().concat(this.queriedIds);
     // this.setExtraIds([]);
 
-    // this.removeExtraIds();
+    this.removeExtraIds();
 
     return results;
   };
@@ -342,7 +339,17 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     const ids = await KarmaFieldsAlpha.Gateway.add(this.resource.driver, {num: num || 1});
 
-    const rows = ids.map(id => this.getRow(id));
+    const rows = ids.map(id => {
+      let row = this.getRow(id);
+      // let row = this.content.createChild({
+      //   type: "tableRow",
+      //   key: id
+      // });
+      // row.create(this.resource.columns);
+
+      // this.content.setOriginalValue("1", id+"/trash");
+      return row;
+    });
 
     // if (!noBackup) {
     //   this.content.backup(["add"]);
@@ -362,7 +369,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     KarmaFieldsAlpha.History.backup();
 
-    // this.setExtraIds(this.getExtraIds().concat(ids));
+    this.setExtraIds(this.getExtraIds().concat(ids));
     // this.extraIds = this.extraIds.concat(ids);
 
     await Promise.all(rows.map(row => row.fill())); // -> also set trash to "0"
@@ -398,8 +405,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     }
     if (ids.length) {
       const rows = ids.map(id => this.content.getChild(id));
-
-
       await Promise.all(rows.map(row => {
         row.write();
         return row.trash.setValue("0");
@@ -417,7 +422,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
       // this.content.ids.remove(ids);
 
       // await Promise.all(rows.map(row => row.removeValue()));
-
       await Promise.all(rows.map(row => {
         row.removeValue();
         return row.trash.setValue("1");
@@ -425,7 +429,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
       this.queriedIds = this.queriedIds.filter(id => ids.indexOf(id) === -1);
 
-      // this.setExtraIds(this.getExtraIds().filter(id => ids.indexOf(id) === -1));
+      this.setExtraIds(this.getExtraIds().filter(id => ids.indexOf(id) === -1));
 
       // if modal open
       KarmaFieldsAlpha.History.removeParam("id");
@@ -499,83 +503,23 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     }
   }
 
-  // async paste(selection) {
-  //
-  //   const field = this;
-  //   const x = selection.x;
-  //   const y = selection.y;
-  //
-  //   console.log(selection);
-  //
-  //   let ids = this.getCurrentIds();
-  //   const text = await navigator.clipboard.readText();
-  //
-  //   if (text) {
-  //     let rows = text.split(/[\r\n]+/).map(row => row.split("\t"));
-  //
-  //     // write all fields
-  //     for (let j = 0; j < rows.length; j++) {
-  //       const rowField = this.content.getChild(ids[j+y]);
-  //       if (rowField) {
-  //         for (let i = 0; i < rows[j].length; i++) {
-  //           const cellField = rowField.children[i+1+x];
-  //           if (cellField) {
-  //             cellField.write();
-  //           }
-  //         }
-  //       }
-  //     }
-  //
-  //     if (rows.length > ids.length-y) {
-  //       await this.add(rows.length-(ids.length-y), false); // -> will backup
-  //       ids = this.getCurrentIds();
-  //     } else {
-  //       KarmaFieldsAlpha.History.backup();
-  //     }
-  //
-  //     const promises = [];
-  //     for (let j = 0; j < rows.length; j++) {
-  //       const rowField = this.content.getChild(ids[j+y]);
-  //       for (let i = 0; i < rows[j].length; i++) {
-  //         const cellField = rowField.children[i+1+x];
-  //         const value = rows[j][i];
-  //         const promise = cellField.importValue(value);
-  //         // .then(() => {
-  //         //   return cellField.render();
-  //         // });
-  //         promises.push(promise);
-  //       }
-  //     }
-  //     await Promise.all(promises);
-  //     // await field.content.bubble("change");
-  //
-  //     await this.content.render();
-  //     await this.content.edit();
-  //   }
-  // }
-
   async paste(selection) {
 
     const field = this;
     const x = selection.x;
     const y = selection.y;
-    // let width = selection.width;
-    // let height = selection.height;
-
-    console.log(selection);
 
     let ids = this.getCurrentIds();
     const text = await navigator.clipboard.readText();
 
     if (text) {
-      let textRows = text.split(/[\r\n]+/).map(row => row.split("\t"));
+      let rows = text.split(/[\r\n]+/).map(row => row.split("\t"));
 
       // write all fields
-      // for (let j = 0; j < rows.length; j++) {
-      for (let j = 0; j < Math.max(selection.height, textRows.length); j++) {
+      for (let j = 0; j < rows.length; j++) {
         const rowField = this.content.getChild(ids[j+y]);
         if (rowField) {
-          for (let i = 0; i < Math.max(selection.width, textRows[j%textRows.length].length); i++) {
+          for (let i = 0; i < rows[j].length; i++) {
             const cellField = rowField.children[i+1+x];
             if (cellField) {
               cellField.write();
@@ -584,19 +528,19 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
         }
       }
 
-      if (textRows.length > ids.length-y) {
-        await this.add(textRows.length-(ids.length-y), false); // -> will backup
+      if (rows.length > ids.length-y) {
+        await this.add(rows.length-(ids.length-y), false); // -> will backup
         ids = this.getCurrentIds();
       } else {
         KarmaFieldsAlpha.History.backup();
       }
 
       const promises = [];
-      for (let j = 0; j < Math.max(selection.height, textRows.length); j++) {
+      for (let j = 0; j < rows.length; j++) {
         const rowField = this.content.getChild(ids[j+y]);
-        for (let i = 0; i < Math.max(selection.width, textRows[j%textRows.length].length); i++) {
+        for (let i = 0; i < rows[j].length; i++) {
           const cellField = rowField.children[i+1+x];
-          const value = textRows[j%textRows.length][i%textRows[j%textRows.length].length];
+          const value = rows[j][i];
           const promise = cellField.importValue(value);
           // .then(() => {
           //   return cellField.render();
@@ -607,7 +551,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
       await Promise.all(promises);
       // await field.content.bubble("change");
 
-      // await this.content.render();
+      await this.content.render();
       await this.content.edit();
     }
   }
@@ -647,8 +591,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
   getCurrentIds() {
 
-    // return this.getExtraIds().concat(this.queriedIds || []);
-    return this.getBufferIds().concat(this.queriedIds || []);
+    // const ids = this.content.ids.getValue() || [];
+    // const ids = this.ids.getValue() || [];
+    return this.getExtraIds().concat(this.queriedIds || []);
   }
 
   getCount() {
@@ -683,7 +628,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     const ids = [];
     const rows = this.content.getDeltaValue();
     for (let id in rows) {
-      if (rows[id].trash !== "1" && (!this.queriedIds || this.queriedIds.indexOf(id) === -1)) {
+      if (rows[id].trash !== "1") {
         ids.push(id);
       }
     }
@@ -753,7 +698,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     };
   }
 
-  buildGrid() {
+  buildGrid(rows, extraRows) {
     return {
       class: "table grid",
       init: async grid => {
@@ -783,7 +728,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
         // const rows = this.getCurrentIds().map(id => this.getRow(id)).filter(row => row.trash.getValue() !== "1").forEach((rowField, rowIndex) => {
 
-        const extraRows = this.getBufferIds().map(id => this.getRow(id));
         extraRows.forEach((rowField, rowIndex) => {
           if (this.hasIndex()) {
             grid.children.push(this.buildIndexCell(-1));
@@ -796,12 +740,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
             }
           });
         });
-
-        const rows = (this.queriedIds || []).map(id => this.getRow(id)).filter(row => {
-          return row.trash.getValue() !== "1";
-        });
-
-        this.queriedIds = rows.map(row => row.resource.key); // -> prevent errors on copy/past
 
         rows.forEach((rowField, rowIndex) => {
           if (this.hasIndex()) {
@@ -1265,25 +1203,16 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
                     console.log("update table body");
 
                     // const rows = this.getCurrentIds().map(id => this.getRow(id)).filter(row => row.trash.getValue() !== "1");
-                    // const rows = (this.queriedIds || []).map(id => this.getRow(id)).filter(row => row.trash.getValue() !== "1");
-                    // // const extraRows = this.getExtraIds().map(id => this.getRow(id)).filter(row => row.trash.getValue() !== "1");
-                    // const extraRows = this.getBufferIds().map(id => this.getRow(id));
-                    //
-                    // if (rows.length || extraRows.length) {
-                    //   body.children = [this.buildGrid(rows, extraRows)];
-                    // } else {
-                    //   body.children = [];
-                    // }
-                    // body.children = rows.length && [this.buildGrid(rows)] || [];
+                    const rows = (this.queriedIds || []).map(id => this.getRow(id)).filter(row => row.trash.getValue() !== "1");
+                    // const extraRows = this.getExtraIds().map(id => this.getRow(id)).filter(row => row.trash.getValue() !== "1");
+                    const extraRows = this.getBufferIds().map(id => this.getRow(id));
 
-                    // const rows = (this.queriedIds || []).map(id => this.getRow(id)).filter(row => row.trash.getValue() !== "1");
-                    // const extraRows = this.getBufferIds().map(id => this.getRow(id));
-
-                    if (this.queriedIds && this.queriedIds.length || this.getBufferIds().length) {
-                      body.child = this.buildGrid();
+                    if (rows.length || extraRows.length) {
+                      body.children = [this.buildGrid(rows, extraRows)];
                     } else {
-                      body.child = null;
+                      body.children = [];
                     }
+                    // body.children = rows.length && [this.buildGrid(rows)] || [];
                   },
                   complete: () => {
                     this.renderFooter();

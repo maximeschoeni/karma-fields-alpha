@@ -18,8 +18,28 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.conta
 
         // window.onhashchange = () => {
         // window.onpopstate = () => {
+        console.log("init navigation");
+
         window.addEventListener("popstate", event => {
-          this.update();
+          // this.update();
+
+          if (history.state) {
+            // const state = KarmaFieldsAlpha.DeepObject.filter(history.state, (value, ...path) => {
+            //   return value !== undefined && value !== null && value !== KarmaFieldsAlpha.Gateway.getOriginal(...path);
+            // });
+            // console.log(history.state, state);
+
+            KarmaFieldsAlpha.Delta.merge(history.state);
+
+            // KarmaFieldsAlpha.DeepObject.forEach(history.state, (value, ...path) => {
+            //   if (value === null || value === KarmaFieldsAlpha.Gateway.getOriginal(...path)) {
+            //     KarmaFieldsAlpha.Delta.remove(...path);
+            //   } else if (value !== undefined) {
+            //     KarmaFieldsAlpha.Delta.set(value, ...path);
+            //   }
+            // });
+          }
+
           container.render();
         });
 
@@ -172,19 +192,34 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.conta
   }
 
   editParam(clean) {
+    if (clean) {
+      console.error("editParam clean dont work");
+    }
     return this.render && this.render(clean);
   }
 
-  update() {
-    // const delta = this.getDelta();
-		// if (history.state) {
-		// 	for (let path in history.state) {
-		// 		delta.setValue(history.state[path], path);
-		// 	}
-		// }
-
-    this.updateChildren();
-	}
+  // update() {
+  //   // const delta = this.getDelta();
+	// 	// if (history.state) {
+	// 	// 	for (let path in history.state) {
+	// 	// 		delta.setValue(history.state[path], path);
+	// 	// 	}
+	// 	// }
+  //
+  //   // this.updateChildren();
+  //
+  //   if (history.state) {
+  //
+  //     KarmaFieldsAlpha.Delta.merge(history.state);
+  //
+  //     // let delta = this.getDelta() || {};
+  //     // KarmaFieldsAlpha.DeepObject.merge(delta, history.state);
+  //     //
+  //     // this.setDelta(delta);
+  //
+  //   }
+  //
+	// }
 
 	/**
 	 * At start set an history step if there is unsaved changes

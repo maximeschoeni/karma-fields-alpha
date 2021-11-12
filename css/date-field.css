@@ -1,22 +1,7 @@
-/* popup */
 
-
-.karma-field-date {
-  /* display: flex; */
-}
-
-.karma-field-date input {
-
-}
 .karma-field-date.selected input {
   background-color: #ffffff;
 }
-/* .karma-field-date input:focus {
-  outline: none;
-	box-shadow: none;
-  border-color: #2271b1;
-} */
-
 
 .karma-field-date .date-popup-container {
 	position: relative;
@@ -27,7 +12,6 @@
 	bottom: 2px;
 	z-index: 100;
 	width: 245px;
-	/* height: 308px; */
 	user-select: none;
 }
 .karma-field-date .karma-popup .karma-calendar {
@@ -59,30 +43,6 @@
 	top: 70px;
 	bottom: 70px;
 }
-/*
-.karma-column-container {
-	display: table;
-	width: 100%;
-	table-layout: fixed;
-	height: 100%;
-}
-.karma-column {
-	display: table-cell;
-	padding: 10px 20px;
-}
-.karma-column.calendar-column {
-	width: 60%;
-}
-.karma-column.detail-column {
-	background-color: #f3f3f3;
-	border-left: 1px solid #ddd;
-}
-.karma-column.detail-column input[type=text] {
-	box-sizing: border-box;
-	margin: 0;
-	width: 100%;
-} */
-
 .karma-popup-footer {
 	position: absolute;
 	width: 100%;

@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.checkbox_basic = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 
 	true() {
 		return this.resource.true || "1";

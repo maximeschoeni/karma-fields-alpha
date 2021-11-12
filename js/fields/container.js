@@ -11,11 +11,12 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	// }
 
 	render() {
-    this.children.forEach(child => {
-      child.render();
-
-      // console.log(child);
-    });
+    // this.children.forEach(child => {
+    //   child.render();
+    // });
+		return Promise.all(this.children.map(child => {
+	    return child.render();
+	  }));
   }
 
 	fill(value) {
@@ -23,9 +24,10 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
   }
 
 
-	setValue(value, keys, type) {
-		if (keys && keys.length) {
-			return super.setValue(value, keys, type);
+	// setValue(value, keys, type) {
+	setValue(value, ...path) {
+		if (path.length) {
+			return super.setValue(value, ...path);
 		} else if (value && typeof value === "object") {
 			return Promise.all(this.children.map(child => {
 				return child.setValue(child.resource.key ? value[child.resource.key] : value);
@@ -33,36 +35,45 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 		}
 	}
 
-	write(keys) {
-		if (keys && keys.length) {
-			return super.write(keys);
+	write(...path) {
+		if (path.length) {
+			return super.write(...path);
 		} else {
 			return this.children.map(child => child.write());
 		}
 	}
 
-	removeValue(keys) {
-		if (keys && keys.length) {
-			super.removeValue(keys);
-		} else {
-			this.children.forEach(child => {
-				child.removeValue();
-			});
-		}
-  }
+	// removeValue(...path) {
+	// 	if (path.length) {
+	// 		super.removeValue(...path);
+	// 	} else {
+	// 		this.children.forEach(child => {
+	// 			child.removeValue();
+	// 		});
+	// 	}
+  // }
 
-	getValue(keys, type) {
-		if (keys && keys.length) {
-			return super.getValue(keys, type);
+	getValue(...path) {
+		if (path.length) {
+			return super.getValue(...path);
 		} else {
 			// const values = await Promise.all(this.children.map(child => child.getValue()));
-			const values = this.children.map(child => child.getValue());
-			return values.reduce((acc, value, index) => {
-				const child = this.children[index];
+			// const values = this.children.map(child => child.getValue());
+			// return values.reduce((acc, value, index) => {
+			// 	const child = this.children[index];
+			// 	if (child.resource.key) {
+			// 		acc[child.resource.key] = value;
+			// 	} else {
+			// 		Object.assign(acc, value);
+			// 	}
+			// 	return acc;
+			// }, {});
+			// const values = this.children.map(child => child.getValue());
+			return this.children.reduce((acc, child) => {
 				if (child.resource.key) {
-					acc[child.resource.key] = value;
+					acc[child.resource.key] = child.getValue();
 				} else {
-					Object.assign(acc, value);
+					Object.assign(acc, child.getValue());
 				}
 				return acc;
 			}, {});
@@ -293,17 +304,35 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
   // }
 
 
-	find(path) {
+	// find(path) {
+	// 	if (this.resource.key) {
+	// 		if (this.resource.key === path) {
+	// 			return this;
+	// 		} else if (this.children.length && path.startsWith(this.resource.key+"/")) {
+	// 			path = path.slice(this.resource.key.length+1);
+	// 			return this.children.find(child => child.find(path));
+	// 		}
+	// 	} else {
+	// 		return this.children.find(child => child.find(path));
+	// 	}
+	// }
+
+	find(...path) {
 		if (this.resource.key) {
-			if (this.resource.key === path) {
-				return this;
-			} else if (this.children.length && path.startsWith(this.resource.key+"/")) {
-				path = path.slice(this.resource.key.length+1);
-				return this.children.find(child => child.find(path));
+			const key = path.shift();
+			if (key === this.resource.key) {
+				if (!path.length) {
+					return this;
+				} else if (this.children.length) {
+					return this.children.find(child => child.find(...path));
+				}
 			}
 		} else {
-			return this.children.find(child => child.find(path));
+			return this.children.find(child => child.find(...path));
 		}
 	}
+
+
+
 
 }

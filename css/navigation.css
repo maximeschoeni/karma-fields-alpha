@@ -206,8 +206,10 @@
 }
 
 .karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-body {
-  /* background-color: #f1f1f1; */
-  display: grid;
+  /* background-color: #c3c4c7; */
+  background-color: #f1f1f1;
+  /* display: grid; */
+  display: flex;
   overflow: auto;
 
   /* padding: 1.5em 20px; */

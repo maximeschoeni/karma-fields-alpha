@@ -27,11 +27,11 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 				}
 			},
 			init: button => {
-				this.init(button.element);
+				// this.init(button.element);
 			},
 			update: button => {
 				this.render = button.render;
-				
+
 				button.element.onclick = async event => {
 					event.preventDefault();
 
@@ -42,12 +42,12 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 					button.element.classList.remove("loading");
 					// this.update();
 				}
-				button.element.disabled = !this.parent.hasModifiedValue() || this.getState() === "disabled";
+				// button.element.disabled = !this.parent.hasModifiedValue() || this.getState() === "disabled";
+				const form = this.getForm();
+				button.element.disabled = !form || !form.getDeltaValue() || this.getState() === "disabled";
 
-				// this.update = () => {
-				// 	button.element.disabled = !this.parent.hasModifiedValue() || this.getState() === "disabled";
-				// }
-				// this.update();
+
+
 			}
 			// complete: () => {
 			// 	button.element.classList.remove("loading");

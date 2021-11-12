@@ -617,7 +617,7 @@ KarmaFieldsAlpha.fields.table.Controls = class {
         button.element.onclick = async (event) => {
           // if (field.content.hasDelta()) {
           // if (delta && delta.has()) {
-          if (field.content.hasDeltaEntry()) {
+          if (field.content.getDeltaValue()) {
             button.element.classList.add("loading");
             await field.sync();
             await field.render();
@@ -626,8 +626,8 @@ KarmaFieldsAlpha.fields.table.Controls = class {
           }
         }
         // button.element.disabled = !field.content.hasDelta();
-        button.element.disabled = !field.content.hasDeltaEntry();
-
+        // console.log(field.content.hasDeltaEntry());
+        button.element.disabled = !field.content.getDeltaValue();
       }
     };
   }
@@ -640,6 +640,7 @@ KarmaFieldsAlpha.fields.table.Controls = class {
         button.element.onclick = async (event) => {
           // field.content.undo();
           // field.setHistoryIndex(field.content.historyIndex);
+
 
           button.element.classList.add("loading");
           await field.render();
@@ -695,10 +696,12 @@ KarmaFieldsAlpha.fields.table.Controls = class {
       ...this.buildBasicButton(name || "Delete", title || "Delete"),
       update: button => {
         button.element.onmousedown = async (event) => {
-          event.preventDefault(); // prevent current table cell losing focus
+          // event.preventDefault(); // prevent current table cell losing focus
           button.element.classList.add("loading");
+          // field.select.removeFocus();
           await field.remove();
-          await field.render();
+
+          // await field.render();
           button.element.classList.remove("loading");
         }
 

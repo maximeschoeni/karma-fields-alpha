@@ -1,125 +1,104 @@
 
 KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field {
 
+	initField() {
+    this.registerType("json");
+	}
 
-	validate(value) {
-    return Promise.resolve(value);
-  }
-
-	prepare(value) {
-		if (!Array.isArray(value)) {
-			return [value]
-		} else {
-			return value;
+	async getDefault() {
+		const options = await this.fetchOptions();
+		if (this.resource.default && options.some(option => option.key === this.resource.default)) {
+			return this.resource.default.split(",");
 		}
+		const value = KarmaFieldsAlpha.History.getParam(this.resource.key);
+		if (value && options.some(option => option.key === value)) {
+			return [value];
+		}
+		return this.getEmpty();
 	}
 
-	stringify(value) {
-
-		return JSON.stringify(value);
+	getEmpty() {
+		return [];
 	}
 
-	parse(value) {
-		return JSON.parse(value);
-	}
-
-	fetch(queryString) {
-		if (this.resource.driver) {
-			return KarmaFieldsAlpha.Form.fetch2(this.resource.driver, queryString);
-		} else {
-			return super.fetch(queryString);
+	async add(key) {
+		const array = await this.fetchValue("array") || [];
+		const index = array.indexOf(key);
+		if (index === -1) {
+			array.push(key);
+			this.setValue(array);
 		}
   }
 
-	update() {
-		const field = this;
-		return super.update().then(function(value) {
-			if (field.resource.options) {
-				let options = field.prepareOptions(field.resource.options);
-				field.try("onOptions", options, value, "resource");
-				return value;
-      } else {
-				field.startLoad();
-				return field.fetchOptions().then(function(options) {
-					options = field.prepareOptions(options);
-					let queryString = field.getOptionsParamString();
-					field.try("onOptions", options, value, queryString);
-					field.endLoad();
-					return value;
-				});
-			}
-		});
+  async remove(key) {
+		const array = await this.fetchValue("array") || [];
+		const index = array.indexOf(key);
+		if (index > -1) {
+			array.splice(index, 1);
+			this.setValue(array);
+		}
   }
 
-	add(item, context) {
-		const field = this;
-		this.getValueAsync().then(function(values) {
-			values.push(item);
-	    return field.changeValue(values);
-		});
+	async has(key) {
+		const array = await this.fetchValue("array") || [];
+		const index = array.indexOf(key);
+		return index > -1;
   }
 
-  remove(item) {
-		const field = this;
-		this.getValueAsync().then(function(values) {
-			values = values.filter(function(value) {
-	      return item !== value;
-	    });
-	    return field.changeValue(values);
-		});
-  }
-
-	contains(item) {
-		this.getValueAsync().then(function(values) {
-			return values.indexOf(item) > -1;
-		});
-  }
-
-	toggle(item) {
-		const field = this;
-		this.contains(item).then(function(contain) {
-			if (contain) {
-				field.remove(item, context);
-			} else {
-				field.add(item, context);
-			}
-		});
-  }
+	// async add(key) {
+	// 	const value = await this.fetchValue() || {};
+	// 	if (!value[key]) {
+	// 		value[key] = "1";
+	// 		this.setValue(value);
+	// 	}
+  // }
+	//
+  // async remove(key) {
+	// 	const value = await this.fetchValue() || {};
+	// 	if (value[key]) {
+	// 		delete value[key];
+	// 		this.setValue(value);
+	// 	}
+  // }
+	//
+	// async has(key) {
+	// 	const value = await this.fetchValue() || {};
+	// 	return !!value[key];
+  // }
 
 	buildCheckboxList(options) {
-		const field = this;
 		return {
 			tag: "ul",
-			update: function(ul) {
-				this.children = options.map(function(option, index) {
+			update: ul => {
+				ul.children = options.map((option, index) => {
 					return {
 						tag: "li",
 						children: [
 							{
 								tag: "input",
-								init: function() {
-									this.element.type = "checkbox";
-									this.element.id = field.getId()+"-"+index;
+								init: input => {
+									input.element.type = "checkbox";
+									input.element.id = this.getId()+"-"+index;
 								},
-								update: function(input) {
-									let values = field.getValue();
-									this.element.checked = values.indexOf(option.key) > -1;
-									this.element.onchange = function() {
-										if (this.checked) {
-											field.add(option.key);
+								update: async input => {
+									input.element.checked = await this.has(option.key);
+									input.element.onchange = async () => {
+										if (input.element.checked) {
+											await this.add(option.key);
 										} else {
-											field.remove(option.key);
+											await this.remove(option.key);
 										}
+										await this.edit();
 									}
 								}
 							},
 							{
 								tag: "label",
-								init: function() {
-									this.element.htmlFor = field.getId()+"-"+index;
+								init: label => {
+									label.element.htmlFor = this.getId()+"-"+index;
 								},
-								update: function() {
-									this.element.innerHTML = option.name;
+								update: label => {
+									label.element.innerHTML = option.name;
 								}
 							}
 						]
@@ -130,163 +109,15 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 	}
 
 	build() {
-		const field = this;
 		return {
 			class: "karma-field checkboxes",
-			init: function(dropdown) {
-				field.init(this.element);
-			},
-			update: function(dropdown) {
-				field.onOptions = function(options, value, queryString) {
-					dropdown.child = field.buildCheckboxList(options);
-					dropdown.render();
-				}
-				field.onSet = function(value) {
-					dropdown.render();
-				}
-				field.onLoad = function(loading) {
-					dropdown.element.classList.toggle("loading", loading);
-				}
-				field.onModified = function(modified) {
-					dropdown.element.classList.toggle("modified", modified);
-				}
-				field.update();
+			update: async dropdown => {
+				dropdown.element.classList.add("loading");
+				const options = await this.fetchOptions();
+
+				dropdown.child = this.buildCheckboxList(options);
+				dropdown.element.classList.remove("loading");
 			}
 		};
 	}
 }
-
-
-
-
-//
-// KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field {
-//
-// 	constructor(resource, domain) {
-// 		super(resource, domain);
-//
-// 		this.datatype = "array"
-//
-// 		if (this.resource.driver) {
-// 			const driver = this.resource.driver;
-// 			this.events.fetch = function(field, params) {
-// 				return field.queryOptions(driver, params);
-// 			};
-// 		}
-//
-// 	}
-//
-// 	add(item, context) {
-//     let values = this.getValue();
-//     values.push(item);
-//     this.setValue(values, context);
-//   }
-//
-//   remove(item, context) {
-//     let values = this.getValue();
-//     values = values.filter(function(value) {
-//       return item !== value;
-//     });
-//     this.setValue(values, context);
-//   }
-//
-// 	contains(item) {
-//     let values = this.getValue();
-// 		return values.indexOf(item) > -1;
-//   }
-//
-// 	toggle(item, context) {
-//     if (this.contains(item)) {
-// 			this.remove(item, context);
-// 		} else {
-// 			this.add(item, context);
-// 		}
-//   }
-//
-// 	build() {
-// 		const field = this;
-//
-// 		return {
-// 			class: "karma-field checkboxes",
-// 			init: function(dropdown) {
-// 				let promise;
-// 				if (!field.hasValue()) {
-// 					field.startLoad();
-// 					promise = field.fetchValue().then(function(value) {
-// 						field.endLoad();
-// 						field.triggerEvent("set");
-// 						field.triggerEvent("modify");
-// 					});
-// 				}
-// 				field.init(this.element);
-// 			},
-// 			child: {
-// 				tag: "ul",
-// 				update: function(ul) {
-// 					field.startLoad();
-// 					field.fetchOptions({key: field.resource.key, ...field.resource.args}).then(function(options) {
-// 						field.endLoad();
-// 						let value = field.getValue();
-// 						ul.children = [];
-// 						options.forEach(function(option, index) {
-//
-//
-// 							ul.children.push({
-// 								tag: "li",
-// 								children: [
-// 									{
-// 										tag: "input",
-// 										init: function() {
-// 											this.element.type = "checkbox";
-// 											this.element.id = field.getId()+"-"+index;
-// 										},
-// 										update: function() {
-// 											this.element.checked = field.contains(option.key);
-// 											this.element.onchange = function() {
-// 												if (this.checked) {
-// 													field.add(option.key);
-// 												} else {
-// 													field.remove(option.key);
-// 												}
-// 												field.triggerEvent("modified");
-// 												field.triggerEvent("change", true);
-// 											}
-// 										}
-// 									},
-// 									{
-// 										tag: "label",
-// 										init: function() {
-// 											this.element.htmlFor = field.getId()+"-"+index;
-// 										},
-// 										update: function() {
-// 											this.element.innerHTML = option.name;
-// 										}
-// 									}
-// 								]
-// 							});
-// 						});
-// 						ul.render();
-// 					});
-// 					this.skipRender = true;
-// 				}
-// 			},
-// 			update: function(dropdown) {
-//
-// 				field.events.modify = function() {
-// 					dropdown.element.classList.toggle("modified", field.isModified());
-// 				}
-// 				field.events.load = function() {
-// 					dropdown.element.classList.toggle("loading", field.loading > 0);
-// 				}
-// 				field.events.set = function() {
-// 					dropdown.render();
-// 				}
-//
-// 				field.triggerEvent("load");
-// 				// field.triggerEvent("set");
-// 				field.triggerEvent("modify");
-// 			}
-// 		};
-// 	}
-//
-// }

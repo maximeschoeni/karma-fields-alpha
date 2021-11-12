@@ -4,6 +4,9 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
     this.registerType("json");
 	}
 
+  fetchArray(...path) {
+    return this.fetchValue("array", ...path);
+  }
 
 
   createUploader(resource) {
@@ -138,8 +141,8 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
   async validate(values) {
     const validValues = values.filter(id => Number(id));
 
-    if (validValues !== values) {
-      await this.setValue(values);
+    if (validValues.length !== values.length) {
+      await this.setValue(validValues);
     }
 
     const missingIds = validValues.filter(id => !this.getFile([id]));

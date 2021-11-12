@@ -68,6 +68,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
   // }
 
 	getRemoteOptions(queryString, driver) {
+		console.log("Deprecated getRemoteOptions");
 		// if (this.resource.driver) {
 		// 	return KarmaFieldsAlpha.Form.fetch2(this.resource.driver, queryString);
 		// } else {
@@ -126,10 +127,14 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 		if (this.resource.default !== undefined && options.some(option => option.key === this.resource.default)) {
 			return this.resource.default;
 		}
+		const value = KarmaFieldsAlpha.History.getParam(this.resource.key);
+		if (value && options.some(option => option.key === value)) {
+			return value;
+		}
 		if (options.length) {
 			return options[0].key;
 		}
-		return this.getEmpty();
+		//return this.getEmpty();
 	}
 
 	// async fetchValue() {
@@ -184,6 +189,9 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 	async fetchOptions() {
 		let options = await super.fetchOptions();
+
+
+
 	// }
 	//
 	// prepareOptions(options) {
@@ -344,7 +352,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 				let modified = this.isModified();
 				const options = await this.fetchOptions();
-				const queryString = this.getOptionsParamString();
+				const queryString = await this.getOptionsParamString();
 
 
 				if (queryString !== dropdown.element.getAttribute("querystring")) {
@@ -366,19 +374,30 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 				} else {
 					dropdown.element.onchange = async() => {
 
-						
+
 						this.backup();
 						dropdown.element.classList.add("editing");
 
+						// -> compat
 						if (this.resource.retrodependencies) {
+							console.warn("DEPRECATED retrodependencies");
 							this.resource.retrodependencies.forEach(key => {
 								this.parent && this.parent.removeValue([key]);
 								// KarmaFieldsAlpha.History.removeParam(key);
 							});
 						}
+
+						if (this.resource.unfilters) {
+							this.resource.unfilters.forEach(filter => {
+								KarmaFieldsAlpha.History.removeParam(filter);
+							});
+						}
+
+
 						// await this.editValue(dropdown.element.value);
 						this.setValue(dropdown.element.value);
-						await this.edit();
+
+						await this.edit(this.resource.forceRender);
 						modified = this.isModified();
 
 						dropdown.element.classList.toggle("modified", modified);

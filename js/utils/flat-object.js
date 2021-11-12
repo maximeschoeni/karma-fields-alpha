@@ -6,6 +6,7 @@ KarmaFieldsAlpha.FlatObject = class {};
  * KarmaFieldsAlpha.DeepObject.assignFromPath({"a": 2}, ["b", "c"], 3); // -> {"a": 2, "b": {"c":3}}
  */
 KarmaFieldsAlpha.DeepObject.assign = function(object, pathKeys, value) {
+  console.log("Deprecated KarmaFieldsAlpha.DeepObject.assign");
   let key = pathKeys.shift();
   if (!object[key] || typeof object[key] !== "object") {
     object[key] = {};
@@ -17,22 +18,6 @@ KarmaFieldsAlpha.DeepObject.assign = function(object, pathKeys, value) {
   }
 }
 
-KarmaFieldsAlpha.DeepObject.assign2 = function(object, path, value) {
-  const pathKeys = path.split("/");
-  const key = pathKeys.shift();
-  if (key) {
-    if (!object[key] || typeof object[key] !== "object") {
-      object[key] = {};
-    }
-    if (pathKeys.length > 0) {
-      this.assign2(object[key], pathKeys.join("/"), value);
-    } else {
-      object[key] = value;
-    }
-  }
-  return object;
-}
-
 KarmaFieldsAlpha.DeepObject.assign3 = function(object, value, ...path) {
   const key = path.shift();
   if (key) {
@@ -41,10 +26,13 @@ KarmaFieldsAlpha.DeepObject.assign3 = function(object, value, ...path) {
         object[key] = {};
       }
       this.assign3(object[key], value, ...path);
-    } else if (value !== null) {
+    // } else if (value !== null) {
+    //   object[key] = value;
+    // } else if (object[key] !== undefined) {
+    //   object[key] = undefined;
+    // }
+    } else {
       object[key] = value;
-    } else if (object[key] !== undefined) {
-      object[key] = undefined;
     }
   }
   return object;
@@ -54,6 +42,7 @@ KarmaFieldsAlpha.DeepObject.assign3 = function(object, value, ...path) {
  * KarmaFieldsAlpha.DeepObject.get({"a": {"b": 5}}, ["a", "b"]); // -> 5
  */
 KarmaFieldsAlpha.DeepObject.get = function(object, pathKeys) {
+  console.log("Deprecated KarmaFieldsAlpha.DeepObject.get");
 	if (pathKeys && pathKeys.length) {
     let key = pathKeys.shift();
 		if (object && typeof object === "object") {
@@ -102,30 +91,141 @@ KarmaFieldsAlpha.DeepObject.has = function(object, ...path) {
   return false;
 };
 
+KarmaFieldsAlpha.DeepObject.isEmpty = function(object) {
+  // -> deprecated... use KarmaFieldsAlpha.DeepObject.some()
+  for (var i in object) {
+    if (object[i] && typeof object[i] === "object") {
+      return this.isEmpty(object[i]);
+    } else if (object[i] !== undefined) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * >KarmaFieldsAlpha.DeepObject.merge({"a": {"b": 5}}, {"a": {"c": 6}}); // -> {"a": {"b": 5, "c": 6}}
  * >KarmaFieldsAlpha.DeepObject.merge({"a": {"b": 5}}, {"a": {"b": null}}); // -> {"a": {"b": undefined}}
  */
+// KarmaFieldsAlpha.DeepObject.merge = function(object1, object2) {
+// 	for (var i in object2) {
+// 		if (object2[i] !== undefined) {
+// 			if (typeof object2[i] === "object") {
+// 				if (object2[i]) {
+// 					if (!object1[i] || typeof object1[i] !== "object") {
+// 						object1[i] = {};
+// 					}
+// 					this.merge(object1[i], object2[i]);
+//         } else if (object1[i] !== undefined) { // -> object2[i] === null
+//           object1[i] = undefined;
+// 				}
+// 			} else {
+// 				object1[i] = object2[i];
+// 			}
+// 		}
+// 	}
+// }
 KarmaFieldsAlpha.DeepObject.merge = function(object1, object2) {
 	for (var i in object2) {
-		if (object2[i] !== undefined) {
-			if (typeof object2[i] === "object") {
-				if (object2[i]) {
-					if (!object1[i] || typeof object1[i] !== "object") {
-						object1[i] = {};
-					}
-					this.merge(object1[i], object2[i]);
-        } else if (object1[i] !== undefined) { // -> object2[i] === null
-          object1[i] = undefined;
+		if (object2[i] && typeof object2[i] === "object") {
+			if (object2[i]) {
+				if (!object1[i] || typeof object1[i] !== "object") {
+					object1[i] = {};
 				}
-			} else {
-				object1[i] = object2[i];
+				this.merge(object1[i], object2[i]);
 			}
+		} else {
+			object1[i] = object2[i];
 		}
 	}
 }
 
+// KarmaFieldsAlpha.DeepObject.forEach = function(object, callback, ...path) {
+// 	for (let i in object) {
+//     if (object[i] && typeof object[i] === "object") {
+//       this.forEach(object[i], callback, ...path, i);
+//     } else {
+//       callback(object[i], ...path, i);
+//     }
+//   }
+// }
+KarmaFieldsAlpha.DeepObject.forEach = function(object, callback, ...path) {
+  if (object && typeof object === "object") {
+    for (let i in object) {
+      this.forEach(object[i], callback, ...path, i);
+    }
+  } else {
+    callback(object, ...path);
+  }
+}
 
+// KarmaFieldsAlpha.DeepObject.map = function(object, callback, ...path) {
+//   const result = {};
+// 	for (let i in object) {
+//     if (object[i] && typeof object[i] === "object") {
+//       result[i] = this.map(object[i], callback, ...path, i);
+//     } else {
+//       result[i] = callback(object[i], ...path, i);
+//     }
+//   }
+//   return result;
+// }
+KarmaFieldsAlpha.DeepObject.map = function(object, callback, ...path) {
+  let result = {};
+  if (object && typeof object === "object") {
+    for (let i in object) {
+      result[i] = this.map(object[i], callback, ...path, i);
+    }
+  } else {
+    result = callback(object, ...path);
+  }
+  return result;
+}
+
+// KarmaFieldsAlpha.DeepObject.some = function(object, callback, ...path) {
+// 	for (let i in object) {
+//     if (object[i] && typeof object[i] === "object") {
+//       if (this.some(object[i], callback, ...path, i)) {
+//         return true;
+//       }
+//     } else {
+//       if (callback(object[i], ...path, i)) {
+//         return true;
+//       }
+//     }
+//   }
+//   return false;
+// }
+KarmaFieldsAlpha.DeepObject.some = function(object, callback, ...path) {
+  if (object && typeof object === "object") {
+    for (let i in object) {
+      if (this.some(object[i], callback, ...path, i)) {
+        return true;
+      }
+    }
+  } else if (callback(object, ...path)) {
+    return true;
+  }
+  return false;
+}
+
+
+KarmaFieldsAlpha.DeepObject.filter = function(object, callback, ...path) {
+  let output;
+  if (object && typeof object === "object") {
+    for (let i in object) {
+      if (this.filter(object[i], callback, ...path, i) !== undefined) {
+        if (!output) {
+          output = {};
+        }
+        output[i] = object[i];
+      }
+    }
+  } else if (callback(object, ...path)) {
+    output = object;
+  }
+  return output;
+}
 
 
 

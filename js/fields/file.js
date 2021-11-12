@@ -138,12 +138,10 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
   }
 
   async fetchIds(ids) {
-    let queryString = this.getOptionsParamString({ids: ids});
-    const results = await this.getRemoteOptions(queryString, this.resource.driver || "attachment"); // "ids="+ids.join(",")
-    // if (results[0] && results[0].src) {
-    //   await fetch(results[0].src);
-    // }
-
+    // let queryString = this.getOptionsParamString({ids: ids});
+    // const results = await this.getRemoteOptions(queryString, this.resource.driver || "attachment"); // "ids="+ids.join(",")
+    const driver = this.resource.driver || "attachment";
+    const results = await KarmaFieldsAlpha.Gateway.getOptions(driver+"?ids="+ids.join(","));
     this.setFiles(results);
     return results;
   }

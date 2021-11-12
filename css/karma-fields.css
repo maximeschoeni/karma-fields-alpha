@@ -220,6 +220,7 @@
   width: 80px;
   height: 80px;
   margin: 0;
+  overflow: hidden;
 }
 .table .karma-file .field-control  {
   display: none;
@@ -550,6 +551,17 @@
   height: 75px;
   cursor: pointer;
   margin: 0;
+}
+
+
+/* Grid Group
+--------------------------------------*/
+
+.karma-fields .table>.karma-field-container {
+  margin: 0;
+}
+.karma-fields .table .karma-field-frame {
+  min-height: 100%;
 }
 
 

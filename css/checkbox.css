@@ -15,12 +15,23 @@
   font-size: inherit;
   font-weight: inherit;
 }
+.karma-field .karma-field-checkbox_basic input {
+  margin: 0;
+}
+
+
 .karma-field-table .table input[type=checkbox] {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  justify-content: center;
+  border: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 .karma-field-table .table input[type=checkbox]:focus {
   background-color: white;
@@ -44,7 +55,10 @@
   grid-column-gap: 5px;
 }
 .karma-field-frame.karma-field-checkbox_basic label {
-  grid-area: 1 / 2 / 2 / 3;
+  /* grid-area: 1 / 2 / 2 / 3; */
+}
+.karma-field-frame.karma-field-checkbox_basic input {
+  grid-row: 2;
 }
 .karma-field-frame.karma-field-checkbox_basic .karma-field-spinner {
   grid-area: 1 / 3 / 2 / 4;
