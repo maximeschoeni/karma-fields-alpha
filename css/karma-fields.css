@@ -370,7 +370,7 @@
   grid-gap: 1px;
   margin: 0 0 32px;
   background-color: #c3c4c7;
-  border: 1px solid #c3c4c7;
+  /* border: 1px solid #c3c4c7; */
 
   width: max-content;
   height: max-content;
@@ -378,6 +378,17 @@
   /* background-color: #f1f1f1; */
   /* grid-template-columns: 40px auto 1fr; */
 }
+
+.karma-fields .table.loading {
+  /* background: repeating-linear-gradient(45deg, #c3c4c7 0px, #c3c4c7 25%, #f1f1f1 25%, #f1f1f1 50%); */
+  /* background: repeating-linear-gradient(45deg, #ececec 0px, #ececec 25%, #f1f1f1 25%, #f1f1f1 50%); */
+  /* background-size: 100px 100px; */
+  /* animation: slide 1s infinite linear; */
+}
+.karma-fields .table.filled {
+  border: 1px solid #c3c4c7;
+}
+
 
 .karma-fields .table .th,
 .karma-fields .table .td {
@@ -389,7 +400,7 @@
   border-bottom-width: 1px; */
   text-align: left;
   padding: 0;
-  color: #535c63;
+  /* color: #535c63; */
 
   display: flex;
   /* outline: 1px solid #7e8993; */
@@ -403,12 +414,23 @@
   background-color: #f0f0f1;
   font-weight: bold;
   font-size: 0.875em;
-  line-height: 1.2em;
-  padding: 10px 5px;
+  line-height: 1.08em;
+  padding: 2px 5px;
   user-select: none;
   justify-content: space-between;
   align-items: center;
+
+  min-height: 40px;
 }
+
+.karma-fields .table.loading .th {
+  /* background: repeating-linear-gradient(45deg, #c3c4c7 0px, #c3c4c7 25%, #f1f1f1 25%, #f1f1f1 50%); */
+  /* background: repeating-linear-gradient(45deg, #ececec 0px, #ececec 25%, #f1f1f1 25%, #f1f1f1 50%);
+  background-size: 100px 100px;
+  animation: slide 1s infinite linear; */
+}
+
+
 .karma-fields .table .th.table-index {
   justify-content: flex-end;
 }
@@ -505,7 +527,7 @@
 /* Grid Cell Button
 --------------------------------------*/
 
-.karma-fields .table .td button {
+/* .karma-fields .table .td button {
   border: none;
   width: 100%;
   height: 100%;
@@ -532,7 +554,7 @@
 }
 .td.modified .on-off svg path {
   fill: black;
-}
+} */
 
 
 /* Grid Cell Files

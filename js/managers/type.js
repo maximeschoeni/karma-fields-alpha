@@ -48,36 +48,56 @@ KarmaFieldsAlpha.Type = class {
 
 	static register(type, ...path) {
 		// this.types[path] = type;
-		KarmaFieldsAlpha.DeepObject.assign3(this.types, type, ...path);
+		KarmaFieldsAlpha.DeepObject.assign(this.types, type, ...path);
 	}
 
 	static get(...path) {
-		return KarmaFieldsAlpha.DeepObject.get3(this.types, ...path);
+		return KarmaFieldsAlpha.DeepObject.get(this.types, ...path);
 	}
 
 	static sanitize(value, ...path) {
-		const type = KarmaFieldsAlpha.DeepObject.get3(this.types, ...path);
+
+		if (value === undefined) {
+			console.log(value, path);
+ 			console.error("Type error: cannot store undefined value");
+ 		}
+
+		const type = KarmaFieldsAlpha.DeepObject.get(this.types, ...path);
 
 		if (value && type === "json") {
 			value = JSON.stringify(value);
-		}
-		if (typeof value === "number") {
-			value = value.toString();
+		} else if (value && typeof value === "object") {
+			for (let i in value) {
+				value[i] = this.sanitize(value[i], ...path, i);
+			}
+		} else if (typeof value === "number") {
+			console.log(value, path);
+			console.error("Type error: cannot store value as Number");
+		} else if (typeof value === "boolean") {
+			console.log(value, path);
+			console.error("Type error: cannot store value as Boolean");
 		}
 		return value;
 	}
 
 	static parse(value, ...path) {
-		const type = KarmaFieldsAlpha.DeepObject.get3(this.types, ...path);
+		const type = KarmaFieldsAlpha.DeepObject.get(this.types, ...path);
 
 		if (type === "json" && typeof value === "string") {
 			try {
 				return JSON.parse(value);
 			} catch (error) {
 				console.log(value, "/", type, "/", path);
-				console.error(error);
+				console.error("Type error: error parsing json");
 			}
-
+		} else if (value && typeof value === "object") {
+			for (let i in value) {
+				value[i] = this.parse(value[i], ...path, i);
+			}
+		} else if (typeof value === "number") {
+			console.error("Type error: value should never be stored as Number");
+		} else if (typeof value === "boolean") {
+			console.error("Type error: value should never be stored as Boolean");
 		}
 		return value;
 	}
@@ -101,9 +121,10 @@ KarmaFieldsAlpha.Type = class {
 	// }
 
 	static sanitizeObject(object, ...path) {
+		console.error("deprecated: use Type::sanitize");
 	  const result = {};
 		for (let i in object) {
-			const type = KarmaFieldsAlpha.DeepObject.get3(this.types, ...path, i);
+			const type = KarmaFieldsAlpha.DeepObject.get(this.types, ...path, i);
 			const valueType = typeof object[i];
 
 			if (type === "json" && valueType === "object") {
@@ -119,9 +140,10 @@ KarmaFieldsAlpha.Type = class {
 
 
 	static parseObject(object, ...path) {
+		console.error("deprecated: use Type::parse");
 	  const result = {};
 		for (let i in object) {
-			const type = KarmaFieldsAlpha.DeepObject.get3(this.types, ...path, i);
+			const type = KarmaFieldsAlpha.DeepObject.get(this.types, ...path, i);
 			const valueType = typeof object[i];
 
 			if (type === "json" && valueType === "string") {

@@ -24,7 +24,7 @@ KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 			}
 
 			if (args.init) {
-				args.init(args);
+				await args.init(args);
 			}
 		} else {
 			args.element = element;
@@ -49,7 +49,9 @@ KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 			await Promise.all(promises);
 			while (child) {
 				let next = child && child.nextElementSibling;
-				args.element.removeChild(child);
+				if (args.element) { // -> sometimes args.element = null !
+					args.element.removeChild(child);
+				}
 				child = next;
 			}
 		}

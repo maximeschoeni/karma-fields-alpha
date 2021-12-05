@@ -82,29 +82,33 @@ KarmaFieldsAlpha.Gateway = class {
 
 		const ids = (results.items || results || []).map((row, index) => {
 			const id = row.id.toString();
-			for (let key in row) {
-				// const path = driver+"/"+id+"/"+key;
 
-				let value = row[key];
+			this.setOriginal(row, driver, id);
+			this.setOriginal("0", driver, id, "trash");
 
-				if (typeof value === "number") {
-					value = value.toString();
-				} else if (value && typeof value === "object") {
-					value = JSON.stringify(value);
-				}
-
-				// -> value MUST be a string!
-				if (typeof value !== "string") {
-					value = "";
-				}
-
-				// this.setOriginal(value, path);
-
-
-
-				this.setOriginal(value, driver, id, key);
-
-			}
+			// for (let key in row) {
+			// 	// const path = driver+"/"+id+"/"+key;
+			//
+			// 	let value = row[key];
+			//
+			// 	if (typeof value === "number") {
+			// 		value = value.toString();
+			// 	} else if (value && typeof value === "object") {
+			// 		value = JSON.stringify(value);
+			// 	}
+			//
+			// 	// -> value MUST be a string!
+			// 	if (typeof value !== "string") {
+			// 		value = "";
+			// 	}
+			//
+			// 	// this.setOriginal(value, path);
+			//
+			//
+			//
+			// 	this.setOriginal(value, driver, id, key);
+			//
+			// }
 			return id;
 		});
 
@@ -373,7 +377,7 @@ KarmaFieldsAlpha.Gateway = class {
 	// }
 
 	static getOriginal(...path) {
-		return KarmaFieldsAlpha.DeepObject.get3(this.original, ...path);
+		return KarmaFieldsAlpha.DeepObject.get(this.original, ...path);
 		// return this.original[path];
 	}
 
@@ -383,7 +387,7 @@ KarmaFieldsAlpha.Gateway = class {
 	}
 
 	static setOriginal(value, ...path) {
-		KarmaFieldsAlpha.DeepObject.assign3(this.original, value, ...path);
+		KarmaFieldsAlpha.DeepObject.assign(this.original, value, ...path);
 		// this.original[path] = value;
 	}
 

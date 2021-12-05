@@ -317,20 +317,26 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 	// 	}
 	// }
 
-	find(...path) {
-		if (this.resource.key) {
-			const key = path.shift();
-			if (key === this.resource.key) {
-				if (!path.length) {
-					return this;
-				} else if (this.children.length) {
-					return this.children.find(child => child.find(...path));
-				}
-			}
-		} else {
-			return this.children.find(child => child.find(...path));
-		}
-	}
+	// find(...path) {
+	// 	if (this.resource.key) {
+	// 		const key = path.shift();
+	// 		if (key === this.resource.key) {
+	// 			if (!path.length) {
+	// 				return this;
+	// 			} else if (this.children.length) {
+	// 				return this.children.find(child => child.find(...path));
+	// 			}
+	// 		}
+	// 	} else {
+	// 		return this.children.find(child => child.find(...path));
+	// 	}
+	// }
+
+	// find(...path) {
+	// 	const key = path.shift();
+	// 	const child = key && this.getChild(key);
+	// 	return path.length && child && child.find(...path) || child;
+	// }
 
 
 

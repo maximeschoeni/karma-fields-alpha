@@ -8,6 +8,10 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
     return this.fetchValue("array", ...path);
   }
 
+  setDefault() {
+    // noop override setDefault
+  }
+
 
   createUploader(resource) {
     const field = this;

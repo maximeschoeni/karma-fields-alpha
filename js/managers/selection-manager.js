@@ -66,13 +66,36 @@ KarmaFieldsAlpha.SelectionManager = class {
     const x = col;
     const y = row;
 
+
+    element.setAttribute('tabindex', '-1');
+
 		this.grid.set(col, row, element);
+
+    element.onmousedown = event => {
+      if (event.target.draggable) {
+        event.target.draggable = false;
+      }
+      // if (event.target !== element) {
+      //   element.focus();
+      //   event.preventDefault(); // -> prevent losing selection
+      // }
+
+      // if (event.shiftKey) {
+      //   event.stopImmediatePropagation();
+      //   event.stopPropagation();
+      //   event.preventDefault(); // -> prevent open dropdown
+      // }
+
+
+    }
 
 		element.onfocus = () => {
 			// manager.startSelection(new KarmaFieldsAlpha.Rect(col, row, 1, 1));
+
 			this.startSelection({x: col, y:row, width: 1, height: 1});
 		}
 		element.onfocusout = (event) => {
+
 			this.endSelection();
 		}
 
@@ -85,6 +108,10 @@ KarmaFieldsAlpha.SelectionManager = class {
       if (event.metaKey && event.key === "c" && this.selection) {
         event.preventDefault();
         this.trigger("copy");
+    	}
+      if (event.metaKey && event.key === "x" && this.selection) {
+        event.preventDefault();
+        this.trigger("cut");
     	}
       if (event.metaKey && event.key === "v" && this.selection) {
         event.preventDefault();
@@ -204,6 +231,7 @@ KarmaFieldsAlpha.SelectionManager = class {
 
 
 	startSelection(r) {
+
 		if (this.selection) {
 			this.unpaint(this.selection);
 		}

@@ -596,12 +596,12 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	}
 
 	getDeltaValue(...path) {
-		return KarmaFieldsAlpha.DeepObject.get3(this.getDelta() || {}, ...path);
+		return KarmaFieldsAlpha.DeepObject.get(this.getDelta() || {}, ...path);
 	}
 
 	setDeltaValue(value, ...path) {
 		const delta = this.getDelta() || {};
-		KarmaFieldsAlpha.DeepObject.assign3(delta, value, ...path);
+		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
 		this.setDelta(delta);
 	}
 

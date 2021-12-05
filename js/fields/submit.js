@@ -44,7 +44,7 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
 				}
 				// button.element.disabled = !this.parent.hasModifiedValue() || this.getState() === "disabled";
 				const form = this.getForm();
-				button.element.disabled = !form || !form.getDeltaValue() || this.getState() === "disabled";
+				button.element.disabled = !form || !form.isModified() || this.getState() === "disabled";
 
 
 

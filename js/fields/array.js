@@ -14,20 +14,29 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
     let array = await super.fetchValue("array") || [];
 
+
+
     if (path.length) {
-      return KarmaFieldsAlpha.DeepObject.get3(array, ...path);
+      return KarmaFieldsAlpha.DeepObject.get(array, ...path);
     }
 
     return array;
   }
 
   async setValue(value, ...path) {
+
     if (path.length) {
-      let array = await super.fetchValue("array");
-      KarmaFieldsAlpha.DeepObject.assign3(array, value, ...path);
+      let array = await super.fetchValue("array") || [];
+
+
+      KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
   		return super.setValue(array);
 		}
     return super.setValue(value);
+  }
+
+  backup(...path) {
+    super.backup();
   }
 
 

@@ -25,38 +25,45 @@ KarmaFieldsAlpha.Delta = class {
 		//
 		// // return this.deltaCache;
 		//
-		// return KarmaFieldsAlpha.DeepObject.get3(this.deltaCache, ...path);
+		// return KarmaFieldsAlpha.DeepObject.get(this.deltaCache, ...path);
 
 
-		return KarmaFieldsAlpha.DeepObject.get3(this.getObject(), ...path);
+		return KarmaFieldsAlpha.DeepObject.get(this.getObject(), ...path);
 
 	}
 
 	static setObject(delta) {
-		
-		delta = KarmaFieldsAlpha.DeepObject.filter(delta, (value, ...path) => value !== null && value !== undefined && value !== KarmaFieldsAlpha.Gateway.getOriginal(...path));
 
-		if (delta) {
+		// delta = KarmaFieldsAlpha.DeepObject.filter(delta, (value, ...path) => value !== null && value !== undefined && value !== KarmaFieldsAlpha.Gateway.getOriginal(...path));
 
-			localStorage.setItem(this.prefix, JSON.stringify(delta));
+		// if (delta) {
+		//
+		// 	localStorage.setItem(this.prefix, JSON.stringify(delta));
+		//
+		// } else {
+		//
+		// 	localStorage.removeItem(this.prefix);
+		//
+		// }
 
-		} else {
 
-			localStorage.removeItem(this.prefix);
-
-		}
-
-
-		// localStorage.setItem(this.prefix, JSON.stringify(delta));
+		localStorage.setItem(this.prefix, JSON.stringify(delta));
 
 		this.deltaCache = delta;
+	}
+
+	static deleteObject() {
+
+		localStorage.removeItem(this.prefix);
+
+		this.deltaCache = {};
 	}
 
 	static set(value, ...path) {
 
 		const delta = this.getObject();
 
-		KarmaFieldsAlpha.DeepObject.assign3(delta, value, ...path);
+		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
 
 		this.setObject(delta);
 
@@ -66,7 +73,7 @@ KarmaFieldsAlpha.Delta = class {
 	//
 	// 	const delta = this.get();
 	//
-	// 	KarmaFieldsAlpha.DeepObject.assign3(delta, value, ...path);
+	// 	KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
 	//
 	// 	delta = KarmaFieldsAlpha.DeepObject.filter(delta, value => value !== null && value !== undefined);
 	//
@@ -91,14 +98,22 @@ KarmaFieldsAlpha.Delta = class {
 
 			KarmaFieldsAlpha.DeepObject.remove(delta, ...path);
 
-			this.setObject(delta);
+			if (KarmaFieldsAlpha.DeepObject.some(delta, () => true)) {
 
-			// localStorage.setItem(this.prefix, JSON.stringify(delta));
-			//
-			// this.deltaCache = delta;
+				this.setObject(delta);
+
+			} else {  // -> empty object
+
+				this.deleteObject();
+
+			}
 
 		}
 
+	}
+
+	static has(...path) {
+		return KarmaFieldsAlpha.DeepObject.has(this.getObject(), ...path);
 	}
 
 	static merge(data) {
@@ -117,7 +132,19 @@ KarmaFieldsAlpha.Delta = class {
 
 		KarmaFieldsAlpha.DeepObject.merge(delta, data);
 
-		this.setObject(delta);
+		// delta = KarmaFieldsAlpha.DeepObject.some(delta, () => true) || null; // -> set empty object to null
+		//
+		// this.setObject(delta);
+
+		if (KarmaFieldsAlpha.DeepObject.some(delta, () => true)) {
+
+			this.setObject(delta);
+
+		} else {  // -> empty object
+
+			this.deleteObject();
+
+		}
 
 	}
 

@@ -10,11 +10,20 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 		if (this.resource.default && options.some(option => option.key === this.resource.default)) {
 			return this.resource.default.split(",");
 		}
-		const value = KarmaFieldsAlpha.History.getParam(this.resource.key);
+		const value = KarmaFieldsAlpha.Nav.getParam(this.resource.key);
 		if (value && options.some(option => option.key === value)) {
 			return [value];
 		}
-		return this.getEmpty();
+		return [];
+	}
+
+	setDefault() {
+		// const values = this.getDefault();
+		// if (values.length) {
+		// 	this.initValue(JSON.stringify(values));
+		// }
+
+		
 	}
 
 	getEmpty() {

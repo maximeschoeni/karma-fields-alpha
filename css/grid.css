@@ -25,18 +25,21 @@
   margin-right: 0;
   display: flex;
   flex-direction: column;
-  color: #535c63;
+  /* color: #535c63; */
   width: 100%;
 }
 
 .karma-field-table .table a {
   /* color: #535c63; */
-  background-color: #f1f1f1;
+  /* background-color: #f1f1f1; */
   display: flex;
   align-items: center;
   /* padding: 0 5px; */
   cursor: pointer;
   text-decoration: none;
+}
+.karma-field-table .table>a {
+  background-color: #f1f1f1;
 }
 .karma-field-table .table a:focus {
   box-shadow: none;
@@ -45,13 +48,12 @@
 .karma-field-table .table .text {
   padding: 4px 8px;
   background-color: #f0f0f1;
-  color: #a0a0a0;
   font-size: 14px;
   display: flex;
-  /* align-items: center; */
+  align-items: center;
   flex-wrap: wrap;
-  flex-direction: column;
-  justify-content: center;
+  /* flex-direction: column; (why???) */
+  /* justify-content: center; */
 }
 
 
@@ -61,6 +63,12 @@
 
 
 
+.karma-field-table .table>:not(:focus) {
+  user-select: none;
+}
+/* .karma-field-table .table>:focus {
+      outline: 1px dashed #868686;
+} */
 
 
 /* Tables Header
@@ -760,6 +768,16 @@ button.karma-button.loading .karma-field-spinner::after {
   fill: rgb(114, 119, 124);
 }
 
+
+
+
+button.karma-button .dashicons {
+  font-size: 12px;
+  height: 15px;
+  line-height: 15px;
+}
+
+
 /* .karma-fields .table-footer button:focus .karma-icon svg path {
   fill: #f1f1f1;
 }
@@ -938,11 +956,11 @@ button.karma-button.primary > .karma-field-spinner {
 .karma-fields label {
   font-weight: bold;
   font-size: 0.875em;
-  line-height: 1.2em;
+  line-height: 1.08em;
   vertical-align: baseline;
   margin: 0 0 3px;
   display: block;
-  color: #535c63;
+  /* color: #535c63; */
 }
 
 

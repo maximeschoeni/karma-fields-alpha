@@ -2,11 +2,11 @@
 KarmaFieldsAlpha.Relations = class {
 
 	static register(...path) {
-		KarmaFieldsAlpha.DeepObject.assign3(this.relations, true, ...path);
+		KarmaFieldsAlpha.DeepObject.assign(this.relations, true, ...path);
 	}
 
 	static get(...path) {
-		return KarmaFieldsAlpha.DeepObject.get3(this.relations, ...path);
+		return KarmaFieldsAlpha.DeepObject.get(this.relations, ...path);
 	}
 
 }

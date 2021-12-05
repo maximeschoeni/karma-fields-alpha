@@ -84,6 +84,11 @@
   /* margin: 0 0 1px; */
   background-color: #f1f1f1;
 }
+.karma-fields-navigation .karma-field-table .table-filters,
+.karma-fields-navigation .karma-field-table .table-options,
+.karma-fields-navigation .karma-field-table .karma-field-table-section {
+  flex-grow: 0;
+}
 .karma-fields-navigation .karma-field-table .table-body {
   overflow: auto;
   padding: 10px 10px 10px;
@@ -118,7 +123,8 @@
 
   display: none;
 }
-.karma-fields-navigation.single-open .karma-field-table .table-modal {
+.karma-fields-navigation.single-open .karma-field-table .table-modal,
+.karma-fields-navigation .karma-fields-content.single-open .karma-field-table .table-modal {
   /* transform: translateX(0); */
   /* flex: 0 0 100%; */
 
@@ -196,10 +202,20 @@
   background-color: #f1f1f1;
   align-items: center;
   padding: 0 10px;
+  gap: 10px;
 }
 .karma-fields-navigation .karma-field-table .table-header .header-item.total-items {
   min-width: 125px;
 }
+.karma-fields-navigation .karma-field-table .table-header .header-item.total-items a {
+  cursor: pointer;
+}
+.karma-fields-navigation .karma-field-table .table-header .header-item.total-items .set-ppp {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
 
 .karma-fields-navigation .karma-field-table .table-header .total-items.loading::after {
   content: "...";
@@ -220,8 +236,16 @@
 }
 
 
-
-
+.karma-fields-navigation .karma-field-table .table-header .header-tab a {
+  cursor: pointer;
+}
+.karma-fields-navigation .karma-field-table .table-header .header-tab.active {
+  /* position: relative;
+  top: 1px; */
+}
+.karma-fields-navigation .karma-field-table .table-header .header-tab.active a {
+  color: black;
+}
 
 
 
@@ -232,12 +256,16 @@
   height: 50px;
   flex-shrink: 0;
   display: flex;
+  align-items: center;
 }
-.karma-fields-navigation .karma-field-table .table-control .table-edit {
+.karma-fields-navigation .karma-field-table .table-control .table-control-group {
   display: flex;
   align-items: center;
   padding: 0 10px;
   gap: 10px;
+}
+.karma-fields-navigation .karma-field-table .table-control .table-control-group.table-edit {
+  flex-grow: 1;
 }
 .karma-fields-navigation .karma-field-table .table-control .table-edit button.karma-button {
   /* margin: 0 5px; */

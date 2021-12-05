@@ -82,6 +82,9 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container 
 				// this.render = () => {
 				// 	group.render()
 				// };
+				if (this.resource.style) {
+					group.element.style = this.resource.style;
+				}
 			},
 			update: group => {
 				this.render = group.render;

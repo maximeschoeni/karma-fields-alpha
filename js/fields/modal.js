@@ -29,12 +29,16 @@ KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.container 
 
 		return {
 			tag: "a",
+			class: "karma-field",
+			init: a => {
+				a.element.setAttribute('tabindex', '-1');
+			},
 			child: this.createTitle().build(),
 			update: a => {
 				// a.element.innerHTML = this.resource.text || "Edit";
 				a.element.onclick = event => {
-					KarmaFieldsAlpha.History.setParam("id", this.parent.getValue("id"));
-					this.editParam(true);
+					KarmaFieldsAlpha.Nav.setParam("id", this.parent.getValue("id"));
+					this.editParam();
 				};
 			}
 		};

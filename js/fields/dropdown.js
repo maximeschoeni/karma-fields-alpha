@@ -86,16 +86,25 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 
 
-	exportValue() {
-		const field = this;
-		return super.exportValue().then(function(value) {
-			return field.fetchOptions().then(function(options) {
-				const option = options.find(function(option) {
-					return option.key === value;
-				});
-				return option && option.name || value;
-			});
+	// exportValue() {
+	// 	const field = this;
+	// 	return super.exportValue().then(function(value) {
+	// 		return field.fetchOptions().then(function(options) {
+	// 			const option = options.find(function(option) {
+	// 				return option.key === value;
+	// 			});
+	// 			return option && option.name || value;
+	// 		});
+	// 	});
+  // }
+
+	async exportValue() {
+		const value = await this.fetchValue();
+		const options = await this.fetchOptions();
+		const option = options.find(function(option) {
+			return option.key === value;
 		});
+		return option && option.name || value;
   }
 
 	// getEmpty() {
@@ -112,6 +121,16 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 	// 	}
   // }
 
+	async importValue(value) {
+		const options = await this.fetchOptions();
+		const option = options.find(function(option) {
+			return option.name === value;
+		});
+		if (option) {
+			this.setValue(option.key);
+		}
+  }
+
 	// fetchDefault() {
 	// 	const field = this;
 	// 	return this.fetchOptions().then(function(options) {
@@ -127,15 +146,19 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 		if (this.resource.default !== undefined && options.some(option => option.key === this.resource.default)) {
 			return this.resource.default;
 		}
-		const value = KarmaFieldsAlpha.History.getParam(this.resource.key);
+		const value = KarmaFieldsAlpha.Nav.getParam(this.resource.key);
 		if (value && options.some(option => option.key === value)) {
 			return value;
 		}
 		if (options.length) {
 			return options[0].key;
 		}
-		//return this.getEmpty();
 	}
+
+	async setDefault() {
+		const value = await this.getDefault();
+    await this.initValue(value);
+  }
 
 	// async fetchValue() {
 	// 	let value = await super.fetchValue();
@@ -176,12 +199,12 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 		if (value === "0") {
 			value = "";
 		}
-		const options = await this.fetchOptions();
-
-		if (options.length && !this.resource.readonly && !options.some(option => option.key === value)) {
-			value = options[0].key;
-			await this.setValue(value);
-		}
+		// const options = await this.fetchOptions();
+		//
+		// if (options.length && !this.resource.readonly && !options.some(option => option.key === value)) {
+		// 	value = options[0].key;
+		// 	await this.setValue(value);
+		// }
 
 
 		return value;
@@ -389,7 +412,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.field {
 
 						if (this.resource.unfilters) {
 							this.resource.unfilters.forEach(filter => {
-								KarmaFieldsAlpha.History.removeParam(filter);
+								KarmaFieldsAlpha.Nav.removeParam(filter);
 							});
 						}
 

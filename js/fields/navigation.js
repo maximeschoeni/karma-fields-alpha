@@ -12,36 +12,22 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.conta
       class: "karma-fields-navigation",
       init: container => {
 
-        this.render = container.render;
+        // this.render = container.render;
 
-        // this.delta = new KarmaFieldsAlpha.Delta();
+        // window.addEventListener("popstate", event => {
+        //
+        //   // -> write history data in browser history
+        //   // if (history.state) {
+        //   //   KarmaFieldsAlpha.Delta.merge(history.state);
+        //   // }
+        //
+        //
+        //   this.render(true);
+        // });
 
-        // window.onhashchange = () => {
-        // window.onpopstate = () => {
-        console.log("init navigation");
-
-        window.addEventListener("popstate", event => {
-          // this.update();
-
-          if (history.state) {
-            // const state = KarmaFieldsAlpha.DeepObject.filter(history.state, (value, ...path) => {
-            //   return value !== undefined && value !== null && value !== KarmaFieldsAlpha.Gateway.getOriginal(...path);
-            // });
-            // console.log(history.state, state);
-
-            KarmaFieldsAlpha.Delta.merge(history.state);
-
-            // KarmaFieldsAlpha.DeepObject.forEach(history.state, (value, ...path) => {
-            //   if (value === null || value === KarmaFieldsAlpha.Gateway.getOriginal(...path)) {
-            //     KarmaFieldsAlpha.Delta.remove(...path);
-            //   } else if (value !== undefined) {
-            //     KarmaFieldsAlpha.Delta.set(value, ...path);
-            //   }
-            // });
-          }
-
-          container.render();
-        });
+        KarmaFieldsAlpha.Nav.onpopstate = () => {
+          container.render(true);
+        }
 
 
         window.addEventListener("keydown", function(event) {
@@ -100,22 +86,21 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.conta
 
         // this.init();
       },
-      update: container => {
-        let key = KarmaFieldsAlpha.History.getParam("karma");
+      child: {
+        class: "karma-fields-content",
+        init: container => {
+          this.render = container.render;
+        },
+        update: container => {
+          let key = KarmaFieldsAlpha.Nav.getParam(KarmaFieldsAlpha.tableParam || "karma");
+          let child = key && this.getChild(key);
 
-        let child = key && this.getChild(key);
-
-        container.children = child && [child.build()] || [];
-
-        document.body.style.overflow = child ? "hidden" : "visible";
-
-
-        container.element.classList.toggle("single-open", KarmaFieldsAlpha.History.hasParam("id"));
-
-        // this.children.map(child => {
-				// 	return child.build();
-				// });
+          container.children = child && [child.build()] || [];
+          document.body.style.overflow = child ? "hidden" : "visible";
+          container.element.classList.toggle("single-open", KarmaFieldsAlpha.Nav.hasParam("id"));
+        }
       }
+
     };
   }
 
@@ -193,7 +178,7 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.conta
 
   editParam(clean) {
     if (clean) {
-      console.error("editParam clean dont work");
+      // console.error("editParam clean dont work");
     }
     return this.render && this.render(clean);
   }

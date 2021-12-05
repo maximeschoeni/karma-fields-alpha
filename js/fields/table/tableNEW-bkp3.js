@@ -203,56 +203,53 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 	// }
 
 
-  // getBufferIds() {
-  //   console.error("DEPRECATED getBufferIds");
-  //   const ids = [];
-  //   const rows = this.content.getDeltaValue();
-  //   for (let id in rows) {
-  //     if (rows[id].trash !== "1" && (!this.queriedIds || this.queriedIds.indexOf(id) === -1)) {
-  //       ids.push(id);
-  //     }
-  //   }
-  //   return ids;
-  // }
+  getBufferIds() {
+    console.error("DEPRECATED getBufferIds");
+    const ids = [];
+    const rows = this.content.getDeltaValue();
+    for (let id in rows) {
+      if (rows[id].trash !== "1" && (!this.queriedIds || this.queriedIds.indexOf(id) === -1)) {
+        ids.push(id);
+      }
+    }
+    return ids;
+  }
 
 
 
-  // getExtraIds() {
-  //
-  //   // const ids = this.tableManagment.getValue("ids");
-  //   // return ids && ids.split(",") || [];
-  //
-  //   const ids = [];
-  //   const delta = this.getDeltaValue();
-  //   for (let id in delta) {
-  //     if (delta.extra) {
-  //       ids.push(id);
-  //     }
-  //   }
-  //   return ids;
-  // }
+  getExtraIds() {
+    // if (!this.extraIds) {
+    //   const ids = this.tableManagment.getDeltaValue("ids");
+    //   this.extraIds = ids && ids.split(",") || [];
+    // }
+    // return this.extraIds;
 
-  // setExtraIds(ids) {
-  //   this.extraIds = null;
-  //   if (ids && ids.length) {
-  //     this.tableManagment.setValue(ids.join(","), "ids");
-  //   } else {
-  //     this.tableManagment.removeValue("ids");
-  //   }
-  // }
+    // const ids = this.tableManagment.getDeltaValue("ids");
+    const ids = this.tableManagment.getValue("ids");
+    return ids && ids.split(",") || [];
 
-  // removeExtraIds() {
-  //   this.extraIds = null;
-  //   this.tableManagment.removeValue("ids");
-  // }
+  }
 
-  // isExtraId(id) {
-  //   return this.getExtraIds().indexOf(id) > -1;
-  // }
+  setExtraIds(ids) {
+    this.extraIds = null;
+    if (ids && ids.length) {
+      this.tableManagment.setValue(ids.join(","), "ids");
+    } else {
+      this.tableManagment.removeValue("ids");
+    }
+  }
+
+  removeExtraIds() {
+    this.extraIds = null;
+    this.tableManagment.removeValue("ids");
+  }
+
+  isExtraId(id) {
+    return this.getExtraIds().indexOf(id) > -1;
+  }
 
 
   editFull() {
-    console.error("deprecated");
     return this.render();
   }
 
@@ -274,25 +271,17 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
   }
 
   getDefaultOrderby() {
-    if (!this.defaultOrderby) {
-      this.defaultOrderby = this.resource.orderby;
-      if (!this.defaultOrderby) {
-        const column = this.resource.columns.find(column => (column.orderby || column.field && column.field.key));
-        this.defaultOrderby = column && (column.orderby || column.field && column.field.key) || "x";
-      }
-    }
-    return this.defaultOrderby;
+    return this.resource.default && this.resource.default.orderby || this.resource.orderby;
   }
 
-  getDefaultOrder() {
-    if (!this.defaultOrder) {
-      const column = this.resource.orderby && this.resource.columns.find(column => (column.orderby || column.field && column.field.key) === this.resource.orderby);
-      this.defaultOrder = column && column.order || "asc";
+  getDefaultOrder(orderby) {
+    const column = orderby && this.resource.columns.find(column => {
+      return column.field && column.field.key === orderby;
+    });
+    if (column && column.field.order) {
+      return column.field.order;
     }
-    return this.defaultOrder;
   }
-
-
 
 
 
@@ -346,35 +335,43 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     //
   }
 
-
-
   getParamString() {
 
-    const params = new URLSearchParams(KarmaFieldsAlpha.Nav.params);
+    let paramString = KarmaFieldsAlpha.Nav.getParamString();
+    const params = new URLSearchParams(paramString);
 
     if (!params.get("page")) {
       params.set("page", "1");
     }
 
     if (!params.get("ppp")) {
+      // params.set("ppp", this.getDefaultPpp() || "");
       params.set("ppp", this.getPpp());
     }
 
-    if (!params.has("orderby")) {
-      const orderby = this.getDefaultOrderby();
-      if (orderby) {
-        params.set("orderby", orderby);
-      }
-    }
-
-    if (!params.has("order")) {
-      const order = this.getDefaultOrder(params.get("orderby"));
-      if (order) {
-        params.set("order", order);
-      }
-    }
+    // if (!params.get("orderby")) {
+    //   const orderby = this.getDefaultOrderby();
+    //   if (orderby) {
+    //     params.set("orderby", orderby);
+    //   }
+    // }
+    //
+    // if (!params.get("order")) {
+    //   const order = this.getDefaultOrder(params.get("orderby"));
+    //   if (order) {
+    //     params.set("order", order);
+    //   }
+    // }
 
     params.sort();
+
+    if (params.toString() !== paramString) {
+
+      KarmaFieldsAlpha.Nav.setParamString(params.toString());
+
+    }
+
+    // params.delete("id");
 
     return params.toString();
   }
@@ -392,60 +389,61 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
   async query() {
 
-    const paramString = this.getParamString();
+    // const nav = this.decodeParams(this.paramString);
+    // if (!nav.page) nav.page = 1;
+    // if (!nav.ppp) nav.ppp = 100;
+    // let paramString = this.encodeParams(nav);
 
-    if (paramString !== this.paramString) {
+    // const param = new URLSearchParams(this.paramString);
 
-      this.paramString = paramString;
-
-      const results = await KarmaFieldsAlpha.Gateway.getTable(this.resource.driver, this.paramString);
-
-      this.count = results.count;
-
-      this.queriedIds = results.ids;
-
-    }
+    this.paramString = this.getParamString();
 
 
 
-    // this.queriedIds.forEach(id => {
-    //   const row = this.getRow(id);
-    //   row.trash.registerValue("0");
-    //
-    //
-    // });
+    // const results = await this.content.getRemoteTable(paramString, this.resource.driver);
+    const results = await KarmaFieldsAlpha.Gateway.getTable(this.resource.driver, this.paramString);
+
+    this.count = results.count;
+    this.queriedIds = results.ids;
+
+    this.queriedIds.forEach(id => {
+      const row = this.getRow(id);
+      row.trash.registerValue("0");
+
+      // const row = this.content.getChild(id) || this.content.createChild({
+      //   type: "tableRow",
+      //   key: id
+      // });
+      // row.create(this.resource.columns || []);
+    });
 
 
 
-
+    return results;
   };
 
   async sync() {
 
+    // this.queriedIds = this.getCurrentIds();
+
+
+    // this.queriedIds = this.getBufferIds().concat(this.queriedIds);
+
     const results = await this.content.save();
 
 
-    // this.tableManagment.write("ids");
+    this.tableManagment.write("ids");
 
-    // const ids = this.content.getExtraIds();
-    //
-    // if (ids.length) {
-    //
-    //   ids.forEach(id => this.write(id, "extra"));
-    //
-    //   KarmaFieldsAlpha.History.backup();
-    //   // this.removeExtraIds();
-    //
-    //   ids.forEach(id => this.removeValue(id, "extra"));
-    //
-    // }
+    KarmaFieldsAlpha.History.backup();
+    this.removeExtraIds();
 
-    // this.content.removeDeltaValue();
 
-    this.content.removeExtra();
+    // this.queriedIds = this.getExtraIds().concat(this.queriedIds);
 
-    this.paramString = null;
 
+    // this.setExtraIds([]);
+
+    // this.removeExtraIds();
 
     return results;
   };
@@ -459,24 +457,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     const ids = await KarmaFieldsAlpha.Gateway.add(this.resource.driver, {num: num || 1});
 
-
-
     const rows = ids.map(id => this.getRow(id));
-
-
-    await Promise.all(rows.map(row => row.setDefault()));
-
-
-    ids.forEach(id => {
-      this.content.writeHistory("1", id, "trash");
-      // this.content.writeHistory(null, id, "extra");
-      // this.content.registerValue("1", id, "trash");
-      // this.content.writeHistory(null, id);
-
-      // this.content.writeExtra("1", id, "trash");
-
-    });
-
 
     // if (!noBackup) {
     //   this.content.backup(["add"]);
@@ -485,9 +466,13 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     // debugger;
 
-    // await Promise.all(rows.map(row => row.fill(null)));
+    await Promise.all(rows.map(row => {
+      row.fill(null);
+      row.trash.registerValue("1");
+      row.trash.setValue("1");
+    }));
 
-    // this.tableManagment.write("ids");
+    this.tableManagment.write("ids");
 
     // this.backup(["ids"]);
 
@@ -498,31 +483,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     // this.setExtraIds(this.getExtraIds().concat(ids));
     // this.extraIds = this.extraIds.concat(ids);
 
-    // await Promise.all(rows.map(row => row.fill())); // -> also set trash to "0"
-
-
-
-    ids.forEach(id => {
-      this.content.write(id);
-
-
-      // this.content.setDeltaValue("1", id, "extra");
-
-      this.content.setExtra("1", id, "trash");
-      this.content.setExtra(0, id, "index");
-
-      // this.content.registerValue("1", id, "trash");
-      this.content.setValue("0", id, "trash");
-    });
-
-
+    await Promise.all(rows.map(row => row.fill())); // -> also set trash to "0"
 
 
     // this.queriedIds = ids.concat(this.queriedIds);
     // await this.content.ids.add(ids);
 
     // this.setExtraIds(this.getExtraIds().concat(ids));
-      // this.setExtraIds([...ids, ...this.getExtraIds()]);
+      this.setExtraIds([...ids, ...this.getExtraIds()]);
 
     // if (this.getModalColumn() && ids.length === 1) {
     //   KarmaFieldsAlpha.History.setParam("id", ids[0]);
@@ -544,7 +512,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     if (KarmaFieldsAlpha.Nav.hasParam("id")) {
       return [KarmaFieldsAlpha.Nav.getParam("id")];
     } else if (this.select.selection && this.select.selection.width === this.select.grid.width) {
-      return this.content.ids.slice(this.select.selection.y, this.select.selection.y+this.select.selection.height);
+      return this.getCurrentIds().slice(this.select.selection.y, this.select.selection.y+this.select.selection.height);
     }
     return [];
   }
@@ -553,45 +521,43 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     let ids = this.getSelectedIds();
 
     if (ids.length) {
-      // const rows = ids.map(id => this.content.getChild(id));
-      const rows = ids.map(id => this.getRow(id));
-
-      ids.forEach(id => {
-        this.content.writeHistory("0", id, "trash");
-        // this.content.writeHistory(null, id);
-      });
-
-      // await Promise.all(rows.map(row => {
-      //   row.write();
-      //
-      //   return row.trash.setValue("0");
-      // }));
-      //
-      // let isSomeExtra = this.getExtraIds().some(id => ids.indexOf(id) > -1);
-      //
-      // if (isSomeExtra) {
-      //   this.tableManagment.write("ids");
-      // }
+      const rows = ids.map(id => this.content.getChild(id));
 
 
+      await Promise.all(rows.map(row => {
+        row.write();
+        return row.trash.setValue("0");
+      }));
+
+      let isSomeExtra = this.getExtraIds().some(id => ids.indexOf(id) > -1);
+
+      if (isSomeExtra) {
+        this.tableManagment.write("ids");
+      }
+
+
+
+      // rows[0].backup();
 
       KarmaFieldsAlpha.History.backup();
 
 
-      // await Promise.all(rows.map(row => {
-      //   row.removeValue();
-      //   return row.trash.setValue("1");
-      // }));
 
-      ids.forEach(id => {
-        this.content.setValue("1", id, "trash");
-      });
+      // this.content.backup(rows);
+      // this.content.ids.remove(ids);
 
-      // this.queriedIds = this.queriedIds.filter(id => ids.indexOf(id) === -1);
+      // await Promise.all(rows.map(row => row.removeValue()));
 
-      // if (isSomeExtra) {
-      //   this.setExtraIds(this.getExtraIds().filter(id => ids.indexOf(id) === -1));
-      // }
+      await Promise.all(rows.map(row => {
+        row.removeValue();
+        return row.trash.setValue("1");
+      }));
+
+      this.queriedIds = this.queriedIds.filter(id => ids.indexOf(id) === -1);
+
+      if (isSomeExtra) {
+        this.setExtraIds(this.getExtraIds().filter(id => ids.indexOf(id) === -1));
+      }
 
 
       // if modal open -> moved to control button
@@ -621,43 +587,46 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
         // duplicate values
         let value = this.content.getValue(id);
         delete value.id;
-        this.content.setDeltaValue(value, cloneId);
+        this.content.setValue(value, cloneId);
 
       }
 
-      let index = this.content.ids.indexOf(ids[ids.length-1]);
-      this.content.setExtra(index, id, "index");
+      let index = this.queriedIds.indexOf(ids[ids.length-1]);
+      if (index > -1) {
+        this.queriedIds.splice(index+1, 0, ...cloneIds);
+      }
 
     }
   }
 
   // async function
-  // reorder(column) {
-  //   const params = KarmaFieldsAlpha.Nav.getParamsObject();
-  //   // const orderby = this.getParam("orderby");
-  //   // const order = this.getParam("order");
-  //   const orderby = params.get("orderby"); // || this.getDefaultOrderby();
-  //   const order = params.get("order"); // || this.getDefaultOrder(orderby);
-  //   const key = column.orderby || column.field.key;
-  //
-  //   if (key) {
-  //     if (orderby === key) {
-  //       params.set("order", order === "asc" ? "desc" : "asc");
-  //     } else {
-  //       params.set("order", column.order || "asc");
-  //       params.set("orderby", key);
-  //     }
-  //     params.set("page", 1);
-  //     KarmaFieldsAlpha.Nav.setParamsObject(params);
-  //     return this.editParam();
-  //   }
-  //
-  // }
+  reorder(column) {
+    const params = KarmaFieldsAlpha.Nav.getParamsObject();
+    // const orderby = this.getParam("orderby");
+    // const order = this.getParam("order");
+    const orderby = params.get("orderby"); // || this.getDefaultOrderby();
+    const order = params.get("order"); // || this.getDefaultOrder(orderby);
+    const key = column.orderby || column.field.key;
+
+    if (key) {
+      if (orderby === key) {
+        params.set("order", order === "asc" ? "desc" : "asc");
+      } else {
+        params.set("order", column.order || "asc");
+        params.set("orderby", key);
+      }
+      params.set("page", 1);
+      KarmaFieldsAlpha.Nav.setParamsObject(params);
+      return this.editParam();
+    }
+
+  }
 
 
   selectRow(rowId) {
 
-    let index = this.content.ids.indexOf(rowId);
+    const ids = this.getCurrentIds();
+    let index = ids.indexOf(rowId);
     if (index > -1) {
       this.select.setFocus({x:0, y:index});
     }
@@ -691,7 +660,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     // return pathes;
     //
 
-    return selection && this.content.ids.slice(selection.y, selection.y+selection.height) || [];
+    return selection && this.getCurrentIds().slice(selection.y, selection.y+selection.height) || [];
   }
 
   // getSelectedColumnsPaths(key) {
@@ -708,7 +677,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     // const field = this;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      let ids = this.content.ids;
+      let ids = this.getCurrentIds();
 
       var rows = [];
       for (var j = 0; j < selection.height; j++) {
@@ -803,7 +772,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     // console.log(selection);
 
-    let ids = this.content.ids;
+    let ids = this.getCurrentIds();
     // const state = await navigator.permissions.query({ name: "clipboard-read" });
 
     // const state = await navigator.permissions.query({name:'geolocation'});
@@ -834,7 +803,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
       if (textRows.length > ids.length-y) {
         await this.add(textRows.length-(ids.length-y), false); // -> will backup
-        ids = this.content.ids;
+        ids = this.getCurrentIds();
       } else {
         KarmaFieldsAlpha.History.backup();
       }
@@ -861,7 +830,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     await this.copy(selection);
 
-    let ids = this.content.ids;
+    let ids = this.getCurrentIds();
 
     for (let j = 0; j < selection.height; j++) {
       const rowField = this.content.getChild(ids[j+selection.y]);
@@ -891,33 +860,33 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
 
 
-  // async editAll() {
-  //   // console.log(conductor, value);
-  //   if (this.select && this.select.selection && this.select.focusRect && this.select.selection.height > 1) {
-  //
-  //     let ids = this.getCurrentIds();
-  //     let field = this.content.getChild(ids[this.select.focusRect.y]).children[this.select.focusRect.x+1];
-  //     let value = await field.fetchValue();
-  //
-  //     field.backup();
-  //
-  //     const promises = [];
-  //
-  //     for (var j = 0; j < this.select.selection.height; j++) {
-  //       if (j+this.select.selection.y !== this.select.focusRect.y) {
-  //         const rowField = this.content.getChild(ids[j+this.select.selection.y]);
-  //         const cellField = rowField.children[this.select.focusRect.x+1];
-  //         cellField.setValue(value);
-  //
-  //         promises.push(cellField.render());
-  //       }
-  //     }
-  //
-  //     await Promise.all(promises);
-  //
-  //     // await this.render();
-  //   }
-  // }
+  async editAll() {
+    // console.log(conductor, value);
+    if (this.select && this.select.selection && this.select.focusRect && this.select.selection.height > 1) {
+
+      let ids = this.getCurrentIds();
+      let field = this.content.getChild(ids[this.select.focusRect.y]).children[this.select.focusRect.x+1];
+      let value = await field.fetchValue();
+
+      field.backup();
+
+      const promises = [];
+
+      for (var j = 0; j < this.select.selection.height; j++) {
+        if (j+this.select.selection.y !== this.select.focusRect.y) {
+          const rowField = this.content.getChild(ids[j+this.select.selection.y]);
+          const cellField = rowField.children[this.select.focusRect.x+1];
+          cellField.setValue(value);
+
+          promises.push(cellField.render());
+        }
+      }
+
+      await Promise.all(promises);
+
+      // await this.render();
+    }
+  }
 
   getIds() {
     console.error("Deprecated getIds()");
@@ -925,9 +894,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
   }
 
   getCurrentIds() {
-    console.error("Deprecated getCurrentIds()");
-    // return this.getExtraIds().concat(this.queriedIds || []);
-    return this.queriedIds || [];
+
+    return this.getExtraIds().concat(this.queriedIds || []);
+    // return this.getBufferIds().concat(this.queriedIds || []);
   }
 
   getCount() {

@@ -2,6 +2,8 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 
 	initField() {
 
+
+
 		// -> compat
 		if (!this.resource.value && this.resource.key && this.resource.driver) {
 			// console.warn("DEPRECATED");
@@ -15,208 +17,272 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 			console.error("Resource missing value attribute");
 		}
 
-		// if (this.resource.multiple) {
-		// 	this.registerType("json");
+		// if (this.resource.value) {
+		// 	if (this.resource.value.includes("*")) {
+		// 		this.resource.value = this.resource.value.replace(/^(.*)\*([^%]+)\*(.*)$/, "{{#$2}}$1{{$2}}$3{{/$2}}");
+		// 	}
+		// 	if (this.resource.value.includes("%")) {
+		// 		this.resource.value = this.resource.value.replace(/%([^%]+)%/g, "{{$1}}");
+		// 	}
 		// }
 
-		// if (this.resource.multiple) {
-		// 	this.registerRelations();
-		// }
-		//
-		// if (this.resource.multiple) {
-		// 	KarmaFieldsAlpha.Relations.register();
-		// }
+
+		// compat
+
 	}
 
-	// async fetchValue(expectedType, ...path) {
-	// 	if (this.resource.key) {
-	// 		const values = await super.fetchValue();
+
+
+
+	// async fetchText(key, driver, type) {
+	// 	let value = await this.parent.fetchValue(type, key);
+	//
+	// 	if (driver) {
+	//
+	// 		const options = await this.fetchOptions(driver);
+	//
+	// 		if (type === "array") {
+	//
+	// 			value = value.length && options.filter(option => value.includes(option.key)).map(option => option.name) || [];
+	//
+	// 		} else {
+	//
+	// 			const option = options.find(option => option.key === value);
+	// 			value = option && option.name || "";
+	//
+	// 		}
 	//
 	// 	}
 	//
-	// }
-
-	async fetchText(key, driver, type) {
-		let value = await this.parent.fetchValue(type, key);
-
-		if (driver) {
-
-			const options = await this.fetchOptions(driver);
-
-			if (type === "array") {
-
-				value = value.length && options.filter(option => value.includes(option.key)).map(option => option.name) || [];
-
-			} else {
-
-				const option = options.find(option => option.key === value);
-				value = option && option.name || "";
-
-			}
-
-		}
-
-		return value;
-	}
-
-	// async parseTemplate(value) {
-	// 	const matches = value.match(/%([^%]+)%/g);
-	// 	if (matches) {
-	// 		const values = await Promise.all(matches.map(match => this.fetchText(...match.slice(1, -1).split(":"))));
-	// 		matches.forEach((match, index) => {
-	// 			value = value.replace(match, values[index] || "");
-	// 		});
-	// 	}
 	// 	return value;
 	// }
 
-	async parseSingle(value) {
-		const matches = value.match(/%([^%]+)%/g);
 
-		if (matches) {
-
-			for (const match of matches) {
-
-				const text = await this.fetchText(...match.slice(1, -1).split(":"));
-
-				value = value.replace(match, text || "");
-
-			}
-
-		}
-
-		// value = value.replace(/%{2}/g, "%");
-
-		return value;
-	}
-
-	async * parseMulti(value) {
-		const match = value.match(/\*([^*:]+):?([^*]+)?\*/);
-
-		value = value.replace(/%{2}/g, "%");
-
-		if (match) {
-			const texts = await this.fetchText(match[1], match[2], "array");
-
-			for (const text of texts) {
-
-				yield value.replace(match[0], text);
-
-			}
-
-		} else {
-
-			yield value;
-
-		}
-	}
-
-
-	// async parseText(text, key, value) {
-	// 	console.log([text, key, value]);
-	// 	if (key && value !== undefined) {
-	// 		text = text.replace("%"+key+"%", value);
-	// 	}
-	// 	// if (key) {
-	// 	// 	text = text.replace(/%value:([^%]+)%/, (match, driver) => "%"+key+":"+driver+"%");
-	// 	// }
+	// async parseSingle(value) {
+	// 	const matches = value.match(/%([^%]+)%/g);
 	//
-	// 	if (key && value !== undefined) {
-	// 		text = text.replace("%"+key+"%", value);
-	// 	}
-	//
-	// 	console.log([text, key, value], await this.parseTemplate(text));
-	// 	return this.parseTemplate(text);
-	// }
-
-
-	// getDrivers(text) {
-	// 	const matches = value.match(/%[^%]+:[^%]+%/g);
 	// 	if (matches) {
-	// 		return matches.map(match => match.match(/:([^%]+)%/)[1]);
+	//
+	// 		for (const match of matches) {
+	//
+	// 			const text = await this.fetchText(...match.slice(1, -1).split(":"));
+	//
+	// 			value = value.replace(match, text || "");
+	//
+	// 		}
+	//
 	// 	}
+	//
+	// 	// value = value.replace(/%{2}/g, "%");
+	//
+	// 	return value;
 	// }
-
-	// async parseMultipleTexts(text) {
 	//
-	// 	let values; // = await this.fetchValue(this.resource.multiple && "array" || undefined);
+	// async * parseMulti(value) {
+	// 	const match = value.match(/\*([^*:]+):?([^*]+)?\*/);
 	//
-	// 	// if (this.resource.key && this.resource.multiple) {
-	// 	if (this.resource.multiple) {
-	// 		// values = await this.fetchValue("array");
-	// 		values = await this.fetchValue("relations", this.resource.multiple);
-	// 	// } else if (this.resource.key) {
-	// 	// 	const value = await this.fetchValue();
-	// 	// 	values = [value];
+	// 	value = value.replace(/%{2}/g, "%");
+	//
+	// 	if (match) {
+	// 		const texts = await this.fetchText(match[1], match[2], "array");
+	//
+	// 		for (const text of texts) {
+	//
+	// 			yield value.replace(match[0], text);
+	//
+	// 		}
+	//
 	// 	} else {
-	// 		values = [this.resource.value];
+	//
+	// 		yield value;
+	//
 	// 	}
-	//
-	// 	// if (!Array.isArray(values)) {
-	// 	// 	values = values && [values] || [];
-	// 	// }
-	//
-	// 	// const key = this.resource.map || this.resource.key;
-	//
-	// 	// const code = "%"+key+"%";
-	// 	// let driverCode;
-	//
-	// 	let options;
-	// 	let driver;
-	//
-	// 	if (this.resource.multiple) {
-	// 		const reg = new RegExp("%"+this.resource.multiple+":([^%]+)%");
-	// 		const match = text.match(reg);
-	// 		if (match) {
-	// 			driver = match[1];
-	// 			options = await this.fetchOptions(driver);
-	// 			// driverCode = driver && "%"+key+":"+driver+"%";
-	// 		}
-	// 	}
-	//
-	// 	return Promise.all(values.map(value => {
-	// 		let child = text;
-	// 		if (this.resource.multiple) {
-	// 			child = child.replace("%"+this.resource.multiple+"%", value.toString());
-	// 		}
-	// 		if (driver && options) {
-	// 			child = child.replace("%"+this.resource.multiple+":"+driver+"%", () => {
-	// 				const option = options.find(option => option.key === value.toString());
-	// 				return option && option.name || "";
- 	// 			});
-	// 		}
-	// 		return this.parseTemplate(child);
-	// 	}));
 	// }
 
 
-	async getTexts(text) {
-		const texts = [];
+	async parseSingle(text, params = {}) {
 
-		if (this.resource.single !== false) {
+		const mustaches = text.match(this.constructor.singleReg);
 
-			text = await this.parseSingle(text);
+		if (mustaches && mustaches.length) {
+
+			for (var i in mustaches) {
+
+				let key, subkey, domain, value;
+
+				// const match = mustaches[i].slice(2, -2);
+
+				[,key, subkey, domain] = mustaches[i].match(this.constructor.splitReg);
+
+				// [key, domain] = match.split(":");
+				// [key, subkey] = key.split(".");
+
+				if (params && params[key] !== undefined) {
+
+					value = params[key];
+
+				} else {
+
+					value = await this.parent.fetchValue(null, key);
+
+				}
+
+				if (subkey && value[subkey] !== undefined) {
+
+					value = value[subkey];
+
+				}
+
+
+
+				if (domain) {
+
+					let functionMatch = domain.match(this.constructor.functionReg);
+
+
+					if (functionMatch && this[functionMatch[1]]) {
+
+
+
+						value = this[functionMatch[1]](value, ...functionMatch[2].split(",").map(arg => arg.trim()));
+
+					} else {
+
+						const options = await this.fetchOptions(domain);
+						const option = options.find(option => option.key === value);
+						value = option && option.name || "";
+
+					}
+
+				}
+
+				text = text.replace(mustaches[i], value);
+
+			}
 
 		}
 
-		if (this.resource.multi !== false) {
+		return text;
+	}
 
-			const generator = this.parseMulti(text);
+	async parse(text) {
 
-			for await (const item of generator) {
-		    texts.push(item);
-		  }
+
+		// compat
+		if (text.includes("*")) {
+			text = text.replace(/^(.*)\*([^%]+)\*(.*)$/, "{{#$2}}$1{{$2}}$3{{/$2}}");
+		}
+		if (text.includes("%")) {
+			text = text.replace(/%([^%]+)%/g, "{{$1}}");
+		}
+
+
+		const iteration = text.match(this.constructor.multiReg);
+
+		if (iteration && iteration[1] && iteration[1] === iteration[3]) {
+
+			let content = "";
+			let array = await this.parent.fetchValue("array", iteration[1]);
+
+			if (array && array.length) {
+
+				for (var i in array) {
+
+					content += await this.parseSingle(iteration[2], {[iteration[1]]: array[i]});
+
+				}
+
+			}
+
+			return text.replace(iteration[0], content);
 
 		} else {
 
-			return [text];
+			return this.parseSingle(text);
 
 		}
 
-		return texts;
 	}
 
-	// buildText(text) {
+
+	// async getTexts(text) {
+	// 	const texts = [];
+	//
+	// 	if (this.resource.single !== false) {
+	//
+	// 		text = await this.parseSingle(text);
+	//
+	// 	}
+	//
+	// 	if (this.resource.multi !== false) {
+	//
+	// 		const generator = this.parseMulti(text);
+	//
+	// 		for await (const item of generator) {
+	// 	    texts.push(item);
+	// 	  }
+	//
+	// 	} else {
+	//
+	// 		return [text];
+	//
+	// 	}
+	//
+	// 	return texts;
+	// }
+
+	build() {
+		return {
+			tag: this.resource.tag,
+			class: "text karma-field",
+			update: async node => {
+				this.render = node.render;
+				node.element.classList.add("loading");
+
+				node.element.innerHTML = await this.parse(this.resource.value);
+				node.element.classList.remove("loading");
+
+				// if (this.resource.iterator && this.resource.child) {
+				// 	const array = await this.fetchValue("array", this.resource.iterator) || [];
+				// 	node.children = array.map(value => this.resource.child);
+				// }
+			}
+		};
+	}
+
+	// build() {
+	// 	return {
+	// 		tag: this.resource.tag,
+	// 		class: "text karma-field",
+	// 		// init: span => {
+	// 		// 	span.element.setAttribute('tabindex', '-1');
+	// 		// },
+	// 		update: async node => {
+	// 			this.render = node.render;
+	// 			node.element.classList.add("loading");
+	//
+	// 			const texts = await this.getTexts(this.resource.value);
+	// 			node.children = texts.map(text => {
+	// 				return {
+	// 					class: "text-item",
+	// 					init: span => {
+	// 						if (this.resource.element) {
+	// 							Object.assign(span.element, this.resource.element);
+	// 						}
+	// 					},
+	// 					update: async node => {
+	// 						node.element.innerHTML = text;
+	// 					}
+	// 				};
+	// 			});
+	//
+	//
+	// 			node.element.classList.remove("loading");
+	// 		}
+	// 	};
+	// }
+
+	// buildSimple() {
 	// 	return {
 	// 		class: "text-item",
 	// 		init: span => {
@@ -225,55 +291,19 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 	// 			}
 	// 		},
 	// 		update: async node => {
+	// 			const texts = await this.getTexts(this.resource.value);
 	// 			node.element.innerHTML = text;
 	// 		}
-	// 	};
+	// 	}
 	// }
 
-	build() {
-		return {
-			tag: this.resource.tag,
-			class: "text karma-field",
-			init: span => {
-				span.element.setAttribute('tabindex', '-1');
-			},
-			update: async node => {
-				this.render = node.render;
-				node.element.classList.add("loading");
-
-				const texts = await this.getTexts(this.resource.value);
-				node.children = texts.map(text => {
-					return {
-						class: "text-item",
-						init: span => {
-							if (this.resource.element) {
-								Object.assign(span.element, this.resource.element);
-							}
-						},
-						update: async node => {
-							node.element.innerHTML = text;
-						}
-					};
-				});
-
-
-				node.element.classList.remove("loading");
-			}
-		};
+	date(value, format) {
+		return moment(value).format(format);
 	}
 
-	buildSimple() {
-		return {
-			class: "text-item",
-			init: span => {
-				if (this.resource.element) {
-					Object.assign(span.element, this.resource.element);
-				}
-			},
-			update: async node => {
-				const texts = await this.getTexts(this.resource.value);
-				node.element.innerHTML = text;
-			}
-		}
-	}
 }
+
+KarmaFieldsAlpha.fields.text.singleReg = /\{\{[^}]+\}\}/g;
+KarmaFieldsAlpha.fields.text.multiReg = /\{\{#([^}]+)\}\}(.*)\{\{\/([^}]+)\}\}/;
+KarmaFieldsAlpha.fields.text.functionReg = /([^(]+)\(([^)]+)\)/;
+KarmaFieldsAlpha.fields.text.splitReg = /\{\{([^.:]+)(?:\.([^:]+))?(?:\:?(.+))?\}\}/;

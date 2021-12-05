@@ -18,7 +18,8 @@ KarmaFieldsAlpha.DeepObject.assign = function(object, pathKeys, value) {
   }
 }
 
-KarmaFieldsAlpha.DeepObject.assign3 = function(object, value, ...path) {
+KarmaFieldsAlpha.DeepObject.assign = function(object, value, ...path) {
+  // console.log(object, value, path);
   const key = path.shift();
   if (key) {
     if (path.length > 0) {
@@ -38,6 +39,19 @@ KarmaFieldsAlpha.DeepObject.assign3 = function(object, value, ...path) {
   return object;
 }
 
+KarmaFieldsAlpha.DeepObject.assign4 = function(object, value, key, ...path) {
+  if (key) {
+    if (path.length) {
+      if (!object[key]) {
+        object[key] = {};
+      }
+      this.assign4(object[key], value, ...path);
+    } else {
+      object[key] = value;
+    }
+  }
+}
+
 /**
  * KarmaFieldsAlpha.DeepObject.get({"a": {"b": 5}}, ["a", "b"]); // -> 5
  */
@@ -53,7 +67,7 @@ KarmaFieldsAlpha.DeepObject.get = function(object, pathKeys) {
 	}
 };
 
-KarmaFieldsAlpha.DeepObject.get3 = function(object, ...path) {
+KarmaFieldsAlpha.DeepObject.get = function(object, ...path) {
 	if (path.length) {
     const key = path.shift();
 		if (object) {
@@ -62,6 +76,10 @@ KarmaFieldsAlpha.DeepObject.get3 = function(object, ...path) {
 	} else {
 		return object;
 	}
+};
+
+KarmaFieldsAlpha.DeepObject.get4 = function(object, key, ...path) {
+  return key && object && this.get4(object[key], ...path) || object;
 };
 
 /**
@@ -79,6 +97,16 @@ KarmaFieldsAlpha.DeepObject.remove = function(object, ...path) {
   return object;
 };
 
+KarmaFieldsAlpha.DeepObject.remove2 = function(object, key, ...path) {
+  if (key && object[key]) {
+    if (path.length > 0) {
+      this.remove2(object[key], ...path);
+    } else {
+      object[key] = undefined;
+    }
+  }
+};
+
 KarmaFieldsAlpha.DeepObject.has = function(object, ...path) {
   const key = path.shift();
   if (key && object[key]) {
@@ -89,6 +117,10 @@ KarmaFieldsAlpha.DeepObject.has = function(object, ...path) {
     }
   }
   return false;
+};
+
+KarmaFieldsAlpha.DeepObject.has2 = function(object, key, ...path) {
+  return key && object[key] && (path.length > 0 && this.has2(object[key], ...path) || object[key] !== undefined) || false;
 };
 
 KarmaFieldsAlpha.DeepObject.isEmpty = function(object) {
@@ -139,6 +171,19 @@ KarmaFieldsAlpha.DeepObject.merge = function(object1, object2) {
 		}
 	}
 }
+
+KarmaFieldsAlpha.DeepObject.clone = function(...objects) {
+  const result = {};
+  objects.forEach(object => {
+    this.merge(result, object);
+  });
+  return result;
+}
+
+// KarmaFieldsAlpha.DeepObject.combine = function(...objects) {
+//   return this.clone(objects);
+// }
+
 
 // KarmaFieldsAlpha.DeepObject.forEach = function(object, callback, ...path) {
 // 	for (let i in object) {

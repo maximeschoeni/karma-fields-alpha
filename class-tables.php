@@ -4,7 +4,7 @@
 
 Class Karma_Fields_Alpha {
 
-	public $version = '25';
+	public $version = '26';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -34,12 +34,23 @@ Class Karma_Fields_Alpha {
 			add_action('karma_fields_alpha', array($this, 'print_field'));
 
 			add_action('karma_fields_post_field', array($this, 'print_post_field'), 10, 2);
+			add_action('karma_fields_option_field', array($this, 'print_option_field'));
 
 
 			add_action('admin_head', array($this, 'print_footer'));
 
 			add_action('adminmenu', array($this, 'adminmenu'));
 			add_action('admin_footer', array($this, 'print_nav'));
+
+
+			// -> prevent wp_admin_canonical_url() to delete history state... Dunno if theres side effects!
+			// add_filter('removable_query_args', function() {
+			// 	return array();
+			// });
+
+
+    // Function to be called on plugin initialisation
+
 
 		}
 
@@ -54,7 +65,7 @@ Class Karma_Fields_Alpha {
 
 			$plugin_url = trim(plugin_dir_url(__FILE__), '/');
 
-			wp_enqueue_style('date-field-styles', $plugin_url . '/css/date-field.css', array(), $this->version);
+			wp_enqueue_style('karma-styles-date-field', $plugin_url . '/css/date-field.css', array(), $this->version);
 			wp_enqueue_style('multimedia-styles', $plugin_url . '/css/multimedia.css', array(), $this->version);
 			wp_enqueue_style('karma-styles-alpha-grid', $plugin_url . '/css/grid.css', array(), $this->version);
 			wp_enqueue_style('karma-styles-alpha-array', $plugin_url . '/css/array.css', array(), $this->version);
@@ -105,7 +116,10 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-container', $plugin_url . '/js/fields/container.js', array('karma-fields-alpha', 'karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-group', $plugin_url . '/js/fields/group.js', array('karma-fields-alpha', 'karma-fields-alpha-container'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-form', $plugin_url . '/js/fields/form.js', array('karma-fields-alpha', 'karma-fields-alpha-group'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-date', $plugin_url . '/js/fields/date.js', array('karma-fields-alpha', 'karma-fields-alpha-calendar'), $this->version, true);
+				// wp_enqueue_script('karma-fields-alpha-date', $plugin_url . '/js/fields/date.js', array('karma-fields-alpha', 'karma-fields-alpha-calendar'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-date', $plugin_url . '/js/fields/date.js', array('karma-fields-alpha', 'moment'), $this->version, true);
+
+
 				wp_enqueue_script('karma-fields-alpha-input', $plugin_url . '/js/fields/input.js', array('karma-fields-alpha'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-grid', $plugin_url . '/js/fields/grid.js', array('karma-fields-alpha'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-file', $plugin_url . '/js/fields/file.js', array('karma-fields-alpha'), $this->version, true);
@@ -147,9 +161,10 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-table-ordering', $plugin_url . '/js/fields/table/table-ordering.js', array('karma-fields-alpha-table'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-table-pagination', $plugin_url . '/js/fields/table/table-pagination.js', array('karma-fields-alpha-table'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-table-content', $plugin_url . '/js/fields/table/table-content.js', array('karma-fields-alpha-table'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-table-options', $plugin_url . '/js/fields/table/table-options.js', array('karma-fields-alpha-table'), $this->version, true);
 
 				// navigation
-				wp_enqueue_script('karma-fields-alpha-navigation', $plugin_url . '/js/fields/navigation.js', array('karma-fields-alpha'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-navigation', $plugin_url . '/js/fields/navigation.js', array('karma-fields-alpha', 'karma-fields-manager-nav'), $this->version, true);
 
 
 				// deprecated
@@ -168,18 +183,21 @@ Class Karma_Fields_Alpha {
 				// wp_enqueue_script('karma-utils-object', $plugin_url . '/js/utils/object.js', array('karma-fields-alpha'), $this->version, true);
 				// wp_enqueue_script('karma-transfer', $plugin_url . '/js/transfer-manager.js', array('karma-fields-alpha'), $this->version, true);
 				wp_enqueue_script('karma-fields-manager-selection', $plugin_url . '/js/managers/selection-manager.js', array('karma-fields-alpha'), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-flat-object', $plugin_url . '/js/utils/flat-object.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-deep-object', $plugin_url . '/js/utils/deep-object.js', array(), $this->version, true);
 
 				// includes
 				// wp_enqueue_script('karma-fields-includes-icon', $plugin_url . '/js/includes/icon.js', array('karma-fields-alpha'), $this->version, true);
 
 				// managers
 				wp_enqueue_script('karma-fields-manager-history', $plugin_url . '/js/managers/history.js', array('karma-fields-alpha'), $this->version, true);
+				wp_enqueue_script('karma-fields-manager-nav', $plugin_url . '/js/managers/nav.js', array('karma-fields-alpha'), $this->version, true);
 				// wp_enqueue_script('karma-fields-manager-cache', $plugin_url . '/js/managers/cache.js', array('karma-fields-alpha'), $this->version, true);
 				wp_enqueue_script('karma-fields-manager-gateway', $plugin_url . '/js/managers/gateway.js', array('karma-fields-alpha'), $this->version, true);
 				wp_enqueue_script('karma-fields-manager-delta', $plugin_url . '/js/managers/delta.js', array('karma-fields-alpha'), $this->version, true);
+				wp_enqueue_script('karma-fields-manager-session-storage', $plugin_url . '/js/managers/session-storage.js', array('karma-fields-alpha', 'karma-fields-manager-delta'), $this->version, true);
+
 				wp_enqueue_script('karma-fields-manager-type', $plugin_url . '/js/managers/type.js', array('karma-fields-alpha'), $this->version, true);
-				wp_enqueue_script('karma-fields-manager-storage', $plugin_url . '/js/managers/storage.js', array('karma-fields-alpha'), $this->version, true);
+				// wp_enqueue_script('karma-fields-manager-storage', $plugin_url . '/js/managers/storage.js', array('karma-fields-alpha'), $this->version, true);
 
 				// wp_enqueue_script('karma-fields-manager-field', $plugin_url . '/js/managers/field.js', array('karma-fields-alpha'), $this->version, true);
 				// wp_enqueue_script('karma-fields-manager-form', $plugin_url . '/js/managers/form.js', array('karma-fields-alpha'), $this->version, true);
@@ -682,6 +700,18 @@ Class Karma_Fields_Alpha {
 		$index++;
 
 		include plugin_dir_path(__FILE__) . 'includes/post-field.php';
+
+	}
+
+	/**
+	 *	@hook karma_fields_option_field
+	 */
+	public function print_option_field($args) {
+		static $index = 0;
+
+		$index++;
+
+		include plugin_dir_path(__FILE__) . 'includes/option-field.php';
 
 	}
 

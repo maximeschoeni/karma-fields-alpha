@@ -3,7 +3,7 @@
 --------------------------------------*/
 
 
-.karma-fields input.text,
+.karma-fields input.text-input,
 .karma-fields textarea {
   flex-grow: 1;
   box-shadow: none;
@@ -12,12 +12,14 @@
 
 
   border-radius: 2px;
+
+  max-width: none;
 }
-.karma-fields input.text.modified,
+.karma-fields input.text-input.modified,
 .karma-fields textarea.modified {
   color: black;
 }
-.karma-fields input.text:focus,
+.karma-fields input.text-input:focus,
 .karma-fields textarea:focus {
   outline: none;
   background-color: white;
@@ -66,13 +68,13 @@
   background-color: white;
 }
 
-.karma-fields .table input.text,
+.karma-fields .table input.text-input,
 .karma-fields .table textarea {
   border: none;
   margin: 0;
   border-radius: 0;
-  min-width: 100%;
-  width: 120px;
+  min-width: 120px;
+  width: 100%;
   min-height: 40px;
   box-shadow: none;
 
@@ -86,8 +88,9 @@
 -ms-user-select: none; */
 
 }
-.table .karma-field-date input {
-  height: 100%;
+.karma-fields .table input.text-input.date {
+  /* min-width: 196px;  */
+  /* for calendar popup */
 }
 
 

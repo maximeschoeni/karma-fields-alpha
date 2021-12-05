@@ -147,68 +147,70 @@ KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.text {
 
 	}
 
-	// buildLink(text, link) {
-	// 	return {
-	// 		tag: "a",
-	// 		init: a => {
-	// 			if (this.resource.a) {
-	// 				Object.assign(a.element, this.resource.a);
-	// 			}
-	// 		},
-	// 		update: async a => {
-	// 			a.element.innerHTML = text;
-	// 			a.element.href = link;
-	// 		}
-	// 	};
-	// }
-
 	build() {
 		return {
+			tag: "a",
 			class: "text karma-field",
-			init: span => {
-				span.element.setAttribute('tabindex', '-1');
-			},
 			update: async node => {
 				this.render = node.render;
 				node.element.classList.add("loading");
-
-				const texts = await this.getTexts(this.resource.value);
-				const links = await this.getTexts(this.resource.href);
-
-				node.children = texts.map((text, index) => {
-					return {
-						tag: "a",
-						init: a => {
-							if (this.resource.a) {
-								Object.assign(a.element, this.resource.a);
-							}
-						},
-						update: async a => {
-							a.element.innerHTML = text;
-							a.element.href = links[index];
-						}
-					};
-				});
-
-				// if (this.resource.key && this.resource.multiple) {
-				//
-				// 	const values = await this.fetchValue();
-				// 	const texts = await Promise.all(values.map(value => this.parseText(this.resource.value, "value", value)));
-				// 	const links = await Promise.all(values.map(value => this.parseText(this.resource.href, "value", value)));
-				// 	node.children = texts.map((text, index) => this.buildLink(text, links[index]));
-				//
-				// } else {
-				//
-				// 	const text = await this.parseText(this.resource.value, this.resource.key);
-				// 	const link = await this.parseText(this.resource.href, this.resource.key);
-				// 	node.children = [this.buildText(text, link)];
-				//
-				// }
-
+				node.element.innerHTML = await this.parse(this.resource.value);
+				if (this.resource.href) {
+					node.element.href = await this.parse(this.resource.href);
+				}
+				if (this.resource.paramstring) {
+					const paramstring = await this.parse(this.resource.paramstring);
+					node.element.onclick = event => {
+						KarmaFieldsAlpha.Nav.mergeParamString(paramstring);
+						this.editParam(true);
+					}
+				}
 				node.element.classList.remove("loading");
 			}
 		};
 	}
+
+	// build() {
+	// 	return {
+	// 		class: "text karma-field",
+	// 		// init: span => {
+	// 		// 	span.element.setAttribute('tabindex', '-1');
+	// 		// },
+	// 		update: async node => {
+	// 			this.render = node.render;
+	// 			node.element.classList.add("loading");
+	//
+	// 			const texts = await this.getTexts(this.resource.value);
+	// 			const links = this.resource.href && await this.getTexts(this.resource.href);
+	// 			const paramstrings = this.resource.paramstring && await this.getTexts(this.resource.paramstring);
+	//
+	// 			node.children = texts.map((text, index) => {
+	// 				return {
+	// 					tag: "a",
+	// 					init: a => {
+	// 						if (this.resource.a) {
+	// 							Object.assign(a.element, this.resource.a);
+	// 						}
+	// 					},
+	// 					update: async a => {
+	// 						a.element.innerHTML = text;
+	// 						if (links && links[index]) {
+	// 							a.element.href = links[index];
+	// 						}
+	// 						if (paramstrings && paramstrings[index]) {
+	// 							a.element.onclick = event => {
+	// 								KarmaFieldsAlpha.History.mergeParamString(paramstrings[index]);
+	// 								this.editParam(true);
+	// 							}
+	// 						}
+	// 					}
+	// 				};
+	// 			});
+	//
+	// 			node.element.classList.remove("loading");
+	// 		}
+	// 	};
+	// }
 
 
 }

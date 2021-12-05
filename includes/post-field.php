@@ -83,11 +83,11 @@
 		field.delta = {
 			getObject: function() {
 				let delta = JSON.parse(input.value || "{}");
-				delta = KarmaFieldsAlpha.Type.sanitizeObject(delta);
+				delta = KarmaFieldsAlpha.Type.sanitize(delta);
 				return delta;
 			},
 			setObject: function(delta) {
-				delta = KarmaFieldsAlpha.Type.parseObject(delta);
+				delta = KarmaFieldsAlpha.Type.parse(delta);
 				input.value = JSON.stringify(delta);
 			},
 			get: function(...path) {
@@ -95,7 +95,7 @@
 				// delta = KarmaFieldsAlpha.Type.sanitizeObject(delta, "posts");
 				// return KarmaFieldsAlpha.DeepObject.get3(delta, ...path);
 
-				return KarmaFieldsAlpha.DeepObject.get3(this.getObject(), ...path);
+				return KarmaFieldsAlpha.DeepObject.get(this.getObject(), ...path);
 			},
 			set: function(value, ...path) {
 				// console.log(value, path);
@@ -106,7 +106,7 @@
 				// input.value = JSON.stringify(delta);
 
 				const delta = this.getObject();
-				KarmaFieldsAlpha.DeepObject.assign3(delta, value, ...path);
+				KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
 				this.setObject(delta);
 			},
 			remove: function(value, ...path) {

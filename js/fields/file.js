@@ -106,6 +106,14 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
   // }
 
 
+
+  setDefault() {
+    if (this.resource.default) {
+      this.initValue(this.resource.default.toString());
+    }
+  }
+
+
   isEmpty(value) {
     return !value || value === this.resource.empty;
   }

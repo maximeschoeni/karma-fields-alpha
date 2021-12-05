@@ -1,64 +1,82 @@
 
-// require KarmaFieldsAlpha.fields.table
 
-KarmaFieldsAlpha.fields.table.Pagination = class {
 
-  static buildBasicButton(name, title) {
+
+KarmaFieldsAlpha.fields.table.title = class {
+  build() {
     return {
-      tag: "button",
-      class: "karma-button footer-item",
-      init: (button) => {
-        button.element.title = title;
-      },
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name;
-          }
-        },
-        {
-          class: "karma-field-spinner"
-        }
-      ]
-    }
+      tag: "h1",
+      init: h1 => {
+        h1.element.textContent = this.table.resource.title || "Table";
+      }
+    };
   }
+}
 
+KarmaFieldsAlpha.fields.table.close = class {
+  build() {
+    return {
+      class: "header-item",
+      child: {
+        tag: "button",
+        class: "karma-button",
+        init: button => {
+          button.element.title = this.resource.title || "Close Table";
+          button.element.innerHTML = '<span class="button-content">×</span>';
+          button.element.onclick = async () => {
+            button.element.classList.add("loading");
+            KarmaFieldsAlpha.Nav.backup();
+            KarmaFieldsAlpha.Nav.setParamString("");
+            await this.table.editParam();
+            button.element.classList.remove("loading");
+          }
+        }
+      }
+    };
+  }
+}
 
-  static buildFirstPageButton(field, name, title) {
+KarmaFieldsAlpha.fields.table.pagination = class {
+  build() {
+    return {
+      class: "table-pagination",
+      update: async container => {
+        container.element.classList.add("loading");
+        await (this.table.queryPromise || this.table.query());
+        const count = this.table.getCount() || 0;
+        const ppp = parseInt(this.table.getPpp());
+        container.element.classList.toggle("hidden", count <= ppp);
+        container.element.classList.remove("loading");
+      },
+      children: ["firstPage", "prevPage", "currentPage", "nextPage", "lastPage"].map(resource => this.table.getButton(resource).build())
+    };
+  }
+}
+
+KarmaFieldsAlpha.fields.table.firstPage = class {
+
+  build() {
     return {
       tag: "button",
-      class: "karma-button footer-item",
+      class: "karma-button",
       init: (button) => {
-        button.element.title = title || "First Page";
+        button.element.title = this.resource.title || "First Page";
+        button.element.innerHTML = '<span class="button-content">«</span>';
       },
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name || "«";
-          }
-        },
-        {
-          class: "karma-field-spinner"
-        }
-      ],
       update: button => {
-        const count = field.getCount();
-        const page = field.getPage();
-        const ppp = field.getPpp();
+        const count = this.table.getCount();
+        const page = this.table.getPage();
+        const ppp = this.table.getPpp();
 
         // button.element.classList.toggle("hidden", ppp < 1 || page === 1);
         button.element.disabled = page === 1;
         button.element.onclick = async (event) => {
           if (page > 0) {
             button.element.classList.add("loading");
-            KarmaFieldsAlpha.History.backup();
-            KarmaFieldsAlpha.History.setParam("page", 1);
-            await field.editParam();
-            // await field.render();
+            KarmaFieldsAlpha.Nav.backup();
+            KarmaFieldsAlpha.Nav.setParam("page", 1);
+            await this.table.editParam();
+            // await this.table.render();
             button.element.blur();
             button.element.classList.remove("loading");
           }
@@ -66,41 +84,29 @@ KarmaFieldsAlpha.fields.table.Pagination = class {
       }
     }
   }
+}
 
-
-  static buildPrevPageButton(field, name, title) {
+KarmaFieldsAlpha.fields.table.prevPage = class {
+  build() {
     return {
       tag: "button",
-      class: "karma-button footer-item",
+      class: "karma-button",
       init: (button) => {
-        button.element.title = title || "Previous Page";
+        button.element.title = this.resource.title || "Previous Page";
+        button.element.innerHTML = '<span class="button-content">‹</span>';
       },
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name || "‹";
-          }
-        },
-        {
-          class: "karma-field-spinner"
-        }
-      ],
       update: button => {
-        const count = field.getCount();
-        const page = field.getPage();
-        const ppp = field.getPpp();
+        const count = this.table.getCount();
+        const page = this.table.getPage();
+        const ppp = this.table.getPpp();
 
-        // button.element.classList.toggle("hidden", ppp < 1 || page === 1);
         button.element.disabled = (page === 1);
         button.element.onclick = async (event) => {
           if (page > 0) {
             button.element.classList.add("loading");
-            KarmaFieldsAlpha.History.backup();
-            KarmaFieldsAlpha.History.setParam("page", page-1);
-            await field.editParam();
-            // await field.render();
+            KarmaFieldsAlpha.Nav.backup();
+            KarmaFieldsAlpha.Nav.setParam("page", page-1);
+            await this.table.editParam();
             button.element.blur();
             button.element.classList.remove("loading");
           }
@@ -108,31 +114,21 @@ KarmaFieldsAlpha.fields.table.Pagination = class {
       }
     }
   }
+}
 
-
-  static buildNextPageButton(field, name, title) {
+KarmaFieldsAlpha.fields.table.nextPage = class {
+  build() {
     return {
       tag: "button",
-      class: "karma-button footer-item",
+      class: "karma-button",
       init: (button) => {
-        button.element.title = title || "Next Page";
+        button.element.title = this.resource.title || "Next Page";
+        button.element.innerHTML = '<span class="button-content">›</span>';
       },
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name || "›";
-          }
-        },
-        {
-          class: "karma-field-spinner"
-        }
-      ],
       update: button => {
-        const count = field.getCount();
-        const page = field.getPage();
-        const ppp = field.getPpp();
+        const count = this.table.getCount();
+        const page = this.table.getPage();
+        const ppp = this.table.getPpp();
         const numPage = Math.ceil(count/ppp);
 
         // button.element.classList.toggle("hidden", ppp < 1 || page >= numPage);
@@ -141,11 +137,9 @@ KarmaFieldsAlpha.fields.table.Pagination = class {
         button.element.onclick = async (event) => {
           if (page < numPage) {
             button.element.classList.add("loading");
-            KarmaFieldsAlpha.History.backup();
-            KarmaFieldsAlpha.History.setParam("page", page+1);
-            // field.setParam("page", page+1);
-            await field.editParam();
-            // await field.render();
+            KarmaFieldsAlpha.Nav.backup();
+            KarmaFieldsAlpha.Nav.setParam("page", page+1);
+            await this.table.editParam();
             button.element.blur();
             button.element.classList.remove("loading");
           }
@@ -153,31 +147,21 @@ KarmaFieldsAlpha.fields.table.Pagination = class {
       }
     }
   }
+}
 
-
-  static buildLastPageButton(field, name, title) {
+KarmaFieldsAlpha.fields.table.lastPage = class {
+  build() {
     return {
       tag: "button",
-      class: "karma-button footer-item",
+      class: "karma-button",
       init: (button) => {
-        button.element.title = title || "Last Page";
+        button.element.title = this.resource.title || "Last Page";
+        button.element.innerHTML = '<span class="button-content">»</span>';
       },
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name || "»";
-          }
-        },
-        {
-          class: "karma-field-spinner"
-        }
-      ],
       update: button => {
-        const count = field.getCount();
-        const page = field.getPage();
-        const ppp = field.getPpp();
+        const count = this.table.getCount();
+        const page = this.table.getPage();
+        const ppp = this.table.getPpp();
         const numPage = Math.ceil(count/ppp);
 
         // button.element.classList.toggle("hidden", ppp < 1 || page >= numPage);
@@ -187,11 +171,9 @@ KarmaFieldsAlpha.fields.table.Pagination = class {
           if (page < numPage) {
             button.element.classList.add("loading");
 
-            KarmaFieldsAlpha.History.backup();
-            KarmaFieldsAlpha.History.setParam("page", numPage);
-            // field.setParam("page", numPage);
-            await field.editParam();
-            // await field.render();
+            KarmaFieldsAlpha.Nav.backup();
+            KarmaFieldsAlpha.Nav.setParam("page", numPage);
+            await this.table.editParam();
             button.element.blur();
             button.element.classList.remove("loading");
           }
@@ -199,15 +181,16 @@ KarmaFieldsAlpha.fields.table.Pagination = class {
       }
     }
   }
+}
 
-
-  static buildCurrentPageElement(field) {
+KarmaFieldsAlpha.fields.table.currentPage = class {
+  build() {
     return {
       class: "current-page header-item",
       update: item => {
-        const count = field.getCount();
-        const page = field.getPage();
-        const ppp = field.getPpp();
+        const count = this.table.getCount();
+        const page = this.table.getPage();
+        const ppp = this.table.getPpp();
         const numPage = Math.ceil(count/ppp);
 
         item.element.classList.toggle("hidden", ppp < 1 || count < ppp);
@@ -215,242 +198,202 @@ KarmaFieldsAlpha.fields.table.Pagination = class {
       }
     };
   }
+}
 
+KarmaFieldsAlpha.fields.table.total = class {
 
-  static buildPPPButton(field) {
-
-    const options = [
-      {key: 100, value: "100 items/page"},
-      {key: 200, value: "200 items/page"},
-      {key: 500, value: "500 items/page"},
-      {key: 0, value: "all"}
-    ];
-
-    return {
-      class: "ppp-selector footer-item",
-      init: item => {
-        item.element.tabIndex = "-1"; // for safari
-      },
-      children: [
-        {
-          tag: "button",
-          class: "karma-button current-page footer-item",
-          update: item => {
-            let num = field.getCount();
-            item.element.textContent = num ? num + " items" : "";
-          }
-        },
-        {
-          class: "ppp-selector-options",
-          child: {
-            tag: "ul",
-            children: options.map(item => {
-              return {
-                tag: "li",
-                child: {
-                  tag: "button",
-                  class: "karma-button footer-item",
-                  init: (button) => {
-                    button.element.title = item.value;
-                  },
-                  children: [
-                    {
-                      tag: "span",
-                      class: "button-content",
-                      init: content => {
-                        content.element.innerHTML = item.value;
-                      }
-                    },
-                    {
-                      class: "karma-field-spinner"
-                    }
-                  ],
-                  update: button => {
-                    const ppp = field.getPpp();
-                    button.element.classList.toggle("active", ppp == item.key);
-                    button.element.onclick = async (event) => {
-                      // field.setParam("ppp", item.key);
-                      // field.setParam("page", 1);
-                      button.element.classList.add("loading");
-                      KarmaFieldsAlpha.History.backup();
-                      KarmaFieldsAlpha.History.setParams({
-                        page: 1,
-                        ppp: item.key
-                      });
-                      await field.editParam();
-                      // await field.render();
-                      button.element.classList.remove("loading");
-                      document.activeElement.blur(); // for safari
-                    }
-                  }
-                }
-              };
-            })
-          }
-        }
-      ]
-    }
-  }
-
-  static buildItemsTotal(field) {
-
-
+  build() {
     return {
       class: "total-items header-item",
       init: item => {
+        this.renderItemTotal = item.render;
         item.element.tabIndex = "-1"; // for safari
       },
-      update: item => {
-        item.element.classList.toggle("loading", field.queriedIds === undefined);
-        if (field.queriedIds === undefined) {
-          item.element.textContent = "";
-        } else {
-          // const num = field.getCount() + (field.ids.getValue() || []).length;
-          const num = field.getCount() + field.getExtraIds().length;
-          item.element.textContent = num + " elements";
-        }
+      update: async item => {
+        item.element.classList.add("loading");
+        await (this.table.queryPromise || this.table.query());
+        item.element.classList.remove("loading");
+      },
+      children: [
+        {
+          tag: "a",
+          update: a => {
+            a.element.classList.toggle("hidden", !!this.editPpp);
 
-      }
+            const num = this.table.getCount(); //  + this.table.content.getExtraIds().length;
+            a.element.textContent = num + " elements";
+            a.element.onclick = event => {
+              this.editPpp = true;
+              this.table.renderHeader();
+            }
+          }
+        },
+        {
+          class: "set-ppp",
+          children: [
+            {
+              tag: "label",
+              init: label => {
+                label.element.textContent = "Number of items per page";
+              }
+            },
+            {
+              tag: "input",
+              init: input => {
+                input.element.type = "text";
+                input.element.style = "width:60px";
+              },
+              update: input => {
+                input.element.value = this.table.getPpp();
+                input.element.oninput = event => {
+                  this.table.setPpp(input.element.value);
+                  this.renderItemTotal();
+                }
+              }
+            },
+            {
+              tag: "button",
+              class: "karma-button",
+              init: button => {
+                button.element.onclick = async event => {
+                  this.editPpp = false;
+                  button.element.classList.add("loading");
+                  KarmaFieldsAlpha.Nav.setParam("page", 1);
+                  KarmaFieldsAlpha.Nav.setParam("ppp", this.table.getPpp());
+                  await this.table.render();
+                  button.element.classList.remove("loading");
+                }
+
+              },
+              children: [
+                {
+                  tag: "span",
+                  class: "button-content",
+                  init: content => {
+                    content.element.textContent = "Set";
+                  }
+                }
+              ]
+            }
+          ],
+          update: async item => {
+            item.element.classList.toggle("hidden", !this.editPpp);
+          }
+        }
+      ]
 
     }
 
   }
 
+}
 
-  static buildPrevModalButton(field, name, title) {
+
+KarmaFieldsAlpha.fields.table.prevModal = class {
+
+  build() {
     return {
       tag: "button",
       class: "karma-button",
-      init: (button) => {
-        button.element.title = title || "Previous";
+      init: button => {
+        button.element.title = this.resource.title || "Previous";
+        button.element.innerHTML = '<span class="button-content">‹</span>';
       },
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name || "‹";
-          }
-        }
-      ],
       update: button => {
-        // const ids = field.getCurrentIds();
-        const ids = field.queriedIds;
-        let id = KarmaFieldsAlpha.History.getParam("id");
-        let index = ids && ids.indexOf(id) || -1;
+        const ids = this.table.content.ids || [];
+        let id = KarmaFieldsAlpha.Nav.getParam("id");
+        let index = ids.indexOf(id);
         button.element.disabled = index < 1;
 
         button.element.onclick = async (event) => {
           if (index > 0) {
             id = ids[index-1];
             button.element.classList.add("loading");
-            KarmaFieldsAlpha.History.backup();
-            KarmaFieldsAlpha.History.setParam("id", id);
-            await field.editParam();
-            // await field.renderModal();
-            // await field.renderFooter();
+            KarmaFieldsAlpha.Nav.backup();
+            KarmaFieldsAlpha.Nav.setParam("id", id);
+            await this.table.editParam();
             button.element.classList.remove("loading");
           }
         }
       }
     };
   }
+}
 
+KarmaFieldsAlpha.fields.table.nextModal = class {
 
-  static buildNextModalButton(field, name, title) {
+  build() {
     return {
       tag: "button",
       class: "karma-button",
-      init: (button) => {
-        button.element.title = title || "Next";
+      init: button => {
+        button.element.title = this.resource.title || "Next";
+        button.element.innerHTML = '<span class="button-content">›</span>';
       },
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name || "›";
-          }
-        }
-      ],
       update: button => {
-        // const ids = field.getCurrentIds();
-        const ids = field.queriedIds;
-        let id = KarmaFieldsAlpha.History.getParam("id");
-        let index = ids && ids.indexOf(id) || -1;
+        const ids = this.table.content.ids || [];
+        let id = KarmaFieldsAlpha.Nav.getParam("id");
+        let index = ids.indexOf(id);
         button.element.disabled = index === -1 || index >= ids.length - 1;
 
         button.element.onclick = async (event) => {
           if (index > -1 && index < ids.length - 1) {
             id = ids[index+1];
             button.element.classList.add("loading");
-            KarmaFieldsAlpha.History.backup();
-            KarmaFieldsAlpha.History.setParam("id", id);
-            await field.editParam();
-            // await field.renderModal();
-            // await field.renderFooter();
+            KarmaFieldsAlpha.Nav.backup();
+            KarmaFieldsAlpha.Nav.setParam("id", id);
+            await this.table.editParam();
             button.element.classList.remove("loading");
           }
         }
       }
     };
   }
-
-
-  static buildCloseModalButton(field, name, title) {
-    return {
-      tag: "button",
-      class: "karma-button",
-      // child: new KarmaFieldsAlpha.fields.icon({
-      //   type: "icon",
-      //   value: "no-alt.svg"
-      // }).build(),
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name || "×";
-          }
-        }
-      ],
-      init: button => {
-        button.element.title = title || "Close";
-        button.element.onclick = async () => {
-          button.element.classList.add("loading");
-          KarmaFieldsAlpha.History.backup();
-          KarmaFieldsAlpha.History.setParam("id", null);
-          await field.editParam();
-          button.element.classList.remove("loading");
-        }
-      }
-    }
-  }
-
-  static buildCloseTableButton(field, name, title) {
-    return {
-      tag: "button",
-      class: "karma-button",
-      children: [
-        {
-          tag: "span",
-          class: "button-content",
-          init: content => {
-            content.element.innerHTML = name || "×";
-          }
-        }
-      ],
-      init: button => {
-        button.element.title = title || "Close";
-        button.element.onclick = async () => {
-          button.element.classList.add("loading");
-          KarmaFieldsAlpha.History.backup();
-          KarmaFieldsAlpha.History.setParamString("");
-          await field.editParam();
-          button.element.classList.remove("loading");
-        }
-      }
-    }
-  }
-
 }
+
+KarmaFieldsAlpha.fields.table.closeModal = class {
+
+  build() {
+    return {
+      tag: "button",
+      class: "karma-button",
+      init: button => {
+        button.element.title = this.resource.title || "Close Modal";
+        button.element.innerHTML = '<span class="button-content">×</span>';
+      },
+      init: button => {
+        button.element.onclick = async () => {
+          button.element.classList.add("loading");
+          KarmaFieldsAlpha.Nav.backup();
+          KarmaFieldsAlpha.Nav.setParam("id", null);
+          await this.table.editParam();
+          button.element.classList.remove("loading");
+        }
+      }
+    }
+  }
+}
+
+// KarmaFieldsAlpha.fields.table.closeTable = class {
+//
+//   build() {
+//     return {
+//       tag: "button",
+//       class: "karma-button",
+//       init: button => {
+//         button.element.title = this.resource.title || "Close Table";
+//         button.element.innerHTML = '<span class="button-content">×</span>';
+//       },
+//       init: button => {
+//         button.element.onclick = async () => {
+//           button.element.classList.add("loading");
+//           KarmaFieldsAlpha.Nav.backup();
+//           KarmaFieldsAlpha.Nav.setParamString("");
+//           await this.table.editParam();
+//           button.element.classList.remove("loading");
+//         }
+//       }
+//     }
+//   }
+//
+// }

@@ -76,11 +76,11 @@ KarmaFieldsAlpha.fields.field = class Field {
     return child;
   }
 
-  find(path) {
-    if (this.resource.key === path) {
-      return this;
-    }
-	}
+  // find(path) {
+  //   if (this.resource.key === path) {
+  //     return this;
+  //   }
+	// }
 
   getType() {
     // string
@@ -161,6 +161,11 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   console.warn("Deprecated function getDirectChild. Use getChild");
   //   return this.getChild(key);
   // }
+
+  find(key, ...path) {
+		const child = key && this.getChild(key);
+		return path.length && child && child.find(...path) || child;
+	}
 
   getChild(key) {
     if (this.childMap[key]) {
@@ -419,19 +424,35 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   }
   // }
 
-  async getDefault() {
-    if (this.resource.default !== undefined) {
-      return this.resource.default;
-    }
-    return this.getEmpty();
-  }
+  // async getDefault() {
+  //   if (this.resource.default !== undefined) {
+  //     return this.resource.default;
+  //   }
+  //   return this.getEmpty();
+  // }
 
   async fill(value) {
+    console.error("Deprecated");
     if (value === undefined) {
       value = await this.getDefault();
     }
-    if (value !== undefined && value !== null) {
+    if (value !== undefined) {
       return this.setValue(value);
+    }
+  }
+
+
+  // called when a row is first created
+  async setDefault() {
+    await Promise.all(this.children.map(child => child.setDefault()));
+  }
+
+  initValue(value, ...path) {
+    if (this.resource.key) {
+      path = [this.resource.key, ...path];
+    }
+    if (path.length && this.parent) {
+      return this.parent.initValue(value, ...path);
     }
   }
 
@@ -604,13 +625,13 @@ KarmaFieldsAlpha.fields.field = class Field {
   // }
 
 
-  isModified(value, ...path) {
+  isModified(...path) {
     // keys = this.getKeyPath(keys, true);
     if (this.resource.key) {
       path = [this.resource.key, ...path];
     }
 
-    return this.parent && this.parent.isModified(value, ...path);
+    return this.parent && this.parent.isModified(...path);
   }
 
   fetchValue(expectedType, ...path) {
@@ -669,6 +690,19 @@ KarmaFieldsAlpha.fields.field = class Field {
     }
     if (path.length && this.parent) {
       return this.parent.write(...path);
+    }
+  }
+
+
+  /**
+   * Like setValue() But without writing history
+   */
+  setDeltaValue(value, ...path) {
+    if (this.resource.key) {
+      path = [this.resource.key, ...path];
+    }
+    if (this.parent) {
+      return this.parent.setDeltaValue(value, ...path);
     }
   }
 
@@ -1003,8 +1037,8 @@ KarmaFieldsAlpha.fields.field = class Field {
         //
         // }
         this.resource.filters.forEach(filter => {
-          if (KarmaFieldsAlpha.History.hasParam(filter)) {
-            params.set(filter, KarmaFieldsAlpha.History.getParam(filter));
+          if (KarmaFieldsAlpha.Nav.hasParam(filter)) {
+            params.set(filter, KarmaFieldsAlpha.Nav.getParam(filter));
           }
         });
       }

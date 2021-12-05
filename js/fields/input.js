@@ -1,21 +1,38 @@
 KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
-	async fetchValue() {
-		let value = await super.fetchValue();
-		
-		if (!value && value !== "") {
-			value = this.resource.default || "";
-			if (!this.resource.readonly) {
-				await this.setValue(value);
-			}
+
+	// Needed or not ??
+	// async fetchValue() {
+	// 	let value = await super.fetchValue();
+	//
+	// 	if (!value && value !== "") {
+	// 		value = this.resource.default || "";
+	// 		if (!this.resource.readonly) {
+	// 			await this.setValue(value);
+	// 		}
+	// 	}
+	// 	return value;
+	// }
+
+	// editAll() {
+	// 	const form =
+	// 	this.getForm().editAll(input.element.value, ...this.getPath());
+	// }
+
+	// called when a row is added
+	setDefault() {
+		let value = "";
+		if (this.resource.default) {
+			value = this.resource.default.toString();
 		}
-		return value;
-	}
+    this.initValue(value);
+  }
+
 
 	build() {
 		return {
 			tag: "input",
-			class: "text karma-field",
+			class: "text-input karma-field",
 			init: input => {
 				input.element.type = this.resource.input_type || "text"; // compat
 				if (this.resource.label) {
@@ -37,13 +54,15 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 					input.element.readOnly = true;
 				} else {
 					input.element.oninput = async event => {
-						this.backup();
-						input.element.classList.add("editing");
-						await this.editValue(input.element.value);
-						modified = this.isModified();
 
-						input.element.classList.remove("editing");
-						input.element.classList.toggle("modified", modified);
+
+						this.backup();
+						// input.element.classList.add("editing");
+
+						await this.editValue(input.element.value);
+
+						// input.element.classList.remove("editing");
+						input.element.classList.toggle("modified", this.isModified());
 					};
 				}
 

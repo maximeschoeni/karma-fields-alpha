@@ -13,11 +13,11 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
 
   initField() {
 
-    this.trash = this.createChild({
-      key: "trash",
-      type: "field",
-      default: "0"
-    });
+    // this.trash = this.createChild({
+    //   key: "trash",
+    //   type: "field",
+    //   default: "0"
+    // });
 
     if (this.resource.columns) {
       this.resource.columns.forEach(column => {
@@ -37,6 +37,8 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
     return super.edit();
   }
 
+
+
   // render() {
   //   return Promise.all(this.children.map(child => {
   //     return child.render();
@@ -52,22 +54,22 @@ KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.contain
   // }
 
 
-  fetchValue(expectedType, ...path) {
+  fetchValue(expectedType, key, ...path) {
 
-    if (path.length === 1 && path[0] === "id") {
+    if (key === "id" && !path.length) {
       return this.resource.key;
     }
 
-    return super.fetchValue(expectedType, ...path);
+    return super.fetchValue(expectedType, key, ...path);
   }
 
-  getValue(...path) {
+  getValue(key, ...path) {
 
-    if (path.length === 1 && path[0] === "id") {
+    if (key === "id" && !path.length) {
       return this.resource.key;
     }
 
-    return super.getValue(...path);
+    return super.getValue(key, ...path);
   }
 
   // fill() {

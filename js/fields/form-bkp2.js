@@ -580,11 +580,9 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 		const delta = this.getDeltaValue(...path);
 
-		// KarmaFieldsAlpha.DeepObject.forEach(delta, (value, ...subpath) => {
-		// 	this.writeHistory(null, ...path, ...subpath);
-		// });
-
-		this.writeHistory(null, ...path);
+		KarmaFieldsAlpha.DeepObject.forEach(delta, (value, ...subpath) => {
+			this.writeHistory(null, ...path, ...subpath);
+		});
 
 
 		this.removeDeltaValue(...path);
@@ -599,101 +597,26 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		return await this.fetchValue("array", ...path) || [];
 	}
 
-	getOriginal(...path) {
-		return KarmaFieldsAlpha.Gateway.getOriginal(this.resource.driver || this.resource.key, ...path);
-	}
-
-	getMask(...path) {
-		// noop
-	}
-
-	getExtra(...path) {
-		return KarmaFieldsAlpha.Delta.get("extra", this.resource.driver || this.resource.key, ...path);
-	}
-
-	setExtra(value, ...path) {
-		KarmaFieldsAlpha.Delta.set(value, "extra", this.resource.driver || this.resource.key, ...path);
-	}
-	removeExtra(...path) {
-		KarmaFieldsAlpha.Delta.remove("extra", this.resource.driver || this.resource.key, ...path);
-	}
-
-	writeExtra(value, ...path) {
-		KarmaFieldsAlpha.History.write(value, "extra", this.resource.driver || this.resource.key, ...path);
-
-		// const value = this.getExtra(...path);
-		// if (value === undefined) {
-		// 	value = null;
-		// }
-
-	}
-
-
-
-
-
 
 	isModified(...path) {
 
+		const value = this.getDeltaValue(...path);
 
-		if (this.resource.fetch === false) {
-			return false;
-		}
-
-		// const original = KarmaFieldsAlpha.DeepObject.clone(this.getOriginal(...path), this.getExtra(...path));
-		//
-		// return KarmaFieldsAlpha.DeepObject.some(this.getDeltaValue(...path), (object, ...path) => {
-    //   // return (typeof object === "string") && object !== this.getOriginal(...path);
-		//
-		//
-		//
-		// 	return (typeof object === "string") && object !== KarmaFieldsAlpha.DeepObject.get(object, ...path);
-		//
-		//
-		// 	// if (typeof object === "string") {
-		// 	// 	let original = this.getOriginal(...path);
-		// 	// 	if (original === undefined) {
-		// 	// 		original = this.getMask(...path);
-		// 	// 	}
-		// 	// 	return object !== original;
-		// 	// }
-    // });
-
-		return KarmaFieldsAlpha.DeepObject.some(this.getDeltaValue(), (object, ...path) => {
-			return (typeof object === "string") && object !== (this.getOriginal(...path) ?? this.getExtra(...path));
-    }, ...path);
-
-
-		// const value = this.getDeltaValue(...path);
-		//
-		// return value !== undefined && KarmaFieldsAlpha.DeepObject.some(value, () => true) && (!path.length || this.resource.fetch !== false && value !== KarmaFieldsAlpha.Gateway.getOriginal(this.resource.driver || this.resource.key, ...path));
+		return value !== undefined && (!path.length || this.resource.fetch !== false && value !== KarmaFieldsAlpha.Gateway.getOriginal(this.resource.driver || this.resource.key, ...path));
 
 	}
 
 
 	writeHistory(value, ...path) {
 		if (this.resource.history !== false) {
-
-			// -> write history data in browser history:
-			// KarmaFieldsAlpha.History.writeHistory(value, this.resource.driver || this.resource.key, ...path);
-
-
-			// -> write history data in localStorage:
-			// const location = KarmaFieldsAlpha.Nav.getParamString();
-			// const index = KarmaFieldsAlpha.Delta.get("history", location, "index") || 0;
-			// KarmaFieldsAlpha.Delta.set(value, "history", location, index, this.resource.driver || this.resource.key, ...path);
-
-			KarmaFieldsAlpha.History.write(value, this.resource.driver || this.resource.key, ...path);
-
-
+			KarmaFieldsAlpha.History.writeHistory(value, this.resource.driver || this.resource.key, ...path);
 		}
 	}
 
-	initValue(value, ...path) {
-		this.writeHistory(null, ...path);
-		this.setDeltaValue(value, ...path);
+	updateChildren() {
 
-		// this.setValue(value, ...path);
+
+
 	}
 
 	getDeltaValue(...path) {
@@ -794,7 +717,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 		if (delta && this.resource.fetch !== false) {
 
-			const parseDelta = KarmaFieldsAlpha.Type.parse(delta, driver);
+			const parseDelta = KarmaFieldsAlpha.Type.parseObject(delta, driver);
 
 			await KarmaFieldsAlpha.Gateway.update(driver, parseDelta);
 
@@ -889,57 +812,23 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	// backup(keys) {
 	backup(...path) {
 
-		// const id = path.join("/");
-		//
-		// if (id !== this.historyId) {
-		//
-		// 	this.historyId = id;
-		//
-		// 	this.write(...path);
-		//
-		// 	// -> write history data in browser history:
-		// 	// KarmaFieldsAlpha.History.backup();
-		//
-		//
-		//
-		// 	// -> write history data in localStorage:
-		// 	const location = KarmaFieldsAlpha.History.getParamString();
-		// 	const index = (KarmaFieldsAlpha.Delta.get("history", location, "index") || 0) + 1;
-		// 	KarmaFieldsAlpha.Delta.set({index: index, max: index}, "history", location);
-		//
-		// 	// erase history forward
-		// 	if (KarmaFieldsAlpha.Delta.has("history", location, index)) {
-		// 		KarmaFieldsAlpha.Delta.remove("history", location, index);
-		// 	}
-		//
-		// }
-
-
+		// const path = keys.join("/");
 		const id = path.join("/");
 
-		if (id !== KarmaFieldsAlpha.History.id) {
 
-			KarmaFieldsAlpha.History.id = id;
 
+		// if (path !== this.historyId) {
+		if (id !== this.historyId) {
+
+			// this.historyId = path;
+			this.historyId = id;
+
+			// this.write(keys);
 			this.write(...path);
 
 			KarmaFieldsAlpha.History.backup();
-
-			// const location = KarmaFieldsAlpha.Nav.getParamString();
-			//
-			// // -> increase index and max
-			// const index = (KarmaFieldsAlpha.Delta.get("history", location, "index") || 0) + 1;
-			// KarmaFieldsAlpha.Delta.set({index: index, max: index}, "history", location);
-			//
-			// // erase history forward
-			// if (KarmaFieldsAlpha.Delta.has("history", location, index)) {
-			// 	KarmaFieldsAlpha.Delta.remove("history", location, index);
-			// }
-
 		}
 	}
-
-
 
 	// isHistoryIndexEmpty(index) {
 	// 	console.error("Deprecated");
