@@ -12,7 +12,7 @@
 		let container = document.getElementById("karma-fields-post-<?php echo $post_id; ?>-field-<?php echo $index; ?>-container");
 		let input = document.getElementById("karma-fields-post-<?php echo $post_id; ?>-input-<?php echo $index; ?>");
 		let resource = <?php echo json_encode($args); ?>;
-		let id = <?php echo $post_id; ?>;
+		let id = "<?php echo $post_id; ?>";
 
 
 		let field = new KarmaFieldsAlpha.fields.form({
@@ -83,11 +83,11 @@
 		field.delta = {
 			getObject: function() {
 				let delta = JSON.parse(input.value || "{}");
-				delta = KarmaFieldsAlpha.Type.sanitize(delta);
+				// delta = KarmaFieldsAlpha.Type.sanitize(delta);
 				return delta;
 			},
 			setObject: function(delta) {
-				delta = KarmaFieldsAlpha.Type.parse(delta);
+				// delta = KarmaFieldsAlpha.Type.parse(delta);
 				input.value = JSON.stringify(delta);
 			},
 			get: function(...path) {

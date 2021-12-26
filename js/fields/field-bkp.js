@@ -140,30 +140,17 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   }
   // }
 
-  // getDescendants() {
-  //   const gen = function * (field) {
-  //     if (field.children.length) {
-  //       for (let child of field.children) {
-  //         yield * gen(child);
-  //       }
-  //     } else if (field.resource.key) {
-  //       yield field;
-  //     }
-  //   }
-  //   return gen(this);
-  // }
-
   getDescendants() {
     const gen = function * (field) {
-      for (let child of field.children) {
-        if (child.resource.key) {
-          yield field;
-        } else {
+      if (field.children.length) {
+        for (let child of field.children) {
           yield * gen(child);
         }
+      } else if (field.resource.key) {
+        yield field;
       }
     }
-    return gen(this) || [];
+    return gen(this);
   }
 
   getDescendantKeys() {
@@ -202,31 +189,19 @@ KarmaFieldsAlpha.fields.field = class Field {
   // }
 
   find(key, ...path) {
-    console.error("deprecated (use getChild)")
 		const child = key && this.getChild(key);
 		return path.length && child && child.find(...path) || child;
 	}
 
-  // getChild(key) {
-  //   if (this.childMap[key]) {
-  //     return this.childMap[key];
-  //   }
-  //   // for (let i = 0; i < this.children.length; i++) {
-  //   //   if (this.children[i].resource.key === key) {
-  //   //     return this.children[i];
-  //   //   }
-  //   // }
-  // }
-
-  getChild(key, ...path) {
-    let child = this.childMap[key];
-
-    if (path.length) {
-      child = child || [...this.getDescendants()].find(child => child.resource.key === key);
-      child = child && child.getChild(...path);
+  getChild(key) {
+    if (this.childMap[key]) {
+      return this.childMap[key];
     }
-
-    return child;
+    // for (let i = 0; i < this.children.length; i++) {
+    //   if (this.children[i].resource.key === key) {
+    //     return this.children[i];
+    //   }
+    // }
   }
 
   getClosest() {
@@ -712,7 +687,6 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   async editValue(value) {
-    console.error("deprecated");
     await this.setValue(value);
     return this.edit();
   }
@@ -728,13 +702,13 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   // maybe async
-  setValue(type, value, ...path) {
+  setValue(value, ...path) {
     // keys = this.getKeyPath(keys);
     if (this.resource.key) {
       path = [this.resource.key, ...path];
     }
     if (path.length && this.parent) {
-      return this.parent.setValue(type, value, ...path);
+      return this.parent.setValue(value, ...path);
     }
   }
 
@@ -1167,9 +1141,7 @@ KarmaFieldsAlpha.fields.field = class Field {
   async importValue(value) {
     // this.setValue(value, context);
     // return this.saveValue(value, true, true);
-    // return this.setValue("import", value);
-
-    // noop
+    return this.setValue(value);
   }
 
 

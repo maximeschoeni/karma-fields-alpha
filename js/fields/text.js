@@ -31,6 +31,13 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 
 	}
 
+	exportValue() {
+		return this.parse(this.resource.value);
+	}
+
+	importValue(value) {
+	}
+
 
 
 

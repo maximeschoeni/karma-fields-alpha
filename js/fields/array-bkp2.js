@@ -8,46 +8,13 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
     this.resource.columns = (this.resource.columns || []).map(column => typeof column === "string" && {type: column} || column);
 	}
 
-  // async input(eventType, value, ...path) {
-  //
-  //   if (path.length) {
-  //     let array = await super.fetchValue("array") || [];
-  //
-  //     KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
-  //
-  // 		value = array;
-	// 	}
-  //
-  //   await super.input(eventType, value, ...path);
-  //
-  // }
-
-  async input(value) {
-
-		await this.write();
-
-    if (KarmaFieldsAlpha.History.lastField !== this) {
-			KarmaFieldsAlpha.History.backup();
-			KarmaFieldsAlpha.History.lastField = this;
-		}
-
-		await this.setValue(null, value);
-
-    await this.edit();
-
-	}
-
-  // fetchArray(...path) {
-  //   return this.fetchValue("array", ...path);
-  // }
+  fetchArray(...path) {
+    return this.fetchValue("array", ...path);
+  }
 
   async fetchValue(expectedType, ...path) {
 
     let array = await super.fetchValue("array") || [];
-
-    if (array.constructor !== Array) {
-      array = [array];
-    }
 
     if (path.length) {
       array = KarmaFieldsAlpha.DeepObject.get(array, ...path);
@@ -57,25 +24,20 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
     return array;
   }
 
-  async setValue(type, value, ...path) {
+  async setValue(value, ...path) {
 
     if (path.length) {
       let array = await super.fetchValue("array") || [];
 
-      KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
-  		value = array;
-		}
 
-    await super.setValue(type, value);
+      KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
+  		return super.setValue(array);
+		}
+    return super.setValue(value);
   }
 
-  // backup(...path) {
-  //   console.error("deprecated");
-  //   return super.backup();
-  // }
-
-  write(...path) {
-    return super.write();
+  backup(...path) {
+    return super.backup();
   }
 
   async * columnFields(rowField) {
@@ -148,23 +110,23 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
   // }
 
   async swap(index1, index2) {
-    const values = await this.fetchValue();
+    const values = await this.fetchArray();
     const item1 = values[index1];
     values[index1] = values[index2];
     values[index2] = item1;
-    return this.input(values);
+    return this.setValue(values);
   }
 
   async delete(rowIndex) {
-    const values = await this.fetchValue();
+    const values = await this.fetchArray();
     values.splice(rowIndex, 1);
-    return this.input(values);
+    return this.setValue(values);
   }
 
   async add() {
-    const values = await this.fetchValue();
+    const values = await this.fetchArray();
     values.push({});
-    return this.input(values);
+    return this.setValue(values);
   }
 
   // buildContent(values) {
@@ -367,7 +329,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
         // }
       },
       update: async table => {
-        const values = await this.fetchValue();
+        const values = await this.fetchArray();
 
         table.children = [];
 
@@ -445,10 +407,11 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
                     init: button => {
                       button.element.onclick = async (event) => {
                         event.preventDefault();
+                        await this.backup();
                         button.element.classList.add("loading");
-                        // await this.backup();
                         await this.delete(rowIndex);
                         await this.edit();
+                        // await this.render(true);
                         await this.submit();
                         button.element.classList.remove("loading");
 
@@ -508,12 +471,11 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
               button.element.onclick = async (event) => {
                 event.preventDefault();
 
-
+                await this.backup();
                 button.element.classList.add("loading");
 
-                // await this.backup();
-
                 await this.add();
+                // await this.render(true);
                 await this.edit();
                 await this.submit();
                 button.element.classList.remove("loading");

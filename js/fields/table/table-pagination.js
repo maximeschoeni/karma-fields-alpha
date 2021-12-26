@@ -26,7 +26,7 @@ KarmaFieldsAlpha.fields.table.close = class {
           button.element.onclick = async () => {
             button.element.classList.add("loading");
             KarmaFieldsAlpha.Nav.backup();
-            KarmaFieldsAlpha.Nav.setParamString("");
+            KarmaFieldsAlpha.Nav.empty();
             await this.table.editParam();
             button.element.classList.remove("loading");
           }
@@ -41,12 +41,16 @@ KarmaFieldsAlpha.fields.table.pagination = class {
     return {
       class: "table-pagination",
       update: async container => {
-        container.element.classList.add("loading");
-        await (this.table.queryPromise || this.table.query());
-        const count = this.table.getCount() || 0;
+        // container.element.classList.add("loading");
+        // await (this.table.queryPromise || this.table.query());
+        container.element.classList.add("hidden");
+        const count = await this.table.getCount();
         const ppp = parseInt(this.table.getPpp());
-        container.element.classList.toggle("hidden", count <= ppp);
-        container.element.classList.remove("loading");
+        if (count > ppp) {
+          container.element.classList.remove("hidden");
+        }
+        // container.element.classList.toggle("hidden", count <= ppp);
+        // container.element.classList.remove("loading");
       },
       children: ["firstPage", "prevPage", "currentPage", "nextPage", "lastPage"].map(resource => this.table.getButton(resource).build())
     };
@@ -63,10 +67,14 @@ KarmaFieldsAlpha.fields.table.firstPage = class {
         button.element.title = this.resource.title || "First Page";
         button.element.innerHTML = '<span class="button-content">«</span>';
       },
-      update: button => {
-        const count = this.table.getCount();
+      update: async button => {
+        button.element.classList.add("loading");
+
+        const count = await this.table.getCount();
         const page = this.table.getPage();
         const ppp = this.table.getPpp();
+
+        button.element.classList.remove("loading");
 
         // button.element.classList.toggle("hidden", ppp < 1 || page === 1);
         button.element.disabled = page === 1;
@@ -95,10 +103,14 @@ KarmaFieldsAlpha.fields.table.prevPage = class {
         button.element.title = this.resource.title || "Previous Page";
         button.element.innerHTML = '<span class="button-content">‹</span>';
       },
-      update: button => {
-        const count = this.table.getCount();
+      update: async button => {
+        button.element.classList.add("loading");
+
+        const count = await this.table.getCount();
         const page = this.table.getPage();
         const ppp = this.table.getPpp();
+
+        button.element.classList.remove("loading");
 
         button.element.disabled = (page === 1);
         button.element.onclick = async (event) => {
@@ -125,11 +137,20 @@ KarmaFieldsAlpha.fields.table.nextPage = class {
         button.element.title = this.resource.title || "Next Page";
         button.element.innerHTML = '<span class="button-content">›</span>';
       },
-      update: button => {
-        const count = this.table.getCount();
+      update: async button => {
+        // const count = this.table.getCount();
+        // const page = this.table.getPage();
+        // const ppp = this.table.getPpp();
+        // const numPage = Math.ceil(count/ppp);
+
+        button.element.classList.add("loading");
+
+        const count = await this.table.getCount();
         const page = this.table.getPage();
         const ppp = this.table.getPpp();
         const numPage = Math.ceil(count/ppp);
+
+        button.element.classList.remove("loading");
 
         // button.element.classList.toggle("hidden", ppp < 1 || page >= numPage);
         button.element.disabled = page >= numPage;
@@ -158,11 +179,20 @@ KarmaFieldsAlpha.fields.table.lastPage = class {
         button.element.title = this.resource.title || "Last Page";
         button.element.innerHTML = '<span class="button-content">»</span>';
       },
-      update: button => {
-        const count = this.table.getCount();
+      update: async button => {
+        // const count = this.table.getCount();
+        // const page = this.table.getPage();
+        // const ppp = this.table.getPpp();
+        // const numPage = Math.ceil(count/ppp);
+
+        button.element.classList.add("loading");
+
+        const count = await this.table.getCount();
         const page = this.table.getPage();
         const ppp = this.table.getPpp();
         const numPage = Math.ceil(count/ppp);
+
+        button.element.classList.remove("loading");
 
         // button.element.classList.toggle("hidden", ppp < 1 || page >= numPage);
         button.element.disabled = page >= numPage;
@@ -187,11 +217,20 @@ KarmaFieldsAlpha.fields.table.currentPage = class {
   build() {
     return {
       class: "current-page header-item",
-      update: item => {
-        const count = this.table.getCount();
+      update: async item => {
+        // const count = this.table.getCount();
+        // const page = this.table.getPage();
+        // const ppp = this.table.getPpp();
+        // const numPage = Math.ceil(count/ppp);
+
+        item.element.classList.add("loading");
+
+        const count = await this.table.getCount();
         const page = this.table.getPage();
         const ppp = this.table.getPpp();
         const numPage = Math.ceil(count/ppp);
+
+        item.element.classList.remove("loading");
 
         item.element.classList.toggle("hidden", ppp < 1 || count < ppp);
         item.element.textContent = count && page+" / "+numPage || "";
@@ -211,16 +250,16 @@ KarmaFieldsAlpha.fields.table.total = class {
       },
       update: async item => {
         item.element.classList.add("loading");
-        await (this.table.queryPromise || this.table.query());
+        await this.table.getCount();
         item.element.classList.remove("loading");
       },
       children: [
         {
           tag: "a",
-          update: a => {
+          update: async a => {
             a.element.classList.toggle("hidden", !!this.editPpp);
 
-            const num = this.table.getCount(); //  + this.table.content.getExtraIds().length;
+            const num = await this.table.getCount(); //  + this.table.content.getExtraIds().length;
             a.element.textContent = num + " elements";
             a.element.onclick = event => {
               this.editPpp = true;
@@ -244,9 +283,9 @@ KarmaFieldsAlpha.fields.table.total = class {
                 input.element.style = "width:60px";
               },
               update: input => {
-                input.element.value = this.table.getPpp();
+                input.element.value = this.ppp || this.table.getPpp();
                 input.element.oninput = event => {
-                  this.table.setPpp(input.element.value);
+                  this.ppp = input.element.value;
                   this.renderItemTotal();
                 }
               }
@@ -257,13 +296,21 @@ KarmaFieldsAlpha.fields.table.total = class {
               init: button => {
                 button.element.onclick = async event => {
                   this.editPpp = false;
-                  button.element.classList.add("loading");
-                  KarmaFieldsAlpha.Nav.setParam("page", 1);
-                  KarmaFieldsAlpha.Nav.setParam("ppp", this.table.getPpp());
-                  await this.table.render();
-                  button.element.classList.remove("loading");
-                }
+                  if (this.ppp !== this.table.getPpp()) {
+                    button.element.classList.add("loading");
+                    this.table.setPpp(this.ppp);
+                    KarmaFieldsAlpha.Nav.setParam("page", 1);
+                    KarmaFieldsAlpha.Nav.setParam("ppp", this.ppp);
+                    this.ppp = null;
+                    await this.table.editParam();
 
+                    // await this.table.render();
+                    button.element.classList.remove("loading");
+                  }
+                }
+              },
+              update: button => {
+                button.element.disabled = !this.ppp || this.ppp === this.table.getPpp();
               },
               children: [
                 {
@@ -360,12 +407,10 @@ KarmaFieldsAlpha.fields.table.closeModal = class {
       init: button => {
         button.element.title = this.resource.title || "Close Modal";
         button.element.innerHTML = '<span class="button-content">×</span>';
-      },
-      init: button => {
         button.element.onclick = async () => {
           button.element.classList.add("loading");
           KarmaFieldsAlpha.Nav.backup();
-          KarmaFieldsAlpha.Nav.setParam("id", null);
+          KarmaFieldsAlpha.Nav.removeParam("id");
           await this.table.editParam();
           button.element.classList.remove("loading");
         }

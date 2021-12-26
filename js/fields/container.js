@@ -86,6 +86,8 @@ KarmaFieldsAlpha.fields.container = class extends KarmaFieldsAlpha.fields.field 
 		});
 	}
 
+	
+
 	// async getChildrenValue() {
 	// 	console.error("deprecated getChildrenValue");
 	// 	return this.getValue();

@@ -4,6 +4,8 @@ KarmaFieldsAlpha.SelectionManager = class {
 		this.grid = new KarmaFieldsAlpha.Grid();
     this.events = {};
 
+    this.map = new Map();
+
 
     this.table = table;
 
@@ -79,14 +81,14 @@ KarmaFieldsAlpha.SelectionManager = class {
 
     this.grid.set(col, row, element);
 
-    // element.onmousedown = event => {
-    //   // if (event.target.draggable) {
-    //   //   event.target.draggable = false;
-    //   // }
-    //
-    //
-    //   this.startSelection({x: col, y:row, width: 1, height: 1});
-    // }
+    element.onmousedown = event => {
+      // if (event.target.draggable) {
+      //   event.target.draggable = false;
+      // }
+
+
+      this.startSelection({x: col, y:row, width: 1, height: 1});
+    }
 
     element.onmousemove = event => {
       if (event.buttons === 1) {
@@ -264,10 +266,10 @@ KarmaFieldsAlpha.SelectionManager = class {
 
 	registerHeader(element, col) {
 
-		// element.onmousedown = event => {
-		// 	event.preventDefault();
-		// 	this.toggleSelection({x: col, y: 0, width: 1, height: this.grid.height});
-		// }
+		element.onmousedown = event => {
+			event.preventDefault();
+			this.toggleSelection({x: col, y: 0, width: 1, height: this.grid.height});
+		}
 		element.onmousemove = event => {
       if (event.buttons === 1) {
   			this.growSelection({x: col, y: 0, width: 1, height: this.grid.height});
@@ -277,10 +279,10 @@ KarmaFieldsAlpha.SelectionManager = class {
 
 	registerHeaderIndex(element) {
 
-		// element.onmousedown = event => {
-		// 	event.preventDefault();
-		// 	this.toggleSelection({x:0, y:0, width:this.grid.width, height:this.grid.height});
-		// }
+		element.onmousedown = event => {
+			event.preventDefault();
+			this.toggleSelection({x:0, y:0, width:this.grid.width, height:this.grid.height});
+		}
 		element.onmousemove = event => {
       if (event.buttons === 1) {
   			this.growSelection({x:0, y:0, width:this.grid.width, height:this.grid.height});
@@ -366,22 +368,25 @@ KarmaFieldsAlpha.SelectionManager = class {
     }
 
     ta.oninput = async event => {
+      console.log("oninput", event.inputType);
+
 
       let data = ta.value.split(/[\r\n]/).map(row => row.split("\t"));
 
+
       await this.table.importSelection(data, event.inputType);
+
+
 
       switch (event.inputType) {
 
-        case "insertFromPaste":
         case "deleteByCut":
-
+        case "insertFromPaste":
         case "deleteContentBackward":
-        case "deleteContentForward":
-        case "deleteContent":
           ta.blur();
 
       }
+
 
       this.table.render();
     }
@@ -513,6 +518,14 @@ KarmaFieldsAlpha.Rect = class {
 		return r1.x === r2.x && r1.y === r2.y && r1.width === r2.width && r1.height === r2.height;
 	}
 
+	// static union(p1, p2) {
+	// 	let left = Math.min(p1.x, p2.x);
+	// 	let top = Math.min(p1.y, p2.y);
+	// 	let right = Math.max(p1.x + (p1.width || 1), p2.x + (p2.width || 1));
+	// 	let bottom = Math.max(p1.y + (p1.height || 1), p2.y + (p2.height || 1));
+	// 	return new KarmaFieldsAlpha.Rect(left, top, right - left, bottom - top);
+	// }
+
 }
 
 KarmaFieldsAlpha.Grid = class {
@@ -537,5 +550,17 @@ KarmaFieldsAlpha.Grid = class {
 			return this.table[x][y];
 		}
 	}
+
+  // getByPoint(px, py) {
+  //   for (let x = 0; x < this.table.width; x++) {
+  //     for (let y = 0; y < this.table.height; y++) {
+  //       const element = this.get(x, y);
+  //       const box = element.getBoundingClientRect();
+  //       if (px > box.left && px <= box.right && py > box.top && py <= box.bottom) {
+  //         return element;
+  //       }
+  //     }
+  //   }
+  // }
 
 }

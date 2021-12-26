@@ -102,104 +102,104 @@ KarmaFieldsAlpha.History = class {
 
 
 
-KarmaFieldsAlpha.HistoryB = class {
-
-	static backup() {
-
-		let index = this.getIndex();
-		index++;
-
-		this.set(index, "index");
-		this.set(index, "max");
-
-		if (this.has(index)) {
-			this.remove(index);
-		}
-
-	}
-
-	static write(value, ...path) {
-
-		const index = this.getIndex();
-		this.set(value, index, ...path);
-
-	}
-
-	static undo() {
-
-		let index =  this.getIndex();
-
-		if (index > 0) {
-
-			// decrement index and save
-			index--;
-			this.set(index, "index");
-
-			// rewind previous state
-			const prevState = this.get(index) || {};
-			KarmaFieldsAlpha.Delta.merge(prevState);
-
-
-			// clear history id
-			this.id = undefined;
-		}
-
-	}
-
-	static hasUndo() {
-		return this.getIndex() > 0;
-	}
-
-	static redo() {
-		let index = this.getIndex();
-		let max = this.getMax();
-
-		if (index < max) {
-
-			// increment index and save state
-			index++;
-			this.set(index, "index");
-
-			// merge state in delta
-			const nextState = this.get(index) || {};
-			KarmaFieldsAlpha.Delta.merge(nextState);
-
-			// clear history id
-			this.id = undefined;
-		}
-
-	}
-
-	static getIndex() {
-		return history.state && history.state.index || 0;
-	}
-
-	static getMax() {
-		return history.state && history.state.max || 0;
-	}
-
-	static hasRedo() {
-		return (this.get("index") || 1) < (this.get("max") || 1);
-	}
-
-	static get(...path) {
-		return KarmaFieldsAlpha.DeepObject.get(history.state || {}, ...path);
-	}
-
-	static has(...path) {
-		return KarmaFieldsAlpha.DeepObject.has(history.state || {}, ...path);
-	}
-
-	static set(value, ...path) {
-		const state = history.state || {};
-		KarmaFieldsAlpha.DeepObject.assign(state, value, ...path);
-		history.replaceState(state, null);
-	}
-
-	static remove(...path) {
-		const state = history.state || {};
-		KarmaFieldsAlpha.DeepObject.remove(state, ...path);
-		history.replaceState(state, null);
-	}
-
-}
+// KarmaFieldsAlpha.HistoryB = class {
+//
+// 	static backup() {
+//
+// 		let index = this.getIndex();
+// 		index++;
+//
+// 		this.set(index, "index");
+// 		this.set(index, "max");
+//
+// 		if (this.has(index)) {
+// 			this.remove(index);
+// 		}
+//
+// 	}
+//
+// 	static write(value, ...path) {
+//
+// 		const index = this.getIndex();
+// 		this.set(value, index, ...path);
+//
+// 	}
+//
+// 	static undo() {
+//
+// 		let index =  this.getIndex();
+//
+// 		if (index > 0) {
+//
+// 			// decrement index and save
+// 			index--;
+// 			this.set(index, "index");
+//
+// 			// rewind previous state
+// 			const prevState = this.get(index) || {};
+// 			KarmaFieldsAlpha.Delta.merge(prevState);
+//
+//
+// 			// clear history id
+// 			this.id = undefined;
+// 		}
+//
+// 	}
+//
+// 	static hasUndo() {
+// 		return this.getIndex() > 0;
+// 	}
+//
+// 	static redo() {
+// 		let index = this.getIndex();
+// 		let max = this.getMax();
+//
+// 		if (index < max) {
+//
+// 			// increment index and save state
+// 			index++;
+// 			this.set(index, "index");
+//
+// 			// merge state in delta
+// 			const nextState = this.get(index) || {};
+// 			KarmaFieldsAlpha.Delta.merge(nextState);
+//
+// 			// clear history id
+// 			this.id = undefined;
+// 		}
+//
+// 	}
+//
+// 	static getIndex() {
+// 		return history.state && history.state.index || 0;
+// 	}
+//
+// 	static getMax() {
+// 		return history.state && history.state.max || 0;
+// 	}
+//
+// 	static hasRedo() {
+// 		return (this.get("index") || 1) < (this.get("max") || 1);
+// 	}
+//
+// 	static get(...path) {
+// 		return KarmaFieldsAlpha.DeepObject.get(history.state || {}, ...path);
+// 	}
+//
+// 	static has(...path) {
+// 		return KarmaFieldsAlpha.DeepObject.has(history.state || {}, ...path);
+// 	}
+//
+// 	static set(value, ...path) {
+// 		const state = history.state || {};
+// 		KarmaFieldsAlpha.DeepObject.assign(state, value, ...path);
+// 		history.replaceState(state, null);
+// 	}
+//
+// 	static remove(...path) {
+// 		const state = history.state || {};
+// 		KarmaFieldsAlpha.DeepObject.remove(state, ...path);
+// 		history.replaceState(state, null);
+// 	}
+//
+// }

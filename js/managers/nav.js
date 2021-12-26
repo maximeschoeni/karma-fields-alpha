@@ -17,6 +17,11 @@ KarmaFieldsAlpha.Nav = class {
 		history.replaceState(history.state, null, "#"+this.params.toString());
 	}
 
+	static empty() {
+		this.params = new URLSearchParams();
+		this.update();
+	}
+
 	static getParam(key) {
 		return this.params.get(key);
 	}
@@ -31,7 +36,7 @@ KarmaFieldsAlpha.Nav = class {
 	}
 
 	static removeParam(key) {
-		this.params.remove(key);
+		this.params.delete(key);
 		this.update();
 	}
 

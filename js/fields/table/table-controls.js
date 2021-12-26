@@ -41,19 +41,19 @@ KarmaFieldsAlpha.fields.table.save = class {
       //     }
       //   }
       // ],
-      update: button => {
+      update: async button => {
+        const isModified = await this.table.content.isModified();
         button.element.onclick = async (event) => {
-          if (this.table.content.isModified()) {
+          if (isModified) {
             button.element.classList.add("loading");
             await this.table.sync();
-            KarmaFieldsAlpha.Gateway.clearCache();
+            // KarmaFieldsAlpha.Gateway.clearCache();
             await this.table.render();
             button.element.blur();
             button.element.classList.remove("loading");
           }
         }
-
-        button.element.disabled = !this.table.content.isModified();
+        button.element.disabled = !isModified;
       }
     };
   }
@@ -70,7 +70,8 @@ KarmaFieldsAlpha.fields.table.reload = class {
           button.element.classList.add("loading");
 
           // KarmaFieldsAlpha.Gateway.original = {};
-          KarmaFieldsAlpha.Gateway.clearCache();
+          // KarmaFieldsAlpha.Gateway.clearCache();
+          this.table.content.reset();
 
           await this.table.render();
           button.element.classList.remove("loading");
@@ -100,6 +101,7 @@ KarmaFieldsAlpha.fields.table.undo = class {
           KarmaFieldsAlpha.History.undo();
 
           await this.table.content.render();
+          await this.table.renderModal();
           await this.table.renderFooter();
 
           button.element.classList.remove("loading");
@@ -182,6 +184,7 @@ KarmaFieldsAlpha.fields.table.redo = class {
           KarmaFieldsAlpha.History.redo();
 
           await this.table.content.render();
+          await this.table.renderModal();
           await this.table.renderFooter();
 
           button.element.classList.remove("loading");
@@ -274,6 +277,7 @@ KarmaFieldsAlpha.fields.table.add = class  {
           button.element.classList.add("loading");
           const ids = await this.table.add();
 
+
           if (KarmaFieldsAlpha.Nav.hasParam("id")) {
 
             if (ids.length === 1) {
@@ -310,7 +314,7 @@ KarmaFieldsAlpha.fields.table.delete = class {
       update: button => {
         button.element.onmousedown = async (event) => {
           button.element.classList.add("loading");
-          await this.table.remove();
+          await this.table.content.remove();
 
           // if modal open
           if (KarmaFieldsAlpha.Nav.getParam("id")) {
@@ -328,7 +332,7 @@ KarmaFieldsAlpha.fields.table.delete = class {
           button.element.classList.remove("loading");
         }
 
-        button.element.disabled = !KarmaFieldsAlpha.Nav.hasParam("id") && !(this.table.select.selection && this.table.select.selection.width === this.table.select.grid.width);
+        button.element.disabled = !KarmaFieldsAlpha.Nav.hasParam("id") && !(this.table.content.selection && this.table.content.selection.width === this.table.content.grid.width);
       }
     };
   }
@@ -346,7 +350,7 @@ KarmaFieldsAlpha.fields.table.duplicate = class {
       update: button => {
         button.element.onmousedown = async (event) => {
           button.element.classList.add("loading");
-          const ids = await this.table.duplicate();
+          const ids = await this.table.content.duplicate();
 
           if (KarmaFieldsAlpha.Nav.hasParam("id")) {
 
@@ -368,7 +372,7 @@ KarmaFieldsAlpha.fields.table.duplicate = class {
           button.element.classList.remove("loading");
         }
 
-        button.element.disabled = !KarmaFieldsAlpha.Nav.hasParam("id") && !(this.table.select.selection && this.table.select.selection.width === this.table.select.grid.width);
+        button.element.disabled = !KarmaFieldsAlpha.Nav.hasParam("id") && !(this.table.content.selection && this.table.content.selection.width === this.table.content.grid.width);
       }
     };
   }

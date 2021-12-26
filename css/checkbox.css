@@ -15,8 +15,18 @@
   font-size: inherit;
   font-weight: inherit;
 }
-.karma-field .karma-field-checkbox_basic input {
+.karma-field .karma-field-checkbox input {
   margin: 0;
+}
+.karma-field .checkbox-container {
+  display: flex;
+}
+.karma-field .checkbox-container label {
+  margin: 0 0.4em;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1.08em;
+  user-select: none;
 }
 
 
@@ -50,17 +60,17 @@
   outline: none;
 }
 
-.karma-field-frame.karma-field-checkbox_basic {
+.karma-field-frame.karma-field-checkbox {
   grid-template-columns: auto auto auto 1fr;
   grid-column-gap: 5px;
 }
-.karma-field-frame.karma-field-checkbox_basic label {
+.karma-field-frame.karma-field-checkbox label {
   /* grid-area: 1 / 2 / 2 / 3; */
 }
-.karma-field-frame.karma-field-checkbox_basic input {
-  grid-row: 2;
+.karma-field-frame.karma-field-checkbox input {
+  /* grid-row: 2; */
 }
-.karma-field-frame.karma-field-checkbox_basic .karma-field-spinner {
+/* .karma-field-frame.karma-field-checkbox .karma-field-spinner {
   grid-area: 1 / 3 / 2 / 4;
   margin: 0;
-}
+} */

@@ -15,7 +15,7 @@
 --------------------------------------*/
 
 .karma-field-table select {
-  background-color: #f0f0f1;
+  background-color: transparent;
   height: auto;
   box-shadow: none;
   max-width: none;

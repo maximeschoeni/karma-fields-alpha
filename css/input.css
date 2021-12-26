@@ -54,6 +54,14 @@
   display: flex;
 }
 
+/* Grid + Table Input
+--------------------------------------*/
+
+.karma-fields .karma-field-input input.text-input,
+.karma-fields .karma-field-input textarea {
+  flex-grow: 0;
+}
+
 
 
 /* Table Input

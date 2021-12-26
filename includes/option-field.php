@@ -22,20 +22,21 @@
 
 		field.delta = {
 			getObject: function() {
-				let delta = JSON.parse(input.value || "{}");
-				delta = KarmaFieldsAlpha.Type.sanitizeObject(delta);
-				return delta;
+				// let delta = JSON.parse(input.value || "{}");
+				// delta = KarmaFieldsAlpha.Type.sanitizeObject(delta);
+				// return delta;
+				return JSON.parse(input.value || "{}");
 			},
 			setObject: function(delta) {
-				delta = KarmaFieldsAlpha.Type.parseObject(delta);
+				// delta = KarmaFieldsAlpha.Type.parseObject(delta);
 				input.value = JSON.stringify(delta);
 			},
 			get: function(...path) {
-				return KarmaFieldsAlpha.DeepObject.get3(this.getObject(), ...path);
+				return KarmaFieldsAlpha.DeepObject.get(this.getObject(), ...path);
 			},
 			set: function(value, ...path) {
 				const delta = this.getObject();
-				KarmaFieldsAlpha.DeepObject.assign3(delta, value, ...path);
+				KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
 				this.setObject(delta);
 			},
 			remove: function(value, ...path) {

@@ -1,5 +1,15 @@
 KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 
+	async exportValue() {
+		let value = await super.exportValue();
+		return encodeURI(value);
+	}
+
+	async importValue(value) {
+		value = decodeURI(value);
+		await super.importValue(value);
+	}
+
 	build() {
 		return {
 			tag: "textarea",
@@ -20,6 +30,12 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				input.element.value = "";
 
 				let value = await this.fetchValue();
+				value = this.format(value);
+
+				if (value === undefined) {
+					value = this.getDefault();
+					this.setValue("init", value);
+				}
 
 				let modified = this.isModified();
 
@@ -27,11 +43,13 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 					input.element.readOnly = true;
 				} else {
 					input.element.oninput = async event => {
-						this.backup();
 						input.element.classList.add("editing");
-						// this.setValue(input.element.value);
-						await this.editValue(input.element.value);
-						modified = this.isModified();
+						// await this.backup();
+						// await this.editValue(input.element.value);
+
+						await this.input(input.element.value);
+
+						modified = await this.isModified();
 
 						input.element.classList.remove("editing");
 						input.element.classList.toggle("modified", modified);

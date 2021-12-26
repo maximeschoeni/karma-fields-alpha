@@ -1,6 +1,16 @@
 
 
 
+/* Test
+--------------------------------------*/
+#karma-table-reservations {
+  position: fixed;
+  z-index: 99999;
+  top: 0;
+}
+
+
+
 /* WP Layout
 --------------------------------------*/
 
@@ -14,7 +24,7 @@
   position: relative;
 } */
 
-
+/*
 #wpwrap {
   display: flex;
 }
@@ -36,7 +46,6 @@
 #wpcontent {
   margin: 0 0 40px 20px;
   display: flex;
-  /* overflow: auto; */
   height: auto;
   padding: 0;
   flex-grow: 1;
@@ -53,12 +62,12 @@
   width: auto;
   flex-grow: 1;
 }
-
+ */
 
 
 
 .karma-fields {
-  margin: 10px 20px 0 0;
+  /* margin: 10px 20px 0 0; */
     /* margin-right: 20px; */
 }
 
@@ -164,6 +173,8 @@
   width: 150px;
   height: 150px;
   /* margin: 0px 10px 0 0; */
+
+  overflow: hidden;
 }
 .karma-file .image-frame .image-container {
   display: flex;
@@ -176,8 +187,6 @@
 }
 .karma-file .image-frame.loading::after {
   content: "...";
-  /* align-self: center; */
-  /* grid-area: 1 / 1; */
 }
 .karma-file .image-frame .image-container.type-image {
   align-items: stretch;
@@ -192,20 +201,6 @@
   width: 100%;
   height: 100%;
 }
-.karma-file .image-frame .button-container {
-  /* display: flex;
-  align-items: center; */
-}
-
-.karma-file .field-control  {
-  /* display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-
-  grid-column: 2; */
-}
-
-
 
 
 .table .karma-file {
@@ -253,9 +248,13 @@
   grid-area: 2 / 1;
 }
 
-/* .karma-field-frame.karma-field-file .karma-field-spinner::after {
-  content: "...";
-} */
+
+
+.array .karma-file .image-frame {
+  width: 80px;
+  height: 80px;
+}
+
 
 
 
@@ -267,6 +266,9 @@
   display: flex;
   flex-direction: column; */
   justify-content: flex-end;
+}
+.array .karma-files {
+  /* max-width: 200px; */
 }
 .karma-files.loading {
   /* flex-grow: 0.5;
@@ -283,6 +285,9 @@
   outline: 1px solid #c3c4c7;
   cursor: pointer;
 }
+.array .karma-files .gallery {
+  min-height: 80px;
+}
 .karma-files .gallery.loading .images-container,
 .karma-files .gallery.loading .add {
   display: none;
@@ -293,10 +298,11 @@
 .karma-files .gallery .images-container {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
   /* min-height: 150px; */
 
 }
-.karma-files .gallery .images-container .image-container {
+.karma-files .gallery .image-container {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -306,8 +312,15 @@
   flex-grow: 1;
   overflow: hidden;
 }
+.array .karma-files .gallery .image-container {
+  max-width: 80px;
+}
 .karma-files .gallery .images-container .image-container img {
   display: block;
+}
+.array .karma-files .gallery .image-container img {
+  width: 80px;
+  height: 80px;
 }
 .karma-files .gallery .add {
   flex-grow: 1;
@@ -437,9 +450,13 @@
 .karma-fields .table .td {
   background-color: #f1f1f1;
 }
-.karma-fields .table .td.selected {
+.karma-fields .table .td.selected,
+.karma-fields .table .td:focus-within {
   background-color: white; /* #efebea; */
 }
+
+
+
 .karma-fields .table .td.modified {
   color: black;
 }

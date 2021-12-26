@@ -154,6 +154,11 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
             } else { // -> meta
 
+
+              $value = apply_filters('karma_fields_posts_driver_update_meta', $value, $key, $id);
+
+
+
               if (registered_meta_key_exists('post', $key)) {
 
                 $object_subtype = get_object_subtype('post', $id);
@@ -168,7 +173,6 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
               // var_dump($single, $id, $value, $key);
 
-
               if ($single) {
 
                 update_post_meta($id, $key, $value);
@@ -176,6 +180,9 @@ Class Karma_Fields_Alpha_Driver_Posts {
               } else if (is_array($value)) {
 
                 $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = %s AND post_id = %d", $key, $id ) );
+
+                
+
 
                 for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
 

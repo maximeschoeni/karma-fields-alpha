@@ -2,40 +2,53 @@
 KarmaFieldsAlpha.Gateway = class {
 
 	static get(queryString) {
-		if (!this.cache[queryString]) {
-			let file = KarmaFieldsAlpha.restURL+"/"+queryString;
+		// if (!this.cache[queryString]) {
+		// 	let file = KarmaFieldsAlpha.restURL+"/"+queryString;
+		//
+		// 	// try {
+		// 	//
+		// 	// 	this.cache[queryString] = await fetch(file, {
+		// 	// 		cache: "default", // force-cache
+		// 	// 		headers: {
+		// 	// 			'Content-Type': 'application/json',
+		// 	// 			'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+		// 	// 		},
+		// 	// 	}).then(response => response.json());
+		// 	//
+		// 	// } catch (error) {
+		// 	//
+		// 	// 	console.log(queryString);
+		// 	// 	console.error(error);
+		// 	//
+		// 	// }
+		//
+		// 	this.cache[queryString] = fetch(file, {
+		// 		cache: "default", // force-cache
+		// 		headers: {
+		// 			"Content-Type": "application/json",
+		// 			"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+		// 		},
+		// 	}).then(response => {
+		// 		return response.json();
+		// 	}).catch(error => {
+		// 		console.log(queryString);
+		// 		console.error(error);
+		// 	});
+		// }
+		// return this.cache[queryString];
 
-			// try {
-			//
-			// 	this.cache[queryString] = await fetch(file, {
-			// 		cache: "default", // force-cache
-			// 		headers: {
-			// 			'Content-Type': 'application/json',
-			// 			'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
-			// 		},
-			// 	}).then(response => response.json());
-			//
-			// } catch (error) {
-			//
-			// 	console.log(queryString);
-			// 	console.error(error);
-			//
-			// }
-
-			this.cache[queryString] = fetch(file, {
-				cache: "default", // force-cache
-				headers: {
-					"Content-Type": "application/json",
-					"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce
-				},
-			}).then(response => {
-				return response.json();
-			}).catch(error => {
-				console.log(queryString);
-				console.error(error);
-			});
-		}
-		return this.cache[queryString];
+		return fetch(KarmaFieldsAlpha.restURL+"/"+queryString, {
+			cache: "default", // force-cache
+			headers: {
+				"Content-Type": "application/json",
+				"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+			},
+		}).then(response => {
+			return response.json();
+		}).catch(error => {
+			console.log(queryString);
+			console.error(error);
+		});
 	}
 
 	static post(queryString, params) {
@@ -55,76 +68,74 @@ KarmaFieldsAlpha.Gateway = class {
 	}
 
 	static getOptions(queryString) { // queryString = driver+"?"+queryString
-		// let promise = KarmaFieldsAlpha.Cache.get("options", queryString);
-		//
-		// if (!promise) {
-		// 	promise = this.get("fetch/"+queryString);
-		// 	KarmaFieldsAlpha.Cache.update("options", queryString, promise);
-		// }
-		//
-		// return promise;
 
-		return this.get("fetch/"+queryString);
+		if (!this.cache[queryString]) {
+			this.cache[queryString] = this.get("fetch/"+queryString);
+		}
+
+		return this.cache[queryString];
 	}
 
-	static async getTable(driver, queryString) {
-
-		// let promise = KarmaFieldsAlpha.Cache.get("tables", driver+"?"+queryString);
-		//
-		// if (!promise) {
-		// 	promise = this.get("query/"+driver+"?"+queryString);
-		// 	KarmaFieldsAlpha.Cache.update("tables", driver+"?"+queryString, promise);
-		// }
-		//
-		// const results = await promise;
-
-		const results = await this.get("query/"+driver+"?"+queryString);
-
-		const ids = (results.items || results || []).map((row, index) => {
-			const id = row.id.toString();
-
-			this.setOriginal(row, driver, id);
-			this.setOriginal("0", driver, id, "trash");
-
-			// for (let key in row) {
-			// 	// const path = driver+"/"+id+"/"+key;
-			//
-			// 	let value = row[key];
-			//
-			// 	if (typeof value === "number") {
-			// 		value = value.toString();
-			// 	} else if (value && typeof value === "object") {
-			// 		value = JSON.stringify(value);
-			// 	}
-			//
-			// 	// -> value MUST be a string!
-			// 	if (typeof value !== "string") {
-			// 		value = "";
-			// 	}
-			//
-			// 	// this.setOriginal(value, path);
-			//
-			//
-			//
-			// 	this.setOriginal(value, driver, id, key);
-			//
-			// }
-			return id;
-		});
-
-		KarmaFieldsAlpha.Gateway.queries[driver] = {
-			ids: ids,
-			count: Number(results.count) || 0
-		};
+	// static async getTable(driver, queryString) {
+	//
+	// 	const results = await this.get("query/"+driver+"?"+queryString);
+	//
+	// 	const ids = (results.items || results || []).map((row, index) => {
+	// 		const id = row.id.toString();
+	//
+	// 		this.setOriginal(row, driver, id);
+	// 		this.setOriginal("0", driver, id, "trash");
+	//
+	// 		return id;
+	// 	});
+	//
+	// 	KarmaFieldsAlpha.Gateway.queries[driver] = {
+	// 		ids: ids,
+	// 		count: Number(results.count) || 0
+	// 	};
+	//
+	//
+	// 	return {
+	// 		ids: ids,
+	// 		count: Number(results.count) || 0,
+	// 		rowName: "id"
+	// 	};
+	//
+	// }
 
 
-		return {
-			ids: ids,
-			count: Number(results.count) || 0,
-			rowName: "id"
-		};
-
-	}
+	// static async getTable2(driver, queryString) {
+	//
+	// 	const key = "query/"+driver+"?"+queryString;
+	//
+	// 	if (!this.cache2[key]) {
+	// 		this.cache2[key] = this.get("query/"+driver+"?"+queryString).then(results => {
+	// 			// const ids = (results.items || results || []).map(row => {
+	// 			// 	const id = row.id.toString();
+	// 			// 	this.setOriginal(row, driver, id);
+	// 			// 	return id;
+	// 			// });
+	// 			(results.items || results || []).forEach(row => {
+	// 				this.setOriginal(row, driver, row.id.toString());
+	// 			});
+	// 			return results;
+	// 		});
+	// 	}
+	//
+	// 	return this.cache2[key];
+	// }
+	//
+	// static async getTable3(driver, queryString) {
+	//
+	// 	const results = await this.get("query/"+driver+"?"+queryString);
+	//
+	// 	(results.items || results || []).forEach(row => {
+	// 		this.setOriginal(row, driver, row.id.toString());
+	// 	});
+	//
+	// 	return results;
+	//
+	// }
 
 	// static async getRelations(driver, queryString) {
 	//
@@ -177,97 +188,191 @@ KarmaFieldsAlpha.Gateway = class {
 	//
 	// }
 
-	static async addRelations(driver, relations) {
+	// static async addRelations(driver, relations) {
+	//
+	// 	// var relations = [
+	// 	// 	{
+	// 	// 		id: 3, // typeface_id
+	// 	// 		font_id: 4,
+	// 	// 	},
+	// 	// 	{
+	// 	// 		id: 3, // typeface_id
+	// 	// 		font_id: 5
+	// 	// 	},
+	// 	// 	{
+	// 	// 		id: 4, // typeface_id
+	// 	// 		font_id: 6
+	// 	// 	}
+	// 	// ];
+	//
+	// 	const groups = relations.reduce((group, item) => {
+	// 		if (!item.id) {
+	// 			console.error("Gateway::addRelations, item does not have id");
+	// 		}
+	// 		if (!group[item.id]) {
+	// 			group[item.id] = {};
+	// 		}
+	// 		for (let key in item) {
+	// 			if (key !== "id") {
+	// 				if (!group[item.id][key]) {
+	// 					group[item.id][key] = [];
+	// 				}
+	// 				group[item.id][key].push(item[key]);
+	// 			}
+	// 		}
+	// 		return group;
+	// 	}, {});
+	//
+	// 	// groups = {
+	// 	// 	3: {
+	// 	// 		font_id: [4,5]
+	// 	// 	},
+	// 	// 	4: {
+	// 	// 		font_id: [6]
+	// 	// 	}
+	// 	// }
+	//
+	// 	for (let id in groups) {
+	// 		for (let key in groups[id]) {
+	// 			// this.setOriginal(JSON.stringify(groups[id][key]), driver, id, key);
+	// 			// KarmaFieldsAlpha.Type.register("json", driver, id, key);
+	// 			this.setOriginal(groups[id][key], driver, id.toString(), key);
+	// 		}
+	// 	}
+	//
+	//
+	//
+	// }
+	//
+	// static async getArrayValue(driver, ...path) {
+	//
+	// 	if (KarmaFieldsAlpha.Gateway.queries[driver] && !KarmaFieldsAlpha.Gateway.queries[driver].relationsOk) {
+	//
+	// 		KarmaFieldsAlpha.Gateway.queries[driver].relationsOk = true;
+	//
+	// 		const ids = KarmaFieldsAlpha.Gateway.queries[driver].ids || [];
+	//
+	// 		if (ids.length) {
+	//
+	// 			const results = await this.get("relations/"+driver+"?ids="+ids.join(",")) || [];
+	//
+	// 			this.addRelations(driver, results);
+	//
+	// 			let value = this.getOriginal(driver, ...path);
+	//
+	// 			// if (value === undefined) {
+	// 			//
+	// 			// 	this.setOriginal("[]", driver, id, key);
+	// 			// 	value = [];
+	// 			//
+	// 			// } else {
+	// 			//
+	// 			// 	value = JSON.parse(value);
+	// 			//
+	// 			// }
+	//
+	// 			return value;
+	// 		}
+	//
+	// 	}
+	//
+	// }
 
-		// var relations = [
-		// 	{
-		// 		id: 3, // typeface_id
-		// 		font_id: 4,
-		// 	},
-		// 	{
-		// 		id: 3, // typeface_id
-		// 		font_id: 5
-		// 	},
-		// 	{
-		// 		id: 4, // typeface_id
-		// 		font_id: 6
-		// 	}
-		// ];
+	// // no care expectedType
+	// static async getRelations(driver, ids) {
+	//
+	//
+	//
+	// 	const key = "relations/"+driver+"?ids="+ids.join(",");
+	//
+	// 	if (!this.cache2[key]) {
+	//
+	// 		this.cache2[key] = this.get(key).then(relations => {
+	// 			this.addRelations(driver, relations)
+	// 		});
+	//
+	// 	}
+	//
+	// 	return this.cache2[key];
+	// }
 
-		const groups = relations.reduce((group, item) => {
-			if (!item.id) {
-				console.error("Gateway::addRelations, item does not have id");
-			}
-			if (!group[item.id]) {
-				group[item.id] = [];
-			}
-			for (let key in item) {
-				if (key !== "id") {
-					if (!group[item.id][key]) {
-						group[item.id][key] = [];
-					}
-					group[item.id][key].push(item[key]);
-				}
-			}
-			return group;
-		}, {});
+	// no care expectedType
+	// static async getRelations(driver, ids) {
+	//
+	// 	const key = "relations/"+driver+"?ids="+ids.join(",");
+	//
+	// 	const relation = await this.get(key);
+	//
+	// 	this.addRelations(driver, relations);
+	// }
 
-		// groups = {
-		// 	3: {
-		// 		font_id: [4,5]
-		// 	},
-		// 	4: {
-		// 		font_id: [6]
-		// 	}
-		// }
+	// static async updateRelations(driver, ...path) {
+	//
+	// 	if (KarmaFieldsAlpha.Gateway.queries[driver] && !KarmaFieldsAlpha.Gateway.queries[driver].relationsOk) {
+	//
+	// 		KarmaFieldsAlpha.Gateway.queries[driver].relationsOk = true;
+	//
+	// 		const ids = KarmaFieldsAlpha.Gateway.queries[driver].ids || [];
+	//
+	// 		if (ids.length) {
+	//
+	// 			const results = await this.get("relations/"+driver+"?ids="+ids.join(",")) || [];
+	//
+	// 			this.addRelations(driver, results);
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// }
 
-		for (let id in groups) {
-			for (let key in groups[id]) {
-				this.setOriginal(JSON.stringify(groups[id][key]), driver, id, key);
-				KarmaFieldsAlpha.Type.register("json", driver, id, key);
-			}
-		}
+	// static async fetch(driver, ...path) {
+	// 	let value = this.getOriginal(driver, ...path);
+	//
+	// 	if (value === undefined) {
+	//
+	//
+	// 	}
+	//
+	// 	if (this.queries[driver] && !this.queries[driver].relationsOk) {
+	// 		this.updateRelations(driver, ...path);
+	// 	}
+	//
+	// 	value = this.getOriginal(driver, ...path);
+	//
+	// 	if (value === undefined) {
+	// 		value = await this.getValue2(driver, ...path);
+	// 	}
+	//
+	// 	return this.getOriginal(driver, ...path)
+	// }
 
+	static async getTable(driver, paramString) {
+    const key = "query/"+driver+"?"+paramString;
+    return this.get(key);
+  }
+
+	static async getRelations(driver, ids, ...keys) {
+		const key = "relations/"+driver+"?ids="+ids.join(",")+"&keys="+keys.join(",");
+		return this.get(key);
 	}
 
-	static async getArrayValue(driver, id, key) {
-
-		if (KarmaFieldsAlpha.Gateway.queries[driver] && !KarmaFieldsAlpha.Gateway.queries[driver].relationsOk) {
-
-			const ids = KarmaFieldsAlpha.Gateway.queries[driver].ids || [];
-
-			if (ids.length) {
-
-				const results = await this.get("relations/"+driver+"?ids="+ids.join(",")) || [];
-
-				this.addRelations(driver, results);
-
-				KarmaFieldsAlpha.Gateway.queries[driver].relationsOk = true;
-
-				let value = this.getOriginal(driver, id, key);
-
-				if (value === undefined) {
-
-					this.setOriginal("[]", driver, id, key);
-					value = [];
-
-				} else {
-
-					value = JSON.parse(value);
-
-				}
-
-				return value;
-			}
-
-		}
-
+	static async getValue(...path) {
+		const key = "get/"+path.join("/");
+		//
+		//
+		// console.log(path);
+		// console.trace();
+		return this.get(key);
 	}
 
 
 	static async add(driver, params) {
+
 		const results = await this.post("add/"+driver, params);
+
 		let ids = [];
+
 		if (Array.isArray(results)) {
 			ids = results.map(item => {
 				const id = (item.id || item).toString();
@@ -279,6 +384,7 @@ KarmaFieldsAlpha.Gateway = class {
 			this.setOriginal("1", driver, id, "trash");
 			ids = [id];
 		}
+
 		return ids;
 	}
 
@@ -336,27 +442,57 @@ KarmaFieldsAlpha.Gateway = class {
 	// 	// return value;
 	// }
 
-	static async getValue(expectedType, ...path) {
+	// static async getValue(expectedType, ...path) {
+	//
+	// 	let value = await this.get("get/"+path.join("/"));
+	//
+	// 	// if (expectedType !== "array" && Array.isArray(value)) {
+	// 	// 	value = value[0];
+	// 	// }
+	//
+	// 	if (value === undefined) {
+	// 		value = null;
+	// 	}
+	//
+	// 	// value = KarmaFieldsAlpha.Type.sanitize(value, ...path);
+	//
+	// 	this.setOriginal(value, ...path);
+	//
+	// 	return value;
+	// }
 
-		let value = await this.get("get/"+path.join("/"));
 
-		if (expectedType !== "array" && Array.isArray(value)) {
-			value = value[0];
-		}
+	// // no care expectedType
+	// static async getValue2(...path) {
+	//
+	// 	const key = "get/"+path.join("/");
+	//
+	// 	if (!this.cache2[key]) {
+	//
+	// 		this.cache2[key] = this.get(key).then(value => {
+	// 			this.setOriginal(value, ...path);
+	// 			return value;
+	// 		});
+	//
+	// 	}
+	//
+	// 	return this.cache2[key];
+	// }
 
-		if (value === undefined) {
-			value = null;
-		}
-
-		value = KarmaFieldsAlpha.Type.sanitize(value, ...path);
-
-		this.setOriginal(value, ...path);
-
-		return value;
-	}
+	// no care expectedType
+	// static async getValue3(...path) {
+	//
+	// 	const value = await this.get("get/"+path.join("/"));
+	//
+	// 	this.setOriginal(value, ...path);
+	//
+	// 	return value;
+	//
+	// }
 
 
 	async getRemoteArray(...path) {
+		console.error("deprecated");
 		return this.getRemoteValue("array", ...path);
 	}
 
@@ -377,8 +513,12 @@ KarmaFieldsAlpha.Gateway = class {
 	// }
 
 	static getOriginal(...path) {
-		return KarmaFieldsAlpha.DeepObject.get(this.original, ...path);
-		// return this.original[path];
+		// return KarmaFieldsAlpha.DeepObject.get(this.original, ...path);
+		let value = KarmaFieldsAlpha.DeepObject.get(this.original, ...path);
+		if (Array.isArray(value)) {
+			value = KarmaFieldsAlpha.DeepObject.cloneArray(value);
+		}
+		return value;
 	}
 
 	static removeOriginal(...path) {
@@ -413,11 +553,12 @@ KarmaFieldsAlpha.Gateway = class {
 
 	static clearCache(startPath) {
 		for (let key in this.cache) {
-			if (!startPath || key.startsWith(startPath)) {
-				this.cache[key] = undefined;
+			if (!startPath || typeof startPath === "string" && key.startsWith(startPath) || typeof startPath === "object" && key.match(startPath)) {
+				delete this.cache[key];
 			}
 		}
 	}
+
 
 
 

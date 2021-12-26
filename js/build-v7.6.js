@@ -5,12 +5,13 @@
 KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 	if (args) {
 		args.render = (clean) => {
-			return new Promise((resolve) => {
-				requestIdleCallback( async () => {
-					await KarmaFieldsAlpha.build(args, parent, args.element, clean);
-					resolve();
-				});
-			});
+			// return new Promise((resolve) => {
+			// 	requestIdleCallback( async () => {
+			// 		await KarmaFieldsAlpha.build(args, parent, args.element, clean);
+			// 		resolve();
+			// 	});
+			// });
+			return KarmaFieldsAlpha.build(args, parent, args.element, clean);
 		}
 		if (!element || clean) {
 			args.element = document.createElement(args.tag || "div");
@@ -52,6 +53,7 @@ KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 				if (args.element) { // -> sometimes args.element = null !
 					args.element.removeChild(child);
 				}
+
 				child = next;
 			}
 		}

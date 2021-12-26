@@ -1,31 +1,76 @@
 KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 
-	// Needed or not ??
+
 	// async fetchValue() {
 	// 	let value = await super.fetchValue();
 	//
-	// 	if (!value && value !== "") {
-	// 		value = this.resource.default || "";
-	// 		if (!this.resource.readonly) {
-	// 			await this.setValue(value);
-	// 		}
+	// 	if (Array.isArray(value)) {
+	// 		value = value[0];
 	// 	}
-	// 	return value;
-	// }
+	//
+	// 	if (value === undefined) {
+	// 		value = "";
+	// 	}
+	//
+  //   return value;
+  // }
 
-	// editAll() {
-	// 	const form =
-	// 	this.getForm().editAll(input.element.value, ...this.getPath());
-	// }
+	format(value) {
+		if (Array.isArray(value)) {
+			value = value[0];
+		}
+		return value;
+	}
+
+
+	async importValue(value) {
+    await this.setValue(null, value);
+  }
+
+
+	async input(value) {
+
+		await this.write();
+
+		if (KarmaFieldsAlpha.History.lastField !== this) {
+			KarmaFieldsAlpha.History.backup();
+			KarmaFieldsAlpha.History.lastField = this;
+		}
+
+		if (this.resource.autosave) {
+			const item = {};
+			const path = this.getPath();
+			const form = this.getForm();
+			KarmaFieldsAlpha.DeepObject.assign(item, value, ...path);
+			form.buffer.set(value, ...path);
+		} else {
+			await this.setValue(type, value);
+		}
+
+
+
+		await this.edit();
+
+		if (this.resource.submit === "auto" || this.resource.autosubmit) {
+			await this.submit();
+		}
+
+	}
+
 
 	// called when a row is added
 	setDefault() {
+		console.error("deprecated");
 		let value = "";
 		if (this.resource.default) {
 			value = this.resource.default.toString();
 		}
     this.initValue(value);
+  }
+
+	getDefault() {
+		return this.resource.default || "";
   }
 
 
@@ -48,6 +93,13 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 				input.element.classList.add("loading");
 				let value = await this.fetchValue();
+				value = this.format(value);
+
+				if (value === undefined) {
+					value = this.getDefault();
+					this.setValue("init", value);
+				}
+
 				let modified = this.isModified();
 
 				if (this.resource.readonly || this.resource.input && this.resource.input.readOnly) {
@@ -55,14 +107,18 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				} else {
 					input.element.oninput = async event => {
 
+						value = input.element.value;
 
-						this.backup();
-						// input.element.classList.add("editing");
+						if (type === "insertFromPaste") {
+							value = new KarmaFieldsAlpha.PastedString(value);
+						}
 
-						await this.editValue(input.element.value);
+						await this.input(event.inputType, value);
 
-						// input.element.classList.remove("editing");
-						input.element.classList.toggle("modified", this.isModified());
+						// await this.backup();
+						// await this.editValue(input.element.value);
+
+						input.element.classList.toggle("modified", await this.isModified());
 					};
 				}
 
@@ -77,6 +133,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 }
 
+KarmaFieldsAlpha.PastedString = class extends String {}
 
 // KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 //

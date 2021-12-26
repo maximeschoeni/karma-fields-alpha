@@ -1,47 +1,97 @@
 // https://github.com/tinymce/tinymce-dist/blob/master/tinymce.js
 
 // /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
-
-KarmaFieldsAlpha.fields.editor = {};
-
-KarmaFieldsAlpha.fields.editor.create = function(resource) {
-	let field = KarmaFieldsAlpha.Field(resource);
-
-	return field;
-}
-
-KarmaFieldsAlpha.fields.editor.build = function(field) {
-	return {
-		class: "editor-content",
-		init: function(node) {
-			this.element.id = field.getId();
-			// this.element.editable = true;
-
-			tinyMCE.init({
-				target: this.element,
-				hidden_input: false,
-				inline: true,
-				menubar: false,
-				contextmenu: false,
-				toolbar: true,
-				skin: false
-				// plugins: "link"
+// /Applications/MAMP/htdocs/wordpress/wp-admin/js/editor.js
 
 
-			}).then(function(editors) {
-				// field.data.editor = editors.pop();
+// https://make.wordpress.org/core/2017/05/20/editor-api-changes-in-4-8/
+
+KarmaFieldsAlpha.fields.editor = class extends KarmaFieldsAlpha.fields.field {
+
+	build() {
+
+		return {
+			class: "editor-container",
+			children: [
+				{
+					tag: "textarea",
+					init: textarea => {
+						textarea.element.id = "xxx";
+						textarea.element.value = "Hjlzljzl";
+					}
+				}
+			],
+
+
+			init: node => {
+				node.element.id = this.getId();
+				// this.element.editable = true;
+
+				// tinyMCE.init({
+				// 	target: node.element,
+				// 	hidden_input: false,
+				// 	// inline: true
+				// 	menubar: false,
+				// 	toolbar: 'styleselect | bold italic | undo redo',
+				// 	// content_css: 'wordpress',
+				// 	// contextmenu: false,
+				// 	// toolbar: true,
+				// 	skin: false,
+				// 	plugins: ["link"]
 				//
-				// field.events.update = function() {
-				// 	field.data.editor.setContent(field.getValue() || "");
-				// }
-				// field.events.update();
 				//
-				// field.data.editor.on("input", function(event) {
-				// 	var value = field.data.editor.getContent();
-				// 	field.setValue(value);
+				// }).then(editors => {
+				//
+				//
 				// });
 
-			});
-		}
-	};
+
+
+
+			},
+			complete: node => {
+				// setTimeout(() => {
+				// 	// wp.editor.getDefaultSettings = () => {
+				// 	// 	return {
+			  //   //     tinymce: {
+			  //   //       wpautop: true,
+			  //   //       plugins : 'charmap colorpicker compat3x directionality fullscreen hr image lists media paste tabfocus textcolor wordpress wpautoresize wpdialogs wpeditimage wpemoji wpgallery wplink wptextpattern wpview',
+			  //   //       toolbar1: 'bold italic underline strikethrough | bullist numlist | blockquote hr wp_more | alignleft aligncenter alignright | link unlink | fullscreen | wp_adv',
+			  //   //       toolbar2: 'formatselect alignjustify forecolor | pastetext removeformat charmap | outdent indent | undo redo | wp_help'
+			  //   //     },
+			  //   //     quicktags: true,
+			  //   //     mediaButtons: true,
+			  //   //   }
+				// 	// };
+				// 	// wp.oldEditor.remove("content");
+				// 	console.log(window.wp.editor.getDefaultSettings);
+				//
+				// 	wp.editor.remove("textarea_xxx");
+				//
+					wp.editor.initialize(
+			      "xxx",
+						{
+							tinymce: {
+
+							}
+						}
+			      // {
+			      //   tinymce: {
+			      //     wpautop: true,
+			      //     plugins : 'charmap colorpicker compat3x directionality fullscreen hr image lists media paste tabfocus textcolor wordpress wpautoresize wpdialogs wpeditimage wpemoji wpgallery wplink wptextpattern wpview',
+			      //     toolbar1: 'bold italic underline strikethrough | bullist numlist | blockquote hr wp_more | alignleft aligncenter alignright | link unlink | fullscreen | wp_adv',
+			      //     toolbar2: 'formatselect alignjustify forecolor | pastetext removeformat charmap | outdent indent | undo redo | wp_help'
+			      //   },
+			      //   quicktags: true,
+			      //   mediaButtons: true,
+			      // }
+			    );
+					this.complete = null;
+				//
+				// }, 2000);
+
+			}
+		};
+
+	}
 }
