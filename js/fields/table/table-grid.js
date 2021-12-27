@@ -46,7 +46,7 @@ KarmaFieldsAlpha.fields.table.grid = class extends KarmaFieldsAlpha.fields.table
 
     } else {
 
-      super.setValue(type, value, ...path);
+      super.setValue(null, value, ...path);
 
     }
 

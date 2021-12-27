@@ -99,10 +99,10 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
   // }
 
 	async exportValue() {
-		const value = await this.fetchValue();
+		const value = await this.fetchValue() || [];
 		const options = await this.fetchOptions();
-		const option = options.find(function(option) {
-			return option.key === value;
+		const option = value.length && options.find(function(option) {
+			return option.key === value[0];
 		});
 		return option && option.name || value;
   }
@@ -127,7 +127,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 			return option.name === value;
 		});
 		if (option) {
-			this.setValue("import", option.key);
+			this.setValue(null, [option.key]);
 		}
   }
 
@@ -156,6 +156,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 	}
 
 	async setDefault() {
+		console.error("deprecated");
 		const value = await this.getDefault();
     await this.initValue(value);
   }
@@ -346,8 +347,8 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 				dropdown.element.classList.add("loading");
 
 
-				let value = await this.fetchValue();
-
+				let array = await this.fetchValue() || [];
+				let value = array[0];
 
 				let modified = await this.isModified();
 				const options = await this.fetchOptions();
@@ -356,7 +357,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 				if (value === undefined && options.length) {
 					value = options[0].key;
-					await this.setValue("init", value);
+					await this.setValue(null, [value]);
 				}
 
 				if (queryString !== dropdown.element.getAttribute("querystring")) {
@@ -403,7 +404,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 						}
 
 						// await this.backup();
-						await this.input(dropdown.element.value);
+						await this.input([dropdown.element.value]);
 
 						if (this.resource.autonav) {
 							KarmaFieldsAlpha.Nav.setParam(this.resource.key, dropdown.element.value);

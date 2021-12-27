@@ -16,16 +16,21 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
   //   return value;
   // }
 
-	format(value) {
-		if (Array.isArray(value)) {
-			value = value[0];
-		}
-		return value;
+	// format(value) {
+	// 	if (Array.isArray(value)) {
+	// 		value = value[0];
+	// 	}
+	// 	return value;
+	// }
+
+	async getValue() {
+		const array = await this.fetchValue() || [];
+		return array[0];
 	}
 
 
 	async importValue(value) {
-    await this.setValue(null, value);
+    await this.setValue(null, [value]);
   }
 
 
@@ -39,13 +44,9 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 		}
 
 		if (this.resource.autosave) {
-			const item = {};
-			const path = this.getPath();
-			const form = this.getForm();
-			KarmaFieldsAlpha.DeepObject.assign(item, value, ...path);
-			form.buffer.set(value, ...path);
+			await this.saveValue(null, value);
 		} else {
-			await this.setValue(type, value);
+			await this.setValue(null, value);
 		}
 
 
@@ -92,28 +93,27 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				this.render = input.render;
 
 				input.element.classList.add("loading");
-				let value = await this.fetchValue();
-				value = this.format(value);
+				let value = await this.fetchValue() || [];
 
-				if (value === undefined) {
-					value = this.getDefault();
-					this.setValue("init", value);
+				if (!value.length) {
+					value.push(this.getDefault());
+					this.setValue(null, value);
 				}
 
-				let modified = this.isModified();
+				let modified = await this.isModified();
 
 				if (this.resource.readonly || this.resource.input && this.resource.input.readOnly) {
 					input.element.readOnly = true;
 				} else {
 					input.element.oninput = async event => {
 
-						value = input.element.value;
-
-						if (type === "insertFromPaste") {
-							value = new KarmaFieldsAlpha.PastedString(value);
+						if (event.inputType === "insertFromPaste") {
+							await this.input(new KarmaFieldsAlpha.PastedString(input.element.value));
+						} else {
+							await this.input([input.element.value]);
 						}
 
-						await this.input(event.inputType, value);
+
 
 						// await this.backup();
 						// await this.editValue(input.element.value);
@@ -122,7 +122,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 					};
 				}
 
-				input.element.value = value;
+				input.element.value = value[0] || "";
 				input.element.classList.toggle("modified", modified);
 				input.element.classList.remove("loading");
 				input.element.disabled = this.getState() === "disabled";

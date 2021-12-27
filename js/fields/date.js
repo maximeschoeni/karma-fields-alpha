@@ -120,7 +120,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
       return momentDate.format(this.resource.export_format || this.format);
     }
 
-    await this.setValue("import", value || "");
+    await this.setValue(null, [value || ""]);
 
 
     // return value || '';
@@ -277,7 +277,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
                             this.date = null;
                             // this.backup();
                             // this.editValue(sqlDate);
-                            await this.input(null, sqlDate);
+                            await this.input([sqlDate]);
                             this.render();
                           }
                         }
@@ -355,7 +355,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
                     this.date = mDate.toDate();
                     var sqlDate = mDate.format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
                     // await this.editValue(sqlDate);
-                    await this.input(null, sqlDate);
+                    await this.input([sqlDate]);
                     this.render();
                   }
                   input.element.classList.toggle("valid-date", mDate.isValid());
@@ -385,7 +385,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
                   // console.log(input.element.value, this.format, !moment(input.element.value, this.format).isValid());
                   if (!moment(input.element.value, this.format).isValid()) {
                     // await this.editValue("");
-                    await this.input(null, "");
+                    await this.input([""]);
                   }
                   this.render();
                 };

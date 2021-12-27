@@ -29,15 +29,14 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				input.element.classList.add("loading");
 				input.element.value = "";
 
-				let value = await this.fetchValue();
-				value = this.format(value);
+				let value = await this.fetchValue() || [];
 
-				if (value === undefined) {
-					value = this.getDefault();
+				if (!value.length) {
+					value.push(this.getDefault());
 					this.setValue("init", value);
 				}
 
-				let modified = this.isModified();
+				let modified = await this.isModified();
 
 				if (this.resource.readonly) {
 					input.element.readOnly = true;
@@ -47,7 +46,7 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 						// await this.backup();
 						// await this.editValue(input.element.value);
 
-						await this.input(input.element.value);
+						await this.input([input.element.value]);
 
 						modified = await this.isModified();
 

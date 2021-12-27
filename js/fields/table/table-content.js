@@ -182,9 +182,17 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
     const driver = this.table.resource.driver || this.table.resource.key;
     const results = await KarmaFieldsAlpha.Gateway.getTable(driver, paramString);
 
-		(results.items || results || []).forEach(row => {
-      this.buffer.set(row, row.id.toString());
-		});
+		// (results.items || results || []).forEach(row => {
+    //   this.buffer.set(row, row.id.toString());
+		// });
+    for (let item of results.items || results || []) {
+      for (let key in item) {
+        // const keyPath = item.id+"/"+key;
+        // this.valuePromises[keyPath] = Promise.resolve(item[key]);
+
+        this.buffer.set([item[key]], row.id.toString(), key);
+      }
+    }
     return results;
   }
 
@@ -194,6 +202,27 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
     }
     return this.tablePromise;
   }
+
+
+
+
+  // async getRemoteTable() {
+  //   if (!this.tablePromise) {
+  //     const paramString = this.table.getParamString();
+  //     const driver = this.table.resource.driver || this.table.resource.key;
+  //     this.tablePromise = KarmaFieldsAlpha.Gateway.getTable(driver, paramString);
+  //
+  //     const results = await this.tablePromise;
+  //
+  //     for (let item of results.items || results || []) {
+  //       for (let key in item) {
+  //         const keyPath = item.id+"/"+key;
+  //         this.valuePromises[keyPath] = Promise.resolve(item[key]);
+  //       }
+  //     }
+  //   }
+  //   return this.tablePromise;
+  // }
 
   async getRemoteRelations(key) {
     if (!this.relationPromises) {
@@ -208,17 +237,17 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
   async getRemoteValue(id, key) {
     await this.getRemoteTable();
 
-    let value = this.buffer.get(id, key);
+    let value;
 
     if (key === "trash") {
       value = this.buffer.get(id) && "0" || "1";
+    } else {
+      value = this.buffer.get(id, key);
     }
 
     if (value === undefined) {
       await this.getRemoteRelations(key);
-
       value = await super.getRemoteValue(id, key);
-
     }
 
     return value;
@@ -364,7 +393,7 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
     }
   }
 
-  
+
   async getSelectedIds() {
     return [];
   }

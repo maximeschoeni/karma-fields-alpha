@@ -47,21 +47,36 @@ KarmaFieldsAlpha.DeepObject = class {
     return false;
   };
 
+  // static merge(object1, object2) {
+  // 	for (var i in object2) {
+  // 		if (typeof object2[i] === "object" && !Array.isArray(object2[i])) {
+  // 			if (object2[i]) {
+  //
+  //         if (!object1[i] || typeof object1[i] !== "object") {
+  // 					object1[i] = {};
+  // 				}
+  // 				// if (!object1[i] || typeof object1[i] !== "object") {
+  // 				// 	object1[i] = Array.isArray(object2[i]) ? [] : {};
+  // 				// }
+  // 				this.merge(object1[i], object2[i]);
+  // 			} else if (object1[i] !== undefined) { // object2[i] -> null
+  //         delete object1[i];
+  //   		}
+  //     } else {
+  // 			object1[i] = object2[i];
+  // 		}
+  // 	}
+  // }
+
   static merge(object1, object2) {
   	for (var i in object2) {
-  		if (typeof object2[i] === "object" && !Array.isArray(object2[i])) {
-  			if (object2[i]) {
-
-          if (!object1[i] || typeof object1[i] !== "object") {
-  					object1[i] = {};
-  				}
-  				// if (!object1[i] || typeof object1[i] !== "object") {
-  				// 	object1[i] = Array.isArray(object2[i]) ? [] : {};
-  				// }
-  				this.merge(object1[i], object2[i]);
-  			} else if (object1[i] !== undefined) { // object2[i] -> null
-          delete object1[i];
-    		}
+      if (object2[i] === null) {
+        delete object1[i];
+      } else if (object2[i].constructor === Object) {
+        if (!object1[i] || object1[i].constructor !== Object) {
+					object1[i] = {};
+				}
+				this.merge(object1[i], object2[i]);
       } else {
   			object1[i] = object2[i];
   		}
@@ -126,18 +141,33 @@ KarmaFieldsAlpha.DeepObject = class {
     return false;
   }
 
-  static async someAsync(object, callback, ...path) {
-    if (object && typeof object === "object" && !Array.isArray(object)) {
+  // static async someAsync(object, callback, ...path) {
+  //   if (object && typeof object === "object" && !Array.isArray(object)) {
+  //     for (let i in object) {
+  //       if (await this.someAsync(object[i], callback, ...path, i)) {
+  //         return true;
+  //       }
+  //     }
+  //   } else if (object !== undefined && await callback(object, ...path)) {
+  //     return true;
+  //   }
+  //   return false;
+  // }
+
+  static every(object, callback, ...path) {
+    if (object && typeof object === "object" && object.constructor !== Array) {
       for (let i in object) {
-        if (await this.someAsync(object[i], callback, ...path, i)) {
-          return true;
+        if (!this.every(object[i], callback, ...path, i)) {
+          return false;
         }
       }
-    } else if (object !== undefined && await callback(object, ...path)) {
-      return true;
+    } else if (object === undefined || !callback(object, ...path)) {
+      return false;
     }
-    return false;
+    return true;
   }
+
+
 
   static filter(object, callback, ...path) {
     let output;
@@ -166,6 +196,36 @@ KarmaFieldsAlpha.DeepObject = class {
 			return object !== original;
 		}
 	}
+
+  static equal(o1, o2) {
+		if (Array.isArray(o1)) {
+      return Array.isArray(o2) && o1.length === o2.length && o1.every((item, index) => this.equal(item, o2[index]));
+		} else if (o1 && typeof o1 === "object") {
+      return typeof o2 === "object" && this.every(o1, (item, ...path) => this.equal(item, this.get(o2, ...path)));
+		} else {
+			return o1 === o2;
+		}
+	}
+  //
+  // static differ(object, original) {
+	// 	if (object.constructor === Array) {
+  //     return !(object.length === 1 && object[0] === original || original.constructor === Array && object.length === original.length && !object.some((item, index) => this.differ(item, original[index])));
+	// 	} else if (typeof object === "object" && original) {
+  //     return this.some(object, (item, ...path) => this.differ(item, this.get(original, ...path)));
+	// 	} else {
+	// 		return !(object === original || original.constructor === Array && original.length === 1 && object === original[0]);
+	// 	}
+	// }
+
+  // static equalX(o1, o2) {
+	// 	if (o1.constructor === Array) {
+  //     return o1.length === 1 && o1[0] === o2 || o2.constructor === Array && o1.length === o2.length && o1.every((item, index) => this.equal(item, o2[index]));
+	// 	} else if (typeof o1 === "object" && o2) {
+  //     return this.every(o1, (item, ...path) => this.equal(item, this.get(o2, ...path)));
+	// 	} else {
+	// 		return o1 === o2 || o2.constructor === Array && o2.length === 1 && o1 === o2[0];
+	// 	}
+	// }
 
 
   getObject() {
@@ -210,9 +270,9 @@ KarmaFieldsAlpha.DeepObject = class {
     return this.constructor.some(this.getObject(), callback, ...path);
   }
 
-  someAsync(callback, ...path) {
-    return this.constructor.someAsync(this.getObject(), callback, ...path);
-  }
+  // someAsync(callback, ...path) {
+  //   return this.constructor.someAsync(this.getObject(), callback, ...path);
+  // }
 
   forEach(callback, ...path) {
     this.constructor.forEach(this.getObject(), callback, ...path);

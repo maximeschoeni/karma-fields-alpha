@@ -495,13 +495,37 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		let value = this.buffer.get(...path);
 
 		if (!value) {
-			// value = await KarmaFieldsAlpha.Gateway.getValue(this.resource.driver || this.resource.key, ...path);
 			value = await this.queryValue(...path);
+
+			if (!Array.isArray(value)) {
+				value = [value];
+			}
+
 			this.buffer.set(value, ...path);
 		}
 
 		return value;
 	}
+
+	// async getRemoteValue(...path) {
+	//
+	// 	if (!this.valuePromises) {
+	// 		this.valuePromises = {};
+	// 	}
+	//
+	// 	const key = path.join("/");
+	//
+	// 	if (!this.valuePromises[key]) {
+	// 		this.valuePromises[key] = KarmaFieldsAlpha.Gateway.getValue(this.resource.driver || this.resource.key, ...path);
+	//
+	// 		if (!Array.isArray(value)) {
+	// 			this.valuePromises[key] = [this.valuePromises[key]];
+	// 		}
+	// 	}
+	//
+	// 	return this.valuePromises[key];
+	//
+	// }
 
 	async fetchValue(expectedType, ...path) {
 
@@ -511,75 +535,18 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 		if (this.resource.fetch !== false) {
 
-			// if (expectedType === "array") {
-			//
-			// 	if (!value) {
-			// 		value = [];
-			// 	}
-			//
-			// 	let original = KarmaFieldsAlpha.Gateway.getOriginal(this.resource.driver, ...path);
-			//
-			// 	if (original === undefined && expectedType === "array") {
-			// 		original = await KarmaFieldsAlpha.Gateway.getArrayValue(this.resource.driver, ...path);
-			// 	}
-			//
-			// 	if (original === undefined) {
-			// 		original = await KarmaFieldsAlpha.Gateway.getValue(expectedType, this.resource.driver, ...path);
-			// 	}
-			//
-			// 	if (original !== undefined) {
-			// 		KarmaFieldsAlpha.DeepObject.merge(value, original);
-			// 	}
-			//
-			// } else
-
-			// if (value === undefined || value === null) {
-			// 	value = KarmaFieldsAlpha.Gateway.getOriginal(this.resource.driver, ...path);
-			//
-			// 	if (value === undefined && expectedType === "array") {
-			// 		value = await KarmaFieldsAlpha.Gateway.getArrayValue(this.resource.driver, ...path);
-			// 	}
-			//
-			// 	if (value === undefined) {
-			// 		value = await KarmaFieldsAlpha.Gateway.getValue(expectedType, this.resource.driver, ...path);
-			// 	}
-			// }
-
-
-			// if (value === undefined) {
-			// 	value = KarmaFieldsAlpha.Gateway.getOriginal(this.resource.driver, ...path);
-			// 	if (value === undefined) {
-			// 		value = await KarmaFieldsAlpha.Gateway.getValue2(expectedType, this.resource.driver, ...path);
-			// 	}
-			// }
 
 			if (value === undefined) {
 
 				value = await this.getRemoteValue(...path);
 
-				// value = this.getOriginal(...path);
-				// if (value === undefined) {
-				// 	value = await KarmaFieldsAlpha.Gateway.getValue2(expectedType, this.resource.driver, ...path);
-				// }
 			}
-
-			// let value = this.getDeltaValue(...path)
-			// 	?? KarmaFieldsAlpha.Gateway.getOriginal(this.resource.driver, ...path)
-			// 	?? await KarmaFieldsAlpha.Gateway.getValue2(expectedType, this.resource.driver, ...path);
-
-
 
 		}
 
+		// value = this.format(value, expectedType);
 
-
-		value = this.format(value, expectedType);
-
-
-
-		// value = KarmaFieldsAlpha.Type.parse(value, this.resource.driver, ...path);
-
-		return value;
+		return value || [];
   }
 
 	/**
@@ -601,22 +568,34 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
   // setValue(value, keys) {
 	setValue(type, value, ...path) {
 
-		if (value === undefined) {
-			console.error("Cannot set undefined value!");
+		if (!value || value.constructor !== Array) {
+			console.error("Value must be an array!");
 		}
 
-		// value = KarmaFieldsAlpha.Type.sanitize(value, this.resource.driver, ...path);
+		// if (value === undefined) {
+		// 	console.error("Cannot set undefined value!");
+		// }
+		//
+		// // value = KarmaFieldsAlpha.Type.sanitize(value, this.resource.driver, ...path);
+		//
+		// if (value === null) {
+		// 	value = [];
+		// } else if (value.constructor !== Array) {
+		// 	value = [value];
+		// }
 
 
 
 		// if (value !== undefined && value !== null && (this.resource.fetch === false || KarmaFieldsAlpha.Gateway.getOriginal(this.resource.driver, ...path) !== value)) {
 		// -> bug when cut-past on same cells of the grid
 
-		if (value !== undefined && value !== null) {
-			this.setDeltaValue(value, ...path);
-		} else {
-			this.removeDeltaValue(...path);
-		}
+		// if (value !== undefined && value !== null) {
+		// 	this.setDeltaValue(value, ...path);
+		// } else {
+		// 	this.removeDeltaValue(...path);
+		// }
+
+		this.setDeltaValue(value, ...path);
 
 		this.writeHistory(value, ...path);
   }
@@ -782,9 +761,9 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		if (delta) {
 			// const original = await this.getRemoteValue(...path);
 
-			return KarmaFieldsAlpha.DeepObject.someAsync(delta, async (object, ...path) => {
+			return KarmaFieldsAlpha.DeepObjectAsync.some(delta, async (object, ...path) => {
 				const original = await this.getRemoteValue(...path);
-				return KarmaFieldsAlpha.DeepObject.differ(object, original);
+				return !KarmaFieldsAlpha.DeepObject.equal(object, original);
 	    }, ...path);
 		}
 
@@ -945,6 +924,26 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		}
 
 	}
+
+
+	async saveValue(value, ...path) {
+
+		if (!value || value.constructor !== Array) {
+			console.error("Value must be an array!");
+		}
+
+		const driver = this.resource.driver || this.resource.key;
+		const delta = {};
+
+		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+
+		this.buffer.set(value, ...path);
+
+		this.writeHistory(value, ...path);
+
+		await KarmaFieldsAlpha.Gateway.update(driver, delta);
+
+  }
 
 	// hasModifiedValue() {
 	// 	console.error("deprecated hasModifiedValue");

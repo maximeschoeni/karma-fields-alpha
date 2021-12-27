@@ -761,6 +761,15 @@ KarmaFieldsAlpha.fields.field = class Field {
     }
   }
 
+  async saveValue(value, ...path) {
+    if (this.resource.key) {
+      path = [this.resource.key, ...path];
+    }
+    if (this.parent) {
+      await this.parent.saveValue(value, ...path);
+    }
+  }
+
 
   /**
    * Like setValue() But without writing history
