@@ -44,13 +44,19 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
 
     // table managment (extra ids)
-    this.tableManagment = new KarmaFieldsAlpha.fields.form({
-      driver: resource.driver+"-managment",
-      // prefix: "karma",
-      fetch: false,
-      history: true
-    }, this);
-    // this.tableManagment.prefix = "karma/managment"
+    // this.tableManagment = new KarmaFieldsAlpha.fields.formBasic({
+    //   driver: resource.driver+"-managment",
+    // }, this);
+    // // this.tableManagment.prefix = "karma/managment"
+
+    // this.titleForm = new KarmaFieldsAlpha.fields.table.tableFilters({
+    //   children: [
+    //     {
+    //       type: "text",
+    //       value: this.resource.title;
+    //     }
+    //   ]
+    // }, this);
 
 
 
@@ -133,10 +139,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     // content
 
+
     this.content = new KarmaFieldsAlpha.fields.table.grid({
-      driver: resource.driver
+      driver: resource.driver,
+      autosave: resource.autosave
       // prefix: "karma/content"
     }, this);
+
+    // this.addChild(this.content);
 
     this.content.table = this;
 
@@ -181,12 +191,12 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     //
     // }, this, this);
 
-    this.options = new KarmaFieldsAlpha.fields.form({
+    this.options = new KarmaFieldsAlpha.fields.formBasic({
       driver: resource.driver+"-options",
-      key: "options",
+      // key: "options",
 
-      history: false,
-      fetch: false
+      // history: false,
+      // fetch: false
       // children: [
       //   {
       //     type: "input"
@@ -277,10 +287,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
   getPpp() {
     // return Number(KarmaFieldsAlpha.History.getParam("ppp")) || this.getDefaultPpp();
-    return KarmaFieldsAlpha.Nav.getParam("ppp") || this.options.getValue("ppp") || this.getDefaultPpp();
+    return Number(KarmaFieldsAlpha.Nav.getParam("ppp") || this.options.getValue("ppp") || this.getDefaultPpp());
   }
   setPpp(ppp) {
-    this.options.setValue(null, ppp, "ppp");
+    this.options.setValue(null, [ppp], "ppp");
   }
 
   getDefaultPpp() {
@@ -1167,7 +1177,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
   async getCount() {
     const results = await this.content.getRemoteTable();
-    return results && results.count || 0;
+    return Number(results && results.count || 0);
   }
 
 
@@ -1569,7 +1579,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
                 const id = KarmaFieldsAlpha.Nav.getParam("id");
                 const field = id && this.getModalField(id);
 
-                h1.child = field && field.createTitle().build();
+                h1.children = field && [field.createTitle().build()] || [];
+
+                // h1.child = field && field.createTitle().build();
 
 							}
 						},
@@ -1623,6 +1635,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     return {
       class: "karma-field-table",
+      init: table => {
+        // if (this.resource.style) {
+        //   table.element.style = this.resource.style;
+        // }
+      },
       children: [
         {
           class: "table-view",
@@ -1632,7 +1649,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
               class: "table-modal",
               update: single => {
                 this.renderModal = single.render;
-                let percentWidth = this.options.getValue(["modalWidth"]) || 100;
+                let percentWidth = this.options.getValue("modalWidth") || 100;
                 single.element.style.flexBasis = percentWidth+"%";
                 single.children = [
                   this.buildModal(),
@@ -1646,7 +1663,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
                           const ratioWidth = (event.clientX - viewerBox.left)/viewerBox.width;
                           percentWidth = Math.min(100, 100*ratioWidth);
                           single.element.style.flexBasis = percentWidth+"%";
-                          this.options.setValue(null, percentWidth, ["modalWidth"])
+                          this.options.setValue(null, percentWidth, "modalWidth")
                         }
                         const mouseUp = event => {
                           window.removeEventListener("mousemove", mouseMove);
@@ -1786,18 +1803,24 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
           update: footer => {
             this.renderFooter = footer.render;
             footer.element.classList.toggle("hidden", this.resource.controls === false);
+
+            // compat
+            if (this.resource.controls && this.resource.controls instanceof Array) {
+              this.resource.controls.left = this.resource.controls;
+            }
+
             if (this.resource.controls !== false) {
               footer.children = [
                 // this.buildControls(),
                 {
                   class: "table-control-group table-edit",
-                  children: (this.resource.controls || ["save", "add", "delete"]).map(resource => {
+                  children: (this.resource.controls && this.resource.controls.left || ["save", "add", "delete"]).map(resource => {
                     return this.getButton(resource).build();
                   })
                 },
                 {
                   class: "table-control-group table-control-right",
-                  children: (this.resource.rightcontrols || ['undo', 'redo']).map(resource => {
+                  children: (this.resource.controls && this.resource.controls.right || ['undo', 'redo']).map(resource => {
                     return this.getButton(resource).build();
                   })
                 }
@@ -1930,7 +1953,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     if (!this.buttons[resource.type]) {
       this.buttons[resource.type] = new KarmaFieldsAlpha.fields.table[resource.type]();
-      this.buttons[resource.type].table = this.buttons[resource.type].field = this;
+      this.buttons[resource.type].table = this;
       this.buttons[resource.type].resource = resource;
     }
 

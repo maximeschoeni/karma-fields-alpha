@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.container {
+KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.field {
 
 	// initField() {
 	// 	super.initField();

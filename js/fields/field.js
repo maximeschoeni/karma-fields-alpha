@@ -107,9 +107,27 @@ KarmaFieldsAlpha.fields.field = class Field {
     // noop
   }
 
+
+
   getForm() {
     return this.parent && this.parent.getForm();
   }
+
+
+  // updateChildren(event) {
+  //   for (let child of this.children) {
+  //     child.update(event);
+  //   }
+  // }
+  //
+  // editParent(event, ...path) {
+  //   if (this.resource.key) {
+  //     path = [this.resource.key, ...path];
+  //   }
+  //   if (this.parent) {
+  //     return this.parent.sendEvent(event, ...path);
+  //   }
+  // }
 
 
   // -> for dropdown in filters
@@ -157,7 +175,7 @@ KarmaFieldsAlpha.fields.field = class Field {
     const gen = function * (field) {
       for (let child of field.children) {
         if (child.resource.key) {
-          yield field;
+          yield child;
         } else {
           yield * gen(child);
         }
@@ -769,6 +787,8 @@ KarmaFieldsAlpha.fields.field = class Field {
       await this.parent.saveValue(value, ...path);
     }
   }
+
+
 
 
   /**
@@ -1438,26 +1458,51 @@ KarmaFieldsAlpha.fields.field = class Field {
 			default: return val === condition.value;
 		}
 	}
+  //
+  // format(value, type) {
+  //   if (type === "array") {
+	// 		if (typeof value === "object") {
+	// 			if (!Array.isArray(value)) {
+	// 				value = Object.values(value);
+	// 			}
+	// 		} else if (typeof value === "string") {
+  //       // console.warn("Wrong type: converting string to array", type, value);
+	// 			value = [value];
+	// 		} else {
+	// 			value = [];
+	// 		}
+	// 	} else {
+	// 		if (Array.isArray(value)) {
+  //       // console.warn("Wrong type: converting array to string", type, value);
+	// 			value = value[0];
+	// 		}
+	// 	}
+  //   return value;
+  // }
 
-  format(value, type) {
-    if (type === "array") {
-			if (typeof value === "object") {
-				if (!Array.isArray(value)) {
-					value = Object.values(value);
-				}
-			} else if (typeof value === "string") {
-        // console.warn("Wrong type: converting string to array", type, value);
-				value = [value];
-			} else {
-				value = [];
-			}
-		} else {
-			if (Array.isArray(value)) {
-        // console.warn("Wrong type: converting array to string", type, value);
-				value = value[0];
-			}
-		}
-    return value;
+  // dispatchEvent(event) {
+  //   if (this.listeners) {
+  //     for (let callback of this.listeners) {
+  //       callback(event);
+  //     }
+  //   }
+  //   if (this.parent) {
+  //     this.parent.dispatchEvent(event);
+  //   }
+  // }
+  //
+  // addEventListener(callback) {
+  //   if (!this.listeners) {
+  //     this.listeners = [];
+  //   }
+  //   this.listeners.push(callback);
+  // }
+
+
+  saveField(...fields) {
+    if (this.parent) {
+      return this.parent.saveField(...fields);
+    }
   }
 
 

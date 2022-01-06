@@ -24,13 +24,39 @@ KarmaFieldsAlpha.fields.table.button = class {
 
 KarmaFieldsAlpha.fields.table.save = class {
 
+
+  play() {
+    setTimeout(async () => {
+      if (this.onSave) {
+        await this.onSave();
+      }
+      this.play();
+    }, this.table.resource.saveinterval || 10000);
+  }
+
+
+
   build() {
     return {
       tag: "button",
       class: "karma-button footer-item primary",
       init: (button) => {
+        this.render = button.render;
         button.element.title = this.resource.title || "Save";
         button.element.innerHTML = '<span class="button-content">'+(this.resource.name || "Save")+'</span>';
+        if (this.table.resource.autosave && !this.playing) {
+          this.playing = true;
+          this.onSave = async () => {
+            const modified = await this.table.content.isModified();
+            if (modified) {
+              button.element.classList.add("loading");
+              await this.table.content.save();
+              await this.table.content.edit();
+              button.element.classList.remove("loading");
+            }
+          }
+          this.play();
+        }
       },
       // children: [
       //   {
@@ -100,7 +126,7 @@ KarmaFieldsAlpha.fields.table.undo = class {
 
           KarmaFieldsAlpha.History.undo();
 
-          await this.table.content.render();
+          await this.table.content.render(true);
           await this.table.renderModal();
           await this.table.renderFooter();
 
@@ -183,7 +209,7 @@ KarmaFieldsAlpha.fields.table.redo = class {
 
           KarmaFieldsAlpha.History.redo();
 
-          await this.table.content.render();
+          await this.table.content.render(true);
           await this.table.renderModal();
           await this.table.renderFooter();
 
@@ -275,7 +301,7 @@ KarmaFieldsAlpha.fields.table.add = class  {
       update: button => {
         button.element.onclick = async (event) => {
           button.element.classList.add("loading");
-          const ids = await this.table.add();
+          const ids = await this.table.content.add();
 
 
           if (KarmaFieldsAlpha.Nav.hasParam("id")) {
@@ -290,8 +316,9 @@ KarmaFieldsAlpha.fields.table.add = class  {
 
           } else {
 
-            await this.table.content.render();
-            await this.table.renderFooter();
+            await this.table.content.render(true);
+            await this.table.content.edit();
+            // await this.table.renderFooter();
 
           }
 
@@ -324,7 +351,7 @@ KarmaFieldsAlpha.fields.table.delete = class {
 
           } else {
 
-            await this.table.content.render();
+            await this.table.content.render(true);
             await this.table.renderFooter();
 
           }
@@ -364,7 +391,7 @@ KarmaFieldsAlpha.fields.table.duplicate = class {
 
           } else {
 
-            await this.table.content.render();
+            await this.table.content.render(true);
             await this.table.renderFooter();
 
           }
@@ -470,19 +497,27 @@ KarmaFieldsAlpha.fields.table.orderLink = class {
       tag: "a",
       class: "header-cell-order",
       child: {
-        class: "karma-field-spinner"
+        tag: "span",
+        class: "dashicons",
+        update: span => {
+          const isAsc = this.isAsc(column);
+          const isDesc = this.isDesc(column);
+          span.element.classList.toggle("dashicons-arrow-up", isAsc);
+          span.element.classList.toggle("dashicons-arrow-down", isDesc);
+          span.element.classList.toggle("dashicons-leftright", !isAsc && !isDesc);
+        }
       },
       update: a => {
         a.element.onclick = async event => {
           event.preventDefault();
-          a.element.classList.add("loading");
+          a.element.parentNode.classList.add("loading");
           this.reorder(column);
           await this.table.editParam();
-          a.element.classList.remove("loading");
+          a.element.parentNode.classList.remove("loading");
         };
 
-        a.element.classList.toggle("asc", this.isAsc(column));
-        a.element.classList.toggle("desc", this.isDesc(column));
+        // a.element.classList.toggle("asc", this.isAsc(column));
+        // a.element.classList.toggle("desc", this.isDesc(column));
       }
     };
   }

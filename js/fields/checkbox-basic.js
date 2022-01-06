@@ -9,28 +9,79 @@ KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = clas
 		return this.resource.false || "";
 	}
 
-	setDefault() {
-		this.initValue(this.resource.default === this.true() ? this.true() : this.false());
-	}
+	// setDefault() {
+	// 	this.initValue(this.resource.default === this.true() ? this.true() : this.false());
+	// }
 
 	getDefault() {
-		return this.resource.default || this.false();
+		return [this.resource.default || this.false()];
 	}
 
-	getEmpty() {
-		return this.false();
-	}
+	// getEmpty() {
+	// 	return this.false();
+	// }
 
-	async fetchValue() {
-		let value = await super.fetchValue();
-		if (value !== this.true() && value !== this.false()) {
-			value = this.false();
-			if (!this.resource.readonly) {
-				await this.setValue(value);
-			}
+	async setMultipleFields(checked, fields) {
+
+		for (let field of fields) {
+			await field.write();
 		}
-		return value;
+
+		if (KarmaFieldsAlpha.History.lastField !== this) {
+			KarmaFieldsAlpha.History.backup();
+			KarmaFieldsAlpha.History.lastField = this;
+		}
+
+		// if (this.resource.autosave) {
+		// 	const delta = {};
+		// 	const form = this.getForm();
+		// 	const driver = form.resource.driver || form.resource.key;
+		//
+		// 	for (let field of fields) {
+		// 		const path = field.getPath();
+		// 		const value = checked ? field.true() : field.false();
+		// 		KarmaFieldsAlpha.DeepObject.assign(delta, [value], ...path);
+		// 		form.buffer.set([value], ...path);
+		// 		form.writeHistory([value], ...path);
+		// 	}
+		//
+		// 	await KarmaFieldsAlpha.Gateway.update(driver, delta);
+		//
+		// } else {
+		// 	for (let field of fields) {
+		// 		const value = checked ? field.true() : field.false();
+		// 		await field.setValue(null, [value]);
+		// 	}
+		// }
+
+		for (let field of fields) {
+			const value = checked ? field.true() : field.false();
+			await field.setValue(null, [value]);
+		}
+
+		if (this.resource.autosave) {
+			await this.saveField(...fields);
+		}
+
+
+
+		await this.edit();
+
+		if (this.resource.submit === "auto" || this.resource.autosubmit) {
+			await this.submit();
+		}
+
 	}
+
+
+	// async fetchValue() {
+	// 	let value = await super.fetchValue();
+	//
+	// 	return value;
+	// }
+
+
+
 
 	// async input(fields) {
 	//
@@ -164,7 +215,15 @@ KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = clas
 						},
 						update: async checkbox => {
 
-							const value = await this.fetchValue();
+							const array = await this.fetchValue() || [];
+							let value = array.toString();
+
+							if (value !== this.true() && value !== this.false()) {
+								value = this.false();
+								if (!this.resource.readonly) {
+									await this.setValue(null, [value]);
+								}
+							}
 
 
 							container.element.onmousemove = async event => {
@@ -198,25 +257,46 @@ KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = clas
 
 									// await this.input(this.constructor.selected);
 
-									for (let field of this.constructor.selected) {
-										await field.write();
-									}
+									this.setMultipleFields(this.constructor.state, this.constructor.selected);
 
-									if (KarmaFieldsAlpha.History.lastField !== this) {
-										KarmaFieldsAlpha.History.backup();
-										KarmaFieldsAlpha.History.lastField = this;
-										KarmaFieldsAlpha.History.lastType = null;
-									}
 
-									for (let field of this.constructor.selected) {
-										await field.setValue(null, this.constructor.state ? field.true() : field.false());
-									}
+									// for (let field of this.constructor.selected) {
+									// 	await field.write();
+									// }
+									//
+									// if (KarmaFieldsAlpha.History.lastField !== this) {
+									// 	KarmaFieldsAlpha.History.backup();
+									// 	KarmaFieldsAlpha.History.lastField = this;
+									// }
+									//
+									// if (this.resource.autosave) {
+									// 	const delta = {};
+									// 	const form = this.getForm();
+									// 	const driver = form.resource.driver || form.resource.key;
+									//
+									// 	for (let field of this.constructor.selected) {
+									// 		const value = this.constructor.state ? [field.true()] : [field.false()];
+									// 		const path = field.getPath();
+									// 		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+									// 		form.buffer.set(value, ...path);
+									// 		form.writeHistory(value, ...path);
+									// 	}
+									//
+									// 	await KarmaFieldsAlpha.Gateway.update(driver, delta);
+									//
+									// } else {
+									// 	for (let field of this.constructor.selected) {
+									// 		await field.setValue(null, this.constructor.state ? [field.true()] : [field.false()]);
+									// 	}
+									// }
 
-									await this.edit();
 
-									if (this.resource.submit === "auto" || this.resource.autosubmit) {
-										await this.submit();
-									}
+
+									// await this.edit();
+									//
+									// if (this.resource.submit === "auto" || this.resource.autosubmit) {
+									// 	await this.submit();
+									// }
 
 									this.constructor.selected = [];
 

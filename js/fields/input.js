@@ -23,8 +23,16 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 	// 	return value;
 	// }
 
-	async getValue() {
-		const array = await this.fetchValue() || [];
+	async getInputValue() {
+		let array = await this.fetchValue();
+
+		if (!Array.isArray(array)) {
+			array = [array];
+		}
+		if (!array.length) {
+			array = [this.getDefault()];
+			this.setValue(null, array);
+		}
 		return array[0];
 	}
 
@@ -43,10 +51,16 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 			KarmaFieldsAlpha.History.lastField = this;
 		}
 
+		// if (this.resource.autosave) {
+		// 	await this.saveValue(value);
+		// } else {
+		// 	await this.setValue(null, value);
+		// }
+
+		await this.setValue(null, value);
+
 		if (this.resource.autosave) {
-			await this.saveValue(null, value);
-		} else {
-			await this.setValue(null, value);
+			await this.saveField(this);
 		}
 
 
@@ -57,6 +71,20 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 			await this.submit();
 		}
 
+	}
+
+
+	async enqueue(callback) {
+		this.queueNext = callback;
+		if (this.queue) {
+			await this.queue;
+		}
+		if (this.queueNext === callback) {
+			this.queue = this.queueNext();
+			await this.queue;
+			return true;
+		}
+		return false;
 	}
 
 
@@ -71,7 +99,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
   }
 
 	getDefault() {
-		return this.resource.default || "";
+		return [this.resource.default || ""];
   }
 
 
@@ -93,36 +121,71 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				this.render = input.render;
 
 				input.element.classList.add("loading");
+
 				let value = await this.fetchValue() || [];
 
 				if (!value.length) {
-					value.push(this.getDefault());
-					this.setValue(null, value);
+					value = this.getDefault();
+					this.setValue(null, [value]);
 				}
+				// let value = await this.getInputValue();
 
 				let modified = await this.isModified();
 
 				if (this.resource.readonly || this.resource.input && this.resource.input.readOnly) {
 					input.element.readOnly = true;
 				} else {
+					// input.element.onpaste = event => {
+					// 	console.log(event.clipboardData.getData("text"));
+					//
+					//
+					// 	const pastedString = ;
+					// 	pastedString[0] = ;
+					// 	await this.input(new KarmaFieldsAlpha.PastedString());
+					//
+					// 	event.preventDefault();
+					// }
+
+					input.element.onpaste = event => {
+						this.input(new KarmaFieldsAlpha.PastedString(event.clipboardData.getData("text")));
+						event.preventDefault();
+					}
+
+
+
 					input.element.oninput = async event => {
-
-						if (event.inputType === "insertFromPaste") {
-							await this.input(new KarmaFieldsAlpha.PastedString(input.element.value));
-						} else {
-							await this.input([input.element.value]);
-						}
-
-
-
-						// await this.backup();
-						// await this.editValue(input.element.value);
+						input.element.classList.add("editing");
 
 						input.element.classList.toggle("modified", await this.isModified());
+
+						// if (event.inputType === "insertFromPaste") {
+						//
+						// 	const data = input.element.value.split(/[\r\n]/).map(row => row.split("\t"));
+						// 	// console.log(input.element.value, input.element.value.split("\n"));
+						//
+						//
+						//
+						// 	const pastedString = new KarmaFieldsAlpha.PastedString();
+						// 	pastedString[0] = input.element.value;
+						// 	await this.input(pastedString);
+						// } else {
+							// await this.input([input.element.value]);
+						// }
+
+						if (await this.enqueue(async () => {
+							return this.input([input.element.value]);
+						})) {
+							input.element.classList.remove("editing");
+						}
+
+						// await this.input([input.element.value]);
+						// input.element.classList.remove("editing");
+
+
 					};
 				}
 
-				input.element.value = value[0] || "";
+				input.element.value = value.toString();
 				input.element.classList.toggle("modified", modified);
 				input.element.classList.remove("loading");
 				input.element.disabled = this.getState() === "disabled";
@@ -131,9 +194,15 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 	}
 
 
+
+
+
 }
 
-KarmaFieldsAlpha.PastedString = class extends String {}
+KarmaFieldsAlpha.PastedString = class extends Array {}
+
+
+
 
 // KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 //

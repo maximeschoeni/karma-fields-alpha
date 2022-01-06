@@ -58,11 +58,10 @@
   /* box-sizing: border-box; */
 }
 .karma-fields-navigation .karma-field-table .table-header h1 {
-  flex-grow: 1;
+  /* flex-grow: 1;
   display: flex;
-  align-items: center;
+  align-items: center; */
 }
-.karma-fields-navigation .karma-field-table .table-header .table-pagination,
 .karma-fields-navigation .karma-field-table .table-header .modal-navigation {
   display: flex;
   align-items: center;
@@ -70,7 +69,7 @@
   background-color: #f1f1f1;
   gap: 10px;
 }
-.karma-fields-navigation .karma-field-table .table-header .table-pagination button.hidden {
+.karma-fields-navigation button.hidden {
   display: none;
 }
 .karma-fields-navigation .karma-field-table .table-header .table-pagination .current-page {
@@ -79,12 +78,11 @@
   justify-content: center;
 }
 
-.karma-fields-navigation .karma-field-table .table-filters {
+/* .karma-fields-navigation .karma-field-table .table-filters {
   padding: 10px 10px 10px;
-  /* margin: 0 0 1px; */
   background-color: #f1f1f1;
-}
-.karma-fields-navigation .karma-field-table .table-filters,
+} */
+/* .karma-fields-navigation .karma-field-table .table-filters, */
 .karma-fields-navigation .karma-field-table .table-options,
 .karma-fields-navigation .karma-field-table .karma-field-table-section {
   flex-grow: 0;
@@ -156,11 +154,11 @@
 
 .karma-fields-navigation .karma-field-table .table-header {
   display: flex;
-  height: 50px;
+  height: 3.75em;
   flex-shrink: 0;
   gap: 1px;
 }
-.karma-fields-navigation .karma-field-table .table-header h1 {
+/* .karma-fields-navigation .karma-field-table .table-header h1 {
   padding: 0 10px;
   flex-grow: 1;
   margin: 0;
@@ -168,8 +166,31 @@
 
   align-items: center;
   background-color: #f1f1f1;
+  overflow: hidden;
+  line-height: 1.2em;
 }
-.karma-fields-navigation .karma-field-table .table-header button.close {
+.karma-fields-navigation .karma-field-table .table-header h1 span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+} */
+.karma-fields-navigation .karma-field-table .table-header .table-header-title {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.karma-fields-navigation .karma-field-table .table-header h1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  line-height: 1.2em;
+}
+
+
+/* .karma-fields-navigation .karma-field-table .table-header button.close {
   appearance: none;
   border: none;
   width: 50px;
@@ -179,7 +200,7 @@
   cursor: pointer;
   background-color: #f1f1f1;
   border-radius: 0;
-}
+} */
 /* .karma-fields-navigation .karma-field-table .table-header button[disabled] {
   background-color: #f1f1f1 !important;
   cursor: default;
@@ -253,7 +274,7 @@
 /* Table Control */
 .karma-fields-navigation .karma-field-table .table-control {
   background-color: #f1f1f1;
-  height: 50px;
+  height: 3.75em;
   flex-shrink: 0;
   display: flex;
   align-items: center;

@@ -32,12 +32,10 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 
 	async fetchValue(expectedType, key) {
 		if (key) {
-			const values = await super.fetchValue("array");
-
-
-			return values.indexOf(key) > -1 ? "1" : "";
+			const array = await super.fetchValue();
+			return array.indexOf(key) > -1 ? "1" : "";
 		}
-		return super.fetchValue(expectedType);
+		return super.fetchValue();
 	}
 
 	// async setValue(value, key) {
@@ -65,7 +63,7 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 				await this.remove(key);
 			}
 		} else {
-			await super.setValue(type, value);
+			await super.setValue(null, value);
 		}
 	}
 
@@ -108,7 +106,7 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
   // }
 
 	async add(key) {
-		let array = await this.fetchValue("array") || [];
+		let array = await this.fetchValue() || [];
 		const index = array.indexOf(key);
 		if (index === -1) {
 			// array.push(key);
@@ -124,7 +122,7 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
   }
 
   async remove(key) {
-		const array = await this.fetchValue("array") || [];
+		const array = await this.fetchValue() || [];
 		const index = array.indexOf(key);
 		if (index > -1) {
 			// array.splice(index, 1);
@@ -136,7 +134,7 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
   }
 
 	async has(key) {
-		const array = await this.fetchValue("array") || [];
+		const array = await this.fetchValue() || [];
 		const index = array.indexOf(key);
 		return index > -1;
   }

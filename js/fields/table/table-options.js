@@ -1,3 +1,9 @@
+// KarmaFieldsAlpha.fields.table.options = class extends KarmaFieldsAlpha.fields.form {
+//
+//
+// }
+
+
 //
 // KarmaFieldsAlpha.fields.table.options = class extends KarmaFieldsAlpha.fields.form {
 //

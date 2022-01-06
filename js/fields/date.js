@@ -310,8 +310,11 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
       },
       update: async (container) => {
         this.render = container.render;
-        let value = await this.fetchValue();
-        value = this.validate(value);
+
+        let value = await this.getInputValue();
+
+        // let value = await this.fetchValue();
+        // value = this.validate(value);
         let mDate = moment(value);
 
         container.element.classList.add("loading");

@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.container {
+KarmaFieldsAlpha.fields.tableRow = class extends KarmaFieldsAlpha.fields.field {
 
   // constructor(resource, domain, parent) {
   //   super(resource, domain, parent);

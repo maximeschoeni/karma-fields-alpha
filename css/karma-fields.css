@@ -1,13 +1,18 @@
 
 
 
-/* Test
+/* Table selection TA
 --------------------------------------*/
-#karma-table-reservations {
+
+.karma-grid-ta {
   position: fixed;
   z-index: 99999;
-  top: 0;
+  top: -1000px;
 }
+
+/* .karma-grid-ta#karma-table-reservations {
+  top: 0;
+} */
 
 
 
@@ -382,7 +387,7 @@
   display: grid;
   grid-gap: 1px;
   margin: 0 0 32px;
-  background-color: #c3c4c7;
+  background-color: #484848;
   /* border: 1px solid #c3c4c7; */
 
   width: max-content;
@@ -399,7 +404,7 @@
   /* animation: slide 1s infinite linear; */
 }
 .karma-fields .table.filled {
-  border: 1px solid #c3c4c7;
+  border: 1px solid #484848;
 }
 
 
@@ -424,7 +429,7 @@
 }
 .karma-fields .table .th {
   /* background-color: #f6f7f7; */
-  background-color: #f0f0f1;
+  background-color: #f1f1f1;
   font-weight: bold;
   font-size: 0.875em;
   line-height: 1.08em;
@@ -434,6 +439,7 @@
   align-items: center;
 
   min-height: 40px;
+  min-width: 40px;
 }
 
 .karma-fields .table.loading .th {
@@ -449,11 +455,17 @@
 }
 .karma-fields .table .td {
   background-color: #f1f1f1;
+  overflow: hidden;
 }
-.karma-fields .table .td.selected,
-.karma-fields .table .td:focus-within {
+
+/* .karma-fields .table .td:focus-within, */
+.karma-fields .table .td.selected {
   background-color: white; /* #efebea; */
 }
+
+/* .karma-fields ::selection {
+  background-color: white;
+} */
 
 
 
@@ -482,30 +494,43 @@
 }
 .karma-fields .table .th a.header-cell-order {
   display: block;
-  width: 20px;
-  height: 20px;
+  /* width: 20px; */
+  /* height: 20px; */
   cursor: pointer;
-  background-image: url(../dashicons/sort.svg);
-  background-repeat: no-repeat;
-  /* mix-blend-mode: overlay; */
-  opacity: 0.15;
+  /* background-image: url(../dashicons/sort.svg); */
+  /* background-repeat: no-repeat; */
+  /* opacity: 0.15; */
 }
+.karma-fields .table .th a.header-cell-order .dashicons {
+  font-size: 1.75em;
+}
+.karma-fields .table .th a.header-cell-order .dashicons-sort,
+.karma-fields .table .th a.header-cell-order .dashicons-leftright {
+  opacity: 0.3;
+}
+.karma-fields .table .th a.header-cell-order:hover .dashicons-sort,
+.karma-fields .table .th a.header-cell-order:hover .dashicons-leftright {
+  opacity: 1;
+}
+.karma-fields .table .th a.header-cell-order .dashicons-leftright {
+  transform: rotate(90deg);
+}
+
 .karma-fields .table .th a.header-cell-order:hover {
-  /* mix-blend-mode: normal; */
-  opacity: 0.5;
+  /* opacity: 0.5; */
 }
 .karma-fields .table .th a.header-cell-order.asc {
-  background-image: url(../dashicons/arrow-up.svg);
-  opacity: 0.5;
+  /* background-image: url(../dashicons/arrow-up.svg); */
+  /* opacity: 0.5; */
 }
 .karma-fields .table .th a.header-cell-order.desc {
-  background-image: url(../dashicons/arrow-down.svg);
-  opacity: 0.5;
+  /* background-image: url(../dashicons/arrow-down.svg); */
+  /* opacity: 0.5; */
 }
 .karma-fields .loading .table .th a.header-cell-order,
 .karma-fields .table .th a.header-cell-order.loading {
-  background-image: none;
-  opacity: 0.5;
+  /* background-image: none; */
+  /* opacity: 0.5; */
 }
 
 

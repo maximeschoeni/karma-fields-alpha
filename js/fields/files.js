@@ -77,7 +77,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
             // await field.backup();
             // field.setValue(items.map(item => item.attributes.id.toString()));
             // field.edit();
-            field.input(null, items.map(item => item.attributes.id.toString()));
+            await field.input(items.map(item => item.attributes.id.toString()));
             field.render();
           });
 
@@ -324,7 +324,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
           // this.backup();
           // this.setValue([]);
           // this.edit();
-          await this.input(null, []);
+          await this.input([]);
           this.render();
         };
       }
@@ -401,7 +401,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
             let values = await this.fetchArray() || [];
             values = await this.validate(values);
             // container.children = Number(value) ? [this.buildDeleteButton()] : [];
-            container.child = values.length && this.buildDeleteButton();
+            container.children = values.length && [this.buildDeleteButton()] || [];
           }
         }
       ]

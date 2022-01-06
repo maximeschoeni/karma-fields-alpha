@@ -3,8 +3,10 @@
 --------------------------------------*/
 
 .karma-fields select.karma-field {
-
-  border-color: #c3c4c7;
+  border-color: #484848;
+  max-width: 100%;
+  font-size: 1em;
+  min-height: 2.25em;
 }
 .karma-fields select.karma-field:focus {
   box-shadow: none;

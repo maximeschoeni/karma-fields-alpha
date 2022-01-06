@@ -1,14 +1,14 @@
 KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 
-	async exportValue() {
-		let value = await super.exportValue();
-		return encodeURI(value);
-	}
-
-	async importValue(value) {
-		value = decodeURI(value);
-		await super.importValue(value);
-	}
+	// async exportValue() {
+	// 	let value = await super.exportValue();
+	// 	return encodeURI(value);
+	// }
+	//
+	// async importValue(value) {
+	// 	value = decodeURI(value);
+	// 	await super.importValue(value);
+	// }
 
 	build() {
 		return {
@@ -29,12 +29,14 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				input.element.classList.add("loading");
 				input.element.value = "";
 
-				let value = await this.fetchValue() || [];
+				// let value = await this.fetchValue() || [];
+				//
+				// if (!value.length) {
+				// 	value.push(this.getDefault());
+				// 	this.setValue("init", value);
+				// }
 
-				if (!value.length) {
-					value.push(this.getDefault());
-					this.setValue("init", value);
-				}
+				let value = await this.getInputValue();
 
 				let modified = await this.isModified();
 

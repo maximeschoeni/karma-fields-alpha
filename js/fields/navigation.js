@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.container {
+KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.field {
 
   // constructor(resource, parent, form) {
   //   super(resource, parent, form);
@@ -90,6 +90,7 @@ KarmaFieldsAlpha.fields.navigation = class extends KarmaFieldsAlpha.fields.conta
         class: "karma-fields-content",
         init: container => {
           this.render = container.render;
+          // this.render = () => container.render();
         },
         update: container => {
           let key = KarmaFieldsAlpha.Nav.getParam(KarmaFieldsAlpha.tableParam || "karma");

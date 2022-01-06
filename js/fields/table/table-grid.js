@@ -36,9 +36,8 @@ KarmaFieldsAlpha.fields.table.grid = class extends KarmaFieldsAlpha.fields.table
 
     if (value.constructor === KarmaFieldsAlpha.PastedString) {
 
-    // if (type === "insertFromPaste" && typeof value === "string" && (value.includes("\t") || value.includes("\n"))) {
+      const data = value[0].split(/[\r\n]/).map(row => row.split("\t"));
 
-      const data = value.split(/[\r\n]/).map(row => row.split("\t"));
       const field = this.getChild(...path);
       const point = this.fields.find(field);
 
@@ -80,39 +79,71 @@ KarmaFieldsAlpha.fields.table.grid = class extends KarmaFieldsAlpha.fields.table
 
     let ids = await this.getIds();
 
+    // for (let j = 0; j < Math.max(height, data.length); j++) {
+    //   const rowField = this.getChild(ids[j+y]);
+    //   if (rowField) {
+    //     for (let i = 0; i < Math.max(width, data[j%data.length].length); i++) {
+    //       const cellField = rowField.children[i+x];
+    //       if (cellField) {
+    //         await cellField.write();
+    //       }
+    //     }
+    //   }
+    // }
+    //
+    // if (data.length > ids.length-y) {
+    //   await this.add(data.length-(ids.length-y), false); // -> will backup
+    //   ids = await this.getIds();
+    // } else {
+    //   KarmaFieldsAlpha.History.backup();
+    //   KarmaFieldsAlpha.History.id = null;
+    // }
+
+
+
+
+    if (KarmaFieldsAlpha.History.id !== selection) {
+
+      KarmaFieldsAlpha.History.id = selection;
+
+      for (let j = 0; j < Math.max(height, data.length); j++) {
+        const rowField = this.getChild(ids[j+y]);
+        if (rowField) {
+          for (let i = 0; i < Math.max(width, data[j%data.length].length); i++) {
+            const cellField = rowField.children[i+x];
+            if (cellField) {
+              await cellField.write();
+            }
+          }
+        }
+      }
+
+      KarmaFieldsAlpha.History.backup();
+
+    }
+
     for (let j = 0; j < Math.max(height, data.length); j++) {
       const rowField = this.getChild(ids[j+y]);
       if (rowField) {
         for (let i = 0; i < Math.max(width, data[j%data.length].length); i++) {
           const cellField = rowField.children[i+x];
           if (cellField) {
-            await cellField.write();
+            const value = data[j%data.length][i%data[j%data.length].length];
+
+            // console.log(value, cellField.getPath(), i, x);
+            await cellField.importValue(value);
+            await cellField.render();
           }
         }
       }
-    }
 
-    if (data.length > ids.length-y) {
-      await this.add(data.length-(ids.length-y), false); // -> will backup
-      ids = await this.getIds();
-    } else if (id !== KarmaFieldsAlpha.History.id) {
-      KarmaFieldsAlpha.History.backup();
-      KarmaFieldsAlpha.History.id = id;
-    }
-
-    for (let j = 0; j < Math.max(height, data.length); j++) {
-      const rowField = this.getChild(ids[j+y]);
-      for (let i = 0; i < Math.max(width, data[j%data.length].length); i++) {
-        const cellField = rowField.children[i+x];
-        const value = data[j%data.length][i%data[j%data.length].length];
-        await cellField.importValue(value);
-        await cellField.render();
-      }
     }
 
   }
 
   registerTable(element) {
+
+    this.endSelection();
 
     this.grid = new KarmaFieldsAlpha.Grid();
     this.fields = new KarmaFieldsAlpha.Grid();
@@ -207,9 +238,12 @@ KarmaFieldsAlpha.fields.table.grid = class extends KarmaFieldsAlpha.fields.table
       this.selection = r;
     }
 
-		this.paint(this.selection);
-
-    if (this.selection.width > 1 || this.selection.height > 1) {
+    if (this.selection.width*this.selection.height > 1) {
+      this.paint(this.selection);
+    // }
+    //
+    //
+    // if (this.selection.width > 1 || this.selection.height > 1) {
       this.ta.focus();
 
       this.updateTA();
@@ -234,8 +268,10 @@ KarmaFieldsAlpha.fields.table.grid = class extends KarmaFieldsAlpha.fields.table
 		if (this.selection && KarmaFieldsAlpha.Rect.equals(r, this.selection || {})) {
       this.endSelection();
 		} else {
+      this.endSelection();
 			this.growSelection(r);
 		}
+
 
 	}
 
@@ -244,6 +280,7 @@ KarmaFieldsAlpha.fields.table.grid = class extends KarmaFieldsAlpha.fields.table
 
     const ta = document.createElement("textarea");
     ta.id = "karma-table-"+this.resource.driver;
+    ta.className = "karma-grid-ta";
     document.body.appendChild(ta);
 
     ta.onfocusout = event => {

@@ -8,12 +8,15 @@
   flex-grow: 1;
   box-shadow: none;
   box-sizing: border-box;
-  border-color: #c3c4c7;
+  border-color: #484848;
 
 
   border-radius: 2px;
 
+  min-height: 2.25em; /* override default 30px */
   max-width: none;
+
+  font-size: 1em;
 }
 .karma-fields input.text-input.modified,
 .karma-fields textarea.modified {
@@ -22,10 +25,12 @@
 .karma-fields input.text-input:focus,
 .karma-fields textarea:focus {
   outline: none;
-  background-color: white;
+  /* background-color: white; */
   flex-grow: 1;
   box-shadow: none;
   box-sizing: border-box;
+
+  border-color: #2271b1;
 }
 
 .karma-fields  input[type=number] {
@@ -94,7 +99,10 @@
 /* user-select: none;
 -webkit-user-select: none;
 -ms-user-select: none; */
-
+}
+.karma-fields .table textarea {
+  line-height: 1.1em;
+  min-height: 54px;
 }
 .karma-fields .table input.text-input.date {
   /* min-width: 196px;  */
@@ -114,10 +122,9 @@
 
 
 
-
-
-
-.karma-field-input input.loading,
+.karma-fields .loading,
+.karma-fields .editing
+/* .karma-field-input input.loading,
 .karma-field-textarea textarea.loading,
 .karma-field-dropdown select.loading,
 .karma-field-dropdown select.editing,
@@ -129,14 +136,23 @@ button.karma-button.loading,
 .karma-field.karma-files .gallery.loading,
 .karma-field-table.loading .karma-field-frame.karma-modal-body,
 .karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header button.loading,
-.karma-field-table.loading .table-body {
+.karma-field-table.loading .table-body  */
+{
   /* background: repeating-linear-gradient(60deg, white 0px, white 50px, #f1f1f1 50px, #f1f1f1 100px);
   background-size: 200% 100%;
   animation: slide 10s infinite linear; */
+
   background: repeating-linear-gradient(45deg, #ececec 0px, #ececec 25%, #f1f1f1 25%, #f1f1f1 50%);
+
   background-size: 100px 100px;
   animation: slide 1s infinite linear;
 }
+/* .karma-fields .loading,
+.karma-fields .editing {
+  background: repeating-linear-gradient(45deg, #d9d9d9 0px, #d9d9d9 25%, #e1e1e1 25%, #e1e1e1 50%);
+} */
+
+
 @keyframes slide {
 	100% {
 		background-position-x: -100px;

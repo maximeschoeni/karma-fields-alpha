@@ -48,7 +48,7 @@
 .karma-field-table .table .text {
   padding: 4px 8px;
   /* background-color: #f0f0f1; */
-  font-size: 14px;
+  font-size: 1em;;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -657,7 +657,7 @@ button.karma-button {
   /* border-color: #f3f5f6; */
   height: auto;
   /* padding: 4px 17px; */
-  padding: 6px 10px;
+  padding: 0.67em 10px;
   min-width: 35px;
   border: none;
   background-color: transparent;
@@ -666,7 +666,8 @@ button.karma-button {
   border-width: 1px;
   border-radius: 2px;
   /* font-weight: bold; */
-  font-size: 12px;
+  font-size: 0.875em;
+  line-height: 1.08em;
   position: relative;
   border: 1px solid #0173aa;
 
@@ -772,10 +773,17 @@ button.karma-button.loading .karma-field-spinner::after {
 
 
 
-button.karma-button .dashicons {
-  font-size: 12px;
-  height: 15px;
-  line-height: 15px;
+/* button.karma-button .dashicons {
+  font-size: 0.875em;
+  height: auto;
+  line-height: 1.2343em;
+} */
+
+.karma-fields .dashicons {
+  font-size: 0.875em;
+  height: auto;
+  width: auto;
+  line-height: 1.2343em;
 }
 
 
@@ -1148,7 +1156,7 @@ button.karma-button.primary > .karma-field-spinner {
 } */
 
 .karma-field-container {
-  margin: -0.75em -10px;
+  margin: -10px;
   flex-grow: 1;
 }
 .karma-field-container.display-flex {

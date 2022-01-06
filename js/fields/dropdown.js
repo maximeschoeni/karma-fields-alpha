@@ -144,14 +144,14 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 	async getDefault() {
 		const options = await this.fetchOptions();
 		if (this.resource.default !== undefined && options.some(option => option.key === this.resource.default)) {
-			return this.resource.default;
+			return [this.resource.default];
 		}
 		const value = KarmaFieldsAlpha.Nav.getParam(this.resource.key);
 		if (value && options.some(option => option.key === value)) {
-			return value;
+			return [value];
 		}
 		if (options.length) {
-			return options[0].key;
+			return [options[0].key];
 		}
 	}
 
@@ -319,7 +319,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 					update: function() {
 						this.element.textContent = option.name + (option.count && field.resource.count && " ("+option.count+")" || "");
 						this.element.value = option.key;
-						console.log(value, option.key, value === option.key);
+
 						if (value === option.key) {
 							this.element.selected = true;
 						}
@@ -348,6 +348,12 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 
 				let array = await this.fetchValue() || [];
+
+				// compat
+				if (!Array.isArray(array)) {
+					array = [array];
+				}
+
 				let value = array[0];
 
 				let modified = await this.isModified();
@@ -406,10 +412,10 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 						// await this.backup();
 						await this.input([dropdown.element.value]);
 
-						if (this.resource.autonav) {
-							KarmaFieldsAlpha.Nav.setParam(this.resource.key, dropdown.element.value);
-							await this.editParam();
-						}
+						// if (this.resource.autonav) {
+						// 	KarmaFieldsAlpha.Nav.setParam(this.resource.key, dropdown.element.value);
+						// 	await this.editParam();
+						// }
 
 
 						// this.setValue(dropdown.element.value);

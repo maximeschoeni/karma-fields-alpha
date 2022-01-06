@@ -3,12 +3,42 @@
 
 
 KarmaFieldsAlpha.fields.table.title = class {
+
+  getField() {
+    // if (!this.field) {
+    //   this.field = new KarmaFieldsAlpha.fields.table.tableFilters({
+    //     children: [
+    //       {
+    //         type: "text",
+    //         tag: "h1",
+    //         value: this.table.resource.title
+    //       }
+    //     ]
+    //   }, this.table);
+    // }
+    // return this.field;
+    if (!this.field) {
+      this.field = new KarmaFieldsAlpha.fields.text({
+        type: "text",
+        tag: "h1",
+        value: this.table.resource.title
+      }, new KarmaFieldsAlpha.fields.table.tableFilters({}));
+    }
+    return this.field;
+  }
+
   build() {
+    // return {
+    //   tag: "h1",
+    //   init: h1 => {
+    //     h1.element.textContent = this.table.resource.title || "Table";
+    //   }
+    // };
+    // return this.getField().build();
+
     return {
-      tag: "h1",
-      init: h1 => {
-        h1.element.textContent = this.table.resource.title || "Table";
-      }
+      class: "table-header-title header-item",
+      child: this.getField().build()
     };
   }
 }
@@ -39,18 +69,16 @@ KarmaFieldsAlpha.fields.table.close = class {
 KarmaFieldsAlpha.fields.table.pagination = class {
   build() {
     return {
-      class: "table-pagination",
+      class: "table-pagination header-item",
       update: async container => {
-        // container.element.classList.add("loading");
-        // await (this.table.queryPromise || this.table.query());
-        container.element.classList.add("hidden");
+
+        // container.element.classList.add("hidden");
         const count = await this.table.getCount();
         const ppp = parseInt(this.table.getPpp());
-        if (count > ppp) {
-          container.element.classList.remove("hidden");
-        }
-        // container.element.classList.toggle("hidden", count <= ppp);
-        // container.element.classList.remove("loading");
+        // if (count > ppp) {
+        //   container.element.classList.remove("hidden");
+        // }
+        container.element.classList.toggle("hidden", count <= ppp);
       },
       children: ["firstPage", "prevPage", "currentPage", "nextPage", "lastPage"].map(resource => this.table.getButton(resource).build())
     };
@@ -232,7 +260,8 @@ KarmaFieldsAlpha.fields.table.currentPage = class {
 
         item.element.classList.remove("loading");
 
-        item.element.classList.toggle("hidden", ppp < 1 || count < ppp);
+
+        // item.element.classList.toggle("hidden", ppp < 1 || count < ppp);
         item.element.textContent = count && page+" / "+numPage || "";
       }
     };
@@ -249,9 +278,9 @@ KarmaFieldsAlpha.fields.table.total = class {
         item.element.tabIndex = "-1"; // for safari
       },
       update: async item => {
-        item.element.classList.add("loading");
+        // item.element.classList.add("loading");
         await this.table.getCount();
-        item.element.classList.remove("loading");
+        // item.element.classList.remove("loading");
       },
       children: [
         {

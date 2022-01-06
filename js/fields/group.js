@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.container {
+KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 	// updateState(state) {
 	// 	super.updateState(state);

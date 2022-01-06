@@ -43,15 +43,11 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
   async fetchValue(expectedType, ...path) {
 
-    let array = await super.fetchValue("array") || [];
-
-    if (array.constructor !== Array) {
-      array = [array];
-    }
+    let array = await super.fetchValue() || [];
 
     if (path.length) {
       array = KarmaFieldsAlpha.DeepObject.get(array, ...path);
-      array = this.format(array, expectedType);
+      // array = this.format(array, expectedType);
     }
 
     return array;

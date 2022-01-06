@@ -1,8 +1,8 @@
 
-KarmaFieldsAlpha.fields.table.tableFilters = class extends KarmaFieldsAlpha.fields.form {
+KarmaFieldsAlpha.fields.table.tableFilters = class extends KarmaFieldsAlpha.fields.formBasic {
 
   fetchValue(expectedType, key) {
-    return KarmaFieldsAlpha.Nav.getParam(key) || "";
+    return [KarmaFieldsAlpha.Nav.getParam(key) || ""];
   }
 
   getValue(expectedType, key) {
@@ -10,9 +10,9 @@ KarmaFieldsAlpha.fields.table.tableFilters = class extends KarmaFieldsAlpha.fiel
     return KarmaFieldsAlpha.Nav.getParam(key) || "";
   }
 
-  setValue(value, key) {
-    if (value) {
-      KarmaFieldsAlpha.Nav.setParam(key, value);
+  setValue(deprec, value, key) {
+    if (value && value[0]) {
+      KarmaFieldsAlpha.Nav.setParam(key, value[0]);
     } else  {
       KarmaFieldsAlpha.Nav.removeParam(key);
     }
