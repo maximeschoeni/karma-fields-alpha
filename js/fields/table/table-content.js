@@ -596,18 +596,21 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
 
           grid.children = [
             {
-              class: "th table-header-index karma-field",
-              init: th => {
-                th.element.textContent = this.table.resource.index && this.table.resource.index.title || "#";
-                this.registerHeaderIndex(th.element);
+              class: "th",
+              child: {
+                class: "table-index",
+                init: node => {
+                  node.element.textContent = this.table.resource.index && this.table.resource.index.title || "#";
+                }
               },
               update: th => {
                 this.registerHeaderIndex(th.element);
               }
+
             },
             ...this.getColumns().map((column, colIndex) => {
               return {
-                class: "th karma-field",
+                class: "th table-header-cell",
                 init: th => {
                   if (column.style) {
                     th.element.style = column.style;
@@ -634,20 +637,17 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
               return [
                 ...children,
                 {
-                  class: "th table-row-index karma-field",
-                  init: th => {
-
-
+                  class: "th",
+                  child: {
+                    class: "table-index",
+                    update: node => {
+                      const page = parseInt(this.table.getPage());
+                      const ppp = parseInt(this.table.getPpp());
+                      node.element.textContent = (page - 1)*ppp + rowIndex + 1;
+                    }
                   },
                   update: th => {
-                    // th.element.textContent = rowIndexGenerator.next().value;
-
                     this.registerIndex(th.element, rowIndex);
-
-                    const page = parseInt(this.table.getPage());
-                    const ppp = parseInt(this.table.getPpp());
-
-                    th.element.textContent = (page - 1)*ppp + rowIndex + 1;
                   }
                 },
                 ...this.table.getRow(id).children.map((field, colIndex) => {
@@ -657,7 +657,6 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
                       if (this.table.resource.columns[colIndex].style) {
                         td.element.style = this.table.resource.columns[colIndex].style;
                       }
-
                     },
                     update: td => {
                       this.registerCell(field, td.element, colIndex, rowIndex);

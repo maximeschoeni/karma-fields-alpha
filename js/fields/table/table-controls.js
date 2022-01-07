@@ -57,6 +57,16 @@ KarmaFieldsAlpha.fields.table.save = class {
           }
           this.play();
         }
+        document.addEventListener("keydown", async event => {
+          if (event.key === "s" && event.metaKey) {
+            event.preventDefault();
+            event.stopPropagation();
+            button.element.classList.add("loading");
+            await this.table.content.save();
+            await this.table.content.edit();
+            button.element.classList.remove("loading");
+          }
+        });
       },
       // children: [
       //   {

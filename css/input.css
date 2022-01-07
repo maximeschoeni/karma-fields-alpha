@@ -17,6 +17,8 @@
   max-width: none;
 
   font-size: 1em;
+
+  background-color: transparent;
 }
 .karma-fields input.text-input.modified,
 .karma-fields textarea.modified {

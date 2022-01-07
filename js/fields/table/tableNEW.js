@@ -1639,6 +1639,18 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
         // if (this.resource.style) {
         //   table.element.style = this.resource.style;
         // }
+
+        // document.addEventListener("keydown", event => {
+        //
+        //
+        //   if (event.key === "s" && event.metaKey) {
+        //     console.log(event);
+        //     event.preventDefault();
+        //     event.stopPropagation();
+        //   }
+        // });
+
+
       },
       children: [
         {
