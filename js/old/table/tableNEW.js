@@ -191,23 +191,12 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
     //
     // }, this, this);
 
-    this.options = new KarmaFieldsAlpha.fields.formBasic({
+    this.options = new KarmaFieldsAlpha.fields.table.options({
       driver: resource.driver+"-options",
-      // key: "options",
 
-      // history: false,
-      // fetch: false
-      // children: [
-      //   {
-      //     type: "input"
-      //   },
-      //   {
-      //     type: "submit"
-      //   }
-      // ]
+    }, this);
 
-
-    }, this, this);
+    this.options.open = true;
 
 
     // this.subsections = (this.resource.subsections || []).map(resource => this.createChild(resource));
@@ -1699,114 +1688,50 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
                     this.renderHeader = header.render;
                   },
                   update: (header) => {
-                    header.children = (this.resource.header || ["title", "total", "pagination", "close"]).map(resource => this.getButton(resource).build())
-                    // header.children = [
-                    //   // {
-                    //   //   tag: "h1",
-                    //   //   init: h1 => {
-                    //   //     h1.element.textContent = this.resource.title || this.resource.key || "Table";
-                    //   //   }
-                    //   // },
-                    //   this.getButton("title").build(),
-                    //   // KarmaFieldsAlpha.fields.table.Pagination.buildItemsTotal(this),
-                    //   this.getButton("total").build(),
-                    //   this.getButton("pagination").build(),
-                    //   // this.buildPagination(),
-                    //   this.getButton("close").build(),
-                    //   // {
-                    //   //   class: "header-item",
-                    //   //   // child: KarmaFieldsAlpha.fields.table.Pagination.buildCloseTableButton(this)
-                    //   //   child: this.getButton("closeTable").build()
-                    //   // }
-                    //
-                    // ];
+                    header.children = (this.resource.header || ["title", "total", "settings", "pagination", "close"]).map(resource => this.getButton(resource).build())
                   }
                 },
-                // this.options.build(),
-                // {
-                //   class: "table-filters",
-                //   update: filters => {
-                //     const visible = true; //this.tab === "filters";
-                //     filters.element.classList.toggle("hidden", !visible);
-                //     filters.child = visible && this.filters.build() || null;
-                //   }
-                // },
-                ...this.buildSubsections(),
-                this.content.build()
-                // {
-                //   class: "table-body",
-                //   init: body => {
-                //     this.content.render = body.render;
-                //   },
-                //   update: async body => {
-                //
-                //     await (this.queryPromise || this.query());
-                //
-                //     if (this.queriedIds && this.queriedIds.length || this.getExtraIds().length) {
-                //       // body.child = this.buildGrid();
-                //       body.child = this.content.build();
-                //     } else {
-                //       body.child = null;
-                //     }
-                //   },
-                //   complete: () => {
-                //     this.renderFooter(); // is it still needed ??
-                //   }
-                // }
-              ],
-              // update: main => {
-              //   main.children = []
-              //   main.children.push({
-              //     class: "table-header",
-              //     update: (header) => {
-              //       header.children = [
-              //         {
-              //           tag: "h1",
-              //           init: h1 => {
-              //             h1.element.textContent = this.resource.title || this.resource.key || this.resource.title || "Table";
-              //           }
-              //         },
-              //         KarmaFieldsAlpha.fields.table.Pagination.buildItemsTotal(this),
-              //         this.buildPagination(),
-              //         {
-              //           class: "header-item",
-              //           child: KarmaFieldsAlpha.fields.table.Pagination.buildCloseTableButton(this)
-              //         }
-              //
-              //       ];
-              //     }
-              //   });
-              //   // if (this.resource.filters) {
-              //   //
-              //   // }
-              //   main.children.push({
-              //     class: "table-filters",
-              //     update: filters => {
-              //       filters.element.classList.toggle("hidden", !this.resource.filters);
-              //     },
-              //     child: this.filters.build()
-              //   });
-              //   main.children.push({
-              //     class: "table-body",
-              //     init: body => {
-              //       this.content.render = body.render;
-              //     },
-              //     update: async body => {
-              //
-              //       await (this.queryPromise || this.query());
-              //
-              //       if (this.queriedIds && this.queriedIds.length || this.getBufferIds().length) {
-              //         body.child = this.buildGrid();
-              //       } else {
-              //         body.child = null;
-              //       }
-              //     },
-              //     complete: () => {
-              //       this.renderFooter();
-              //     }
-              //   });
-              //
-              // }
+                {
+                  class: "table-body karma-field-table-columns",
+                  init: body => {
+                    this.renderBody = body.render;
+                  },
+                  children: [
+                    {
+                      class: "karma-field-table-column grid-column",
+                      children: [
+                        ...this.buildSubsections(),
+                        this.content.build()
+                      ]
+                    },
+                    {
+                      class: "karma-field-table-column options-column",
+                      update: column => {
+                        column.element.classList.toggle("hidden", !this.options.open);
+                        column.children = this.options.open && [
+                          this.options.build()
+                          // {
+                          //   class: "karma-field-frame final",
+                          //   // init: frame => {
+                          //   //   frame.element.textContent = "Options"
+                          //   // }
+                          //   child:
+                          // }
+                        ] || [];
+                      },
+                      child: {
+                        class: "karma-field-frame final",
+                        init: frame => {
+                          frame.element.textContent = "Options"
+                        }
+                      }
+                    }
+                  ]
+
+                }
+
+              ]
+
             }
           ]
         },
@@ -1965,6 +1890,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.group {
 
     if (!this.buttons[resource.type]) {
       this.buttons[resource.type] = new KarmaFieldsAlpha.fields.table[resource.type]();
+      this.buttons[resource.type].parent = this;
       this.buttons[resource.type].table = this;
       this.buttons[resource.type].resource = resource;
     }

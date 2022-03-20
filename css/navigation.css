@@ -61,6 +61,7 @@
   /* flex-grow: 1;
   display: flex;
   align-items: center; */
+  margin: 0;
 }
 .karma-fields-navigation .karma-field-table .table-header .modal-navigation {
   display: flex;
@@ -83,19 +84,39 @@
   background-color: #f1f1f1;
 } */
 /* .karma-fields-navigation .karma-field-table .table-filters, */
-.karma-fields-navigation .karma-field-table .table-options,
+
 .karma-fields-navigation .karma-field-table .karma-field-table-section {
   flex-grow: 0;
 }
 .karma-fields-navigation .karma-field-table .table-body {
-  overflow: auto;
+  /* overflow: auto;
   padding: 10px 10px 10px;
-  /* margin: 0 0 1px; */
   background-color: #f1f1f1;
   flex-grow: 1;
-  display: flex;
+  display: flex; */
+
+  flex-grow: 1;
+  overflow: hidden;
 }
 
+.karma-fields-navigation .karma-field-table-columns {
+  display: flex;
+  gap: 1px;
+  width: 100%;
+}
+.karma-fields-navigation .karma-field-table-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.karma-fields-navigation .karma-field-table-column.grid-column {
+  flex-grow: 1;
+  overflow: hidden;
+}
+.karma-fields-navigation .karma-field-table-grid-container {
+  overflow: auto;
+  flex-direction: row;
+}
 
 
 
@@ -154,7 +175,7 @@
 
 .karma-fields-navigation .karma-field-table .table-header {
   display: flex;
-  height: 3.75em;
+  /* max-height: 3.75em; */
   flex-shrink: 0;
   gap: 1px;
 }
@@ -176,17 +197,17 @@
   text-overflow: ellipsis;
 } */
 .karma-fields-navigation .karma-field-table .table-header .table-header-title {
-  flex-grow: 1;
+  /* flex-grow: 1;
   display: flex;
-  align-items: center;
-  overflow: hidden;
+  align-items: center; */
+  /* overflow: hidden; */
 }
 .karma-fields-navigation .karma-field-table .table-header h1 {
-  white-space: nowrap;
+  /* white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: ellipsis; */
 
-  line-height: 1.2em;
+  line-height: 1.15em;
 }
 
 
@@ -226,7 +247,7 @@
   gap: 10px;
 }
 .karma-fields-navigation .karma-field-table .table-header .header-item.total-items {
-  min-width: 125px;
+  /* min-width: 125px; */
 }
 .karma-fields-navigation .karma-field-table .table-header .header-item.total-items a {
   cursor: pointer;
@@ -274,10 +295,12 @@
 /* Table Control */
 .karma-fields-navigation .karma-field-table .table-control {
   background-color: #f1f1f1;
-  height: 3.75em;
+  /* height: 3.75em; */
   flex-shrink: 0;
   display: flex;
   align-items: center;
+
+  /* padding: 10px; */
 }
 .karma-fields-navigation .karma-field-table .table-control .table-control-group {
   display: flex;
@@ -290,4 +313,12 @@
 }
 .karma-fields-navigation .karma-field-table .table-control .table-edit button.karma-button {
   /* margin: 0 5px; */
+}
+
+/* Options */
+.karma-fields-navigation .karma-field-table .karma-field-table-column.options-column {
+  /* display: flex;
+  flex-direction: column;
+  flex-shrink: 0; */
+  overflow: auto;
 }

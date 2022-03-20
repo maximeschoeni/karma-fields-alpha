@@ -1,5 +1,6 @@
 if (!window.KarmaFieldsAlpha) {
-	KarmaFieldsAlpha = {};
+	K = KarmaFieldsAlpha = {};
+
 }
 // KarmaFieldsAlpha.customfields = {};
 

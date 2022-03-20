@@ -21,31 +21,31 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
     // this.format = resource.format.replace("d", "DD").replace("m", "MM").replace("Y", "YYYY");
 	}
 
-  getEmpty() {
-    // return this.resource.empty || this.resource.output_format === 'yyyy-mm-dd' && '0000-00-00' || '0000-00-00 00:00:00';
+  // getEmpty() {
+  //   // return this.resource.empty || this.resource.output_format === 'yyyy-mm-dd' && '0000-00-00' || '0000-00-00 00:00:00';
+  //
+  //   return '';
+  // }
 
-    return '';
-  }
 
-
-  isEmpty(value) {
-    console.error("deprecated");
-    return !value || value === this.getEmpty();
-  }
-
-  setDefault() {
-    console.error("deprecated");
-    let value = "";
-    if (this.resource.default === "now") {
-      value = moment().format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
-    } else if (this.resource.default) {
-      let momentDate = moment(this.resource.default, [this.format, this.resource.output_format || "YYYY-MM-DD hh:mm:ss"]);
-      if (momentDate.isValid()) {
-        value = momentDate.format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
-      }
-    }
-    this.initValue(value);
-  }
+  // isEmpty(value) {
+  //   console.error("deprecated");
+  //   return !value || value === this.getEmpty();
+  // }
+  //
+  // setDefault() {
+  //   console.error("deprecated");
+  //   let value = "";
+  //   if (this.resource.default === "now") {
+  //     value = moment().format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
+  //   } else if (this.resource.default) {
+  //     let momentDate = moment(this.resource.default, [this.format, this.resource.output_format || "YYYY-MM-DD hh:mm:ss"]);
+  //     if (momentDate.isValid()) {
+  //       value = momentDate.format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
+  //     }
+  //   }
+  //   this.initValue(value);
+  // }
 
   getDefault() {
     if (this.resource.default === "now") {
@@ -59,25 +59,25 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
     return "";
   }
 
-  validate(value) {
-    console.error("deprecated");
-    // console.log(value, this.getEmpty());
-    // if (this.isEmpty(value)) {
-    //   const defaultValue = this.resource.default || this.getEmpty();
-    //   if (value !== defaultValue) {
-    //     value = defaultValue;
-    //     if (!this.resource.readonly) {
-    //
-    //       console.log("!!!!!", value);
-    //       this.setValue(value);
-    //     }
-    //   }
-    // }
-    // if (!this.isEmpty(value) && !KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
-    //   value = this.getEmpty();
-    // }
-    return value;
-  }
+  // validate(value) {
+  //   console.error("deprecated");
+  //   // console.log(value, this.getEmpty());
+  //   // if (this.isEmpty(value)) {
+  //   //   const defaultValue = this.resource.default || this.getEmpty();
+  //   //   if (value !== defaultValue) {
+  //   //     value = defaultValue;
+  //   //     if (!this.resource.readonly) {
+  //   //
+  //   //       console.log("!!!!!", value);
+  //   //       this.setValue(value);
+  //   //     }
+  //   //   }
+  //   // }
+  //   // if (!this.isEmpty(value) && !KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
+  //   //   value = this.getEmpty();
+  //   // }
+  //   return value;
+  // }
 
 
   // isEmpty(value) {
@@ -85,7 +85,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
   // }
 
   async exportValue() {
-    let value = await this.fetchValue();
+    let value = await this.getValue();
     value = this.format(value);
     // if (KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
     //   return value;
@@ -120,7 +120,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
       return momentDate.format(this.resource.export_format || this.format);
     }
 
-    await this.setValue(null, [value || ""]);
+    await this.setValue([value || ""]);
 
 
     // return value || '';
@@ -311,7 +311,25 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
       update: async (container) => {
         this.render = container.render;
 
-        let value = await this.getInputValue();
+        // let value = await this.getInputValue();
+
+        // let array = await this.fetchValue() || [];
+        //
+				// // compat
+				// if (!Array.isArray(array)) {
+				// 	array = [array];
+				// }
+        //
+				// // preset empty
+				// if (!array.length) {
+				// 	array = this.getDefault();
+				// 	this.setValue(null, array);
+				// }
+        //
+				// let value = array.toString();
+
+
+        let value = await this.fetchInput();
 
         // let value = await this.fetchValue();
         // value = this.validate(value);

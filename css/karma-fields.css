@@ -7,7 +7,7 @@
 .karma-grid-ta {
   position: fixed;
   z-index: 99999;
-  top: -1000px;
+  top: 0; /*-1000px;*/
 }
 
 /* .karma-grid-ta#karma-table-reservations {
@@ -18,6 +18,10 @@
 
 /* WP Layout
 --------------------------------------*/
+
+body.karma-dragging #adminmenuwrap {
+  position: relative !important;
+}
 
 /* #wpbody-content {
   display: flex;
@@ -152,10 +156,10 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 10px;
+  gap: 0.8333em;
   /* vertical-align: middle; */
   /* margin: -0px; */
-  z-index: 2;
+  /* z-index: 2; */
 
 
 }
@@ -172,8 +176,8 @@
 
   cursor: pointer;
 
-  outline: 1px solid #c3c4c7;
-  border-radius: 2px;
+  outline: 1px solid #484848;
+  border-radius: 0;
 
   width: 150px;
   height: 150px;
@@ -256,8 +260,8 @@
 
 
 .array .karma-file .image-frame {
-  width: 80px;
-  height: 80px;
+  width: 6.5em;
+  height: 6.5em;
 }
 
 
@@ -287,7 +291,7 @@
   min-height: 150px;
   width: 100%;
   /* flex-wrap: wrap; */
-  outline: 1px solid #c3c4c7;
+  outline: 1px solid #484848;
   cursor: pointer;
 }
 .array .karma-files .gallery {
@@ -475,6 +479,14 @@
 }
 
 
+.karma-field-table.table-loading .table {
+  opacity: 0.333;
+  filter: grayscale(1);
+}
+
+
+
+
 
 /* Table Header
 --------------------------------------*/
@@ -541,7 +553,7 @@
   padding: 0 8px;
   display: flex;
   align-items: center;
-  
+
   font-size: 0.875em;
   line-height: 1.08em;
 }
@@ -648,7 +660,7 @@
 
 /* PPP Selector
 --------------------------------------*/
-
+/*
 .ppp-selector {
   display: flex;
   flex-direction: column-reverse;
@@ -659,7 +671,6 @@
 }
 .ppp-selector:focus-within .ppp-selector-options {
 
-/* .ppp-selector button:focus + .ppp-selector-options { */
   display: block;
 }
 .ppp-selector-options ul {
@@ -668,7 +679,6 @@
   bottom: 5px;
   left: 5px;
   background-color: #f1f1f1;
-  /* border-radius: 3px; */
   border: 1px solid #c3c4c7;
 
 }
@@ -680,9 +690,7 @@
   border-bottom: none;
 }
 .ppp-selector-options ul li label {
-  /* white-space: nowrap; */
   padding: 5px 12px;
-  /* border-bottom: 1px solid #c3c4c7; */
 }
 .ppp-selector-options ul li button {
   width: 100%;
@@ -696,4 +704,18 @@
 }
 .ppp-selector-options ul li button:focus {
   border: none;
+} */
+
+
+
+/* Text
+--------------------------------------*/
+
+.karma-field-frame.ellipsis {
+  overflow: hidden;
+}
+.karma-field-frame.ellipsis .text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

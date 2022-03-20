@@ -502,7 +502,7 @@ td.modified .on-off svg path {
 /* Field controls
 --------------------------------------*/
 
-.field-controls {
+/* .field-controls {
   display: flex;
   align-items: center;
   position: sticky;
@@ -547,7 +547,7 @@ td.modified .on-off svg path {
 
 .field-controls button:hover svg {
 }
-
+ */
 
 /* Field controls in Grid (for files)
 --------------------------------------*/
@@ -648,25 +648,29 @@ body.folded .karma-fields .table-footer {
 /* Table Footer Button
 --------------------------------------*/
 
+
+.karma-field-frame.karma-field-button {
+  min-width: 20px;
+}
+
+
 button.karma-button {
   color: #0173aa;
   display: grid;
-  /* grid-template-areas: "button"; */
   align-items: center;
   justify-content: center;
-  /* border-color: #f3f5f6; */
   height: auto;
-  /* padding: 4px 17px; */
-  padding: 0.67em 10px;
-  min-width: 35px;
-  border: none;
+  /* padding: 0.67em 10px; */
+  padding: 0;
+  /* min-width: 35px; */
+  /* border: none; */
   background-color: transparent;
   box-shadow: none;
   text-shadow: none;
-  border-width: 1px;
-  border-radius: 2px;
-  /* font-weight: bold; */
-  font-size: 0.875em;
+  /* border-width: 1px; */
+  border-radius: 0;
+  /* font-size: 0.875em; */
+  font-size: 1em;
   line-height: 1.08em;
   position: relative;
   border: 1px solid #0173aa;
@@ -676,6 +680,16 @@ button.karma-button {
 
 
   /* box-shadow: inset 1px 3px 8px #f1f1f126; */
+}
+button.karma-button .text {
+  padding: 0.5369em 0.7692em;
+}
+button.karma-button .dashicons {
+  padding: 0.4333em 0.6667em;
+  line-height: 1em;
+  font-size: 1.1538em;
+  height: auto;
+  width: auto;
 }
 button.karma-button.primary {
   background-color: #0173aa;
@@ -695,9 +709,20 @@ button.karma-button:focus {
   /* outline: 1px solid rgb(0, 124, 186); */
   /* box-shadow: 0 0 1px 1px rgb(0, 124, 186); */
 }
+button.karma-button.active {
+  /* color: #8c8f94;
+  border-color: #8c8f94; */
+}
+button.karma-button.active {
+  /* color: #8c8f94;
+  border-color: #8c8f94; */
+}
+
 button.karma-button:active {
   /* border-color: transparent; */
 }
+
+
 
 button.karma-button.primary:hover,
 button.karma-button.primary.active,
@@ -726,14 +751,17 @@ button.karma-button[disabled] {
 }
 
 
-button.karma-button.loading::after {
+button.karma-button.loading::after,
+button.karma-button.editing::after {
   content: "...";
   grid-area: 1 / 1;
 }
 
 
 button.karma-button.loading,
-button.karma-button.primary.loading {
+button.karma-button.primary.loading,
+button.karma-button.editing,
+button.karma-button.primary.editing {
   color: #c3c4c7;
   border: 1px solid #c3c4c7 ;
 }
@@ -743,7 +771,8 @@ button.karma-button span {
   grid-area: 1 / 1;
 }
 button.karma-button.loading .button-content,
-button.karma-button.loading span {
+button.karma-button.loading span,
+button.karma-button.editing span {
   visibility: hidden;
 }
 button.karma-button .karma-field-spinner {
@@ -779,12 +808,7 @@ button.karma-button.loading .karma-field-spinner::after {
   line-height: 1.2343em;
 } */
 
-.karma-fields .dashicons {
-  font-size: 0.875em;
-  height: auto;
-  width: auto;
-  line-height: 1.2343em;
-}
+
 
 
 /* .karma-fields .table-footer button:focus .karma-icon svg path {
@@ -813,13 +837,43 @@ button.karma-button.primary > .karma-field-spinner {
 }
 
 
-
+/*
 .karma-fields .table-footer button[disabled] svg path {
   fill: #5f6469;
 }
 .karma-fields .table-footer button[disabled]:hover svg path {
   fill: #5f6469;
 }
+ */
+
+
+/*
+button.karma-button[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  top: 131%;
+  white-space: nowrap;
+  left: 50%;
+  background-color: black;
+  color: white;
+  padding: 0.4em 1em;
+  transform: translateX(-50%);
+  border-radius: 0.3em;
+}
+button.karma-button[title]:hover::before {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 0.5em solid transparent;
+  border-right: 0.5em solid transparent;
+  border-bottom: 0.5em solid black;
+  top: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+ */
+
 
 
 
@@ -827,47 +881,32 @@ button.karma-button.primary > .karma-field-spinner {
 /* Table Footer Delete Button
 --------------------------------------*/
 
-.karma-fields .table-footer .table-control button.delete {
+/* .karma-fields .table-footer .table-control button.delete {
   color: #dc3232;
   border-color: #dc3232;
   background-color: #f3f5f6;
 }
 .karma-fields .table-footer .table-control button.delete:hover {
-  /* color: #dc3232;
-  border-color: #dc3232; */
 
   color: #f3f5f6;
   background-color: #25282d;
   border-color: #f3f5f6;
-}
+} */
 
 
 
 /* Table Footer Options
 --------------------------------------*/
-
+/*
 .table-options-container {
-  /* position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: 0px; */
+
   color: #f1f1f1;
   background-color: #25282d;
   text-align: left;
   border-bottom: 1px solid #7d8993;
-  /* box-shadow: -5px -5px 16px 0px #00000020; */
   display: flex;
   padding: 0 10px;
 }
-/* .table-options-header {
-  justify-content: space-between;
-  border-bottom: 1px solid #7e8993;
-  padding: 0 0 0 10px;
-  background-color: #25282d;
-}
-.table-options-header h4 {
-  margin: 0;
-} */
 .table-options-body {
   padding: 5px 10px;
   flex-grow: 1;
@@ -884,16 +923,15 @@ button.karma-button.primary > .karma-field-spinner {
 }
 .table-options-container .item-number input {
   margin-left: 10px;
-}
+} */
 
 
 
 /* Table Footer Options Option Buttons Field
 --------------------------------------*/
-
+/*
 .option-buttons {
   display: flex;
-  /* margin: 0 -5px; */
   border: 1px solid #f3f5f6;
   border-radius: 3px;
 }
@@ -903,7 +941,6 @@ button.karma-button.primary > .karma-field-spinner {
   font-weight: bold;
   cursor: pointer;
 
-  /* margin: 0 5px; */
 }
 .option-buttons .option-button.active {
   background-color: #f3f5f6;
@@ -913,7 +950,7 @@ button.karma-button.primary > .karma-field-spinner {
   border-right: 1px solid #f3f5f6;
 }
 
-
+ */
 
 
 
@@ -964,10 +1001,11 @@ button.karma-button.primary > .karma-field-spinner {
 
 .karma-fields label {
   font-weight: bold;
-  font-size: 0.875em;
+  /* font-size: 0.875em; */
+  font-size: 1em;
   line-height: 1.08em;
   vertical-align: baseline;
-  margin: 0 0 3px;
+  margin: 0 0 0.33em;
   display: block;
   /* color: #535c63; */
 }
@@ -1156,19 +1194,26 @@ button.karma-button.primary > .karma-field-spinner {
 } */
 
 .karma-field-container {
-  margin: -10px;
+  /* margin: -10px; */
   flex-grow: 1;
-}
-.karma-field-container.display-flex {
   display: flex;
   flex-wrap: wrap;
+  flex-direction: column;
   gap: 1px;
 }
+.karma-field-container.display-flex {
+  flex-direction: row;
+
+}
 .karma-field-group {
-  flex-grow: 1;
+  /* flex-grow: 1; */
+  min-width: 260px;
+  flex: 1 1 0;
+
+  cursor: default; /* when containing array is selected and cursor set to grab */
 }
 .karma-field-frame {
-  padding: 0.75em 10px;
+  /* padding: 10px; */
   box-sizing: border-box;
 
   /* align-items: center; */
@@ -1180,9 +1225,10 @@ button.karma-button.primary > .karma-field-spinner {
   /* grid-template-rows: min-content min-content; */
 
   /* flex-basis: 320px; */
-  flex: 1 1 0;
-  min-width: 260px;
+  /* flex: 1 1 0; */
+
 }
+
 .array .karma-field-frame {
   grid-template-rows: auto 1fr;
   align-items: stretch;
@@ -1218,10 +1264,23 @@ button.karma-button.primary > .karma-field-spinner {
 
 
 .karma-field-frame.karma-field-group.final {
-  padding: 10px;
+  /* padding: 10px; */
 }
 .karma-field-frame.final {
   background-color: #f1f1f1;
+  /* padding: 0.8333em; */
+}
+.karma-field-frame.final .final {
+  background-color: transparent;
+  /* padding: 0; */
+}
+/* .karma-field-frame.karma-field-group .karma-field-container { */
+.karma-field-container {
+  gap: 1em;
+}
+
+.karma-field-frame.initial {
+  padding: 1em;
 }
 
 /* -> embed fields in post edit page: */

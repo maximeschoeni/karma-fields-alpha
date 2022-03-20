@@ -24,6 +24,8 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
     //   onsave();
     // }
 
+    this.buffer = new KarmaFieldsAlpha.DeltaNEW(this.resource.driver || this.resource.key, "content");
+
   }
 
 
@@ -105,6 +107,16 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
       this.extraOrders = {};
     }
     this.extraOrders[id] = order;
+  }
+
+
+  getRow(id) {
+    return this.getChild(id) || this.createChild({
+      type: "tableRow",
+      key: id,
+      columns: this.table.resource.columns
+    });
+    // row.create(this.resource.columns || []);
   }
 
   // updateIds() {
@@ -192,7 +204,7 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
     if (relations.length) {
       const groups = relations.reduce((group, item) => {
   			if (!item.id) {
-  				console.error("item does not have id");
+  				console.error("item does not have an id");
   			}
   			if (!group[item.id]) {
   				group[item.id] = {};
@@ -497,7 +509,8 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
   }
 
   getColumns() {
-    return this.table.resource.columns || [];
+    const columns = this.table.options.fetchValue(null, "columns");
+    return (this.table.resource.columns || []).filter((column, index) => columns.includes(index.toString()));
   }
 
   hasHeader() {
@@ -650,12 +663,27 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
                     this.registerIndex(th.element, rowIndex);
                   }
                 },
-                ...this.table.getRow(id).children.map((field, colIndex) => {
+                // ...this.table.getRow(id).children.map((field, colIndex) => {
+                //   return {
+                //     class: "td table-cell",
+                //     init: td => {
+                //       if (this.table.resource.columns[colIndex].style) {
+                //         td.element.style = this.table.resource.columns[colIndex].style;
+                //       }
+                //     },
+                //     update: td => {
+                //       this.registerCell(field, td.element, colIndex, rowIndex);
+                //     },
+                //     child: field.build()
+                //   };
+                // })
+                ...this.getColumns().map((column, colIndex) => {
+                  const field = this.table.getRow(id).children[colIndex];
                   return {
                     class: "td table-cell",
                     init: td => {
-                      if (this.table.resource.columns[colIndex].style) {
-                        td.element.style = this.table.resource.columns[colIndex].style;
+                      if (column.style) {
+                        td.element.style = column.style;
                       }
                     },
                     update: td => {
@@ -699,7 +727,7 @@ KarmaFieldsAlpha.fields.table.tableContent = class extends KarmaFieldsAlpha.fiel
 
   build() {
     return {
-      class: "table-body",
+      class: "karma-field-table-grid-container karma-field-frame final",
       init: body => {
         this.render = body.render;
       },

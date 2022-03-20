@@ -1,41 +1,38 @@
-KarmaFieldsAlpha.utils.rect = function(left, top, width, height) {
-	var rect = {
-		left: left || 0,
-		top: top || 0,
-		width: width || 0,
-		height: height || 0,
-		contains: function(x, y) {
-			return x >= this.left && x < this.left+this.width && y >= this.top && y < this.top+this.height;
-		},
-		intersect: function(rect) {
-			var left = Math.max(rect.left, this.left);
-			var top = Math.max(rect.top, this.top);
-			var right = Math.min(rect.left + rect.width, this.left + this.width);
-			var bottom = Math.min(rect.top + rect.height, this.top + this.height);
-			return KarmaFieldsAlpha.utils.rect(left, top, right - left, bottom - top);
-		},
-		union: function(rect) {
-			var left = Math.min(rect.left, this.left);
-			var top = Math.min(rect.top, this.top);
-			var right = Math.max(rect.left + rect.width, this.left + this.width);
-			var bottom = Math.max(rect.top + rect.height, this.top + this.height);
-			return KarmaFieldsAlpha.utils.rect(left, top, right - left, bottom - top);
-		},
-		set: function(left, top, width, height) {
-			this.left = left || 0;
-			this.top = top || 0;
-			this.width = width || 0;
-			this.height = height || 0;
-		},
-		isEmpty: function() {
-			return this.width <= 0 || this.height <= 0;
-		},
-		equals: function(rect) {
-			return rect.left === this.left && rect.top === this.top && rect.width === this.width && rect.height === this.height;
-		},
-		clone: function() {
-			return KarmaFieldsAlpha.utils.rect(this.left, this.top, this.width, this.height);
-		}
-	};
-	return rect;
-};
+KarmaFieldsAlpha.Rect = class {
+
+	constructor(x, y, width, height) {
+		this.x = x || 0;
+		this.y = y || 0;
+		this.width = width || 1;
+		this.height = height || 1;
+	}
+
+	static union(r1, r2) {
+		let left = Math.min(r1.x, r2.x);
+		let top = Math.min(r1.y, r2.y);
+		let right = Math.max(r1.x + r1.width, r2.x + r2.width);
+		let bottom = Math.max(r1.y + r1.height, r2.y + r2.height);
+    return new this(left, top, right - left, bottom - top);
+	}
+
+	static equals(r1, r2) {
+		return r1.x === r2.x && r1.y === r2.y && r1.width === r2.width && r1.height === r2.height;
+	}
+
+	static includes(r1, r2) {
+		return r1.x >= r2.x && r1.y >= r2.y && r1.x+r1.width <= r2.x+r2.width && r1.y+r1.height <= r2.y+r2.height;
+	}
+
+	// equals(r) {
+	// 	return this.constructor.equals(r, this);
+	// }
+	//
+  // getArea() {
+  //   return this.width*this.height;
+  // }
+	//
+	// includes(r) {
+	// 	return this.constructor.includes(r, this);
+	// }
+
+}

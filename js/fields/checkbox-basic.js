@@ -14,8 +14,23 @@ KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = clas
 	// }
 
 	getDefault() {
-		return [this.resource.default || this.false()];
+		return this.resource.default || this.false();
 	}
+
+	// async saveFields(fields) {
+	//
+	// 	let delta = {};
+	//
+	// 	for (let field of fields) {
+	// 		const path = field.getPath();
+	// 		const value = this.buffer.get(...path);
+	// 		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+	// 		this.buffer.remove(...path);
+	// 	}
+	//
+	// 	this.save(delta);
+	//
+	// }
 
 	// getEmpty() {
 	// 	return this.false();
@@ -27,49 +42,91 @@ KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = clas
 			await field.write();
 		}
 
-		if (KarmaFieldsAlpha.History.lastField !== this) {
-			KarmaFieldsAlpha.History.backup();
-			KarmaFieldsAlpha.History.lastField = this;
-		}
+		this.nextup();
 
+		// for (let field of fields) {
+		// 	const value = checked ? field.true() : field.false();
+		// 	await field.setValue(null, [value]);
+		// }
+		//
 		// if (this.resource.autosave) {
+		// 	// await this.saveField(...fields);
 		// 	const delta = {};
-		// 	const form = this.getForm();
-		// 	const driver = form.resource.driver || form.resource.key;
 		//
 		// 	for (let field of fields) {
-		// 		const path = field.getPath();
-		// 		const value = checked ? field.true() : field.false();
-		// 		KarmaFieldsAlpha.DeepObject.assign(delta, [value], ...path);
-		// 		form.buffer.set([value], ...path);
-		// 		form.writeHistory([value], ...path);
+		// 		KarmaFieldsAlpha.DeepObject.assign(delta, field.getValue(), ...field.getPath());
+		// 		field.removeValue();
 		// 	}
 		//
-		// 	await KarmaFieldsAlpha.Gateway.update(driver, delta);
-		//
-		// } else {
-		// 	for (let field of fields) {
-		// 		const value = checked ? field.true() : field.false();
-		// 		await field.setValue(null, [value]);
-		// 	}
+		// 	this.save(delta);
 		// }
 
-		for (let field of fields) {
-			const value = checked ? field.true() : field.false();
-			await field.setValue(null, [value]);
+		// if (this.resource.autosave || this.resource.context === "submit") {
+		// 	// await this.saveField(...fields);
+		// 	const delta = {};
+		//
+		// 	for (let field of fields) {
+		// 		KarmaFieldsAlpha.DeepObject.assign(delta, await field.getValue(), ...field.getPath());
+		// 	}
+		//
+		// 	this.getForm().set(delta, "submit");
+		//
+		// } else {
+		//
+		// 	for (let field of fields) {
+		// 		const value = checked ? field.true() : field.false();
+		// 		await field.setValue([value]);
+		// 	}
+		//
+		// }
+
+		// const form = this.resource.autosave && this.getGateway() || this.getRelativeParent();
+		const form = this.getForm();
+
+		if (form) {
+
+			if (this.resource.autosave) {
+
+				const delta = {};
+
+				for (let field of fields) {
+
+					KarmaFieldsAlpha.DeepObject.assign(delta, checked ? field.true() : field.false(), ...field.getPath(), 0);
+
+				}
+
+				form.setState(delta, "submit");
+
+			} else {
+
+				for (let field of fields) {
+
+					form.set(checked ? field.true() : field.false(), ...field.getPath(), 0);
+
+				}
+
+			}
+
 		}
+		// else {
+		//
+		// 	for (let field of fields) {
+		// 		const value = checked ? field.true() : field.false();
+		// 		await field.setValue([value]);
+		// 	}
+		//
+		// }
 
-		if (this.resource.autosave) {
-			await this.saveField(...fields);
-		}
 
 
 
-		await this.edit();
 
-		if (this.resource.submit === "auto" || this.resource.autosubmit) {
-			await this.submit();
-		}
+
+		// await this.edit();
+
+		// if (this.resource.submit === "auto" || this.resource.autosubmit) {
+		// 	await this.submit();
+		// }
 
 	}
 
@@ -215,16 +272,14 @@ KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = clas
 						},
 						update: async checkbox => {
 
-							const array = await this.fetchValue() || [];
-							let value = array.toString();
+							let value = await this.get(0);
 
 							if (value !== this.true() && value !== this.false()) {
 								value = this.false();
 								if (!this.resource.readonly) {
-									await this.setValue(null, [value]);
+									await this.set(value, 0);
 								}
 							}
-
 
 							container.element.onmousemove = async event => {
 								if (this.constructor.mousedown && !this.constructor.selected.includes(this)) {
@@ -242,6 +297,8 @@ KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = clas
 
 							container.element.onmousedown = async event => {
 
+
+
 								checkbox.element.checked = !checkbox.element.checked;
 
 								this.constructor.mousedown = true;
@@ -250,53 +307,14 @@ KarmaFieldsAlpha.fields.checkbox_basic = KarmaFieldsAlpha.fields.checkbox = clas
 
 								let mouseup = async event => {
 
+									// debugger;
+
 									window.removeEventListener("mouseup", mouseup);
 
 									event.preventDefault();
 									this.constructor.mousedown = false;
 
-									// await this.input(this.constructor.selected);
-
 									this.setMultipleFields(this.constructor.state, this.constructor.selected);
-
-
-									// for (let field of this.constructor.selected) {
-									// 	await field.write();
-									// }
-									//
-									// if (KarmaFieldsAlpha.History.lastField !== this) {
-									// 	KarmaFieldsAlpha.History.backup();
-									// 	KarmaFieldsAlpha.History.lastField = this;
-									// }
-									//
-									// if (this.resource.autosave) {
-									// 	const delta = {};
-									// 	const form = this.getForm();
-									// 	const driver = form.resource.driver || form.resource.key;
-									//
-									// 	for (let field of this.constructor.selected) {
-									// 		const value = this.constructor.state ? [field.true()] : [field.false()];
-									// 		const path = field.getPath();
-									// 		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
-									// 		form.buffer.set(value, ...path);
-									// 		form.writeHistory(value, ...path);
-									// 	}
-									//
-									// 	await KarmaFieldsAlpha.Gateway.update(driver, delta);
-									//
-									// } else {
-									// 	for (let field of this.constructor.selected) {
-									// 		await field.setValue(null, this.constructor.state ? [field.true()] : [field.false()]);
-									// 	}
-									// }
-
-
-
-									// await this.edit();
-									//
-									// if (this.resource.submit === "auto" || this.resource.autosubmit) {
-									// 	await this.submit();
-									// }
 
 									this.constructor.selected = [];
 

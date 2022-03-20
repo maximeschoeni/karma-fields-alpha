@@ -16,6 +16,9 @@
 
   grid-auto-flow: row dense;
 }
+.karma-fields .array.selecting {
+   user-select: none;
+}
 .karma-fields .table.array {
   margin-bottom: 10px;
 }
@@ -35,7 +38,13 @@
   /* outline: 1px solid #7e8993; */
 
   transition: transform 100ms;
+
+  /* padding: 0.75em; */
+  padding: 1em;
 }
+/* .karma-fields .array.dragging .td {
+  transition: transform 100ms;
+} */
 
 .karma-fields .array .td.drag {
   z-index: 99999;
@@ -43,17 +52,17 @@
 
 .karma-fields .array .td.array-index {
   align-items: flex-start;
-  padding: 10px;
-  min-width: 30px;
+  padding: 1em;
+  min-width: 3em;
   /* background-color: #f1f1f1; */
-  cursor: grab;
+
   font-weight: bold;
 }
 .karma-fields .array .td.array-index.grabbing {
   cursor: grabbing;
 }
 .karma-fields .array .td.array-delete {
-  padding: 10px;
+  padding: 1em;
   align-items: flex-start;
 }
 
@@ -68,17 +77,32 @@
   user-select: none;
 }
 
-.karma-field-array .array-more {
+.karma-fields .array .array-more {
   grid-column: 1 / -1;
-  padding: 10px;
+  padding: 1em;
   background-color: #f1f1f1;
 }
+
+.karma-fields .array.selecting .td {
+  /* cursor: crosshair; */
+}
+.karma-fields .array.has-selection .td.selected {
+  cursor: grab;
+}
+.karma-fields .array .td.selected,
+.karma-fields .array .td.selected .td,
+.karma-fields .array .td.selected .th {
+  background-color: white;
+}
+
 
 /* Frames inside Array
 --------------------------------------*/
 
 .array .karma-field-frame {
-  min-width: 160px;
+  /* min-width: 160px; */
+  /* -> disabled because it is bugged in tinymce buttons */
+  min-width: 0;
 }
 
 
@@ -88,7 +112,8 @@
 --------------------------------------*/
 
 .karma-fields .array .karma-field-dropdown {
-  width: 100%;
+  /* width: 100%; */
+  /* -> disabled because it is bugged in tinymce buttons */
 }
 .karma-fields .array>select {
   margin: 0;

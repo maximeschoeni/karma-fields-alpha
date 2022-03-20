@@ -1,20 +1,20 @@
 KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
 
-  initField() {
-    // this.registerType("json");
-	}
-
-  fetchArray(...path) {
-    return this.fetchValue("array", ...path);
-  }
-
-  setDefault() {
-    console.error("deprecated");
-    // noop override setDefault
-  }
-  getDefault() {
-    return [];
-  }
+  // initField() {
+  //   // this.registerType("json");
+	// }
+  //
+  // fetchArray(...path) {
+  //   return this.fetchValue("array", ...path);
+  // }
+  //
+  // setDefault() {
+  //   console.error("deprecated");
+  //   // noop override setDefault
+  // }
+  // getDefault() {
+  //   return [];
+  // }
 
 
 
@@ -88,66 +88,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
     return uploader;
   }
 
-  // getValue() {
-  //   let value = this.getDeltaValue();
-  //   if (value !== undefined) {
-  //     value = JSON.parse(value);
-  //   } else {
-  //     value = this.getOriginal();
-  //   }
-  //   return value;
-  // }
-  //
-  // setValue(values) {
-  //   if (values !== undefined) {
-  //     super.setValue(JSON.stringify(values));
-  //   }
-  // }
-  //
-  // getOriginal() {
-  //   let value = super.getOriginal();
-  //   if (value !== undefined) {
-  //     value = JSON.parse(value);
-  //   }
-  //   return value;
-  // }
-  //
-  // setOriginal(values) {
-  //   if (values !== undefined) {
-  //     super.setOriginal(JSON.stringify(values));
-  //   }
-  // }
 
-  // prepare(value) {
-  //   return value;
-  // }
-  //
-  // convert(value) {
-  //   if (!Array.isArray(value)) {
-  //     if (Number(value)) {
-  //       return [value.toString()];
-  //     }
-  //     return [];
-  //   }
-  //   return value.map(item => item.toString());
-  // }
-
-  getEmpty() {
-    return [];
-  }
-
-  // async validate(values) {
-  //   values = values.filter(id => Number(id));
-  //   const missingIds = values.filter(id => !this.getFile([id]));
-  //   if (missingIds.length) {
-  //     await this.fetchIds(missingIds);
-  //   }
-  //   return values;
-  // }
-
-  // async downloadValue() {
-  //   return this.getRemoteValue(null, null, "array");
-  // }
 
   async validate(values) {
 
@@ -166,152 +107,6 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
     return validValues;
   }
 
-  // async update() {
-  //
-  //   let values = await this.getArray();
-  //
-  //   value = await this.validate(values);
-  //
-  //   return values;
-  // }
-
-  // validate(value) {
-  //   const field = this;
-  //
-  //   if (!value || !Array.isArray(value)) {
-  //     return Promise.resolve([]);
-  //   } else if (this.hasFiles(value)) {
-  //     return Promise.resolve(value);
-  //   } else {
-  //     return this.fetchIds(value).then(function() {
-  //       return value;
-  //     });
-  //   }
-  // }
-
-
-  // buildContent(value) {
-  //   const field = this;
-  //   return [
-  //     {
-  //       tag: "a",
-  //       class: "gallery",
-  //       update: function(gallery) {
-  //         this.element.onclick = function(event) {
-  //           event.preventDefault();
-  //           field.uploader.open(value);
-  //         };
-  //       },
-  //       children: [
-  //         {
-  //           class: "images-container",
-  //           update: function() {
-  //             this.children = value.map(function(image_id) {
-  //               const file = field.getFile(image_id);
-  //               const type = file.type.startsWith("image") ? "image" : "file";
-  //               return {
-  //                 class: "image-container",
-  //                 child: {
-  //                   tag: "img",
-  //                   update: function() {
-  //                     this.element.src = file.src;
-  //                     this.element.width = file.width;
-  //                     this.element.height = file.height;
-  //                   }
-  //                 }
-  //               };
-  //             });
-  //           }
-  //         },
-  //         {
-  //           class: "add-container",
-  //           children: [
-  //             {
-  //               class: "add",
-  //               update: function() {
-  //                 this.element.textContent = value.length ? "Add or edit files..." : "Add files...";
-  //               }
-  //             }
-  //             // {
-  //             //   class: "karma-field-spinner"
-  //             // }
-  //           ]
-  //         }
-  //       ]
-  //     },
-  //     {
-  //       class: "field-control",
-  //       update: function() {
-  //         if (value.length) {
-  //           this.children = [{
-  //             tag: "button",
-  //             class: "delete button",
-  //             update: function() {
-  //               this.element.textContent = "Remove";
-  //               this.element.addEventListener("click", function(event) {
-  //                 event.preventDefault();
-  //                 field.backup();
-  //                 field.setArray([]);
-  //                 field.edit();
-  //                 field.render();
-  //               });
-  //             }
-  //           }];
-  //         } else {
-  //           this.children = [];
-  //         }
-  //       }
-  //     }
-  //   ];
-  // }
-
-  // build() {
-  //   return {
-	// 		class: "karma-files karma-file karma-field",
-	// 		init: container => {
-  //       container.element.setAttribute('tabindex', '-1');
-  //       this.init(container.element);
-  //       this.render = container.render;
-	// 		},
-	// 		update: async container => {
-  //       container.element.classList.add("loading");
-  //       let values = await this.fetchArray();
-  //
-  //       values = await this.validate(values);
-  //       let modified = this.isModified();
-  //       container.children = this.buildContent(values);
-  //       container.element.classList.toggle("modified", modified);
-	// 		},
-  //     complete: container => {
-  //       container.element.classList.remove("loading");
-  //     }
-	// 	};
-  // }
-
-
-
-  // build() {
-  //   return {
-  //     class: "karma-files karma-file karma-field",
-  //     init: container => {
-  //       container.element.setAttribute('tabindex', '-1');
-  //       this.init(container.element);
-  //       this.render = container.render;
-  //     },
-  //     update: async container => {
-  //       container.element.classList.add("loading");
-  //       let values = await this.fetchArray();
-  //
-  //       values = await this.validate(values);
-  //       let modified = this.isModified();
-  //       container.children = this.buildContent(values);
-  //       container.element.classList.toggle("modified", modified);
-  //     },
-  //     complete: container => {
-  //       container.element.classList.remove("loading");
-  //     }
-  //   };
-  // }
 
   buildDeleteButton() {
     return {
@@ -346,7 +141,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
           update: async gallery => {
             gallery.element.classList.add("loading");
 
-            let values = await this.fetchArray() || [];
+            let values = await this.get() || [];
             values = await this.validate(values);
 
             let modified = await this.isModified();
@@ -398,9 +193,8 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
         {
           class: "field-control",
           update: async container => {
-            let values = await this.fetchArray() || [];
+            let values = await this.get() || [];
             values = await this.validate(values);
-            // container.children = Number(value) ? [this.buildDeleteButton()] : [];
             container.children = values.length && [this.buildDeleteButton()] || [];
           }
         }

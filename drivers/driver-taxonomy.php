@@ -10,9 +10,9 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 	 */
   public function fetch($params) {
 
-    if (isset($params['key'])) {
+    if (isset($params['key']) || isset($params['taxonomy'])) {
 
-      $taxonomy = $params['key'];
+      $taxonomy = $params['key'] ?? $params['taxonomy'];
 
       $terms = get_terms(array(
         'taxonomy' => $taxonomy,

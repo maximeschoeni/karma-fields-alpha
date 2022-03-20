@@ -3,205 +3,1432 @@
 // /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
 
 
-KarmaFieldsAlpha.fields.tinymce = function(field) {
-	var manager = {};
-	return KarmaFieldsAlpha.build({
-		class: "editor",
-		children: function() {
-			return [
-				KarmaFieldsAlpha.build({
-					class: "field-controls",
-					child: function() {
-						return KarmaFieldsAlpha.build({
-							class: "field-controls-group",
-							children: function() {
-								return [
-									KarmaFieldsAlpha.includes.icon({
-										tag: "button",
-										url: KarmaFieldsAlpha.icons_url+"/table-row-before.svg",
-										init: function(element, update) {
-											element.addEventListener("click", function(event) {
-												event.preventDefault();
-												if (manager.editor) {
-													// manager.editor.execCommand("Bold");
-													// manager.editor.execCommand("JustifyRight");
-													manager.editor.execCommand("mceLink", true);
+KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 
-													console.log(manager.editor);
-													// manager.editor.selection.setContent("yyy");
-												}
+	constructor(...args) {
+		super(...args);
 
-											});
-										}
-									}),
-									KarmaFieldsAlpha.includes.icon({
-										tag: "button",
-										url: KarmaFieldsAlpha.icons_url+"/car.svg",
-										init: function(element, update) {
-											element.addEventListener("click", function(event) {
-												event.preventDefault();
+		this.image = this.createChild({
+			id: "image",
+			key: "image",
+			type: "file",
+			mimetypes: ["image"]
+		});
 
-												// var s = window.getSelection();
-												// var oRange = s.getRangeAt(0); //get the text range
-												// oRect = oRange.getBoundingClientRect();
+		this.file = this.createChild({
+			id: "file",
+			key: "file",
+			type: "file",
+			mimetypes: [],
+			multiple: false
+		});
 
-												// console.log(manager.editor.selection.getRng());
+	}
 
-												manager.editor.execCommand('mceInsertLink', false, {
-							            href: "http://wuegwuueifgwe.com",
-							            title: "jhkku"
-							          });
-
-
-												// console.log(manager.editor.selection.getRng().getBoundingClientRect());
-
-											});
-										}
-									}),
-									KarmaFieldsAlpha.includes.icon({
-										tag: "button",
-										url: KarmaFieldsAlpha.icons_url+"/car.svg",
-										init: function(element, update) {
-											element.addEventListener("click", function(event) {
-												event.preventDefault();
-
-												// var s = window.getSelection();
-												// var oRange = s.getRangeAt(0); //get the text range
-												// oRect = oRange.getBoundingClientRect();
-
-												// console.log(manager.editor.selection.getRng());
-
-
-
-												manager.editor.execCommand('unlink');
-
-												// console.log(manager.editor.selection.getRng().getBoundingClientRect());
-
-											});
-										}
-									})
-								];
-							}
-						});
-					}
-				}),
-				KarmaFieldsAlpha.build({
-					class: "editor-content",
-					init: function(element) {
-						element.id = field.id;
-						element.editable = true;
-
-						tinyMCE.init({
-							target: element,
-							hidden_input: false,
-							inline: true,
-							menubar: false,
-							contextmenu: false,
-							toolbar: false,
-							skin: false,
-							plugins: "link"
-
-						}).then(function(editors) {
-							manager.editor = editors.pop();
-
-
-							// unactivate history
-							manager.editor.on("BeforeAddUndo", function(event) {
-
-								event.preventDefault();
-
-								var content = manager.editor.getContent();
-								console.log("BeforeAddUndo", content);
-								if (field.isDifferent(content)) {
-									field.history.save();
-								}
-
-							});
-
-
-
-							// console.log(manager.editor);
-
-							field.onUpdate = function(value) {
-								manager.editor.setContent(value || "");
-							}
-							field.onInherit = function(value) {
-								//input.placeholder = value || "";
-							}
-							field.onRemove = function(value) {
-								manager.editor.destroy();
-							}
-							field.fetch().then(field.onUpdate);
-
-							manager.editor.on("input", function(event) {
-								var value = manager.editor.getContent();
-								field.set(value);
-							});
-
-							// field.fetch().then(function(value) {
-							// 	manager.editor.setContent(value || "");
-							//
-							// 	manager.editor.on("input", function(event) {
-							// 		var value = manager.editor.getContent();
-							// 		field.set(value).then(function() {
-							// 			if (field.isModified != field.wasModified) {
-							// 				field.history.save();
-							// 			}
-							// 			field.save();
-							// 		});
-							// 	});
-							//
-							// 	// addEventListener("input", function() {
-							// 	// 	field.set(input.value).then(function() {
-							// 	// 		if (field.isModified != field.wasModified) {
-							// 	// 			field.history.save();
-							// 	// 		}
-							// 	// 		field.save();
-							// 	// 	});
-							// 	// });
-							//
-							// });
-						});
-
-						// setTimeout(function() {
-						// 	// tinyMCE.init(element).then(function(r) {
-						// 	// 	console.log(r);
-						// 	// });
-						//
-						// }, 1000);
-
-
-
-						// input.addEventListener("input", function() {
-						// 	field.set(input.value).then(function() {
-						// 		if (field.isModified != field.wasModified) {
-						// 			field.history.save();
-						// 		}
-						// 		field.save();
-						// 	});
-						// });
-						// field.fetch().then(function(value) {
-						// 	input.value = value || "";
-						// });
-						// field.fetchPlaceholder().then(function(value) {
-						// 	input.placeholder = value || "";
-						// });
-
-						// field.onFocus = function() {
-						// 	input.focus();
-						// }
-						// field.onBlur = function() {
-						// 	input.blur();
-						// }
-						// if (field.resource.width) {
-						// 	input.style.width = field.resource.width;
-						// }
-						// if (field.resource.height) {
-						// 	input.style.height = field.resource.height;
-						// }
-					}
-				})
-			];
+	async createEditor(element) {
+		if (this.editor) {
+			this.editor.destroy();
+			this.editor = null;
 		}
-	});
+
+		if (!this.editor) {
+			const editors = await tinyMCE.init({
+				target: element,
+				hidden_input: false,
+				inline: true,
+				menubar: false,
+				contextmenu: false,
+				toolbar: false,
+				skin: false,
+				plugins: "link lists table paste",
+				convert_urls: false,
+				// image_caption: true,
+				paste_postprocess: (pl, o) => {
+					function unwrap(node) {
+						let container = document.createElement("div");
+						for (let child of node.childNodes) {
+							if (child.nodeType === Node.ELEMENT_NODE && child.matches("div,span")) {
+								container.append(...unwrap(child).childNodes);
+							} else {
+								container.append(child);
+							}
+						}
+						return container;
+					}
+					o.node = unwrap(o.node);
+					o.node.innerHTML = o.node.innerHTML.normalize();
+			  }
+			});
+
+			this.editor = editors.pop();
+
+
+
+			if (!this.editor) {
+				return;
+			}
+
+
+			// unactivate history
+			this.editor.on("BeforeAddUndo", event => {
+				event.preventDefault();
+				// this.backup();
+				// this.nextup();
+			});
+
+			this.editor.on("input", event => {
+				this.saveContent();
+				// const value = this.editor.getContent();
+				// this.setValue(null, [value]);
+			});
+
+			// this.editor.on("SetContent", event => {
+			// 	console.log("SetContent");
+			// 	// this.saveContent();
+			// });
+
+
+
+
+			// this.editor.on("SelectionChange", event => {
+			// 	this.renderToolbar();
+			// });
+
+
+			this.editor.on("NodeChange", event => {
+
+				if (event.selectionChange) {
+					if (this.activeModal && event.element !== this.activeNode) {
+
+						// console.log("NodeChange");
+
+						// this.activePopover = null;
+						this.activeNode = null;
+						this.activeModal = null;
+						this.renderPopover();
+					}
+
+
+				}
+
+				this.renderToolbar();
+			});
+
+			this.editor.on("focusout", event => {
+
+				if (this.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
+					this.activeNode = null;
+					this.activeModal = null;
+					this.renderPopover();
+				}
+
+				this.renderToolbar();
+			});
+
+			this.editor.on("click", event => {
+
+				const node = this.editor.selection.getNode();
+
+				if (node.matches("a")) {
+					this.activeNode = node;
+					this.setState(null, "link");
+				}
+
+				if (node.matches("img")) {
+					this.activeNode = node;
+					this.setState(null, "editmedia");
+				}
+
+			});
+
+			this.editor.on("dblclick", event => {
+				const node = this.editor.selection.getNode();
+				if (node.matches("img")) {
+					this.setState(null, "addmedia");
+				}
+			});
+
+			this.editor.on("ObjectResized", async event => {
+				await this.set(null, "resizemedia");
+				await this.renderPopover();
+			});
+
+		}
+
+		return this.editor;
+	}
+
+
+	async get(...path) {
+
+		let value = [];
+
+		const key = path.shift();
+
+		switch (key) {
+
+			case "format": {
+				return this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/) || [""];
+				break;
+			}
+
+			case "link": {
+				const node = this.editor && this.editor.selection.getNode();
+				if (node) {
+					value = {
+						href: [node.getAttribute("href") || ""],
+						target: [node.target === "_blank" ? "1" : ""],
+						attachment_id: node.hasAttribute("data-attachment-id") ? [node.getAttribute("data-attachment-id")] : []
+					};
+				}
+				break;
+			}
+
+			default:
+				value = await super.get(0);
+				break;
+
+		}
+
+		return KarmaFieldsAlpha.DeepObject.get(value, ...path);
+
+	}
+
+	async getState(...path) {
+
+		const action = path.pop();
+
+		switch (action) {
+
+			case "align":
+				return this.activeNode && this.activeNode.classList.contains("alignleft") && "left"
+					|| this.activeNode && this.activeNode.classList.contains("aligncenter") && "center"
+					|| this.activeNode && this.activeNode.classList.contains("alignright") && "right"
+					|| "none";
+
+			case "alignleft":
+			case "aligncenter":
+			case "alignright":
+				return this.activeNode && this.activeNode.classList.contains(action);
+
+			case "alignnone":
+				return this.activeNode && !this.activeNode.classList.contains("alignleft") && !this.activeNode.classList.contains("aligncenter") && !this.activeNode.classList.contains("alignright");
+
+			case "islink":
+				return this.activeNode && this.activeNode.matches("a");
+
+			case "ul":
+				return this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true";
+
+			case "ol":
+				return this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true";
+
+			case "bold":
+			case "italic":
+			case "strikethrough":
+			case "superscript":
+			case "subscript":
+			case "JustifyLeft":
+			case "JustifyCenter":
+			case "JustifyRight":
+			case "JustifyFull":
+			case "JustifyNone":
+				return this.editor && this.editor.queryCommandState(action);
+
+			case "selected":
+				return this.editor && this.editor.selection.getContent().length > 0;
+
+		}
+
+	}
+
+	async set(value, ...path) {
+
+		const key = path.shift();
+
+		value = KarmaFieldsAlpha.DeepObject.create(value, ...path);
+
+		switch (key) {
+
+			case "format":{
+				// this.setFormat(value[0]);
+				if (this.editor) {
+					this.editor.execCommand("FormatBlock", false, value[0]);
+				}
+				await this.saveContent();
+				break;
+			}
+			case "image": {
+				// await this.setImage(value);
+				const images = await this.image.fetchIds(value, {sources: 1});
+
+				for (let image of images) {
+
+					const node = this.editor.selection.getNode();
+
+					let width = image.sources[0].width;
+					let height = image.sources[0].height;
+
+					if (node && node.matches("img")) {
+						width = node.getAttribute("width") || width;
+						height = node.getAttribute("height") || height;
+					}
+
+					this.editor.execCommand(
+						'mceInsertContent',
+						false,
+						`<img
+							src="${image.sources[0].src}"
+							width="${width}"
+							height="${height}"
+							data-id="${image.id}"
+							srcset="${image.sources.map(source => source.src+" "+source.width+"w").join(", ")}"
+							sizes="(min-width: ${width}px) ${width}px, 100vw"
+						>`
+					);
+
+				}
+				// this.createPopover("media", "img");
+				await this.saveContent();
+
+				this.activeModal = this.createChild(this.parseResource("media")).getModal();
+				await this.renderPopover();
+				break;
+			}
+			case "file": {
+
+
+				// -> reopen popover and set data in buffer
+				// if (this.editor.selection.getNode().matches("a")) {
+
+					this.activeModal = this.createChild(this.parseResource("link")).getModal();
+
+					await this.renderPopover();
+
+					const files = await this.file.fetchIds(value);
+
+
+
+					for (let file of files) {
+						// this.activeModal.buffer.set([file.original_src], "href");
+						// this.activeModal.buffer.set(value, "attachment_id");
+						await this.activeModal.set(file.original_src, "href", 0);
+						await this.activeModal.set(value, "attachment_id");
+						break;
+					}
+
+					await this.activeModal.render();
+
+				// }
+
+				break;
+			}
+
+			case "link": {
+				let link = await this.get("link") || {};
+				KarmaFieldsAlpha.DeepObject.merge(link, value);
+				if (link.href && link.href.length) {
+					this.editor.execCommand("mceInsertLink", false, {
+						"href": link.href[0],
+						"target": link.target && link.target[0] ? "_blank" : null,
+						"data-attachment-id": link.attachment_id && link.attachment_id[0] || null
+					});
+				} else {
+					this.editor.execCommand("Unlink");
+				}
+				await this.saveContent();
+				this.activeNode = null;
+				this.activeModal = null;
+				await this.renderPopover();
+				break;
+			}
+			// console.log(value);
+			// 	this.setLink(value[0]);
+			// 	await this.saveContent();
+			// 	this.activeNode = null;
+			// 	this.activeModal = null;
+			// 	await this.renderPopover();
+			// 	break;
+
+			default:
+				await super.set(value, 0);
+
+
+
+		}
+
+	}
+
+	async setState(value, ...path) {
+
+		const action = path.pop();
+
+		switch (action) {
+
+			// case "submit":
+			// 	this.setLink(value);
+			// 	await this.saveContent();
+			// 	this.activeNode = null;
+			// 	this.activeModal = null;
+			// 	await this.renderPopover();
+			// 	break;
+
+			case "link":
+				this.activeModal = this.createChild(this.parseResource("link")).getModal();
+				await this.renderPopover();
+				break;
+
+			case "attachfile":
+				this.file.uploader.open(this.activeNode && this.activeNode.getAttribute("data-attachment-id"));
+				break;
+
+			case "unlink":
+			case "bold":
+			case "italic":
+			case "strikethrough":
+			case "superscript":
+			case "subscript":
+			case "JustifyLeft":
+			case "JustifyCenter":
+			case "JustifyRight":
+			case "JustifyFull":
+			case "JustifyNone":
+				this.editor.execCommand(action);
+				await this.saveContent();
+				break;
+
+			case "ul":
+				if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+					this.editor.execCommand('InsertUnorderedList', false, {
+					  'list-style-type': 'disc'
+					});
+				} else {
+					this.editor.execCommand("RemoveList");
+				}
+				await this.saveContent();
+				break;
+
+			case "ol":
+				if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+					this.editor.execCommand('InsertOrderedList', false, {
+						'list-style-type': 'decimal'
+					});
+				} else {
+					this.editor.execCommand("RemoveList");
+				}
+				await this.saveContent();
+				break;
+
+			case "table":
+				this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
+				// this.editor.execCommand('mceTableInsertColAfter', false);
+				await this.saveContent();
+				break;
+
+			case "close":
+				this.activeNode = null;
+				this.activeModal = null;
+				await this.renderPopover();
+				break;
+
+			case "addmedia":
+				this.image.uploader.open(this.activeNode && this.activeNode.getAttribute("data-id"));
+				break;
+
+			case "editmedia":
+				this.activeModal = this.createChild(this.parseResource("media")).getModal();
+				await this.renderPopover();
+				break;
+
+			case "resizemedia":
+				var node = this.editor.selection.getNode();
+				var width = this.editor.selection.getNode().getAttribute("width");
+				node.sizes = `(min-width: ${width}px) ${width}px, 100vw`;
+				await this.saveContent();
+				break;
+
+			case "alignnone":
+			case "alignleft":
+			case "alignright":
+			case "aligncenter":
+				this.activeNode.classList.remove("alignright");
+				this.activeNode.classList.remove("alignleft");
+				this.activeNode.classList.remove("aligncenter");
+				if (action !== "alignnone") {
+					this.activeNode.classList.add(action);
+				}
+				this.editor.nodeChanged();
+				await this.renderPopover();
+				await this.saveContent();
+				break;
+
+		}
+
+	}
+
+
+	// async set(value, ...path) {
+	//
+	// 	const action = path.pop();
+	//
+	// 	switch (action) {
+	//
+	// 		case "value":
+	// 			if (path.length) {
+	// 				await this.set(value, ...path);
+	// 			} else {
+	// 				await super.set(value, "value");
+	// 			}
+	// 			break;
+	//
+	// 		case "link":
+	// 			this.activeModal = this.createChild(this.parseResource("link")).getModal();
+	// 			await this.renderPopover();
+	// 			break;
+	//
+	// 		case "attachfile":
+	// 			// if (this.activeNode && this.activeNode.hasAttribute("data-attachment-id")) {
+	// 			// 	await this.file.setValue([this.activeNode.getAttribute("data-attachment-id")]);
+	// 			// }
+	// 			this.file.uploader.open(this.activeNode && this.activeNode.getAttribute("data-attachment-id"));
+	// 			break;
+	//
+	// 		case "unlink":
+	// 		case "bold":
+	// 		case "italic":
+	// 		case "strikethrough":
+	// 		case "superscript":
+	// 		case "subscript":
+	// 		case "JustifyLeft":
+	// 		case "JustifyCenter":
+	// 		case "JustifyRight":
+	// 		case "JustifyFull":
+	// 		case "JustifyNone":
+	// 			this.editor.execCommand(action);
+	// 			await this.saveContent();
+	// 			break;
+	//
+	// 		case "ul":
+	// 			if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+	// 				this.editor.execCommand('InsertUnorderedList', false, {
+	// 				  'list-style-type': 'disc'
+	// 				});
+	// 			} else {
+	// 				this.editor.execCommand("RemoveList");
+	// 			}
+	// 			await this.saveContent();
+	// 			break;
+	//
+	// 		case "ol":
+	// 			if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+	// 				this.editor.execCommand('InsertOrderedList', false, {
+	// 					'list-style-type': 'decimal'
+	// 				});
+	// 			} else {
+	// 				this.editor.execCommand("RemoveList");
+	// 			}
+	// 			await this.saveContent();
+	// 			break;
+	//
+	// 		case "table":
+	// 			this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
+	// 			// this.editor.execCommand('mceTableInsertColAfter', false);
+	// 			await this.saveContent();
+	// 			break;
+	//
+	// 		case "close":
+	// 			this.activeNode = null;
+	// 			this.activeModal = null;
+	// 			await this.renderPopover();
+	// 			break;
+	//
+	// 		case "addmedia":
+	// 			this.image.uploader.open(this.activeNode && this.activeNode.getAttribute("data-id"));
+	// 			break;
+	//
+	// 		case "editmedia":
+	// 			this.activeModal = this.createChild(this.parseResource("media")).getModal();
+	// 			await this.renderPopover();
+	// 			break;
+	//
+	// 		case "resizemedia":
+	// 			var node = this.editor.selection.getNode();
+	// 			var width = this.editor.selection.getNode().getAttribute("width");
+	// 			node.sizes = `(min-width: ${width}px) ${width}px, 100vw`;
+	// 			await this.saveContent();
+	// 			break;
+	//
+	// 		case "alignnone":
+	// 		case "alignleft":
+	// 		case "alignright":
+	// 		case "aligncenter":
+	// 			this.activeNode.classList.remove("alignright");
+	// 			this.activeNode.classList.remove("alignleft");
+	// 			this.activeNode.classList.remove("aligncenter");
+	// 			if (action !== "alignnone") {
+	// 				this.activeNode.classList.add(action);
+	// 			}
+	// 			this.editor.nodeChanged();
+	// 			await this.renderPopover();
+	// 			await this.saveContent();
+	// 			break;
+	//
+	//
+	//
+	// 		case "format":
+	// 			this.setFormat(value.toString());
+	// 			await this.saveContent();
+	// 			break;
+	//
+	// 		case "image":
+	// 			await this.setImage(value);
+	// 			break;
+	//
+	// 		case "file":
+	// 			// -> reopen popover and set data in buffer
+	// 			if (this.editor.selection.getNode().matches("a")) {
+	//
+	// 				this.activeModal = this.createChild(this.parseResource("link")).getModal();
+	//
+	// 				await this.renderPopover();
+	//
+	// 				const files = await this.file.fetchIds(value);
+	// 				for (let file of files) {
+	// 					this.activeModal.buffer.set([file.original_src], "href");
+	// 					this.activeModal.buffer.set(value, "attachment_id");
+	// 					break;
+	// 				}
+	//
+	// 				this.activeModal.render();
+	//
+	// 			}
+	//
+	//
+	// 			// const files = await this.file.fetchIds(value);
+	// 			// for (let file of files) {
+	// 			// 	this.setLink({
+	// 			// 		"href": file.original_src,
+	// 			// 		"data-attachment-id": value.toString()
+	// 			// 	});
+	// 			// 	await this.renderPopover();
+	// 			// 	// await super.setValue(null, [this.editor.getContent()]);
+	// 			// 	await this.saveContent();
+	// 			// 	break;
+	// 			// }
+	//
+	// 			break;
+	//
+	// 		case "submit": // -> link form submitted. value is an Array
+	//
+	// 			if (path[0] === "link") {
+	//
+	// 				this.setLink(value[0]);
+	// 			}
+	//
+	//
+	// 			// var value = this.editor.getContent();
+	// 			// await this.setValue(null, [value]);
+	//
+	// 			await this.saveContent();
+	//
+	// 			this.activeNode = null;
+	// 			this.activeModal = null;
+	// 			await this.renderPopover();
+	//
+	// 			break;
+	//
+	//
+	// 	}
+	//
+	// }
+
+	async saveContent() {
+		await super.set(this.editor.getContent(), 0);
+	}
+
+	// getLink() {
+	//
+	// 	if (this.editor) {
+	// 		const node = this.editor.selection.getNode();
+	// 		let href = node.getAttribute("href") || "";
+	// 		let target = node.target === "_blank" ? "1" : "";
+	// 		let attachment_id = node.getAttribute("data-attachment-id");
+	//
+	// 		return {
+	// 			href: [href],
+	// 			target: [target],
+	// 			attachment_id: attachment_id ? [attachment_id] : []
+	// 		};
+	// 	}
+	//
+	// }
+	//
+	// setLink(value) {
+	//
+	// 	value = KarmaFieldsAlpha.DeepObject.clone(this.getLink() || {}, value);
+	//
+	// 	if (value.href && value.href.length) {
+	//
+	// 		this.editor.execCommand("mceInsertLink", false, {
+	// 			"href": value.href.toString(),
+	// 			"target": value.target && value.target.toString() ? "_blank" : null,
+	// 			"data-attachment-id": value.attachment_id && value.attachment_id.toString() || null
+	// 		});
+	//
+	// 	} else {
+	//
+	// 		this.editor.execCommand("Unlink");
+	//
+	// 	}
+	//
+	// }
+
+	// getFormat() {
+	// 	const match = this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
+	// 	return match && match[0] || "";
+	// }
+	//
+	// setFormat(value) {
+	// 	if (this.editor) {
+	// 		this.editor.execCommand("FormatBlock", false, value);
+	// 	}
+	// }
+
+	// async setImage(ids) {
+	//
+	// 	const images = await this.image.fetchIds(ids, {sources: 1});
+	// 	for (let image of images) {
+	//
+	// 		const node = this.editor && this.editor.selection.getNode();
+	//
+	// 		let width = image.sources[0].width;
+	// 		let height = image.sources[0].height;
+	//
+	// 		if (node && node.matches("img")) {
+	// 			width = node.getAttribute("width") || width;
+	// 			height = node.getAttribute("height") || height;
+	// 		}
+	//
+	// 		this.editor.execCommand(
+	// 			'mceInsertContent',
+	// 			false,
+	// 			`<img
+	// 				src="${image.sources[0].src}"
+	// 				width="${width}"
+	// 				height="${height}"
+	// 				data-id="${image.id}"
+	// 				srcset="${image.sources.map(source => source.src+" "+source.width+"w").join(", ")}"
+	// 				sizes="(min-width: ${width}px) ${width}px, 100vw"
+	// 			>`
+	// 		);
+	//
+	// 	}
+	// 	// this.createPopover("media", "img");
+	// 	await this.saveContent();
+	//
+	// 	this.activeModal = this.createChild(this.parseResource("media")).getModal();
+	// 	await this.renderPopover();
+	//
+	// }
+
+	// addModal(modal) {
+	// 	if (!this.modals) {
+	// 		this.modals = [];
+	// 	}
+	// 	this.modals.push(modal);
+	// }
+	//
+	// getModals() {
+	// 	return this.modals || [];
+	// }
+
+	// createPopover(type, selector) {
+	// 	const node = this.editor.selection.getNode();
+	// 	const sel = this.editor.selection.getSel();
+	//
+	// 	if (node.matches(selector)) {
+	//
+	// 		this.activePopover = {
+	// 			box: node.getBoundingClientRect(),
+	// 			node: node,
+	// 			type: type
+	// 		};
+	//
+	// 	} else if (this.editor.selection.getContent().length) {
+	//
+	// 		this.activePopover = {
+	// 			box: this.editor.selection.getRng().getBoundingClientRect(),
+	// 			node: node,
+	// 			type: type
+	// 		};
+	//
+	// 	}
+	// }
+
+	// async send(value, key, ...path) {
+	//
+	// 	switch (key) {
+	//
+	// 		case "link":
+	//
+	// 			this.setLink(value);
+	//
+	// 			var value = this.editor.getContent();
+	// 			await this.setValue(null, [value]);
+	//
+	// 			// console.log("send form");
+	// 			// this.activePopover = null;
+	// 			this.activeNode = null;
+	// 			this.activeModal = null;
+	// 			await this.renderPopover();
+	//
+	// 	}
+	//
+	// }
+
+	// build() {
+	// 	return {
+	// 		class: "editor karma-tinymce",
+	// 		children: [
+	// 			{
+	// 				class: "editor-header",
+	// 				children: [
+	// 					{
+	// 						class: "toolbar",
+	// 						init: toolbar => {
+	// 							this.renderToolbar = toolbar.render;
+	// 						},
+	// 						child: this.createChild({
+	// 							type: "group",
+	// 							id: "editor-buttons",
+	// 							display: "flex",
+	// 							children: (this.resource.buttons || ["format", "bold", "italic", "link", "ul", "ol"]).map(child => this.parseResource(child))
+	// 						}).build()
+	// 					}
+	// 				]
+	// 			},
+	// 			{
+	// 				class: "tinymce editor-body",
+	// 				init: async node => {
+	// 					node.element.id = this.getId();
+	// 					node.element.editable = true;
+	// 					await this.createEditor(node.element);
+	// 				},
+	// 				update: async node => {
+	// 					const value = await this.fetchInput();
+	// 					this.editor.setContent(value);
+	// 				}
+	// 			},
+	// 			{
+	// 				class: "karma-popover-container",
+	// 				init: container => {
+	// 					this.renderPopover = container.render;
+	// 					this.popoverContainer = container.element;
+	// 				},
+	// 				update: container => {
+	// 					container.element.onfocusout = event => {
+	// 						if (this.activePopover && (!event.relatedTarget || !container.element.contains(event.relatedTarget) && !this.editor.getBody().contains(event.relatedTarget))) {
+	// 							this.activePopover = null;
+	// 							container.render();
+	// 						}
+	// 					};
+	// 					container.children = [
+	// 						{
+	// 							class: "karma-tinymce-popover",
+	// 							init: popover => {
+	// 								popover.element.tabIndex = -1;
+	// 							},
+	// 							update: async popover => {
+	// 								popover.element.classList.toggle("active", Boolean(this.activePopover));
+	// 								if (this.editor && this.activePopover) {
+	// 									const containerBox = container.element.parentNode.getBoundingClientRect();
+	//
+	// 									popover.element.style.left = (this.activePopover.box.left - containerBox.x).toFixed()+"px";
+	// 									popover.element.style.top = (this.activePopover.box.bottom - containerBox.y + 5).toFixed()+"px";
+	//
+	// 									const buttonResource = this.parseResource(this.activePopover.type);
+	// 									const button = this.createChild(buttonResource);
+	// 									const modal = button.getModal();
+	// 									const data = await this.fetchValue(null, this.activePopover.type);
+	// 									modal.buffer.empty();
+	// 									modal.buffer.setObject(data[0]);
+	// 									popover.children = [modal.build()];
+	// 								}
+	//
+	// 							}
+	// 						}
+	// 					];
+	// 				}
+	// 			}
+	// 		]
+	// 	}
+	// }
+
+	build() {
+		return {
+			class: "editor karma-tinymce",
+			init: editor => {
+				if (this.resource.theme) {
+					editor.element.classList.add("theme-"+this.resource.theme);
+				}
+			},
+			children: [
+				{
+					class: "editor-header",
+					children: [
+						{
+							class: "toolbar",
+							init: toolbar => {
+								this.renderToolbar = toolbar.render;
+							},
+							child: this.createChild({
+								type: "group",
+								id: "editor-buttons",
+								display: "flex",
+								children: (this.resource.buttons || ["format", "bold", "italic", "link", "ul", "ol"]).map(child => this.parseResource(child))
+							}).build()
+						}
+					]
+				},
+				{
+					class: "tinymce editor-body",
+					init: async node => {
+						node.element.id = this.getId();
+						node.element.editable = true;
+						await this.createEditor(node.element);
+					},
+					update: async node => {
+						const value = await this.fetchInput();
+						this.editor.setContent(value);
+					}
+				},
+				{
+					class: "karma-popover-container",
+					init: container => {
+						this.renderPopover = container.render;
+						this.popoverContainer = container.element;
+					},
+					update: container => {
+						container.element.onfocusout = event => {
+							if (this.activeModal && (!event.relatedTarget || !container.element.contains(event.relatedTarget) && !this.editor.getBody().contains(event.relatedTarget))) {
+								// this.activePopover = null;
+								this.activeNode = null;
+								this.activeModal = null;
+								container.render();
+							}
+						};
+						container.children = this.children.filter(child => child.resource.modal).map(child => {
+							return {
+								class: "karma-tinymce-popover",
+								init: popover => {
+									popover.element.tabIndex = -1;
+								},
+								update: async popover => {
+									const modal = child.getModal();
+									popover.element.classList.toggle("active", this.activeModal === modal);
+									if (this.editor && this.activeModal === modal) {
+
+										const containerBox = container.element.parentNode.getBoundingClientRect();
+										let nodeBox;
+
+										if (this.activeNode) {
+											nodeBox = this.activeNode.getBoundingClientRect();
+										} else {
+											nodeBox = this.editor.selection.getRng().getBoundingClientRect()
+										}
+
+										popover.element.style.left = (nodeBox.left - containerBox.x).toFixed()+"px";
+										popover.element.style.top = (nodeBox.bottom - containerBox.y + 5).toFixed()+"px";
+
+										if (modal.buffer) {
+											modal.buffer.empty();
+										}
+
+										popover.children = [modal.build()];
+									}
+
+								}
+							};
+						});
+					}
+				}
+			]
+		}
+	}
+
+	parseResource(resource) {
+		if (typeof resource === "string") {
+			resource = KarmaFieldsAlpha.fields.tinymce.defaults[resource];
+		}
+		return resource;
+
+	// 	if (typeof resource === "string") {
+	//
+	// 		switch (resource) {
+	//
+	// 			case "format":
+	// 				resource = {
+	// 					id: "format",
+	// 					type: "dropdown",
+	// 					key: "format",
+	// 					options: [
+	// 						{key: "", name: "Format"},
+	// 						{key: "h1", name: "H1"},
+	// 						{key: "h2", name: "H2"},
+	// 						{key: "h3", name: "H3"},
+	// 						{key: "h4", name: "H4"},
+	// 						{key: "h5", name: "H5"},
+	// 						{key: "h6", name: "H6"},
+	// 						{key: "p", name: "P"}
+	// 					]
+	// 				};
+	// 				break;
+	//
+	// 			case "italic":
+	// 				resource = {
+	// 					id: "italic",
+	// 					type: "button",
+	// 					dashicon: "editor-italic",
+	// 					title: "italic",
+	// 					value: "italic",
+	// 					active: "italic"
+	// 				};
+	// 				break;
+	//
+	// 			case "bold":
+	// 				resource = {
+	// 					id: "bold",
+	// 					type: "button",
+	// 					dashicon: "editor-bold",
+	// 					title: "bold",
+	// 					value: "bold",
+	// 					active: "bold"
+	// 				};
+	// 				break;
+	//
+	// 			case "link":
+	// 				resource = {
+	// 					id: "link",
+	// 					type: "button",
+	// 					dashicon: "admin-links",
+	// 					title: "link",
+	// 					value: "createlink",
+	// 					active: "link",
+	// 					disabled: "!selected",
+	// 					modal: {
+	// 						type: "form",
+	// 						states: {
+	// 							href: "href",
+	// 						},
+	// 						key: "link",
+	// 						id: "link",
+	// 						children: [
+	// 							{
+	// 								type: "group",
+	// 								// id: "link-popover",
+	// 								children: [
+	// 									{
+	// 										type: "group",
+	// 										display: "flex",
+	// 										children: [
+	// 											{
+	// 												type: "input",
+	// 												key: "href",
+	// 												focus: true,
+	// 												style: "flex-grow:1"
+	// 											},
+	// 											{
+	// 												type: "button",
+	// 												dashicon: "paperclip",
+	// 											}
+	// 										]
+	// 									},
+	// 									{
+	// 										type: "checkbox",
+	// 										key: "target",
+	// 										text: "Open in new tab"
+	// 									},
+	// 									{
+	// 										type: "group",
+	// 										display: "flex",
+	// 										// container: {style: "justify-content: space-between"},
+	// 										children: [
+	// 											{
+	// 												type: "group",
+	// 												display: "flex",
+	// 												children: [
+	// 													{
+	// 														type: "button",
+	// 														title: "Cancel",
+	// 														value: "close"
+	// 													},
+	// 													{
+	// 														type: "button",
+	// 														title: "Unlink",
+	// 														// dashicon: "editor-unlink"
+	// 														value: "unlink",
+	// 														disabled: "!href"
+	// 													}
+	// 												]
+	// 											},
+	// 											{
+	// 												type: "submit",
+	// 												title: "Apply"
+	// 											}
+	// 										]
+	// 									}
+	// 								]
+	// 							}
+	// 						]
+	// 					}
+	// 				};
+	// 				break;
+	//
+	// 			case "ul":
+	// 				resource = {
+	// 					id: "ul",
+	// 					type: "button",
+	// 					dashicon: "editor-ul",
+	// 					title: "Unordered list",
+	// 					value: "ul",
+	// 					active: "ul"
+	// 				};
+	// 				break;
+	//
+	// 			case "ol":
+	// 				resource = {
+	// 					id: "ol",
+	// 					type: "button",
+	// 					dashicon: "editor-ol",
+	// 					title: "Ordered list",
+	// 					value: "ol",
+	// 					active: "ol"
+	// 				};
+	// 				break;
+	//
+	// 			case "table":
+	// 				resource = {
+	// 					id: "table",
+	// 					type: "button",
+	// 					dashicon: "editor-table",
+	// 					title: "Table",
+	// 					value: "table"
+	// 				};
+	// 				break;
+	//
+	//
+	// 			case "justifyleft":
+	// 				resource = {
+	// 					id: "justifyleft",
+	// 					type: "button",
+	// 					dashicon: "editor-alignleft",
+	// 					title: "Justify Left",
+	// 					value: "JustifyLeft",
+	// 					active: "JustifyLeft"
+	// 				};
+	// 				break;
+	//
+	// 			case "justifycenter":
+	// 				resource = {
+	// 					id: "justifycenter",
+	// 					type: "button",
+	// 					dashicon: "editor-aligncenter",
+	// 					title: "Justify Center",
+	// 					value: "JustifyCenter",
+	// 					active: "JustifyCenter"
+	// 				};
+	// 				break;
+	//
+	// 			case "justifyright":
+	// 				resource = {
+	// 					id: "justifyright",
+	// 					type: "button",
+	// 					dashicon: "editor-alignright",
+	// 					title: "Justify Right",
+	// 					value: "JustifyRight",
+	// 					active: "JustifyRight"
+	// 				};
+	// 				break;
+	//
+	// 			case "justifyfull":
+	// 				resource = {
+	// 					id: "justifyfull",
+	// 					type: "button",
+	// 					dashicon: "editor-justify",
+	// 					title: "Justify Full",
+	// 					value: "JustifyFull",
+	// 					active: "JustifyFull"
+	// 				};
+	// 				break;
+	//
+	//
+	// 			case "image":
+	// 				resource = {
+	// 					id: "image",
+	// 					type: "button",
+	// 					dashicon: "format-image",
+	// 					title: "Image",
+	// 					value: "image"
+	// 				};
+	// 				break;
+	//
+	// 			case "file":
+	// 				resource = {
+	// 					id: "file",
+	// 					key: "file",
+	// 					type: "file",
+	// 					mimetypes: ["image"]
+	// 				};
+	// 				break;
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	return resource; //super.createChild(resource);
+	}
+}
+
+KarmaFieldsAlpha.fields.tinymce.defaults = {
+	format: {
+		id: "format",
+		type: "dropdown",
+		key: "format",
+		options: [
+			{key: "", name: "Format"},
+			{key: "h1", name: "H1"},
+			{key: "h2", name: "H2"},
+			{key: "h3", name: "H3"},
+			{key: "h4", name: "H4"},
+			{key: "h5", name: "H5"},
+			{key: "h6", name: "H6"},
+			{key: "p", name: "P"}
+		]
+	},
+	italic: {
+		id: "italic",
+		type: "button",
+		dashicon: "editor-italic",
+		title: "italic",
+		state: "italic",
+		active: "italic"
+	},
+	bold: {
+		id: "bold",
+		type: "button",
+		dashicon: "editor-bold",
+		title: "bold",
+		state: "bold",
+		active: "bold"
+	},
+	link: {
+		id: "link",
+		type: "button",
+		dashicon: "admin-links",
+		title: "link",
+		// key: "createlink",
+		state: "link",
+		active: "islink",
+		disabled: "!selected",
+		modal: {
+			type: "form",
+			key: "link",
+			id: "popover",
+			children: [
+				{
+					type: "group",
+					// id: "link-popover",
+					children: [
+						{
+							type: "group",
+							display: "flex",
+							children: [
+								{
+									type: "input",
+									key: "href",
+									style: "flex-grow:1"
+								},
+								{
+									type: "button",
+									dashicon: "paperclip",
+									state: "attachfile"
+								}
+							]
+						},
+						{
+							type: "checkbox",
+							key: "target",
+							text: "Open in new tab"
+						},
+						{
+							type: "group",
+							display: "flex",
+							// container: {style: "justify-content: space-between"},
+							children: [
+								{
+									type: "group",
+									display: "flex",
+									children: [
+										{
+											type: "button",
+											title: "Cancel",
+											state: "close"
+										},
+										{
+											type: "button",
+											title: "Unlink",
+											// dashicon: "editor-unlink"
+											state: "unlink",
+											disabled: "!href"
+										}
+									]
+								},
+								{
+									type: "submit",
+									title: "Apply"
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	},
+	ul: {
+		id: "ul",
+		type: "button",
+		dashicon: "editor-ul",
+		title: "Unordered list",
+		state: "ul",
+		active: "ul"
+	},
+	ol: {
+		id: "ol",
+		type: "button",
+		dashicon: "editor-ol",
+		title: "Ordered list",
+		state: "ol",
+		active: "ol"
+	},
+	table: {
+		id: "table",
+		type: "button",
+		dashicon: "editor-table",
+		title: "Table",
+		state: "table"
+	},
+	justifyleft: {
+		id: "justifyleft",
+		type: "button",
+		dashicon: "editor-alignleft",
+		title: "Justify Left",
+		state: "JustifyLeft",
+		active: "JustifyLeft"
+	},
+	justifycenter: {
+		id: "justifycenter",
+		type: "button",
+		dashicon: "editor-aligncenter",
+		title: "Justify Center",
+		state: "JustifyCenter",
+		active: "JustifyCenter"
+	},
+	justifyright: {
+		id: "justifyright",
+		type: "button",
+		dashicon: "editor-alignright",
+		title: "Justify Right",
+		state: "JustifyRight",
+		active: "JustifyRight"
+	},
+	justifyfull: {
+		id: "justifyfull",
+		type: "button",
+		dashicon: "editor-justify",
+		title: "Justify Full",
+		state: "JustifyFull",
+		active: "JustifyFull"
+	},
+	media: {
+		id: "media",
+		type: "button",
+		dashicon: "format-image",
+		title: "Media",
+		state: "addmedia",
+		modal: {
+			type: "form",
+			id: "media",
+			display:"flex",
+			children: [
+				{
+					type: "button",
+					dashicon: "align-none",
+					state: "alignnone",
+					active: "alignnone"
+				},
+				{
+					type: "button",
+					dashicon: "align-left",
+					state: "alignleft",
+					active: "alignleft"
+				},
+				{
+					type: "button",
+					dashicon: "align-center",
+					state: "aligncenter",
+					active: "aligncenter"
+				},
+				{
+					type: "button",
+					dashicon: "align-right",
+					state: "alignright",
+					active: "alignright"
+				},
+				{
+					type: "button",
+					dashicon: "edit",
+					title: "Replace Image",
+					state: "addmedia"
+				}
+			]
+			// children: [
+			// 	{
+			// 		type: "group",
+			// 		display:"flex",
+			// 		children: [
+			// 			{
+			// 				type: "button",
+			// 				dashicon: "align-none",
+			// 				state: "alignnone",
+			// 				active: "alignnone"
+			// 			},
+			// 			{
+			// 				type: "button",
+			// 				dashicon: "align-left",
+			// 				state: "alignleft",
+			// 				active: "alignleft"
+			// 			},
+			// 			{
+			// 				type: "button",
+			// 				dashicon: "align-center",
+			// 				state: "aligncenter",
+			// 				active: "aligncenter"
+			// 			},
+			// 			{
+			// 				type: "button",
+			// 				dashicon: "align-right",
+			// 				state: "alignright",
+			// 				active: "alignright"
+			// 			},
+			// 			{
+			// 				type: "button",
+			// 				dashicon: "edit",
+			// 				title: "Replace Image",
+			// 				state: "addmedia"
+			// 			}
+			// 		]
+			// 	}
+			// ]
+		}
+	}
 }

@@ -38,6 +38,13 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 	importValue(value) {
 	}
 
+	// async isDisabled() {
+	// 	if (this.resource.disabled) {
+	// 		return await this.fetchState(this.resource.disabled, "disabled");
+	// 	}
+	// 	return false;
+	// }
+
 
 
 
@@ -189,8 +196,7 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 
 			if (match[1] !== key) {
 
-				let array = await this.parent.fetchValue(null, match[1]);
-				matchValue = array.toString();
+				matchValue = await this.get(match, 0);
 
 			}
 
@@ -220,8 +226,7 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 			let date = value;
 
 			if (match[1] !== key) {
-				let array = await this.parent.fetchValue(null, match[1]);
-				date = array.toString();
+				date = await this.get(match[1], 0);
 			}
 
 			date = moment(date).format(match[2] || "DD/MM/YYYY");
@@ -244,7 +249,7 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 
 		if (match) {
 
-			let array = await this.parent.fetchValue(null, match[1]);
+			let array = await this.parent.get(match[1]);
 			let content = "";
 
 			for (var i in array) {
@@ -348,8 +353,8 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 
 			let ifText = matchIf[2];
 
-			let value = await this.fetchValue(null, matchIf[1]);
-			let ok = value.toString();
+			// let value = await this.get(matchIf[1], 0);
+			let ok = await this.get(matchIf[1], 0);
 			let okText = "";
 
 			let matchElseif = ifText.match(this.constructor.elseifReg);
@@ -357,8 +362,9 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 			while (matchElseif) {
 
 				if (!ok) {
-					value = await this.fetchValue(null, matchElseif[2]);
-					ok = value.toString();
+					// value = await this.get(matchElseif[2], "value");
+					// ok = value[0];
+					ok = await this.get(matchElseif[2], 0);
 				} else if (!okText) {
 					okText = matchElseif[1];
 				}
@@ -446,17 +452,30 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 			class: "text karma-field",
 			update: async node => {
 				this.render = node.render;
-				// node.element.classList.add("loading");
 
 				node.element.innerHTML = this.preParse(this.resource.value);
 
-				node.element.innerHTML = await this.parse(this.resource.value);
-				// node.element.classList.remove("loading");
+				// node.element.innerHTML = await this.parse(this.resource.value);
 
-				// if (this.resource.iterator && this.resource.child) {
-				// 	const array = await this.fetchValue("array", this.resource.iterator) || [];
-				// 	node.children = array.map(value => this.resource.child);
+				this.parse(this.resource.value).then(value => {
+					node.element.innerHTML = value;
+				});
+
+
+				// if (this.resource.disabled) {
+				// 	this.isDisabled().then(disabled => {
+				// 		node.element.classList.toggle("disabled", disabled);
+				// 	});
 				// }
+
+				if (this.resource.disabled) {
+					node.element.classList.add("disabled");
+					this.check(this.resource.disabled).then(disabled => {
+						node.element.classList.toggle("disabled", disabled);
+					});
+				}
+
+
 			}
 		};
 	}

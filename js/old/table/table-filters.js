@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.table.tableFilters = class extends KarmaFieldsAlpha.fields.formBasic {
+KarmaFieldsAlpha.fields.filterForm = class extends KarmaFieldsAlpha.fields.formBasic {
 
   fetchValue(expectedType, key) {
     return [KarmaFieldsAlpha.Nav.getParam(key) || ""];

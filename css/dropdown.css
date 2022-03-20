@@ -6,7 +6,10 @@
   border-color: #484848;
   max-width: 100%;
   font-size: 1em;
-  min-height: 2.25em;
+  height: 2.3077em;
+  min-height: 0;
+  background-color: transparent;
+  border-radius: 0;
 }
 .karma-fields select.karma-field:focus {
   box-shadow: none;
@@ -17,7 +20,7 @@
 --------------------------------------*/
 
 .karma-field-table select {
-  background-color: transparent;
+  /* background-color: transparent; */
   height: auto;
   box-shadow: none;
   max-width: none;

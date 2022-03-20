@@ -1,346 +1,211 @@
 
 KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
-  initField() {
-    // this.registerType("json");
-
-
-    this.resource.columns = (this.resource.columns || []).map(column => typeof column === "string" && {type: column} || column);
-	}
-
-  // async input(eventType, value, ...path) {
-  //
-  //   if (path.length) {
-  //     let array = await super.fetchValue("array") || [];
-  //
-  //     KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
-  //
-  // 		value = array;
-	// 	}
-  //
-  //   await super.input(eventType, value, ...path);
-  //
-  // }
-
-  async input(value) {
-
-		await this.write();
-
-    if (KarmaFieldsAlpha.History.lastField !== this) {
-			KarmaFieldsAlpha.History.backup();
-			KarmaFieldsAlpha.History.lastField = this;
-		}
-
-		await this.setValue(null, value);
-
-    await this.edit();
+  constructor(...args) {
+    super(...args);
 
 	}
 
-  // fetchArray(...path) {
-  //   return this.fetchValue("array", ...path);
-  // }
-
-  async fetchValue(expectedType, ...path) {
-
-    let array = await super.fetchValue() || [];
-
-    if (path.length) {
-      array = KarmaFieldsAlpha.DeepObject.get(array, ...path);
-      // array = this.format(array, expectedType);
-    }
-
-    return array;
+  async update() {
+    // noop
   }
 
-  async setValue(type, value, ...path) {
 
-    if (path.length) {
-      let array = await super.fetchValue("array") || [];
+  async get(...path) {
 
-      KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
-  		value = array;
-		}
+    if (this.resource.key) {
 
-    await super.setValue(type, value);
-  }
+      // return super.get(...path);
 
-  // backup(...path) {
-  //   console.error("deprecated");
-  //   return super.backup();
-  // }
+      let value = await super.get() || [];
 
-  write(...path) {
-    return super.write();
-  }
+  		if (path.length) {
 
-  async * columnFields(rowField) {
+  			value = KarmaFieldsAlpha.DeepObject.get(value, ...path);
 
-    let index = 0;
+  		}
 
-    yield rowField[index++];
+  		return value;
 
-	}
-
-  async * columnFieldIndex(index = 0) {
-
-    yield index++;
-
-	}
-
-
-  async edit(hard) {
-
-    await super.edit();
-
-    // await this.render(hard);
-  }
-
-  async submit() {
-    await this.render(true);
-  }
-
-  hasUniqueColumn() {
-    if (this.resource.unique !== undefined) {
-      return this.resource.unique;
     } else {
-      return this.resource.columns.filter(function(column) {
-        return (column.type === "value" || !column.type) && column.field && column.field.key;
-      }).length === 1;
+
+      if (path.length) {
+
+        const index = path.shift();
+        const key = path.shift();
+
+        return super.get(key, index);
+
+      } else {
+
+        const keys = this.resource.columns.filter(column => column.field.key).map(column => column.field.key);
+        const array = [];
+
+        for (let key of keys) {
+
+          const values = await super.get(key);
+
+          values.forEach((value, index) => {
+            if (!array[index]) {
+              array[index] = {};
+            }
+            array[index][key] = [value];
+          });
+
+        }
+
+        return array;
+
+      }
+
     }
+
   }
 
 
-  // getColumns() {
-  //   if (!this.columns) {
-  //     this.columns = (this.resource.columns || []).slice();
-  //     if (this.resource.index && !this.resource.columns.some(column => column.type === "index")) {
-  //       this.columns.unshift({
-  //         type: "index",
-  //         width: "30px"
-  //       });
-  //     }
-  //     if (!this.resource.columns.some(column => column.type === "delete")) {
-  //       this.columns.push({
-  //         type: "delete",
-  //         width: "50px"
-  //       });
-  //     }
-  //   }
-  //   return this.columns;
-  //   // return (this.resource.columns || []).filter(column => column.field);
-  // }
-  //
-  // hasHeader() {
-  //   return this.getColumns().some(column => column.header);
-  // }
-  //
-  // hasIndex() {
-  //   return true;
-  // }
-  //
-  // hasDelete() {
-  //   return true;
-  // }
+  async set(value, ...path) {
 
-  async swap(index1, index2) {
-    const values = await this.fetchValue();
-    const item1 = values[index1];
-    values[index1] = values[index2];
-    values[index2] = item1;
-    return this.input(values);
+    if (this.resource.key) {
+
+      if (path.length) {
+
+  			this.promise = Promise.resolve(this.promise).then(() => super.get()).then(array => {
+          array = KarmaFieldsAlpha.DeepObject.clone(array || []);
+  				KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
+  				return super.set(array);
+  			});
+
+  		} else {
+
+  			this.promise = Promise.resolve(this.promise).then(() => super.set(value));
+
+  		}
+
+    } else {
+
+      if (path.length) {
+
+        this.promise = Promise.resolve(this.promise).then(async () => {
+
+          const index = path.shift();
+          const key = path.shift();
+          let values = await super.get(key);
+          values = KarmaFieldsAlpha.DeepObject.clone(values);
+          values[index] = value;
+
+          await super.set(values, key);
+        });
+
+      } else {
+
+
+
+        this.promise = Promise.resolve(this.promise).then(async () => {
+
+          const keys = {};
+
+          for (let i = 0; i < value.length; i++) {
+            for (let key in value[i]) {
+              if (!keys[key]) {
+                keys[key] = [];
+              }
+              keys[key][i] = value[i][key][0];
+            }
+          }
+
+          console.log(value, keys);
+
+          for (let key in keys) {
+            await super.set(keys[key], key);
+          }
+
+        });
+
+      }
+
+    }
+
+    return this.promise;
   }
 
-  async delete(rowIndex) {
-    const values = await this.fetchValue();
-    values.splice(rowIndex, 1);
-    return this.input(values);
+
+
+  async setState(...path) {
+
+    const key = path.pop();
+
+    switch (key) {
+
+      case "add":
+        await this.add();
+        break;
+
+      case "delete":
+        await this.delete(path.pop());
+        break;
+
+      case "render":
+        await this.render();
+        break;
+
+      case "edit":
+        this.update();
+        break;
+
+    }
+
+  }
+
+
+  async swapRange(index1, index2, length) {
+    await this.write();
+    this.nextup();
+    let values = await this.get();
+    values = KarmaFieldsAlpha.DeepObject.clone(values || []);
+    values.splice(index2, 0, ...values.splice(index1, length));
+		await this.set(values);
+    // await this.edit();
   }
 
   async add() {
-    const values = await this.fetchValue();
-    values.push({});
-    return this.input(values);
+    await this.write();
+    this.nextup();
+
+    let values = await this.get();
+    values = KarmaFieldsAlpha.DeepObject.clone(values || []);
+    const newValue = {};
+    for (let column of this.resource.columns) {
+      if (column.field.key) {
+        newValue[column.field.key] = [column.field.default || KarmaFieldsAlpha.fields[column.field.type || "group"].default || ""];
+      }
+    }
+    values.push(newValue);
+
+    await this.set(values);
+    await this.render(true);
   }
 
-  // buildContent(values) {
-  //   return [
-  //     {
-  //       class:"array-table-container",
-  //       update: container => {
-  //         container.child = {
-  //           class: "array",
-  //           init: table => {
-  //             this.manager = new KarmaFieldsAlpha.Orderer(table.element);
-  //
-  //             this.manager.events.change = async (index, originalIndex) => {
-  //               await this.swap(index, originalIndex);
-  //               return super.edit();
-  //             }
-  //             if (this.resource.gridTemplateRows) {
-  //               table.element.style.gridTemplateRows = this.resource.gridTemplateRows;
-  //             }
-  //             if (this.resource.gridAutoRows) {
-  //               table.element.style.gridAutoRows = this.resource.gridAutoRows;
-  //             }
-  //           },
-  //           update: table => {
-  //             table.children = [];
-  //
-  //             // CSS Grid Layout
-  //             table.element.style.gridTemplateColumns = this.resource.columns.map(column => column.width || "auto").join(" ");
-  //
-  //             // Header
-  //             if (this.resource.columns.some(column => column.header)) {
-  //               this.resource.columns.forEach(column => {
-  //                 table.children.push({
-  //                   class: "th",
-  //                   init: th => {
-  //                     th.element.textContent = column.header || "";
-  //                   }
-  //                 });
-  //               });
-  //             }
-  //
-  //             // Body
-  //
-  //             if (values.length) {
-  //
-  //               values.forEach((value, rowIndex) => {
-  //
-  //                 const rowField = this.getChild(rowIndex.toString()) || this.createChild({
-  //                   key: rowIndex.toString(),
-  //                   type: "container"
-  //                 });
-  //
-  //                 let fieldIndex = 0;
-  //
-  //                 // let colIndex = 0;
-  //                 //
-  //                 // if (this.hasIndex()) {
-  //                 //
-  //                 //   table.children.push({
-  //                 //     class: "td array-index",
-  //                 //     init: td => {
-  //                 //       this.manager.registerItem(td.element, 0, rowIndex, "index");
-  //                 //     },
-  //                 //     update: td => {
-  //                 //       td.element.textContent = rowIndex+1;
-  //                 //     }
-  //                 //   });
-  //                 //
-  //                 //   colIndex++;
-  //                 // }
-  //
-  //                 this.resource.columns.forEach((column, colIndex) => {
-  //
-  //                   if (column.type === "index") {
-  //
-  //                     table.children.push({
-  //                       class: "td array-index",
-  //                       init: td => {
-  //                         this.manager.registerItem(td.element, 0, rowIndex, "index");
-  //                         if (column.style) {
-  //                           td.element.style = column.style;
-  //                         }
-  //                       },
-  //                       update: td => {
-  //                         td.element.textContent = rowIndex+1;
-  //                       }
-  //                     });
-  //
-  //                   } else if (column.type === "delete") {
-  //
-  //                     table.children.push({
-  //                       class: "td array-delete",
-  //                       init: td => {
-  //                         this.manager.registerItem(td.element, colIndex, rowIndex, "delete");
-  //                         if (column.style) {
-  //                           td.element.style = column.style;
-  //                         }
-  //                       },
-  //                       child: {
-  //                         tag: "button",
-  //                         class: "karma-button",
-  //                         init: button => {
-  //                           button.element.onclick = async (event) => {
-  //                             event.preventDefault();
-  //                             this.backup();
-  //                             button.element.classList.add("loading");
-  //                             await this.delete(rowIndex);
-  //                             await this.edit();
-  //                             await this.render();
-  //                             button.element.classList.remove("loading");
-  //
-  //                           };
-  //                           button.element.innerHTML = '<span>'+(this.resource.delete_button_name || "Delete")+'</span>';
-  //                         }
-  //                       }
-  //                     });
-  //
-  //
-  //                   } else if (column.field) {
-  //
-  //                     const cellField = rowField.children[fieldIndex] || rowField.createChild(column.field);
-  //
-  //                     table.children.push({
-  //                       class: "td array-cell karma-field-frame",
-  //                       init: td => {
-  //                         this.manager.registerItem(td.element, colIndex, rowIndex, "field");
-  //                         if (column.style) {
-  //                           td.element.style = column.style;
-  //                         }
-  //                       },
-  //                       update: async td => {
-  //
-  //                         if (column.condition) {
-  //
-  //                 					const match = await cellField.match(column.condition);
-  //                 					td.element.classList.toggle("hidden", !match);
-  //                 				}
-  //                       },
-  //                       child: cellField.build()
-  //                     });
-  //
-  //                     fieldIndex++;
-  //
-  //                   }
-  //
-  //                 });
-  //
-  //               });
-  //             }
-  //             table.children.push({
-  //               class:"array-more",
-  //               child: {
-  //                 tag: "button",
-  //                 class: "button",
-  //                 init: button => {
-  //                   button.element.innerHTML = '<span>'+(this.resource.add_button_name || "Add Row")+'</span>';
-  //                   button.element.onclick = async (event) => {
-  //                     event.preventDefault();
-  //                     // debugger;
-  //
-  //                     this.backup();
-  //                     button.element.classList.add("loading");
-  //                     await this.add();
-  //                     await this.render(true);
-  //                     await this.edit();
-  //                     button.element.classList.remove("loading");
-  //
-  //                   };
-  //                 }
-  //               }
-  //             });
-  //
-  //
-  //
-  //           }
-  //         };
-  //       }
-  //     }
-  //   ];
-  // }
+  async delete(index) {
+    await this.write();
+    this.nextup();
+    let values = await this.get();
+    values = KarmaFieldsAlpha.DeepObject.clone(values || []);
+    values.splice(index, 1);
+    await this.set(values);
+    await this.render(true);
+  }
+
+  async slice(index, length) {
+    let values = await this.get() || [];
+    return values.slice(index, index + length);
+  }
+
+  async insert(data, index, length) {
+    let values = await this.get();
+    values = KarmaFieldsAlpha.DeepObject.clone(values || []);
+    values.splice(index, length, ...data);
+    await this.set(values);
+  }
 
 
   build() {
@@ -348,359 +213,636 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       class: "array",
       init: table => {
         this.render = table.render;
-
-        this.manager = new KarmaFieldsAlpha.Orderer(table.element);
-
-        this.manager.events.change = async (index, originalIndex) => {
-          await this.swap(index, originalIndex);
-          await this.edit();
-        }
-        // if (this.resource.gridTemplateRows) {
-        //   table.element.style.gridTemplateRows = this.resource.gridTemplateRows;
-        // }
-        // if (this.resource.gridAutoRows) {
-        //   table.element.style.gridAutoRows = this.resource.gridAutoRows;
-        // }
       },
       update: async table => {
-        const values = await this.fetchValue();
 
-        table.children = [];
+        const values = await this.get() || [];
 
-        // CSS Grid Layout
-        table.element.style.gridTemplateColumns = this.resource.columns.map(column => {
-          return column.width || column.type === "index" && "100px" || "auto";
-        }).join(" ");
+        const hasHeader = this.resource.columns.some(column => column.header);
 
-        // Header
-        if (values.length && this.resource.columns.some(column => column.header)) {
+        this.register(table.element);
 
-          for (let column of this.resource.columns) {
-
-            table.children.push({
+        table.children = [
+          ...(values.length && hasHeader && [
+            {
               class: "th",
               init: th => {
-                th.element.textContent = column.header || "";
+                th.element.style.order = "-1";
               }
+            },
+            ...this.resource.columns.map(column => {
+              return {
+                class: "th",
+                init: th => {
+                  th.element.textContent = column.header || "";
+                  th.element.style.order = "-1";
+                }
+              }
+            }),
+            {
+              class: "th",
+              init: th => {
+                th.element.style.order = "-1";
+              }
+            }
+          ] || []),
+          ...values.reduce((array, item, index) => {
+            const row = this.createChild({
+              key: index,
+              type: "arrayRow",
             });
+            return [
+              ...array,
+              {
+                class: "td array-index",
+                init: td => {
+                  if (this.resource.index && this.resource.index.style) {
+                    td.element.style = this.resource.index.style;
+                  }
+                },
+                update: td => {
+                  td.element.textContent = index+1;
+                  td.element.style.order = index.toString();
 
-          }
+                  this.registerCell(td.element, index);
+                }
+              },
+              ...this.resource.columns.map((column, colIndex) => {
 
-        }
-
-        // Body
-
-
-        if (values.length) {
-
-          // values.forEach((value, rowIndex) => {
-
-          for (const [rowIndex, value] of values.entries()) {
-
-            const rowField = this.getChild(rowIndex.toString()) || this.createChild({
-              key: rowIndex.toString(),
-              type: "container"
-            });
-
-            const columnFields = this.columnFields(rowField);
-            const columnFieldIndex = this.columnFieldIndex();
-
-            // this.resource.columns.forEach((column, colIndex) => {
-
-            for (const [colIndex, column] of this.resource.columns.entries()) {
-
-              if (column.type === "index") {
-
-                table.children.push({
-                  class: "td array-index",
+                return {
+                  class: "td array-cell karma-field-frame karma-field-"+column.field.type,
                   init: td => {
-                    this.manager.registerItem(td.element, 0, rowIndex, "index");
+                    // this.manager.registerItem(td.element, colIndex+1, index, "field");
+
+
                     if (column.style) {
                       td.element.style = column.style;
                     }
-
+                    if (column.field.type !== "group") {
+                      td.element.classList.add("final");
+                    }
                   },
                   update: td => {
-                    td.element.textContent = rowIndex+1;
-                  }
-                });
+                    td.element.style.order = index.toString();
 
-              } else if (column.type === "delete") {
+                    this.registerCell(td.element, index);
 
-                table.children.push({
-                  class: "td array-delete",
-                  init: td => {
-                    this.manager.registerItem(td.element, colIndex, rowIndex, "delete");
-                    if (column.style) {
-                      td.element.style = column.style;
-                    }
+                    // if (this.resource.key) {
+                    //   td.child = row.createChild({
+                    //     ...column.field,
+                    //     id: colIndex.toString()
+                    //   }).build();
+                    // } else if (column.field.key) {
+                    //   td.child = this.getRelativeParent().createChild({
+                    //   //   key: index,
+                    //   //   id: this.getId()+"-"+index,
+                    //   //   type: "field",
+                    //   // }).createChild({
+                    //     ...column.field,
+                    //     id: [column.field.key, index].join("-"),
+                    //     index: index
+                    //   }).build();
+                    // }
                   },
-                  child: {
-                    tag: "button",
-                    class: "karma-button",
-                    init: button => {
-                      button.element.onclick = async (event) => {
-                        event.preventDefault();
-                        button.element.classList.add("loading");
-                        // await this.backup();
-                        await this.delete(rowIndex);
-                        await this.edit();
-                        await this.submit();
-                        button.element.classList.remove("loading");
-
-                      };
-                      button.element.innerHTML = '<span>'+(this.resource.delete_button_name || "Delete")+'</span>';
-                    }
+                  child: row.createChild({
+                    ...column.field,
+                    id: colIndex.toString()
+                  }).build()
+                };
+              }),
+              {
+                class: "td array-delete",
+                init: td => {
+                  if (this.resource.delete && this.resource.delete.style) {
+                    td.element.style = this.resource.delete.style;
                   }
-                });
-
-              } else if (column.field) {
-
-                // const cellField = rowField.children[fieldIndex] || rowField.createChild(column.field);
-
-                const fieldIndex = columnFieldIndex.next().value;
-                const cellField = rowField.children[fieldIndex] || rowField.createChild(column.field);
-
-                let match = !column.condition || await cellField.match(column.condition);
-
-                if (match) {
-
-                  table.children.push({
-                    class: "td array-cell karma-field-frame karma-field-"+column.field.type,
-                    init: td => {
-                      this.manager.registerItem(td.element, fieldIndex, rowIndex, "field");
-                      if (column.style) {
-                        td.element.style = column.style;
-                      }
-                    },
-                    update: async td => {
-
-                      // if (column.condition) {
-                      //
-                      //   const match = await cellField.match(column.condition);
-                      //   td.element.classList.toggle("hidden", !match);
-                      // }
-                    },
-                    child: cellField.build()
-                  });
-
-
-                }
-
+                },
+                update: td => {
+                  td.element.style.order = index.toString();
+                  this.registerCell(td.element, index);
+                },
+                child: row.createChild({
+                  type: "button",
+                  state: "delete",
+                  title: this.resource.delete_button_name || this.resource.delete && this.resource.delete.name || "Delete",
+                  dashicon: "no-alt"
+                }).build()
               }
-
-            }
-
-            // rowIndex++;
+            ];
+          }, []),
+          {
+            class: "td array-more",
+            init: more => {
+              more.element.style.order = "99999";
+            },
+            child: this.createChild({
+              type: "button",
+              id: "add",
+              state: "add",
+              title: this.resource.add_button_name || "Add Row"
+            }).build()
           }
-        }
-        table.children.push({
-          class:"array-more",
-          child: {
-            tag: "button",
-            class: "button",
-            init: button => {
-              button.element.innerHTML = '<span>'+(this.resource.add_button_name || "Add Row")+'</span>';
-              button.element.onclick = async (event) => {
-                event.preventDefault();
+        ];
 
-
-                button.element.classList.add("loading");
-
-                // await this.backup();
-
-                await this.add();
-                await this.edit();
-                await this.submit();
-                button.element.classList.remove("loading");
-
-              };
-            }
-          }
-        });
-
-
+        table.element.style.gridTemplateColumns = [
+          this.resource.index && this.resource.index.width || "5em",
+          ...this.resource.columns.map(column => column.width || "1fr"),
+          this.resource.delete && this.resource.delete.width || "auto"
+        ].join(" ");
 
       }
     };
   }
 
 
-
-  // build() {
-  //   return {
-  //     class: "karma-field-array",
-  //     init: container => {
-  //       this.render = container.render;
-  //     },
-  //     update: async container => {
-  //       const values = await this.fetchArray();
-  //       container.children = this.buildContent(values);
+  // registerCell(element, index) {
   //
+  //   const isSelected = Boolean(this.selector && this.selector.isSelected(index));
+  //   element.classList.toggle("selected", isSelected);
   //
+  //   element.onmousedown = event => {
+  //     if (this.selector && this.selector.isSelected(index)) {
+  //       event.preventDefault();
+  //
+  //       new this.constructor.Dragger(
+  //         event,
+  //         this.selector.selection.y,
+  //         this.selector.selection.height,
+  //         element.parentNode,
+  //         async (index1, index2, length) => {
+  //           this.selector.ta.blur();
+  //           this.selector = null;
+  //           await this.swapRange(index1, index2, length);
+  //         }
+  //       );
+  //     } else {
+  //       this.selector = new KarmaFieldsAlpha.fields.array.Selector(
+  //         event,
+  //         element,
+  //         element.parentNode,
+  //         async (index, num) => {
+  //           const values = await this.fetchValue() || [];
+  //           return values.slice(index, index + num);
+  //         },
+  //         async (data, index, num) => {
+  //           const values = await this.fetchValue() || [];
+  //           values.splice(index, num, ...data);
+  //           await this.setValue(null, values);
+  //           await this.render(true);
+  //         }
+  //       );
   //     }
-  //   };
+  //
+  //
+  //   }
+  //
+  //
   // }
 
+
+// }
+//
+//
+// KarmaFieldsAlpha.fields.array.Selector = class {
+
+  register(container) {
+
+    window.selector = this;
+
+    this.container = container;
+    this.scrollContainer = KarmaFieldsAlpha.DOM.getClosest(this.container, element => element.classList.contains("karma-scroll-container")) || document.documentElement;
+
+    this.map = new Map();
+
+    // this.selection = null;
+    // this.focusRect = null;
+  }
+
+  // onSelect(index, length) {}
+  // onPaste(data, index, length) {}
+  // onSwap(index1, index2, length) {}
+
+  registerCell(element, index) {
+
+    this.map.set(element, index);
+
+    element.classList.toggle("selected", this.isSelected(index));
+
+    element.onmousedown = event => {
+
+      if (event.target !== element) {
+         return;
+      }
+
+      if (this.isSelected(index)) {
+
+
+
+        event.preventDefault(); // -> prevent TA focusout
+
+        this.pointerX = event.clientX;
+        this.pointerY = event.clientY;
+        this.mouseX = this.pointerX;
+        this.mouseY = this.pointerY;
+        this.scrollTop = this.scrollContainer.scrollTop;
+        this.scrollDiffY = 0;
+        this.index = this.selection.y;
+
+        this.row = this.getElements(this.selection.y, this.selection.height);
+        this.element = element;
+
+        this.offsetTop = this.row[0].offsetTop;
+        this.originOffsetTop = this.offsetTop;
+
+        this.element.classList.add("grabbing");
+        this.container.classList.add("dragging");
+
+        this.row.forEach(element => {
+          element.classList.add("drag");
+        });
+
+        const mousemove = event => {
+          this.mouseX = event.clientX;
+          this.mouseY = event.clientY;
+          this.drag();
+        }
+
+        const scroll = event => {
+          // console.log("scroll", this.test);
+          // if (this.test) {
+          //   return;
+          // }
+          this.scrollDiffY = this.scrollContainer.scrollTop - this.scrollTop;
+          this.drag();
+        }
+
+        const mouseup = event => {
+          window.removeEventListener("mousemove", mousemove);
+          window.removeEventListener("mouseup", mouseup);
+          window.removeEventListener("scroll", scroll);
+          setTimeout(() => {
+            document.body.classList.remove("karma-dragging");
+          }, 300);
+          this.drop();
+        }
+
+        window.addEventListener("mousemove", mousemove);
+        window.addEventListener("mouseup", mouseup);
+        window.addEventListener("scroll", scroll);
+
+        document.body.classList.add("karma-dragging");
+
+      } else {
+
+        const mousemove = event => {
+
+          if (this.map.has(event.target)) {
+            this.growSelection({x: 0, y: this.map.get(event.target), width: 1, height: 1});
+          }
+        }
+
+        const mouseup = event => {
+          window.removeEventListener("mousemove", mousemove);
+          window.removeEventListener("mouseup", mouseup);
+
+          if (this.map.has(event.target)) {
+            this.growSelection({x: 0, y: this.map.get(event.target), width: 1, height: 1});
+
+            this.endSelection();
+          } else {
+            this.clearSelection();
+          }
+
+          this.container.classList.remove("selecting");
+
+        }
+
+        window.addEventListener("mousemove", mousemove);
+        window.addEventListener("mouseup", mouseup);
+
+        this.container.classList.add("selecting");
+
+      }
+
+
+    }
+
+  }
+
+  async endSelection() {
+
+    this.container.classList.add("has-selection");
+
+    this.ta = document.createElement("textarea");
+    this.ta.style.zIndex = "999999999";
+    this.ta.style.position = "fixed";
+    this.ta.style.bottom = "0";
+    this.ta.style.left = "-100%";
+
+    document.body.appendChild(this.ta);
+
+    const data = await this.slice(this.selection.y, this.selection.height) || [];
+
+    this.ta.value = JSON.stringify(data);
+    this.ta.focus({preventScroll: true});
+    this.ta.select();
+
+    this.ta.onfocusout = event => {
+      this.selection = null;
+      this.focusRect = null;
+      this.renderSelection();
+      document.body.removeChild(this.ta);
+      this.container.classList.remove("has-selection");
+    }
+
+    this.ta.onpaste = async event => {
+      event.preventDefault();
+      await this.insert(JSON.parse(event.clipboardData.getData("text")), this.selection.y, this.selection.height);
+      this.ta.blur();
+      await this.render(true);
+    }
+
+    this.ta.oncut = async event => {
+      await this.insert([], this.selection.y, this.selection.height);
+      this.ta.blur();
+      await this.render(true);
+    }
+
+    this.ta.oninput = async event => {
+      switch (event.inputType) {
+        case "deleteContentBackward":
+        case "deleteContentForward":
+        case "deleteContent":
+          await this.insert([], this.selection.y, this.selection.height);
+          this.ta.blur();
+          await this.render(true);
+          break;
+
+        default:
+          this.ta.blur();
+          break;
+      }
+    }
+    this.ta.onkeydown = async event => {
+      switch (event.key) {
+        case "ArrowUp":
+          event.preventDefault();
+          if (this.selection.y > 0) {
+            await this.swapRange(this.selection.y, --this.selection.y, this.selection.height);
+            await this.render(true);
+          }
+          break;
+        case "ArrowDown":
+          event.preventDefault();
+          if (this.selection.y + this.selection.height < (await this.fetchValue() || []).length) {
+            await this.swapRange(this.selection.y, ++this.selection.y, this.selection.height);
+            await this.render(true);
+          }
+          break;
+      }
+    }
+
+  }
+
+  getElements(index, length = 1) {
+
+    // return Array.from(this.map.entries()).filter(([key, value]) => value >= index && value < index + length).map(([key, value]) => key);
+
+    const elements = [];
+    for (let [key, value] of this.map.entries()) {
+      if (value >= index && value < index + length) {
+        elements.push(key);
+      }
+    }
+    return elements;
+  }
+
+  growSelection(r) {
+
+    if (this.focusRect) {
+      r = KarmaFieldsAlpha.Rect.union(this.focusRect, r);
+    } else {
+      this.focusRect = r;
+    }
+
+    if (!this.selection || !KarmaFieldsAlpha.Rect.equals(this.selection, r)) {
+
+      this.selection = r;
+      this.renderSelection();
+
+    }
+
+	}
+
+  clearSelection() {
+    this.selection = null;
+    this.focusRect = null;
+    this.renderSelection();
+  }
+
+  renderSelection() {
+    this.map.forEach((index, element) => {
+      element.classList.toggle("selected", this.isSelected(index));
+    })
+	}
+
+  isSelected(index) {
+    return this.selection && index >= this.selection.y && index < this.selection.y + this.selection.height || false;
+  }
+
+  getDiffX() {
+    return this.mouseX - this.pointerX;
+  }
+
+  getDiffY() {
+    return this.mouseY - (this.pointerY) + this.scrollDiffY - (this.offsetTop - this.originOffsetTop);
+  }
+
+  drag() {
+
+  // this.test =null;
+
+    if (!this.selection) {
+      return;
+    }
+
+    let diffX = this.getDiffX();
+    let diffY = this.getDiffY();
+
+    let prevRow = this.getElements(this.selection.y - 1);
+    let nextRow = this.getElements(this.selection.y + this.selection.height);
+
+    if (prevRow.length && diffY < -(prevRow[0].clientHeight+1)/2) {
+    // if (prevRow.length && diffY < -(row[0].offsetTop - prevRow[0].offsetTop)/2) {
+
+      // this.test = "a";
+      // console.log("swap up");
+      // console.log("prevRow height", prevRow[0].clientHeight);
+      // console.log("diffY", diffY);
+      // console.log("mouseY", this.mouseY);
+      // console.log("pointerY", this.pointerY);
+      // console.log("scrollDiffY", this.scrollDiffY);
+      // console.log("offsetTop", this.offsetTop);
+      // console.log("originOffsetTop", this.originOffsetTop);
+      // console.log("...");
+
+      // swap:
+      prevRow.forEach(element => {
+
+        // element.style.order = this.currentIndex.toString();
+        // element.style.order = (Number(element.style.order) + this.length).toString();
+        // element.style.order = (this.map.get(element) + this.selection.height).toString();
+        const order = this.map.get(element) + this.selection.height;
+        element.style.order = order.toString();
+        this.map.set(element, order);
+      });
+      this.selection.y--;
+      this.row.forEach(element => {
+        // element.style.order = this.currentIndex.toString();
+        // element.style.order = (Number(element.style.order) - 1).toString();
+        // element.style.order = (this.map.get(element) - 1).toString();
+        const order = this.map.get(element) - 1;
+        element.style.order = order.toString();
+        this.map.set(element, order);
+      });
+
+      this.offsetTop = this.row[0].offsetTop;
+      diffY = this.getDiffY();
+      // console.log("diffY", diffY);
+      // console.log("mouseY", this.mouseY);
+      // console.log("pointerY", this.pointerY);
+      // console.log("scrollDiffY", this.scrollDiffY);
+      // console.log("offsetTop", this.offsetTop);
+      // console.log("originOffsetTop", this.originOffsetTop);
+
+
+
+    } else if (nextRow.length && diffY > (nextRow[0].clientHeight+1)/2) {
+
+      // this.test = "b";
+    // } else if (nextRow.length && diffY > (prevRow[0].offsetTop - row[0].offsetTop)/2) {
+
+      // console.log("swap down");
+      // console.log("nextRow height", nextRow[0].clientHeight);
+      // console.log("diffY", diffY);
+      // console.log("mouseY", this.mouseY);
+      // console.log("pointerY", this.pointerY);
+      // console.log("scrollDiffY", this.scrollDiffY);
+      // console.log("offsetTop", this.offsetTop);
+      // console.log("originOffsetTop", this.originOffsetTop);
+
+      // swap:
+      nextRow.forEach(element => {
+        // element.style.order = this.currentIndex.toString();
+        // element.style.order = (Number(element.style.order) - this.length).toString();
+        // element.style.order = (this.map.get(element) - this.selection.height).toString();
+
+        const order = this.map.get(element) - this.selection.height;
+        element.style.order = order.toString();
+        this.map.set(element, order);
+      });
+      this.selection.y++;
+      this.row.forEach(element => {
+        // element.style.order = this.currentIndex.toString();
+        // element.style.order = (Number(element.style.order) + 1).toString();
+        // element.style.order = (this.map.get(element) + 1).toString();
+        const order = this.map.get(element) + 1;
+        element.style.order = order.toString();
+        this.map.set(element, order);
+      });
+
+      this.offsetTop = this.row[0].offsetTop;
+
+
+      diffY = this.getDiffY();
+      // console.log("diffY", diffY);
+      // console.log("mouseY", this.mouseY);
+      // console.log("pointerY", this.pointerY);
+      // console.log("scrollDiffY", this.scrollDiffY);
+      // console.log("offsetTop", this.offsetTop);
+      // console.log("originOffsetTop", this.originOffsetTop);
+
+
+    }
+
+    this.row.forEach(element => {
+      element.style.transform = "translate("+diffX+"px, "+diffY+"px)";
+    });
+
+  }
+
+  drop() {
+    this.row.forEach(element => {
+      element.classList.remove("drag");
+      element.style.transform = "none";
+    });
+
+    this.element.classList.remove("grabbing");
+    this.container.classList.remove("dragging");
+
+
+    if (this.index !== this.selection.y) {
+      setTimeout(async () => {
+        await this.swapRange(this.index, this.selection.y, this.selection.height);
+        await this.render(true);
+      }, 100);
+    }
+
+  }
 
 
 }
 
 
-// KarmaFieldsAlpha.fields.arrayRow = class extends KarmaFieldsAlpha.fields.container {
-//
-//   async getValueAsync() {
-// 		const values = await Promise.all(this.children.map(child => child.getValueAsync()));
-//     return values.reduce((acc, value, index) => {
-//       const child = this.children[index];
-//       acc[child.resource.key] = value;
-//       return acc;
-//     }, {});
-// 	}
-//
-//   create(columns) {
-//     columns.forEach(column => {
-//       if (column.field) {
-//         this.createChild(column.field);
-//       }
-//     });
-//   }
-//
-// }
+KarmaFieldsAlpha.fields.arrayRow = class extends KarmaFieldsAlpha.fields.field {
+
+  async getState(...path) {
+
+    const state = path.pop();
+
+    switch (state) {
+
+      case "modified":
+        return super.getState(...path, state);
+        break;
+
+      default:
+        return this.get(...path, state, 0);
+
+    }
+
+  }
+
+  async setState(...path) {
+
+    const state = path.pop();
+
+    switch (state) {
+
+      case "edit":
+        await this.update();
+        return super.setState(...path, state);
+
+      default:
+        return super.setState(...path, state);
 
 
 
-KarmaFieldsAlpha.Orderer = class {
+    }
 
-  constructor(element) {
-    const manager = this;
+  }
 
-    this.numRow = 0;
-    this.map = new Map();
-    this.events = {};
+}
 
-    element.onmousedown = function(event) {
-      if (event.button === 0) {
-        let target = event.target.closest(".array > *");
-        let cell = manager.map.get(target);
-        if (cell && cell.type === "index") {
-          manager.startDrag(cell, target, event, element);
-        }
-      }
+
+KarmaFieldsAlpha.DOM = class {
+
+  static getClosest(element, callback) {
+    if (callback(element)) {
+      return element;
+    } else if (element.parentElement) {
+      return this.getClosest(element.parentElement, callback);
     }
   }
-
-  trigger(eventName, ...params) {
-    if (this.events[eventName]) {
-      this.events[eventName].call(this, ...params)
-    }
-  }
-
-  registerItem(element, col, row, type) {
-    this.map.set(element, {
-      col: col,
-      row: row,
-      type: type
-    });
-    this.numRow = Math.max(row+1, this.numRow);
-  }
-
-  // -> ordering
-  getRow(index) {
-    let row = [];
-    this.map.forEach(function(value, key) {
-      if (value.row === index) {
-        row.push(key);
-      }
-    });
-    return row;
-  }
-
-  insertBefore(row, prevRow) {
-    const manager = this;
-    row.forEach(function(cell) {
-      // console.log(cell, prevRow[0]);
-      cell.parentNode.insertBefore(cell, prevRow[0]);
-      manager.map.get(cell).row--;
-    });
-    prevRow.forEach(function(cell) {
-      manager.map.get(cell).row++;
-    });
-  }
-
-  insertAfter(row, nextRow) {
-    const manager = this;
-    row.forEach(function(cell) {
-      manager.map.get(cell).row++;
-    });
-    nextRow.forEach(function(cell) {
-      cell.parentNode.insertBefore(cell, row[0]);
-      manager.map.get(cell).row--;
-    });
-  }
-
-  // -> ordering
-  startDrag(item, targetElement, event, arrayElement) {
-    const manager = this;
-    const originalIndex = item.row;
-    let row = manager.getRow(item.row);
-    let mouseX = event.clientX;
-    let mouseY = event.clientY;
-
-    let mousemove = function(event) {
-      let diffX = event.clientX - mouseX;
-      let diffY = event.clientY - mouseY;
-      let prevRow;
-      let nextRow;
-
-      if (item.row > 0) {
-        prevRow = manager.getRow(item.row-1);
-      }
-      if (item.row < manager.numRow-1) {
-        nextRow = manager.getRow(item.row+1);
-      }
-
-      if (prevRow && diffY < -prevRow[0].clientHeight/2) {
-        manager.insertBefore(row, prevRow);
-        mouseY -= prevRow[0].clientHeight;
-        diffY = event.clientY - mouseY;
-      }
-      if (nextRow && diffY > nextRow[0].clientHeight/2) {
-        manager.insertAfter(row, nextRow);
-        mouseY += nextRow[0].clientHeight;
-        diffY = event.clientY - mouseY;
-      }
-      row.forEach(function(cell) {
-        cell.style.transform = "translate("+diffX+"px, "+diffY+"px)";
-      });
-    };
-    let mouseup = function() {
-      window.removeEventListener("mousemove", mousemove);
-      window.removeEventListener("mouseup", mouseup);
-      row.forEach(function(cell) {
-        cell.style.transform = "none";
-      });
-      if (item.row !== originalIndex) {
-        setTimeout(function() {
-          manager.trigger("change", item.row, originalIndex);
-        }, 200);
-      }
-
-      targetElement.classList.remove("grabbing");
-      arrayElement.classList.remove("dragging");
-      row.forEach(function(cell) {
-        cell.classList.remove("drag");
-      });
-    };
-
-    targetElement.classList.add("grabbing");
-    arrayElement.classList.add("dragging");
-    row.forEach(function(cell) {
-      cell.classList.add("drag");
-    });
-    window.addEventListener("mousemove", mousemove);
-    window.addEventListener("mouseup", mouseup);
-  }
-
 
 }

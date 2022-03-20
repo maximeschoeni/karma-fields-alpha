@@ -14,112 +14,99 @@
 		let resource = <?php echo json_encode($args); ?>;
 		let id = "<?php echo $post_id; ?>";
 
-
-		let field = new KarmaFieldsAlpha.fields.form({
-			type: "form",
-			driver: "posts",
-			children: [
-				{
-					type: "group",
-					key: id,
-					children: [resource]
-				}
-			]
-		});
-
-
-		window.karma_field = field; // -> debug
-
-		// field.buffer = {
-		// 	get: function(path) {
-		// 		const delta = this.getObject();
-		// 		const value = KarmaFieldsAlpha.DeepObject.get(delta, path.split("/"));
-		// 		return KarmaFieldsAlpha.Type.sanitize(value, path);
-		// 	},
-		// 	set: function(path, value) {
-		// 		const delta = this.getObject();
-		// 		value = KarmaFieldsAlpha.Type.parse(value, path);
-		// 		KarmaFieldsAlpha.DeepObject.assign(delta, path.split("/"), value);
-		// 		this.setObject(delta);
-		// 	},
-		// 	removeValue: function(path) {
-		// 		this.set(path);
-		// 	},
-		// 	getObject: function() {
-		// 		return JSON.parse(input.value || "{}");
-		// 	},
-		// 	setObject: function(deepObject) {
-		// 		input.value = JSON.stringify(deepObject);
-		// 	},
-		// 	getEntries: function() {
-		// 		const deepObject = this.getObject();
-		// 		let flatObject = KarmaFieldsAlpha.FlatObject.fromDeep(deepObject);
-		// 		flatObject = KarmaFieldsAlpha.Type.sanitizeObject(flatObject);
-		// 		return flatObject;
-		// 	}
-		// 	empty: function() {
-		// 		input.value = "";
-		// 	},
-		// 	hasEntry: function() {
-		// 		return Object.values(this.getObject()).length > 0;
-		// 	}
-		// };
+		// let form = new KarmaFieldsAlpha.fields.form({
+		// 	type: "form",
+		// 	driver: "posts",
+		// 	children: [
+		// 		{
+		// 			type: "field",
+		// 			key: id,
+		// 			children: [resource]
+		// 		}
+		// 	]
+		// });
 		//
-		// field.getBuffer = function() {
-		// 	return this.buffer;
-		// }
-
-		// field.getDelta = function() {
-		// 	let delta = JSON.parse(input.value || "{}");
-		// 	delta = KarmaFieldsAlpha.Type.sanitizeObject(delta, "posts");
-		// 	return delta;
-		// }
-		// field.setDelta = function(delta) {
-		// 	delta = KarmaFieldsAlpha.Type.parseObject(delta, "posts");
+		// form.buffer.getObject = function() {
+		// 	return JSON.parse(input.value || "{}");
+		// };
+		// form.buffer.setObject = function(delta) {
 		// 	input.value = JSON.stringify(delta);
 		// }
 
+		// let gateway = new KarmaFieldsAlpha.fields.gateway({
+		// 	driver: "posts",
+		// 	children: [
+		// 		{
+		// 			id: "form",
+		// 			type: "form",
+		// 			children: [
+		// 				{
+		// 					type: "field",
+		// 					key: id,
+		// 					children: [
+		// 						{
+		// 							type: "group",
+		// 							children: [resource]
+		// 						}
+		// 					]
+		// 				}
+		// 			]
+		// 		}
+		// 	]
+		// });
 
-		field.delta = {
-			getObject: function() {
-				let delta = JSON.parse(input.value || "{}");
-				// delta = KarmaFieldsAlpha.Type.sanitize(delta);
-				return delta;
-			},
-			setObject: function(delta) {
-				// delta = KarmaFieldsAlpha.Type.parse(delta);
-				input.value = JSON.stringify(delta);
-			},
-			get: function(...path) {
-				// let delta = JSON.parse(input.value || "{}");
-				// delta = KarmaFieldsAlpha.Type.sanitizeObject(delta, "posts");
-				// return KarmaFieldsAlpha.DeepObject.get3(delta, ...path);
+		// let gateway = new KarmaFieldsAlpha.fields.gateway({
+		// 	driver: "posts",
+		// 	children: [
+		// 		{
+		// 			id: "form",
+		// 			key: id,
+		// 			type: "form",
+		// 			// children: [
+		// 			// 	{
+		// 			// 		type: "field",
+		// 			// 		key: id,
+		// 					children: [resource]
+		// 			// 	}
+		// 			// ]
+		// 		}
+		// 	]
+		// });
 
-				return KarmaFieldsAlpha.DeepObject.get(this.getObject(), ...path);
-			},
-			set: function(value, ...path) {
-				// console.log(value, path);
-				// console.trace();
-				// const delta = this.get();
-				// KarmaFieldsAlpha.DeepObject.assign3(delta, value, ...path);
-				// delta = KarmaFieldsAlpha.Type.parseObject(delta, "posts");
-				// input.value = JSON.stringify(delta);
+		let gateway = new KarmaFieldsAlpha.fields.gateway({
+			driver: "posts",
+		});
+		let form = gateway.createChild({
+			id: "form",
+			key: id,
+			type: "form",
+			children: [resource]
+			// children: [
+			// 	{
+			// 		type: "field",
+			// 		key: id,
+			// 		children: [resource]
+			// 	}
+			// ]
+		});
 
-				const delta = this.getObject();
-				KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
-				this.setObject(delta);
-			},
-			remove: function(value, ...path) {
-				const delta = this.getObject();
-				if (delta) {
-					KarmaFieldsAlpha.DeepObject.remove(delta, ...path);
-					this.setObject(delta);
-				}
-			}
+		form.buffer.getObject = function() {
+			return JSON.parse(input.value || "{}");
+		};
+		form.buffer.setObject = function(delta) {
+			input.value = JSON.stringify(delta);
 		}
 
+		// gateway.buffer.getObject = function() {
+		// 	return JSON.parse(input.value || "{}");
+		// };
+		// gateway.buffer.setObject = function(delta) {
+		// 	console.log(delta);
+		// 	// input.value = JSON.stringify(delta.form);
+		// }
+
 		KarmaFieldsAlpha.build({
-			child: field.build(),
+			child: form.build(),
 		}, container);
 	});
 </script>

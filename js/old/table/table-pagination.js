@@ -273,6 +273,19 @@ KarmaFieldsAlpha.fields.table.total = class {
   build() {
     return {
       class: "total-items header-item",
+      child: {
+        update: async div => {
+          const num = await this.table.getCount();
+          div.element.textContent = num + " elements";
+        }
+      }
+    }
+
+  }
+
+  buildX() {
+    return {
+      class: "total-items header-item",
       init: item => {
         this.renderItemTotal = item.render;
         item.element.tabIndex = "-1"; // for safari
@@ -445,6 +458,32 @@ KarmaFieldsAlpha.fields.table.closeModal = class {
         }
       }
     }
+  }
+}
+
+
+KarmaFieldsAlpha.fields.table.settings = class {
+  build() {
+    return {
+      class: "header-item",
+      child: {
+        tag: "button",
+        class: "karma-button",
+        child: {
+          init: span => {
+            span.element.innerHTML = "Options";
+          }
+        },
+        init: button => {
+          button.element.title = this.resource.title || "Open options";
+          // button.element.innerHTML = '<span class="button-content">Options</span>';
+          button.element.onclick = async () => {
+            this.parent.options.open = !this.parent.options.open;
+            await this.parent.render();
+          }
+        }
+      }
+    };
   }
 }
 

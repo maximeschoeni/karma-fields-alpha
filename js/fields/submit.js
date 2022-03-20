@@ -1,63 +1,50 @@
-KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.button {
 
-	// constructor(resource, domain, parent) {
-	// 	super(resource, domain, parent);
-	//
-	//
-	// }
+	constructor(...args) {
+		super(...args);
 
-	initField() {
-		// this.parent.events.change = () => {
-		// 	this.render();
-		// }
-		// this.parent.edit = () => {
-		// 	this.render();
-		// }
-	}
-
-
-	build() {
-		return {
-			tag: "button",
-			class: "karma-submit karma-button primary karma-field",
-			child: {
-				tag: "span",
-				init: span => {
-					span.element.textContent = this.resource.title || "Submit";
-				}
-			},
-
-			update: async button => {
-				// this.render = button.render;
-
-				button.element.onclick = async event => {
-					event.preventDefault();
-
-					button.element.classList.add("loading");
-					button.element.disabled = true;
-					// await field.bubble("submit");
-					await this.submit();
-					button.element.classList.remove("loading");
-					// this.update();
-				}
-				// button.element.disabled = !this.parent.hasModifiedValue() || this.getState() === "disabled";
-
-				button.element.classList.add("loading");
-				const form = this.getForm();
-				form.edit = button.render;
-				const isModified = await form.isModified();
-				button.element.disabled = !form || !isModified || this.getState() === "disabled";
-
-				button.element.classList.remove("loading");
-
-
-
-			}
-			// complete: () => {
-			// 	button.element.classList.remove("loading");
-			// }
-		};
-
+		this.resource.primary = true;
+		this.resource.title ||= "Submit";
+		this.resource.state = "submit";
+		this.resource.disabled = "!modified";
 	}
 
 }
+
+// KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.field {
+//
+// 	build() {
+// 		return {
+// 			tag: "button",
+// 			class: "karma-submit karma-button primary karma-field",
+// 			child: {
+// 				tag: "span",
+// 				init: span => {
+// 					span.element.textContent = this.resource.title || "Submit";
+// 				}
+// 			},
+// 			init: button => {
+// 				this.update = button.render;
+// 			},
+// 			update: async button => {
+//
+// 				button.element.onclick = async event => {
+// 					event.preventDefault();
+//
+// 					button.element.classList.add("loading");
+// 					button.element.disabled = true;
+//
+// 					await this.submit(this.resource.value);
+// 					button.element.classList.remove("loading");
+// 				}
+//
+// 				button.element.classList.add("loading");
+// 				const isModified = await this.isModified();
+// 				button.element.disabled = !isModified || this.getState() === "disabled";
+// 				button.element.classList.remove("loading");
+// 			}
+// 		};
+//
+// 	}
+//
+// }

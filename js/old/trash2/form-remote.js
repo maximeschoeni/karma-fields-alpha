@@ -53,13 +53,15 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.formHistory
 		//
 		// return value;
 
-		return super.fetchValue(null, ...path) || await this.getRemoteValue(...path);
+		// return super.fetchValue(null, ...path) || await this.getRemoteValue(...path);
+		return this.delta.get(...path) || await this.getRemoteValue(...path);
   }
 
 	async isModified(...path) {
 
 		// const delta = await super.fetchValue(null, ...path);
-		const delta = super.fetchValue(null, ...path);
+		// const delta = super.fetchValue(null, ...path);
+		const delta = this.delta.get(...path);
 
 		// if (delta !== undefined) {
 
@@ -85,7 +87,8 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.formHistory
 			console.error("Resource driver not set");
 		}
 
-		const delta = await super.fetchValue();
+		// const delta = await super.fetchValue();
+		const delta = this.delta.get();
 
 		if (delta) {
 
@@ -111,13 +114,6 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.formHistory
 
 		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
 
-		// if (path.length) {
-		//
-		// } else {
-		// 	delta = value;
-		// }
-		//
-
 
 		this.buffer.set(value, ...path);
 
@@ -126,6 +122,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.formHistory
 		await KarmaFieldsAlpha.Gateway.update(driver, delta);
 
   }
+
 
 	async saveField(...fields) {
 
@@ -139,9 +136,11 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.formHistory
 
 		for (let field of fields) {
 			const path = field.getPath();
-			const value = await super.fetchValue(null, ...path);
+			// const value = await super.fetchValue(null, ...path);
+			const value = this.delta.get(...path);
 			KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
-			this.removeDeltaValue(...path);
+			// this.removeDeltaValue(...path);
+			this.delta.remove(...path);
 			this.buffer.set(value, ...path);
 		}
 

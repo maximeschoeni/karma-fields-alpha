@@ -42,6 +42,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       $id = $keys[0];
       $key = $keys[1];
+      // $index = $keys[2];
 
       $post = get_post($id);
 
@@ -55,7 +56,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         } else if ($this->is_postfield($key)) {
 
-          return $post->$key;
+          return array($post->$key);
 
         } else if (taxonomy_exists($key)) {
 
@@ -75,31 +76,19 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         } else {
 
-          if (registered_meta_key_exists('post', $key)) {
-
-            $value = get_registered_metadata('post', $post->ID, $key);
-
-          } else {
+          // if (registered_meta_key_exists('post', $key)) {
+          //
+          //   $value = get_registered_metadata('post', $post->ID, $key);
+          //
+          // } else {
 
             $value = get_post_meta($post->ID, $key);
 
-            // $meta = get_post_meta($post->ID, $key);
-            //
-            // if (count($meta) === 1) {
-            //
-            //   return $meta[0];
-            //
-            // } else if (count($meta) > 1) {
-            //
-            //   return $meta;
-            //
-            // } else {
-            //
-            //   return '';
-            //
+            // if (isset($index)) {
+            //   $value = $value[$value];
             // }
 
-          }
+          // }
 
           return apply_filters('karma_fields_posts_driver_get_meta', $value, $key, $post->ID);
 
@@ -126,63 +115,39 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       foreach ($item as $key => $value) {
 
-        switch ($key) {
+        if (apply_filters('karma_fields_posts_driver_update', null, $value, $key, $id, $args) === null) {
 
-          case 'post_name':
-          case 'post_title':
-          case 'post_content':
-          case 'post_excerpt':
-          case 'post_date':
-          case 'post_status':
-          case 'post_type':
-            $args[$key] = $value;
-            break;
+          switch ($key) {
 
-          case 'post_parent':
-          case 'post_author':
-          case 'menu_order':
-            $args[$key] = intval($value);
-            break;
+            case 'post_name':
+            case 'post_title':
+            case 'post_content':
+            case 'post_excerpt':
+            case 'post_date':
+            case 'post_status':
+            case 'post_type':
+              $args[$key] = $value[0];
+              break;
 
-          default:
+            case 'post_parent':
+            case 'post_author':
+            case 'menu_order':
+              $args[$key] = intval($value[0]);
+              break;
 
-            if (taxonomy_exists($key) && is_array($value)) { // -> taxonomy
+            default:
 
-              $value = array_filter(array_map('intval', $value));
+              if (taxonomy_exists($key)) { // -> taxonomy
 
-              wp_set_post_terms($id, $value, $key);
+                $value = array_filter(array_map('intval', $value));
 
-            } else { // -> meta
+                wp_set_post_terms($id, $value, $key);
 
+              } else { // -> meta
 
-              $value = apply_filters('karma_fields_posts_driver_update_meta', $value, $key, $id);
-
-
-
-              if (registered_meta_key_exists('post', $key)) {
-
-                $object_subtype = get_object_subtype('post', $id);
-                $meta_keys = get_registered_meta_keys('post', $object_subtype);
-                $single = $meta_keys[$key]['single'];
-
-              } else {
-
-                $single = !is_array($value);
-
-              }
-
-              // var_dump($single, $id, $value, $key);
-
-              if ($single) {
-
-                update_post_meta($id, $key, $value);
-
-              } else if (is_array($value)) {
+                $value = apply_filters('karma_fields_posts_driver_update_meta', $value, $key, $id);
 
                 $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = %s AND post_id = %d", $key, $id ) );
-
-                
-
 
                 for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
 
@@ -204,7 +169,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
               }
 
-            }
+          }
 
         }
 
@@ -605,6 +570,75 @@ Class Karma_Fields_Alpha_Driver_Posts {
       return $images;
 
     }
+
+  }
+
+
+  /**
+	 * relations
+	 */
+  public function relations($params) {
+    global $wpdb;
+
+    $ids = implode(',', array_map('intval', explode(',', $params['ids'])));
+
+    if ($ids) {
+
+      $sql_meta = "SELECT
+        pm.post_id AS 'id',
+        pm.meta_value AS pm.meta_key
+        FROM $wpdb->postmeta AS pm WHERE pm.post_id IN ($ids)";
+
+      $sql_tax = "SELECT
+        tr.object_id AS 'id',
+        tr.term_taxonomy_id AS tt.taxonomy
+        FROM $wpdb->term_relationships AS tr
+        INNER JOIN $wpdb->term_taxonomy AS tt ON (tt.term_taxonomy_id = tr.term_taxonomy_id)
+        WHERE tr.object_id IN ($ids)";
+
+
+      return array_merge($wpdb->get_results($sql_meta), $wpdb->get_results($sql_tax));
+
+    }
+
+    return array();
+  }
+
+
+  /**
+	 * relations
+	 */
+  public function relations2($params) {
+    global $wpdb;
+
+    $ids = implode(',', array_map('intval', explode(',', $params['ids'])));
+    $key = esc_sql($params['key']);
+
+    if ($ids && $key) {
+
+      if (taxonomy_exists($key)) {
+
+        $sql = "SELECT
+          tr.object_id AS 'id',
+          tr.term_taxonomy_id AS '$key'
+          FROM $wpdb->term_relationships AS tr
+          INNER JOIN $wpdb->term_taxonomy AS tt ON (tt.term_taxonomy_id = tr.term_taxonomy_id)
+          WHERE tt.taxonomy = '$key' AND tr.object_id IN ($ids)";
+
+      } else {
+
+        $sql = "SELECT
+          pm.post_id AS 'id',
+          pm.meta_value AS '$key'
+          FROM $wpdb->postmeta AS pm WHERE pm.meta_key = '$key' AND pm.post_id IN ($ids)";
+
+      }
+
+      return $wpdb->get_results($sql);
+
+    }
+
+    return array();
 
   }
 

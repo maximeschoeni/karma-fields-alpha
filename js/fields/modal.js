@@ -1,3 +1,4 @@
+
 KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.field {
 
 	// initField() {
@@ -5,6 +6,18 @@ KarmaFieldsAlpha.fields.modal = class extends KarmaFieldsAlpha.fields.field {
   //   this.content = this.createChild(this.resource.content);
 	//
   // }
+
+
+	constructor(...args) {
+		super(...args);
+
+		this.header = new KarmaFieldsAlpha.fields.text({
+			type: "text",
+			tag: "h1",
+			value: this.resource.header
+		});
+
+	}
 
 	createTitle() {
 		if (!this.title) {
