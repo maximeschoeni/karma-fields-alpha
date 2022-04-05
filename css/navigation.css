@@ -18,6 +18,8 @@
   box-sizing: border-box;
   display: flex;
   gap: 1px;
+
+  overflow: hidden;
 }
 
 
@@ -87,6 +89,8 @@
 
 .karma-fields-navigation .karma-field-table .karma-field-table-section {
   flex-grow: 0;
+
+  padding: 1em;
 }
 .karma-fields-navigation .karma-field-table .table-body {
   /* overflow: auto;
@@ -116,6 +120,8 @@
 .karma-fields-navigation .karma-field-table-grid-container {
   overflow: auto;
   flex-direction: row;
+
+  padding: 1em;
 }
 
 
@@ -178,6 +184,8 @@
   /* max-height: 3.75em; */
   flex-shrink: 0;
   gap: 1px;
+
+  padding: 1em;
 }
 /* .karma-fields-navigation .karma-field-table .table-header h1 {
   padding: 0 10px;
@@ -207,6 +215,7 @@
   overflow: hidden;
   text-overflow: ellipsis; */
 
+  font-size: 1.5em;
   line-height: 1.15em;
 }
 
@@ -296,20 +305,23 @@
 .karma-fields-navigation .karma-field-table .table-control {
   background-color: #f1f1f1;
   /* height: 3.75em; */
-  flex-shrink: 0;
+  /* flex-shrink: 0;
   display: flex;
-  align-items: center;
+  align-items: center; */
 
-  /* padding: 10px; */
+  padding: 1em;
+}
+.karma-fields-navigation .karma-field-table .table-control :last-child {
+  /* flex-grow: 0; */
 }
 .karma-fields-navigation .karma-field-table .table-control .table-control-group {
-  display: flex;
+  /* display: flex;
   align-items: center;
   padding: 0 10px;
-  gap: 10px;
+  gap: 10px; */
 }
 .karma-fields-navigation .karma-field-table .table-control .table-control-group.table-edit {
-  flex-grow: 1;
+  /* flex-grow: 1; */
 }
 .karma-fields-navigation .karma-field-table .table-control .table-edit button.karma-button {
   /* margin: 0 5px; */
@@ -321,4 +333,6 @@
   flex-direction: column;
   flex-shrink: 0; */
   overflow: auto;
+
+  padding: 1em;
 }

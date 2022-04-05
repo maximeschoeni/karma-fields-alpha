@@ -495,7 +495,8 @@ body.karma-dragging #adminmenuwrap {
   color: inherit;
   padding: 0 5px;
 
-  font-size: 0.875em;
+  /* font-size: 0.875em; */
+  font-size: 1em;
   line-height: 1.08em;
 
   display: flex;
@@ -518,7 +519,7 @@ body.karma-dragging #adminmenuwrap {
   /* opacity: 0.15; */
 }
 .karma-fields .table .th a.header-cell-order .dashicons {
-  font-size: 1.75em;
+  /* font-size: 1.5em; */
 }
 .karma-fields .table .th a.header-cell-order .dashicons-sort,
 .karma-fields .table .th a.header-cell-order .dashicons-leftright {
@@ -563,7 +564,7 @@ body.karma-dragging #adminmenuwrap {
 
 /* Grid Text Input
 --------------------------------------*/
-
+/*
 .karma-fields .table .td input.text,
 .karma-fields .table .td input.date,
 .karma-fields .table .td textarea {
@@ -586,9 +587,9 @@ body.karma-dragging #adminmenuwrap {
 .karma-fields .table .td input,
 .karma-fields .table .td textarea,
 .karma-fields .table .td button {
-  background-color: transparent; /* #efebea; */
+  background-color: transparent;
 }
-
+ */
 
 
 
@@ -710,6 +711,10 @@ body.karma-dragging #adminmenuwrap {
 
 /* Text
 --------------------------------------*/
+
+.karma-field-container.display-flex .karma-field-frame {
+  justify-content: center; /* -> vertical center table header */
+}
 
 .karma-field-frame.ellipsis {
   overflow: hidden;

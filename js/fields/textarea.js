@@ -8,6 +8,9 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				if (this.resource.label) {
 					input.element.id = this.getId();
 				}
+				if (this.resource.readonly) {
+					input.element.readOnly = true;
+				}
 				if (this.resource.input) {
 					Object.assign(input.element, this.resource.input);
 				}
@@ -17,25 +20,30 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				input.element.classList.add("loading");
 				input.element.value = "";
 
-				let value = await this.fetchInput();
+				let value = await this.getValue();
 				let modified = await this.isModified();
 
-				if (this.resource.readonly) {
-					input.element.readOnly = true;
-				} else {
-					input.element.oninput = async event => {
-						input.element.classList.add("editing");
-						// await this.backup();
-						// await this.editValue(input.element.value);
+				input.element.oninput = async event => {
+					// input.element.classList.add("editing");
+					// await this.backup();
+					// await this.editValue(input.element.value);
 
-						await this.input(input.element.value);
+					// debugger;
 
-						modified = await this.isModified();
+					// await this.setValue(input.element.value);
 
-						input.element.classList.remove("editing");
-						input.element.classList.toggle("modified", modified);
-					};
-				}
+					this.throttle(async () => {
+						await this.setValue(input.element.value);
+
+						input.element.classList.toggle("modified", await this.isModified());
+						// input.element.classList.remove("editing");
+					});
+
+					// modified = await this.isModified();
+
+					// input.element.classList.remove("editing");
+					// input.element.classList.toggle("modified", modified);
+				};
 
 				input.element.value = value;
 				input.element.classList.toggle("modified", modified);

@@ -28,7 +28,11 @@ KarmaFieldsAlpha.Buffer = class {
 
   set(value, ...path) {
     let object = this.getObject();
-    KarmaFieldsAlpha.DeepObject.assign(object, value, ...path);
+    if (path.length) {
+      KarmaFieldsAlpha.DeepObject.assign(object, value, ...path);
+    } else {
+      object = value;
+    }
     this.setObject(object);
   }
 
@@ -36,6 +40,10 @@ KarmaFieldsAlpha.Buffer = class {
     let object = this.getObject();
     KarmaFieldsAlpha.DeepObject.remove(object, ...path);
     this.setObject(object);
+  }
+
+  has(...path) {
+    return KarmaFieldsAlpha.DeepObject.has(this.getObject(), ...path);
   }
 
   merge(value, ...path) {

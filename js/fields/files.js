@@ -1,24 +1,5 @@
 KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
 
-  // initField() {
-  //   // this.registerType("json");
-	// }
-  //
-  // fetchArray(...path) {
-  //   return this.fetchValue("array", ...path);
-  // }
-  //
-  // setDefault() {
-  //   console.error("deprecated");
-  //   // noop override setDefault
-  // }
-  // getDefault() {
-  //   return [];
-  // }
-
-
-
-
   createUploader(resource) {
     const field = this;
     const uploader = {
@@ -77,7 +58,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
             // await field.backup();
             // field.setValue(items.map(item => item.attributes.id.toString()));
             // field.edit();
-            await field.input(items.map(item => item.attributes.id.toString()));
+            await field.setValue(items.map(item => item.attributes.id));
             field.render();
           });
 
@@ -141,10 +122,10 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
           update: async gallery => {
             gallery.element.classList.add("loading");
 
-            let values = await this.get() || [];
+            let values = await this.getArray();
             values = await this.validate(values);
 
-            let modified = await this.isModified();
+            // let modified = await this.isModified();
 
             gallery.children = [
               {
@@ -156,7 +137,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
               this.buildAddButton("add Files")
             ];
 
-            gallery.element.classList.toggle("modified", modified);
+            // gallery.element.classList.toggle("modified", modified);
 
             gallery.element.onclick = event => {
               event.preventDefault();
@@ -193,7 +174,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
         {
           class: "field-control",
           update: async container => {
-            let values = await this.get() || [];
+            let values = await this.getArray();
             values = await this.validate(values);
             container.children = values.length && [this.buildDeleteButton()] || [];
           }

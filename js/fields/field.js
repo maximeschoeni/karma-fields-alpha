@@ -7,6 +7,8 @@ KarmaFieldsAlpha.fields.field = class Field {
     this.childMap = {};
 		this.resource = resource || {};
 
+    this.listeners = [];
+
 		this.fieldId = this.constructor.fieldId++;
 
     // if (this.resource.children) {
@@ -36,20 +38,46 @@ KarmaFieldsAlpha.fields.field = class Field {
     child.parent = this;
   }
 
+  // parseResource(resource) {
+  //   if (typeof resource === "string") {
+  //     resource = this.constructor[resource] || KarmaFieldsAlpha.fields.presets[resource];
+  //   }
+  //   return resource;
+  // }
+
+  createField(resource) {
+
+
+
+    const type = resource.type || "group";
+
+    if (!KarmaFieldsAlpha.fields[type]) {
+      console.error("Field type does not exist", resource.type);
+    }
+
+    return new KarmaFieldsAlpha.fields[type](resource);
+  }
+
   createChild(resource) {
+
+    // if (typeof resource === "string" && KarmaFieldsAlpha.fields.presets[resource]) {
+    //   resource = KarmaFieldsAlpha.fields.presets[resource];
+    // }
 
     // let child = this.childMap[resource.id || resource.type+"-"+resource.key];
     let child = this.childMap[resource.id];
 
     if (!child) {
 
-      const type = resource.type || "group";
+      // const type = resource.type || "group";
+      //
+      // if (!KarmaFieldsAlpha.fields[type]) {
+      //   console.error("Field type does not exist", resource.type);
+      // }
+      //
+      // child = new KarmaFieldsAlpha.fields[type](resource, this);
 
-      if (!KarmaFieldsAlpha.fields[type]) {
-        console.error("Field type does not exist", resource.type);
-      }
-
-      child = new KarmaFieldsAlpha.fields[type](resource, this);
+      child = this.createField(resource);
 
       this.addChild(child);
     }
@@ -61,13 +89,13 @@ KarmaFieldsAlpha.fields.field = class Field {
     // noop
   }
 
-  getForm() {
-    return this.parent && this.parent.getForm();
-  }
-
-  getGateway() {
-		return this.parent && this.parent.getGateway();
-	}
+  // getForm() {
+  //   return this.parent && this.parent.getForm();
+  // }
+  //
+  // getGateway() {
+	// 	return this.parent && this.parent.getGateway();
+	// }
 
 
   getDescendants() {
@@ -97,15 +125,15 @@ KarmaFieldsAlpha.fields.field = class Field {
     return [];
   }
 
-  getResourceChildKeys(resource) {
+  getSubResources(resource) {
     if (resource.children) {
       return resource.children.reduce((array, item) => {
         if (item.key !== undefined) {
-          return [...array, item.key];
+          return [...array, item];
         } else {
           return [
             ...array,
-            ...this.getResourceKeys(item)
+            ...this.getSubResources(item)
           ];
         }
       }, []);
@@ -144,45 +172,25 @@ KarmaFieldsAlpha.fields.field = class Field {
     return this.resource.default || "";
   }
 
-  isModified() {
-    return this.getState("modified");
-  }
-
-  // async fetchValue(expectedType, ...path) {
+  // write(...path) {
   //   // compat
-  //   return this.get(...path, "value");
+  //   this.setState(null, ...path, "write");
+  // }
+  //
+  // async save(value, ...path) {
+  //   // compat
+  //   this.setState(value, ...path, "save");
+  // }
+  //
+  // async send(value, ...path) {
+  //   // compat
+  //   this.setState(value, ...path, "submit");
   // }
   //
   //
-  // async setValue(type, value, ...path) {
-  //   // compat
-  //   await this.set(value, ...path, "value");
+  // getEmpty() {
+  //   return "";
   // }
-  //
-  // removeValue(...path) {
-  //   // compat
-  //   this.remove(...path, "value");
-  // }
-
-  write(...path) {
-    // compat
-    this.setState(null, ...path, "write");
-  }
-
-  async save(value, ...path) {
-    // compat
-    this.setState(value, ...path, "save");
-  }
-
-  async send(value, ...path) {
-    // compat
-    this.setState(value, ...path, "submit");
-  }
-
-
-  getEmpty() {
-    return "";
-  }
 
   build() {
     if (this.resource.children) {
@@ -195,16 +203,16 @@ KarmaFieldsAlpha.fields.field = class Field {
     // noop
   }
 
-  backup(...path) {
-    // keys = this.getKeyPath(keys);
-    // if (this.resource.key) {
-    //   path = [this.resource.key, ...path];
-    // }
-    // if (this.parent) {
-    //   return this.parent.backup(...path);
-    // }
-    this.setState(null, ...path, "backup");
-  }
+  // backup(...path) {
+  //   // keys = this.getKeyPath(keys);
+  //   // if (this.resource.key) {
+  //   //   path = [this.resource.key, ...path];
+  //   // }
+  //   // if (this.parent) {
+  //   //   return this.parent.backup(...path);
+  //   // }
+  //   this.setState(null, ...path, "backup");
+  // }
 
 
   // !! this method is specifique for dropdown
@@ -261,14 +269,14 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   }
 
-  // import/export API
-  async exportValue() {
-    return this.get(0);
-  }
-
-  async importValue(value) {
-    await this.set(value, 0);
-  }
+  // // import/export API
+  // async exportValue() {
+  //   return this.get(0);
+  // }
+  //
+  // async importValue(value) {
+  //   await this.set(value, 0);
+  // }
 
 
 
@@ -281,11 +289,48 @@ KarmaFieldsAlpha.fields.field = class Field {
   // }
 
 
-  async update() {
-    for (let child of this.children) {
-      await child.update();
-    }
-  }
+  // async update() {
+  //   for (let child of this.children) {
+  //     await child.update();
+  //   }
+  //
+  //   // console.log(this.resource);
+  //
+  //   await this.updateState();
+  //
+  // }
+
+  // async updateState() {
+  //
+  //   if (this.resource.active && this.activate && this.parent) {
+  //     this.activate(await this.parent.check(this.resource.active));
+  //   }
+  //
+  //   if (this.resource.disabled && this.disable && this.parent) {
+  //     this.disable(await this.parent.check(this.resource.disabled));
+  //   }
+  //
+  //   if (this.resource.hidden && this.hide && this.parent) {
+  //     this.hide(await this.parent.check(this.resource.hidden));
+  //   }
+  //
+  // }
+
+  // async setEventListener(listener) {
+  //   const event = this.createEvent();
+  //   event.action = "listen";
+  //   event.callback = listener;
+  //   await this.dispatch(event);
+  // }
+  //
+  //
+  // async triggerListeners() {
+  //   for (let listener of this.listeners) {
+  //     await listener();
+  //   }
+  // }
+
+
 
   // update() {
   //   for (let child of this.children) {
@@ -295,33 +340,33 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
 
-  nextup(value) {
-    //compat
-    this.setState(value, "nextup");
-  }
+  // nextup(value) {
+  //   //compat
+  //   this.setState(value, "nextup");
+  // }
 
   // fetchState(value, ...path) {
   //   //compat
   //   return this.getState(...path, value);
   // }
 
-  getState(...path) {
-    if (this.resource.key !== undefined) {
-      path = [this.resource.key, ...path];
-    }
-    if (this.parent) {
-      return this.parent.getState(...path);
-    }
-  }
-
-  async setState(value, ...path) {
-    if (this.resource.key !== undefined) {
-      path = [this.resource.key, ...path];
-    }
-    if (this.parent) {
-      await this.parent.setState(value, ...path);
-    }
-  }
+  // getState(...path) {
+  //   if (this.resource.key !== undefined) {
+  //     path = [this.resource.key, ...path];
+  //   }
+  //   if (this.parent) {
+  //     return this.parent.getState(...path);
+  //   }
+  // }
+  //
+  // async setState(value, ...path) {
+  //   if (this.resource.key !== undefined) {
+  //     path = [this.resource.key, ...path];
+  //   }
+  //   if (this.parent) {
+  //     await this.parent.setState(value, ...path);
+  //   }
+  // }
 
   // getState(key) {
   //   if (this.parent) {
@@ -376,17 +421,17 @@ KarmaFieldsAlpha.fields.field = class Field {
   // }
 
   // async
-  get(...path) {
-    if (this.resource.key !== undefined) {
-      path = [this.resource.key, ...path];
-    }
-    // if (this.index !== undefined) {
-    //   path = [this.index, ...path];
-    // }
-    if (this.parent) {
-      return this.parent.get(...path);
-    }
-  }
+  // get(...path) {
+  //   if (this.resource.key !== undefined) {
+  //     path = [this.resource.key, ...path];
+  //   }
+  //   // if (this.index !== undefined) {
+  //   //   path = [this.index, ...path];
+  //   // }
+  //   if (this.parent) {
+  //     return this.parent.get(...path);
+  //   }
+  // }
 
 
   // // async
@@ -400,17 +445,17 @@ KarmaFieldsAlpha.fields.field = class Field {
   // }
 
   // async
-  async set(value, ...path) {
-    if (this.resource.key !== undefined) {
-      path = [this.resource.key, ...path];
-    }
-    // if (this.index !== undefined) {
-    //   path = [this.index, ...path];
-    // }
-    if (this.parent) {
-      await this.parent.set(value, ...path);
-    }
-  }
+  // async set(value, ...path) {
+  //   if (this.resource.key !== undefined) {
+  //     path = [this.resource.key, ...path];
+  //   }
+  //   // if (this.index !== undefined) {
+  //   //   path = [this.index, ...path];
+  //   // }
+  //   if (this.parent) {
+  //     await this.parent.set(value, ...path);
+  //   }
+  // }
 
   // check(state) {
 	// 	if (!this.states) {
@@ -519,50 +564,134 @@ KarmaFieldsAlpha.fields.field = class Field {
 	// 	return this.states[state]();
   // }
 
-  check(state) {
-		if (!this.states) {
-			this.states = {};
-		}
-		if (!this.states[state]) {
-      let matches = state.match(/^(.*?)(=|<|>|!=|<=|>=|!)(.*)$/);
-	    if (matches) {
-	      switch (matches[2]) {
-          case "=":
-            this.states[state] = () => this.getState(matches[1]).then(value => value === matches[3]);
-	          break;
-	        case "<":
-            this.states[state] = () => this.getState(matches[1]).then(value => value < matches[3]);
-	          break;
-	        case ">":
-            this.states[state] = () => this.getState(matches[1]).then(value => value > matches[3]);
-	          break;
-	        case "!=":
-            this.states[state] = () => this.getState(matches[1]).then(value => value !== matches[3]);
-	          break;
-	        case "<=":
-            this.states[state] = () => this.getState(matches[1]).then(value => value <= matches[3]);
-	          break;
-          case ">=":
-            this.states[state] = () => this.getState(matches[1]).then(value => value >= matches[3]);
-	          break;
-	        case "!":
-            this.states[state] = () => this.getState(matches[3]).then(value => !value);
-	          break;
-					// case ":in:":
-          //   this.states[state] = () => this.get(matches[3]).then(value => value.includes(value[0]));
-          //   break;
-					// case ":notin:":
-          //   this.states[state] = () => this.get(matches[3]).then(value => !value.includes(value[0]));
-	        //   break;
-          // case "::":
-          //   this.states[state] = () => Promise.all(this.get(matches[1]), this.get(matches[3])).then(values => values[0][0] === values[1][0]);
-	        //   break;
-	      }
-	    } else {
-        this.states[state] = () => this.getState(state).then(value => Boolean(value));
-			}
-		}
-		return this.states[state]();
+  async backup(...path) {
+    const event = this.createEvent({
+      action: "backup"
+    });
+
+    await this.dispatch(event);
+  }
+
+  async save(id) {
+    const event = this.createEvent({
+      action: "save",
+      id: id
+    });
+
+    await this.dispatch(event);
+  }
+
+  async isModified() {
+    const event = this.createEvent({
+      action: "modified",
+      type: "boolean"
+    });
+
+    await this.dispatch(event);
+
+    return event.getBoolean();
+  }
+
+  async check(condition) {
+    let not, key, compare, value, action, type, path;
+
+    if (typeof condition === "string") {
+
+      [,not, key, compare, value] = condition.match(/^(!?)(.*?)(=|!=|$)(.*?)$/);
+
+      if (key === "modified") {
+
+        action = key;
+        type = "boolean";
+
+      } else {
+
+        path = [key];
+
+      }
+
+    } else {
+
+      ({not, compare, value, action, type, path} = condition);
+
+    }
+
+    const event = this.createEvent({
+      action: action || "get",
+      type: type || "string",
+      path: path || []
+    });
+
+    await this.dispatch(event);
+
+    if (not) {
+      return !event.getBoolean();
+    } else if (compare === "=") {
+      return event.getValue() === value;
+    } else if (compare === "!=") {
+      return event.getValue() !== value;
+    } else if (compare === "<") {
+      return event.getValue() < value;
+    } else if (compare === ">") {
+      return event.getValue() > value;
+    } else if (compare === "<=") {
+      return event.getValue() <= value;
+    } else if (compare === ">=") {
+      return event.getValue() >= value;
+    } else if (compare === "in") {
+      return event.getArray().indexOf(value) > -1;
+    } else if (compare === "notin") {
+      return event.getArray().indexOf(value) === -1;
+    } else {
+      return event.getBoolean();
+    }
+
+  }
+
+
+  createEvent(args) {
+    // return new KarmaFieldsAlpha.Event({
+    //   default: this.getDefault(),
+    //   autosave: this.resource.autosave,
+    //   ...args
+    // }, this);
+    return new KarmaFieldsAlpha.Event(args, this);
+  }
+
+  // async dispatchEvent(args) {
+  //   const event = this.createEvent(args);
+  //   return this.dispatch(event);
+  // }
+
+  async dispatch(event, parent) {
+    if (this.resource.key !== undefined) {
+      if (event.path[0] === "..") {
+        event.path.shift();
+      } else {
+
+        event.path.unshift(this.resource.key);
+      }
+      // event.path = [this.resource.key, ...event.path];
+    }
+    if (this.parent) {
+      await this.parent.dispatch(event, this);
+
+      // if (event.splash) {
+      //   for (let child of this.parent.children) {
+      //     if (child !== this) {
+      //       await child.splash(event);
+      //     }
+      //   }
+      // }
+
+    }
+
+    return event;
+  }
+
+
+  async splash(request) {
+    // noop
   }
 
 

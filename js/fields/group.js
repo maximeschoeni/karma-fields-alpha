@@ -7,38 +7,131 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 
 
-	async get(...path) {
+	// async get(...path) {
+	//
+	// 	let value = await super.get() || [];
+	//
+	// 	if (path.length) {
+	//
+	// 		value = KarmaFieldsAlpha.DeepObject.get(value, 0, ...path) || [];
+	//
+	// 	}
+	//
+	// 	return value;
+	//
+	// }
+	//
+	// async set(value, ...path) {
+	//
+	// 	if (path.length) {
+	//
+	// 		this.promise = Promise.resolve(this.promise).then(() => super.get()).then((array = []) => {
+	// 			array = KarmaFieldsAlpha.DeepObject.clone(array);
+	// 			KarmaFieldsAlpha.DeepObject.assign(array, value, 0, ...path);
+	// 			return super.set(array);
+	// 		});
+	//
+	// 	} else {
+	//
+	// 		this.promise = Promise.resolve(this.promise).then(() => super.set(value));
+	//
+	// 	}
+	//
+	// 	await this.promise;
+	//
+	// }
 
-		let value = await super.get() || [];
-
-		if (path.length) {
-
-			value = KarmaFieldsAlpha.DeepObject.get(value, 0, ...path) || [];
-
+	async splash(request) {
+		for (let child of this.children) {
+			await child.splash(request);
 		}
-
-		return value;
-
 	}
 
-	async set(value, ...path) {
+	async dispatch(event, parent) {
 
-		if (path.length) {
+		if (this.resource.key) {
 
-			this.promise = Promise.resolve(this.promise).then(() => super.get()).then((array = []) => {
-				array = KarmaFieldsAlpha.DeepObject.clone(array);
-				KarmaFieldsAlpha.DeepObject.assign(array, value, 0, ...path);
-				return super.set(array);
-			});
+			switch (event.action) {
+
+				case "get": {
+					event.setValue(KarmaFieldsAlpha.DeepObject.get(await this.getValue(), ...event.path));
+					break;
+				}
+
+				case "set": {
+					this.promise = Promise.resolve(this.promise).then(() => this.getValue()).then(object => {
+						object = KarmaFieldsAlpha.DeepObject.clone(object);
+						KarmaFieldsAlpha.DeepObject.assign(object, event.getValue(), ...event.path);
+						return this.setValue(object);
+					});
+					await this.promise;
+					break;
+				}
+
+				default: {
+					await super.dispatch(event, this);
+					break;
+				}
+
+			}
 
 		} else {
 
-			this.promise = Promise.resolve(this.promise).then(() => super.set(value));
+			await super.dispatch(event, this);
 
 		}
 
-		await this.promise;
+		if (event.splash) {
+			// event.splash = false;
+			// await this.splash(event);
+			for (let child of this.children) {
+				if (child !== parent) {
+					await child.splash(event);
+				}
+			}
+		}
 
+		return event;
+	}
+
+	async getValue() {
+
+		const event = this.createEvent({
+			action: "get",
+			type: "object"
+		});
+
+		await super.dispatch(event);
+
+		return event.getObject() || {};
+
+	}
+
+	async setValue(value) {
+
+		const event = this.createEvent({
+			action: "set",
+			type: "object", // -> must be send as array of object
+			backup: "once",
+			edit: true
+		});
+
+		event.setValue(value);
+
+		await super.dispatch(event);
+
+	}
+
+	async getDefault() {
+		const value = {};
+
+		const subResources = this.getSubResources(this.resource);
+
+		for (let resource in subResources) {
+			value[key] = await this.createChild(resource).getDefault();
+		}
+
+		return value;
 	}
 
 	buildLabel(field) {
@@ -61,6 +154,19 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 				if (this.resource.container && this.resource.container.style) {
 					group.element.style = this.resource.container.style;
 				}
+				// this.hide = hidden => {
+				// 	group.element.parentNode.classList.toggle("hidden", hidden);
+				// }
+
+				if (this.resource.hidden) {
+					// this.setEventListener(async request => {
+					// 	group.element.parentNode.classList.toggle("hidden", await this.check(this.resource.hidden));
+					// });
+					group.element.parentNode.classList.add("hidden");
+
+					this.splash = request => group.render();
+				}
+
 				// if (this.resource.key) {
 				// 	this.content = this.createChild({
 				// 		key: 0,
@@ -68,26 +174,40 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 				// 	});
 				// }
 			},
-			update: group => {
+			update: async group => {
+
+				// await this.updateState();
+				if (this.resource.hidden) {
+					group.element.parentNode.classList.toggle("hidden", await this.check(this.resource.hidden));
+					// this.check(this.resource.hidden).then(hidden => {
+					// 	group.element.parentNode.classList.toggle("hidden", hidden);
+					// });
+				}
+
+
+
 				// group.element.classList.toggle("disabled", this.getState() === "disabled");
 			},
 			// children: this.children.map(field => {
-			children: this.resource.children.map((child, index) => {
+			children: (this.resource.children || []).map((child, index) => {
 
+				if (typeof child === "string") {
+					child = KarmaFieldsAlpha.fields.presets[child] || {};
+				}
 
-				const field = this.getRelativeParent().createChild({
-					type: "group",
-					id: this.fieldId+"-"+index.toString(),
+				// const field = this.getRelativeParent().createChild({
+				// 	type: "group",
+				// 	id: this.fieldId+"-"+index.toString(),
+				// 	...child
+				// });
+
+				const field = this.createChild({
+					type: "field",
+					id: index.toString(),
 					...child
 				});
 
-				// if (!KarmaFieldsAlpha.fields[field.resource.type || "group"]) {
-				// 	console.error("Field does not exist", field.resource.type);
-				// }
 
-				if (field.resource.type === "hidden") {
-					return field.build();
-				}
 
 				return {
 					class: "karma-field-frame karma-field-"+field.resource.type,
@@ -117,18 +237,31 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 						}
 
+						// if (field.resource.hidden) {
+						// 	container.element.classList.add("hidden");
+						// }
+						//
+						// field.update = async () => {
+					  //   for (let child of field.children) {
+					  //     await child.update();
+					  //   }
+						//
+					  //   if (field.resource.active && field.activate) {
+					  //     field.activate(await this.check(field.resource.active));
+					  //   }
+						//
+					  //   if (field.resource.disabled && field.disable) {
+					  //     field.disable(await this.check(field.resource.disabled));
+					  //   }
+						//
+					  //   if (field.resource.hidden) {
+						// 		container.element.classList.toggle("hidden", await this.check(field.resource.hidden));
+					  //   }
+					  // }
 
-
-						if (field.resource.hidden) {
-							container.element.classList.add("hidden");
-							await this.check(field.resource.hidden).then(hidden => {
-								container.element.classList.toggle("hidden", hidden);
-							});
-						}
-
-						if (field.resource.hidden || field.resource.active || field.resource.disabled) {
-							field.update = container.render;
-						}
+						// if (field.resource.hidden || field.resource.active || field.resource.disabled) {
+						// 	field.update();
+						// }
 
 						container.element.classList.toggle("final", field.resource.final || !field.resource.children || !field.resource.children.some(child => child.type && child.type === "group"));
 					}

@@ -47,6 +47,14 @@ KarmaFieldsAlpha.Nav = class {
 		this.update();
 	}
 
+	static setHash(hash) {
+		if (hash[0] === "#") {
+			hash = hash.slice(1);
+		}
+		this.params = new URLSearchParams(hash);
+		this.update();
+	}
+
 	static mergeParamString(paramString) {
 		(new URLSearchParams(paramString)).entries().forEach(pair => this.params.set(...pair));
 

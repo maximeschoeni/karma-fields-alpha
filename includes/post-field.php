@@ -106,7 +106,7 @@
 		// }
 
 		KarmaFieldsAlpha.build({
-			child: form.build(),
+			child: form.build()
 		}, container);
 	});
 </script>

@@ -3,7 +3,7 @@
 // /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
 
 
-KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
+KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.field {
 
 	constructor(...args) {
 		super(...args);
@@ -78,50 +78,25 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 
 			this.editor.on("input", event => {
 				this.saveContent();
-				// const value = this.editor.getContent();
-				// this.setValue(null, [value]);
 			});
 
-			// this.editor.on("SetContent", event => {
-			// 	console.log("SetContent");
-			// 	// this.saveContent();
-			// });
-
-
-
-
-			// this.editor.on("SelectionChange", event => {
-			// 	this.renderToolbar();
-			// });
-
-
 			this.editor.on("NodeChange", event => {
-
 				if (event.selectionChange) {
 					if (this.activeModal && event.element !== this.activeNode) {
-
-						// console.log("NodeChange");
-
-						// this.activePopover = null;
 						this.activeNode = null;
 						this.activeModal = null;
 						this.renderPopover();
 					}
-
-
 				}
-
 				this.renderToolbar();
 			});
 
 			this.editor.on("focusout", event => {
-
 				if (this.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
 					this.activeNode = null;
 					this.activeModal = null;
 					this.renderPopover();
 				}
-
 				this.renderToolbar();
 			});
 
@@ -131,12 +106,14 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 
 				if (node.matches("a")) {
 					this.activeNode = node;
-					this.setState(null, "link");
+					// this.trigger("link");
+					this.dispatch({action: "link"});
 				}
 
 				if (node.matches("img")) {
 					this.activeNode = node;
-					this.setState(null, "editmedia");
+					// this.trigger("editmedia");
+					this.dispatch({action: "editmedia"});
 				}
 
 			});
@@ -144,12 +121,13 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 			this.editor.on("dblclick", event => {
 				const node = this.editor.selection.getNode();
 				if (node.matches("img")) {
-					this.setState(null, "addmedia");
+					this.dispatch({action: "addmedia"});
 				}
 			});
 
 			this.editor.on("ObjectResized", async event => {
-				await this.set(null, "resizemedia");
+				// await this.trigger("resizemedia");
+				await this.dispatch({action: "resizemedia"});
 				await this.renderPopover();
 			});
 
@@ -159,46 +137,133 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 	}
 
 
-	async get(...path) {
+	async dispatch(event) {
 
-		let value = [];
+		switch (event.action) {
 
-		const key = path.shift();
-
-		switch (key) {
-
-			case "format": {
-				return this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/) || [""];
+			case "get":
+				event.setValue(this.get(...event.path));
 				break;
-			}
 
-			case "link": {
-				const node = this.editor && this.editor.selection.getNode();
-				if (node) {
-					value = {
-						href: [node.getAttribute("href") || ""],
-						target: [node.target === "_blank" ? "1" : ""],
-						attachment_id: node.hasAttribute("data-attachment-id") ? [node.getAttribute("data-attachment-id")] : []
-					};
+			case "set":
+			case "send":
+				await this.set(event.getValue(), ...event.path);
+				break;
+
+
+
+			// case "trigger":
+			// 	await this.trigger(event.action);
+			// 	break;
+
+			case "link":
+				this.activeModal = this.createChild(this.parseResource("link")).getModal();
+				await this.renderPopover();
+				break;
+
+			case "attachfile":
+				this.file.uploader.open(this.activeNode && this.activeNode.getAttribute("data-attachment-id"));
+				break;
+
+			case "unlink":
+			case "bold":
+			case "italic":
+			case "strikethrough":
+			case "superscript":
+			case "subscript":
+			case "JustifyLeft":
+			case "JustifyCenter":
+			case "JustifyRight":
+			case "JustifyFull":
+			case "JustifyNone":
+				this.editor.execCommand(event.action);
+				await this.saveContent();
+				break;
+
+			case "ul":
+				if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+					this.editor.execCommand('InsertUnorderedList', false, {
+					  'list-style-type': 'disc'
+					});
+				} else {
+					this.editor.execCommand("RemoveList");
 				}
+				await this.saveContent();
 				break;
-			}
+
+			case "ol":
+				if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+					this.editor.execCommand('InsertOrderedList', false, {
+						'list-style-type': 'decimal'
+					});
+				} else {
+					this.editor.execCommand("RemoveList");
+				}
+				await this.saveContent();
+				break;
+
+			case "table":
+				this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
+				// this.editor.execCommand('mceTableInsertColAfter', false);
+				await this.saveContent();
+				break;
+
+			case "close":
+				this.activeNode = null;
+				this.activeModal = null;
+				await this.renderPopover();
+				break;
+
+			case "addmedia":
+				this.image.uploader.open(this.activeNode && this.activeNode.getAttribute("data-id"));
+				break;
+
+			case "editmedia":
+				this.activeModal = this.createChild(this.parseResource("media")).getModal();
+				await this.renderPopover();
+				break;
+
+			case "resizemedia":
+				var node = this.editor.selection.getNode();
+				var width = this.editor.selection.getNode().getAttribute("width");
+				node.sizes = `(min-width: ${width}px) ${width}px, 100vw`;
+				await this.saveContent();
+				break;
+
+			case "alignnone":
+			case "alignleft":
+			case "alignright":
+			case "aligncenter":
+				this.activeNode.classList.remove("alignright");
+				this.activeNode.classList.remove("alignleft");
+				this.activeNode.classList.remove("aligncenter");
+				if (event.action !== "alignnone") {
+					this.activeNode.classList.add(event.action);
+				}
+				this.editor.nodeChanged();
+				await this.renderPopover();
+				await this.saveContent();
+				break;
 
 			default:
-				value = await super.get(0);
+				await super.dispatch(event);
 				break;
 
 		}
 
-		return KarmaFieldsAlpha.DeepObject.get(value, ...path);
+		return event;
 
 	}
 
-	async getState(...path) {
+	get(key, ...path) {
 
-		const action = path.pop();
+		switch (key) {
 
-		switch (action) {
+			case "format":
+				return this.getFormat();
+
+			case "link":
+				return KarmaFieldsAlpha.DeepObject.get(this.getLink(), ...path);
 
 			case "align":
 				return this.activeNode && this.activeNode.classList.contains("alignleft") && "left"
@@ -209,7 +274,7 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 			case "alignleft":
 			case "aligncenter":
 			case "alignright":
-				return this.activeNode && this.activeNode.classList.contains(action);
+				return this.activeNode && this.activeNode.classList.contains(key);
 
 			case "alignnone":
 				return this.activeNode && !this.activeNode.classList.contains("alignleft") && !this.activeNode.classList.contains("aligncenter") && !this.activeNode.classList.contains("alignright");
@@ -233,145 +298,63 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 			case "JustifyRight":
 			case "JustifyFull":
 			case "JustifyNone":
-				return this.editor && this.editor.queryCommandState(action);
+				return this.editor && this.editor.queryCommandState(key);
 
 			case "selected":
 				return this.editor && this.editor.selection.getContent().length > 0;
+
 
 		}
 
 	}
 
-	async set(value, ...path) {
-
-		const key = path.shift();
-
-		value = KarmaFieldsAlpha.DeepObject.create(value, ...path);
+	async set(value, key, ...path) {
 
 		switch (key) {
 
-			case "format":{
-				// this.setFormat(value[0]);
-				if (this.editor) {
-					this.editor.execCommand("FormatBlock", false, value[0]);
-				}
+			case "format":
+				this.setFormat(value);
 				await this.saveContent();
 				break;
-			}
+
 			case "image": {
-				// await this.setImage(value);
 				const images = await this.image.fetchIds(value, {sources: 1});
-
-				for (let image of images) {
-
-					const node = this.editor.selection.getNode();
-
-					let width = image.sources[0].width;
-					let height = image.sources[0].height;
-
-					if (node && node.matches("img")) {
-						width = node.getAttribute("width") || width;
-						height = node.getAttribute("height") || height;
-					}
-
-					this.editor.execCommand(
-						'mceInsertContent',
-						false,
-						`<img
-							src="${image.sources[0].src}"
-							width="${width}"
-							height="${height}"
-							data-id="${image.id}"
-							srcset="${image.sources.map(source => source.src+" "+source.width+"w").join(", ")}"
-							sizes="(min-width: ${width}px) ${width}px, 100vw"
-						>`
-					);
-
-				}
-				// this.createPopover("media", "img");
+				this.setImages(images);
 				await this.saveContent();
-
 				this.activeModal = this.createChild(this.parseResource("media")).getModal();
 				await this.renderPopover();
 				break;
 			}
+
 			case "file": {
-
-
-				// -> reopen popover and set data in buffer
-				// if (this.editor.selection.getNode().matches("a")) {
-
-					this.activeModal = this.createChild(this.parseResource("link")).getModal();
-
-					await this.renderPopover();
-
-					const files = await this.file.fetchIds(value);
-
-
-
-					for (let file of files) {
-						// this.activeModal.buffer.set([file.original_src], "href");
-						// this.activeModal.buffer.set(value, "attachment_id");
-						await this.activeModal.set(file.original_src, "href", 0);
-						await this.activeModal.set(value, "attachment_id");
-						break;
-					}
-
-					await this.activeModal.render();
-
-				// }
-
+				this.activeModal = this.createChild(this.parseResource("link")).getModal();
+				await this.renderPopover();
+				const files = await this.file.fetchIds(value);
+				for (let file of files) {
+					await this.activeModal.buffer.set([file.original_src], "href");
+					await this.activeModal.buffer.set(value, "attachment_id");
+					break;
+				}
+				await this.activeModal.render();
 				break;
 			}
 
 			case "link": {
-				let link = await this.get("link") || {};
-				KarmaFieldsAlpha.DeepObject.merge(link, value);
-				if (link.href && link.href.length) {
-					this.editor.execCommand("mceInsertLink", false, {
-						"href": link.href[0],
-						"target": link.target && link.target[0] ? "_blank" : null,
-						"data-attachment-id": link.attachment_id && link.attachment_id[0] || null
-					});
-				} else {
-					this.editor.execCommand("Unlink");
-				}
+				this.setLink(value);
 				await this.saveContent();
 				this.activeNode = null;
 				this.activeModal = null;
 				await this.renderPopover();
 				break;
 			}
-			// console.log(value);
-			// 	this.setLink(value[0]);
-			// 	await this.saveContent();
-			// 	this.activeNode = null;
-			// 	this.activeModal = null;
-			// 	await this.renderPopover();
-			// 	break;
-
-			default:
-				await super.set(value, 0);
-
-
 
 		}
 
 	}
 
-	async setState(value, ...path) {
-
-		const action = path.pop();
+	async trigger(action) {
 
 		switch (action) {
-
-			// case "submit":
-			// 	this.setLink(value);
-			// 	await this.saveContent();
-			// 	this.activeNode = null;
-			// 	this.activeModal = null;
-			// 	await this.renderPopover();
-			// 	break;
 
 			case "link":
 				this.activeModal = this.createChild(this.parseResource("link")).getModal();
@@ -467,402 +450,127 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 	}
 
 
-	// async set(value, ...path) {
-	//
-	// 	const action = path.pop();
-	//
-	// 	switch (action) {
-	//
-	// 		case "value":
-	// 			if (path.length) {
-	// 				await this.set(value, ...path);
-	// 			} else {
-	// 				await super.set(value, "value");
-	// 			}
-	// 			break;
-	//
-	// 		case "link":
-	// 			this.activeModal = this.createChild(this.parseResource("link")).getModal();
-	// 			await this.renderPopover();
-	// 			break;
-	//
-	// 		case "attachfile":
-	// 			// if (this.activeNode && this.activeNode.hasAttribute("data-attachment-id")) {
-	// 			// 	await this.file.setValue([this.activeNode.getAttribute("data-attachment-id")]);
-	// 			// }
-	// 			this.file.uploader.open(this.activeNode && this.activeNode.getAttribute("data-attachment-id"));
-	// 			break;
-	//
-	// 		case "unlink":
-	// 		case "bold":
-	// 		case "italic":
-	// 		case "strikethrough":
-	// 		case "superscript":
-	// 		case "subscript":
-	// 		case "JustifyLeft":
-	// 		case "JustifyCenter":
-	// 		case "JustifyRight":
-	// 		case "JustifyFull":
-	// 		case "JustifyNone":
-	// 			this.editor.execCommand(action);
-	// 			await this.saveContent();
-	// 			break;
-	//
-	// 		case "ul":
-	// 			if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
-	// 				this.editor.execCommand('InsertUnorderedList', false, {
-	// 				  'list-style-type': 'disc'
-	// 				});
-	// 			} else {
-	// 				this.editor.execCommand("RemoveList");
-	// 			}
-	// 			await this.saveContent();
-	// 			break;
-	//
-	// 		case "ol":
-	// 			if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
-	// 				this.editor.execCommand('InsertOrderedList', false, {
-	// 					'list-style-type': 'decimal'
-	// 				});
-	// 			} else {
-	// 				this.editor.execCommand("RemoveList");
-	// 			}
-	// 			await this.saveContent();
-	// 			break;
-	//
-	// 		case "table":
-	// 			this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
-	// 			// this.editor.execCommand('mceTableInsertColAfter', false);
-	// 			await this.saveContent();
-	// 			break;
-	//
-	// 		case "close":
-	// 			this.activeNode = null;
-	// 			this.activeModal = null;
-	// 			await this.renderPopover();
-	// 			break;
-	//
-	// 		case "addmedia":
-	// 			this.image.uploader.open(this.activeNode && this.activeNode.getAttribute("data-id"));
-	// 			break;
-	//
-	// 		case "editmedia":
-	// 			this.activeModal = this.createChild(this.parseResource("media")).getModal();
-	// 			await this.renderPopover();
-	// 			break;
-	//
-	// 		case "resizemedia":
-	// 			var node = this.editor.selection.getNode();
-	// 			var width = this.editor.selection.getNode().getAttribute("width");
-	// 			node.sizes = `(min-width: ${width}px) ${width}px, 100vw`;
-	// 			await this.saveContent();
-	// 			break;
-	//
-	// 		case "alignnone":
-	// 		case "alignleft":
-	// 		case "alignright":
-	// 		case "aligncenter":
-	// 			this.activeNode.classList.remove("alignright");
-	// 			this.activeNode.classList.remove("alignleft");
-	// 			this.activeNode.classList.remove("aligncenter");
-	// 			if (action !== "alignnone") {
-	// 				this.activeNode.classList.add(action);
-	// 			}
-	// 			this.editor.nodeChanged();
-	// 			await this.renderPopover();
-	// 			await this.saveContent();
-	// 			break;
-	//
-	//
-	//
-	// 		case "format":
-	// 			this.setFormat(value.toString());
-	// 			await this.saveContent();
-	// 			break;
-	//
-	// 		case "image":
-	// 			await this.setImage(value);
-	// 			break;
-	//
-	// 		case "file":
-	// 			// -> reopen popover and set data in buffer
-	// 			if (this.editor.selection.getNode().matches("a")) {
-	//
-	// 				this.activeModal = this.createChild(this.parseResource("link")).getModal();
-	//
-	// 				await this.renderPopover();
-	//
-	// 				const files = await this.file.fetchIds(value);
-	// 				for (let file of files) {
-	// 					this.activeModal.buffer.set([file.original_src], "href");
-	// 					this.activeModal.buffer.set(value, "attachment_id");
-	// 					break;
-	// 				}
-	//
-	// 				this.activeModal.render();
-	//
-	// 			}
-	//
-	//
-	// 			// const files = await this.file.fetchIds(value);
-	// 			// for (let file of files) {
-	// 			// 	this.setLink({
-	// 			// 		"href": file.original_src,
-	// 			// 		"data-attachment-id": value.toString()
-	// 			// 	});
-	// 			// 	await this.renderPopover();
-	// 			// 	// await super.setValue(null, [this.editor.getContent()]);
-	// 			// 	await this.saveContent();
-	// 			// 	break;
-	// 			// }
-	//
-	// 			break;
-	//
-	// 		case "submit": // -> link form submitted. value is an Array
-	//
-	// 			if (path[0] === "link") {
-	//
-	// 				this.setLink(value[0]);
-	// 			}
-	//
-	//
-	// 			// var value = this.editor.getContent();
-	// 			// await this.setValue(null, [value]);
-	//
-	// 			await this.saveContent();
-	//
-	// 			this.activeNode = null;
-	// 			this.activeModal = null;
-	// 			await this.renderPopover();
-	//
-	// 			break;
-	//
-	//
-	// 	}
-	//
-	// }
-
-	async saveContent() {
-		await super.set(this.editor.getContent(), 0);
+	getFormat() {
+		const matches = this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
+		return matches && matches[0] || "";
 	}
 
-	// getLink() {
-	//
-	// 	if (this.editor) {
-	// 		const node = this.editor.selection.getNode();
-	// 		let href = node.getAttribute("href") || "";
-	// 		let target = node.target === "_blank" ? "1" : "";
-	// 		let attachment_id = node.getAttribute("data-attachment-id");
-	//
-	// 		return {
-	// 			href: [href],
-	// 			target: [target],
-	// 			attachment_id: attachment_id ? [attachment_id] : []
-	// 		};
-	// 	}
-	//
-	// }
-	//
-	// setLink(value) {
-	//
-	// 	value = KarmaFieldsAlpha.DeepObject.clone(this.getLink() || {}, value);
-	//
-	// 	if (value.href && value.href.length) {
-	//
-	// 		this.editor.execCommand("mceInsertLink", false, {
-	// 			"href": value.href.toString(),
-	// 			"target": value.target && value.target.toString() ? "_blank" : null,
-	// 			"data-attachment-id": value.attachment_id && value.attachment_id.toString() || null
-	// 		});
-	//
-	// 	} else {
-	//
-	// 		this.editor.execCommand("Unlink");
-	//
-	// 	}
-	//
-	// }
+	setFormat(value) {
+		if (this.editor) {
+			this.editor.execCommand("FormatBlock", false, value);
+		}
+	}
 
-	// getFormat() {
-	// 	const match = this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
-	// 	return match && match[0] || "";
-	// }
-	//
-	// setFormat(value) {
-	// 	if (this.editor) {
-	// 		this.editor.execCommand("FormatBlock", false, value);
-	// 	}
-	// }
+	setImages(images) {
 
-	// async setImage(ids) {
-	//
-	// 	const images = await this.image.fetchIds(ids, {sources: 1});
-	// 	for (let image of images) {
-	//
-	// 		const node = this.editor && this.editor.selection.getNode();
-	//
-	// 		let width = image.sources[0].width;
-	// 		let height = image.sources[0].height;
-	//
-	// 		if (node && node.matches("img")) {
-	// 			width = node.getAttribute("width") || width;
-	// 			height = node.getAttribute("height") || height;
-	// 		}
-	//
-	// 		this.editor.execCommand(
-	// 			'mceInsertContent',
-	// 			false,
-	// 			`<img
-	// 				src="${image.sources[0].src}"
-	// 				width="${width}"
-	// 				height="${height}"
-	// 				data-id="${image.id}"
-	// 				srcset="${image.sources.map(source => source.src+" "+source.width+"w").join(", ")}"
-	// 				sizes="(min-width: ${width}px) ${width}px, 100vw"
-	// 			>`
-	// 		);
-	//
-	// 	}
-	// 	// this.createPopover("media", "img");
-	// 	await this.saveContent();
-	//
-	// 	this.activeModal = this.createChild(this.parseResource("media")).getModal();
-	// 	await this.renderPopover();
-	//
-	// }
+		for (let image of images) {
 
-	// addModal(modal) {
-	// 	if (!this.modals) {
-	// 		this.modals = [];
-	// 	}
-	// 	this.modals.push(modal);
-	// }
-	//
-	// getModals() {
-	// 	return this.modals || [];
-	// }
+			const node = this.editor.selection.getNode();
 
-	// createPopover(type, selector) {
-	// 	const node = this.editor.selection.getNode();
-	// 	const sel = this.editor.selection.getSel();
-	//
-	// 	if (node.matches(selector)) {
-	//
-	// 		this.activePopover = {
-	// 			box: node.getBoundingClientRect(),
-	// 			node: node,
-	// 			type: type
-	// 		};
-	//
-	// 	} else if (this.editor.selection.getContent().length) {
-	//
-	// 		this.activePopover = {
-	// 			box: this.editor.selection.getRng().getBoundingClientRect(),
-	// 			node: node,
-	// 			type: type
-	// 		};
-	//
-	// 	}
-	// }
+			let width = image.sources[0].width;
+			let height = image.sources[0].height;
 
-	// async send(value, key, ...path) {
-	//
-	// 	switch (key) {
-	//
-	// 		case "link":
-	//
-	// 			this.setLink(value);
-	//
-	// 			var value = this.editor.getContent();
-	// 			await this.setValue(null, [value]);
-	//
-	// 			// console.log("send form");
-	// 			// this.activePopover = null;
-	// 			this.activeNode = null;
-	// 			this.activeModal = null;
-	// 			await this.renderPopover();
-	//
-	// 	}
-	//
-	// }
+			if (node && node.matches("img")) {
+				width = node.getAttribute("width") || width;
+				height = node.getAttribute("height") || height;
+			}
 
-	// build() {
-	// 	return {
-	// 		class: "editor karma-tinymce",
-	// 		children: [
-	// 			{
-	// 				class: "editor-header",
-	// 				children: [
-	// 					{
-	// 						class: "toolbar",
-	// 						init: toolbar => {
-	// 							this.renderToolbar = toolbar.render;
-	// 						},
-	// 						child: this.createChild({
-	// 							type: "group",
-	// 							id: "editor-buttons",
-	// 							display: "flex",
-	// 							children: (this.resource.buttons || ["format", "bold", "italic", "link", "ul", "ol"]).map(child => this.parseResource(child))
-	// 						}).build()
-	// 					}
-	// 				]
-	// 			},
-	// 			{
-	// 				class: "tinymce editor-body",
-	// 				init: async node => {
-	// 					node.element.id = this.getId();
-	// 					node.element.editable = true;
-	// 					await this.createEditor(node.element);
-	// 				},
-	// 				update: async node => {
-	// 					const value = await this.fetchInput();
-	// 					this.editor.setContent(value);
-	// 				}
-	// 			},
-	// 			{
-	// 				class: "karma-popover-container",
-	// 				init: container => {
-	// 					this.renderPopover = container.render;
-	// 					this.popoverContainer = container.element;
-	// 				},
-	// 				update: container => {
-	// 					container.element.onfocusout = event => {
-	// 						if (this.activePopover && (!event.relatedTarget || !container.element.contains(event.relatedTarget) && !this.editor.getBody().contains(event.relatedTarget))) {
-	// 							this.activePopover = null;
-	// 							container.render();
-	// 						}
-	// 					};
-	// 					container.children = [
-	// 						{
-	// 							class: "karma-tinymce-popover",
-	// 							init: popover => {
-	// 								popover.element.tabIndex = -1;
-	// 							},
-	// 							update: async popover => {
-	// 								popover.element.classList.toggle("active", Boolean(this.activePopover));
-	// 								if (this.editor && this.activePopover) {
-	// 									const containerBox = container.element.parentNode.getBoundingClientRect();
-	//
-	// 									popover.element.style.left = (this.activePopover.box.left - containerBox.x).toFixed()+"px";
-	// 									popover.element.style.top = (this.activePopover.box.bottom - containerBox.y + 5).toFixed()+"px";
-	//
-	// 									const buttonResource = this.parseResource(this.activePopover.type);
-	// 									const button = this.createChild(buttonResource);
-	// 									const modal = button.getModal();
-	// 									const data = await this.fetchValue(null, this.activePopover.type);
-	// 									modal.buffer.empty();
-	// 									modal.buffer.setObject(data[0]);
-	// 									popover.children = [modal.build()];
-	// 								}
-	//
-	// 							}
-	// 						}
-	// 					];
-	// 				}
-	// 			}
-	// 		]
-	// 	}
-	// }
+			this.editor.execCommand(
+				'mceInsertContent',
+				false,
+				`<img
+					src="${image.sources[0].src}"
+					width="${width}"
+					height="${height}"
+					data-id="${image.id}"
+					srcset="${image.sources.map(source => source.src+" "+source.width+"w").join(", ")}"
+					sizes="(min-width: ${width}px) ${width}px, 100vw"
+				>`
+			);
+
+		}
+	}
+
+	getLink() {
+		const node = this.editor && this.editor.selection.getNode();
+		const value = {};
+
+		if (node) {
+			value.href = node.getAttribute("href") || "";
+			value.target = node.target === "_blank" ? "1" : "";
+			if (node.hasAttribute("data-attachment-id")) {
+				value.attachment_id = [node.getAttribute("data-attachment-id")];
+			}
+		}
+
+		return value;
+	}
+
+	setLink(value) {
+		let link = this.getLink();
+		KarmaFieldsAlpha.DeepObject.merge(link, value);
+		if (link.href) {
+			this.editor.execCommand("mceInsertLink", false, {
+				"href": link.href[0],
+				"target": link.target[0] ? "_blank" : null,
+				"data-attachment-id": link.attachment_id && link.attachment_id[0] || null
+			});
+		} else {
+			this.editor.execCommand("Unlink");
+		}
+	}
+
+
+	async saveContent() {
+
+		// const event = this.createEvent({
+		// 	action: "set",
+		// 	type: "string",
+		// 	autosave: this.resource.autosave
+		// });
+
+		// const event = this.createEvent();
+		// event.action = "set";
+		// event.type = "string";
+		// event.autosave = this.resource.autosave;
+		//
+		// event.setValue(this.editor.getContent());
+		//
+		//
+		// await super.dispatch(event);
+
+		await this.setValue(this.editor.getContent());
+
+	}
+
+	async getValue() {
+
+		const event = this.createEvent();
+		event.action = "get";
+		event.type = "string";
+		event.default = this.getDefault(); // -> no care if promise
+
+		await super.dispatch(event);
+
+		return event.getValue();
+	}
+
+
+	async setValue(value) {
+
+		const event = this.createEvent();
+		event.action = "set";
+		event.type = "string";
+		// event.backup = "once";
+		event.autosave = this.resource.autosave;
+		event.setValue(value);
+
+		await super.dispatch(event);
+	}
+
+	async getDefault() {
+		return this.resource.default || "";
+	}
 
 	build() {
 		return {
@@ -898,7 +606,14 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.input {
 						await this.createEditor(node.element);
 					},
 					update: async node => {
-						const value = await this.fetchInput();
+						// const event = this.createEvent();
+						// event.action = "get";
+						// event.type = "string";
+						// event.default = this.getDefault(); // -> no care if promise
+						// await this.dispatch(event);
+						// this.editor.setContent(event.getString());
+						// debugger;
+						const value = await this.getValue();
 						this.editor.setContent(value);
 					}
 				},
@@ -1210,7 +925,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "editor-italic",
 		title: "italic",
-		state: "italic",
+		action: "italic",
 		active: "italic"
 	},
 	bold: {
@@ -1218,7 +933,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "editor-bold",
 		title: "bold",
-		state: "bold",
+		action: "bold",
 		active: "bold"
 	},
 	link: {
@@ -1227,7 +942,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		dashicon: "admin-links",
 		title: "link",
 		// key: "createlink",
-		state: "link",
+		action: "link",
 		active: "islink",
 		disabled: "!selected",
 		modal: {
@@ -1251,7 +966,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 								{
 									type: "button",
 									dashicon: "paperclip",
-									state: "attachfile"
+									action: "attachfile"
 								}
 							]
 						},
@@ -1272,13 +987,13 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 										{
 											type: "button",
 											title: "Cancel",
-											state: "close"
+											action: "close"
 										},
 										{
 											type: "button",
 											title: "Unlink",
 											// dashicon: "editor-unlink"
-											state: "unlink",
+											action: "unlink",
 											disabled: "!href"
 										}
 									]
@@ -1299,7 +1014,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "editor-ul",
 		title: "Unordered list",
-		state: "ul",
+		action: "ul",
 		active: "ul"
 	},
 	ol: {
@@ -1307,7 +1022,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "editor-ol",
 		title: "Ordered list",
-		state: "ol",
+		action: "ol",
 		active: "ol"
 	},
 	table: {
@@ -1315,14 +1030,14 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "editor-table",
 		title: "Table",
-		state: "table"
+		action: "table"
 	},
 	justifyleft: {
 		id: "justifyleft",
 		type: "button",
 		dashicon: "editor-alignleft",
 		title: "Justify Left",
-		state: "JustifyLeft",
+		action: "JustifyLeft",
 		active: "JustifyLeft"
 	},
 	justifycenter: {
@@ -1330,7 +1045,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "editor-aligncenter",
 		title: "Justify Center",
-		state: "JustifyCenter",
+		action: "JustifyCenter",
 		active: "JustifyCenter"
 	},
 	justifyright: {
@@ -1338,7 +1053,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "editor-alignright",
 		title: "Justify Right",
-		state: "JustifyRight",
+		action: "JustifyRight",
 		active: "JustifyRight"
 	},
 	justifyfull: {
@@ -1346,7 +1061,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "editor-justify",
 		title: "Justify Full",
-		state: "JustifyFull",
+		action: "JustifyFull",
 		active: "JustifyFull"
 	},
 	media: {
@@ -1354,7 +1069,7 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 		type: "button",
 		dashicon: "format-image",
 		title: "Media",
-		state: "addmedia",
+		action: "addmedia",
 		modal: {
 			type: "form",
 			id: "media",
@@ -1363,32 +1078,32 @@ KarmaFieldsAlpha.fields.tinymce.defaults = {
 				{
 					type: "button",
 					dashicon: "align-none",
-					state: "alignnone",
+					action: "alignnone",
 					active: "alignnone"
 				},
 				{
 					type: "button",
 					dashicon: "align-left",
-					state: "alignleft",
+					action: "alignleft",
 					active: "alignleft"
 				},
 				{
 					type: "button",
 					dashicon: "align-center",
-					state: "aligncenter",
+					action: "aligncenter",
 					active: "aligncenter"
 				},
 				{
 					type: "button",
 					dashicon: "align-right",
-					state: "alignright",
+					action: "alignright",
 					active: "alignright"
 				},
 				{
 					type: "button",
 					dashicon: "edit",
 					title: "Replace Image",
-					state: "addmedia"
+					action: "addmedia"
 				}
 			]
 			// children: [

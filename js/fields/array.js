@@ -4,207 +4,295 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
   constructor(...args) {
     super(...args);
 
+    // compat
+    if (this.resource.columns) {
+      this.resource.children = this.resource.columns.map(column => {
+        return {
+          ...column,
+          ...column.field
+        };
+      });
+    }
+
+
 	}
 
   async update() {
     // noop
   }
 
-
-  async get(...path) {
+  async getValue(...path) {
 
     if (this.resource.key) {
 
-      // return super.get(...path);
+      const event = this.createEvent({
+        action: "get",
+        type: "array"
+      });
 
-      let value = await super.get() || [];
+      await super.dispatch(event);
 
-  		if (path.length) {
-
-  			value = KarmaFieldsAlpha.DeepObject.get(value, ...path);
-
-  		}
-
-  		return value;
+      return event.getArray();
 
     } else {
 
-      if (path.length) {
+      // const keys = this.resource.columns.filter(column => column.field.key).map(column => column.field.key);
+      // const keys = this.resource.children.filter(column => column.key).map(column => column.key);
 
-        const index = path.shift();
-        const key = path.shift();
+      const array = [];
 
-        return super.get(key, index);
+      for (let resource of this.getSubResources(this.resource)) {
 
-      } else {
+        const key = resource.key;
+        const column = await this.getColumn(key);
 
-        const keys = this.resource.columns.filter(column => column.field.key).map(column => column.field.key);
-        const array = [];
+        column.forEach((value, index) => {
+          if (!array[index]) {
+            array[index] = {};
+          }
+          array[index][key] = value;
+        });
 
-        for (let key of keys) {
+      }
 
-          const values = await super.get(key);
+      return array;
+    }
 
-          values.forEach((value, index) => {
-            if (!array[index]) {
-              array[index] = {};
+  }
+
+  async setValue(value) {
+
+    if (this.resource.key) {
+
+      const event = this.createEvent({
+        action: "set",
+        type: "array",
+        backup: "once"
+      });
+
+      event.setValue(value);
+
+      await super.dispatch(event);
+
+    } else {
+
+      const keys = {};
+
+      for (let i = 0; i < value.length; i++) {
+        for (let key in value[i]) {
+          if (!keys[key]) {
+            keys[key] = [];
+          }
+          keys[key][i] = value[i][key];
+        }
+      }
+
+      for (let key in keys) {
+        await super.dispatch(this.createEvent({
+          action: "backup",
+          path: [key]
+        }));
+  		}
+
+  		await this.save();
+
+      for (let key in keys) {
+
+        await this.setColumn(keys[key], key);
+
+      }
+
+    }
+  }
+
+  async getColumn(key) {
+
+    const event = this.createEvent({
+      action: "get",
+      type: "array",
+      path: [key]
+    });
+
+    await super.dispatch(event);
+
+    return event.getArray();
+  }
+
+  async setColumn(column, key) {
+
+    const event = this.createEvent({
+      action: "set",
+      type: "array",
+      path: [key]
+    });
+
+    event.setValue(column);
+
+    await super.dispatch(event);
+  }
+
+
+  async dispatch(event) {
+
+
+      switch (event.action) {
+
+        case "get": {
+          this.promise = Promise.resolve(this.promise).then(async () => {
+            const [index, key] = event.path;
+            if (this.resource.key) {
+              let array = await this.getValue();
+              if (array[index][key] === undefined && event.default) {
+                array = KarmaFieldsAlpha.DeepObject.clone(array || []);
+                array[index][key] = await event.default;
+                await this.setValue(array);
+              }
+              event.setValue(array[index][key]);
+            } else {
+              let column = await this.getColumn(key);
+              if (column[index] === undefined && event.default) {
+                column = KarmaFieldsAlpha.DeepObject.clone(column || []);
+                column[index] = await event.default;
+                await this.setColumn(column, key);
+              }
+              event.setValue(column[index]);
             }
-            array[index][key] = [value];
           });
-
+          await this.promise;
+          break;
         }
 
-        return array;
+        case "set": {
+          this.promise = Promise.resolve(this.promise).then(async () => {
+            if (this.resource.key) {
+              let array = await this.getValue();
+              array = KarmaFieldsAlpha.DeepObject.clone(array || []);
+              KarmaFieldsAlpha.DeepObject.assign(array, event.getValue(), ...event.path);
+              await this.setValue(array);
+            } else {
+              const [index, key] = event.path;
+              let column = await this.getColumn(key);
+              column = KarmaFieldsAlpha.DeepObject.clone(column);
+              column[index] = event.getValue();
+              await this.setColumn(column, key);
+            }
+          });
+          await this.promise;
+          break;
+        }
+
+
+        case "add":
+          await this.add();
+          break;
+
+        case "delete":
+          await this.delete(event.path[0]);
+          break;
+
+        // case "render":
+        //   await this.render();
+        //   break;
+
+        // case "edit":
+        //   this.update();
+        //   break;
 
       }
 
-    }
 
+
+    return event;
   }
 
-
-  async set(value, ...path) {
+  async backup(value) {
 
     if (this.resource.key) {
 
-      if (path.length) {
-
-  			this.promise = Promise.resolve(this.promise).then(() => super.get()).then(array => {
-          array = KarmaFieldsAlpha.DeepObject.clone(array || []);
-  				KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
-  				return super.set(array);
-  			});
-
-  		} else {
-
-  			this.promise = Promise.resolve(this.promise).then(() => super.set(value));
-
-  		}
+      await super.dispatch(this.createEvent({
+        action: "backup"
+      }));
 
     } else {
 
-      if (path.length) {
+      // const keys = this.resource.columns.filter(column => column.field.key).map(column => column.field.key);
+      const keys = this.resource.children.filter(column => column.key).map(column => column.key);
 
-        this.promise = Promise.resolve(this.promise).then(async () => {
-
-          const index = path.shift();
-          const key = path.shift();
-          let values = await super.get(key);
-          values = KarmaFieldsAlpha.DeepObject.clone(values);
-          values[index] = value;
-
-          await super.set(values, key);
-        });
-
-      } else {
-
-
-
-        this.promise = Promise.resolve(this.promise).then(async () => {
-
-          const keys = {};
-
-          for (let i = 0; i < value.length; i++) {
-            for (let key in value[i]) {
-              if (!keys[key]) {
-                keys[key] = [];
-              }
-              keys[key][i] = value[i][key][0];
-            }
-          }
-
-          console.log(value, keys);
-
-          for (let key in keys) {
-            await super.set(keys[key], key);
-          }
-
-        });
-
-      }
+      for (let key in keys) {
+        await super.dispatch(this.createEvent({
+          action: "backup",
+          path: [key]
+        }));
+  		}
 
     }
-
-    return this.promise;
   }
 
 
-
-  async setState(...path) {
-
-    const key = path.pop();
-
-    switch (key) {
-
-      case "add":
-        await this.add();
-        break;
-
-      case "delete":
-        await this.delete(path.pop());
-        break;
-
-      case "render":
-        await this.render();
-        break;
-
-      case "edit":
-        this.update();
-        break;
-
-    }
-
+  createRow() {
+    // return new KarmaFieldsAlpha.fields.arrayRow({
+    //   children: this.resource.columns.map(column => column.field)
+    // });
+    return this.createField({
+      type: "arrayRow",
+      children: this.resource.children
+      // children: this.resource.columns.map(column => column.field)
+    });
   }
 
 
   async swapRange(index1, index2, length) {
-    await this.write();
-    this.nextup();
-    let values = await this.get();
+    // await this.backup();
+    // await this.save("array-swap");
+    let values = await this.getValue();
     values = KarmaFieldsAlpha.DeepObject.clone(values || []);
     values.splice(index2, 0, ...values.splice(index1, length));
-		await this.set(values);
+		await this.setValue(values);
     // await this.edit();
   }
 
   async add() {
-    await this.write();
-    this.nextup();
+    // await this.backup();
+    // await this.save("array-add");
 
-    let values = await this.get();
+    let values = await this.getValue();
     values = KarmaFieldsAlpha.DeepObject.clone(values || []);
-    const newValue = {};
-    for (let column of this.resource.columns) {
-      if (column.field.key) {
-        newValue[column.field.key] = [column.field.default || KarmaFieldsAlpha.fields[column.field.type || "group"].default || ""];
-      }
-    }
+    // const newValue = {};
+    // for (let column of this.resource.columns) {
+    //   if (column.field.key) {
+    //     newValue[column.field.key] = [column.field.default || KarmaFieldsAlpha.fields[column.field.type || "group"].default || ""];
+    //   }
+    // }
+    const newValue = await this.createRow().getDefault();
+
     values.push(newValue);
 
-    await this.set(values);
+
+
+    await this.setValue(values);
     await this.render(true);
   }
 
   async delete(index) {
-    await this.write();
-    this.nextup();
-    let values = await this.get();
+    // await this.backup();
+    // await this.save("array-delete-"+index);
+    let values = await this.getValue();
     values = KarmaFieldsAlpha.DeepObject.clone(values || []);
     values.splice(index, 1);
-    await this.set(values);
+    await this.setValue(values);
     await this.render(true);
   }
 
   async slice(index, length) {
-    let values = await this.get() || [];
+    let values = await this.getValue() || [];
     return values.slice(index, index + length);
   }
 
   async insert(data, index, length) {
-    let values = await this.get();
+    let values = await this.getValue();
     values = KarmaFieldsAlpha.DeepObject.clone(values || []);
     values.splice(index, length, ...data);
-    await this.set(values);
+    await this.setValue(values);
   }
 
 
@@ -216,9 +304,10 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       },
       update: async table => {
 
-        const values = await this.get() || [];
+        const values = await this.getValue() || [];
 
-        const hasHeader = this.resource.columns.some(column => column.header);
+        // const hasHeader = this.resource.columns.some(column => column.header);
+        const hasHeader = this.resource.children.some(column => column.header || column.label); // header is deprecated
 
         this.register(table.element);
 
@@ -230,11 +319,11 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
                 th.element.style.order = "-1";
               }
             },
-            ...this.resource.columns.map(column => {
+            ...this.resource.children.map(column => {
               return {
                 class: "th",
                 init: th => {
-                  th.element.textContent = column.header || "";
+                  th.element.textContent = column.header || column.label || "";
                   th.element.style.order = "-1";
                 }
               }
@@ -267,10 +356,10 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
                   this.registerCell(td.element, index);
                 }
               },
-              ...this.resource.columns.map((column, colIndex) => {
+              ...this.resource.children.map((column, colIndex) => {
 
                 return {
-                  class: "td array-cell karma-field-frame karma-field-"+column.field.type,
+                  class: "td array-cell karma-field-frame karma-field-"+column.type,
                   init: td => {
                     // this.manager.registerItem(td.element, colIndex+1, index, "field");
 
@@ -278,34 +367,16 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
                     if (column.style) {
                       td.element.style = column.style;
                     }
-                    if (column.field.type !== "group") {
+                    if (column.type !== "group") {
                       td.element.classList.add("final");
                     }
                   },
                   update: td => {
                     td.element.style.order = index.toString();
-
                     this.registerCell(td.element, index);
-
-                    // if (this.resource.key) {
-                    //   td.child = row.createChild({
-                    //     ...column.field,
-                    //     id: colIndex.toString()
-                    //   }).build();
-                    // } else if (column.field.key) {
-                    //   td.child = this.getRelativeParent().createChild({
-                    //   //   key: index,
-                    //   //   id: this.getId()+"-"+index,
-                    //   //   type: "field",
-                    //   // }).createChild({
-                    //     ...column.field,
-                    //     id: [column.field.key, index].join("-"),
-                    //     index: index
-                    //   }).build();
-                    // }
                   },
                   child: row.createChild({
-                    ...column.field,
+                    ...column,
                     id: colIndex.toString()
                   }).build()
                 };
@@ -346,7 +417,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
         table.element.style.gridTemplateColumns = [
           this.resource.index && this.resource.index.width || "5em",
-          ...this.resource.columns.map(column => column.width || "1fr"),
+          ...this.resource.children.map(column => column.width || "1fr"),
           this.resource.delete && this.resource.delete.width || "auto"
         ].join(" ");
 
@@ -796,41 +867,85 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
 KarmaFieldsAlpha.fields.arrayRow = class extends KarmaFieldsAlpha.fields.field {
 
-  async getState(...path) {
+  constructor(...args) {
+    super(...args);
 
-    const state = path.pop();
+    this.listeners = [];
+  }
 
-    switch (state) {
 
-      case "modified":
-        return super.getState(...path, state);
+  async getDefault() {
+
+		const value = {};
+
+    const subResources = this.getSubResources(this.resource);
+
+		for (let subResource of subResources) {
+      value[subResource.key] = await this.createChild(subResource).getDefault();
+		}
+
+		return value;
+	}
+
+  async dispatch(event) {
+
+    switch (event.action) {
+
+      case "set":
+        await super.dispatch(event);
+        // this.update();
+
+        for (let listener of this.listeners) await listener();
+        break;
+
+      case "listen":
+        this.listeners.push(event.callback);
         break;
 
       default:
-        return this.get(...path, state, 0);
+        await super.dispatch(event);
+        break;
 
     }
 
+    return event;
   }
 
-  async setState(...path) {
-
-    const state = path.pop();
-
-    switch (state) {
-
-      case "edit":
-        await this.update();
-        return super.setState(...path, state);
-
-      default:
-        return super.setState(...path, state);
-
-
-
-    }
-
-  }
+  // async getState(...path) {
+  //
+  //   const state = path.pop();
+  //
+  //   switch (state) {
+  //
+  //     case "modified":
+  //       return super.getState(...path, state);
+  //       break;
+  //
+  //     default:
+  //       return this.get(...path, state, 0);
+  //
+  //   }
+  //
+  // }
+  //
+  // async setState(...path) {
+  //
+  //   const state = path.pop();
+  //
+  //   switch (state) {
+  //
+  //     case "edit":
+  //       await this.update();
+  //       return super.setState(...path, state);
+  //
+  //     default:
+  //       return super.setState(...path, state);
+  //
+  //
+  //
+  //   }
+  //
+  // }
 
 }
 

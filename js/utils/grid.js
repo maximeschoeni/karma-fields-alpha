@@ -6,7 +6,7 @@ KarmaFieldsAlpha.Grid = class {
 		this.height = 0;
 	}
 
-	set(x, y, item) {
+	set(item, x, y) {
 		if (!this.table[x]) {
 			this.table[x] = {};
 		}

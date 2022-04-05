@@ -24,9 +24,15 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 				}
 				button.element.title = this.resource.title || "";
 
+				// this.disable = disabled => {
+				// 	button.element.disabled = disabled;
+				// }
+				//
+				// this.activate = active => {
+				// 	button.element.classList.toggle("active", active);
+				// }
 				if (this.resource.active || this.resource.disabled || this.resource.hidden) {
-					// this.setEventListener(event => button.render());
-					this.splash = request => button.render();
+					this.setEventListener(event => button.render());
 				}
 				if (this.resource.hidden) {
 					button.element.parentNode.classList.add("hidden");
@@ -43,6 +49,12 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 					if (!button.element.classList.contains("editing")) {
 						button.element.classList.add("editing");
 
+						// await this.set(null, this.resource.action || this.resource.context || "action");
+						// if (this.resource.state) {
+						// 	await this.setState(null, this.resource.state);
+						// } else if (this.resource.value) {
+						// 	await this.set(null, this.resource.value);
+						// }
 
 						const event = this.createEvent({
 							action: this.resource.action || this.resource.state || this.resource.value || "submit" // compat
@@ -50,9 +62,15 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 
 						await this.dispatch(event);
 
+						// await this.update();
+						// await this.updateState();
+
 						await button.render();
 
+						// await this.set("edit", this.resource.value);
 						button.element.classList.remove("editing");
+
+
 					}
 				}
 

@@ -21,17 +21,19 @@
 
   padding: 0.3269em 0.5em;
 
-  /* background-color: transparent; */
-  background-color: white;
+  background-color: transparent;
+  /* background-color: white; */
 }
 .karma-fields input.text-input.modified,
 .karma-fields textarea.modified {
+  /* color: #0c73aa; */
   color: black;
+  background-color: #0000000d;
 }
 .karma-fields input.text-input:focus,
 .karma-fields textarea:focus {
   outline: none;
-  /* background-color: white; */
+  background-color: white;
 
   flex-grow: 1;
   box-shadow: none;
@@ -39,6 +41,11 @@
 
   border-color: #2271b1;
 }
+.karma-fields input.text-input:disabled,
+.karma-fields textarea:disabled {
+  border-color: #c3c4c7;
+}
+
 
 .karma-fields  input[type=number] {
   height: auto;
@@ -81,11 +88,11 @@
 
 .table input,
 .table textarea {
-  background-color: #f0f0f1;
+  /* background-color: #f0f0f1; */
 }
 .table .selected input,
 .table .selected textarea {
-  background-color: white;
+  background-color: white !important; /* -> must override .modified */
 }
 
 .karma-fields .table input.text-input,

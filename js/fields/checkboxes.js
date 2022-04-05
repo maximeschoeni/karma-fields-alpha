@@ -1,10 +1,6 @@
 
 KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field {
 
-	initField() {
-    // this.registerType("json");
-	}
-
 	async getDefault() {
 		const options = await this.fetchOptions(this.resource.driver);
 		if (this.resource.default && options.some(option => option.key === this.resource.default)) {
@@ -17,68 +13,126 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 		return [];
 	}
 
-	// async fetchValue(expectedType, key) {
-	// 	if (key) {
-	// 		const array = await super.fetchValue() || [];
-	// 		return [array.indexOf(key) > -1 ? "1" : ""];
-	// 	}
-	// 	return super.fetchValue();
-	// }
+	async getArray() {
 
-	async get(key, context) {
+		const event = this.createEvent({
+			action: "get",
+			type: "array",
+			default: await this.getDefault() // -> dropdown default is async
+		});
 
-		switch (context) {
+		await super.dispatch(event);
 
-			case "value":
-				if (key) {
-					const array = await super.get(this.resource.context || "value") || [];
-					return [array.indexOf(key) > -1 ? "1" : ""];
-				}
-				return super.get(this.resource.context || "value");
+		return event.getArray();
+	}
 
-			// case "modified":
-			// 	return super.get(context);
+	async setArray(value) {
 
-		}
+		const event = this.createEvent({
+			action: "set",
+			type: "array",
+			backup: "once",
+			autosave: this.resource.autosave
+		});
+
+		event.setValue(value);
+
+		await super.dispatch(event);
 
 	}
 
+	async dispatch(event) {
 
+		switch (event.action) {
 
-	// async setValue(type, value, key) {
-	// 	if (key) {
-	// 		if (value.toString()) {
-	// 			await this.add(key);
-	// 		} else {
-	// 			await this.remove(key);
-	// 		}
-	// 	} else {
-	// 		await super.setValue(null, value);
-	// 	}
-	// }
-
-	async set(value, key, context) {
-
-		switch (context) {
-
-			default:
-				if (key) {
-					if (value[0]) {
-						await this.add(key);
-					} else {
-						await this.remove(key);
-					}
-				} else {
-					await super.set(value, context);
-				}
+			case "get": {
+				const key = event.path[0];
+				const array = await this.getArray();
+				event.setValue(array.indexOf(key) > -1 ? "1" : "")
 				break;
+			}
+
+			case "set": {
+				// const key = event.path[0];
+				// if (event.getValue()) {
+				// 	await this.add(key);
+				// } else {
+				// 	await this.remove(key);
+				// }
+				// break;
+				const key = event.path[0];
+				const array = await this.getArray();
+				if (event.getValue()) {
+					array.push(key);
+				} else {
+					const index = array.indexOf(key);
+					if (index > -1) {
+						array.splice(index, 1);
+					}
+				}
+				const options = await this.fetchOptions(this.resource.driver);
+				await this.setArray(options.map(option => option.key).filter(key => array.indexOf(key) > -1));
+				break;
+			}
 
 		}
 
 	}
+
+	// async get(key, context) {
+	//
+	// 	switch (context) {
+	//
+	// 		case "value":
+	// 			if (key) {
+	// 				const array = await super.get(this.resource.context || "value") || [];
+	// 				return [array.indexOf(key) > -1 ? "1" : ""];
+	// 			}
+	// 			return super.get(this.resource.context || "value");
+	//
+	// 		// case "modified":
+	// 		// 	return super.get(context);
+	//
+	// 	}
+	//
+	// }
+	//
+	//
+	//
+	// // async setValue(type, value, key) {
+	// // 	if (key) {
+	// // 		if (value.toString()) {
+	// // 			await this.add(key);
+	// // 		} else {
+	// // 			await this.remove(key);
+	// // 		}
+	// // 	} else {
+	// // 		await super.setValue(null, value);
+	// // 	}
+	// // }
+	//
+	// async set(value, key, context) {
+	//
+	// 	switch (context) {
+	//
+	// 		default:
+	// 			if (key) {
+	// 				if (value[0]) {
+	// 					await this.add(key);
+	// 				} else {
+	// 					await this.remove(key);
+	// 				}
+	// 			} else {
+	// 				await super.set(value, context);
+	// 			}
+	// 			break;
+	//
+	// 	}
+	//
+	// }
 
 	async add(key) {
-		let array = await super.get(this.resource.context || "value") || [];
+		let array = await this.getArray();
 		const index = array.indexOf(key);
 		if (index === -1) {
 			// array.push(key);
@@ -89,24 +143,24 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 			// array.sort();
 			// this.setValue(array);
 
-			super.set([...array, key], this.resource.context || "value");
+			await this.setArray([...array, key]);
 		}
   }
 
   async remove(key) {
-		const array = await this.get(this.resource.context || "value") || [];
+		const array = await this.getArray();
 		const index = array.indexOf(key);
 		if (index > -1) {
 			// array.splice(index, 1);
 			// this.setValue(array);
 			// super.removeValue(index.toString());
 			// this.setValue(array.filter(item => item !== key));
-			this.set(array.filter(item => item !== key), this.resource.context || "value");
+			await this.setArray(array.filter(item => item !== key));
 		}
   }
 
 	async has(key) {
-		const array = await this.get(this.resource.context || "value") || [];
+		const array = await this.getArray();
 		const index = array.indexOf(key);
 		return index > -1;
   }
@@ -181,11 +235,12 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 					tag: "ul",
 					update: ul => {
 						ul.children = options.map((option, index) => {
-							let checkboxField = this.getChild(option.key) || this.createChild({
+							let checkboxField = this.createChild({
 								type: "checkbox",
 								key: option.key,
 								text: option.name,
-								tag: "li"
+								tag: "li",
+								id: option.key
 							});
 							return checkboxField.build();
 						});

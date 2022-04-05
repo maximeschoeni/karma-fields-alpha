@@ -59,34 +59,9 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
     return "";
   }
 
-  // validate(value) {
-  //   console.error("deprecated");
-  //   // console.log(value, this.getEmpty());
-  //   // if (this.isEmpty(value)) {
-  //   //   const defaultValue = this.resource.default || this.getEmpty();
-  //   //   if (value !== defaultValue) {
-  //   //     value = defaultValue;
-  //   //     if (!this.resource.readonly) {
-  //   //
-  //   //       console.log("!!!!!", value);
-  //   //       this.setValue(value);
-  //   //     }
-  //   //   }
-  //   // }
-  //   // if (!this.isEmpty(value) && !KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
-  //   //   value = this.getEmpty();
-  //   // }
-  //   return value;
-  // }
-
-
-  // isEmpty(value) {
-  //   return !value || value === this.resource.empty
-  // }
-
   async exportValue() {
     let value = await this.getValue();
-    value = this.format(value);
+    // value = this.format(value);
     // if (KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format)) {
     //   return value;
     // }
@@ -106,21 +81,13 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
   }
 
   async importValue(value) {
-    // const date = KarmaFieldsAlpha.Calendar.parse(value, this.resource.import_format || this.resource.format);
-
-    // const date = wp.date.getDate(value);
-    // if (!isNaN(date)) {
-    //   // return this.updateValue(KarmaFieldsAlpha.Calendar.format(date, this.resource.import_format || this.resource.format));
-    //   return wp.date.format(this.resource.output_format || "Y-m-d h:i:s", date);
-    // }
-    // return "";
 
     const momentDate = moment(value);
     if (momentDate.isValid()) {
       return momentDate.format(this.resource.export_format || this.format);
     }
 
-    await this.setValue([value || ""]);
+    await this.setValue(value || "");
 
 
     // return value || '';
@@ -277,7 +244,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
                             this.date = null;
                             // this.backup();
                             // this.editValue(sqlDate);
-                            await this.input([sqlDate]);
+                            await this.setValue(sqlDate);
                             this.render();
                           }
                         }
@@ -329,7 +296,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
 				// let value = array.toString();
 
 
-        let value = await this.fetchInput();
+        let value = await this.getValue();
 
         // let value = await this.fetchValue();
         // value = this.validate(value);
@@ -376,7 +343,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
                     this.date = mDate.toDate();
                     var sqlDate = mDate.format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
                     // await this.editValue(sqlDate);
-                    await this.input([sqlDate]);
+                    await this.setValue(sqlDate);
                     this.render();
                   }
                   input.element.classList.toggle("valid-date", mDate.isValid());
@@ -388,7 +355,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
                   // this.date = value && KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format) || new Date();
 
 
-                  if (this.isEmpty(value)) {
+                  if (!value) {
                     this.date = new Date();
                   } else {
                     // this.date = KarmaFieldsAlpha.Calendar.parse(value, this.resource.output_format);
@@ -406,7 +373,7 @@ KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
                   // console.log(input.element.value, this.format, !moment(input.element.value, this.format).isValid());
                   if (!moment(input.element.value, this.format).isValid()) {
                     // await this.editValue("");
-                    await this.input([""]);
+                    await this.setValue("");
                   }
                   this.render();
                 };

@@ -39,7 +39,10 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.formHi
 
       }
 
-      this.setState(null, "edit");
+      // this.setState(null, "edit");
+      super.dispatch(this.createEvent({
+        action: "edit"
+      }));
     }
 
   }
@@ -82,68 +85,96 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.formHi
 
   }
 
-  async setState(value, ...path) {
+  async dispatch(event) {
 
-    const state = path.pop();
-
-    switch (state) {
-
-      case "pastedValue":
-        this.pastedValue = true;
-        break;
-
-      default:
-        await this.setState(value, ...path, state);
-        break;
-
-    }
-
-  }
-
-  async set(value, ...path) {
-
-    if (this.pastedValue) {
-      this.pastedValue = false;
-      const data = value[0].split(/[\r\n]/).map(row => row.split("\t"));
-      const field = this.getChild(...path);
-      const index = this.resource.columns.find(column => column.field.resource.key === path.pop()).field.index;
-      const point = {
-        x: this.grid.colMap(field),
-        y: this.grid.rowMap(field),
-      };
-      await this.importSelection(data, point);
-      break;
-
-    }
-
-
-    switch (context) {
-
-      // case "value":
-      //   await this.super.set(value, ...path, context); // -> buffer
-      //   break;
-
-      case "pastedvalue":
-        const data = value[0].split(/[\r\n]/).map(row => row.split("\t"));
-        const field = this.getChild(...path);
-        const point = {
-          x: this.grid.colMap(field),
-          y: this.grid.rowMap(field),
-        };
-        await this.importSelection(data, point);
-        break;
+    switch (event.action) {
 
       case "set":
-
-
+        if (event.pasted) {
+          const data = event.getValue().split(/[\r\n]/).map(row => row.split("\t"));
+          const point = this.grid.find(event.target);
+          // const point = {
+          //   x: this.grid.colMap(event.target),
+          //   y: this.grid.rowMap(event.target),
+          // };
+          await this.importSelection(data, point);
+        } else {
+          await super.dispatch(event);
+        }
+        break;
 
       default:
-        await this.super.set(value, ...path, context);
+        await super.dispatch(event);
         break;
 
     }
 
+    return event;
   }
+
+  // async setState(value, ...path) {
+  //
+  //   const state = path.pop();
+  //
+  //   switch (state) {
+  //
+  //     case "pastedValue":
+  //       this.pastedValue = true;
+  //       break;
+  //
+  //     default:
+  //       await this.setState(value, ...path, state);
+  //       break;
+  //
+  //   }
+  //
+  // }
+  //
+  // async set(value, ...path) {
+  //
+  //   if (this.pastedValue) {
+  //     this.pastedValue = false;
+  //     const data = value[0].split(/[\r\n]/).map(row => row.split("\t"));
+  //     const field = this.getChild(...path);
+  //     const index = this.resource.columns.find(column => column.field.resource.key === path.pop()).field.index;
+  //     const point = {
+  //       x: this.grid.colMap(field),
+  //       y: this.grid.rowMap(field),
+  //     };
+  //     await this.importSelection(data, point);
+  //     break;
+  //
+  //   }
+  //
+  //
+  //   switch (context) {
+  //
+  //     // case "value":
+  //     //   await this.super.set(value, ...path, context); // -> buffer
+  //     //   break;
+  //
+  //     case "pastedvalue":
+  //       const data = value[0].split(/[\r\n]/).map(row => row.split("\t"));
+  //       const field = this.getChild(...path);
+  //       const point = {
+  //         x: this.grid.colMap(field),
+  //         y: this.grid.rowMap(field),
+  //       };
+  //       await this.importSelection(data, point);
+  //       break;
+  //
+  //     case "set":
+  //
+  //
+  //
+  //     default:
+  //       await this.super.set(value, ...path, context);
+  //       break;
+  //
+  //   }
+  //
+  // }
+
 
   async importSelection(data, selection) {
 
@@ -151,7 +182,7 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.formHi
 
     const {x, y, width, height} = {...r, ...selection};
 
-    let ids = await super.get("ids");
+    let ids = await super.getValue("ids");
 
     // for (let j = 0; j < Math.max(height, data.length); j++) {
     //   const rowField = this.getChild(ids[j+y]);
@@ -192,7 +223,7 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.formHi
         }
       }
 
-      this.nextup(selection);
+      this.save("import-selection");
 
     //   KarmaFieldsAlpha.History.backup();
     //
@@ -246,8 +277,8 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.formHi
   registerCell(element, col, row, field) {
 
     this.grid.set(col, row, element);
-    this.colMap.set(field, col);
-    this.rowMap.set(field, row);
+    // this.colMap.set(field, col);
+    // this.rowMap.set(field, row);
 
     element.onmousedown = event => {
       this.endSelection();
@@ -477,12 +508,12 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.formHi
         // const order = await this.parent.fetchValue(null, "order");
         // const orderby = await this.parent.fetchValue(null, "orderby");
 
-        const ids = await this.get("ids");
-        const page = await this.get("page");
-        const ppp = await this.get("ppp");
-        const columns = await this.get("columns");
-        const order = await this.get("order");
-        const orderby = await this.get("orderby");
+        const ids = await this.getArray("ids");
+        const page = await this.getNumber("page");
+        const ppp = await this.getNumber("ppp");
+        const columns = await this.getArray("columns");
+        const order = await this.getString("order");
+        const orderby = await this.getString("orderby");
 
 
         console.log(ids, page, ppp, columns, order, orderby);

@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.input {
+KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.field {
 
   constructor(resource, parent, form) {
     super(resource, parent, form);
@@ -9,34 +9,34 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.input {
 
   }
 
-  // async exportValue() {
-  //
-  //   const array = await this.fetchValue() || [];
-  //   const value = array[0];
-  //
-  //   if (value && Number(value)) {
-  //     return this.getFile(value).original_src;
-  //   }
-  //
-  //   return "";
-  //
-  // }
-  //
-  // async importValue(value) {
-  //
-  //   if (value && !this.getFile(value)) {
-  //     await this.fetchIds([value]);
-  //   }
-  //
-  //   if (this.getFile(value)) {
-  //     this.input([value]);
-  //   }
-  //
-  //
-  //
-  // }
+  async getArray() {
+
+    const event = this.createEvent({
+      action: "get",
+      type: "array",
+      // default: await this.getDefault()
+    });
+
+    await this.dispatch(event);
+
+    return event.getValue();
+  }
 
 
+  async setArray(value) {
+
+    const event = this.createEvent({
+      action: "set",
+      type: "array",
+      backup: "always",
+      autosave: this.resource.autosave
+    });
+
+    event.setValue(value);
+
+    await this.dispatch(event);
+
+  }
 
   createUploader(resource) {
     const uploader = {};
@@ -64,8 +64,8 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.input {
         uploader.addFrame.on("select", async () => {
           let attachments = uploader.addFrame.state().get("selection").toJSON().map(attachment => attachment);
           if (attachments[0] && attachments[0].id) {
-            uploader.imageId = attachments[0].id.toString();
-            await this.input(uploader.imageId);
+            uploader.imageId = attachments[0].id;
+            await this.setArray([attachments[0].id]);
             await this.render();
           }
         });
@@ -80,18 +80,6 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.input {
     }
     return uploader;
   }
-
-  // fetch(queryString) {
-  // getRemoteOptions(queryString) {
-  //   return super.getRemoteOptions(queryString, this.resource.driver || "attachment");
-	// 	// return KarmaFieldsAlpha.Form.fetch2(this.resource.driver || "attachment", queryString);
-  // }
-
-  // convert(value) {
-  //   return value.toString();
-  // }
-
-
 
 
   getDefault() {
@@ -182,7 +170,7 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.input {
           event.preventDefault();
           // await this.backup();
           // await this.editValue(this.resource.empty || "");
-          await this.input([]);
+          await this.setArray([]);
           await this.render();
         };
       }
@@ -205,25 +193,25 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.input {
           update: async frame => {
             frame.element.classList.add("loading");
 
-            let value = await this.get() || [];
+            let array = await this.getArray();
 
-            value = await this.validate(value);
+            array = await this.validate(array);
 
-            let modified = await this.isModified();
+            // let modified = await this.isModified();
 
-            frame.element.classList.toggle("has-image", Boolean(value[0]));
+            frame.element.classList.toggle("has-image", array.length > 0);
 
             frame.children = [
-              this.buildImageContainer(value[0]),
+              this.buildImageContainer(array[0]),
               this.buildAddButton()
             ];
 
-            frame.element.classList.toggle("modified", modified);
+            // frame.element.classList.toggle("modified", modified);
 
             frame.element.onclick = event => {
               event.preventDefault();
               if (!this.resource.readonly) {
-                this.uploader.open(value[0]);
+                this.uploader.open(array[0]);
               }
             };
           },
@@ -234,10 +222,10 @@ KarmaFieldsAlpha.fields.file = class extends KarmaFieldsAlpha.fields.input {
         {
           class: "field-control",
           update: async container => {
-            let value = await this.get() || [];
-            value = await this.validate(value);
+            let array = await this.getArray();
+            array = await this.validate(array);
 
-            if (value[0]) {
+            if (array.length) {
               container.children = [this.buildDeleteButton()];
             } else {
               container.children = [];

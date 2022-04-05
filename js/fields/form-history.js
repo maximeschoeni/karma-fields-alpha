@@ -4,71 +4,83 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 	constructor(...args) {
 		super(...args);
 
-		// this.history = new KarmaFieldsAlpha.LocalStorage("history");
 		this.history = new KarmaFieldsAlpha.Buffer("history", this.resource.id || this.getId());
 
 	}
 
-	async set(value, ...path) {
+	async dispatch(event) {
 
-		await super.set(value, ...path);
+		switch (event.action) {
 
-		this.writeHistory(value, ...path);
-
-	}
-
-	async remove(...path) {
-
-		await super.remove(...path);
-
-		this.writeHistory(null, ...path);
-
-	}
-
-	async setState(value, ...path) {
-
-		const key = path.pop();
-
-		switch (context) {
-
-			case "write": {
-				let value = await super.get(...path) || null;
-				this.writeHistory(value, ...path);
+			case "backup":
+				await this.write(...event.path);
 				break;
-			}
 
-			case "nextup": {
-				this.nextup(path.join("/"));
+			case "save":
+				this.save(event.id);
 				break;
-			}
+
+			case "backup&save":
+				await this.write(...event.path);
+				this.save();
+				break;
+
+			case "set":
+				if (event.backup === "once") {
+					const id = event.path.join("/");
+					if (id !== this.historyId) {
+						await this.write(...event.path);
+						this.save(id);
+						// this.historyId = id;
+					}
+				} else if (event.backup === "always") {
+					await this.write(...event.path);
+					this.save();
+					// this.historyId = null;
+				}
+				await super.dispatch(event);
+				this.writeHistory(event.getArray(), ...event.path);
+				break;
 
 			default:
-				await super.setState(value, ...path, key);
+				await super.dispatch(event);
 				break;
 
 		}
 
-  }
+		return event;
+	}
 
 
-	nextup(id) {
 
-		if (!id || id !== this.historyId) {
+	async write(...path) {
 
-			// -> increase index and max
-			let index = this.history.get(location.hash, "index") || 0;
-			index++;
+		const event = this.createEvent({
+			action: "get",
+			type: "array",
+			path: [...path]
+		});
 
-			this.history.set(index, location.hash, "index");
-			this.history.set(index, location.hash, "max");
+		await super.dispatch(event);
 
-			// erase history forward
-			if (this.history.has(location.hash, index)) {
-				this.history.remove(location.hash, index);
-			}
+		this.writeHistory(event.getArray(), ...path);
+	}
 
-			this.historyId = id;
+	save(id) {
+
+		// -> increase index and max
+		let index = this.history.get("index") || 0;
+		index++;
+
+		this.history.set(index, "index");
+		this.history.set(index, "max");
+
+		// erase history forward
+		if (this.history.has(index)) {
+			this.history.remove(index);
 		}
+
+		this.historyId = id;
 
 	}
 
@@ -76,61 +88,93 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 
 	writeHistory(value, ...path) {
 
-
 		// KarmaFieldsAlpha.History.write(value, this.resource.driver || this.resource.key, ...path);
-		const index = this.history.get(location.hash, "index") || 0;
+		const index = this.history.get("index") || 0;
 
-		this.history.set(value, location.hash, index, ...path);
+		this.history.set(value, index, ...path);
+		this.history.set(location.hash, "hash", index);
 
 	}
 
+	getHash() {
+		let index = this.history.get("index") || 0;
+		return this.history.get("hash", index);
+	}
+
 	undo() {
-		let index = this.history.get(location.hash, "index") || 0;
+		let index = this.history.get("index") || 0;
 
 		if (index > 0) {
 
 			// decrement index and save
 			index--;
-			this.history.set(index, location.hash, "index");
+			this.history.set(index, "index");
 
 			// rewind previous state
-			const state = this.history.get(location.hash, index) || {};
+			const state = this.history.get(index) || {};
 			this.buffer.merge(state);
 
 			// clear history id
 			this.historyId = undefined;
+
+			// let hash = this.history.get("hash", index);
+
+			// await super.dispatch(this.createEvent({
+			// 	action: "undo",
+			// 	hash: hash
+			// }));
+
+			// if (location.hash !== hash) {
+			// 	location.hash = hash;
+			// } else {
+			// 	// this.triggerListeners();
+			// }
+
 		}
 
 	}
 
 	hasUndo() {
-		const index = this.history.get(location.hash, "index") || 0;
+		const index = this.history.get("index") || 0;
 		return index > 0;
 	}
 
 	redo() {
-		let index = this.history.get(location.hash, "index") || 0;
-		let max = this.history.get(location.hash, "max") || 0;
+		let index = this.history.get("index") || 0;
+		let max = this.history.get("max") || 0;
+		// let hash = this.history.get("hash", index);
 
 		if (index < max) {
 
 			// increment index and save
 			index++;
-			this.history.set(index, location.hash, "index");
+			this.history.set(index, "index");
 
 			// merge state in delta
-			const state = this.history.get(location.hash, index) || {};
+			const state = this.history.get(index) || {};
 			this.buffer.merge(state);
 
 			// clear history id
 			this.historyId = undefined;
+
+
+			// await super.dispatch(this.createEvent({
+			// 	action: "redo",
+			// 	hash: hash
+			// }));
+
+			// if (location.hash !== hash) {
+			// 	location.hash = hash;
+			// } else {
+			// 	await this.triggerListeners();
+			// }
 		}
 
 	}
 
 	hasRedo() {
-		const index = this.history.get(location.hash, "index") || 0;
-		const max = this.history.get(location.hash, "max") || 0;
+		const index = this.history.get("index") || 0;
+		const max = this.history.get("max") || 0;
 		return index < max;
 	}
 
