@@ -19,7 +19,9 @@ KarmaFieldsAlpha.Buffer = class {
   }
 
   empty() {
-    KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.buffer, ...this.path);
+
+    this.setObject({});
+    // KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.buffer, ...this.path);
   }
 
   get(...path) {

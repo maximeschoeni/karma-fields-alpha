@@ -4,7 +4,7 @@
 
 Class Karma_Fields_Alpha {
 
-	public $version = '33';
+	public $version = '34';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -21,6 +21,12 @@ Class Karma_Fields_Alpha {
 	public function __construct() {
 
 		add_action('init', array($this, 'init'));
+
+
+		// fix https://core.trac.wordpress.org/ticket/54568
+		add_action('admin_init', function() {
+			remove_action( 'admin_head', 'wp_admin_canonical_url' );
+		});
 
 		add_action('rest_api_init', array($this, 'rest_api_init'));
 
@@ -128,15 +134,17 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-navigation', $plugin_url . '/js/fields/navigation.js', array('karma-fields-alpha-group'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-separator', $plugin_url . '/js/fields/separator.js', array('karma-fields-alpha-field'), $this->version, true);
 
+
 				// beta
 				wp_enqueue_script('karma-fields-alpha-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-alpha-input'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-gallery', $plugin_url . '/js/fields/gallery.js', array('karma-fields-alpha-field'), $this->version, true);
 
 				// table
 				wp_enqueue_script('karma-fields-alpha-table', $plugin_url . '/js/fields/table.js', array('karma-fields-alpha-field'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-table-gateway', $plugin_url . '/js/fields/table-gateway.js', array('karma-fields-alpha-gateway'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-table-grid', $plugin_url . '/js/fields/table-grid.js', array('karma-fields-alpha-form-history'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-table-options', $plugin_url . '/js/fields/table-options.js', array('karma-fields-alpha-text'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-table-row', $plugin_url . '/js/fields/table-row.js', array('karma-fields-alpha-text'), $this->version, true);
+				// wp_enqueue_script('karma-fields-alpha-table-row', $plugin_url . '/js/fields/table-row.js', array('karma-fields-alpha-text'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-tables', $plugin_url . '/js/fields/tables.js', array(
 					'karma-fields-alpha-field'
 					// 'karma-fields-alpha-table',

@@ -186,6 +186,9 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 				dropdown.element.onchange = async event => {
 
 					dropdown.element.classList.add("editing");
+					// if (this.resource.autosave) {
+					// 	dropdown.element.parentNode.classList.add("autosaving");
+					// }
 
 					// -> compat
 					if (this.resource.retrodependencies) {
@@ -203,12 +206,15 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 					await this.setValue(dropdown.element.value);
 
-					// dropdown.element.classList.toggle("modified", await this.isModified());
+					dropdown.element.parentNode.classList.toggle("modified", await this.isModified());
+					// if (this.resource.autosave) {
+					// 	dropdown.element.parentNode.classList.remove("autosaving");
+					// }
 					dropdown.element.classList.remove("editing");
 				}
 
 
-				// dropdown.element.classList.toggle("modified", await this.isModified());
+
 
 				if (this.resource.disabled) {
 					dropdown.element.disabled = await this.parent.check(this.resource.disabled);
@@ -217,6 +223,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 					dropdown.element.parentNode.classList.toggle("active", await this.parent.check(this.resource.hidden));
 				}
 
+				dropdown.element.parentNode.classList.toggle("modified", await this.isModified());
 				dropdown.element.classList.remove("loading");
 			}
 		};

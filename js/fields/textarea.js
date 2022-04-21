@@ -20,9 +20,6 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				input.element.classList.add("loading");
 				input.element.value = "";
 
-				let value = await this.getValue();
-				let modified = await this.isModified();
-
 				input.element.oninput = async event => {
 					// input.element.classList.add("editing");
 					// await this.backup();
@@ -35,7 +32,7 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 					this.throttle(async () => {
 						await this.setValue(input.element.value);
 
-						input.element.classList.toggle("modified", await this.isModified());
+						input.element.parentNode.classList.toggle("modified", await this.isModified());
 						// input.element.classList.remove("editing");
 					});
 
@@ -45,8 +42,8 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 					// input.element.classList.toggle("modified", modified);
 				};
 
-				input.element.value = value;
-				input.element.classList.toggle("modified", modified);
+				input.element.value = await this.getValue();
+				input.element.parentNode.classList.toggle("modified", await this.isModified());
 				input.element.classList.remove("loading");
 				// input.element.disabled = this.getState() === "disabled";
 			}

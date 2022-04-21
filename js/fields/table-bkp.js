@@ -447,8 +447,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       }
 
       case "edit-selection":
-        // console.log("edit-selection");
-        // debugger;
         await this.controls.render();
         // this.updateGridClasses();
         break;
@@ -520,14 +518,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         // await this.triggerListeners();
 
         await this.grid.render();
-        await this.interface.render();
         break;
 
       case "delete": {
         const selectedIds = await this.getSelectedIds();
-
-
-
         await this.remove(selectedIds);
         // this.clearQuery();
         // this.clearCount();
@@ -535,8 +529,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         // await this.grid.triggerListeners();
         // await this.triggerListeners();
         await this.grid.render();
-        await this.interface.render();
-        // document.activeElement.blur();
         break;
       }
 
@@ -549,8 +541,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         // await this.render(1);
         // await this.grid.triggerListeners();
         await this.grid.render();
-        await this.controls.render();
-        await this.interface.render();
         break;
 
       case "undo": {
@@ -564,7 +554,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         } else {
           await this.grid.render();
           await this.controls.render();
-          await this.interface.render();
         }
 
 
@@ -584,7 +573,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
           this.grid.redo();
           await this.grid.render();
           await this.controls.render();
-          await this.interface.render();
         }
 
         // await this.triggerListeners();
@@ -665,8 +653,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       //   return this.getHeaderValue(...path);
 
       case "selection":
-        return this.interface.hasRowSelected();
-        // return (await this.getSelectedIds()).length > 0;
+
+        return (await this.getSelectedIds()).length > 0;
 
       case "undo":
         return this.grid.hasUndo();
@@ -726,7 +714,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         break;
 
       default: // -> filters
-        this.setParam(1, "page");
         this.setParam(value[0], key);
         this.clearCount();
         this.clearQuery();
@@ -1426,10 +1413,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
   async getSelectedIds() {
     if (this.hasParam("id")) {
       return [this.getParam("id")];
-      // } else if (this.interface.selection && this.interface.selection.width === this.interface.elementsMap.width) {
-      //   const ids = await this.getIds();
-      //   return ids.slice(this.interface.selection.y, this.interface.selection.y + this.interface.selection.height);
-    } else if (this.interface.hasRowSelected()) {
+    } else if (this.interface.selection && this.interface.selection.width === this.interface.elementsMap.width) {
       const ids = await this.getIds();
       return ids.slice(this.interface.selection.y, this.interface.selection.y + this.interface.selection.height);
     }
@@ -1542,7 +1526,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
                           }
                           // await this.parent.edit("order");
                           this.tablePromise = null;
-                          await this.grid.render();
+                          await this.renderGrid();
                           a.element.parentNode.classList.remove("loading");
                         };
                       }
@@ -1848,7 +1832,6 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
     this.elementsMap = new KarmaFieldsAlpha.Grid();
     this.fieldsMap = new KarmaFieldsAlpha.Grid();
-    this.indexMap = {};
 
 
     // document.body.appendChild(this.ta);
@@ -1856,8 +1839,6 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
   }
 
   async importData(data, field) {
-
-    console.log("import data");
 
     const point = field && this.fieldsMap.find(field) || {};
 
@@ -1890,7 +1871,14 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
   }
 
+  async editSelection() {
+    const request = this.createEvent({
+      action: "edit-selection"
+    });
 
+    await this.dispatch(request);
+    await this.render();
+  }
 
   registerTable(element) {
 
@@ -1898,261 +1886,217 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
     this.elementsMap = new KarmaFieldsAlpha.Grid();
     this.fieldsMap = new KarmaFieldsAlpha.Grid();
-    this.indexMap = {};
 
   }
 
   registerCell(element, col, row, field) {
 
+
+
     this.elementsMap.set(element, col, row);
     this.fieldsMap.set(field, col, row);
 
-    const onMouseUp = event => {
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousemove", onMouseMove);
-      this.selecting = false;
-      this.editSelection();
+    element.onmousedown = event => {
+      if (event.shiftKey) {
+        this.growSelection({x: col, y:row, width: 1, height: 1});
+      } else {
+        this.startSelection({x: col, y:row, width: 1, height: 1});
+      }
     }
 
-    const onMouseMove = event => {
+    element.onmousemove = event => {
+
+
+      if (event.buttons === 1) {
+        this.growSelection({x: col, y:row, width: 1, height: 1});
+      }
+    }
+
+    element.onmouseup = event => {
+
+
+
+      // for firefox -> Firefox does not fire event for other elements when button is down
       const elementUnderPoint = document.elementFromPoint(event.clientX, event.clientY);
       const target = elementUnderPoint && elementUnderPoint.closest(".td");
       const point = target && this.elementsMap.find(target);
       if (point) {
         this.growSelection({...point, width: 1, height: 1});
       }
+      // if (this.selection && this.selection.width*this.selection.height === 1 && elementUnderPoint) {
+      //   elementUnderPoint.focus();
+      //
+      //   // const sel = window.getSelection();
+      //   // const range = document.createRange();
+      //   // range.selectNodeContents(elementUnderPoint);
+      //   // sel.removeAllRanges();
+      //   // sel.addRange(range);
+      //
+      // }
+
     }
 
-    element.onmousedown = event => {
-      this.selecting = true;
-      if (event.shiftKey) {
-        event.preventDefault(); // -> prevent focus lose on TA
-        this.growSelection({x: col, y:row, width: 1, height: 1});
-      } else {
-        this.startSelection({x: col, y:row, width: 1, height: 1});
-      }
-      document.addEventListener("mouseup", onMouseUp);
-      document.addEventListener("mousemove", onMouseMove);
-    }
-
-    // element.onfocusin = event => {
-    //   this.focusTarget = event.target;
-    // }
 
 
   }
 
   registerIndex(element, row) {
 
-    this.indexMap[row] = element;
-
-    const onMouseUp = event => {
-      document.removeEventListener("mouseup", onMouseUp);
-      this.selecting = false;
-      this.editSelection();
-    }
-
     element.onmousedown = event => {
-      this.selecting = true;
+      // event.preventDefault();
       if (event.shiftKey) {
-        event.preventDefault(); // -> prevent focus lose on TA
+        // event.preventDefault();
         this.growSelection({x: 0, y: row, width: this.elementsMap.width, height: 1});
       } else {
-        this.startSelection({x: 0, y: row, width: this.elementsMap.width, height: 1});
+        this.toggleSelection({x: 0, y: row, width: this.elementsMap.width, height: 1});
       }
-      document.addEventListener("mouseup", onMouseUp);
     }
 
-    element.onmouseover = event => {
-      if (this.selecting && event.buttons === 1) {
+    element.onmousemove = event => {
+      if (event.buttons === 1) {
         this.growSelection({x: 0, y: row, width: this.elementsMap.width, height: 1});
       }
     }
-
   }
 
   registerHeader(element, col) {
 
-    const onMouseUp = event => {
-      document.removeEventListener("mouseup", onMouseUp);
-      this.selecting = false;
-      this.editSelection();
-    }
-
     element.onmousedown = event => {
-      this.selecting = true;
-      if (event.shiftKey) {
-        event.preventDefault(); // -> prevent focus lose on TA
-        this.growSelection({x: col, y: 0, width: 1, height: this.elementsMap.height});
-      } else {
-        this.startSelection({x: col, y: 0, width: 1, height: this.elementsMap.height});
-      }
-      document.addEventListener("mouseup", onMouseUp);
+      event.preventDefault();
+      this.toggleSelection({x: col, y: 0, width: 1, height: this.elementsMap.height});
     }
 
-    element.onmouseover = event => {
-      if (this.selecting && event.buttons === 1) {
+    element.onmousemove = event => {
+      if (event.buttons === 1) {
         this.growSelection({x: col, y: 0, width: 1, height: this.elementsMap.height});
       }
     }
-
   }
 
   registerHeaderIndex(element) {
 
-    const onMouseUp = event => {
-      document.removeEventListener("mouseup", onMouseUp);
-      this.selecting = false;
-      this.editSelection();
-    }
-
     element.onmousedown = event => {
-      this.selecting = true;
-      this.startSelection({x: 0, y: 0, width:this.elementsMap.width, height:this.elementsMap.height});
-      document.addEventListener("mouseup", onMouseUp);
+      event.preventDefault();
+      this.toggleSelection({x:0, y:0, width:this.elementsMap.width, height:this.elementsMap.height});
     }
 
-    element.onmouseover = event => {
-      if (this.selecting && event.buttons === 1) {
-        this.growSelection({x: 0, y: 0, width:this.elementsMap.width, height:this.elementsMap.height});
+    element.onmousemove = event => {
+      if (event.buttons === 1) {
+        this.growSelection({x: 0, y :0, width: this.elementsMap.width, height: this.elementsMap.height});
       }
     }
-
-    // element.onmousedown = event => {
-    //   event.preventDefault();
-    //   this.toggleSelection({x:0, y:0, width:this.elementsMap.width, height:this.elementsMap.height});
-    // }
-    //
-    // element.onmousemove = event => {
-    //   if (event.buttons === 1) {
-    //     this.growSelection({x: 0, y :0, width: this.elementsMap.width, height: this.elementsMap.height});
-    //   }
-    // }
   }
 
   growSelection(r) {
+
     if (this.focusRect) {
       r = KarmaFieldsAlpha.Rect.union(this.focusRect, r);
     } else {
       this.focusRect = r;
     }
 
-    // if (!this.selection) {
-    //   this.selection = r;
-    //   this.paint(this.selection);
-    // } else if (!KarmaFieldsAlpha.Rect.equals(this.selection, r)) {
-    //   this.unpaint(this.selection);
-    //   this.selection = r;
-    //   this.paint(this.selection);
-    // }
 
 
-    if (!this.selection || !KarmaFieldsAlpha.Rect.equals(this.selection, r)) {
-      // if (this.selection) {
-      //   this.unpaint(this.selection);
-      // }
-      // this.selection = r;
-      // if (this.selection.width*this.selection.height > 1) {
-      //   this.paint(this.selection);
-      // }
-      this.deltaSelection(r);
-      this.hasSelection = true;
-    }
+    if (r.width*r.height > 1) {
 
 
-  }
 
-  deltaSelection(r) {
-    if (this.selection) {
+      if (this.selection) {
+
+        if (!KarmaFieldsAlpha.Rect.equals(this.selection, r)) {
+
+          this.unpaint(this.selection);
+          this.selection = r;
+          this.paint(this.selection);
+          // this.updateTA();
+          // this.grid.triggerListeners();
+
+
+          this.editSelection();
+
+
+        }
+
+      } else {
+
+        this.selection = r;
+        this.paint(this.selection);
+        // this.updateTA();
+        // this.grid.triggerListeners();
+
+
+        this.editSelection();
+
+      }
+
+    } else if (this.selection) {
+
       this.unpaint(this.selection);
+
+      this.selection = null;
+      // this.updateTA();
+      // this.grid.triggerListeners();
+
+
+      this.editSelection();
+
     }
-    this.selection = r;
-    if (this.selection.width*this.selection.height > 1) {
-      this.paint(this.selection);
-    }
+
   }
 
   startSelection(r) {
+    this.endSelection();
     this.focusRect = r;
-    // if (this.selection) {
-    //   this.unpaint(this.selection);
-    // }
-    // this.selection = r;
-    // if (this.selection.width*this.selection.height > 1) {
-    //   this.paint(this.selection);
-    // }
-    this.deltaSelection(r);
-    this.hasSelection = true;
+    this.editSelection();
   }
 
-  // toggleSelection(r) {
-  //   if (this.selection && KarmaFieldsAlpha.Rect.equals(this.selection, r)) {
-  //     this.endSelection();
-  //   } else {
-  //     this.startSelection(r);
-  //   }
-  // }
+  toggleSelection(r) {
+    if (this.selection && KarmaFieldsAlpha.Rect.equals(this.selection, r)) {
+      this.endSelection();
+    } else {
+      this.startSelection(r);
+      this.growSelection(r);
+    }
+    this.editSelection();
+  }
 
   endSelection() {
+
     if (this.selection) {
       this.unpaint(this.selection);
       this.selection = null;
-      this.hasSelection = false;
+      // this.focusRect = null;
+      // this.updateTA();
+      // this.grid.triggerListeners();
+      // const content = this.grid.getChild("content");
+      // const event = content.createEvent({
+      //   splash: true
+      // });
+      // content.dispatch(event);
+
     }
   }
 
-  hasRowSelected() {
-    return this.selection && this.selection.x === 0 && this.selection.width === this.elementsMap.width || false;
-  }
-  hasCellsSelected() {
-    return this.selection && (this.selection.width*this.selection.height > 1) || false;
-  }
-
-  editSelection() {
-    const request = this.createEvent({
-      action: "edit-selection"
-    });
-
-    this.dispatch(request);
-    this.render();
-  }
-
   paint(rect) {
-    // console.log("paint");
-    // console.time("paint");
-    for (let j = rect.y; j < rect.y + rect.height; j++) {
-      if (rect.x === 0 && rect.width === this.elementsMap.width) {
-        if (this.indexMap[j]) {
-          this.indexMap[j].classList.add("selected");
-        }
-      }
-      for (let i = rect.x; i < rect.x + rect.width; i++) {
+    for (let i = rect.x; i < rect.x + rect.width; i++) {
+      for (let j = rect.y; j < rect.y + rect.height; j++) {
         let element = this.elementsMap.get(i, j);
         if (element) {
           element.classList.add("selected");
         }
       }
     }
-    // console.timeEnd("paint");
   }
 
   unpaint(rect) {
-    // console.log("unpaint");
-    // console.time("unpaint");
-    for (let j = rect.y; j < rect.y + rect.height; j++) {
-      if (rect.x === 0 && rect.width === this.elementsMap.width) {
-        if (this.indexMap[j]) {
-          this.indexMap[j].classList.remove("selected");
-        }
-      }
-      for (let i = rect.x; i < rect.x + rect.width; i++) {
+    for (let i = rect.x; i < rect.x + rect.width; i++) {
+      for (let j = rect.y; j < rect.y + rect.height; j++) {
         let element = this.elementsMap.get(i, j);
         if (element) {
           element.classList.remove("selected");
         }
       }
     }
-    // console.timeEnd("unpaint");
   }
 
   throttle(callback, delay = 200) {
@@ -2162,69 +2106,6 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 		this.throttleTimer = setTimeout(callback, delay);
 	}
 
-  async renderTA() {
-
-    const ta = document.createElement("textarea");
-
-    ta.onfocusout = event => {
-      const selection = this.selection;
-      this.endSelection();
-      if (selection && (this.selecting || event.shiftKey)) {
-        this.startSelection(selection);
-      } else {
-        this.editSelection();
-      }
-    }
-
-    ta.oninput = async event => {
-
-      let data = ta.element.value.split(/[\r\n]/).map(row => row.split("\t"));
-
-      await this.importData(data);
-
-      switch (event.inputType) {
-
-        case "insertFromPaste":
-        case "deleteByCut":
-        case "deleteContentBackward":
-        case "deleteContentForward":
-        case "deleteContent":
-          ta.element.blur();
-          break;
-
-      }
-
-    }
-
-    const data = [];
-
-    if (this.hasCellsSelected()) {
-
-      for (let j = 0; j < this.selection.height; j++) {
-
-        const dataRow = [];
-
-        for (let i = 0; i < this.selection.width; i++) {
-
-          const field = this.fieldsMap.get(this.selection.x + i, this.selection.y + j);
-          const value = await field.exportValue();
-
-          dataRow.push(value);
-
-        }
-
-        data.push(dataRow);
-
-      }
-
-      ta.element.focus();
-      ta.element.value = data.map(row => row.join("\t")).join("\n");
-      ta.element.select();
-
-    }
-
-  }
-
 
   build() {
     return {
@@ -2233,8 +2114,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       init: ta => {
         this.render = ta.render;
 
-        // ta.element.style = "left:-100%;position:absolute;";
-        ta.element.style = "max-height:40px";
+        ta.element.style = "left:-100%;position:absolute;";
 
         // this.render = clean => {
         //   console.log("render");
@@ -2242,13 +2122,8 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
         // };
 
         ta.element.onfocusout = event => {
-          const selection = this.selection;
           this.endSelection();
-          if (selection && (this.selecting || event.shiftKey)) {
-            this.startSelection(selection);
-          } else {
-            this.editSelection();
-          }
+          this.editSelection();
         }
 
         ta.element.oninput = async event => {
@@ -2272,15 +2147,10 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
         }
       },
       update: async ta => {
-
-        ta.element.blur();
-
-
         const data = [];
-        // if (this.hasSelection && this.selection && this.selection.width*this.selection.height > 1) {
-        // if (this.selection) {
 
-        if (this.hasCellsSelected()) {
+        if (this.selection && this.selection.width*this.selection.height > 1) {
+        // if (this.selection) {
 
           for (let j = 0; j < this.selection.height; j++) {
 
@@ -2299,31 +2169,19 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
           }
 
-
           ta.element.focus();
           ta.element.value = data.map(row => row.join("\t")).join("\n");
           ta.element.select();
 
+          this.throttle(() => {
+            ta.element.select();
+          }, 500);
 
-
-          // this.throttle(() => {
-          //   console.log("xx");
-          //   ta.element.focus();
-          //   ta.element.value = data.map(row => row.join("\t")).join("\n");
-          //   ta.element.select();
-          // }, 2000);
-
-        // } else if (this.focusTarget) {
-        //
-        //   ta.element.value = "";
-        //   this.focusTarget.focus();
-        //   this.focusTarget = null;
 
         } else {
 
-          // ta.element.value = "";
-          // ta.element.blur();
-
+          ta.element.value = "";
+          ta.element.blur();
 
         }
       }

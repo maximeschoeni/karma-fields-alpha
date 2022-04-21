@@ -3,6 +3,40 @@
 // /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
 
 
+// var block = {
+// 	blocks: [
+// 		{
+// 			columns: [
+// 				{
+// 					blocks: [
+// 						{
+// 							content: "text <a>xxx</a>",
+// 							classes: "yyy"
+// 						},
+// 						{
+// 							content: "<img>",
+// 							classes: "xxx"
+// 						},
+// 						{
+// 							columns: [
+// 								{
+// 									blocks: [
+//
+// 									]
+// 								}
+// 							]
+// 						}
+// 					]
+// 				},
+// 				{
+//
+// 				}
+// 			]
+// 		}
+// 	]
+// };
+
+
 KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.field {
 
 	constructor(...args) {
@@ -40,7 +74,8 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.field {
 				contextmenu: false,
 				toolbar: false,
 				skin: false,
-				plugins: "link lists table paste",
+				// plugins: "link lists table paste",
+				plugins: "link lists paste",
 				convert_urls: false,
 				// image_caption: true,
 				paste_postprocess: (pl, o) => {
@@ -138,6 +173,7 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.field {
 
 
 	async dispatch(event) {
+
 
 		switch (event.action) {
 
@@ -640,6 +676,7 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.field {
 								},
 								update: async popover => {
 									const modal = child.getModal();
+
 									popover.element.classList.toggle("active", this.activeModal === modal);
 									if (this.editor && this.activeModal === modal) {
 

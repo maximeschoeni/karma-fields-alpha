@@ -13,22 +13,22 @@
 
   border-radius: 0;
 
-  min-height: 0; /* override default 30px */
-  line-height: 1.5em;
+  min-height: 2.5em;
   max-width: none;
-
   font-size: 1em;
-
-  padding: 0.3269em 0.5em;
+  padding: 0 0.75em;
 
   background-color: transparent;
   /* background-color: white; */
 }
-.karma-fields input.text-input.modified,
-.karma-fields textarea.modified {
+.karma-fields textarea {
+  padding: 0.75em 0.75em;
+}
+.karma-fields .modified input.text-input,
+.karma-fields .modified textarea {
   /* color: #0c73aa; */
   color: black;
-  background-color: #0000000d;
+  /* background-color: #0000000d; */
 }
 .karma-fields input.text-input:focus,
 .karma-fields textarea:focus {
@@ -39,7 +39,7 @@
   box-shadow: none;
   box-sizing: border-box;
 
-  border-color: #2271b1;
+  /* border-color: #2271b1; */
 }
 .karma-fields input.text-input:disabled,
 .karma-fields textarea:disabled {
@@ -92,7 +92,7 @@
 }
 .table .selected input,
 .table .selected textarea {
-  background-color: white !important; /* -> must override .modified */
+  background-color: white;
 }
 
 .karma-fields .table input.text-input,
@@ -106,9 +106,9 @@
   box-shadow: none;
 
   /* bug firefox: */
-  user-drag: none;
-  -webkit-user-drag: none;
-  -moz-user-select: none;
+  /* user-drag: none;
+  -webkit-user-drag: none; */
+  /* -moz-user-select: none; */
 
 /* user-select: none;
 -webkit-user-select: none;
@@ -152,20 +152,16 @@ button.karma-button.loading,
 .karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header button.loading,
 .karma-field-table.loading .table-body  */
 {
-  /* background: repeating-linear-gradient(60deg, white 0px, white 50px, #f1f1f1 50px, #f1f1f1 100px);
-  background-size: 200% 100%;
-  animation: slide 10s infinite linear; */
 
-  background: repeating-linear-gradient(45deg, #ececec 0px, #ececec 25%, #f1f1f1 25%, #f1f1f1 50%);
-
+  /* background: repeating-linear-gradient(45deg, #ececec 0px, #ececec 25%, #f1f1f1 25%, #f1f1f1 50%);
   background-size: 100px 100px;
-  animation: slide 1s infinite linear;
+  animation: slide 1s infinite linear; */
+  background: #f1f1f1 repeating-linear-gradient(45deg, #f1f1f1 0px, #f1f1f1 25%, #c3c4c721 25%, #c3c4c721 50%);
+  background-size: 100px 100px;
+  animation: slide 4s infinite linear;
+  color: #c3c4c7 !important;
+  border-color: #c3c4c7 !important;
 }
-/* .karma-fields .loading,
-.karma-fields .editing {
-  background: repeating-linear-gradient(45deg, #d9d9d9 0px, #d9d9d9 25%, #e1e1e1 25%, #e1e1e1 50%);
-} */
-
 
 @keyframes slide {
 	100% {

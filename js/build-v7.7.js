@@ -22,35 +22,31 @@ KarmaFieldsAlpha.buildChildren = function(children, element, clean) {
 
 
 KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
-	if (args) {
-		args.render = (clean) => this.build(args, parent, args.element, clean);
-		if (!element || clean) {
-			args.element = document.createElement(args.tag || "div");
-			if (args.class) {
-				args.element.className = args.class;
-			}
-			if (element) {
-				parent.replaceChild(args.element, element);
-			} else {
-				parent.appendChild(args.element);
-			}
-
-			if (args.init) {
-				await args.init(args);
-			}
+	args.render = (clean) => this.build(args, parent, args.element, clean);
+	if (!element || clean) {
+		args.element = document.createElement(args.tag || "div");
+		if (args.class) {
+			args.element.className = args.class;
+		}
+		if (element) {
+			parent.replaceChild(args.element, element);
 		} else {
-			args.element = element;
+			parent.appendChild(args.element);
 		}
-		if (args.update) {
-			await args.update(args);
-		}
-		if (args.children || args.child) {
-			await this.buildChildren(args.children || [args.child], args.element, args.clean);
-		}
-		if (args.complete) {
-			args.complete(args);
+
+		if (args.init) {
+			await args.init(args);
 		}
 	} else {
-		console.error("missing args parameter");
+		args.element = element;
+	}
+	if (args.update) {
+		await args.update(args);
+	}
+	if (args.children || args.child) {
+		await this.buildChildren(args.children || [args.child], args.element, args.clean);
+	}
+	if (args.complete) {
+		args.complete(args);
 	}
 };

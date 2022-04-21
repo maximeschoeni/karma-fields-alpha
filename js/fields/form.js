@@ -4,7 +4,9 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 	constructor(...args) {
 		super(...args);
 
-		this.buffer = new KarmaFieldsAlpha.Buffer("form", this.resource.id || this.getId());
+		// this.buffer = new KarmaFieldsAlpha.Buffer("form", this.resource.id || this.getId());
+		this.buffer = new KarmaFieldsAlpha.LocalStorage("form", this.resource.id || this.getId());
+
 
 		this.listeners = [];
 	}
@@ -125,8 +127,6 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 				} else {
 					const path = [...event.path];
 					await super.dispatch(event);
-
-
 					if (!event.hasValue() && event.default) { // -> event.default is a promise
 						value = await event.default;
 						this.buffer.set(value, ...path);

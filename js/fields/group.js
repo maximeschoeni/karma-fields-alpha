@@ -81,7 +81,7 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 		}
 
-		if (event.splash) {
+		if (event.splash || event.action === "set") {
 			// event.splash = false;
 			// await this.splash(event);
 			for (let child of this.children) {
@@ -154,6 +154,10 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 				if (this.resource.container && this.resource.container.style) {
 					group.element.style = this.resource.container.style;
 				}
+				if (this.resource.class) {
+					group.element.classList.add(this.resource.class);
+				}
+
 				// this.hide = hidden => {
 				// 	group.element.parentNode.classList.toggle("hidden", hidden);
 				// }

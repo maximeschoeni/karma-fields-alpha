@@ -62,7 +62,7 @@ KarmaFieldsAlpha.fields.presets = class {
   static currentpage = {
     id: "currentpage",
 		type: "text",
-    style: "justify-content:center",
+    style: "min-width: 4em;text-align: right;",
     value: "{{page}} / {{numpage}}",
     // hidden: "numpage=1",
     // dynamic: true
@@ -124,7 +124,8 @@ KarmaFieldsAlpha.fields.presets = class {
 		type: "button",
     action: "save",
     title: "Save",
-    disabled: "!modified"
+    disabled: "!modified",
+    primary: true
   }
 
 	static add = {

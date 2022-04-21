@@ -1,6 +1,8 @@
 
 KarmaFieldsAlpha.fields.field = class Field {
 
+  static fieldId = 0;
+
   constructor(resource, parent, deprecated = null) {
     this.parent = parent;
 		this.children = [];
@@ -9,7 +11,7 @@ KarmaFieldsAlpha.fields.field = class Field {
 
     this.listeners = [];
 
-		this.fieldId = this.constructor.fieldId++;
+		this.fieldId = KarmaFieldsAlpha.fields.field.fieldId++;
 
     // if (this.resource.children) {
   	// 	for (let i = 0; i < this.resource.children.length; i++) {
@@ -669,11 +671,21 @@ KarmaFieldsAlpha.fields.field = class Field {
         event.path.shift();
       } else {
 
+
+        event.relativeIndex.set(this, event.index--);
+
+        event.relativePath.set(this, [...event.path]);
         event.path.unshift(this.resource.key);
+
       }
       // event.path = [this.resource.key, ...event.path];
     }
     if (this.parent) {
+
+      event.dispatcher = this;
+      event.relativeDispatcher.set(this.parent, this);
+
+
       await this.parent.dispatch(event, this);
 
       // if (event.splash) {
@@ -698,7 +710,7 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 };
 
-KarmaFieldsAlpha.fields.field.fieldId = 1;
+// KarmaFieldsAlpha.fields.field.fieldId = 1;
 
 // KarmaFieldsAlpha.Value = class {
 //

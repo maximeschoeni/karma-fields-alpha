@@ -17,6 +17,12 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
 	}
 
+  async splash(request) {
+		for (let child of this.children) {
+			await child.splash(request);
+		}
+	}
+
   async update() {
     // noop
   }
@@ -205,28 +211,28 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
     return event;
   }
 
-  async backup(value) {
-
-    if (this.resource.key) {
-
-      await super.dispatch(this.createEvent({
-        action: "backup"
-      }));
-
-    } else {
-
-      // const keys = this.resource.columns.filter(column => column.field.key).map(column => column.field.key);
-      const keys = this.resource.children.filter(column => column.key).map(column => column.key);
-
-      for (let key in keys) {
-        await super.dispatch(this.createEvent({
-          action: "backup",
-          path: [key]
-        }));
-  		}
-
-    }
-  }
+  // async backup(value) {
+  //
+  //   if (this.resource.key) {
+  //
+  //     await super.dispatch(this.createEvent({
+  //       action: "backup"
+  //     }));
+  //
+  //   } else {
+  //
+  //     // const keys = this.resource.columns.filter(column => column.field.key).map(column => column.field.key);
+  //     const keys = this.resource.children.filter(column => column.key).map(column => column.key);
+  //
+  //     for (let key in keys) {
+  //       await super.dispatch(this.createEvent({
+  //         action: "backup",
+  //         path: [key]
+  //       }));
+  // 		}
+  //
+  //   }
+  // }
 
 
   createRow() {
@@ -887,7 +893,7 @@ KarmaFieldsAlpha.fields.arrayRow = class extends KarmaFieldsAlpha.fields.field {
 		return value;
 	}
 
-  async dispatch(event) {
+  async dispatch(event, parent) {
 
     switch (event.action) {
 
@@ -895,18 +901,26 @@ KarmaFieldsAlpha.fields.arrayRow = class extends KarmaFieldsAlpha.fields.field {
         await super.dispatch(event);
         // this.update();
 
-        for (let listener of this.listeners) await listener();
+        // for (let listener of this.listeners) await listener();
         break;
 
-      case "listen":
-        this.listeners.push(event.callback);
-        break;
+      // case "listen":
+      //   this.listeners.push(event.callback);
+      //   break;
 
       default:
         await super.dispatch(event);
         break;
 
     }
+
+    if (event.splash || event.action === "set") {
+			for (let child of this.children) {
+				if (child !== parent) {
+					await child.splash(event);
+				}
+			}
+		}
 
     return event;
   }

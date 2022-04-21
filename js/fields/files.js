@@ -58,7 +58,7 @@ KarmaFieldsAlpha.fields.files = class extends KarmaFieldsAlpha.fields.file {
             // await field.backup();
             // field.setValue(items.map(item => item.attributes.id.toString()));
             // field.edit();
-            await field.setValue(items.map(item => item.attributes.id));
+            await field.setArray(items.map(item => item.attributes.id));
             field.render();
           });
 

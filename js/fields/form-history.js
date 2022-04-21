@@ -4,7 +4,9 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 	constructor(...args) {
 		super(...args);
 
-		this.history = new KarmaFieldsAlpha.Buffer("history", this.resource.id || this.getId());
+		// this.history = new KarmaFieldsAlpha.Buffer("history", this.resource.id || this.getId());
+
+		this.history = new KarmaFieldsAlpha.LocalStorage("history", this.resource.id || this.getId());
 
 	}
 
@@ -25,7 +27,7 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 				this.save();
 				break;
 
-			case "set":
+			case "set": {
 				if (event.backup === "once") {
 					const id = event.path.join("/");
 					if (id !== this.historyId) {
@@ -38,9 +40,12 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 					this.save();
 					// this.historyId = null;
 				}
+				const path = [...event.path]; // -> prevent append "content"
 				await super.dispatch(event);
-				this.writeHistory(event.getArray(), ...event.path);
+
+				this.writeHistory(event.getArray(), ...path);
 				break;
+			}
 
 			default:
 				await super.dispatch(event);

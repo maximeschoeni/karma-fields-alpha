@@ -2,15 +2,11 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 
 	static valueReg = /\{\{(?:value::)?(.*?)(?:::(.*))?\}\}/;
 	static dateReg = /\{\{date::(.*?)::(.*)\}\}/;
-
 	static loopReg = /\{\{for::(.*?)\}\}(.*?)\{\{end\}\}/;
-
 	static ifReg = /\{\{if::(.+?)\}\}(.*?)\{\{end\}\}/;
 	static elseifReg = /(.*?)\{\{elseif::(.+?)\}\}/;
 	static elseReg = /(.*?)\{\{else\}\}/;
-
 	static allSingleReg = /\{\{(.*?)\}\}/g;
-
 	static paramReg = /\{\{param::(.*?)(?:::(.*?))?\}\}/;
 
 
@@ -288,6 +284,7 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 			tag: this.resource.tag,
 			class: "text karma-field",
 			init: node => {
+				// node.element.tabIndex = -1;
 				// if (this.resource.dynamic) {
 				// 	this.splash = request =>
 				// 	this.setEventListener(async () => {

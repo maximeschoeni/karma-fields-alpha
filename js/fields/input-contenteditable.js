@@ -49,12 +49,10 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 		// this.promise = Promise.resolve(this.promise).then(async () => {
 
-		// debugger;
-
 			const event = this.createEvent();
 			event.action = "set";
 			event.type = "string";
-			event.backup = "always";
+			event.backup = "once";
 			event.autosave = this.resource.autosave;
 			event.splash = true;
 			event.setValue(value);
@@ -85,7 +83,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 		if (this.throttleTimer) {
 			clearTimeout(this.throttleTimer);
 		}
-		this.throttleTimer = setTimeout(callback, 500);
+		this.throttleTimer = setTimeout(callback, 200);
 	}
 
 
@@ -109,9 +107,12 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 	build() {
 		return {
-			tag: "input",
+			// tag: "input",
 			class: "text-input karma-field",
 			init: input => {
+				input.element.contentEditable = true;
+				input.element.style = "display: flex; align-items: center; padding: 0.5em;";
+
 				input.element.type = this.resource.input_type || "text"; // compat
 				if (this.resource.label) {
 					input.element.id = this.getId();
@@ -156,8 +157,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				// 	input.element.classList.remove("loading");
 				// });
 
-
-				input.element.value = await this.getValue();
+				input.element.innerHTML = await this.getValue();
 				input.element.parentNode.classList.toggle("modified", await this.isModified());
 				input.element.classList.remove("loading");
 
@@ -193,7 +193,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 					this.throttle(async () => {
 						input.element.classList.add("editing");
-						await this.setValue(input.element.value);
+						await this.setValue(input.element.innerHTML);
 
 						input.element.parentNode.classList.toggle("modified", await this.isModified());
 						input.element.classList.remove("editing");

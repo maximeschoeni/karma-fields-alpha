@@ -3,18 +3,32 @@
 --------------------------------------*/
 
 .karma-fields select.karma-field {
-  border-color: #484848;
+  /* border-color: #0c73aa; */
+  border-color: #1d2327;
+  color: #1d2327;
   max-width: 100%;
   font-size: 1em;
-  /* height: 2.3077em; */
-  min-height: 2.3077em;
+  min-height: 2.5em;
   background-color: transparent;
-  border-radius: 0;
-}
-.karma-fields select.karma-field:focus {
+  /* border-radius: 0; */
+
+  padding: 0 2.0em 0 0.75em;
+  margin: 0;
+
   box-shadow: none;
+}
+
+.karma-fields select.karma-field:not(.loading,.editing) {
+  /* background-image: none; */
+  /* background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%230c73aa'/%3E%3C/svg%3E"); */
+}
+/* .karma-fields select.karma-field:hover:not(.loading,.editing), */
+.karma-fields select.karma-field:active:not(.loading,.editing),
+/* .karma-fields select.karma-field:focus:not(.loading,.editing), */
+.karma-fields select.karma-field.active:not(.loading,.editing) {
   background-color: white;
 }
+
 
 /* Table Dropdown
 --------------------------------------*/

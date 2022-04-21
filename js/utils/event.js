@@ -8,6 +8,11 @@ KarmaFieldsAlpha.Event = class {
     this.path = [];
     this.type = "array";
 
+    this.index = 0;
+    this.relativeIndex = new Map();
+    this.relativePath = new Map();
+    this.relativeDispatcher = new Map();
+
     if (args) {
       Object.assign(this, args);
     }
@@ -59,49 +64,6 @@ KarmaFieldsAlpha.Event = class {
   }
 
 
-
-  // parseCondition(args) {
-  //   if (args.condition !== undefined) {
-  //     let matches = state.match(/^(.*?)(=|<|>|!=|<=|>=|!)(.*)$/);
-	//     if (matches) {
-	//       switch (matches[2]) {
-  //         case "=":
-  //           this.states[state] = () => this.getState(matches[1]).then(value => value === matches[3]);
-	//           break;
-	//         case "<":
-  //           this.states[state] = () => this.getState(matches[1]).then(value => value < matches[3]);
-	//           break;
-	//         case ">":
-  //           this.states[state] = () => this.getState(matches[1]).then(value => value > matches[3]);
-	//           break;
-	//         case "!=":
-  //           this.states[state] = () => this.getState(matches[1]).then(value => value !== matches[3]);
-	//           break;
-	//         case "<=":
-  //           this.states[state] = () => this.getState(matches[1]).then(value => value <= matches[3]);
-	//           break;
-  //         case ">=":
-  //           this.states[state] = () => this.getState(matches[1]).then(value => value >= matches[3]);
-	//           break;
-	//         case "!":
-  //           this.states[state] = () => this.getState(matches[3]).then(value => !value);
-	//           break;
-	// 				// case ":in:":
-  //         //   this.states[state] = () => this.get(matches[3]).then(value => value.includes(value[0]));
-  //         //   break;
-	// 				// case ":notin:":
-  //         //   this.states[state] = () => this.get(matches[3]).then(value => !value.includes(value[0]));
-	//         //   break;
-  //         // case "::":
-  //         //   this.states[state] = () => Promise.all(this.get(matches[1]), this.get(matches[3])).then(values => values[0][0] === values[1][0]);
-	//         //   break;
-	//       }
-	//     } else {
-  //       this.states[state] = () => this.getState(state).then(value => Boolean(value));
-	// 		}
-  //   }
-  // }
-
   getString() {
     if (this.data.length) {
       return this.data[0].toString();
@@ -141,6 +103,17 @@ KarmaFieldsAlpha.Event = class {
     event.default = this.default;
 
     return event;
+  }
+
+  getDispatcher(field) {
+    return field && this.relativeDispatcher.get(field) || this.dispatcher;
+  }
+
+  getPath(field) {
+
+    // return field && this.relativePath.get(field) || this.path;
+    const index = this.relativeIndex.get(field) || 0;
+    return index && this.path.slice(index) || [];
   }
 
 }

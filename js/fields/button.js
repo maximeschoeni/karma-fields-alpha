@@ -18,7 +18,8 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 				}
 			},
 			init: async button => {
-				// this.update = button.render;
+				// button.element.tabIndex = -1; // -> prevent button getting focus
+
 				if (this.resource.primary) {
 					button.element.classList.add("primary");
 				}
@@ -31,18 +32,18 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 				if (this.resource.hidden) {
 					button.element.parentNode.classList.add("hidden");
 				}
-			},
-			update: async button => {
+
 
 				button.element.onmousedown = event => {
-					event.preventDefault(); // -> prevent losing selection
+					event.preventDefault(); // -> prevent active element losing focus
 				}
+
 				button.element.onclick = async event => {
-					event.preventDefault();
+					event.preventDefault(); // -> prevent submitting form in post-edit
+
 
 					if (!button.element.classList.contains("editing")) {
 						button.element.classList.add("editing");
-
 
 						const event = this.createEvent({
 							action: this.resource.action || this.resource.state || this.resource.value || "submit" // compat
@@ -50,13 +51,38 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 
 						await this.dispatch(event);
 
-						await button.render();
-
 						button.element.classList.remove("editing");
+
+						// document.activeElement.blur();
 					}
+
 				}
 
+			},
+			update: async button => {
+
+
+				// button.element.onclick = async event => {
+				// 	event.preventDefault();
+				//
+				// 	if (!button.element.classList.contains("editing")) {
+				// 		button.element.classList.add("editing");
+				//
+				// 		const event = this.createEvent({
+				// 			action: this.resource.action || this.resource.state || this.resource.value || "submit" // compat
+				// 		});
+				//
+				// 		await this.dispatch(event);
+				//
+				// 		await button.render();
+				//
+				// 		button.element.classList.remove("editing");
+				// 	}
+				// }
+
 				if (this.resource.disabled) {
+					// const instance = this;
+					// debugger;
 					// if (this.resource.action === "delete") debugger;
 					button.element.disabled = await this.check(this.resource.disabled);
 					// this.check(this.resource.disabled).then(disabled => {
