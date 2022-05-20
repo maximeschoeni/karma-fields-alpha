@@ -8,11 +8,18 @@
 	wp_nonce_field($action, $nonce, false, true);
  ?>
 <script>
-	document.addEventListener("DOMContentLoaded", function() {
+	// document.addEventListener("DOMContentLoaded", function() {
+	document.addEventListener("karmaFieldsAlpha", function() {
+
+
 		let container = document.getElementById("karma-fields-post-<?php echo $post_id; ?>-field-<?php echo $index; ?>-container");
 		let input = document.getElementById("karma-fields-post-<?php echo $post_id; ?>-input-<?php echo $index; ?>");
+
+
 		let resource = <?php echo json_encode($args); ?>;
 		let id = "<?php echo $post_id; ?>";
+
+
 
 		// let form = new KarmaFieldsAlpha.fields.form({
 		// 	type: "form",
@@ -73,8 +80,14 @@
 		// 	]
 		// });
 
-		let gateway = new KarmaFieldsAlpha.fields.gateway({
+		// let gateway = new KarmaFieldsAlpha.fields.gateway({
+		// 	driver: "posts",
+		// });
+		let gateway = KarmaFieldsAlpha.tables.createChild({
+			type: "gateway",
 			driver: "posts",
+			// joins: [{driver: "postmeta"}, {driver: "taxonomy"}]
+			joins: ["postmeta", "taxonomy"]
 		});
 		let form = gateway.createChild({
 			id: "form",

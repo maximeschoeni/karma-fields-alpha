@@ -128,7 +128,7 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 		const subResources = this.getSubResources(this.resource);
 
 		for (let resource in subResources) {
-			value[key] = await this.createChild(resource).getDefault();
+			value[resource.key] = await this.createChild(resource).getDefault();
 		}
 
 		return value;
@@ -182,7 +182,8 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 				// await this.updateState();
 				if (this.resource.hidden) {
-					group.element.parentNode.classList.toggle("hidden", await this.check(this.resource.hidden));
+					const hidden = await this.parse(this.resource.hidden);
+					group.element.parentNode.classList.toggle("hidden", Boolean(hidden));
 					// this.check(this.resource.hidden).then(hidden => {
 					// 	group.element.parentNode.classList.toggle("hidden", hidden);
 					// });

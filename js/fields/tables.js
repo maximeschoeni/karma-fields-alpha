@@ -7,9 +7,10 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
 
     KarmaFieldsAlpha.tables = this; // -> debug
 
-    KarmaFieldsAlpha.Nav.onpopstate = () => {
-      this.render(true);
-    }
+    // KarmaFieldsAlpha.Nav.onpopstate = () => {
+    //   this.render(true);
+    // }
+
 
   }
 
@@ -26,7 +27,19 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
     switch (event.action) {
 
       case "close":
+        // KarmaFieldsAlpha.Gateway.clearOptions();
         KarmaFieldsAlpha.Nav.empty();
+        console.log("close");
+        this.render();
+        break;
+
+      case "undo":
+      case "redo":
+        this.render();
+        break;
+
+      case "media-library":
+        KarmaFieldsAlpha.Nav.setObject(new URLSearchParams({karma: "medias"})); // , id: event.id
         this.render();
         break;
 
@@ -45,6 +58,14 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
       class: "karma-fields-navigation",
       init: container => {
         this.render = container.render;
+
+        window.addEventListener("popstate", event => {
+        	container.render();
+        });
+
+      },
+      update: container => {
+        document.body.classList.toggle("karma-table-open", KarmaFieldsAlpha.Nav.has("karma"))
       },
       children: this.resource.children.map((resource, index) => {
         return this.createChild({

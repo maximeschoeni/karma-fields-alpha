@@ -3,7 +3,7 @@
 // https://stackoverflow.com/a/38088630/2086505
 // https://developer.wordpress.org/reference/functions/wp_generate_attachment_metadata/
 
-Class Karma_Fields_Alpha_Driver_Attachment {
+Class Karma_Fields_Alpha_Driver_Medias {
 
   /**
 	 * get
@@ -151,9 +151,15 @@ Class Karma_Fields_Alpha_Driver_Attachment {
     $args['post_type'] = 'posts';
 
 
+
     foreach ($params as $key => $value) {
 
       switch ($key) {
+
+        case 'driver':
+        case 'karma':
+          break;
+
         case 'orderby':
 
           switch ($value) {
@@ -169,9 +175,15 @@ Class Karma_Fields_Alpha_Driver_Attachment {
               $args['orderby'] = array('date' => $params['order'], 'title' => 'ASC');
               break;
 
+            case 'filename':
+              $args['orderby'] = array('metavalue' => $params['order'], 'date' => 'DESC');
+              $args['meta_key'] = '_wp_attached_file';
+              break;
+
             default:
               // todo: handle numeric meta, taxonomies
               $args['orderby'] = array('metavalue' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
+              $args['meta_key'] = $value;
               break;
 
           }
@@ -238,6 +250,8 @@ Class Karma_Fields_Alpha_Driver_Attachment {
 
     $args = apply_filters('karma_fields_attachments_driver_query_table', $args, $params);
 
+    // var_dump($args, $params);
+
 
     // $query = new WP_Query($args);
     //
@@ -261,7 +275,14 @@ Class Karma_Fields_Alpha_Driver_Attachment {
     $args['no_found_rows'] = true;
     $query = new WP_Query($args);
 
-    return $query->posts;
+    return array_map(function($post) {
+      return array(
+        'id' => $post->ID,
+        'post_title' => $post->post_title,
+        'post_status' => $post->post_status,
+        'post_date' => $post->post_date
+      );
+    }, $query->posts);
 
   }
 
@@ -286,13 +307,13 @@ Class Karma_Fields_Alpha_Driver_Attachment {
   public function relations($params) {
     global $wpdb;
 
-    $ids = implode(',', array_map('intval', explode(',', $params['ids'])));
+    $ids = array_map('intval', explode(',', $params['ids']));
 
     if ($ids) {
 
-      $ids = implode(',', $ids);
+      $sql_ids = implode(',', $ids);
 
-			$sql = "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN ($ids)";
+			$sql = "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN ($sql_ids)";
 
 			$attachments = $wpdb->get_results($sql);
 
@@ -307,20 +328,29 @@ Class Karma_Fields_Alpha_Driver_Attachment {
       foreach ($attachments as $attachment) {
 
         $attachment = get_post($attachment->ID);
-        $thumb_src_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
+        // $thumb_src_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
         $filename = get_attached_file($attachment->ID);
+        $metadata = wp_get_attachment_metadata($attachment->ID);
+        $file_url = wp_get_attachment_url($attachment->ID);
+
 
         $image = array(
           'id' => $attachment->ID,
           'title' => get_the_title($attachment),
           'caption' => wp_get_attachment_caption($attachment->ID), // = post_excerpt
           'type' => get_post_mime_type($attachment),
-          'src' => $thumb_src_data[0],
-          'width' => $thumb_src_data[1],
-          'height' => $thumb_src_data[2],
-          'original_src' => wp_get_attachment_url($attachment->ID),
-          'path' => get_post_meta($attachment->ID, '_wp_attached_file', true),
-          'size' => getimagesize($filename)
+          // 'src' => $thumb_src_data[0],
+          // 'width' => $thumb_src_data[1],
+          // 'height' => $thumb_src_data[2],
+          'src' => $file_url,
+          'width' => $metadata['width'],
+          'height' => $metadata['height'],
+          'thumb_src' => dirname($file_url).'/'.$metadata['sizes']['thumbnail']['file'],
+          'thumb_width' => $metadata['sizes']['thumbnail']['width'],
+          'thumb_height' => $metadata['sizes']['thumbnail']['height'],
+          'filename' => get_post_meta($attachment->ID, '_wp_attached_file', true),
+          'size' => intval(filesize($filename)/1000).' KB'
+          // 'metadata' => $metadata
         );
 
         // if (isset($params['sources']) && $params['sources']) {

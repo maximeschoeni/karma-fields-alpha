@@ -3,13 +3,17 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 	async exportValue() {
 		const value = await this.getValue();
 		const options = await this.fetchOptions();
-		const option = value.length && options.find(option => option.id === value.toString());
+		const option = value.length && options.find(function(option) {
+			return option.key === value.toString();
+		});
 		return option && option.name || value;
   }
 
 	async importValue(value) {
 		const options = await this.fetchOptions();
-		const option = options.find(option => option.name === value);
+		const option = options.find(function(option) {
+			return option.name === value;
+		});
 		if (option) {
 			await this.setValue(option.key);
 		}
@@ -17,59 +21,46 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 	async getDefault() {
 		const options = await this.fetchOptions();
-		if (this.resource.default !== undefined && options.some(option => option.id === this.resource.default)) {
+		if (this.resource.default !== undefined && options.some(option => option.key === this.resource.default)) {
 			return this.resource.default;
 		}
 		const value = KarmaFieldsAlpha.Nav.get(this.resource.key);
-		if (value && options.some(option => option.id === value)) {
+		if (value && options.some(option => option.key === value)) {
 			return value;
 		}
 		if (options.length) {
-			return options[0].id;
+			return options[0].key;
 		}
 	}
 
 	async fetchOptions() {
-		// let options = await super.fetchOptions(this.resource.driver);
+		let options = await super.fetchOptions(this.resource.driver);
 
-		let options = this.resource.options || [];
+		let results = await KarmaFieldsAlpha.Driver.get(this.resource.driver, paramString, this.resource.joins, id, ...path);
 
-		if (this.resource.driver) {
-			let query = KarmaFieldsAlpha.Query.create(this.resource.driver);
-			let results = await query.get();
-
-			if (this.resource.mapfieldname) {
-				options = options.map(option => options.name = options[this.resource.mapfieldname])
-			}
-
-			options = [...options, ...results];
+		if (options.some(option => option.key === undefined)) {
+			console.error("Missing key options", options);
 		}
 
+		if (this.resource.empty !== undefined) {
+			options = [{
+				key: this.resource.empty,
+				name: this.resource.empty_option_name || "–"
+			}].concat(options);
 
-		if (options.some(option => option.id === undefined || option.name === undefined || typeof option.id !== "string")) {
-			console.error("id or name parameter missing in option list items", options);
 		}
 
 		// deprecated
-		// if (this.resource.empty !== undefined) {
-		// 	options = [{
-		// 		key: this.resource.empty,
-		// 		name: this.resource.empty_option_name || "–"
-		// 	}].concat(options);
-		//
-		// }
-		//
-		// // deprecated
-		// if (this.resource.novalue !== undefined) {
-		// 	options = [{
-		// 		key: "",
-		// 		name: this.resource.novalue === true ? "-" : this.resource.novalue
-		// 	}].concat(options);
-		// }
+		if (this.resource.novalue !== undefined) {
+			options = [{
+				key: "",
+				name: this.resource.novalue === true ? "-" : this.resource.novalue
+			}].concat(options);
+		}
 
-		// options.forEach(option => {
-    //   option.id = option.id.toString();
-    // });
+		options.forEach(option => {
+      option.key = option.key.toString();
+    });
 
 		return options;
 	}
@@ -183,15 +174,12 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 					// if (path == 187) debugger;
 
 					const value = await this.getValue();
-
-
-
 					// dropdown.children = this.buildOptions(options, value);
 
 					dropdown.element.length = 0;
 
 					options.forEach(option => {
-						dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
+						dropdown.element.add(new Option(option.name, option.key, false, value === option.key));
 					});
 
 
@@ -236,10 +224,10 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 
 				if (this.resource.disabled) {
-					dropdown.element.disabled = Boolean(await this.parent.parse(this.resource.disabled));
+					dropdown.element.disabled = await this.parent.check(this.resource.disabled);
 				}
 				if (this.resource.hidden) {
-					dropdown.element.parentNode.classList.toggle("active", Boolean(await this.parent.parse(this.resource.hidden)));
+					dropdown.element.parentNode.classList.toggle("active", await this.parent.check(this.resource.hidden));
 				}
 
 				dropdown.element.parentNode.classList.toggle("modified", await this.isModified());

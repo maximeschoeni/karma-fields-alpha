@@ -1,7 +1,7 @@
 KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 	async getDefault() {
-		return this.resource.default || "";
+		return this.parse(this.resource.default || "");
 	}
 
 	async importValue(value) {
@@ -29,15 +29,35 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 		// this.promise = Promise.resolve(this.promise).then(async () => {
 
-			const event = this.createEvent();
-			event.action = "get";
-			event.type = "string";
-			event.default = this.getDefault(); // -> no care if promise
+		// let [id, key] = this.getPath();
+		// if (id == 353) debugger;
+
+			// const event = this.createEvent();
+			// event.action = "get";
+			// event.type = "string";
+			// event.default = this.getDefault(); // -> no care if promise
+			// // event.checkModified = true;
+			//
+			// await this.dispatch(event);
+
+			// const event = this.createEvent();
+			// event.action = "get";
+			// event.type = "string";
+			// event.default = this.getDefault(); // -> no care if promise
 			// event.checkModified = true;
 
-			await this.dispatch(event);
+			const event = await this.dispatch({
+				action: "get",
+				type: "string"
+				// default: this.getDefault()
+			});
 
-			return event.getValue();
+
+
+			// return event.getValue();
+			// return event.data[0];
+
+			return KarmaFieldsAlpha.Type.toString(event.data);
 		// });
 		//
 		// return this.promise;
@@ -51,19 +71,32 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 		// debugger;
 
-			const event = this.createEvent();
-			event.action = "set";
-			event.type = "string";
-			event.backup = "always";
-			event.autosave = this.resource.autosave;
-			event.splash = true;
-			event.setValue(value);
+			// const event = this.createEvent();
+			// event.action = "set";
+			// event.type = "string";
+			// event.backup = "always";
+			// event.autosave = this.resource.autosave;
+			// event.splash = true;
+			// event.setValue(value);
+			//
+			// await this.dispatch(event);
 
-			await this.dispatch(event);
+			// const event = this.createEvent();
+			// event.action = "set";
+			// event.type = "string";
+			// event.backup = "always";
+			// event.autosave = this.resource.autosave;
+			// event.splash = true;
+			// event.setValue(value);
 
-		// });
-		//
-		// await this.promise;
+			await this.dispatch({
+				action: "set",
+				type: "string",
+				backup: "always",
+				autosave: this.resource.autosave,
+				splash: true, // ??
+				data: KarmaFieldsAlpha.Type.toArray(value)
+			});
 
 	}
 
@@ -158,23 +191,33 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 
 				input.element.value = await this.getValue();
+
 				input.element.parentNode.classList.toggle("modified", await this.isModified());
 				input.element.classList.remove("loading");
 
 				input.element.onpaste = event => {
 
-					event.preventDefault();
+					// event.preventDefault();
 
-					const request = this.createEvent({
+					// const request = this.createEvent({
+					// 	action: "set",
+					// 	type: "string",
+					// 	backup: "always",
+					// 	pasted: true
+					// });
+					//
+					// request.setValue(event.clipboardData.getData("text"));
+					//
+					// this.dispatch(request);
+
+
+					this.dispatch({
 						action: "set",
 						type: "string",
 						backup: "always",
-						pasted: true
+						pasted: true,
+						data: [event.clipboardData.getData("text").normalize()]
 					});
-
-					request.setValue(event.clipboardData.getData("text"));
-
-					this.dispatch(request);
 				}
 
 				// input.element.onkeydown = event => {
@@ -193,7 +236,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 					this.throttle(async () => {
 						input.element.classList.add("editing");
-						await this.setValue(input.element.value);
+						await this.setValue(input.element.value.normalize());
 
 						input.element.parentNode.classList.toggle("modified", await this.isModified());
 						input.element.classList.remove("editing");
@@ -210,19 +253,19 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 
 				if (this.resource.disabled) {
-					input.element.disabled = await this.parent.check(this.resource.disabled);
+					input.element.disabled = Boolean(await this.parent.parse(this.resource.disabled));
 					// this.parent.check(this.resource.disabled).then(disabled => {
 					// 	input.element.disabled = disabled;
 					// });
 				}
 				if (this.resource.active) {
-					input.element.classList.toggle("active", await this.parent.check(this.resource.active));
+					input.element.classList.toggle("active", Boolean(await this.parent.parse(this.resource.active)));
 					// this.parent.check(this.resource.active).then(active => {
 					// 	input.element.classList.toggle("active", active);
 					// });
 				}
 				if (this.resource.hidden) {
-					input.element.parentNode.classList.toggle("active", await this.parent.check(this.resource.hidden));
+					input.element.parentNode.classList.toggle("active", Boolean(await this.parent.parse(this.resource.hidden)));
 					// this.parent.check(this.resource.hidden).then(hidden => {
 					// 	input.element.parentNode.classList.toggle("hidden", hidden);
 					// });

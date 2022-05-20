@@ -4,14 +4,14 @@ KarmaFieldsAlpha.Event = class {
   constructor(args = null, target = null) {
 
     this.target = target;
-    this.data = [];
+    this.data = []; // -> should be undefined ?
     this.path = [];
     this.type = "array";
 
     this.index = 0;
-    this.relativeIndex = new Map();
-    this.relativePath = new Map();
-    this.relativeDispatcher = new Map();
+    // this.relativeIndex = new Map();
+    // this.relativePath = new Map();
+    // this.relativeDispatcher = new Map();
 
     if (args) {
       Object.assign(this, args);
@@ -65,7 +65,7 @@ KarmaFieldsAlpha.Event = class {
 
 
   getString() {
-    if (this.data.length) {
+    if (this.data[0]) {
       return this.data[0].toString();
     } else {
       return "";
@@ -114,20 +114,6 @@ KarmaFieldsAlpha.Event = class {
     // return field && this.relativePath.get(field) || this.path;
     const index = this.relativeIndex.get(field) || 0;
     return index && this.path.slice(index) || [];
-  }
-
-}
-
-KarmaFieldsAlpha.Type = class {
-
-  static getType(value) {
-    if (Array.isArray(value)) {
-      return "array";
-    } else if (value === null) {
-      return "null";
-    } else {
-      return typeof value;
-    }
   }
 
 }

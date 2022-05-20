@@ -63,6 +63,20 @@
   /* justify-content: center; */
 }
 
+.karma-field-table .table figure.text {
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+}
+.karma-field-table .table figure.text img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .karma-field-table .table .text:focus {
   /* background-color: white; */
 }
@@ -1269,6 +1283,11 @@ button.karma-button[title]:hover::before {
     width: auto;
   }
 } */
+
+
+.karma-field-container.display-block>.karma-field-frame {
+  flex-grow: 0;
+}
 
 
 

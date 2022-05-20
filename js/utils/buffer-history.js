@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.Nav2 = class extends KarmaFieldsAlpha.Buffer {
+KarmaFieldsAlpha.BufferHistory = class extends KarmaFieldsAlpha.Buffer {
 
 	getObject() {
 		return history.state || {};

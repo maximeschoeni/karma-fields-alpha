@@ -14,11 +14,8 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       });
     }
 
-	}
 
-  async getDefault() {
-    return [];
-  }
+	}
 
   async splash(request) {
 		for (let child of this.children) {
@@ -34,27 +31,14 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
     if (this.resource.key) {
 
-      // const event = this.createEvent({
-      //   action: "get",
-      //   type: "array"
-      // });
-      //
-      // await super.dispatch(event);
-      //
-      // return event.getArray();
-
-      // console.log(this.resource.key);
-
-      // if (this.resource.key === "pictos") debugger;
-
-      const request = await super.dispatch({
+      const event = this.createEvent({
         action: "get",
         type: "array"
       });
 
-      // console.log(this.resource.key, request.data);
+      await super.dispatch(event);
 
-      return request.data;
+      return event.getArray();
 
     } else {
 
@@ -86,16 +70,15 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
     if (this.resource.key) {
 
-      await super.dispatch({
+      const event = this.createEvent({
         action: "set",
         type: "array",
-        backup: "once",
-        data: value
+        backup: "once"
       });
 
-      // event.setValue(value);
+      event.setValue(value);
 
-      // await super.dispatch(event);
+      await super.dispatch(event);
 
     } else {
 
@@ -111,14 +94,10 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       }
 
       for (let key in keys) {
-        // await super.dispatch(this.createEvent({
-        //   action: "backup",
-        //   path: [key]
-        // }));
-        await super.dispatch({
+        await super.dispatch(this.createEvent({
           action: "backup",
           path: [key]
-        });
+        }));
   		}
 
   		await this.stage();
@@ -134,129 +113,98 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
   async getColumn(key) {
 
-    // const event = this.createEvent({
-    //   action: "get",
-    //   type: "array",
-    //   path: [key]
-    // });
-    //
-    // await super.dispatch(event);
-    //
-    // return event.getArray();
-
-    const request = await super.dispatch({
+    const event = this.createEvent({
       action: "get",
       type: "array",
       path: [key]
     });
 
-    return event.data;
+    await super.dispatch(event);
+
+    return event.getArray();
   }
 
   async setColumn(column, key) {
 
-    // const event = this.createEvent({
-    //   action: "set",
-    //   type: "array",
-    //   path: [key]
-    // });
-    //
-    // event.setValue(column);
-    //
-    // await super.dispatch(event);
-
-    await super.dispatch({
+    const event = this.createEvent({
       action: "set",
       type: "array",
-      path: [key],
-      data: column
+      path: [key]
     });
+
+    event.setValue(column);
+
+    await super.dispatch(event);
   }
 
 
   async dispatch(event) {
 
 
-    switch (event.action) {
+      switch (event.action) {
 
-      case "get": {
-        this.promise = Promise.resolve(this.promise).then(async () => {
-          const [index, key] = event.path;
-          if (this.resource.key) {
-
-            let array = await this.getValue();
-
-            if (array[index][key] === undefined) {
-              array = KarmaFieldsAlpha.DeepObject.clone(array || []);
-              let defaultValue = await event.field.getDefault();
-
-              if (defaultValue.length) {
-                array[index][key] = KarmaFieldsAlpha.Type.convert(defaultValue, event.type || "array");
-
-                // console.log(index, key, array[index][key], event.type, event);
+        case "get": {
+          this.promise = Promise.resolve(this.promise).then(async () => {
+            const [index, key] = event.path;
+            if (this.resource.key) {
+              let array = await this.getValue();
+              if (array[index][key] === undefined && event.default) {
+                array = KarmaFieldsAlpha.DeepObject.clone(array || []);
+                array[index][key] = await event.default;
                 await this.setValue(array);
               }
-            }
-
-            event.data = KarmaFieldsAlpha.Type.toArray(array[index][key]);
-
-          } else {
-            let column = await this.getColumn(key);
-            if (column[index] === undefined) {
-              column = KarmaFieldsAlpha.DeepObject.clone(column || []);
-              // column[index] = await event.field.getDefault();
-              let defaultValue = await event.field.getDefault();
-              if (Array.isArray(defaultValue)) {
-                defaultValue = defaultValue[0];
-              }
-              if (defaultValue !== undefined) {
-                column[index] = KarmaFieldsAlpha.Type.convert(defaultValue, event.type || "array");
+              event.setValue(array[index][key]);
+            } else {
+              let column = await this.getColumn(key);
+              if (column[index] === undefined && event.default) {
+                column = KarmaFieldsAlpha.DeepObject.clone(column || []);
+                column[index] = await event.default;
                 await this.setColumn(column, key);
               }
+              event.setValue(column[index]);
             }
+          });
+          await this.promise;
+          break;
+        }
 
-            event.data = KarmaFieldsAlpha.Type.toArray(column[index]);
-          }
-        });
-        await this.promise;
-        break;
+        case "set": {
+          this.promise = Promise.resolve(this.promise).then(async () => {
+            if (this.resource.key) {
+              let array = await this.getValue();
+              array = KarmaFieldsAlpha.DeepObject.clone(array || []);
+              KarmaFieldsAlpha.DeepObject.assign(array, event.getValue(), ...event.path);
+              await this.setValue(array);
+            } else {
+              const [index, key] = event.path;
+              let column = await this.getColumn(key);
+              column = KarmaFieldsAlpha.DeepObject.clone(column);
+              column[index] = event.getValue();
+              await this.setColumn(column, key);
+            }
+          });
+          await this.promise;
+          break;
+        }
+
+
+        case "add":
+          await this.add();
+          break;
+
+        case "delete":
+          await this.delete(event.path[0]);
+          break;
+
+        // case "render":
+        //   await this.render();
+        //   break;
+
+        // case "edit":
+        //   this.update();
+        //   break;
+
       }
-
-      case "set": {
-        this.promise = Promise.resolve(this.promise).then(async () => {
-          if (this.resource.key) {
-            let array = await this.getValue();
-            array = KarmaFieldsAlpha.DeepObject.clone(array || []);
-            const value = KarmaFieldsAlpha.Type.convert(event.data, event.type || "array");
-
-            // console.log(array, value, event.path, event);
-
-
-            KarmaFieldsAlpha.DeepObject.assign(array, value, ...event.path);
-            await this.setValue(array);
-          } else {
-            const [index, key] = event.path;
-            let column = await this.getColumn(key);
-            column = KarmaFieldsAlpha.DeepObject.clone(column);
-            const value = KarmaFieldsAlpha.Type.convert(event.data, event.type || "object");
-            column[index] = value;
-            await this.setColumn(column, key);
-          }
-        });
-        await this.promise;
-        break;
-      }
-
-
-      case "add":
-        await this.add();
-        break;
-
-      case "delete":
-        await this.delete(event.path[0]);
-        break;
-
-    }
 
 
 

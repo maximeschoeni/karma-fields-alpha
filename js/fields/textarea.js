@@ -30,7 +30,7 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 					// await this.setValue(input.element.value);
 
 					this.throttle(async () => {
-						await this.setValue(input.element.value);
+						await this.setValue(input.element.value.normalize());
 
 						input.element.parentNode.classList.toggle("modified", await this.isModified());
 						// input.element.classList.remove("editing");

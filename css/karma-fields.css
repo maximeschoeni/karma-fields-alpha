@@ -30,6 +30,10 @@ body.karma-dragging #adminmenuwrap {
   background-color: #f0f0f1;
 }
 
+body.karma-table-open {
+  overflow: hidden;
+}
+
 /* #wpbody-content {
   display: flex;
   flex-direction: column;
@@ -406,7 +410,7 @@ body.karma-dragging #adminmenuwrap {
 }
 
 .karma-gallery .gallery .frame {
-  background-color: white;
+  background-color: #f0f0f1;
   display: flex;
   width: 8.9231em;
   height: 8.9231em;
@@ -459,7 +463,8 @@ body.karma-dragging #adminmenuwrap {
 }
 .karma-gallery .gallery .frame.selected {
   /* outline: 1px solid #0c73aa; */
-  background-color: #f0f0f1;
+  /* background-color: #f0f0f1; */
+  background-color: white;
 }
 .karma-gallery .gallery.has-selection .frame.selected {
   cursor: grab;

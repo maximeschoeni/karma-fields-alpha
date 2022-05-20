@@ -6,7 +6,8 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 
 		// this.history = new KarmaFieldsAlpha.Buffer("history", this.resource.id || this.getId());
 
-		this.history = new KarmaFieldsAlpha.LocalStorage("history", this.resource.id || this.getId());
+		// this.history = new KarmaFieldsAlpha.LocalStorage("history", this.resource.id || this.getId());
+		this.history = new KarmaFieldsAlpha.LocalStorage(...(this.resource.historyBufferPath || ["history", this.resource.id || this.getId()]));
 
 	}
 
@@ -43,7 +44,7 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 				const path = [...event.path]; // -> prevent append "content"
 				await super.dispatch(event);
 
-				this.writeHistory(event.getArray(), ...path);
+				this.writeHistory(event.getArray(), "data", ...path);
 				break;
 			}
 
@@ -68,7 +69,7 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 
 		await super.dispatch(event);
 
-		this.writeHistory(event.getArray(), ...path);
+		this.writeHistory(event.getArray(), "data", ...path);
 	}
 
 	save(id) {
@@ -93,18 +94,20 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 
 	writeHistory(value, ...path) {
 
+		// -> what about check if new value is different that current value ?
+
 		// KarmaFieldsAlpha.History.write(value, this.resource.driver || this.resource.key, ...path);
 		const index = this.history.get("index") || 0;
 
 		this.history.set(value, index, ...path);
-		this.history.set(location.hash, "hash", index);
+		// this.history.set(location.hash, "hash", index);
 
 	}
 
-	getHash() {
-		let index = this.history.get("index") || 0;
-		return this.history.get("hash", index);
-	}
+	// getHash() {
+	// 	let index = this.history.get("index") || 0;
+	// 	return this.history.get("hash", index);
+	// }
 
 	undo() {
 		let index = this.history.get("index") || 0;
@@ -116,7 +119,7 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 			this.history.set(index, "index");
 
 			// rewind previous state
-			const state = this.history.get(index) || {};
+			const state = this.history.get(index, "data") || {};
 			this.buffer.merge(state);
 
 			// clear history id
@@ -156,7 +159,7 @@ KarmaFieldsAlpha.fields.formHistory = class extends KarmaFieldsAlpha.fields.form
 			this.history.set(index, "index");
 
 			// merge state in delta
-			const state = this.history.get(index) || {};
+			const state = this.history.get(index, "data") || {};
 			this.buffer.merge(state);
 
 			// clear history id

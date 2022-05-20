@@ -14,7 +14,7 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 	}
 
 	async getDefault() {
-		return this.resource.default || this.false();
+		return (await this.parse(this.resource.default) ? this.true() : this.false());
 	}
 
 	async importValue(value) {
@@ -56,7 +56,7 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 			await field.backup();
 		}
 
-		await this.save();
+		await this.stage();
 
 		// for (let field of fields) {
 		//

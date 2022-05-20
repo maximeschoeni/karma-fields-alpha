@@ -22,6 +22,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
       case 'post_author':
       case 'post_type':
       case 'menu_order':
+      case 'post_mime_type':
         return true;
 
     }
@@ -135,6 +136,9 @@ Class Karma_Fields_Alpha_Driver_Posts {
               $args[$key] = intval($value[0]);
               break;
 
+            case 'post_mime_type':
+              break;
+
             default:
 
               if (taxonomy_exists($key)) { // -> taxonomy
@@ -226,81 +230,34 @@ Class Karma_Fields_Alpha_Driver_Posts {
   //
   // }
 
-
-
   /**
 	 * query
 	 */
-  public function query($params) {
+  public function get_query_args($params) {
 
     $output = array();
 
-    $args = array();
-
-    $args['post_status'] = array('publish', 'pending', 'draft', 'future');
-    $args['post_type'] = 'posts';
-    // $args['orderby'] = 'post_date';
-    // $args['order'] = 'DESC';
-    //
-    // if (isset($params['page'])) {
-    //
-    //   $args['paged'] = $params['page'];
-    //
-    // }
-    //
-    // if (isset($params['ppp'])) {
-    //
-    //   $args['posts_per_page'] = $params['ppp'];
-    //
-    // }
-    //
-    // if (isset($params['orderby'])) {
-    //
-    //   if (isset($params['order'])) {
-    //
-    //     $order = $params['order'];
-    //
-    //   } else {
-    //
-    //     $order = 'ASC';
-    //
-    //   }
-    //
-    //   switch ($params['orderby']) {
-    //     case 'post_name':
-    //       $args['orderby'] = array('name' => $order, 'date' => 'DESC');
-    //       break;
-    //     case 'post_title':
-    //       $args['orderby'] = array('title' => $order, 'date' => 'DESC');
-    //       break;
-    //     case 'post_date':
-    //       $args['orderby'] = array('date' => $order, 'title' => 'ASC');
-    //       break;
-    //     case 'menu_order':
-    //       $args['orderby'] = array('menu_order' => $order);
-    //       break;
-    //     case 'post_author':
-    //       $args['orderby'] = array('author' => $order, 'title' => 'ASC', 'date' => 'DESC');
-    //       break;
-    //     default:
-    //
-    //
-    //       // todo: handle numeric meta, taxonomies
-    //       $args['orderby'] = array('metavalue' => $order, 'title' => 'ASC', 'date' => 'DESC');
-    //       break;
-    //
-    //   }
-    //
-    //
-    // }
-
+    $args = array(
+      'post_status' => array('publish', 'pending', 'draft', 'future'),
+      'post_type' => array('any'),
+      'posts_per_page' => -1,
+      'cache_results' => false,
+      'update_post_term_cache' => false,
+      'update_post_meta_cache' => false
+    );
 
     foreach ($params as $key => $value) {
 
       switch ($key) {
+
+        case 'driver':
+        case 'karma':
+          break;
+
         case 'orderby':
 
           switch ($value) {
+
             case 'post_name':
               $args['orderby'] = array('name' => $params['order'], 'date' => 'DESC');
               break;
@@ -313,10 +270,6 @@ Class Karma_Fields_Alpha_Driver_Posts {
               $args['orderby'] = array('date' => $params['order'], 'title' => 'ASC');
               break;
 
-            case 'menu_order':
-              $args['orderby'] = array('menu_order' => $params['order']);
-              break;
-
             case 'post_author':
               $args['orderby'] = array('author' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
               break;
@@ -324,6 +277,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
             default:
               // todo: handle numeric meta, taxonomies
               $args['orderby'] = array('metavalue' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
+              $args['meta_key'] = $value;
               break;
 
           }
@@ -341,16 +295,27 @@ Class Karma_Fields_Alpha_Driver_Posts {
           $args['posts_per_page'] = intval($value);
           break;
 
-        case 'post_name':
-          $args['name'] = $value;
+        case 'id':
+          $args['p'] = intval($value);
+          break;
+
+        case 'ids':
+          $args['post__in'] = array_map('intval', explode(',', $value));
           break;
 
         case 'post_date':
           $args['m'] = $value; // ex:201307
           break;
 
+        case 'post_mime_type':
+          $args[$key] = $value;
+          break;
+
         case 'post_status':
         case 'post_type':
+          if (is_array($value)) {
+            $value = array($value);
+          }
           $args[$key] = $value;
           break;
 
@@ -363,6 +328,9 @@ Class Karma_Fields_Alpha_Driver_Posts {
           $args['s'] = $value;
           break;
 
+        case 'post_name':
+          break;
+
         default:
 
           if (taxonomy_exists($key)) {
@@ -373,53 +341,287 @@ Class Karma_Fields_Alpha_Driver_Posts {
               'terms'    => intval($value)
             );
 
+          } else {
+
+            $args['meta_query'][] = array(
+              'key' => $key,
+              'value' => $value
+            );
+
           }
-
-
-
-          // todo: handle meta keys
+          break;
 
       }
 
     }
 
+
     $args = apply_filters('karma_fields_posts_driver_query_table', $args, $params);
 
-
-    $query = new WP_Query($args);
-
-    // if (isset($params['columns'])) {
-    //
-    //   foreach ($params['columns'] as $column) {
-    //
-    //     if (isset($column['driver']) && $column['driver'] !== $this->name) {
-    //
-    //       $driver = $karma_fields->get_driver($driver_name);
-    //
-    //       if (method_exists($driver, 'column')) {
-    //
-    //         $driver->column($query->posts, $column);
-    //
-    //       }
-    //
-    //     }
-    //
-    //   }
-    //
-    // }
-
-
-
-    $output['sql'] = $query->request;
-    $output['items'] = $query->posts;
-    $output['count'] = $query->found_posts;
-
-
-    return $output;
+    return $args;
 
   }
 
 
+  /**
+	 * query
+	 */
+  public function query($params) {
+
+    $args = $this->get_query_args($params);
+
+    $args['no_found_rows'] = true;
+
+    $query = new WP_Query($args);
+
+    // var_dump($query->request);
+
+    $field = isset($args['field']) ? $args['field'] : '';
+
+    switch ($field) {
+
+      case 'id':
+        return array_map(function($post) {
+          return array(
+            'id' => (string) $post->ID,
+          );
+        }, $query->posts);
+
+      case 'post_title':
+      case 'post_excerpt':
+      case 'post_name':
+      case 'post_status':
+      case 'post_type':
+      case 'post_date':
+        return array_map(function($post) {
+          return array(
+            'id' => (string) $post->ID,
+            $args['field'] => $post->{$args['field']}
+          );
+        }, $query->posts);
+
+      // case 'month':
+      //   global $wp_locale;
+      //   $where_clauses = array();
+      //   if (isset($args['post_type']) && $args['post_type']) {
+      //     $post_type_sql = implode(",", esc_sql($args['post_type']));
+      //     $where_clauses[] = "post_type IN ($post_type_sql)"
+      //   }
+      //   if (isset($args['post_status']) && $args['post_status']) {
+      //     $post_status_sql = implode(",", esc_sql($args['post_status']));
+      //     $where_clauses[] = "post_status IN ($post_status_sql)"
+      //   }
+      //   $sql = "SELECT YEAR(pm.meta_value) AS year, MONTH(pm.meta_value) AS month
+      //     FROM $wpdb->postmeta AS pm
+      //     WHERE $where
+      //     ORDER BY pm.meta_value DESC"
+      //
+      //   $results = $wpdb->get_results($sql);
+      //
+      //   $output = array();
+      //
+      //   foreach ($results as $result) {
+      //
+      //     $month_name = $wp_locale->get_month($result->month);
+      //
+      //     $output[] = array(
+      //       'id' => "{$result->year}{$result->month}",
+      //       'name' => "{$month_name} {$result->year}",
+      //     );
+      //
+      //   }
+      //
+      //   return $output;
+
+
+      default:
+        return array_map(function($post) {
+          return array(
+            'id' => (string) $post->ID,
+            'post_title' => $post->post_title,
+            'post_excerpt' => $post->post_excerpt,
+            'post_name' => $post->post_name,
+            'post_parent' => $post->post_parent,
+            'post_status' => $post->post_status,
+            'post_type' => $post->post_type,
+            'post_date' => $post->post_date,
+            'menu_order' => (string) $post->menu_order
+          );
+        }, $query->posts);
+    }
+
+    //   return isset($args['field']) ? array(
+    //     'id' => (string) $post->ID,
+    //     $args['field'] => $post->{$args['field']}
+    //   ) : array(
+    //     'id' => (string) $post->ID,
+    //     'post_title' => $post->post_title,
+    //     'post_excerpt' => $post->post_excerpt,
+    //     'post_name' => $post->post_name,
+    //     'post_parent' => $post->post_parent,
+    //     'post_status' => $post->post_status,
+    //     'post_type' => $post->post_type,
+    //     'post_date' => $post->post_date,
+    //     'menu_order' => (string) $post->menu_order
+    //   );
+    // }, $query->posts);
+
+  }
+
+  /**
+   * count
+   */
+  public function count($params) {
+
+    $args = $this->get_query_args($params);
+    $args['fields'] = 'ids';
+    $query = new WP_Query($args);
+
+    return $query->found_posts;
+
+  }
+
+
+
+
+  //
+  // /**
+	//  * query
+	//  */
+  // public function query($params) {
+  //
+  //   $output = array();
+  //
+  //   $args = array();
+  //
+  //   $args['post_status'] = array('publish', 'pending', 'draft', 'future');
+  //   $args['post_type'] = 'posts';
+  //
+  //   foreach ($params as $key => $value) {
+  //
+  //     switch ($key) {
+  //       case 'orderby':
+  //
+  //         switch ($value) {
+  //           case 'post_name':
+  //             $args['orderby'] = array('name' => $params['order'], 'date' => 'DESC');
+  //             break;
+  //
+  //           case 'post_title':
+  //             $args['orderby'] = array('title' => $params['order'], 'date' => 'DESC');
+  //             break;
+  //
+  //           case 'post_date':
+  //             $args['orderby'] = array('date' => $params['order'], 'title' => 'ASC');
+  //             break;
+  //
+  //           case 'menu_order':
+  //             $args['orderby'] = array('menu_order' => $params['order']);
+  //             break;
+  //
+  //           case 'post_author':
+  //             $args['orderby'] = array('author' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
+  //             break;
+  //
+  //           default:
+  //             // todo: handle numeric meta, taxonomies
+  //             $args['orderby'] = array('metavalue' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
+  //             break;
+  //
+  //         }
+  //
+  //         break;
+  //
+  //       case 'order':
+  //         break;
+  //
+  //       case 'page':
+  //         $args['paged'] = intval($value);
+  //         break;
+  //
+  //       case 'ppp':
+  //         $args['posts_per_page'] = intval($value);
+  //         break;
+  //
+  //       case 'post_name':
+  //         $args['name'] = $value;
+  //         break;
+  //
+  //       case 'post_date':
+  //         $args['m'] = $value; // ex:201307
+  //         break;
+  //
+  //       case 'post_status':
+  //       case 'post_type':
+  //         $args[$key] = $value;
+  //         break;
+  //
+  //       case 'post_parent':
+  //       case 'post_author':
+  //         $args[$key] = intval($value);
+  //         break;
+  //
+  //       case 'search':
+  //         $args['s'] = $value;
+  //         break;
+  //
+  //       default:
+  //
+  //         if (taxonomy_exists($key)) {
+  //
+  //           $args['tax_query'][] = array(
+  //             'taxonomy' => $key,
+  //             'field'    => 'term_id',
+  //             'terms'    => intval($value)
+  //           );
+  //
+  //         }
+  //
+  //
+  //
+  //         // todo: handle meta keys
+  //
+  //     }
+  //
+  //   }
+  //
+  //   $args = apply_filters('karma_fields_posts_driver_query_table', $args, $params);
+  //
+  //
+  //   $query = new WP_Query($args);
+  //
+  //   // if (isset($params['columns'])) {
+  //   //
+  //   //   foreach ($params['columns'] as $column) {
+  //   //
+  //   //     if (isset($column['driver']) && $column['driver'] !== $this->name) {
+  //   //
+  //   //       $driver = $karma_fields->get_driver($driver_name);
+  //   //
+  //   //       if (method_exists($driver, 'column')) {
+  //   //
+  //   //         $driver->column($query->posts, $column);
+  //   //
+  //   //       }
+  //   //
+  //   //     }
+  //   //
+  //   //   }
+  //   //
+  //   // }
+  //
+  //
+  //
+  //   $output['sql'] = $query->request;
+  //   $output['items'] = $query->posts;
+  //   $output['count'] = $query->found_posts;
+  //
+  //
+  //   return $output;
+  //
+  // }
+  //
+  //
 
 
   /**
@@ -523,55 +725,55 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
   }
 
-  /**
-	 * query_key
-	 */
-  public function query_files($params) {
-    global $wpdb;
-
-
-
-
-    if (isset($params['ids'])) {
-
-      $ids = array_map('intval', explode(',', $params['ids']));
-
-      $sql_ids = implode(',', $ids);
-
-			$sql = "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN ($sql_ids)";
-
-			$attachments = $wpdb->get_results($sql);
-
-			if ($attachments) {
-
-				update_post_caches($attachments, 'any', false, true);
-
-			}
-
-      $images = array();
-
-      foreach ($attachments as $attachment) {
-
-        $attachment = get_post($attachment->ID);
-        $thumb_src_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
-
-        $images[] = array(
-          'id' => $attachment->ID,
-          'title' => get_the_title($attachment),
-          'caption' => wp_get_attachment_caption($attachment->ID), // = post_excerpt
-          'type' => get_post_mime_type($attachment),
-          'src' => $thumb_src_data[0],
-          'width' => $thumb_src_data[1],
-          'height' => $thumb_src_data[2]
-        );
-
-      }
-
-      return $images;
-
-    }
-
-  }
+  // /**
+	//  * query_key
+	//  */
+  // public function query_files($params) {
+  //   global $wpdb;
+  //
+  //
+  //
+  //
+  //   if (isset($params['ids'])) {
+  //
+  //     $ids = array_map('intval', explode(',', $params['ids']));
+  //
+  //     $sql_ids = implode(',', $ids);
+  //
+	// 		$sql = "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN ($sql_ids)";
+  //
+	// 		$attachments = $wpdb->get_results($sql);
+  //
+	// 		if ($attachments) {
+  //
+	// 			update_post_caches($attachments, 'any', false, true);
+  //
+	// 		}
+  //
+  //     $images = array();
+  //
+  //     foreach ($attachments as $attachment) {
+  //
+  //       $attachment = get_post($attachment->ID);
+  //       $thumb_src_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
+  //
+  //       $images[] = array(
+  //         'id' => $attachment->ID,
+  //         'title' => get_the_title($attachment),
+  //         'caption' => wp_get_attachment_caption($attachment->ID), // = post_excerpt
+  //         'type' => get_post_mime_type($attachment),
+  //         'src' => $thumb_src_data[0],
+  //         'width' => $thumb_src_data[1],
+  //         'height' => $thumb_src_data[2]
+  //       );
+  //
+  //     }
+  //
+  //     return $images;
+  //
+  //   }
+  //
+  // }
 
 
   /**

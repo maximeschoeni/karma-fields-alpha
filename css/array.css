@@ -34,7 +34,7 @@
   box-sizing: border-box;
   background-color: white;
   display: flex;
-  background-color: #f1f1f1;
+  background-color: #f0f0f1;
   /* outline: 1px solid #7e8993; */
 
   transition: transform 100ms;
@@ -80,7 +80,7 @@
 .karma-fields .array .array-more {
   grid-column: 1 / -1;
   padding: 1em;
-  background-color: #f1f1f1;
+  background-color: #f0f0f1;
 }
 
 .karma-fields .array.selecting .td {

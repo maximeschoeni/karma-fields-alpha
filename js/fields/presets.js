@@ -13,7 +13,7 @@ KarmaFieldsAlpha.fields.presets = class {
     id: "count",
     type: "text",
     style: "justify-content:center",
-    value: "{{count}} elements",
+    value: ["replace", "# elements", "#", ["get", "count"]],
     dynamic: true
   }
 
@@ -29,7 +29,8 @@ KarmaFieldsAlpha.fields.presets = class {
     type: "group",
     display: "flex",
     style: "flex: 0 1 auto;min-width:0",
-    hidden: "numpage=1",
+    // hidden: "numpage=1",
+    hidden: ["==", ["get", "numpage"], 1],
     children: [
       "firstpage",
       "prevpage",
@@ -45,7 +46,8 @@ KarmaFieldsAlpha.fields.presets = class {
     action: "firstpage",
     title: "First Page",
     text: "«",
-    disabled: "page=1",
+    // disabled: "page=1",
+    disabled: ["==", ["get", "page"], 1],
     // hidden: "numpage=1"
   }
 
@@ -55,7 +57,8 @@ KarmaFieldsAlpha.fields.presets = class {
     action: "prevpage",
     title: "Previous Page",
     text: "‹",
-    disabled: "page=1",
+    // disabled: "page=1",
+    disabled: ["==", ["get", "page"], 1],
     // hidden: "numpage=1"
   }
 
@@ -63,7 +66,8 @@ KarmaFieldsAlpha.fields.presets = class {
     id: "currentpage",
 		type: "text",
     style: "min-width: 4em;text-align: right;",
-    value: "{{page}} / {{numpage}}",
+    // value: "{{page}} / {{numpage}}",
+    value: ["replace", "# / #", "#", ["get", "page"], ["get", "numpage"]],
     // hidden: "numpage=1",
     // dynamic: true
   }
@@ -74,7 +78,8 @@ KarmaFieldsAlpha.fields.presets = class {
     action: "nextpage",
     title: "Next Page",
     text: "›",
-    disabled: "lastpage",
+    // disabled: "lastpage",
+    disabled: ["get", "lastpage"]
     // hidden: "numpage=1"
   }
 
@@ -84,7 +89,8 @@ KarmaFieldsAlpha.fields.presets = class {
     action: "lastpage",
     title: "Last Page",
     text: "»",
-    disabled: "lastpage",
+    // disabled: "lastpage",
+    disabled: ["get", "lastpage"],
     // hidden: "numpage=1"
   }
 
@@ -124,7 +130,8 @@ KarmaFieldsAlpha.fields.presets = class {
 		type: "button",
     action: "save",
     title: "Save",
-    disabled: "!modified",
+    // disabled: "!modified",
+    disabled: ["!", ["modified"]],
     primary: true
   }
 
@@ -140,7 +147,8 @@ KarmaFieldsAlpha.fields.presets = class {
 		type: "button",
     action: "delete",
     title: "Delete",
-    disabled: "!selection"
+    // disabled: "!selection"
+    disabled: ["!", ["get", "selection"]]
   }
 
 	static undo = {
@@ -148,7 +156,8 @@ KarmaFieldsAlpha.fields.presets = class {
 		type: "button",
     value: "undo",
     dashicon: "undo",
-    disabled: "!undo"
+    // disabled: "!undo"
+    disabled: ["!", ["get", "undo"]]
   }
 
 	static redo = {
@@ -156,7 +165,8 @@ KarmaFieldsAlpha.fields.presets = class {
 		type: "button",
     value: "redo",
     dashicon: "redo",
-    disabled: "!redo"
+    // disabled: "!redo"
+    disabled: ["!", ["get", "redo"]]
   }
 
   static separator = {
