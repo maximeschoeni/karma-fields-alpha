@@ -477,19 +477,23 @@ KarmaFieldsAlpha.DeepObject = class {
   //   return typeof item === "string";
   // });
 
-  static filter(object, callback, ...path) {
+  static filter(object, callback) {
     if (Array.isArray(object)) {
-      return object.filter((object, index) => this.filter(object, callback, ...path, index));
+      return object.filter(object => this.filter(object, callback) !== undefined);
     } else if (object && typeof object === "object") {
-      let count = 0;
-      let output = {};
+      let output = undefined;
       for (let key in object) {
-        output[key] = this.filter(object[key], callback, ...path, key);
-        count += Object.values(output[key]).length;
+        const child = this.filter(object[key], callback);
+        if (child !== undefined) {
+          if (!output) {
+            output = {};
+          }
+          output[key] = child;
+        }
       }
-      return count > 0 && output;
-    } else {
-      return callback(object, ...path)
+      return output;
+    } else if (callback(object)) {
+      return object;
     }
   }
 
@@ -548,6 +552,7 @@ KarmaFieldsAlpha.DeepObject = class {
 	}
 
 
+  // deprec
   static sanitize(array) {
     array.forEach((object, index) => {
       if (object && typeof object === "object") {
@@ -570,6 +575,26 @@ KarmaFieldsAlpha.DeepObject = class {
 		}
     return value;
   }
+
+  static isEmpty(object) {
+    if (Array.isArray(object)) {
+      return object.every(item => this.isEmpty(item));
+		} else if (object && object.constructor === Object) {
+      for (let key in object) {
+        if (this.isEmpty(object[key])) {
+          return false;
+        }
+      }
+      return true;
+		} else {
+			return Boolean(object);
+		}
+  }
+
+  // static clean(object, ...path) {
+  //   const cleanObject = this.filter(object, item => item === undefined || item === null, ...path);
+  //   this.assign();
+  // }
   //
   // static differ(object, original) {
 	// 	if (object.constructor === Array) {
@@ -600,23 +625,41 @@ KarmaFieldsAlpha.DeepObject = class {
     this.object = object;
   }
 
-  empty() {
-    this.object = {};
+  empty() { //
+    // this.object = {};
+    this.remove();
   }
 
   get(...path) {
-    return this.constructor.get(this.getObject(), ...path);
+    if (path.length) {
+      return this.getObject();
+    } else {
+      return this.constructor.get(this.getObject(), ...path);
+    }
   }
 
   set(value, ...path) {
-    const object = this.getObject();
-    this.constructor.assign(object, value, ...path);
+    let object;
+    if (path.length) {
+      object = this.getObject();
+      this.constructor.assign(object, value, ...path);
+    } else {
+      object = value;
+    }
     this.setObject(object);
   }
 
   remove(...path) {
-    const object = this.getObject();
-    this.constructor.remove(object, ...path);
+    // const object = this.getObject();
+    // this.constructor.remove(object, ...path);
+    // this.setObject(object);
+    let object;
+    if (path.length) {
+      object = this.getObject();
+      this.constructor.remove(object, ...path);
+    } else {
+      object = {};
+    }
     this.setObject(object);
   }
 
@@ -624,10 +667,16 @@ KarmaFieldsAlpha.DeepObject = class {
     return this.constructor.has(this.getObject(), ...path);
   }
 
-  merge(value) {
-    const object = this.getObject();
+  // merge(value) {
+  //   const object = this.getObject();
+  //   this.constructor.merge(object, value);
+  //   this.setObject(object);
+  // }
+
+  merge(value, ...path) {
+    const object = this.get(...path) || {};
     this.constructor.merge(object, value);
-    this.setObject(object);
+    this.set(object, ...path);
   }
 
   // merge(value, ...path) {

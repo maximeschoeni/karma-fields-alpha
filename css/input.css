@@ -24,11 +24,13 @@
 .karma-fields textarea {
   padding: 0.75em 0.75em;
 }
-.karma-fields .modified input.text-input,
-.karma-fields .modified textarea {
+.karma-fields .modified input.text-input:not(:focus),
+.karma-fields .modified textarea:not(:focus) {
   /* color: #0c73aa; */
   color: black;
   /* background-color: #0000000d; */
+
+  /* background-image: repeating-linear-gradient(60deg, transparent 0 2.5em, white 2.5em 5em); */
 }
 .karma-fields input.text-input:focus,
 .karma-fields textarea:focus {
@@ -156,7 +158,11 @@ button.karma-button.loading,
   /* background: repeating-linear-gradient(45deg, #ececec 0px, #ececec 25%, #f1f1f1 25%, #f1f1f1 50%);
   background-size: 100px 100px;
   animation: slide 1s infinite linear; */
-  background: #f1f1f1 repeating-linear-gradient(45deg, #f1f1f1 0px, #f1f1f1 25%, #c3c4c721 25%, #c3c4c721 50%);
+  /* background: #f1f1f1 repeating-linear-gradient(45deg, #f1f1f1 0px, #f1f1f1 25%, #c3c4c721 25%, #c3c4c721 50%); */
+
+  background-color: transparent !important;
+  background-image: repeating-linear-gradient(60deg, transparent 0 25%, #0000000a 25% 50%);
+
   background-size: 100px 100px;
   animation: slide 4s infinite linear;
   color: #c3c4c7 !important;

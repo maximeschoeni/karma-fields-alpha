@@ -272,8 +272,8 @@ KarmaFieldsAlpha.fields.field = class Field {
 
     if (this.resource.filters) {
       this.resource.filters.forEach(filter => {
-        if (KarmaFieldsAlpha.Nav.hasParam(filter)) {
-          params.set(filter, KarmaFieldsAlpha.Nav.getParam(filter));
+        if (KarmaFieldsAlpha.Nav.has(filter)) {
+          params.set(filter, KarmaFieldsAlpha.Nav.get(filter));
         }
       });
     }
@@ -686,10 +686,11 @@ KarmaFieldsAlpha.fields.field = class Field {
   // }
 
   async dispatch(event, parent, origin) {
+    if (!event.path) {
+      event.path = [];
+    }
     if (this.resource.key !== undefined) {
-      if (!event.path) {
-        event.path = [];
-      }
+
       if (event.path[0] === "..") {
         event.path.shift();
       } else {
@@ -698,9 +699,18 @@ KarmaFieldsAlpha.fields.field = class Field {
         // event.relativeIndex.set(this, event.index--);
         // event.relativePath.set(this, [...event.path]);
 
+        if (this.resource.useExpression) {
+
+          const key = await this.parse(this.resource.key);
+          event.path.unshift(key);
+
+        } else {
+
+          event.path.unshift(this.resource.key);
+
+        }
 
 
-        event.path.unshift(this.resource.key);
 
 
       }
@@ -724,7 +734,19 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
 
-  async splash(request) {
+  // async splash(request) {
+  //   // noop
+  // }
+
+  async splash(fromField, request) {
+		for (let child of this.children) {
+      if (child !== fromField) {
+        await child.update(request);
+      }
+		}
+	}
+
+  async update(request) {
     // noop
   }
 

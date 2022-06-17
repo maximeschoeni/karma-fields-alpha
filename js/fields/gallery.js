@@ -397,7 +397,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                         tag: "figure",
                         update: wrapper => {
                           // const file = id && this.getFile(id);
-                          if (src && width && height) {
+                          if (src[0] && width[0] && height[0] && type[0]) {
                             wrapper.children = [{
                               tag: "img",
                               update: image => {
@@ -712,7 +712,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
     this.ta.style.zIndex = "999999999";
     this.ta.style.position = "fixed";
     this.ta.style.bottom = "0";
-    // this.ta.style.left = "-100%";
+    this.ta.style.left = "-100%";
 
     document.body.appendChild(this.ta);
 

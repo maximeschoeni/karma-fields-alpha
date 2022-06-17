@@ -6,7 +6,7 @@ KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.button {
 		this.resource.primary = true;
 		this.resource.title ||= "Submit";
 		this.resource.action = "submit";
-		this.resource.disabled = "!modified";
+		this.resource.disabled = ["!", ["modified"]];
 	}
 
 }

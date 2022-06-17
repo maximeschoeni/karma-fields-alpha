@@ -5,7 +5,12 @@ KarmaFieldsAlpha.Query = class {
   static cache = {};
 
   static create(request, joins) {
+
+
     if (!this.cache[request]) {
+
+
+
       this.cache[request] = new this(request, joins);
     }
     return this.cache[request];
@@ -147,6 +152,7 @@ KarmaFieldsAlpha.Query = class {
   query() {
 
     return KarmaFieldsAlpha.Gateway.get("query/"+this.request).then(results => {
+
       results = results.items || results || []; // compat
       for (let i = 0; i < results.length; i++) {
         const id = results[i].id.toString();

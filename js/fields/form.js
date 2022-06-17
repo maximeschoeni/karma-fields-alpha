@@ -5,8 +5,9 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 		super(...args);
 
 		// this.buffer = new KarmaFieldsAlpha.LocalStorage(...(this.resource.bufferPath || ["form", this.resource.id || this.getId()]));
-		this.buffer = new KarmaFieldsAlpha.Buffer(...(this.resource.bufferPath || ["form", this.resource.id || this.getId()]));
-
+		// this.buffer = new KarmaFieldsAlpha.Buffer(...(this.resource.bufferPath || ["form", this.resource.id || this.getId()]));
+		const bufferPath = this.resource.bufferPath || ["data", this.resource.driver || this.resource.key || "nodriver"];
+		this.buffer = new KarmaFieldsAlpha.Buffer(...bufferPath);
 
 		this.listeners = [];
 	}
@@ -59,29 +60,27 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 	async isModified(...path) {
 
+		// return this.buffer.has(...path);
+
+
+
+
 		if (path.length) {
 
-			const value = this.buffer.get(...path); // -> value is an array
-			const type = KarmaFieldsAlpha.Type.getType(value);
+			let value = this.buffer.get(...path); // -> value is an array
 
 			if (value) {
 
-				// const event = this.createEvent({
-				// 	path: path,
-				// 	action: "get",
-				// 	type: type
-				// });
-				//
-				// await super.dispatch(event);
-				//
-				// return KarmaFieldsAlpha.DeepObject.differ(value, event.getValue());
+				value = KarmaFieldsAlpha.Type.toArray(value);
 
 				const event = await super.dispatch({
 					path: path,
 					action: "get"
 				});
 
-				return KarmaFieldsAlpha.DeepObject.differ(value, event.data);
+				const original = KarmaFieldsAlpha.Type.toArray(event.data);
+
+				return KarmaFieldsAlpha.DeepObject.differ(value, original);
 			}
 
 		} else {
@@ -89,28 +88,16 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 			const delta = this.buffer.get();
 
 			for (let key in delta) {
-				// const event = this.createEvent({
-				// 	path: [key],
-				// 	action: "get",
-				// 	type: KarmaFieldsAlpha.Type.getType(delta[key])
-				// });
-				//
-				// await super.dispatch(event);
-				//
-				// if (KarmaFieldsAlpha.DeepObject.differ(delta[key], event.getValue())) {
-				//
-				// 	return true;
-				//
-				// }
 
 				const event = await super.dispatch({
 					path: [key],
 					action: "get",
 				});
 
-				await super.dispatch(event);
+				let original = KarmaFieldsAlpha.Type.toArray(event.data);
+				let value = KarmaFieldsAlpha.Type.toArray(delta[key]);
 
-				if (KarmaFieldsAlpha.DeepObject.differ(delta[key], event.data)) {
+				if (KarmaFieldsAlpha.DeepObject.differ(value, original)) {
 
 					return true;
 
@@ -138,21 +125,52 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 	//
 	// }
 
+
+	// not used
+	async set(value, ...path) {
+
+		let current = this.buffer.get(...path); // -> value is an array
+
+		if (!current) {
+
+			const event = await super.dispatch({
+				path: path,
+				action: "get"
+			});
+
+			current = KarmaFieldsAlpha.Type.toArray(event.data);
+
+		}
+
+		if (KarmaFieldsAlpha.DeepObject.differ(value, current)) {
+			this.buffer.set(value, ...path);
+		}
+
+	}
+
+
+
+
 	async dispatch(event, parent) {
 
 		switch (event.action) {
 
 			case "modified":
-				event.setValue(await this.isModified(...event.path));
+
+			// console.log(this.resource, event.path);
+			// if (this.resource.driver === "spectacles") debugger;
+
+				// event.data = this.buffer.has(...event.path);
+				event.data = await this.isModified(...event.path);
 				break;
 
 			case "get": {
 				let value = this.buffer.get(...event.path);
 				if (value) {
-					if (event.checkModified) {
-						await super.dispatch(event);
-						event.modified = KarmaFieldsAlpha.DeepObject.differ(value, event.data);
-					}
+					// if (event.checkModified) {
+					// 	await super.dispatch(event);
+					// 	event.modified = KarmaFieldsAlpha.DeepObject.differ(value, event.data);
+					// }
 					// event.setValue(value);
 					// event.data = value || [];
 					event.data = KarmaFieldsAlpha.Type.toArray(value);
@@ -161,15 +179,26 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 					await super.dispatch(event);
 					// if (!event.hasValue() && event.default) { // -> event.default is a promise
 					// if ((!event.data || !event.data.length) && event.default) { // -> event.default is a promise
-					if (!event.data || !event.data.length) { // -> event.default is a promise
-						value = await event.field.getDefault();
+					// if (!event.data || !event.data.length) { // -> event.default is a promise
+					//
+					// 	value = await event.field.getDefault();
+					//
+					// 	value = KarmaFieldsAlpha.Type.toArray(value);
+					// 	this.buffer.set(value, ...path);
+					// 	event.data = value;
+					//
+					// }
+
+
+					if ((!event.data || !event.data.length) && event.default !== null && event.default !== undefined) { // -> event.default is an expression or a string
+
+
+						// value = await event.default();
+						value = await KarmaFieldsAlpha.Expression.resolve(event.field, event.default);
 						value = KarmaFieldsAlpha.Type.toArray(value);
 						this.buffer.set(value, ...path);
 						event.data = value;
 
-						await super.dispatch({
-							action: "edit"
-						});
 					}
 				}
 				break;
@@ -185,94 +214,83 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 				// break;
 			}
 
-			case "set":
+			case "set": {
+				// if (event.backup === "pack") debugger;
+				const newValue = KarmaFieldsAlpha.Type.toArray(event.data);
+				let currentValue = this.buffer.get(...event.path);
 
+				if (!currentValue) {
+					let request = await super.dispatch({
+						action: "get",
+						path: [...event.path]
+					});
 
-				// if (event.backup === "once") {
-				// 	const id = event.path.join("/");
-				// 	if (id !== this.historyId) {
-				// 		await this.write(...event.path);
-				// 		this.save(id);
-				// 	}
-				// } else if (event.backup === "always") {
-				// 	await this.write(...event.path);
-				// 	this.save();
-				// }
-
-				// -> save current value and step up history
-				if (event.backup) {
-					// const backupRequest = this.createEvent();
-					// backupRequest.action = "backup";
-					// backupRequest.data = undefined;
-					// backupRequest.path = [...event.path];
-					// backupRequest.type = "array";
-					// backupRequest.save = true;
-					// // backupRequest.id = event.path.join("/");
-					// backupRequest.backup = event.backup; // -> "once" | "always"
-					// await super.dispatch(backupRequest);
-
-					await super.dispatch(this.createEvent({
-						action: "backup",
-						data: undefined,
-						path: [...event.path],
-						stage: true,
-						backup: event.backup
-					}));
+					currentValue = KarmaFieldsAlpha.Type.toArray(request.data);
 				}
 
+				if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
 
-				if (event.autosave) {
-					await super.dispatch(event);
-				} else {
-					if (event.checkModified) {
-						const request = await super.dispatch({
-							action: "get",
-							type: event.type,
-							path: [...event.path]
-						});
-						event.modified = KarmaFieldsAlpha.DeepObject.differ(event.data, request.data);
+					// if (KarmaFieldsAlpha.DeepObject.differ(newValue, originalValue)) {
+					// 	this.buffer.set(newValue, ...event.path);
+					// } else {
+					// 	this.buffer.remove(...event.path);
+					// 	this.buffer.clean();
+					// }
+
+					this.buffer.set(newValue, ...event.path);
+
+
+
+					if (this.resource.driver && event.backup) {
+
+						KarmaFieldsAlpha.History.backup(newValue, currentValue, event.backup === "tie", "data", this.resource.driver, ...event.path);
+
+						// if (event.backup === "tie") {
+						//
+						// 	KarmaFieldsAlpha.History.tie(newValue, "data", this.resource.driver, ...event.path);
+						//
+						// }
+						//
+						// if (event.backup) {
+						//
+						// 	KarmaFieldsAlpha.History.pack(newValue, currentValue, "data", this.resource.driver, ...event.path);
+						//
+						// }
+
 					}
 
-
-					// this.buffer.set(event.getArray(), ...event.path);
-					const value = KarmaFieldsAlpha.Type.toArray(event.data);
-					this.buffer.set(value, ...event.path);
-
-					await super.dispatch({
-						action: "edit"
-					});
-				}
-
-				// -> save new value. No step up history.
-				if (event.backup) {
-					// const backupRequest = this.createEvent();
-					// backupRequest.action = "backup";
-					// backupRequest.data = event.data;
-					// backupRequest.path = [...event.path];
-					// backupRequest.type = "array";
-					// await super.dispatch(backupRequest);
-					await super.dispatch(this.createEvent({
-						action: "backup",
-						data: event.data,
-						path: [...event.path],
-					}));
 				}
 
 				break;
+			}
+
+
+
 
 
 			case "submit":
-				await this.submit();
+				// await this.submit();
 				// for (let listener of this.listeners) {
 				// 	await listener();
 				// }
+				await super.dispatch({
+					action: "send",
+					data: this.buffer.get()
+				});
+
+				this.buffer.empty();
 				break;
 
-			case "backup": {
-				event.data = event.data || this.buffer.get(...event.path);
+			case "send": // -> autosave
+				this.buffer.remove(...event.path);
 				await super.dispatch(event);
 				break;
-			}
+
+			// case "backup": {
+			// 	event.data = event.data || this.buffer.get(...event.path);
+			// 	await super.dispatch(event);
+			// 	break;
+			// }
 
 			default:
 				await super.dispatch(event);
@@ -285,41 +303,41 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 		return event;
 	}
 
-	async submit() {
+	// async submit() {
+	//
+	// 	// const event = this.createEvent({
+	// 	// 	action: "send",
+	// 	// 	type: "object"
+	// 	// });
+	// 	//
+	// 	// event.setValue(this.buffer.get());
+	// 	//
+	// 	// this.buffer.empty();
+	// 	//
+	// 	// await super.dispatch(event);
+	//
+	//
+	// 	await super.dispatch({
+	// 		action: "send",
+	// 		data: this.buffer.get()
+	// 	});
+	//
+	// 	this.buffer.empty();
+	// }
 
-		// const event = this.createEvent({
-		// 	action: "send",
-		// 	type: "object"
-		// });
-		//
-		// event.setValue(this.buffer.get());
-		//
-		// this.buffer.empty();
-		//
-		// await super.dispatch(event);
 
 
-		await super.dispatch({
-			action: "send",
-			data: this.buffer.get()
-		});
-
-		this.buffer.empty();
-	}
-
-
-
-	async set(value, ...path) {
-
-		this.buffer.set(value, ...path); // -> value is an array
-
-	}
-
-	async remove(...path) {
-
-		this.buffer.remove(...path);
-
-	}
+	// async set(value, ...path) {
+	//
+	// 	this.buffer.set(value, ...path); // -> value is an array
+	//
+	// }
+	//
+	// async remove(...path) {
+	//
+	// 	this.buffer.remove(...path);
+	//
+	// }
 
 	// async sendBackupRequest(data, ) {
 	// 	const backupRequest = this.createEvent({

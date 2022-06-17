@@ -5,6 +5,14 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
   }
 
+	// async splash(fromField, request) {
+	// 	for (let child of this.children) {
+  //     if (child !== fromField) {
+  //       await child.splash(request);
+  //     }
+	// 	}
+	// }
+
 
 
 	// async get(...path) {
@@ -41,30 +49,143 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 	//
 	// }
 
-	async splash(request) {
-		for (let child of this.children) {
-			await child.splash(request);
-		}
-	}
+	// async splash(request) {
+	// 	for (let child of this.children) {
+	// 		await child.splash(request);
+	// 	}
+	// }
+
+	// async dispatch(event, parent) {
+	//
+	// 	if (this.resource.key) {
+	//
+	// 		switch (event.action) {
+	//
+	// 			case "get": {
+	// 				const request = await super.dispatch({
+	// 					action: "get"
+	// 				});
+	// 				const object = KarmaFieldsAlpha.Type.toObject(request.data);
+	// 				const value = KarmaFieldsAlpha.DeepObject.get(object, ...event.path);
+	// 				event.data = KarmaFieldsAlpha.Type.toArray(value);
+	// 				break;
+	// 			}
+	//
+	// 			case "set": {
+	// 				this.promise = Promise.resolve(this.promise).then(async () => {
+	//
+	// 					const request = await super.dispatch({
+	// 						action: "get"
+	// 					}) || {};
+	//
+	// 					let object = KarmaFieldsAlpha.Type.toObject(request.data);
+	//
+	// 					object = KarmaFieldsAlpha.DeepObject.clone(object);
+	// 					KarmaFieldsAlpha.DeepObject.assign(object, event.data, ...event.path);
+	//
+	// 					await super.dispatch({
+	// 						action: "set",
+	// 						backup: "tie",
+	// 						data: object
+	// 					});
+	//
+	// 				});
+	// 				await this.promise;
+	// 				break;
+	// 			}
+	//
+	// 			case "edit": {
+	// 				await this.splash(parent, event.field);
+	// 				await super.dispatch(event, this);
+	// 				break;
+	// 			}
+	//
+	// 			default: {
+	// 				await super.dispatch(event, this);
+	// 				break;
+	// 			}
+	//
+	// 		}
+	//
+	// 	} else {
+	//
+	// 		await super.dispatch(event, this);
+	//
+	// 	}
+	//
+	// 	// if (event.splash || event.action === "set") {
+	// 	// 	// event.splash = false;
+	// 	// 	// await this.splash(event);
+	// 	// 	for (let child of this.children) {
+	// 	// 		if (child !== parent) {
+	// 	// 			await child.splash(event);
+	// 	// 		}
+	// 	// 	}
+	// 	// }
+	//
+	// 	return event;
+	// }
 
 	async dispatch(event, parent) {
 
-		if (this.resource.key) {
+		// if (this.resource.key) {
 
 			switch (event.action) {
 
-				case "get": {
-					event.setValue(KarmaFieldsAlpha.DeepObject.get(await this.getValue(), ...event.path));
-					break;
-				}
+				// case "get": {
+				// 	await super.dispatch(event, this);
+				// 	KarmaFieldsAlpha.Type.toArray(event.data);
+				// 	break;
+				//
+				// 	// KarmaFieldsAlpha.Type.convert(e)
+				//
+				// 	// const request = await super.dispatch({
+				// 	// 	action: "get"
+				// 	// });
+				// 	// const object = KarmaFieldsAlpha.Type.toObject(request.data);
+				// 	// const value = KarmaFieldsAlpha.DeepObject.get(object, ...event.path);
+				// 	// event.data = KarmaFieldsAlpha.Type.toArray(value);
+				// 	// break;
+				// }
 
-				case "set": {
-					this.promise = Promise.resolve(this.promise).then(() => this.getValue()).then(object => {
-						object = KarmaFieldsAlpha.DeepObject.clone(object);
-						KarmaFieldsAlpha.DeepObject.assign(object, event.getValue(), ...event.path);
-						return this.setValue(object);
-					});
-					await this.promise;
+				// case "set": {
+				// 	const type = this.resource.keyTypes && this.resource.keyTypes[event.path[0]];
+				//
+				// 	if (this.resource.key && ) {
+				//
+				// 		KarmaFieldsAlpha.Type.convert(e)
+				//
+				// 		await super.dispatch(event, this);
+				//
+				//
+				// 	}
+				//
+				//
+				// 	this.promise = Promise.resolve(this.promise).then(async () => {
+				//
+				// 		const request = await super.dispatch({
+				// 			action: "get"
+				// 		}) || {};
+				//
+				// 		let object = KarmaFieldsAlpha.Type.toObject(request.data);
+				//
+				// 		object = KarmaFieldsAlpha.DeepObject.clone(object);
+				// 		KarmaFieldsAlpha.DeepObject.assign(object, event.data, ...event.path);
+				//
+				// 		await super.dispatch({
+				// 			action: "set",
+				// 			backup: "tie",
+				// 			data: object
+				// 		});
+				//
+				// 	});
+				// 	await this.promise;
+				// 	break;
+				// }
+
+				case "edit": {
+					await this.splash(parent, event.field);
+					await super.dispatch(event, this);
 					break;
 				}
 
@@ -75,35 +196,30 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 			}
 
-		} else {
-
-			await super.dispatch(event, this);
-
-		}
-
-		if (event.splash || event.action === "set") {
-			// event.splash = false;
-			// await this.splash(event);
-			for (let child of this.children) {
-				if (child !== parent) {
-					await child.splash(event);
-				}
-			}
-		}
+		// } else {
+		//
+		// 	await super.dispatch(event, this);
+		//
+		// }
 
 		return event;
 	}
 
 	async getValue() {
 
-		const event = this.createEvent({
-			action: "get",
-			type: "object"
-		});
+		// const event = this.createEvent({
+		// 	action: "get",
+		// 	type: "object"
+		// });
+		//
+		// await super.dispatch(event);
+		//
+		// return event.getObject() || {};
 
-		await super.dispatch(event);
-
-		return event.getObject() || {};
+		const request = await super.dispatch({
+			action: "get"
+		}) || {};
+		return KarmaFieldsAlpha.Type.toObject(request.data);
 
 	}
 
@@ -168,7 +284,7 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 					// });
 					group.element.parentNode.classList.add("hidden");
 
-					this.splash = request => group.render();
+					this.update = () => group.render();
 				}
 
 				// if (this.resource.key) {
@@ -180,13 +296,9 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 			},
 			update: async group => {
 
-				// await this.updateState();
 				if (this.resource.hidden) {
 					const hidden = await this.parse(this.resource.hidden);
 					group.element.parentNode.classList.toggle("hidden", Boolean(hidden));
-					// this.check(this.resource.hidden).then(hidden => {
-					// 	group.element.parentNode.classList.toggle("hidden", hidden);
-					// });
 				}
 
 

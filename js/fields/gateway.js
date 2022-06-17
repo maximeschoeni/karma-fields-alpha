@@ -4,19 +4,21 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 	constructor(...args) {
 		super(...args);
 
-		this.joins = [];
+		// this.joins = [];
 
-		for (let child of this.resource.children || []) {
-			this.createChild(child);
-		}
+		// for (let child of this.resource.children || []) {
+		// 	this.createChild(child);
+		// }
 
 		// this.buffer = new KarmaFieldsAlpha.DeepObject();
 		// this.backup = new KarmaFieldsAlpha.DeepObject();
 
 
-		const [driverName] = this.resource.driver.split("?");
+		// const [driverName] = this.resource.driver.split("?");
 
-		this.buffer = new KarmaFieldsAlpha.Buffer("gateway", driverName);
+		[this.driver, this.params] = this.resource.driver.split("?");
+
+		this.buffer = new KarmaFieldsAlpha.Buffer("gateway", this.driver);
 
 		// this.valuePromises = {};
 		// this.optionPromises = {};
@@ -80,37 +82,37 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 	//
 	// }
 
-	async getRemoteValue(allowSingle, ...path) {
-
-		let value = this.buffer.get(...path);
-
-		if (!value) {
-
-			await this.join();
-
-			value = this.buffer.get(...path);
-
-		}
-
-		if (allowSingle && !value) {
-
-			value = await KarmaFieldsAlpha.Driver.get(this.resource.driver, ...path);
-
-		}
-
-		return value;
-	}
-
-	registerJoin(driver, promise) {
-
-// console.trace();
-
-		this.joins.push({
-			promise: promise,
-			driver: driver
-		});
-
-  }
+// 	async getRemoteValue(allowSingle, ...path) {
+//
+// 		let value = this.buffer.get(...path);
+//
+// 		if (!value) {
+//
+// 			await this.join();
+//
+// 			value = this.buffer.get(...path);
+//
+// 		}
+//
+// 		if (allowSingle && !value) {
+//
+// 			value = await KarmaFieldsAlpha.Driver.get(this.resource.driver, ...path);
+//
+// 		}
+//
+// 		return value;
+// 	}
+//
+// 	registerJoin(driver, promise) {
+//
+// // console.trace();
+//
+// 		this.joins.push({
+// 			promise: promise,
+// 			driver: driver
+// 		});
+//
+//   }
 
 	// registerJoin(drivers, ...path) {
 	//
@@ -129,68 +131,68 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 	// 	this.joins = this.joins.filter(join => join.driver !== driver);
   // }
 	//
-	async resolveJoin(joins) {
-
-		const drivers = joins.reduce((set, join) => new Set([...set, join.driver]), new Set());
-
-		for (let driver of drivers) {
-
-
-
-			const promises = joins.filter(join => join.driver === driver).map(join => join.promise);
-			const arrays = await Promise.all(promises);
-			const ids = arrays.reduce((set, ids) => new Set([...set, ...ids]), new Set());
-
-			// await KarmaFieldsAlpha.Driver.join(this.resource.driver, driver, [...ids]);
-
-			const [driverName, search] = driver.split("?");
-			const params = new URLSearchParams(search);
-			params.set("ids", Array.from(ids).join(","));
-			// params.set("from", this.resource.driver);
-
-			await KarmaFieldsAlpha.Driver.join(this.resource.driver, driverName+"?"+decodeURIComponent(params.toString()));
-
-
-
-		}
-
-	}
-
-	async join() {
-
-		// console.trace();
-
-		if (this.joins.length) {
-
-			this.joinPromise = this.resolveJoin(this.joins);
-			this.joins = [];
-
-		}
-
-		await this.joinPromise;
-
-		this.joinPromise = null;
-
-		// console.log("join");
-		//
-		// this.joinPromise = Promise.resolve(this.joinPromise).then(() => {
-		//
-		// 	if (this.joins.length) {
-		//
-		// 		const promise = this.resolveJoin(this.joins);
-		//
-		// 		console.log("reset joins");
-		// 		this.joins = [];
-		// 		return promise;
-		// 	}
-		// }).then(() => {
-		// 	console.log("reset promise");
-		// 	// this.joinPromise = null;
-		// });
-		//
-		// return this.joinPromise;
-
-	}
+	// async resolveJoin(joins) {
+	//
+	// 	const drivers = joins.reduce((set, join) => new Set([...set, join.driver]), new Set());
+	//
+	// 	for (let driver of drivers) {
+	//
+	//
+	//
+	// 		const promises = joins.filter(join => join.driver === driver).map(join => join.promise);
+	// 		const arrays = await Promise.all(promises);
+	// 		const ids = arrays.reduce((set, ids) => new Set([...set, ...ids]), new Set());
+	//
+	// 		// await KarmaFieldsAlpha.Driver.join(this.resource.driver, driver, [...ids]);
+	//
+	// 		const [driverName, search] = driver.split("?");
+	// 		const params = new URLSearchParams(search);
+	// 		params.set("ids", Array.from(ids).join(","));
+	// 		// params.set("from", this.resource.driver);
+	//
+	// 		await KarmaFieldsAlpha.Driver.join(this.resource.driver, driverName+"?"+decodeURIComponent(params.toString()));
+	//
+	//
+	//
+	// 	}
+	//
+	// }
+	//
+	// async join() {
+	//
+	// 	// console.trace();
+	//
+	// 	if (this.joins.length) {
+	//
+	// 		this.joinPromise = this.resolveJoin(this.joins);
+	// 		this.joins = [];
+	//
+	// 	}
+	//
+	// 	await this.joinPromise;
+	//
+	// 	this.joinPromise = null;
+	//
+	// 	// console.log("join");
+	// 	//
+	// 	// this.joinPromise = Promise.resolve(this.joinPromise).then(() => {
+	// 	//
+	// 	// 	if (this.joins.length) {
+	// 	//
+	// 	// 		const promise = this.resolveJoin(this.joins);
+	// 	//
+	// 	// 		console.log("reset joins");
+	// 	// 		this.joins = [];
+	// 	// 		return promise;
+	// 	// 	}
+	// 	// }).then(() => {
+	// 	// 	console.log("reset promise");
+	// 	// 	// this.joinPromise = null;
+	// 	// });
+	// 	//
+	// 	// return this.joinPromise;
+	//
+	// }
 
 
 	// async join(driver) {
@@ -285,12 +287,6 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 
 		switch (event.action) {
 
-			case "ids": {
-				const [id] = event.path;
-				event.data = [id];
-				break;
-			}
-
 			case "driver": {
 				event.data = this.resource.driver;
 				break;
@@ -325,9 +321,9 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 				// event.data = await KarmaFieldsAlpha.Driver.get(this.resource.driver, paramString, this.resource.joins, id, ...path);
 
 				const [driver, ...params] = this.resource.driver.split("?");
-				const paramString = this.resource.driver+"?"+[...params, "id="+id].join("&");
+				const paramString = this.driver+"?"+[...params, "id="+id].join("&");
 				const query = KarmaFieldsAlpha.Query.create(paramString, this.resource.joins);
-				event.driver = driver;
+				event.driver = this.driver;
 				event.data = await query.get(id, ...path);
 
 
@@ -340,7 +336,7 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 				break;
 
 			case "send":
-				await this.send(event.getValue(), ...event.path);
+				await this.send(event.data, ...event.path);
 				break;
 
 
@@ -427,11 +423,11 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 		// 	this.buffer.remove(...path, ...subpath);
 		// });
 
-		if (path.length) {
-			this.buffer.set(value, ...path);
-		} else {
+		// if (path.length) {
+		// 	this.buffer.set(value, ...path);
+		// } else {
 			this.buffer.merge(value, ...path);
-		}
+		// }
 
 
 
@@ -443,15 +439,16 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 			console.error("Resource driver not set");
 		}
 
-		const [driverName] = this.resource.driver.split("?");
+		// const [driverName] = this.resource.driver.split("?");
 
-		await KarmaFieldsAlpha.Gateway.post("update/"+driverName, value);
+		await KarmaFieldsAlpha.Gateway.post("update/"+this.driver, value);
 
   }
 
 	clear() {
-		this.buffer.empty();
-		this.valuePromises = {};
+
+		// this.buffer.empty();
+		// this.valuePromises = {};
 	}
 
 

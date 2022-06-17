@@ -29,18 +29,17 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
       case "close":
         // KarmaFieldsAlpha.Gateway.clearOptions();
         KarmaFieldsAlpha.Nav.empty();
-        console.log("close");
-        this.render();
+        await this.render();
         break;
 
       case "undo":
       case "redo":
-        this.render();
+        await this.render();
         break;
 
       case "media-library":
         KarmaFieldsAlpha.Nav.setObject(new URLSearchParams({karma: "medias"})); // , id: event.id
-        this.render();
+        await this.render();
         break;
 
       // case "nav":
@@ -60,6 +59,13 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
         this.render = container.render;
 
         window.addEventListener("popstate", event => {
+
+          KarmaFieldsAlpha.History.save();
+          const params = KarmaFieldsAlpha.Nav.getObject();
+        	for (let key in params) {
+        		KarmaFieldsAlpha.History.pack(params[key], null, "nav", key);
+        	}
+
         	container.render();
         });
 

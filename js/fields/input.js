@@ -1,7 +1,10 @@
 KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
-	async getDefault() {
-		return this.parse(this.resource.default || "");
+	getDefault() {
+		if (this.resource.default === null) {
+			return null; // -> no default
+		}
+		return this.resource.default || "";
 	}
 
 	async importValue(value) {
@@ -48,10 +51,10 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 			const event = await this.dispatch({
 				action: "get",
-				type: "string"
+				type: "string",
+				default: await this.getDefault()
 				// default: this.getDefault()
 			});
-
 
 
 			// return event.getValue();
@@ -89,15 +92,58 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 			// event.splash = true;
 			// event.setValue(value);
 
+			// await this.dispatch({
+			// 	action: "backup"
+			// });
+			//
+			// await this.dispatch({
+			// 	action: "stage"
+			// });
+
+
+			if (this.resource.autosave) {
+
+				await this.dispatch({
+					action: "send",
+					data: KarmaFieldsAlpha.Type.toArray(value)
+				});
+
+			} else {
+
+				await this.dispatch({
+					action: "set",
+					type: "string",
+					backup: this.isBusy() ? "pack" : "tie",
+					// autosave: this.resource.autosave,
+					// splash: true, // deprec -> use 'edit'
+					data: KarmaFieldsAlpha.Type.toArray(value)
+					// edit: true
+				});
+
+			}
+
+
+			if (this.resource.onchange) {
+				await this.parse(this.resource.onchange);
+			}
+
 			await this.dispatch({
-				action: "set",
-				type: "string",
-				backup: "always",
-				autosave: this.resource.autosave,
-				splash: true, // ??
-				data: KarmaFieldsAlpha.Type.toArray(value)
+				action: "edit",
+				data: this.resource.editmode || "splash"
 			});
 
+	}
+
+
+	isBusy(duration = 3000) {
+		if (!this.busy) {
+			setTimeout(() => {
+				this.busy = false;
+			}, duration);
+			this.busy = true;
+			return false;
+		}
+		return true;
 	}
 
 
@@ -114,11 +160,11 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 		return false;
 	}
 
-	throttle(callback) {
+	throttle(callback, interval = 500) {
 		if (this.throttleTimer) {
 			clearTimeout(this.throttleTimer);
 		}
-		this.throttleTimer = setTimeout(callback, 500);
+		this.throttleTimer = setTimeout(callback, interval);
 	}
 
 
@@ -163,7 +209,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 				if (this.resource.active || this.resource.disabled || this.resource.hidden) {
 					// this.setEventListener(event => input.render());
-					this.splash = event => input.render();
+					this.update = event => input.render();
 				}
 
 			},
@@ -189,7 +235,6 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				// 	input.element.classList.remove("loading");
 				// });
 
-
 				input.element.value = await this.getValue();
 
 				input.element.parentNode.classList.toggle("modified", await this.isModified());
@@ -197,7 +242,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 				input.element.onpaste = event => {
 
-					// event.preventDefault();
+					event.preventDefault();
 
 					// const request = this.createEvent({
 					// 	action: "set",
@@ -230,6 +275,8 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				// }
 
 				input.element.oninput = async event => {
+
+					console.log("oninput");
 					// input.element.classList.add("editing"); // -> search fields
 
 					// await this.enqueue(() => this.setValue(input.element.value));
@@ -253,7 +300,8 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 
 				if (this.resource.disabled) {
-					input.element.disabled = Boolean(await this.parent.parse(this.resource.disabled));
+					const disabled = await this.parent.parse(this.resource.disabled);
+					input.element.disabled = Boolean(disabled);
 					// this.parent.check(this.resource.disabled).then(disabled => {
 					// 	input.element.disabled = disabled;
 					// });

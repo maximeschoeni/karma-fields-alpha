@@ -33,19 +33,13 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 						await this.setValue(input.element.value.normalize());
 
 						input.element.parentNode.classList.toggle("modified", await this.isModified());
-						// input.element.classList.remove("editing");
 					});
 
-					// modified = await this.isModified();
-
-					// input.element.classList.remove("editing");
-					// input.element.classList.toggle("modified", modified);
 				};
 
 				input.element.value = await this.getValue();
 				input.element.parentNode.classList.toggle("modified", await this.isModified());
 				input.element.classList.remove("loading");
-				// input.element.disabled = this.getState() === "disabled";
 			}
 		};
 	}

@@ -309,7 +309,7 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
   // }
 
 
-	//
+
 	// initField() {
 	//
 	// 	const value = [
@@ -333,6 +333,27 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 	// 				"##",
 	// 				["get", "/taxonomy?taxonomy=category/%%/name"]
 	// 			]
+	// 		]
+	// 	];
+	//
+	// 	const categories2 = [
+	// 		"<ul>##</ul>",
+	// 		"replace",
+	// 		"##",
+	// 		[
+	// 			"join",
+	// 			[
+	// 				"map",
+	// 				["getArray", "category"],
+	// 				"%%",
+	// 				[
+	// 					"replace",
+	// 					"<li><a hash=\"driver=taxonomy&taxonomy=category\">##</a></li>",
+	// 					"##",
+	// 					["get", "/taxonomy?taxonomy=category", "%%", "name"]
+	// 				]
+	// 			],
+	// 			""
 	// 		]
 	// 	];
 	//
@@ -473,13 +494,17 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 			class: "text karma-field",
 			init: node => {
 				if (this.resource.dynamic || this.resource.hidden || this.resource.disabled) {
-					this.splash = request => this.render();
+					this.update = request => this.render();
 				}
 			},
 			update: async node => {
 				this.render = node.render;
 
 				// node.element.innerHTML = this.preParse(this.resource.value);
+
+// console.log(this.resource.id, this.resource.value);
+// if (this.resource.id == "xx") debugger;
+
 
 
 				await this.parse(this.resource.value).then(value => {

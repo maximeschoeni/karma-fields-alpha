@@ -1,8 +1,16 @@
 KarmaFieldsAlpha.Gateway = class {
 
-	static get(queryString) {
+	static get(queryString, params = "") {
 
-		return fetch(KarmaFieldsAlpha.restURL+"/"+queryString, {
+		if (typeof params !== "string") {
+			params = KarmaFieldsAlpha.Nav.toString(params);
+		}
+
+		if (params) {
+			params = "?"+params;
+		}
+
+		return fetch(KarmaFieldsAlpha.restURL+"/"+queryString+params, {
 			cache: "default", // force-cache
 			headers: {
 				"Content-Type": "application/json",

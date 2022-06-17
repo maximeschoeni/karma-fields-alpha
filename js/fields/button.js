@@ -20,6 +20,10 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 			init: async button => {
 				// button.element.tabIndex = -1; // -> prevent button getting focus
 
+				// this.splash = () => {
+				// 	button.render();
+				// };
+
 				if (this.resource.primary) {
 					button.element.classList.add("primary");
 				}
@@ -27,7 +31,7 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 
 				if (this.resource.active || this.resource.disabled || this.resource.hidden) {
 					// this.setEventListener(event => button.render());
-					this.splash = request => button.render();
+					this.update = () => button.render();
 				}
 				if (this.resource.hidden) {
 					button.element.parentNode.classList.add("hidden");
@@ -45,13 +49,31 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 					if (!button.element.classList.contains("editing")) {
 						button.element.classList.add("editing");
 
-						const event = this.createEvent({
-							action: this.resource.action || this.resource.state || this.resource.value || "submit" // compat
+						// const event = this.createEvent();
+
+
+
+
+						requestIdleCallback(() => {
+							this.dispatch({
+								action: this.resource.action || this.resource.state || this.resource.value || "submit" // compat
+							}).then(() => {
+								button.element.classList.remove("editing");
+							});
+
 						});
 
-						await this.dispatch(event);
 
-						button.element.classList.remove("editing");
+						// requestIdleCallback(async () => {
+						// 	await this.dispatch({
+						// 		action: this.resource.action || this.resource.state || this.resource.value || "submit" // compat
+						// 	});
+						// 	button.element.classList.remove("editing");
+						// });
+
+
+
+
 
 						// document.activeElement.blur();
 					}
@@ -60,7 +82,6 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 
 			},
 			update: async button => {
-
 
 				// button.element.onclick = async event => {
 				// 	event.preventDefault();
@@ -79,6 +100,7 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 				// 		button.element.classList.remove("editing");
 				// 	}
 				// }
+
 
 				if (this.resource.disabled) {
 					// const instance = this;

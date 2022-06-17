@@ -17,38 +17,117 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 	async getDefault() {
 		const options = await this.fetchOptions();
-		if (this.resource.default !== undefined && options.some(option => option.id === this.resource.default)) {
-			return this.resource.default;
+
+		let value = await this.parse(this.resource.default);
+
+		if (!options.some(option => option.id === value) && options.length) {
+			value = options[0].id;
 		}
-		const value = KarmaFieldsAlpha.Nav.get(this.resource.key);
-		if (value && options.some(option => option.id === value)) {
-			return value;
-		}
-		if (options.length) {
-			return options[0].id;
-		}
+
+		return value;
 	}
 
 	async fetchOptions() {
 		// let options = await super.fetchOptions(this.resource.driver);
 
-		let options = this.resource.options || [];
-
-		if (this.resource.driver) {
-			let query = KarmaFieldsAlpha.Query.create(this.resource.driver);
-			let results = await query.get();
-
-			if (this.resource.mapfieldname) {
-				options = options.map(option => options.name = options[this.resource.mapfieldname])
-			}
-
-			options = [...options, ...results];
+		if (this.resource.options) {
+			return this.parse(this.resource.options);
+		} else if (this.resource.driver) {
+			return this.parse([
+				"...",
+				{id: "", name: "-"},
+				["queryArray", this.resource.driver]
+			]);
+		} else if (this.resource.postdriver) {
+			return this.parse([
+				"...",
+				{id: "", name: "-"},
+				[
+					"map",
+					["queryArray", this.resource.postdriver],
+					[
+						"object",
+						{
+							id: ["item", "ID"],
+							name: ["item", "post_title"]
+						}
+					]
+				]
+			]);
 		}
 
+		return [];
 
-		if (options.some(option => option.id === undefined || option.name === undefined || typeof option.id !== "string")) {
-			console.error("id or name parameter missing in option list items", options);
-		}
+		//
+		//
+		//
+		//
+		// var dropdown = [
+		// 	options: [
+		// 		"cat",
+		// 		[
+		// 			"array",
+		// 			[
+		// 				{id: "", name: "-"}
+		// 			],
+		// 		],
+		// 		["getArray", "myKey"]
+		// 	]
+		// ];
+		//
+		// var dropdown = [
+		// 	options: [
+		// 		"options",
+		// 		"": "-",
+		// 		"a": "A",
+		// 		"b": "B"
+		// 	]
+		// ];
+		//
+		// var dropdown = [
+		// 	options: [
+		// 		"...",
+		// 		{id: "", name: "-"},
+		// 		["queryArray", "driver"]
+		// 	]
+		// ];
+		//
+		// var dropdown = [
+		// 	options: [
+		// 		"...",
+		// 		{id: "", name: "-"},
+		// 		[
+		// 			"map",
+		// 			["queryArray", "driver"],
+		// 			[
+		// 				"object",
+		// 				{
+		// 					id: ["item", "ID"],
+		// 					name: ["item", "post_title"]
+		// 				}
+		// 			]
+		// 		]
+		// 	]
+		// ];
+		//
+		//
+		// let options = this.resource.options || [];
+		//
+		// if (this.resource.driver) {
+		// 	let query = KarmaFieldsAlpha.Query.create(this.resource.driver);
+		// 	let results = await query.get();
+		//
+		// 	if (this.resource.mapfieldname) {
+		// 		options = options.map(option => options.name = options[this.resource.mapfieldname])
+		// 	}
+		//
+		// 	options = [...options, ...results];
+		// }
+		//
+		//
+		// if (options.some(option => option.id === undefined || option.name === undefined || typeof option.id !== "string")) {
+		// 	console.error("id or name parameter missing in option list items", options);
+		// }
 
 		// deprecated
 		// if (this.resource.empty !== undefined) {
@@ -71,7 +150,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
     //   option.id = option.id.toString();
     // });
 
-		return options;
+		// return options;
 	}
 
 	hasOptgroups(options) {
@@ -161,7 +240,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 				if (this.resource.disabled || this.resource.hidden || this.resource.dynamic) {
 					// this.setEventListener(event => dropdown.render());
-					this.splash = request => dropdown.render();
+					this.update = () => dropdown.render();
 				}
 				// if (this.resource.dynamic) {
 				// 	// this.setEventListener(event => dropdown.render());
@@ -173,16 +252,32 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 				dropdown.element.classList.add("loading");
 
 
-				const queryString = await this.getOptionsParamString();
+				// const queryString = await this.getOptionsParamString();
 
-				if (queryString !== dropdown.element.getAttribute("querystring")) {
-					const options = await this.fetchOptions();
+
+				// if (queryString !== dropdown.element.getAttribute("querystring")) {
+				const options = await this.fetchOptions();
+				let value = await this.getValue();
+
+				if (true || this.queriedArrayRequest !== dropdown.element.getAttribute("querystring")) {
+
 
 
 					// var [path] = this.getPath();
 					// if (path == 187) debugger;
 
-					const value = await this.getValue();
+
+
+					// if (!options.some(option => option.id === value)) {
+					// 	value = options[0].id;
+					// 	// console.log("reset dropdown", this.resource.key);
+					// 	await this.dispatch({
+					// 		action: "set",
+					// 		data: [value],
+					// 		edit: true,
+					// 		backup: "save"
+					// 	});
+					// }
 
 
 
@@ -191,11 +286,14 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 					dropdown.element.length = 0;
 
 					options.forEach(option => {
+
+						// console.log(value, option.id, value === option.id, this.resource);
+
 						dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
 					});
 
 
-					dropdown.element.setAttribute("querystring", queryString);
+					dropdown.element.setAttribute("querystring", this.queriedArrayRequest);
 				} else {
 					this.getValue().then(async (value) => {
 						dropdown.element.value = value;
@@ -209,6 +307,8 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 					// 	dropdown.element.parentNode.classList.add("autosaving");
 					// }
 
+
+
 					// -> compat
 					if (this.resource.retrodependencies) {
 						console.warn("DEPRECATED retrodependencies");
@@ -217,13 +317,22 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 						});
 					}
 
+					// -> compat
 					if (this.resource.unfilters) {
+						console.warn("DEPRECATED unfilters");
 						this.resource.unfilters.forEach(filter => {
-							KarmaFieldsAlpha.Nav.removeParam(filter);
+							KarmaFieldsAlpha.Nav.remove(filter);
 						});
 					}
 
+					// if (this.resource.onchange) {
+					// 	await this.parse(this.resource.onchange);
+					// }
+
 					await this.setValue(dropdown.element.value);
+
+
+
 
 					dropdown.element.parentNode.classList.toggle("modified", await this.isModified());
 					// if (this.resource.autosave) {

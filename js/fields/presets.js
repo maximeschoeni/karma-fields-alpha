@@ -79,8 +79,14 @@ KarmaFieldsAlpha.fields.presets = class {
     title: "Next Page",
     text: "›",
     // disabled: "lastpage",
-    disabled: ["get", "lastpage"]
+    disabled: ["get", "lastpage"],
     // hidden: "numpage=1"
+    // value: [
+    //   "resolveAll",
+    //   ["backup"],
+    //   ["set", ["min", ["+", ["get", "page"], 1], ["get", "lastpage"]], "page"],
+    //   ["edit"]
+    // ]
   }
 
 	static lastpage = {
@@ -172,6 +178,16 @@ KarmaFieldsAlpha.fields.presets = class {
   static separator = {
     id: "separator",
 		type: "separator"
+  }
+
+  static reload = {
+    id: "reload",
+		type: "button",
+    action: "reload",
+    title: "Reload"
+    // disabled: "!modified",
+    // disabled: ["!", ["modified"]],
+    // primary: true
   }
 
 }

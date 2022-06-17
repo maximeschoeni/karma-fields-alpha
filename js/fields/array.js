@@ -20,15 +20,19 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
     return [];
   }
 
-  async splash(request) {
-		for (let child of this.children) {
-			await child.splash(request);
-		}
-	}
 
-  async update() {
-    // noop
-  }
+
+  // async splash(request) {
+	// 	for (let child of this.children) {
+	// 		await child.splash(request);
+	// 	}
+	// }
+
+  // async update() {
+  //   for (let child of this.children) {
+	// 		await child.update(request);
+	// 	}
+  // }
 
   async getValue(...path) {
 
@@ -150,7 +154,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       path: [key]
     });
 
-    return event.data;
+    return request.data;
   }
 
   async setColumn(column, key) {
@@ -359,6 +363,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       class: "array",
       init: table => {
         this.render = table.render;
+        this.update = () => table.render();
       },
       update: async table => {
 
@@ -956,6 +961,11 @@ KarmaFieldsAlpha.fields.arrayRow = class extends KarmaFieldsAlpha.fields.field {
         // for (let listener of this.listeners) await listener();
         break;
 
+      case "edit":
+        await this.splash(parent, event);
+        await super.dispatch(event);
+        break;
+
       // case "listen":
       //   this.listeners.push(event.callback);
       //   break;
@@ -966,13 +976,13 @@ KarmaFieldsAlpha.fields.arrayRow = class extends KarmaFieldsAlpha.fields.field {
 
     }
 
-    if (event.splash || event.action === "set") {
-			for (let child of this.children) {
-				if (child !== parent) {
-					await child.splash(event);
-				}
-			}
-		}
+    // if (event.splash || event.action === "set") {
+		// 	for (let child of this.children) {
+		// 		if (child !== parent) {
+		// 			await child.splash(event);
+		// 		}
+		// 	}
+		// }
 
     return event;
   }

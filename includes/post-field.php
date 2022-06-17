@@ -93,6 +93,7 @@
 			id: "form",
 			key: id,
 			type: "form",
+			bufferPath: ["data"],
 			children: [resource]
 			// children: [
 			// 	{
@@ -104,10 +105,10 @@
 		});
 
 		form.buffer.getObject = function() {
-			return JSON.parse(input.value || "{}");
+			return {data: JSON.parse(input.value || "{}")};
 		};
 		form.buffer.setObject = function(delta) {
-			input.value = JSON.stringify(delta);
+			input.value = JSON.stringify(delta.data);
 		}
 
 		// gateway.buffer.getObject = function() {

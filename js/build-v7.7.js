@@ -39,6 +39,7 @@ KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 		}
 	} else {
 		args.element = element;
+
 	}
 	if (args.update) {
 		await args.update(args);
