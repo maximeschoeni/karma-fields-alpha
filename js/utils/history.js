@@ -64,10 +64,10 @@ KarmaFieldsAlpha.History = class {
 
   }
 
-	// static push(value, ...path) {
-	// 	const index = this.getIndex();
-	// 	this.set(value, index, ...path);
-  // }
+	static push(value, ...path) {
+		const index = this.getIndex();
+		this.set(value, index, ...path);
+  }
 
 	static backup(newValue, currentValue, tie, ...path) {
 

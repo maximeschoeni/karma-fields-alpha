@@ -63,15 +63,17 @@
   /* justify-content: center; */
 }
 
-.karma-field-table .table figure.text {
+.karma-field-table .table figure {
   padding: 0;
   margin: 0;
   flex-grow: 1;
+  display: flex;
   justify-content: center;
+  align-items: center;
   width: 120px;
   height: 120px;
 }
-.karma-field-table .table figure.text img {
+.karma-field-table .table figure img {
   display: block;
   max-width: 100%;
   max-height: 100%;
@@ -82,9 +84,9 @@
 }
 
 
-.karma-field-table .table .karma-field.selected {
+/* .karma-field-table .table .karma-field.selected {
   background-color: white;
-}
+} */
 
 
 
@@ -102,6 +104,9 @@
 }
 .karma-field-table .table ::selection {
   background-color: #e7e7e7;
+
+  /* background-color: #484848;
+  color: #e7e7e7; */
 }
 
 .karma-field-table .table :focus-within  {
@@ -616,7 +621,9 @@ td.modified .on-off svg path {
 
 
 .karma-field-frame.karma-field-button {
-  min-width: 20px;
+  /* min-width: 20px; */
+  min-width: 2em;
+  flex-shrink: 0;
 }
 
 
@@ -690,8 +697,12 @@ button.karma-button.active {
   border-color: #8c8f94; */
 }
 
+
 button.karma-button:active {
   /* border-color: transparent; */
+
+  border: 1px solid #bbbcc0;
+  color: #bbbcc0;
 }
 
 
@@ -808,6 +819,48 @@ button.karma-button > .karma-field-spinner {
 button.karma-button.primary > .karma-field-spinner {
   /* border-color: #f1f1f1 transparent #f1f1f1 #f1f1f1; */
 }
+
+.karma-field-table .grid button.karma-button {
+  height: auto;
+  border: none;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+
+
+/* Upload button
+----------------------------------- */
+
+.karma-fields .karma-upload {
+
+}
+.karma-fields .karma-upload label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5em;
+  min-width: 2.5em;
+  border-radius: 3px;
+  font-size: 1em;
+  line-height: 1.08em;
+  border: 1px solid #1d2327;
+  cursor: pointer;
+  font-weight: normal;
+  padding: 0 0.75em;
+  color: #1d2327;
+  margin: 0;
+}
+.karma-fields .karma-upload label:hover {
+  background-color: white;
+}
+.karma-fields .karma-upload label:active {
+  border: 1px solid #bbbcc0;
+  color: #bbbcc0;
+}
+
+
 
 
 /*
@@ -1176,8 +1229,11 @@ button.karma-button[title]:hover::before {
 }
 .karma-field-container.display-flex {
   flex-direction: row;
-
 }
+.karma-field-container.display-block {
+  flex-wrap: nowrap;
+}
+
 .karma-field-group {
   /* flex-grow: 1; */
   min-width: 260px;

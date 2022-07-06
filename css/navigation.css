@@ -17,7 +17,7 @@
   padding: 30px;
   box-sizing: border-box;
   display: flex;
-  gap: 1px;
+  /* gap: 1px; */
 
   overflow: hidden;
 }
@@ -28,21 +28,28 @@
   flex-grow: 1;
   display: flex;
   position: relative;
-  gap: 1px;
+  /* gap: 1px; */
 }
 .karma-fields-navigation .karma-field-table .table-view .table-main {
-  /* position: absolute; */
-  /* width: 100%; */
-  height: 100%;
-  flex: 1 1 0;
+  /* position: absolute;
+  width: 60%;
+  height: 100%; */
+  /* flex: 1 1 0; */
+  /* flex: 1 0 60%; */
+  flex-grow: 1;
   display: flex;
-  gap: 1px;
+  /* gap: 1px; */
   flex-direction: column;
-  max-width: 100%;
+  min-width: 0;
+  /* max-width: 100%; */
 
   /* transition: transform 200ms; */
   /* transition: flex 200ms; */
 }
+
+
+
+
 .karma-fields-navigation.single-open .karma-field-table .table-view .table-main {
   /* transform: translateX(calc(80% + 1px)); */
   /* filter: brightness(0.7); */
@@ -59,18 +66,20 @@
   /* height: 50px; */
   /* box-sizing: border-box; */
 }
-.karma-fields-navigation .karma-field-table .table-header h1 {
+.karma-fields-navigation .karma-field-table h1 {
   /* flex-grow: 1;
   display: flex;
   align-items: center; */
   margin: 0;
+  font-size: 1.5em;
+  line-height: 1.15em;
 }
 .karma-fields-navigation .karma-field-table .table-header .modal-navigation {
   display: flex;
   align-items: center;
   padding: 0 10px;
   background-color: #f1f1f1;
-  gap: 10px;
+  /* gap: 10px; */
 }
 .karma-fields-navigation button.hidden {
   display: none;
@@ -105,13 +114,13 @@
 
 .karma-fields-navigation .karma-field-table-columns {
   display: flex;
-  gap: 1px;
+  /* gap: 1px; */
   width: 100%;
 }
 .karma-fields-navigation .karma-field-table-column {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  /* gap: 1px; */
 }
 .karma-fields-navigation .karma-field-table-column.grid-column {
   flex-grow: 1;
@@ -133,36 +142,54 @@
   /* margin-right: 1px; */
   /* overflow: hidden; */
   display: flex;
-  flex: 0 0 100%;
-
-  /* min-width: 0; */
+  /* flex: 0 0 40%; */
+  flex-shrink: 0;
+  min-width: 0;
 
   /* position: absolute;
   width: 80%; */
-  height: 100%;
-  z-index: 3;
+  /* height: 100%; */
+  /* z-index: 3; */
+  order: 2;
 
   /* transform: translateX(-100%); */
   /* transition: transform 200ms; */
   /* transition: flex 200ms; */
 
-  display: none;
+  /* display: none; */
+
+  /* position: absolute;
+  width: calc(40% - 1px);
+  right: 0; */
+
+
+  width: 0;
+  transition: width 200ms;
 }
+
+.karma-fields-navigation .karma-field-table .table-view.single-open .table-modal {
+
+
+  /* width: 40em; /* should be set in js */
+}
+
+
+
 .karma-fields-navigation.single-open .karma-field-table .table-modal,
 .karma-fields-navigation .karma-fields-content.single-open .karma-field-table .table-modal {
-  /* transform: translateX(0); */
-  /* flex: 0 0 100%; */
 
-  display: flex;
-  position: relative;
+  /* display: flex;
+  position: relative; */
 }
 
 .karma-fields-navigation .karma-field-table .karma-modal {
   display: flex;
-  gap: 1px;
+  /* gap: 1px; */
   flex-direction: column;
   overflow: hidden;
   flex-grow: 1;
+
+  /* min-width: 40em; /* should be set in js */
 }
 .karma-fields-navigation .karma-field-table .table-modal .modal-resize-handle {
   position: absolute;
@@ -183,7 +210,7 @@
   display: flex;
   /* max-height: 3.75em; */
   flex-shrink: 0;
-  gap: 1px;
+  /* gap: 1px; */
 
   padding: 0.75em;
 }
@@ -215,8 +242,8 @@
   overflow: hidden;
   text-overflow: ellipsis; */
 
-  font-size: 1.5em;
-  line-height: 1.15em;
+  /* font-size: 1.5em;
+  line-height: 1.15em; */
 }
 
 
@@ -236,41 +263,61 @@
   cursor: default;
 } */
 .karma-fields-navigation .karma-field-table .table-header button.close span {
-  grid-area: 1 / 1;
+  /* grid-area: 1 / 1; */
 }
 .karma-fields-navigation .karma-field-table .table-header button.close:hover {
-  background-color: white;
+  /* background-color: white; */
 }
 .karma-fields-navigation .karma-field-table .table-header button.close.loading span {
-  visibility: hidden;
+  /* visibility: hidden; */
 }
 .karma-fields-navigation .karma-field-table .table-header button.close.loading::after {
-  content: "...";
-  grid-area: 1 / 1;
+  /* content: "...";
+  grid-area: 1 / 1; */
 }
 .karma-fields-navigation .karma-field-table .table-header .header-item {
-  display: flex;
+  /* display: flex;
   background-color: #f1f1f1;
   align-items: center;
-  padding: 0 10px;
-  gap: 10px;
+  padding: 0 10px; */
+  /* gap: 10px; */
 }
 .karma-fields-navigation .karma-field-table .table-header .header-item.total-items {
   /* min-width: 125px; */
 }
 .karma-fields-navigation .karma-field-table .table-header .header-item.total-items a {
-  cursor: pointer;
+  /* cursor: pointer; */
 }
 .karma-fields-navigation .karma-field-table .table-header .header-item.total-items .set-ppp {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  /* display: flex;
+  align-items: baseline; */
+  /* gap: 10px; */
 }
 
 
-.karma-fields-navigation .karma-field-table .table-header .total-items.loading::after {
+/* .karma-fields-navigation .karma-field-table .table-header .total-items.loading::after {
   content: "...";
+} */
+.karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header {
+  background-color: #f1f1f1;
+  display: flex;
+  overflow: auto;
+  padding: 0.75em;
+  flex-shrink: 0;
 }
+.karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header>.karma-field-container {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+
+
+
+.karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header h1 {
+  /* font-size: 1.5em;
+  line-height: 1.15em; */
+}
+
 
 .karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-body {
   /* background-color: #c3c4c7; */
@@ -279,8 +326,10 @@
   display: flex;
   overflow: auto;
 
-  /* padding: 1.5em 20px; */
+  padding: 0.75em;
   flex-grow: 1;
+
+  flex-direction: column;
 }
 .karma-fields-navigation .karma-field-table.loading .karma-field-frame {
   background-color: #f1f1f1;
@@ -336,3 +385,199 @@
 
   padding: 0.75em;
 }
+
+
+
+/* shadow boxes */
+.table-header,
+.table-footer,
+.table-modal,
+.karma-modal-header,
+.karma-field-table-section {
+  /* box-shadow: 0 0 6px 0px #484848; */
+  box-shadow: 0 0 8px 0px #4848487a;
+  outline: 1px solid #484848;
+  position: relative;
+}
+.karma-field-table-section {
+  z-index: 2;
+}
+.table-header,
+.karma-modal-header {
+  z-index: 3;
+}
+.table-modal {
+  z-index: 4;
+}
+.table-footer {
+  z-index: 5;
+}
+
+/* gap */
+.karma-fields-navigation .karma-field-table,
+.karma-fields-navigation .karma-field-table .table-view,
+.karma-fields-navigation .karma-field-table .table-view .table-main,
+.karma-fields-navigation .karma-field-table .karma-modal {
+  /* gap: 1px; */
+}
+
+
+
+/*  TABLE MEDIAS */
+
+.karma-field-table figure {
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.karma-field-table figure img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  -webkit-user-drag: none;
+}
+
+.karma-field-table ul.media-table {
+  display: flex;
+  gap: 0.75em;
+  flex-wrap: wrap;
+
+  align-self: flex-start;
+
+  margin: 2em 0;
+}
+.karma-field-table ul.media-table li {
+  margin: 0;
+
+}
+.karma-field-table .media-table .frame {
+  position: relative;
+  user-select: none;
+  background-color: #f1f1f1;
+  width: 10em;
+  height: 12em;
+  /* overflow: hidden; */
+  /* box-shadow: 0 0 8px 0px #4848487a; */
+
+  display: flex;
+  flex-direction: column;
+}
+.karma-field-table .media-table .frame.selected {
+  /* background-color: white; */
+  /* outline: 1px solid #c3c4c7;
+  outline-offset: -1px; */
+  /* box-shadow: 0 0 8px 0px #4848487a; */
+}
+.karma-field-table .media-table.ta-focus .frame.selected {
+  /* outline-color: #484848; */
+}
+
+.karma-field-table .media-table .frame.active,
+.karma-field-table .media-table .frame.selected {
+  /* box-shadow: 0 0 8px 0px #4848487a; */
+  background-color: #c3c4c7;
+}
+.karma-field-table .media-table.ta-focus .frame.active,
+.karma-field-table .media-table .frame.selected {
+  background-color: #484848;
+}
+
+
+.karma-field-table .media-table .frame.active figure {
+  filter: opacity(0.5) saturate(0.5);
+
+
+}
+.karma-field-table .media-table .frame.selected figure,
+.karma-field-table .media-table.ta-focus .frame.active figure {
+  filter: saturate(0.5) opacity(0.5);
+}
+
+.karma-field-table .media-table.loading .frame figure {
+  filter: saturate(0) opacity(0.2);
+}
+
+.karma-field-table .media-table .frame.loading figure {
+  visibility: hidden;
+}
+
+
+.karma-field-table .media-table .frame .filename {
+  /* position: absolute;
+  bottom: 0; */
+
+  /* background-color: #efefefef; */
+  /* background-color: #ffffffe3; */
+  width: 100%;
+
+  min-height: 2em;
+  padding: 0 0.75em;
+
+  /* word-break: break-word; */
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.karma-field-table .media-table .frame.image-type .filename {
+  /* display: none; */
+}
+.karma-field-table .media-table .frame.active .filename {
+  background-color: #c3c4c7;
+  color: #f1f1f1;
+}
+.karma-field-table .media-table .frame.selected .filename,
+.karma-field-table .media-table.ta-focus .frame.active .filename {
+  background-color: #484848;
+  color: #f1f1f1;
+}
+
+
+.karma-field-table .media-table figure {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  /* background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(135deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(135deg, transparent 75%, #ccc 75%); */
+  /* background-size: 2em 2em; */
+  /* background-position: 0 0, 1em 0, 1em -1em, 0 1em; */
+
+
+  /* box-shadow: inset 0 0 0 1px #cccccc; */
+
+  /* box-shadow: 0 0 8px 0px #4848487a; */
+}
+
+/* Folder */
+.karma-field-table .media-table figure.dashicons::before {
+  font-size: 4em;
+  color: #7da4c5;
+}
+
+/* Breadcrumb */
+ul.karma-breadcrumb {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+}
+ul.karma-breadcrumb li {
+  margin: 0;
+}
+ul.karma-breadcrumb li:not(:last-child)::after {
+  content: ">";
+  margin: 0 0.5em;
+}
+ul.karma-breadcrumb li a {
+  cursor: pointer;
+}
+ul.karma-breadcrumb li a:hover {
+  text-decoration: underline;
+}
+
+/* * */

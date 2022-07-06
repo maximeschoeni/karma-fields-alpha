@@ -3,11 +3,16 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   static fieldId = 0;
 
-  constructor(resource, parent, deprecated = null) {
+  constructor(resource = {}, parent = null, deprecated = null) {
     this.parent = parent;
 		this.children = [];
     this.childMap = {};
 		this.resource = resource || {};
+
+    // this.resource = {
+    //   ...this.constructor.resource,
+    //   ...resource
+    // };
 
     this.listeners = [];
 
@@ -34,9 +39,8 @@ KarmaFieldsAlpha.fields.field = class Field {
     // if (child.resource.id || child.resource.key !== undefined) {
     //   this.childMap[child.resource.id || child.resource.type+"-"+child.resource.key] = child;
     // }
-    if (child.resource.id) {
-      this.childMap[child.resource.id] = child;
-    }
+    this.childMap[child.resource.id || child.resource.type] = child;
+
     child.parent = this;
   }
 
@@ -47,21 +51,49 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   return resource;
   // }
 
-  createField(resource) {
+  getOrCreateChild(idOrResource) {
+    return this.createChild(idOrResource);
+  }
+
+  createField(resource = {}) {
+
+
+
+
+
+    // if (typeof resource === "string" && this.constructor[resource]) {
+    //   return new this.constructor[resource]({
+    //     id: resource
+    //   });
+    // }
+
+    if (typeof resource === "string") {
+      if (typeof this.constructor[resource] === "function" ) {
+        return new this.constructor[resource]({
+          id: resource
+        });
+      } else if (typeof this.constructor[resource] === "object") {
+        return this.createField(this.constructor[resource]);
+      }
+    }
 
 
 
     const type = resource.type || "group";
 
-    if (this.constructor[type]) {
+    if (this.constructor[type] && typeof this.constructor[type] === "function") {
       return new this.constructor[type](resource);
+    }
+
+    if (this.constructor[type] && typeof this.constructor[type] === "object" && this.constructor[type].type !== type) {
+      return this.createField({...this.constructor[type], ...resource, type: this.constructor[type].type});
     }
 
     if (KarmaFieldsAlpha.fields[type]) {
       return new KarmaFieldsAlpha.fields[type](resource);
     }
 
-    console.error("Field type does not exist", resource.type);
+    console.error("Field type does not exist", resource);
 
     // if (!KarmaFieldsAlpha.fields[type]) {
     //   console.error("Field type does not exist", resource.type);
@@ -76,8 +108,17 @@ KarmaFieldsAlpha.fields.field = class Field {
     //   resource = KarmaFieldsAlpha.fields.presets[resource];
     // }
 
+    // if (typeof resource === "string") {
+    //   resource = {
+    //     id: resource,
+    //     type: resource
+    //   };
+    // }
+
+    // const id = typeof resource === "string" ? resource : resource.id;
+
     // let child = this.childMap[resource.id || resource.type+"-"+resource.key];
-    let child = this.childMap[resource.id];
+    let child = this.childMap[resource.id || resource];
 
     if (!child) {
 
@@ -604,17 +645,30 @@ KarmaFieldsAlpha.fields.field = class Field {
   // }
 
   async isModified() {
-    const event = this.createEvent({
+    // const event = this.createEvent({
+    //   action: "modified",
+    //   type: "boolean"
+    // });
+    //
+    // await this.dispatch(event);
+    //
+    // return event.getBoolean();
+
+    // const event = {
+    //   action: "modified",
+    //   type: "boolean"
+    // };
+
+    const event = await this.dispatch({
       action: "modified",
       type: "boolean"
     });
 
-    await this.dispatch(event);
-
-    return event.getBoolean();
+    return KarmaFieldsAlpha.Type.toBoolean(event.data);
   }
 
   async check(condition) {
+    console.error("deprecated check(). Use parse()")
     let not, key, compare, value, action, type, path;
 
     if (typeof condition === "string") {

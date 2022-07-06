@@ -6,9 +6,53 @@ Class Karma_Fields_Alpha_Media_Library {
 
 	public function __construct() {
 
+		add_action('init', array($this, 'init'));
     add_action('karma_fields_init', array($this, 'karma_fields_init'));
 
   }
+
+	public function init() {
+
+    register_post_type('karma-folder', array(
+      'public'             => false,
+      'capability_type'    => 'post',
+      'has_archive'        => false,
+      'hierarchical'       => true
+    ));
+
+		// apply_filters('karma_fields_posts_driver_query_table', $args, $params);
+		add_filter('karma_fields_posts_driver_query_output', array($this, 'query_output'), 10, 3);
+
+	}
+
+	/**
+	 * @filter karma_fields_posts_driver_query_table
+	 */
+	public function query_output($output, $query, $args) {
+		global $wpdb;
+
+		if (isset($args['post_type']) && in_array('karma-folder', $args['post_type'])) {
+
+			$post_parent = isset($args['post_parent']) ? intval($args['post_parent']) : 0;
+
+			$results = $wpdb->get_results(
+				"SELECT p.ID AS 'id', p.post_title, p.post_type, p.post_parent, COUNT(a.ID) AS 'count' FROM $wpdb->posts as p
+				INNER JOIN $wpdb->posts as a ON (a.post_parent = p.ID)
+				WHERE a.post_type = 'attachment' AND a.post_status = 'inherit'
+					AND p.post_type NOT IN ('attachment', 'karma-folder', 'revision') AND p.post_parent = $post_parent
+				GROUP BY p.ID
+				ORDER BY p.post_title"
+			);
+
+			$output = array_merge(
+				$results,
+				$output
+			);
+
+		}
+
+		return $output;
+	}
 
 	/**
 	 * @hook karma_fields_init
@@ -27,16 +71,24 @@ Class Karma_Fields_Alpha_Media_Library {
 			'Karma_Fields_Alpha_Driver_Files'
 		);
 
+		$karma_fields->register_driver(
+			'files-sources',
+			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-files-sources.php',
+			'Karma_Fields_Alpha_Driver_Files_Sources'
+		);
+
 
 		$karma_fields->register_menu_item('karma=medias', 'upload.php');
 
 		$karma_fields->register_table(array(
 
-			'driver' => 'posts?post_type=attachment&post_status=inherit',
+			'driver' => 'posts?post_type=attachment,karma-folder&post_status=inherit&post_parent=0&orderby=post_type',
 			'id' => 'medias',
 			'type' => 'table',
+			'interface' => 'medias',
 			'joins' => array(
-				'files'
+				'files',
+				'files-sources'
 			),
 			'ppp' => 100,
 			'index' => array(
@@ -49,25 +101,346 @@ Class Karma_Fields_Alpha_Media_Library {
 			'title' => 'Media Library',
 			'header' => array(
 				'children' => array(
-					'title',
+					array(
+						'type' => 'title',
+						'value' => 'Media Library'
+					),
 					'count',
 					'pagination',
 					'close'
 				)
 			),
+			'controls' => array(
+				'children' => array(
+					'save',
+					array(
+						'type' => 'upload',
+						'title' => 'upload file'
+					),
+					array(
+						'type' => 'button',
+						'title' => 'test',
+						'action' => 'edit'
+					),
+					array(
+						'type' => 'add',
+						'value' => array(
+							'post_type' => 'karma-folder',
+							'post_status' => 'inherit'
+						)
+					),
+					'delete',
+					'undo',
+					'redo'
+				)
+			),
+			'modal' => array(
+				'width' => '25em',
+				'header' => array(
+					'children' => array(
+						array(
+							'type' => 'title',
+							// 'value' => array('get', 'post_title'),
+							'value' => array(
+								'?',
+								// array(">", array("count", array("actives")), 1),
+								array(">", array("count", array("getArray", "id")), 1),
+								'Multiple Items',
+								array(
+									'?',
+									array('==', array('get', 'id'), '0'),
+									'Upload',
+									array('get', 'post_title')
+								)
+							),
+						),
+						array(
+							'type' => 'prev',
+							'action' => 'prev',
+							'disabled' => array('!', array('dispatch', 'has-prev'))
+						),
+						array(
+							'type' => 'next',
+							'disabled' => array('!', array('dispatch', 'has-next'))
+						),
+						array(
+							'type' => 'close',
+							'disabled' => array('==', array('get', 'id'), '0'),
+							'action' => array(
+								'?',
+								array('==', array('get', 'id'), array('getParam', 'post_parent')),
+								'upper-folder',
+								'close'
+							)
+						)
+					)
+				),
+				'body' => array(
+					'type' => 'group',
+					'children' => array(
+						array(
+							'type' => 'group',
+							'hidden' => array("!=", array("get", "post_type"), "attachment"),
+							'children' => array(
+								array(
+									'type' => 'text',
+									'hidden' => array("==", array("count", array("dispatch", "selection", null, "array")), 1),
+									'value' => '<span class="dashicons dashicons-images-alt" style="font-size:10em;text-align:left;height:auto;width:auto;"></span>'
+								),
+								array(
+									'hidden' => array(">", array("count", array("dispatch", "selection", null, "array")), 1),
+									'type' => 'group',
+									'display' => 'flex',
+									'children' => array(
+										array(
+											'type' => 'text',
+											'style' => 'width:50%',
+											'value' => array(
+												'replace',
+												'<figure><img src="#" srcset="#" sizes="40em"></figure>',
+												'#',
+												array('get', 'thumb_src'),
+												array('get', 'srcset')
+											)
+										),
+										array(
+											'type' => 'group',
+											'style' => 'width:50%; min-width:0',
+											'children' => array(
+												array(
+													'label' => 'Size',
+													'sortable' => true,
+													'width' => 'auto',
+													'value' => array('replace', '# KB', '#', array('toFixed', array('/', array('get', 'size'), '1000'))),
+													'type' => 'text'
+												),
+												array(
+													'label' => 'Uploaded on',
+													'sortable' => true,
+													'width' => 'auto',
+													'value' => array('date', array('get', 'post_date'), array(
+														'year' => 'numeric',
+														'month' => 'long',
+														'day' => '2-digit'
+													)),
+													'type' => 'text'
+												),
+												array(
+													'label' => 'Dimensions',
+													'sortable' => true,
+													'width' => 'auto',
+													// 'value' => '{{width}} x {{height}}',
+													'value' => array('replace', '# x # pixels', '#', array('get', 'width'), array('get', 'height')),
+													'type' => 'text'
+												)
+											)
+										)
+									)
+								),
+								array(
+									'type' => 'input',
+									'label' => 'Title',
+									'key' => 'post_title'
+								),
+								array(
+									'type' => 'textarea',
+									'label' => 'Caption',
+									'key' => 'post_excerpt'
+								)
+							)
+						),
+						array(
+							'type' => 'group',
+							'hidden' => array("in", array("get", "post_type"), array("", "attachment")),
+							'children' => array(
+								array(
+									'type' => 'group',
+									'display' => 'flex',
+									'children' => array(
+										array(
+											'type' => 'text',
+											'value' => array(
+												'replace',
+												'<span class="dashicons dashicons-#" style="font-size:8em;height:auto;width:auto;"></span>',
+												'#',
+												array(
+													'?',
+													array('==', array('get', 'id'), array('getParam', 'post_parent')),
+													'open-folder',
+													'category'
+												)
+											)
+										),
+										array(
+											'type' => 'button',
+											'title' => 'Open',
+											'action' => 'open-folder',
+											'hidden' => array('==', array('get', 'id'), array('getParam', 'post_parent'))
+										)
+									)
+								),
+								array(
+									'type' => 'input',
+									'label' => 'Name',
+									'key' => 'post_title',
+									'hidden' => array('==', array('get', 'id'), array('getParam', 'post_parent'))
+								)
+							)
+						)
+
+						// array(
+						// 	'type' => 'text',
+						// 	'hidden' => array("==", array("count", array("dispatch", "selection", null, "array")), 1),
+						// 	'value' => '<span class="dashicons dashicons-images-alt" style="font-size: 10em"></span>'
+						// )
+					)
+				)
+			),
 
 			'children' => array(
 
+
+				// array(
+				// 	'label' => 'Thumb',
+				// 	'sortable' => false,
+				// 	'width' => 'auto',
+				// 	'type' => 'text',
+				// 	// 'value' => '{{image::id::thumbnail}}',
+				// 	// 'value' => array('<img src="<>">', 'thumb_src'),
+				// 	'value' => array('replace', '<img src="#">', '#', array('get', 'thumb_src')),
+				// 	'tag' => 'figure'
+				// ),
 				array(
 					'label' => 'Thumb',
 					'sortable' => false,
 					'width' => 'auto',
-					'type' => 'text',
+					'type' => 'link',
+					'action' => 'open-modal',
 					// 'value' => '{{image::id::thumbnail}}',
 					// 'value' => array('<img src="<>">', 'thumb_src'),
-					'value' => array('replace', '<img src="#">', '#', array('get', 'thumb_src')),
-					'tag' => 'figure'
+					'value' => array('replace', '<figure><img src="#"></figure>', '#', array('get', 'thumb_src')),
+					// 'header' => array(
+					// 	'children' => array(
+					// 		array(
+					// 			'type' => 'title',
+					// 			'value' => array('get', 'post_title'),
+					// 		),
+					// 		'prev',
+					// 		'next',
+					// 		'close'
+					// 	)
+					// ),
+					//
+					// 'body' => array(
+					// 	'type' => 'group',
+					// 	'children' => array(
+					// 		array(
+					// 			'type' => 'group',
+					// 			'hidden' => array("!=", array("get", "post_type"), "attachment"),
+					// 			'children' => array(
+					// 				array(
+					// 					'type' => 'text',
+					// 					'hidden' => array("==", array("count", array("dispatch", "selection", null, "array")), 1),
+					// 					'value' => '<span class="dashicons dashicons-images-alt" style="font-size:10em;text-align:left;height:auto;width:auto;"></span>'
+					// 				),
+					// 				array(
+					// 					'hidden' => array(">", array("count", array("dispatch", "selection", null, "array")), 1),
+					// 					'type' => 'group',
+					// 					'display' => 'flex',
+					// 					'children' => array(
+					// 						array(
+					// 							'type' => 'text',
+					// 							'style' => 'width:50%',
+					// 							'value' => array(
+					// 								'replace',
+					// 								'<figure><img src="#" srcset="#" sizes="40em"></figure>',
+					// 								'#',
+					// 								array('get', 'thumb_src'),
+					// 								array('get', 'srcset')
+					// 							)
+					// 						),
+					// 						array(
+					// 							'type' => 'group',
+					// 							'style' => 'width:50%; min-width:0',
+					// 							'children' => array(
+					// 								array(
+					// 									'label' => 'Size',
+					// 									'sortable' => true,
+					// 									'width' => 'auto',
+					// 									'value' => array('replace', '# KB', '#', array('toFixed', array('/', array('get', 'size'), '1000'))),
+					// 									'type' => 'text'
+					// 								),
+					// 								array(
+					// 									'label' => 'Uploaded on',
+					// 									'sortable' => true,
+					// 									'width' => 'auto',
+					// 									'value' => array('date', array('get', 'post_date'), array(
+					// 										'year' => 'numeric',
+					// 										'month' => 'long',
+					// 										'day' => '2-digit'
+					// 									)),
+					// 									'type' => 'text'
+					// 								),
+					// 								array(
+					// 									'label' => 'Dimensions',
+					// 									'sortable' => true,
+					// 									'width' => 'auto',
+					// 									// 'value' => '{{width}} x {{height}}',
+					// 									'value' => array('replace', '# x # pixels', '#', array('get', 'width'), array('get', 'height')),
+					// 									'type' => 'text'
+					// 								)
+					// 							)
+					// 						)
+					// 					)
+					// 				),
+					// 				array(
+					// 					'type' => 'input',
+					// 					'label' => 'Title',
+					// 					'key' => 'post_title'
+					// 				),
+					// 				array(
+					// 					'type' => 'textarea',
+					// 					'label' => 'Caption',
+					// 					'key' => 'post_excerpt'
+					// 				)
+					// 			)
+					// 		),
+					// 		array(
+					// 			'type' => 'group',
+					// 			'hidden' => array("in", array("get", "post_type"), array("", "attachment")),
+					// 			'children' => array(
+					// 				array(
+					// 					'type' => 'group',
+					// 					'display' => 'flex',
+					// 					'children' => array(
+					// 						array(
+					// 							'type' => 'text',
+					// 							'value' => '<span class="dashicons dashicons-category" style="font-size:10em;height:auto;width:auto;"></span>'
+					// 						),
+					// 						array(
+					// 							'type' => 'button',
+					// 							'title' => 'Open',
+					// 							'action' => 'open-folder'
+					// 						)
+					// 					)
+					// 				),
+					// 				array(
+					// 					'type' => 'input',
+					// 					'label' => 'Name',
+					// 					'key' => 'post_title'
+					// 				)
+					// 			)
+					// 		)
+					//
+					// 		// array(
+					// 		// 	'type' => 'text',
+					// 		// 	'hidden' => array("==", array("count", array("dispatch", "selection", null, "array")), 1),
+					// 		// 	'value' => '<span class="dashicons dashicons-images-alt" style="font-size: 10em"></span>'
+					// 		// )
+					// 	)
+					// )
 				),
+
 				array(
 					'label' => 'Filename',
 					'sortable' => true,
@@ -92,7 +465,11 @@ Class Karma_Fields_Alpha_Media_Library {
 					'sortable' => true,
 					'width' => 'auto',
 					// 'value' => '{{date::post_date::DD/MM/YYYY}}',
-					'value' => array('date', array('get', 'post_date'), 'DD/MM/YYYY'),
+					'value' => array('date', array('get', 'post_date'), array(
+						'year' => 'numeric',
+						'month' => 'short',
+						'day' => '2-digit'
+					)),
 					'type' => 'text'
 				),
 				array(
@@ -109,6 +486,13 @@ Class Karma_Fields_Alpha_Media_Library {
 				'type' => 'group',
 				'display' => 'flex',
 				'children' => array(
+					array(
+						'type' => 'breadcrumb',
+						'label' => 'Directory',
+						'style' => 'flex-grow:1',
+						'driver' => 'posts',
+						'params' => 'post_type=karma-folder&post_status=inherit'
+					),
 					array(
 						'label' => 'Dates',
 						'type' => 'dropdown',

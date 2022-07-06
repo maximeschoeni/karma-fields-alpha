@@ -493,12 +493,17 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 			tag: this.resource.tag,
 			class: "text karma-field",
 			init: node => {
-				if (this.resource.dynamic || this.resource.hidden || this.resource.disabled) {
-					this.update = request => this.render();
+				if (this.resource.dynamic || this.resource.disabled) {
+					this.update = request => node.render();
+				}
+				if (this.resource.classes) {
+					node.element.classList.add(...this.resource.classes);
 				}
 			},
 			update: async node => {
 				this.render = node.render;
+
+
 
 				// node.element.innerHTML = this.preParse(this.resource.value);
 
@@ -507,21 +512,21 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 
 
 
-				await this.parse(this.resource.value).then(value => {
+				await this.parse(this.resource.value || "").then(value => {
 					node.element.innerHTML = value;
 				});
 
 				if (this.resource.disabled) {
 					node.element.classList.add("disabled");
-					this.check(this.resource.disabled).then(disabled => {
+					this.parse(this.resource.disabled).then(disabled => {
 						node.element.classList.toggle("disabled", disabled);
 					});
 				}
 
-				if (this.resource.hidden) {
-					node.element.parentNode.classList.add("hidden");
-					this.check(this.resource.hidden).then(hidden => node.element.parentNode.classList.toggle("hidden", hidden));
-				}
+				// if (this.resource.hidden) {
+				// 	node.element.parentNode.classList.add("hidden");
+				// 	this.parse(this.resource.hidden).then(hidden => node.element.parentNode.classList.toggle("hidden", hidden));
+				// }
 
 
 			}

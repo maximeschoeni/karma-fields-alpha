@@ -6,11 +6,9 @@ KarmaFieldsAlpha.Store = class {
     this.buffer = new KarmaFieldsAlpha.Buffer("gateway", driver);
     this.driver = driver;
     this.joins = joins;
-    // this.promises = {};
-    // this.ids = new Set();
+    this.promises = {};
+    this.ids = new Set();
     this.cache = new KarmaFieldsAlpha.Buffer("cache", driver);
-
-    // this.cache = new KarmaFieldsAlpha.BufferMap("cache", driver);
 
   }
 
@@ -70,7 +68,6 @@ KarmaFieldsAlpha.Store = class {
 
       promise = KarmaFieldsAlpha.Gateway.get("query/"+request).then(results => {
 
-        const ids = [];
         results = results.items || results || []; // -> compat
 
         // for (let i = 0; i < results.length; i++) {
@@ -85,36 +82,33 @@ KarmaFieldsAlpha.Store = class {
           }
 
           this.buffer.set(["0"], item.id, "trash"); // -> to be removed!
-
-          ids.push(item.id);
         }
 
-        // return results.map(item => item.id);
-        return ids;
+        return results.map(item => item.id);
       });
 
       this.cache.set(promise, "query", paramString);
 
-      // this.cache.remove("join");
+      this.cache.remove("join");
 
     }
 
     return promise;
   }
 
-  join(join, ids) {
+  join(join) {
 
     // if (!this.constructor.cache[this.driver]) {
     //   this.constructor.cache[this.driver] = {};
     // }
 
-    const query = ids.toString();
-
-    let promise = this.cache.get("join", query, join);
+    let promise = this.cache.get("join", join);
 
     if (!promise) {
 
-      promise = KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+query).then(relations => {
+      const ids = [...this.ids];
+
+      promise = KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+ids.join(",")).then(relations => {
         for (let relation of relations) {
           let values = this.buffer.get(relation.id, relation.key) || [];
           this.buffer.set([...values, relation.value], relation.id, relation.key);
@@ -122,7 +116,7 @@ KarmaFieldsAlpha.Store = class {
         return relations;
       });
 
-      this.cache.set(promise, "join", query, join);
+      this.cache.set(promise, "join", join);
 
     }
 
@@ -130,42 +124,34 @@ KarmaFieldsAlpha.Store = class {
   }
 
 
-  async getValue(id, ...path) {
+  async getValue(...path) {
 
-    let value = this.buffer.get(id, ...path);
+    let value = this.buffer.get(...path);
 
     if (!value) {
 
+      // for (let paramString in this.promises) {
+
       const queries = this.cache.get("query") || {};
+      const ids = [];
 
       for (let paramString in queries) {
 
-        const ids = await this.query(paramString);
-        // const ids = await query;
+        await this.query(paramString);
 
-        if (ids.includes(id)) {
+      }
 
-          value = this.buffer.get(id, ...path);
+      value = this.buffer.get(...path);
 
-          if (!value) {
+      if (!value && this.ids.size) {
 
-            for (let join of this.joins) {
+        for (let join of this.joins) {
 
-              await this.join(join, ids);
-
-            }
-
-            value = this.buffer.get(id, ...path);
-
-          }
-
-          if (value) {
-
-            break;
-
-          }
+          await this.join(join);
 
         }
+
+        value = this.buffer.get(...path);
 
       }
 

@@ -26,7 +26,7 @@ KarmaFieldsAlpha.Gateway = class {
 		});
 	}
 
-	static post(queryString, params) {
+	static post(queryString, data, params) {
 		return fetch(KarmaFieldsAlpha.restURL+"/"+queryString, {
 			method: "post",
 			headers: {
@@ -34,7 +34,8 @@ KarmaFieldsAlpha.Gateway = class {
 				'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
 			},
 			body: JSON.stringify({
-				data: params || {},
+				data: data || {},
+				...params
 			}),
 			mode: "same-origin"
 		}).then(function(response) {
@@ -42,17 +43,58 @@ KarmaFieldsAlpha.Gateway = class {
 		});
 	}
 
-	static getOptions(queryString) { // queryString = driver+"?"+queryString
+	// static getOptions(queryString) { // queryString = driver+"?"+queryString
+	//
+	// 	if (!this.optionPromises[queryString]) {
+	// 		this.optionPromises[queryString] = this.get("fetch/"+queryString);
+	// 	}
+	//
+	// 	return this.optionPromises[queryString];
+	// }
+	//
+	// static clearOptions() {
+	// 	this.optionPromises = {};
+	// }
 
-		if (!this.optionPromises[queryString]) {
-			this.optionPromises[queryString] = this.get("fetch/"+queryString);
-		}
+	static upload(file, driver) {
+	  let fileName = file.name.normalize();
+	  const chunkSize = 1048576; // 1MB
+	  let chunkIndex = 0;
+	  let chunkTotal = Math.ceil(file.size/chunkSize);
+	  const fileReader = new FileReader();
 
-		return this.optionPromises[queryString];
-	}
-
-	static clearOptions() {
-		this.optionPromises = {};
+	  return new Promise((resolve, reject) => {
+	    const uploadNextPart = () => {
+	      const start = chunkIndex*chunkSize;
+	      const end = Math.min(start+chunkSize, file.size);
+	      const filePart = file.slice(start, end);
+	      fileReader.onload = function() {
+	        const formData = new FormData();
+	        formData.append('file', filePart);
+	        formData.append('name', fileName);
+	        formData.append('chunk', chunkIndex);
+	        formData.append('chunks', chunkTotal);
+	        return fetch(KarmaFieldsAlpha.restURL+"/upload/"+driver, {
+						headers: {
+							// 'Content-Type': 'application/json',
+							'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+						},
+	          method: "post",
+	          body: formData,
+	          mode: "same-origin"
+	        }).then(response => response.json()).then(function(result) {
+	          chunkIndex++;
+	          if (chunkIndex < chunkTotal) {
+	            uploadNextPart();
+	          } else {
+	            resolve(result);
+	          }
+	        });
+	      }
+	      fileReader.readAsBinaryString(filePart);
+	    }
+	    uploadNextPart();
+	  });
 	}
 
 }

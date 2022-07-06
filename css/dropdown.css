@@ -5,7 +5,8 @@
 .karma-fields select.karma-field {
   /* border-color: #0c73aa; */
   border-color: #1d2327;
-  color: #1d2327;
+  /* color: #1d2327; */
+  color: inherit;
   max-width: 100%;
   font-size: 1em;
   min-height: 2.5em;

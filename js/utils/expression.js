@@ -25,6 +25,7 @@ KarmaFieldsAlpha.Expression = class {
 				case ">":
 				case "<=":
 				case ">=":
+        case "in":
 					return this.operate(field, ...expression);
 
         case "!":
@@ -136,6 +137,7 @@ KarmaFieldsAlpha.Expression = class {
       case "%": return Number(value1)%Number(value2);
       case "&&": return value1 && value2;
       case "||": return value1 || value2;
+      case "in": return value2.includes(value1);
     }
   }
 
@@ -303,6 +305,19 @@ KarmaFieldsAlpha.Expression = class {
     return KarmaFieldsAlpha.Type.toBoolean(request.data);
   }
 
+  static async dispatch(field, action, params = {}, type = "string") {
+    action = await this.resolve(field, action);
+    params = await this.resolve(field, params);
+
+    const request = await field.dispatch({
+      action: action,
+      ...params
+    });
+
+    return KarmaFieldsAlpha.Type.convert(request.data, type);
+  }
+
+
   // static async setArray(field, array, ...path) {
   //
   //   path = await this.resolveAll(field, path);
@@ -348,6 +363,7 @@ KarmaFieldsAlpha.Expression = class {
     value = await this.resolve(field, value);
     KarmaFieldsAlpha.Nav.set(value, key);
   }
+
 
   // static array(field, array) {
   //   return array;
@@ -481,7 +497,7 @@ KarmaFieldsAlpha.Expression = class {
     // }, []);
   }
 
-  static raw(field, value) {
+  static raw(field, ...value) {
     return value;
   }
 
@@ -506,47 +522,33 @@ KarmaFieldsAlpha.Expression = class {
 
 
 
-
-
-
-
-  static async thumbnail(field, key = "thumb_id") {
-    // return this.resolve(field, [
-		// 	"replace",
-		// 	"<img src=\"##\">",
-		// 	"##",
-		// 	[
-		// 		"query",
-    //     [
-    //       "replace",
-    //       "posts?post_type=attachment&ids=##+files",
-    //       "##",
-    //       ["queryArray", ["getDriver"], "*", "thumb_id"]
-    //     ],
-    //     ["get", "thumb_id"],
-    //     "thumb_src"
-		// 	]
-		// ]);
-
-    const attachmentId = await this.resolve(field, ["get", key]);
-
-    const driver = await this.resolve(field, [
-      "replace",
-      "posts?post_type=attachment&post_status=inherit&ids=##+files",
-      "##",
-      ["join", ["queryArray", ["getDriver"], "*", key], ","]
-    ]);
-
-    return this.resolve(field, [
-			"replace",
-			"<img src=\"##\" width=\"##\" height=\"##\">",
-			"##",
-			["query", driver, attachmentId, "thumb_src"],
-      ["query", driver, attachmentId, "thumb_width"],
-      ["query", driver, attachmentId, "thumb_height"]
-		]);
-
+  static async item(field, ...path) {
+    return this.getChild(field, field.loopItem, ...path);
   }
+
+
+
+  static async count(field, array) {
+    array = await this.resolve(field, array);
+    return array.length;
+  }
+
+  static async actives(field) {
+    const request = await field.dispatch({
+      action: "actives"
+    });
+    return KarmaFieldsAlpha.Type.toArray(request.data);
+  }
+
+  // static async id(field) {
+  //   const request = await field.dispatch({
+  //     action: "get",
+  //     path: ["id"]
+  //   });
+  //   return KarmaFieldsAlpha.Type.toArray(request.data);
+  // }
+
+
 
   static async taxonomy(field, taxonomy) {
     // return this.resolve(field, [

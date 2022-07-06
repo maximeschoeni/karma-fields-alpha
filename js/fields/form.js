@@ -190,13 +190,18 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 					// }
 
 
-					if ((!event.data || !event.data.length) && event.default !== null && event.default !== undefined) { // -> event.default is an expression or a string
 
+
+					if ((!event.data || !event.data.length) && event.default !== null && event.default !== undefined) { // -> event.default is an expression or a string
 
 						// value = await event.default();
 						value = await KarmaFieldsAlpha.Expression.resolve(event.field, event.default);
 						value = KarmaFieldsAlpha.Type.toArray(value);
 						this.buffer.set(value, ...path);
+
+						KarmaFieldsAlpha.History.backup(value, null, false, "data", this.resource.driver, ...path);
+
+
 						event.data = value;
 
 					}
@@ -281,8 +286,8 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 				this.buffer.empty();
 				break;
 
-			case "send": // -> autosave
-				this.buffer.remove(...event.path);
+			case "send":
+				event.action = "set";
 				await super.dispatch(event);
 				break;
 

@@ -37,7 +37,20 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 
 				};
 
-				input.element.value = await this.getValue();
+
+				// input.element.value = await this.getValue();
+
+				const request = await this.dispatch({
+					action: "get",
+					type: "string",
+					default: await this.getDefault()
+				});
+
+				input.element.value = KarmaFieldsAlpha.Type.toString(request.data);
+
+				input.element.placeholder = request.manifold && "— No Change —" || this.resource.placeholder || "";
+
+
 				input.element.parentNode.classList.toggle("modified", await this.isModified());
 				input.element.classList.remove("loading");
 			}

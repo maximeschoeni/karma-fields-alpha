@@ -207,7 +207,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 				this.render = input.render;
 
-				if (this.resource.active || this.resource.disabled || this.resource.hidden) {
+				if (this.resource.active || this.resource.disabled) {
 					// this.setEventListener(event => input.render());
 					this.update = event => input.render();
 				}
@@ -235,7 +235,19 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 				// 	input.element.classList.remove("loading");
 				// });
 
-				input.element.value = await this.getValue();
+				// input.element.value = await this.getValue();
+
+				const request = await this.dispatch({
+					action: "get",
+					type: "string",
+					default: await this.getDefault()
+				});
+
+				input.element.value = KarmaFieldsAlpha.Type.toString(request.data);
+
+				input.element.placeholder = request.manifold && "— No Change —" || this.resource.placeholder || "";
+
+
 
 				input.element.parentNode.classList.toggle("modified", await this.isModified());
 				input.element.classList.remove("loading");
@@ -276,7 +288,6 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 				input.element.oninput = async event => {
 
-					console.log("oninput");
 					// input.element.classList.add("editing"); // -> search fields
 
 					// await this.enqueue(() => this.setValue(input.element.value));
@@ -312,12 +323,9 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 					// 	input.element.classList.toggle("active", active);
 					// });
 				}
-				if (this.resource.hidden) {
-					input.element.parentNode.classList.toggle("active", Boolean(await this.parent.parse(this.resource.hidden)));
-					// this.parent.check(this.resource.hidden).then(hidden => {
-					// 	input.element.parentNode.classList.toggle("hidden", hidden);
-					// });
-				}
+				// if (this.resource.hidden) {
+				// 	input.element.parentNode.classList.toggle("active", Boolean(await this.parent.parse(this.resource.hidden)));
+				// }
 
 			}
 		};

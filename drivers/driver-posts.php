@@ -113,6 +113,12 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       $id = intval($id);
 
+      $post_arr = get_post($id, ARRAY_A);
+
+      if (!$post_arr) {
+        die('Post not found!');
+      }
+
 
       foreach ($item as $key => $value) {
 
@@ -137,6 +143,50 @@ Class Karma_Fields_Alpha_Driver_Posts {
               break;
 
             case 'post_mime_type':
+              break;
+
+            case 'trash':
+              if (intval($value[0])) {
+                $post_type = get_post_type($id);
+                update_post_meta($id, 'trash-post_type', $post_type);
+                $args['post_type'] = 'karma-trash';
+                // $wpdb->update($wpdb->posts, array('post_type' => 'karma-trash'), array('ID' => $id), array('%s'), array('%d'));
+
+                // if ($post_type === 'attachment') {
+                //   $rel_path = get_post_meta($id, '_wp_attached_file', true);
+                //   $wp_upload_dir = wp_upload_dir();
+                //   $dir = $wp_upload_dir['basedir'];
+                //   $trash_dir = $dir.'/karma-trash';
+                //   $path = get_attached_file($id);
+                //   if (!file_exists($trash_dir)) {
+                //     mkdir($trash_dir);
+                //   }
+                //   rename($path, $trash_dir.'/'.$rel_path);
+                //   $meta = wp_get_attachment_metadata($id);
+                //   $backup_sizes = get_post_meta($id, '_wp_attachment_backup_sizes', true);
+                //   wp_delete_attachment_files($id, $meta, $backup_sizes, $path);
+                // }
+              } else {
+                $post_type = get_post_meta($id, 'trash-post_type', true);
+                if ($post_type) {
+                  $args['post_type'] = $post_type;
+                  // $wpdb->update($wpdb->posts, array('post_type' => $post_type), array('ID' => $id), array('%s'), array('%d'));
+                  delete_post_meta($id, 'trash-post_type');
+                  // if ($post_type === 'attachment') {
+                  //   $rel_path = get_post_meta($id, '_wp_attached_file', true);
+                  //   $wp_upload_dir = wp_upload_dir();
+                  //   $dir = $wp_upload_dir['basedir'];
+                  //   $trash_dir = $dir.'/karma-trash';
+                  //   rename($trash_dir.'/'.$rel_path, $dir.'/'.$rel_path);
+                  //   if (!function_exists('wp_generate_attachment_metadata')) {
+                  //     include ABSPATH . 'wp-admin/includes/image.php';
+                  //   }
+                  //   $path = $dir.'/'.$rel_path;
+                  //   $metadata = wp_generate_attachment_metadata($id, $path);
+                  //   wp_update_attachment_metadata($id,  $metadata);
+                  // }
+                }
+              }
               break;
 
             default:
@@ -180,8 +230,24 @@ Class Karma_Fields_Alpha_Driver_Posts {
       }
 
       if ($args) {
+      //
+      //   $args['ID'] = $id;
+      //
+      //   if (empty($args['post_type'])) {
+      //
+      //     $args['post_type'] = $post->post_type; // -> for attachments
+      //     $args['post_mime_type'] = $post->post_mime_type; // -> for attachments
+      //
+      //   }
+      //
+      //   if (empty($args['post_status'])) {
+      //
+      //     $args['post_status'] = $post->post_status; // -> for folders
+      //
+      //   }
 
-        $args['ID'] = $id;
+
+        $args = array_merge($post_arr, $args);
 
         wp_insert_post($args);
 
@@ -197,16 +263,40 @@ Class Karma_Fields_Alpha_Driver_Posts {
   /**
 	 * add
 	 */
-  public function add($item) {
+  public function add($data) {
 
     add_filter('wp_insert_post_empty_content', '__return_false', 10, 2);
 
-    $id = wp_insert_post($item);
+    $args = array();
+
+    foreach ($data as $key => $value) {
+
+      switch ($key) {
+
+        case 'post_type':
+        case 'post_status':
+          $args[$key] = $value;
+          break;
+
+        case 'post_parent':
+          $args[$key] = intval($value);
+          break;
+
+      }
+
+    }
+
+
+    // var_dump($args, $data);
+
+    $id = wp_insert_post($args);
 
     // return $id;
-    $item['id'] = $id;
+    // $item['id'] = $id;
+    //
+    // return $item;
 
-    return $item;
+    return $id;
 
   }
 
@@ -274,6 +364,10 @@ Class Karma_Fields_Alpha_Driver_Posts {
               $args['orderby'] = array('author' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
               break;
 
+            case 'post_type': // -> for medias
+              $args['orderby'] = array('post_type' => 'DESC', 'date' => 'DESC');
+              break;
+
             default:
               // todo: handle numeric meta, taxonomies
               $args['orderby'] = array('metavalue' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
@@ -313,8 +407,8 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         case 'post_status':
         case 'post_type':
-          if (is_array($value)) {
-            $value = array($value);
+          if (!is_array($value)) {
+            $value = explode(',', $value);
           }
           $args[$key] = $value;
           break;
@@ -374,14 +468,14 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     $query = new WP_Query($args);
 
-    // var_dump($query->request);
-
     $field = isset($args['field']) ? $args['field'] : '';
+
+    $output = array();
 
     switch ($field) {
 
       case 'id':
-        return array_map(function($post) {
+        $output = array_map(function($post) {
           return array(
             'id' => (string) $post->ID,
           );
@@ -393,49 +487,15 @@ Class Karma_Fields_Alpha_Driver_Posts {
       case 'post_status':
       case 'post_type':
       case 'post_date':
-        return array_map(function($post) {
+        $output = array_map(function($post) {
           return array(
             'id' => (string) $post->ID,
             $args['field'] => $post->{$args['field']}
           );
         }, $query->posts);
 
-      // case 'month':
-      //   global $wp_locale;
-      //   $where_clauses = array();
-      //   if (isset($args['post_type']) && $args['post_type']) {
-      //     $post_type_sql = implode(",", esc_sql($args['post_type']));
-      //     $where_clauses[] = "post_type IN ($post_type_sql)"
-      //   }
-      //   if (isset($args['post_status']) && $args['post_status']) {
-      //     $post_status_sql = implode(",", esc_sql($args['post_status']));
-      //     $where_clauses[] = "post_status IN ($post_status_sql)"
-      //   }
-      //   $sql = "SELECT YEAR(pm.meta_value) AS year, MONTH(pm.meta_value) AS month
-      //     FROM $wpdb->postmeta AS pm
-      //     WHERE $where
-      //     ORDER BY pm.meta_value DESC"
-      //
-      //   $results = $wpdb->get_results($sql);
-      //
-      //   $output = array();
-      //
-      //   foreach ($results as $result) {
-      //
-      //     $month_name = $wp_locale->get_month($result->month);
-      //
-      //     $output[] = array(
-      //       'id' => "{$result->year}{$result->month}",
-      //       'name' => "{$month_name} {$result->year}",
-      //     );
-      //
-      //   }
-      //
-      //   return $output;
-
-
       default:
-        return array_map(function($post) {
+        $output = array_map(function($post) {
           return array(
             'id' => (string) $post->ID,
             'post_title' => $post->post_title,
@@ -450,21 +510,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
         }, $query->posts);
     }
 
-    //   return isset($args['field']) ? array(
-    //     'id' => (string) $post->ID,
-    //     $args['field'] => $post->{$args['field']}
-    //   ) : array(
-    //     'id' => (string) $post->ID,
-    //     'post_title' => $post->post_title,
-    //     'post_excerpt' => $post->post_excerpt,
-    //     'post_name' => $post->post_name,
-    //     'post_parent' => $post->post_parent,
-    //     'post_status' => $post->post_status,
-    //     'post_type' => $post->post_type,
-    //     'post_date' => $post->post_date,
-    //     'menu_order' => (string) $post->menu_order
-    //   );
-    // }, $query->posts);
+    return apply_filters('karma_fields_posts_driver_query_output', $output, $query, $args);
 
   }
 
@@ -477,7 +523,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
     $args['fields'] = 'ids';
     $query = new WP_Query($args);
 
-    return $query->found_posts;
+    return apply_filters('karma_fields_posts_driver_query_count', $query->found_posts, $query, $args);
 
   }
 

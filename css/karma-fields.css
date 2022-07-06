@@ -503,8 +503,9 @@ body.karma-table-open {
 
   display: grid;
   grid-gap: 1px;
-  margin: 0 0 32px;
-  background-color: #484848;
+  margin: 2em 0;;
+  /* background-color: #484848; */
+  background-color: black;
   /* border: 1px solid #c3c4c7; */
 
   width: max-content;
@@ -521,7 +522,8 @@ body.karma-table-open {
   /* animation: slide 1s infinite linear; */
 }
 .karma-fields .table.filled {
-  border: 1px solid #484848;
+  /* border: 1px solid #484848; */
+  border: 1px solid black;
 }
 
 
@@ -615,11 +617,18 @@ body.karma-table-open {
 .karma-fields .table .td.selected {
   background-color: white;
 }
+.karma-fields .table .td.active,
+.karma-fields .table .th.active {
+  background-color: #484848;
+  /* background-color: #737373; */
+  color: #f1f1f1;
+
+}
 
 .karma-fields .table .th.selected {
   /* background-color: #ddd; */
-  background-color: #1d2327;
-  color: #f0f0f1;
+  /* background-color: #1d2327; */
+  /* color: #f0f0f1; */
 }
 
 /* .karma-fields ::selection {

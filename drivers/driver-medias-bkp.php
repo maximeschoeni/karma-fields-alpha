@@ -3,9 +3,7 @@
 // https://stackoverflow.com/a/38088630/2086505
 // https://developer.wordpress.org/reference/functions/wp_generate_attachment_metadata/
 
-include_once KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-posts.php':
-
-Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
+Class Karma_Fields_Alpha_Driver_Medias {
 
   /**
 	 * get

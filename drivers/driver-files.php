@@ -327,6 +327,7 @@ Class Karma_Fields_Alpha_Driver_Files {
 
         $attachment = get_post($attachment->ID);
         $filename = get_attached_file($attachment->ID);
+        // $filename = get_post_meta($attachment->ID, '_wp_attached_file', true);
         $metadata = wp_get_attachment_metadata($attachment->ID);
         $file_url = wp_get_attachment_url($attachment->ID);
         $thumb_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
@@ -373,8 +374,13 @@ Class Karma_Fields_Alpha_Driver_Files {
         );
         $results[] = array(
           'id' => $attachment->ID,
+          'key' => 'file',
+          'value' => $filename
+        );
+        $results[] = array(
+          'id' => $attachment->ID,
           'key' => 'filename',
-          'value' => get_post_meta($attachment->ID, '_wp_attached_file', true)
+          'value' => basename($filename)
         );
 
         // if (isset($params['sources']) && $params['sources']) {
@@ -404,98 +410,118 @@ Class Karma_Fields_Alpha_Driver_Files {
 
   }
 
+  public function upload($request) {
+
+    $files = $request->get_file_params();
+    $chunk = $request->get_param('chunk');
+    $chunks = $request->get_param('chunks');
+    $file_name = $request->get_param('name');
+    $type = $request->get_param('type');
 
 
-  // /**
-	//  * relations
-	//  */
-  // public function join($params) {
-  //   global $wpdb;
-  //
-  //   $ids = array_map('intval', explode(',', $params['ids']));
-  //
-  //   if ($ids) {
-  //
-  //     $sql_ids = implode(',', $ids);
-  //
-	// 		$sql = "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN ($sql_ids)";
-  //
-	// 		$attachments = $wpdb->get_results($sql);
-  //
-	// 		if ($attachments) {
-  //
-	// 			update_post_caches($attachments, 'any', false, true);
-  //
-	// 		}
-  //
-  //     $images = array();
-  //
-  //     foreach ($attachments as $attachment) {
-  //
-  //       $attachment = get_post($attachment->ID);
-  //       // $thumb_src_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
-  //       $filename = get_attached_file($attachment->ID);
-  //       $metadata = wp_get_attachment_metadata($attachment->ID);
-  //       $file_url = wp_get_attachment_url($attachment->ID);
-  //
-  //       $thumb_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
-  //
-  //
-  //       $image = array(
-  //         'id' => $attachment->ID,
-  //         'title' => get_the_title($attachment),
-  //         'caption' => wp_get_attachment_caption($attachment->ID), // = post_excerpt
-  //         'type' => get_post_mime_type($attachment),
-  //         // 'src' => $thumb_src_data[0],
-  //         // 'width' => $thumb_src_data[1],
-  //         // 'height' => $thumb_src_data[2],
-  //         'src' => $file_url,
-  //         'width' => $metadata['width'],
-  //         'height' => $metadata['height'],
-  //         // 'thumb_src' => dirname($file_url).'/'.$metadata['sizes']['thumbnail']['file'],
-  //         // 'thumb_width' => $metadata['sizes']['thumbnail']['width'],
-  //         // 'thumb_height' => $metadata['sizes']['thumbnail']['height'],
-  //         'thumb_src' => $thumb_data[0],
-  //         'thumb_width' => $thumb_data[1],
-  //         'thumb_height' => $thumb_data[2],
-  //         'filename' => get_post_meta($attachment->ID, '_wp_attached_file', true),
-  //         'size' => intval(filesize($filename)/1000).' KB'
-  //         // 'metadata' => $metadata
-  //       );
-  //
-  //       // if (isset($params['sources']) && $params['sources']) {
-  //       //
-  //       //   $img_sizes = is_array($params['sources']) ? $params['sources'] : array(
-  //       //     'medium',
-  //       //     'medium_large',
-  //       //     'large',
-  //       //     '1536x1536',
-  //       //     '2048x2048'
-  //       //   );
-  //       //
-  //       //   $img_sizes = apply_filters('karma_fields_attachment_driver_image_sizes', $img_sizes, $image, $params);
-  //       //
-  //       //   $image['sources'] = $this->get_image_source($attachment->ID, $img_sizes);
-  //       //
-  //       // }
-  //
-  //       $images[] = $image;
-  //
-  //     }
-  //
-  //     return $images;
-  //
-  //   } else {
-  //
-  //     return array();
-  //
-  //   }
-  //
-  //
-  //
-  //
-  // }
 
+    $path_parts = pathinfo($file_name);
+
+    // $ext = pathinfo($file_name, PATHINFO_EXTENSION);
+    // $name = wp_basename($file_name, ".$ext");
+    // $title = sanitize_text_field($name);
+
+    // $file_name = sanitize_title($path_parts['filename']).'.'.$path_parts['extension'];
+
+
+
+    $wp_upload_dir = wp_upload_dir();
+    $dir = $wp_upload_dir['basedir'] ;
+
+    if (!file_exists($dir)) {
+      mkdir($dir);
+    }
+
+
+    $file_path = "$dir/$file_name";
+
+    // Open temp file
+    $out = @fopen("{$file_path}.part", $chunk == 0 ? "wb" : "ab");
+
+    if ($out) {
+      // Read binary input stream and append it to temp file
+      $in = @fopen($files['file']['tmp_name'], "rb");
+
+      if ($in) {
+        while ($buff = fread($in, 4096)) {
+          fwrite($out, $buff);
+        }
+      } else {
+        return array('error' => 'Failed to open input stream.');
+      }
+
+      @fclose($in);
+      @fclose($out);
+
+      @unlink($files['file']['tmp_name']);
+
+   } else {
+     return array('error' => 'Failed to open output stream.');
+   }
+
+    // Check if file has been uploaded
+
+    if (!$chunks || $chunk == $chunks - 1) {
+      // Strip the temp .part suffix off
+      rename("{$file_path}.part", $file_path);
+
+      $ext = pathinfo($file_name, PATHINFO_EXTENSION);
+      $name = wp_basename($file_name, ".$ext");
+      $title = sanitize_text_field($name);
+      $excerpt = '';
+
+      if (strpos($type, 'image/') === 0) {
+        $image_meta = wp_read_image_metadata( $file );
+
+        if ($image_meta) {
+          if (trim($image_meta['title']) && !is_numeric(sanitize_title($image_meta['title']))) {
+            $title = $image_meta['title'];
+          }
+          if (trim( $image_meta['caption'])) {
+            $excerpt = $image_meta['caption'];
+          }
+        }
+      }
+
+      // Save the data.
+      $attachment_id = wp_insert_attachment(array(
+        'post_mime_type' => mime_content_type($file_path),
+        'post_title'     => $title,
+        'post_excerpt'   => $excerpt
+      ), $file_path);
+
+      if ( ! is_wp_error( $attachment_id ) ) {
+        // Set a custom header with the attachment_id.
+        // Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+        if ( ! headers_sent() ) {
+          header( 'X-WP-Upload-Attachment-ID: ' . $attachment_id );
+        }
+
+        if (!function_exists('wp_generate_attachment_metadata')) {
+          include ABSPATH . 'wp-admin/includes/image.php';
+        }
+
+
+        // The image sub-sizes are created during wp_generate_attachment_metadata().
+        // This is generally slow and may cause timeouts or out of memory errors.
+
+        $metadata = wp_generate_attachment_metadata( $attachment_id, $file_path );
+
+
+        wp_update_attachment_metadata( $attachment_id,  $metadata);
+      }
+
+      return $attachment_id;
+    }
+
+    return $file_path;
+
+  }
 
 
 }

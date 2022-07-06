@@ -94,7 +94,7 @@
 }
 .table .selected input,
 .table .selected textarea {
-  background-color: white;
+  /* background-color: white; */
 }
 
 .karma-fields .table input.text-input,
@@ -106,6 +106,8 @@
   width: 100%;
   min-height: 40px;
   box-shadow: none;
+
+  color: inherit;
 
   /* bug firefox: */
   /* user-drag: none;
@@ -163,7 +165,7 @@ button.karma-button.loading,
   background-color: transparent !important;
   background-image: repeating-linear-gradient(60deg, transparent 0 25%, #0000000a 25% 50%);
 
-  background-size: 100px 100px;
+  background-size: 10em 17.4em;
   animation: slide 4s infinite linear;
   color: #c3c4c7 !important;
   border-color: #c3c4c7 !important;
@@ -171,6 +173,6 @@ button.karma-button.loading,
 
 @keyframes slide {
 	100% {
-		background-position-x: -100px;
+		background-position-x: -10em;
 	}
 }

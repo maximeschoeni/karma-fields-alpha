@@ -238,7 +238,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 				this.render = dropdown.render;
 
-				if (this.resource.disabled || this.resource.hidden || this.resource.dynamic) {
+				if (this.resource.disabled || this.resource.dynamic) {
 					// this.setEventListener(event => dropdown.render());
 					this.update = () => dropdown.render();
 				}
@@ -347,9 +347,9 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 				if (this.resource.disabled) {
 					dropdown.element.disabled = Boolean(await this.parent.parse(this.resource.disabled));
 				}
-				if (this.resource.hidden) {
-					dropdown.element.parentNode.classList.toggle("active", Boolean(await this.parent.parse(this.resource.hidden)));
-				}
+				// if (this.resource.hidden) {
+				// 	dropdown.element.parentNode.classList.toggle("active", Boolean(await this.parent.parse(this.resource.hidden)));
+				// }
 
 				dropdown.element.parentNode.classList.toggle("modified", await this.isModified());
 				dropdown.element.classList.remove("loading");
