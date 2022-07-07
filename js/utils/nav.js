@@ -127,6 +127,25 @@ KarmaFieldsAlpha.Nav = class {
 
   }
 
+	static edit(value, key) {
+
+		value = encodeURIComponent(value);
+
+		const current = this.get(key);
+
+		if (value !== current) {
+
+			this.set(value, key);
+
+			KarmaFieldsAlpha.History.backup(value, current, false, "nav", key);
+
+			// this.idsBuffer.empty();
+			//
+			// this.interface.clearSelection();
+
+		}
+	}
+
 	// static change(params, saveHistory = false) {
 	//
 	// 	if (saveHistory) {

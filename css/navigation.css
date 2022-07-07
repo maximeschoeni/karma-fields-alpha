@@ -576,8 +576,13 @@ ul.karma-breadcrumb li:not(:last-child)::after {
 ul.karma-breadcrumb li a {
   cursor: pointer;
 }
-ul.karma-breadcrumb li a:hover {
-  text-decoration: underline;
+ul.karma-breadcrumb li a.active {
+  color: #484848;
 }
+ul.karma-breadcrumb li a:hover {
+  /* text-decoration: underline; */
+  color: #484848;
+}
+
 
 /* * */

@@ -81,6 +81,10 @@ KarmaFieldsAlpha.fields.field = class Field {
 
     const type = resource.type || "group";
 
+    if (KarmaFieldsAlpha.fields[type]) {
+      return new KarmaFieldsAlpha.fields[type](resource);
+    }
+
     if (this.constructor[type] && typeof this.constructor[type] === "function") {
       return new this.constructor[type](resource);
     }
@@ -89,9 +93,11 @@ KarmaFieldsAlpha.fields.field = class Field {
       return this.createField({...this.constructor[type], ...resource, type: this.constructor[type].type});
     }
 
-    if (KarmaFieldsAlpha.fields[type]) {
-      return new KarmaFieldsAlpha.fields[type](resource);
+    if (this.parent) {
+      return this.parent.createField(resource);
     }
+
+
 
     console.error("Field type does not exist", resource);
 

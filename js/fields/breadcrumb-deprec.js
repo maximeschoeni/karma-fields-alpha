@@ -13,6 +13,7 @@ KarmaFieldsAlpha.fields.breadcrumb = class extends KarmaFieldsAlpha.fields.field
           path: ["post_parent"]
         });
 
+
         let parent = KarmaFieldsAlpha.Type.toNumber(request.data);
 
         while(parent !== 0) {
@@ -32,6 +33,7 @@ KarmaFieldsAlpha.fields.breadcrumb = class extends KarmaFieldsAlpha.fields.field
             child: {
               tag: "a",
               update: a => {
+                // a.element.classList.toggle("active", parent);
                 a.element.innerHTML = name || "no name";
                 a.element.onclick = async event => {
                   await this.dispatch({

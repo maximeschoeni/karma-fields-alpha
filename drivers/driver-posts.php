@@ -329,7 +329,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     $args = array(
       'post_status' => array('publish', 'pending', 'draft', 'future'),
-      'post_type' => array('any'),
+      'post_type' => 'any',
       'posts_per_page' => -1,
       'cache_results' => false,
       'update_post_term_cache' => false,
@@ -449,8 +449,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     }
 
-
-    $args = apply_filters('karma_fields_posts_driver_query_table', $args, $params);
+    $args = apply_filters('karma_fields_posts_driver_query_args', $args, $params);
 
     return $args;
 
@@ -509,6 +508,8 @@ Class Karma_Fields_Alpha_Driver_Posts {
           );
         }, $query->posts);
     }
+
+
 
     return apply_filters('karma_fields_posts_driver_query_output', $output, $query, $args);
 

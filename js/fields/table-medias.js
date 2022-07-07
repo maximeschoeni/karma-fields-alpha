@@ -98,7 +98,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
       }
 
       // this.setValue(this.ta.value);
-      
+
 
     }
 
@@ -729,6 +729,12 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
             };
           });
 
+          // const parent = KarmaFieldsAlpha.Nav.get("post_parent") || "0";
+          //
+          // if (parent) {
+          //
+          // }
+
         } else {
           grid.children = [];
           grid.element.classList.remove("filled");
@@ -943,6 +949,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
   }
 
+  
 
 
 }

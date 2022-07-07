@@ -222,7 +222,7 @@ KarmaFieldsAlpha.Expression = class {
 
   static async get(field, ...expressionPath) {
     const array = await this.getArray(field, ...expressionPath);
-    return array[0];
+    return KarmaFieldsAlpha.Type.toString(array);
   }
 
   static async getIds(field) {
@@ -288,6 +288,25 @@ KarmaFieldsAlpha.Expression = class {
   static async query(field, ...expressionPath) {
     const array = await this.queryArray(field, ...expressionPath);
     return array[0];
+  }
+
+  static async getOptions(field, driver, paramString, nameField = 'name') {
+
+    driver = await this.resolve(field, driver);
+    paramString = await this.resolve(field, paramString);
+
+    const store = new KarmaFieldsAlpha.Store(driver);
+    const ids = await store.query(paramString);
+    const options = [];
+
+    for (let id of ids) {
+      options.push({
+        id: id,
+        name: await store.getValue(id, nameField)
+      });
+    }
+
+    return options;
   }
 
   static async getParam(field, expressionKey) {
@@ -522,9 +541,6 @@ KarmaFieldsAlpha.Expression = class {
 
 
 
-  static async item(field, ...path) {
-    return this.getChild(field, field.loopItem, ...path);
-  }
 
 
 
