@@ -329,6 +329,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 					// 	await this.parse(this.resource.onchange);
 					// }
 
+					
 					await this.setValue(dropdown.element.value);
 
 

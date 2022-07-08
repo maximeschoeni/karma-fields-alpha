@@ -54,12 +54,13 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 						button.element.classList.add("editing");
 
 						const action = await this.parse(this.resource.action || this.resource.state || "submit");
+						const value = await this.parse(this.resource.value);
 
 						requestIdleCallback(() => {
 
 							this.dispatch({
 								action: action, // compat
-								data: this.resource.value
+								data: value
 							}).then(() => {
 								button.element.classList.remove("editing");
 								button.element.blur();
@@ -75,6 +76,8 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 					// const instance = this;
 					// debugger;
 					// if (this.resource.action === "delete") debugger;
+
+
 					button.element.disabled = Boolean(await this.parse(this.resource.disabled));
 					// this.check(this.resource.disabled).then(disabled => {
 					// 	button.element.disabled = disabled;

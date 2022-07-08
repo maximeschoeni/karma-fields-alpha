@@ -157,11 +157,13 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 			case "modified":
 
+
 			// console.log(this.resource, event.path);
 			// if (this.resource.driver === "spectacles") debugger;
 
 				// event.data = this.buffer.has(...event.path);
 				event.data = await this.isModified(...event.path);
+
 				break;
 
 			case "get": {

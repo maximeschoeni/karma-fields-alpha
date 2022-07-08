@@ -3,6 +3,10 @@ KarmaFieldsAlpha.buffer = {};
 
 KarmaFieldsAlpha.Buffer = class {
 
+  // static empty(...path) {
+  //   KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.buffer, ...path);
+  // }
+
   constructor(...path) {
     this.path = path;
   }
@@ -79,6 +83,11 @@ KarmaFieldsAlpha.Buffer = class {
     let object = this.get(...path) || {};
     object = KarmaFieldsAlpha.DeepObject.filter(object, item => item !== undefined && item !== null, ...path);
     this.set(object, ...path);
+  }
+
+  setAndBackup(value, ...path) {
+    KarmaFieldsAlpha.History.backup(value, this.get(...path), false, ...this.path, ...path);
+    this.set(value, ...path);
   }
 
 }

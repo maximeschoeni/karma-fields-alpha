@@ -48,7 +48,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
     this.optionsBuffer = new KarmaFieldsAlpha.Buffer("options", this.driver);
     this.extraIdBuffer = new KarmaFieldsAlpha.Buffer("extraids", this.driver);
-    this.idsBuffer = new KarmaFieldsAlpha.Buffer("ids", this.driver);
+    this.idsBuffer = new KarmaFieldsAlpha.Buffer("ids");
 
     this.grid = this.createChild({
       type: "form",
@@ -302,18 +302,18 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     return this.optionsBuffer.get("columns") || this.resource.children.map((column, index) => index.toString()) || [];
   }
 
-  getParam(key) {
-    return KarmaFieldsAlpha.Nav.get(key);
-  }
-
-  hasParam(key) {
-    return KarmaFieldsAlpha.Nav.has(key);
-  }
-
-  setParam(value, key) {
-
-    KarmaFieldsAlpha.Nav.set(value, key);
-  }
+  // getParam(key) {
+  //   return KarmaFieldsAlpha.Nav.get(key);
+  // }
+  //
+  // hasParam(key) {
+  //   return KarmaFieldsAlpha.Nav.has(key);
+  // }
+  //
+  // setParam(value, key) {
+  //
+  //   KarmaFieldsAlpha.Nav.set(value, key);
+  // }
 
 
   async dispatch(event, parent, origin) {
@@ -350,7 +350,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
             break;
 
           case "actives":
-            event.data = this.interface.selectionBuffer.get("ids") || [];
+            event.data = this.interface.selectionBuffer.get() || [];
             break;
 
           case "undo":
@@ -405,19 +405,30 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
           default: { // -> filters
 
+            // const value = KarmaFieldsAlpha.Type.toString(event.data);
+            // const current = KarmaFieldsAlpha.Nav.get(key);
+            //
+            // if (KarmaFieldsAlpha.DeepObject.differ(value, current)) {
+            //
+            //   KarmaFieldsAlpha.Nav.change(event.backup, value, current, key);
+            //   KarmaFieldsAlpha.Nav.change("pack", 1, KarmaFieldsAlpha.Nav.get("page"), "page");
+            //
+            //   // this.idsBuffer.empty();
+            //
+            //   this.interface.clearSelection();
+            //
+            // }
+
+            // KarmaFieldsAlpha.History.save();
+
             const value = KarmaFieldsAlpha.Type.toString(event.data);
-            const current = KarmaFieldsAlpha.Nav.get(key);
 
-            if (KarmaFieldsAlpha.DeepObject.differ(value, current)) {
+            KarmaFieldsAlpha.Nav.change(value, key);
+            KarmaFieldsAlpha.Nav.change(1, "page");
 
-              KarmaFieldsAlpha.Nav.change(event.backup, value, current, key);
-              KarmaFieldsAlpha.Nav.change("pack", 1, KarmaFieldsAlpha.Nav.get("page"), "page");
+            this.interface.clearSelection();
+            this.idsBuffer.empty();
 
-              this.idsBuffer.empty();
-
-              this.interface.clearSelection();
-
-            }
 
             break;
           }
@@ -522,19 +533,23 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
         const key = event.path.shift();
 
+
+
+
         switch (key) {
 
           case "content":
-            if (event.data === "clearcache") { // (NOT USED) -> when data change affect availibity of item in table (autosave)
-              this.store.empty();
-              const ids = this.idsBuffer.get("ids");
-              KarmaFieldsAlpha.History.backup(ids, ids, false, "ids", this.driver, "ids");
-              this.idsBuffer.empty();
-              await this.render();
-            } else {
-              // await this.splash(this.grid, event);
-              await this.render();
-            }
+            // if (event.data === "clearcache") { // (NOT USED) -> when data change affect availibity of item in table (autosave)
+            //   this.store.empty();
+            //   const ids = this.idsBuffer.get();
+            //   KarmaFieldsAlpha.History.backup(ids, ids, false, "ids");
+            //   this.idsBuffer.empty();
+            //   await this.render();
+            // } else {
+            //   // await this.splash(this.grid, event);
+            //   await this.render();
+            // }
+            this.controls.render();
             break;
 
           default: // filters
@@ -575,31 +590,34 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       case "nextpage": {
         const page = this.getPage();
         const numpage = await this.getNumPage();
-        const nextpage = Math.min(page+1, numpage);
 
-        KarmaFieldsAlpha.Nav.change("tie", nextpage, page, "page");
-        this.idsBuffer.remove();
+        if (page < numpage) {
+          KarmaFieldsAlpha.History.save();
+          KarmaFieldsAlpha.Nav.change(page+1, "page");
+          this.idsBuffer.empty();
+          await this.render();
+        }
 
-        await this.render();
         break;
       }
 
       case "prevpage": {
         const page = this.getPage();
-        const prevpage = Math.max(page-1, 0);
-
-        KarmaFieldsAlpha.Nav.change("tie", prevpage, page, "page");
-        this.idsBuffer.remove();
-
-        await this.render();
+        if (page > 1) {
+          KarmaFieldsAlpha.History.save();
+          KarmaFieldsAlpha.Nav.change(page-1, "page");
+          this.idsBuffer.empty();
+          await this.render();
+        }
         break;
       }
 
       case "firstpage": {
         const page = this.getPage();
         if (page > 1) {
-          KarmaFieldsAlpha.Nav.change("tie", "1", page, "page");
-          this.idsBuffer.remove();
+          KarmaFieldsAlpha.History.save();
+          KarmaFieldsAlpha.Nav.change(1, "page");
+          this.idsBuffer.empty();
           await this.render();
         }
         break;
@@ -609,10 +627,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         const page = this.getPage();
         const numpage = await this.getNumPage();
         if (page < numpage) {
-
-          KarmaFieldsAlpha.Nav.change("tie", numpage, page, "page");
-          this.idsBuffer.remove();
-
+          KarmaFieldsAlpha.History.save();
+          KarmaFieldsAlpha.Nav.change(numpage, "page");
+          this.idsBuffer.empty();
           await this.render();
         }
         break;
@@ -621,7 +638,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       case "reload": {
         this.store.empty();
         this.buffer.empty();
-        this.idsBuffer.remove();
+        this.idsBuffer.empty();
         await this.render();
         break;
       }
@@ -640,25 +657,36 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
       case "add": {
         const ids = await this.add(1, event.data || {});
-        this.interface.selectionBuffer.set(ids, "ids");
+        // KarmaFieldsAlpha.History.backup(ids, this.interface.selectionBuffer.get(), false, "selection");
+        this.interface.selectionBuffer.set(ids);
         await this.render();
         break;
       }
 
       case "delete": {
         const selectedIds = event.data || await this.getSelectedIds();
-        // this.interface.selectionBuffer.set([], "ids");
-        this.interface.clearSelection();
+
+        // this.interface.clearSelection();
         await this.remove(selectedIds);
+
+        // KarmaFieldsAlpha.History.backup([], this.interface.selectionBuffer.get(), false, "selection");
+        this.interface.selectionBuffer.set([]);
+
         await this.render();
         break;
       }
 
       case "insert": {
-        const [insertIds, removeIds] = event.data || [];
+        const insertIds = event.data || [];
+        const removeIds = this.interface.selectionBuffer.get();
 
-        this.interface.clearSelection();
+        // this.interface.clearSelection();
+
         await this.insert(insertIds, removeIds);
+
+        // KarmaFieldsAlpha.History.backup(insertIds, removeIds, false, "selection");
+        this.interface.selectionBuffer.set(insertIds);
+
         this.store.empty();
         await this.render();
         break;
@@ -707,55 +735,59 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       // modal:
       case "prev": {
         let ids = await this.getIds();
-        const id = KarmaFieldsAlpha.Nav.get("id");
-        const index = ids.indexOf(id);
-
-        if (index > 0) {
-          KarmaFieldsAlpha.Nav.change("tie", ids[index-1], id, "id");
-        } else {
-          const page = this.getPage();
-          if (page > 1) {
-            KarmaFieldsAlpha.Nav.change("tie", page-1, page, "page");
-            this.idsBuffer.empty();
-            ids = await this.getIds();
-            KarmaFieldsAlpha.Nav.change("pack", ids[ids.length - 1], id, "id");
+        const selectedIds = this.interface.selectionBuffer.get();
+        if (selectedIds.length === 1) {
+          const index = ids.indexOf(selectedIds[0]);
+          if (index > 0) {
+            const id = ids[index-1];
+            KarmaFieldsAlpha.History.save();
+            this.interface.selectionBuffer.set([id], );
+            // KarmaFieldsAlpha.History.backup([id], selectedIds, false, "selection");
+            await this.render();
           }
         }
-        await this.render();
         break;
       }
 
       case "next": {
         let ids = await this.getIds();
-        const id = KarmaFieldsAlpha.Nav.get("id");
-        const index = ids.indexOf(id);
-
-        if (index < ids.length-1) {
-          KarmaFieldsAlpha.Nav.change("tie", ids[index+1], id, "id");
-        } else {
-          const numpage = await this.getNumPage();
-          const page = this.getPage();
-          if (page < numpage) {
-            KarmaFieldsAlpha.Nav.change("tie", page+1, page, "page");
-            this.idsBuffer.empty();
-            ids = await this.getIds();
-            KarmaFieldsAlpha.Nav.change("pack", ids[0], id, "id");
+        const selectedIds = this.interface.selectionBuffer.get();
+        if (selectedIds.length === 1) {
+          const index = ids.indexOf(selectedIds[0]);
+          if (index < ids.length - 1) {
+            const id = ids[index+1];
+            KarmaFieldsAlpha.History.save();
+            this.interface.selectionBuffer.set([id]);
+            // KarmaFieldsAlpha.History.backup([id], selectedIds, false, "selection");
+            await this.render();
           }
         }
-        await this.render();
         break;
       }
 
-      case "close-modal":
-        this.removeParam("id");
-        await this.render();
-        // await this.triggerListeners();
+      case "close-modal": {
+        const selectedIds = this.interface.selectionBuffer.get();
+        if (selectedIds.length === 1) {
+          KarmaFieldsAlpha.History.save();
+          this.interface.selectionBuffer.set([]);
+          // KarmaFieldsAlpha.History.backup([], selectedIds, false, "selection");
+          await this.render();
+        }
         break;
+      }
 
       case "open-modal": {
-        const [content, id, ...path] = event.path;
-        KarmaFieldsAlpha.Nav.change("pack", id, null, "id");
-        await this.render();
+        // const [content, id, ...path] = event.path;
+        const id = KarmaFieldsAlpha.Type.toNumber(event.data);
+        const selectedIds = this.interface.selectionBuffer.get();
+
+        if (selectedIds.length === 1 && selectedIds[0] !== id) {
+          KarmaFieldsAlpha.History.save();
+          this.interface.selectionBuffer.set([id]);
+          // KarmaFieldsAlpha.History.backup([id], selectedIds, false, "selection");
+          await this.render();
+        }
+
         break;
       }
 
@@ -766,16 +798,19 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
         let order = KarmaFieldsAlpha.Nav.get("order");
         let orderby = KarmaFieldsAlpha.Nav.get("orderby");
+
         const key = event.path[0];
 
         if (orderby === key) {
 
-          KarmaFieldsAlpha.Nav.change("pack", order === "asc" ? "desc" : "asc", order, "order");
+          const newOrder = order === "asc" ? "desc" : "asc";
+          KarmaFieldsAlpha.Nav.change(newOrder, "order");
 
         } else {
 
-          KarmaFieldsAlpha.Nav.change("pack", event.order || "asc", order, "order");
-          KarmaFieldsAlpha.Nav.change("pack", key, orderby, "orderby");
+          const newOrder = event.order || "asc";
+          KarmaFieldsAlpha.Nav.change(newOrder, "order");
+          KarmaFieldsAlpha.Nav.change(key, "orderby");
 
         }
 
@@ -784,31 +819,21 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         break;
       }
 
-      // case "open-folder": {
-      //   const key = event.path[0];
-      //   const value = KarmaFieldsAlpha.Type.toString(event.data);
-      //   const current = KarmaFieldsAlpha.Nav.get(key);
-      //
-      //   if (KarmaFieldsAlpha.DeepObject.differ(value, current)) {
-      //
-      //     KarmaFieldsAlpha.Nav.change("pack", value, current, key);
-      //     KarmaFieldsAlpha.Nav.change("pack", 1, KarmaFieldsAlpha.Nav.get("page"), "page");
-      //
-      //     this.idsBuffer.empty();
-      //     await this.render();
-      //
-      //   }
-      //
+      // case "params": {
+      //   event.data = KarmaFieldsAlpha.Nav.getObject();
       //   break;
       // }
 
-      case "params": {
-        event.data = KarmaFieldsAlpha.Nav.getObject();
+      case "clear-selection": {
+        this.interface.clearSelection();
         break;
       }
 
 
-
+      case "render": {
+        await this.render();
+        break;
+      }
 
 
 
@@ -843,17 +868,19 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
   async getIds() {
 
-    let ids = this.idsBuffer.get("ids");
+    let ids = this.idsBuffer.get();
 
     if (!ids) {
 
       ids = await this.getQueriedIds() || [];
 
-      this.idsBuffer.set(ids, "ids");
+      this.idsBuffer.set(ids);
 
-      KarmaFieldsAlpha.History.push(ids, "ids", this.driver, "ids");
+      KarmaFieldsAlpha.History.push(ids, "ids");
 
     }
+
+
 
     // -> front verification (check for standing changes in form buffer)
     // const params = this.getFilterParams();
@@ -917,7 +944,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       //
       // }
 
-      // this.buffer.set(["1"], row.id, "trash"); // -> when add and delete a row without saving
+      this.buffer.set(["1"], id, "trash"); // -> when add and delete a row without saving
       this.grid.buffer.set(["0"], id, "trash");
       this.writeHistory(["0"], ["1"], id, "trash");
 
@@ -926,9 +953,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     const ids = await this.getIds();
     const newIds = [...createdIds, ...ids];
 
-    this.idsBuffer.set(newIds, "ids");
+    this.idsBuffer.set(newIds);
 
-    KarmaFieldsAlpha.History.backup(newIds, ids, false, "ids", this.driver, "ids");
+    KarmaFieldsAlpha.History.backup(newIds, ids, false, "ids");
 
     return createdIds;
   }
@@ -952,14 +979,16 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       // }
 
       // this.grid.buffer.set(["1"], id, "trash");
-      this.writeHistory(["1"], ["0"], id, "trash");
+      // this.writeHistory(["1"], ["0"], id, "trash");
 
+      this.grid.buffer.set({trash: ["1"]}, id);
+      this.writeHistory({trash: ["1"]}, id);
     }
 
     const currentIds = await this.getIds();
     const newIds = currentIds.filter(id => !ids.includes(id));
-    this.idsBuffer.set(newIds, "ids");
-    KarmaFieldsAlpha.History.backup(newIds, currentIds, false, "ids", this.driver, "ids");
+    this.idsBuffer.set(newIds);
+    KarmaFieldsAlpha.History.backup(newIds, currentIds, false, "ids");
 
   }
 
@@ -984,9 +1013,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
     const newIds = [...filteredIds, ...insertIds];
 
-    this.idsBuffer.set(newIds, "ids");
+    this.idsBuffer.set(newIds);
 
-    KarmaFieldsAlpha.History.backup(newIds, ids, false, "ids", this.driver, "ids");
+    KarmaFieldsAlpha.History.backup(newIds, ids, false, "ids");
   }
 
   async duplicate() {
@@ -1056,12 +1085,14 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       this.writeHistory(["0"], ["1"], id, "trash");
 
 
-      const ids = this.idsBuffer.get("ids");
+      const ids = this.idsBuffer.get();
       const newIds = [id, ...ids];
 
-      KarmaFieldsAlpha.History.backup(newIds, ids, false, "ids", this.driver, "ids");
 
-      this.idsBuffer.set(newIds, "ids");
+
+      this.idsBuffer.set(newIds);
+
+      KarmaFieldsAlpha.History.backup(newIds, ids, false, "ids");
 
 
 
@@ -1084,7 +1115,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     // }
     // return [];
 
-    return this.interface.selectionBuffer.get("ids") || [];
+    return this.interface.selectionBuffer.get() || [];
   }
 
   createTablePart(resource) {
@@ -1278,7 +1309,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       return {
         class: "karma-modal",
         update: modal => {
-          const selectedIds = this.parent.selectionBuffer.get("ids") || [];
+          // const selectedIds = this.parent.selectionBuffer.get() || [];
           modal.element.style.minWidth = this.resource.width || "30em";
 
           modal.children = [
@@ -1365,15 +1396,22 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       switch (event.action) {
 
         case "close": {
+          const currentIds = this.parent.selectionBuffer.get();
+          if (currentIds.length) {
+            KarmaFieldsAlpha.History.save();
+            this.parent.selectionBuffer.set([]);
+            // KarmaFieldsAlpha.History.backup([], currentIds, false, "selection");
+            event.action = "edit-selection";
+            await super.dispatch(event);
+          }
           // this.parent.selectionBuffer.remove("ids");
-          this.parent.clearSelection();
-          event.action = "edit-selection";
-          await super.dispatch(event);
+          // this.parent.clearSelection();
+
           break;
         }
 
         case "selection": {
-          event.data = this.parent.selectionBuffer.get("ids") || [];
+          event.data = this.parent.selectionBuffer.get() || [];
           break;
         }
 
@@ -1383,8 +1421,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         // }
 
         case "get": {
-          // const ids = this.parent.selectionBuffer.get("ids") || [];
-          const ids = this.parent.getSelectedIds();
+          const ids = this.parent.selectionBuffer.get() || [];
+          // const ids = this.parent.getSelectedIds(); // -> modify class-medias...
           const [key] = event.path;
 
           if (key === "id") {
@@ -1425,7 +1463,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         }
 
         case "set": {
-          const ids = this.parent.selectionBuffer.get("ids") || [];
+          const ids = this.parent.selectionBuffer.get() || [];
 
           KarmaFieldsAlpha.History.save();
 
@@ -1440,7 +1478,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         }
 
         case "modified": {
-          const ids = this.parent.selectionBuffer.get("ids") || [];
+          const ids = this.parent.selectionBuffer.get() || [];
           event.data = false;
           for (let id of ids) {
             const request = await super.dispatch({
@@ -2018,27 +2056,23 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
                   a.element.classList.toggle("active", item.active);
                   a.element.innerHTML = item.name || "no name";
                   a.element.onclick = async event => {
-                    // await this.dispatch({
-                    //   action: "send",
-                    //   data: [item.id]
-                    // });
 
-                    const current = KarmaFieldsAlpha.Nav.get(this.resource.key);
+                    if (!item.active) {
+                      KarmaFieldsAlpha.History.save();
+                      KarmaFieldsAlpha.Nav.change(item.id, this.resource.key);
 
-                    if (KarmaFieldsAlpha.DeepObject.differ(value, current)) {
+                      new KarmaFieldsAlpha.Buffer("ids").empty();
 
-                      KarmaFieldsAlpha.Nav.change(event.backup, value, current, key);
-                      KarmaFieldsAlpha.Nav.change("pack", 1, KarmaFieldsAlpha.Nav.get("page"), "page");
+                      await this.dispatch({
+                        action: "clear-selection"
+                      });
 
-                      this.idsBuffer.empty();
-
-                      this.interface.clearSelection();
+                      await this.dispatch({
+                        action: "render"
+                      });
 
                     }
 
-                    await this.dispatch({
-                      action: "edit"
-                    });
                   }
                 }
               }

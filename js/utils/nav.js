@@ -102,32 +102,32 @@ KarmaFieldsAlpha.Nav = class {
   //   KarmaFieldsAlpha.History.write(value, "nav", key);
   // }
 
-	static change(type, newValue, currentValue, key) {
+	// static change(type, newValue, currentValue, key) {
+	//
+  //   // const currentValue = this.get(key) || "";
+	//
+	// 	newValue = encodeURIComponent(newValue);
+	// 	// currentValue = encodeURIComponent(currentValue);
+	//
+	// 	if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
+	//
+	// 		this.set(newValue, key);
+	//
+	// 		// if (type === "tie") {
+	// 		//
+	// 		// 	KarmaFieldsAlpha.History.tie(newValue, "nav", key);
+	// 		//
+	// 		// }
+	// 		//
+	// 		// KarmaFieldsAlpha.History.pack(newValue, "nav", key);
+	//
+	// 		KarmaFieldsAlpha.History.backup(newValue, currentValue, type === "tie", "nav", key);
+	//
+	// 	}
+	// 
+  // }
 
-    // const currentValue = this.get(key) || "";
-
-		newValue = encodeURIComponent(newValue);
-		// currentValue = encodeURIComponent(currentValue);
-
-		if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
-
-			this.set(newValue, key);
-
-			// if (type === "tie") {
-			//
-			// 	KarmaFieldsAlpha.History.tie(newValue, "nav", key);
-			//
-			// }
-			//
-			// KarmaFieldsAlpha.History.pack(newValue, "nav", key);
-
-			KarmaFieldsAlpha.History.backup(newValue, currentValue, type === "tie", "nav", key);
-
-		}
-
-  }
-
-	static edit(value, key) {
+	static change(value, key) {
 
 		value = encodeURIComponent(value);
 
@@ -138,10 +138,6 @@ KarmaFieldsAlpha.Nav = class {
 			this.set(value, key);
 
 			KarmaFieldsAlpha.History.backup(value, current, false, "nav", key);
-
-			// this.idsBuffer.empty();
-			//
-			// this.interface.clearSelection();
 
 		}
 	}

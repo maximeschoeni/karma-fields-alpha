@@ -17,7 +17,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
     this.items = [];
 
-    this.selectionBuffer = new KarmaFieldsAlpha.Buffer("selection");
+    this.selectionBuffer = new KarmaFieldsAlpha.TrackBuffer("selection");
 
 
     this.ta = document.createElement("textarea");
@@ -28,7 +28,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
     this.ta.oninput = async event => {
 
       const ids = this.ta.value && this.ta.value.split(/[\r\n]/) || [];
-      const currentIds = this.selectionBuffer.get("ids") || [];
+      const currentIds = this.selectionBuffer.get() || [];
       const post_parent = KarmaFieldsAlpha.Nav.get("post_parent") || 0;
 
 
@@ -88,7 +88,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
             await this.dispatch({
               action: "insert",
-              data: [ids, currentIds]
+              data: ids
             });
 
           }
@@ -111,28 +111,43 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
       case "open-folder":
 
-        const ids = this.selectionBuffer.get("ids") || [];
+        // const ids = this.selectionBuffer.get("ids") || [];
+        const id = KarmaFieldsAlpha.Type.toString(event.data);
 
         // const request = await this.dispatch({
         //   action: "get",
         //   path:
         // })
 
-        if (ids.length === 1) {
-          event.action = "send";
-          event.data = ids.slice(0, 1);
-          event.path = ["..", "post_parent"];
-          this.clearSelection();
-          this.selectionBuffer.remove("ids");
-          await super.dispatch(event);
-          await super.dispatch({
-            action: "edit"
+        if (id !== KarmaFieldsAlpha.Nav.get("post_parent")) {
+          // event.action = "send";
+          // event.data = ids.slice(0, 1);
+          // event.path = ["..", "post_parent"];
+          // this.clearSelection();
+          // this.selectionBuffer.remove("ids");
+          // await super.dispatch(event);
+          // await super.dispatch({
+          //   action: "edit"
+          // });
+
+          KarmaFieldsAlpha.History.save();
+          KarmaFieldsAlpha.Nav.change(id, "post_parent");
+
+          new KarmaFieldsAlpha.Buffer("ids").empty();
+
+          // KarmaFieldsAlpha.History.backup([], this.selectionBuffer.get(), false, "selection");
+          this.selectionBuffer.remove();
+
+
+          await this.dispatch({
+            action: "render"
           });
+
         }
         break;
 
       case "actives":
-        event.data = this.selectionBuffer.get("ids") || [];
+        event.data = this.selectionBuffer.get() || [];
         break;
 
       // case "get": {
@@ -168,33 +183,39 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
       }
 
       case "prev": {
-        const ids = this.selectionBuffer.get("ids") || [];
+        const ids = this.selectionBuffer.get() || [];
         const index = this.items.findIndex(item => item.id === ids[0]);
         if (index > 0) {
-          this.changeSelection({index: index-1, length: 1});
+          // this.changeSelection({index: index-1, length: 1});
+          const id = this.items[index-1].id;
+          this.selectionBuffer.set(id);
+          this.dispatch({action: "render"});
         }
-        this.dispatch({action: "edit"});
+
         break;
       }
 
       case "next": {
-        const ids = this.selectionBuffer.get("ids") || [];
+        const ids = this.selectionBuffer.get() || [];
         const index = this.items.findIndex(item => item.id === ids[0]);
         if (index > -1 && index < this.items.length - 1) {
-          this.changeSelection({index: index+1, length: 1});
+          // this.changeSelection({index: index+1, length: 1});
+          const id = this.items[index+1].id;
+          this.selectionBuffer.set(id);
+          this.dispatch({action: "render"});
         }
-        this.dispatch({action: "edit"});
+        // this.dispatch({action: "edit"});
         break;
       }
 
       case "has-prev": {
-        const ids = this.selectionBuffer.get("ids") || [];
+        const ids = this.selectionBuffer.get() || [];
         event.data = ids.length === 1 && ids[0] !== this.items[0].id;
         break;
       }
 
       case "has-next": {
-        const ids = this.selectionBuffer.get("ids") || [];
+        const ids = this.selectionBuffer.get() || [];
         event.data = ids.length === 1 && ids[ids.length-1] !== this.items[this.items.length-1].id;
         break;
       }
@@ -210,7 +231,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
   }
 
   getSelectedIds() {
-    let ids = this.selectionBuffer.get("ids") || [];
+    let ids = this.selectionBuffer.get() || [];
     if (ids.length === 0) {
       ids = [KarmaFieldsAlpha.Nav.get("post_parent") || 0];
     }
@@ -343,7 +364,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
 
 
-    const ids = this.selectionBuffer.get("ids") || [];
+    const ids = this.selectionBuffer.get() || [];
 
     element.classList.remove("selected");
     element.classList.toggle("active", ids.includes(id));
@@ -358,12 +379,21 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
       document.removeEventListener("mouseup", onMouseUp);
       document.removeEventListener("mousemove", onMouseMove);
       onMouseMove(event);
-      this.changeSelection(this.selection);
+      // this.changeSelection(this.selection);
+
+      const ids = KarmaFieldsAlpha.Segment.toArray(this.selection).map(index => this.items[index].id);
+      this.selectionBuffer.set(ids);
+
+
+
       this.selecting = false;
       // this.selection = null;
       this.endSelection();
+      // this.dispatch({
+      //   action: "edit-selection"
+      // });
       this.dispatch({
-        action: "edit-selection"
+        action: "render"
       });
     }
 
@@ -484,19 +514,19 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
   }
 
   clearSelection() {
-    const currentIds = this.selectionBuffer.get("ids") || [];
+    const currentIds = this.selectionBuffer.get() || [];
     const elements = this.items.filter(item => currentIds.includes(item.id)).map(item => item.element);
 
     this.unpaint(elements, "active");
 
-    KarmaFieldsAlpha.History.backup([], currentIds, false, "selection", "ids");
-    this.selectionBuffer.set([], "ids");
+    // KarmaFieldsAlpha.History.backup([], currentIds, false, "selection");
+    this.selectionBuffer.set([]);
     this.ta.value = "";
   }
 
   async changeSelection(segment) {
 
-    const currentIds = this.selectionBuffer.get("ids") || [];
+    const currentIds = this.selectionBuffer.get() || [];
 
     let elements = this.items.filter(item => currentIds.includes(item.id)).map(item => item.element);
 
@@ -508,9 +538,9 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
     this.paint(elements, "active");
 
-    KarmaFieldsAlpha.History.backup(ids, currentIds, false, "selection", "ids");
+    // KarmaFieldsAlpha.History.backup(ids, currentIds, false, "selection");
 
-    this.selectionBuffer.set(ids, "ids");
+    this.selectionBuffer.set(ids);
 
     this.ta.value = ids.join("\n");
     this.ta.focus();
@@ -747,11 +777,12 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
         // const selection = this.selectionBuffer.get("ids");
         // const ids = this.getIds(this.selection).join("\n");
-        const ids = this.selectionBuffer.get("ids") || [];
+        const ids = this.selectionBuffer.get() || [];
         this.ta.value = ids.join("\n");
-        if (ids.length) {
-          this.ta.focus();
-        }
+        this.ta.focus();
+        // if (ids.length) {
+        //   this.ta.focus();
+        // }
       }
     };
   }
@@ -893,7 +924,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
             if (postType !== "attachment") {
               this.dispatch({
                 action: "open-folder",
-                // data: this.resource.key
+                data: this.resource.key
                 // path: [this.resource.key]
               });
             }
@@ -949,7 +980,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
   }
 
-  
+
 
 
 }

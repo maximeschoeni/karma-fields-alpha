@@ -92,7 +92,8 @@ KarmaFieldsAlpha.DeepObject = class {
         if (!object[key]) {
           // object[key] = {}; // (typeof path[0] === "number") ? [] : {};
           // object[key] = Array.isArray(object) ? {} : [];
-          object[key] = typeof path[0] === "number" ? [] : {};
+          // object[key] = typeof path[0] === "number" ? [] : {};
+          object[key] = {};
         }
         this.assign(object[key], value, ...path);
       } else {
@@ -194,6 +195,36 @@ KarmaFieldsAlpha.DeepObject = class {
   		}
   	}
   }
+
+  // static merge2(object1, object2) {
+  //   if (object2 === null) {
+  //
+  //   }
+  //   if (object2.constructor === Object) {
+  //     if (object1.constructor !== Object) {
+  //       object1 = {};
+  //     }
+  //     for (var i in object2) {
+  //       if (object2[i] === null) {
+  //         delete object1[i];
+  //       }
+  //     }
+  //   }
+  //
+  //
+  // 	for (var i in object2) {
+  //     if (object2[i] === null) {
+  //       delete object1[i];
+  //     } else if (object2[i].constructor === Object) {
+  //       if (!object1[i] || typeof object1[i] !== "object") {
+	// 				object1[i] = {};
+	// 			}
+	// 			this.merge(object1[i], object2[i]);
+  //     } else if (object2[i] !== undefined) {
+  // 			object1[i] = object2[i];
+  // 		}
+  // 	}
+  // }
 
   // static mergeNEW(object1, object2) {
   // 	for (var i in object2) {

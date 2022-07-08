@@ -319,7 +319,8 @@ KarmaFieldsAlpha.Expression = class {
   static async modified(field, ...expressionPath) {
     const path = await this.resolveAll(field, expressionPath);
     const request = await field.dispatch({
-      action: "modified"
+      action: "modified",
+      path: path
     });
     return KarmaFieldsAlpha.Type.toBoolean(request.data);
   }

@@ -326,13 +326,9 @@ Class Karma_Fields_Alpha_Media_Library {
 										)
 									)
 								),
-								// array(
-								// 	'type' => 'text',
-								// 	'value' => array('count', array("actives"))
-								// ),
 								array(
 									'type' => 'group',
-									'hidden' => array("in", array("get", "post_type"), array("", "attachment")),
+									'hidden' => array("==", array("get", "post_type"), "attachment"),
 									'children' => array(
 										array(
 											'type' => 'group',
@@ -358,7 +354,8 @@ Class Karma_Fields_Alpha_Media_Library {
 													'type' => 'button',
 													'title' => 'Open',
 													'action' => 'open-folder',
-													'hidden' => array('==', array('get', 'id'), array('getParam', 'post_parent'))
+													'value' => array('get', 'id'),
+													'hidden' => array(">", array("count", array("actives")), 1)
 												)
 											)
 										),

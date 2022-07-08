@@ -110,10 +110,15 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 			} else {
 
+				if (!this.isBusy()) {
+					KarmaFieldsAlpha.History.save();
+				}
+
 				await this.dispatch({
 					action: "set",
 					type: "string",
-					backup: this.isBusy() ? "pack" : "tie",
+					// backup: this.isBusy() ? "pack" : "tie",
+					backup: "pack",
 					// autosave: this.resource.autosave,
 					// splash: true, // deprec -> use 'edit'
 					data: KarmaFieldsAlpha.Type.toArray(value)

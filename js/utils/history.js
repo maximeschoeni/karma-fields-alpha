@@ -77,25 +77,32 @@ KarmaFieldsAlpha.History = class {
 
 		let index = this.getIndex();
 
-		if (index === 0) {
-			index++;
-		}
+		// if (index === 0) {
+		// 	index++;
+		// }
 
 		this.set(newValue, index, ...path);
 
-		if (currentValue === undefined) {
-			currentValue = null;
+		if (index > 0) {
+
+			if (currentValue === undefined) {
+				currentValue = null;
+			}
+
+			const lastValue = this.get(index-1, ...path);
+
+			if (lastValue === undefined) {
+				this.set(currentValue, index-1, ...path);
+			}
+
 		}
 
-		const lastValue = this.get(index-1, ...path);
 
-		if (lastValue === undefined) {
-			this.set(currentValue, index-1, ...path);
-		} else if (KarmaFieldsAlpha.DeepObject.equal(newValue, lastValue)) {
-			// this.remove(index, ...path);
-			this.buffer.set(index-1, "history", "index");
-			this.buffer.set(index-1, "history", "max");
-		}
+		// else if (KarmaFieldsAlpha.DeepObject.equal(newValue, lastValue)) {
+		// 	// this.remove(index, ...path);
+		// 	this.buffer.set(index-1, "history", "index");
+		// 	this.buffer.set(index-1, "history", "max");
+		// }
 
 
 
@@ -160,8 +167,11 @@ KarmaFieldsAlpha.History = class {
       const nav = this.buffer.get("history", index, "nav") || {};
 			KarmaFieldsAlpha.Nav.merge(nav);
 
-			const ids = this.buffer.get("history", index, "ids") || {};
-			this.buffer.merge(ids, "ids");
+			const ids = this.buffer.get("history", index, "ids") || [];
+			this.buffer.set(ids, "ids");
+
+			const selection = this.buffer.get("history", index, "selection") || [];
+			this.buffer.set(selection, "selection");
 
 		}
 
@@ -190,8 +200,11 @@ KarmaFieldsAlpha.History = class {
       const nav = this.buffer.get("history", index, "nav") || {};
 			KarmaFieldsAlpha.Nav.merge(nav);
 
-			const ids = this.buffer.get("history", index, "ids") || {};
-			this.buffer.merge(ids, "ids");
+			const ids = this.buffer.get("history", index, "ids") || [];
+			this.buffer.set(ids, "ids");
+
+			const selection = this.buffer.get("history", index, "selection") || [];
+			this.buffer.set(selection, "selection");
 
 		}
 
