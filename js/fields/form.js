@@ -7,7 +7,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 		// this.buffer = new KarmaFieldsAlpha.LocalStorage(...(this.resource.bufferPath || ["form", this.resource.id || this.getId()]));
 		// this.buffer = new KarmaFieldsAlpha.Buffer(...(this.resource.bufferPath || ["form", this.resource.id || this.getId()]));
 		const bufferPath = this.resource.bufferPath || ["data", this.resource.driver || this.resource.key || "nodriver"];
-		this.buffer = new KarmaFieldsAlpha.Buffer(...bufferPath);
+		this.buffer = new KarmaFieldsAlpha.TrackBuffer(...bufferPath);
 
 		this.listeners = [];
 	}
@@ -127,26 +127,26 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 
 	// not used
-	async set(value, ...path) {
-
-		let current = this.buffer.get(...path); // -> value is an array
-
-		if (!current) {
-
-			const event = await super.dispatch({
-				path: path,
-				action: "get"
-			});
-
-			current = KarmaFieldsAlpha.Type.toArray(event.data);
-
-		}
-
-		if (KarmaFieldsAlpha.DeepObject.differ(value, current)) {
-			this.buffer.set(value, ...path);
-		}
-
-	}
+	// async set(value, ...path) {
+	//
+	// 	let current = this.buffer.get(...path); // -> value is an array
+	//
+	// 	if (!current) {
+	//
+	// 		const event = await super.dispatch({
+	// 			path: path,
+	// 			action: "get"
+	// 		});
+	//
+	// 		current = KarmaFieldsAlpha.Type.toArray(event.data);
+	//
+	// 	}
+	//
+	// 	if (KarmaFieldsAlpha.DeepObject.differ(value, current)) {
+	// 		this.buffer.set(value, ...path);
+	// 	}
+	//
+	// }
 
 
 
@@ -201,7 +201,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 						value = KarmaFieldsAlpha.Type.toArray(value);
 						this.buffer.set(value, ...path);
 
-						KarmaFieldsAlpha.History.backup(value, null, false, "data", this.resource.driver, ...path);
+						// KarmaFieldsAlpha.History.backup(value, null, false, "data", this.resource.driver, ...path);
 
 
 						event.data = value;
@@ -248,23 +248,11 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 
 
-					if (this.resource.driver && event.backup) {
-
-						KarmaFieldsAlpha.History.backup(newValue, currentValue, event.backup === "tie", "data", this.resource.driver, ...event.path);
-
-						// if (event.backup === "tie") {
-						//
-						// 	KarmaFieldsAlpha.History.tie(newValue, "data", this.resource.driver, ...event.path);
-						//
-						// }
-						//
-						// if (event.backup) {
-						//
-						// 	KarmaFieldsAlpha.History.pack(newValue, currentValue, "data", this.resource.driver, ...event.path);
-						//
-						// }
-
-					}
+					// if (this.resource.driver && event.backup) {
+					//
+					// 	KarmaFieldsAlpha.History.backup(newValue, currentValue, event.backup === "tie", "data", this.resource.driver, ...event.path);
+					//
+					// }
 
 				}
 
@@ -285,7 +273,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 					data: this.buffer.get()
 				});
 
-				this.buffer.empty();
+				this.buffer.empty(); // backup or not?
 				break;
 
 			case "send":

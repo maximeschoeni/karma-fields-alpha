@@ -6,6 +6,7 @@ KarmaFieldsAlpha.History = class {
 
 	static save() {
 
+
 		// -> increase index and max
 		let index = this.getIndex() || 0;
 		index++;
@@ -81,17 +82,23 @@ KarmaFieldsAlpha.History = class {
 		// 	index++;
 		// }
 
+		newValue = KarmaFieldsAlpha.DeepObject.clone(newValue);
+
 		this.set(newValue, index, ...path);
 
 		if (index > 0) {
 
-			if (currentValue === undefined) {
-				currentValue = null;
-			}
-
 			const lastValue = this.get(index-1, ...path);
 
 			if (lastValue === undefined) {
+
+				if (currentValue === undefined) {
+					currentValue = null;
+				} else {
+					currentValue = KarmaFieldsAlpha.DeepObject.clone(currentValue);
+				}
+
+
 				this.set(currentValue, index-1, ...path);
 			}
 
@@ -167,11 +174,14 @@ KarmaFieldsAlpha.History = class {
       const nav = this.buffer.get("history", index, "nav") || {};
 			KarmaFieldsAlpha.Nav.merge(nav);
 
-			const ids = this.buffer.get("history", index, "ids") || [];
-			this.buffer.set(ids, "ids");
+			// const ids = this.buffer.get("history", index, "ids") || [];
+			// this.buffer.set(ids, "ids");
+			//
+			// const selection = this.buffer.get("history", index, "selection") || [];
+			// this.buffer.set(selection, "selection");
 
-			const selection = this.buffer.get("history", index, "selection") || [];
-			this.buffer.set(selection, "selection");
+			const state = this.buffer.get("history", index, "state") || {};
+			this.buffer.merge(state, "state");
 
 		}
 
@@ -200,11 +210,14 @@ KarmaFieldsAlpha.History = class {
       const nav = this.buffer.get("history", index, "nav") || {};
 			KarmaFieldsAlpha.Nav.merge(nav);
 
-			const ids = this.buffer.get("history", index, "ids") || [];
-			this.buffer.set(ids, "ids");
+			// const ids = this.buffer.get("history", index, "ids") || [];
+			// this.buffer.set(ids, "ids");
+			//
+			// const selection = this.buffer.get("history", index, "selection") || [];
+			// this.buffer.set(selection, "selection");
 
-			const selection = this.buffer.get("history", index, "selection") || [];
-			this.buffer.set(selection, "selection");
+			const state = this.buffer.get("history", index, "state") || {};
+			this.buffer.merge(state, "state");
 
 		}
 

@@ -17,7 +17,9 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
     this.items = [];
 
-    this.selectionBuffer = new KarmaFieldsAlpha.TrackBuffer("selection");
+    this.selectionBuffer = new KarmaFieldsAlpha.TrackBuffer("state", "selection");
+
+    this.idsBuffer = new KarmaFieldsAlpha.TrackBuffer("state", "ids");
 
 
     this.ta = document.createElement("textarea");
@@ -120,23 +122,18 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
         // })
 
         if (id !== KarmaFieldsAlpha.Nav.get("post_parent")) {
-          // event.action = "send";
-          // event.data = ids.slice(0, 1);
-          // event.path = ["..", "post_parent"];
-          // this.clearSelection();
-          // this.selectionBuffer.remove("ids");
-          // await super.dispatch(event);
-          // await super.dispatch({
-          //   action: "edit"
-          // });
 
           KarmaFieldsAlpha.History.save();
           KarmaFieldsAlpha.Nav.change(id, "post_parent");
 
-          new KarmaFieldsAlpha.Buffer("ids").empty();
+          // new KarmaFieldsAlpha.Buffer("state", "ids").empty();
+          // this.idsBuffer.remove();
+          await this.dispatch({
+            action: "query-ids"
+          });
 
           // KarmaFieldsAlpha.History.backup([], this.selectionBuffer.get(), false, "selection");
-          this.selectionBuffer.remove();
+          // this.selectionBuffer.remove();
 
 
           await this.dispatch({
@@ -183,12 +180,12 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
       }
 
       case "prev": {
-        const ids = this.selectionBuffer.get() || [];
-        const index = this.items.findIndex(item => item.id === ids[0]);
-        if (index > 0) {
-          // this.changeSelection({index: index-1, length: 1});
-          const id = this.items[index-1].id;
-          this.selectionBuffer.set(id);
+        const selectedIds = this.selectionBuffer.get() || [];
+        const ids = await this.dispatch({action: "ids"});
+        const index = ids.findIndex(id => id === selectedIds[0]);
+        if (selectedIds.length === 1 && index > 0) {
+          const id = ids[index-1];
+          this.selectionBuffer.set([id]);
           this.dispatch({action: "render"});
         }
 
@@ -196,27 +193,28 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
       }
 
       case "next": {
-        const ids = this.selectionBuffer.get() || [];
-        const index = this.items.findIndex(item => item.id === ids[0]);
-        if (index > -1 && index < this.items.length - 1) {
-          // this.changeSelection({index: index+1, length: 1});
-          const id = this.items[index+1].id;
-          this.selectionBuffer.set(id);
+        const selectedIds = this.selectionBuffer.get() || [];
+        const ids = await this.dispatch({action: "ids"});
+        const index = ids.findIndex(id => id === selectedIds[0]);
+        if (selectedIds.length === 1 && index > -1 && index < ids.length-1) {
+          const id = ids[index+1];
+          this.selectionBuffer.set([id]);
           this.dispatch({action: "render"});
         }
-        // this.dispatch({action: "edit"});
         break;
       }
 
       case "has-prev": {
-        const ids = this.selectionBuffer.get() || [];
-        event.data = ids.length === 1 && ids[0] !== this.items[0].id;
+        const selectedIds = this.selectionBuffer.get() || [];
+        const ids = await this.dispatch({action: "ids"});
+        event.data = selectedIds.length === 1 && selectedIds[0] !== ids[0];
         break;
       }
 
       case "has-next": {
-        const ids = this.selectionBuffer.get() || [];
-        event.data = ids.length === 1 && ids[ids.length-1] !== this.items[this.items.length-1].id;
+        const selectedIds = this.selectionBuffer.get() || [];
+        const ids = await this.dispatch({action: "ids"});
+        event.data = selectedIds.length === 1 && selectedIds[0] !== ids[ids.length-1];
         break;
       }
 
@@ -379,15 +377,21 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
       document.removeEventListener("mouseup", onMouseUp);
       document.removeEventListener("mousemove", onMouseMove);
       onMouseMove(event);
-      // this.changeSelection(this.selection);
 
-      const ids = KarmaFieldsAlpha.Segment.toArray(this.selection).map(index => this.items[index].id);
-      this.selectionBuffer.set(ids);
+      // this.ids = await this.dispatch({action:"ids"})
+      const selectedIds = this.selectionBuffer.get() || [];
+
+      const newIds = KarmaFieldsAlpha.Segment.toArray(this.selection).map(index => this.items[index].id);
+
+      if (KarmaFieldsAlpha.DeepObject.differ(selectedIds, newIds)) {
+        KarmaFieldsAlpha.History.save();
+        this.selectionBuffer.set(newIds);
+      }
+
 
 
 
       this.selecting = false;
-      // this.selection = null;
       this.endSelection();
       // this.dispatch({
       //   action: "edit-selection"
