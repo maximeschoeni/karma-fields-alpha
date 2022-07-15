@@ -688,7 +688,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
         await this.send(this.grid.buffer.get()); // -> data is an object
         this.grid.buffer.remove();
-        this.store.empty(); // -> value change affects queried items
+        this.store.empty();
         await this.queryIds();
         await this.render();
         break;
@@ -1102,13 +1102,15 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
   build() {
     return {
       class: "karma-field-table",
-      init: table => {
+      init: async table => {
         this.render = table.render;
 
         table.element.tabIndex = -1;
         table.element.onfocus = event => {
           this.interface.refocus();
         }
+
+        await this.queryIds();
 
         // this.clearQuery();
         // this.clearCount();

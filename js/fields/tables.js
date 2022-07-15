@@ -106,14 +106,16 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
           //   }
           // }
 
-          const tableId = KarmaFieldsAlpha.Nav.get("karma");
-          const resource = this.resource.children.find(child => child.id === tableId);
-          if (resource) {
-            const field = this.createChild(resource);
-            await field.queryIds();
-            console.log("queryIds");
-          	await container.render();
-          }
+          // const tableId = KarmaFieldsAlpha.Nav.get("karma");
+          // const resource = this.resource.children.find(child => child.id === tableId);
+          // if (resource) {
+          //   const field = this.createChild(resource);
+          //   await field.queryIds();
+          //   console.log("queryIds");
+          // 	await container.render();
+          // }
+
+          await container.render();
         });
 
       },
@@ -131,9 +133,8 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
             update: async container => {
               container.element.classList.toggle("hidden", tableId !== resource.id);
               if (tableId === resource.id) {
-                const field = this.createChild(resource);
                 // await field.queryIds();
-                container.child = field.build();
+                container.child = this.createChild(resource).build();
               } else {
                 container.children = []
               }

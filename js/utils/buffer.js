@@ -85,9 +85,13 @@ KarmaFieldsAlpha.Buffer = class {
     this.set(object, ...path);
   }
 
-  setAndBackup(value, ...path) {
+  // setAndBackup(value, ...path) {
+  //   KarmaFieldsAlpha.History.backup(value, this.get(...path), false, ...this.path, ...path);
+  //   this.set(value, ...path);
+  // }
+
+  backup(value, ...path) {
     KarmaFieldsAlpha.History.backup(value, this.get(...path), false, ...this.path, ...path);
-    this.set(value, ...path);
   }
 
 }
