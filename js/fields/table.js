@@ -49,7 +49,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     this.optionsBuffer = new KarmaFieldsAlpha.Buffer("options", this.driver);
     this.extraIdBuffer = new KarmaFieldsAlpha.Buffer("extraids", this.driver);
 
-    this.idsBuffer = new KarmaFieldsAlpha.TrackBuffer("state", "ids");
+    this.idsBuffer = new KarmaFieldsAlpha.Buffer("state", "ids");
 
     this.grid = this.createChild({
       type: "form",
@@ -180,7 +180,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
   async queryIds() {
     const paramString = this.getParamString();
     const ids = await this.store.query(paramString);
+    this.idsBuffer.backup(ids);
     this.idsBuffer.set(ids);
+    this.interface.selectionBuffer.backup();
     this.interface.selectionBuffer.remove();
     return ids;
   }
@@ -311,19 +313,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     return this.optionsBuffer.get("columns") || this.resource.children.map((column, index) => index.toString()) || [];
   }
 
-  // getParam(key) {
-  //   return KarmaFieldsAlpha.Nav.get(key);
-  // }
-  //
-  // hasParam(key) {
-  //   return KarmaFieldsAlpha.Nav.has(key);
-  // }
-  //
-  // setParam(value, key) {
-  //
-  //   KarmaFieldsAlpha.Nav.set(value, key);
-  // }
-
 
   async dispatch(event, parent, origin) {
 
@@ -402,8 +391,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       }
 
       case "set": {
-        // await this.setValue(event.getArray(), ...event.path);
-
 
         const key = event.path.shift();
 
@@ -642,6 +629,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
       case "add": {
         const ids = await this.add(1, event.data || {});
+        this.interface.selectionBuffer.backup(ids);
         this.interface.selectionBuffer.set(ids);
         await this.render();
         break;
@@ -650,6 +638,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       case "delete": {
         const selectedIds = event.data || await this.getSelectedIds();
         await this.remove(selectedIds);
+        this.interface.selectionBuffer.backup([]);
         this.interface.selectionBuffer.set([]);
         await this.render();
         break;
@@ -659,6 +648,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         const insertIds = event.data || [];
         const removeIds = this.interface.selectionBuffer.get();
         await this.insert(insertIds, removeIds);
+        this.interface.selectionBuffer.backup(insertIds);
         this.interface.selectionBuffer.set(insertIds);
         this.store.empty();
         await this.render();
@@ -666,7 +656,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       }
 
       case "upload": {
-        await this.upload(event.data);
+        const ids = await this.upload(event.files, event.params);
+        event.data = ids;
+        this.interface.selectionBuffer.backup(ids);
+        this.interface.selectionBuffer.set(ids);
+        await this.render();
         break;
       }
 
@@ -674,6 +668,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         const ids = this.interface.selectionBuffer.get();
         if (ids.length) {
           const cloneIds = await this.duplicate(ids);
+          this.interface.selectionBuffer.backup(cloneIds);
           this.interface.selectionBuffer.set(cloneIds);
           this.store.empty();
           await this.render();
@@ -709,7 +704,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         this.buffer.empty();
         this.store.empty();
         KarmaFieldsAlpha.History.save();
+        this.idsBuffer.backup();
         this.idsBuffer.remove();
+        this.interface.selectionBuffer.backup();
         this.interface.selectionBuffer.remove();
         await super.dispatch(event);
         break;
@@ -723,7 +720,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
           if (index > 0) {
             const id = ids[index-1];
             KarmaFieldsAlpha.History.save();
-            this.interface.selectionBuffer.set([id], );
+            this.interface.selectionBuffer.backup([id]);
+            this.interface.selectionBuffer.set([id]);
             // KarmaFieldsAlpha.History.backup([id], selectedIds, false, "selection");
             await this.render();
           }
@@ -739,6 +737,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
           if (index < ids.length - 1) {
             const id = ids[index+1];
             KarmaFieldsAlpha.History.save();
+            this.interface.selectionBuffer.backup([id]);
             this.interface.selectionBuffer.set([id]);
             // KarmaFieldsAlpha.History.backup([id], selectedIds, false, "selection");
             await this.render();
@@ -751,6 +750,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         const selectedIds = this.interface.selectionBuffer.get();
         if (selectedIds.length === 1) {
           KarmaFieldsAlpha.History.save();
+          this.interface.selectionBuffer.backup([]);
           this.interface.selectionBuffer.set([]);
           // KarmaFieldsAlpha.History.backup([], selectedIds, false, "selection");
           await this.render();
@@ -765,6 +765,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
         if (selectedIds.length === 1 && selectedIds[0] !== id) {
           KarmaFieldsAlpha.History.save();
+          this.interface.selectionBuffer.backup([id]);
           this.interface.selectionBuffer.set([id]);
           // KarmaFieldsAlpha.History.backup([id], selectedIds, false, "selection");
           await this.render();
@@ -852,15 +853,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
     let ids = this.idsBuffer.get() || [];
 
-    // if (!ids) {
-    //
-    //   ids = await this.getQueriedIds() || [];
-    //
-    //   this.idsBuffer.set(ids);
-    //
-    //   KarmaFieldsAlpha.History.push(ids, "state", "ids");
-    //
-    // }
 
 
 
@@ -912,27 +904,18 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
     for (let id of createdIds) {
 
-      // for (let resource of resources) {
-      //
-      //   const field = this.createField(resource);
-      //
-      //   let defaultValue = await field.getDefault();
-      //
-      //   defaultValue = KarmaFieldsAlpha.Type.toArray(defaultValue);
-      //
-      //
-      //   this.grid.buffer.set(defaultValue, row.id, resource.key);
-      //   this.writeHistory(defaultValue, null, row.id, resource.key);
-      //
-      // }
 
       this.buffer.set(["1"], id, "trash"); // -> when add and delete a row without saving
+
+      this.grid.buffer.backup(["0"], id, "trash");
       this.grid.buffer.set(["0"], id, "trash");
       // this.writeHistory(["0"], ["1"], id, "trash");
 
     }
 
-    this.idsBuffer.set([...createdIds, ...this.getIds()]);
+    const ids = [...createdIds, ...this.getIds()];
+    this.idsBuffer.backup(ids);
+    this.idsBuffer.set(ids);
 
     // KarmaFieldsAlpha.History.backup(newIds, ids, false, "state", "ids");
 
@@ -940,33 +923,20 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
   }
 
   async remove(removeIds) {
-    // let ids = await this.getSelectedIds();
-
-    // const resources = KarmaFieldsAlpha.Resource.getSubResources(this.resource);
 
     KarmaFieldsAlpha.History.save();
 
     for (let id of removeIds) {
 
-      // for (let resource of resources) {
-      //
-      //   const currentValue = this.grid.buffer.get(id, resource.key) || await this.store.getValue(id, resource.key);
-      //
-      //   this.grid.buffer.remove(id, resource.key);
-      //   await this.writeHistory(null, currentValue, id, resource.key);
-      //
-      // }
-
+      this.grid.buffer.set(["0"], id, "trash");
+      this.grid.buffer.backup(["1"], id, "trash");
       this.grid.buffer.set(["1"], id, "trash");
-      // this.writeHistory(["1"], ["0"], id, "trash");
-
-      // this.grid.buffer.set({trash: ["1"]}, id);
     }
 
     const ids = this.getIds().filter(id => !removeIds.includes(id));
-    this.idsBuffer.set(ids);
 
-    // KarmaFieldsAlpha.History.backup(newIds, currentIds, false, "state", "ids");
+    this.idsBuffer.backup(ids);
+    this.idsBuffer.set(ids);
 
   }
 
@@ -974,22 +944,22 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
     for (let id of insertIds) {
 
+      this.grid.buffer.backup(["0"], id, "trash");
       this.grid.buffer.set(["0"], id, "trash");
-      // this.writeHistory(["0"], ["1"], id, "trash");
 
     }
 
     for (let id of removeIds) {
 
-      // this.grid.buffer.set(["1"], id, "trash");
-      // this.writeHistory(["1"], ["0"], id, "trash");
+      this.grid.buffer.backup({trash: ["1"]}, id);
       this.grid.buffer.set({trash: ["1"]}, id);
 
     }
 
-    const ids = this.getIds().filter(id => !removeIds.includes(id));
+    const ids = this.getIds().filter(id => !removeIds.includes(id)).concat(insertIds);
 
-    this.idsBuffer.set([...ids, ...insertIds]);
+    this.idsBuffer.backup(ids);
+    this.idsBuffer.set(ids);
 
   }
 
@@ -1001,22 +971,12 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       let id = ids[i];
       let cloneId = cloneIds[i];
 
-      // const resources = KarmaFieldsAlpha.Resource.getSubResources(this.resource);
-      //
-      // for (let resource of resources) {
-      //
-      //   const value = this.grid.buffer.get(id, resource.key); // || await this.getValue("content", id, resource.key);
-      //
-      //   if (value) {
-      //     this.grid.buffer.set(value, cloneId, resource.key);
-      //     // this.writeHistory(value, null, cloneId, resource.key);
-      //   }
-      //
-      // }
-
       const clone = KarmaFieldsAlpha.DeepObject.clone(this.buffer);
       KarmaFieldsAlpha.DeepObject.merge(clone, this.grid.buffer.get(id));
+
       clone.id = [cloneId];
+
+      this.grid.buffer.backup(clone, cloneId);
       this.grid.buffer.set(clone, cloneId);
 
     }
@@ -1024,57 +984,48 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     return cloneIds;
   }
 
-  async upload(files) {
+  async upload(files, params = {}) {
 
     KarmaFieldsAlpha.History.save();
 
+    const newIds = [];
 
     for (let file of files) {
 
-      const id = await KarmaFieldsAlpha.Gateway.upload(file, "files"); // -> move in posts ?
+      let id = await KarmaFieldsAlpha.Gateway.upload(file);
+
+      id = id.toString();
+
+      newIds.push(id);
 
       await this.store.query("post_type=attachment&post_status=inherit&id="+id);
 
-      // for (let key in item) {
-      //
-      //   const value = KarmaFieldsAlpha.Type.toArray(item[key]);
-      //
-      //   this.buffer.set(value, item.id, key);
-      //
-      // }
-
-      // for (let resource of resources) {
-      //
-      //   const field = this.createField(resource);
-      //
-      //   let defaultValue = await field.getDefault();
-      //
-      //   defaultValue = KarmaFieldsAlpha.Type.toArray(defaultValue);
-      //
-      //
-      //   this.grid.buffer.set(defaultValue, row.id, resource.key);
-      //   this.writeHistory(defaultValue, null, row.id, resource.key);
-      //
-      // }
-
       this.buffer.set(["0"], id, "trash");
+
+      this.grid.buffer.set(["1"], id, "trash");
+      this.grid.buffer.backup(["0"], id, "trash");
       this.grid.buffer.set(["0"], id, "trash");
-      // this.writeHistory(["0"], ["1"], id, "trash");
+
+      const ids = [id, ...this.getIds()];
+
+      this.idsBuffer.backup(ids);
+      this.idsBuffer.set(ids);
 
 
+      for (let key in params) {
 
+        const value = params[key];
 
+        this.grid.buffer.backup([value], id, key);
+        this.grid.buffer.set([value], id, key);
 
-      this.idsBuffer.set([id, ...this.getIds()]);
-
-      // KarmaFieldsAlpha.History.backup(newIds, ids, false, "state", "ids");
-
-
+      }
 
       await this.render();
 
     }
 
+    return newIds;
   }
 
 
@@ -1383,13 +1334,13 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
           const currentIds = this.parent.selectionBuffer.get();
           if (currentIds.length) {
             KarmaFieldsAlpha.History.save();
+
+            this.parent.selectionBuffer.backup([]);
             this.parent.selectionBuffer.set([]);
-            // KarmaFieldsAlpha.History.backup([], currentIds, false, "selection");
+
             event.action = "edit-selection";
             await super.dispatch(event);
           }
-          // this.parent.selectionBuffer.remove("ids");
-          // this.parent.clearSelection();
 
           break;
         }
@@ -1611,8 +1562,21 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
                     requestIdleCallback(() => {
         							this.dispatch({
                         action: "upload",
-                        data: files
-                      }).then(() => {
+                        files: files,
+                        params: {
+                          post_parent: KarmaFieldsAlpha.Nav.get("post_parent") || "0"
+                        }
+                      }).then(async request => {
+                        // if (KarmaFieldsAlpha.Nav.has("post_parent")) {
+                        //   const parentId = KarmaFieldsAlpha.Nav.get("post_parent");
+                        //   for (let fileId of request.data) {
+                        //     await this.dispatch({
+                        //       action: "set",
+                        //       data: [parentId],
+                        //       path: ["content", fileId, "post_parent"]
+                        //     });
+                        //   }
+                        // }
         								input.element.classList.remove("editing");
         								input.element.blur();
         							});

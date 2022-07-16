@@ -90,7 +90,7 @@ KarmaFieldsAlpha.Buffer = class {
   //   this.set(value, ...path);
   // }
 
-  backup(value, ...path) {
+  backup(value = null, ...path) {
     KarmaFieldsAlpha.History.backup(value, this.get(...path), false, ...this.path, ...path);
   }
 

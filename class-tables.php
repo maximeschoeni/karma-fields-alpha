@@ -179,7 +179,7 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-rect', $plugin_url . '/js/utils/rect.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-segment', $plugin_url . '/js/utils/segment.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-buffer', $plugin_url . '/js/utils/buffer.js', array('karma-fields-utils-deep-object'), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-track-buffer', $plugin_url . '/js/utils/track-buffer.js', array('karma-fields-utils-buffer'), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-track-buffer', $plugin_url . '/js/utils/track-buffer.js', array('karma-fields-utils-buffer'), $this->version, true);
 
 				wp_enqueue_script('karma-fields-utils-local-storage', $plugin_url . '/js/utils/local-storage.js', array('karma-fields-utils-deep-object'), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-session-storage', $plugin_url . '/js/utils/session-storage.js', array('karma-fields-utils-deep-object'), $this->version, true);
@@ -531,15 +531,10 @@ Class Karma_Fields_Alpha {
 	    )
 		));
 
-		register_rest_route('karma-fields-alpha/v1', '/upload/(?P<driver>[^/]+)/?', array(
+		register_rest_route('karma-fields-alpha/v1', '/upload/?', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_upload'),
-			'permission_callback' => '__return_true',
-			'args' => array(
-				'driver' => array(
-					'required' => true
-				)
-	    )
+			'permission_callback' => '__return_true'
 		));
 
 
@@ -779,13 +774,13 @@ Class Karma_Fields_Alpha {
 	}
 
 	/**
-	 *	@rest 'wp-json/karma-fields/v1/upload/{driver}'
+	 *	@rest 'wp-json/karma-fields/v1/upload'
 	 */
 	public function rest_upload($request) {
 
-		$driver_name = $request->get_param('driver');
-		// $data = $request->get_param('data');
-		// $files = $request->get_file_params();
+		// $driver_name = $request->get_param('driver');
+		$driver_name = 'files';
+
 		$driver = $this->get_driver($driver_name);
 
 		if (method_exists($driver, 'upload')) {
@@ -794,7 +789,7 @@ Class Karma_Fields_Alpha {
 
 		} else {
 
-			return "karma fields error: driver has no method 'add'";
+			return "karma fields error: driver has no method 'upload'";
 
 		}
 

@@ -517,9 +517,14 @@ Class Karma_Fields_Alpha_Driver_Files {
       }
 
       return $attachment_id;
+
+    } else {
+
+      return 'error attachment was not created';
+
     }
 
-    return $file_path;
+    // return $file_path;
 
   }
 

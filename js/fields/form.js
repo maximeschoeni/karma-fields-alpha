@@ -7,7 +7,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 		// this.buffer = new KarmaFieldsAlpha.LocalStorage(...(this.resource.bufferPath || ["form", this.resource.id || this.getId()]));
 		// this.buffer = new KarmaFieldsAlpha.Buffer(...(this.resource.bufferPath || ["form", this.resource.id || this.getId()]));
 		const bufferPath = this.resource.bufferPath || ["data", this.resource.driver || this.resource.key || "nodriver"];
-		this.buffer = new KarmaFieldsAlpha.TrackBuffer(...bufferPath);
+		this.buffer = new KarmaFieldsAlpha.Buffer(...bufferPath);
 
 		this.listeners = [];
 	}
@@ -196,13 +196,12 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 					if ((!event.data || !event.data.length) && event.default !== null && event.default !== undefined) { // -> event.default is an expression or a string
 
-						// value = await event.default();
 						value = await KarmaFieldsAlpha.Expression.resolve(event.field, event.default);
 						value = KarmaFieldsAlpha.Type.toArray(value);
+
+
+						this.buffer.backup(value, ...path); // -> backup or not?
 						this.buffer.set(value, ...path);
-
-						// KarmaFieldsAlpha.History.backup(value, null, false, "data", this.resource.driver, ...path);
-
 
 						event.data = value;
 
@@ -237,22 +236,8 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 				if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
 
-					// if (KarmaFieldsAlpha.DeepObject.differ(newValue, originalValue)) {
-					// 	this.buffer.set(newValue, ...event.path);
-					// } else {
-					// 	this.buffer.remove(...event.path);
-					// 	this.buffer.clean();
-					// }
-
+					this.buffer.backup(newValue, ...event.path);
 					this.buffer.set(newValue, ...event.path);
-
-
-
-					// if (this.resource.driver && event.backup) {
-					//
-					// 	KarmaFieldsAlpha.History.backup(newValue, currentValue, event.backup === "tie", "data", this.resource.driver, ...event.path);
-					//
-					// }
 
 				}
 

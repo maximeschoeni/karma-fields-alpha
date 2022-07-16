@@ -17,9 +17,9 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
     this.items = [];
 
-    this.selectionBuffer = new KarmaFieldsAlpha.TrackBuffer("state", "selection");
+    this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", "selection");
 
-    this.idsBuffer = new KarmaFieldsAlpha.TrackBuffer("state", "ids");
+    this.idsBuffer = new KarmaFieldsAlpha.Buffer("state", "ids");
 
 
     this.ta = document.createElement("textarea");
@@ -113,28 +113,16 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
       case "open-folder":
 
-        // const ids = this.selectionBuffer.get("ids") || [];
         const id = KarmaFieldsAlpha.Type.toString(event.data);
-
-        // const request = await this.dispatch({
-        //   action: "get",
-        //   path:
-        // })
 
         if (id !== KarmaFieldsAlpha.Nav.get("post_parent")) {
 
           KarmaFieldsAlpha.History.save();
           KarmaFieldsAlpha.Nav.change(id, "post_parent");
 
-          // new KarmaFieldsAlpha.Buffer("state", "ids").empty();
-          // this.idsBuffer.remove();
           await this.dispatch({
             action: "query-ids"
           });
-
-          // KarmaFieldsAlpha.History.backup([], this.selectionBuffer.get(), false, "selection");
-          // this.selectionBuffer.remove();
-
 
           await this.dispatch({
             action: "render"
@@ -147,35 +135,30 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
         event.data = this.selectionBuffer.get() || [];
         break;
 
-      // case "get": {
-      //   const [id, key] = event.path;
-      //   if (id == 0 && key === "post_title") {
-      //     event.data = ["Uploads"];
-      //   } else {
-      //     await super.dispatch(event);
-      //   }
-      //   break;
-      // }
-
       case "upper-folder": {
+
         const id = KarmaFieldsAlpha.Nav.get("post_parent");
         if (id && id > 0) {
           const parent = await this.dispatch({
             action: "get",
             path: [id, "post_parent"]
           }).then(request => KarmaFieldsAlpha.Type.toString(request.data));
-          this.clearSelection();
+
+          KarmaFieldsAlpha.History.save();
+          KarmaFieldsAlpha.Nav.change(parent, "post_parent");
+
+          this.selectionBuffer.backup();
+          this.selectionBuffer.remove();
+
           await this.dispatch({
-            action: "send",
-            data: [parent],
-            path: ["..", "post_parent"]
-          })
+            action: "query-ids"
+          });
+
+          await this.dispatch({
+            action: "render"
+          });
         }
 
-        event.action = "edit-selection";
-        await super.dispatch(event);
-
-        this.refocus();
         break;
       }
 
@@ -185,8 +168,9 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
         const index = ids.findIndex(id => id === selectedIds[0]);
         if (selectedIds.length === 1 && index > 0) {
           const id = ids[index-1];
+          this.selectionBuffer.backup([id]);
           this.selectionBuffer.set([id]);
-          this.dispatch({action: "render"});
+          await this.dispatch({action: "render"});
         }
 
         break;
@@ -198,8 +182,9 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
         const index = ids.findIndex(id => id === selectedIds[0]);
         if (selectedIds.length === 1 && index > -1 && index < ids.length-1) {
           const id = ids[index+1];
+          this.selectionBuffer.backup([id]);
           this.selectionBuffer.set([id]);
-          this.dispatch({action: "render"});
+          await this.dispatch({action: "render"});
         }
         break;
       }
@@ -385,6 +370,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
       if (KarmaFieldsAlpha.DeepObject.differ(selectedIds, newIds)) {
         KarmaFieldsAlpha.History.save();
+        this.selectionBuffer.backup(newIds);
         this.selectionBuffer.set(newIds);
       }
 
@@ -486,22 +472,23 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
   //   this.editSelection();
   // }
 
-  unfocus() {
+  async unfocus() {
 
     if (!this.getChild("modal")) {
 
-      // const ids = this.selectionBuffer.get("ids");
+      // this.clearSelection();
       //
-      //
-      //
-      // KarmaFieldsAlpha.History.backup([], ids, false, "selection", "ids");
-      //
-      // this.selectionBuffer.set([], "ids");
+      // this.dispatch({
+      //   action: "edit-selection"
+      // });
 
-      this.clearSelection();
+      KarmaFieldsAlpha.History.save();
 
-      this.dispatch({
-        action: "edit-selection"
+      this.selectionBuffer.backup();
+      this.selectionBuffer.remove();
+
+      await this.dispatch({
+        action: "render"
       });
 
     }
@@ -517,39 +504,39 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
 
   }
 
-  clearSelection() {
-    const currentIds = this.selectionBuffer.get() || [];
-    const elements = this.items.filter(item => currentIds.includes(item.id)).map(item => item.element);
+  // clearSelection() {
+  //   const currentIds = this.selectionBuffer.get() || [];
+  //   const elements = this.items.filter(item => currentIds.includes(item.id)).map(item => item.element);
+  //
+  //   this.unpaint(elements, "active");
+  //
+  //   // KarmaFieldsAlpha.History.backup([], currentIds, false, "selection");
+  //   this.selectionBuffer.set([]);
+  //   this.ta.value = "";
+  // }
 
-    this.unpaint(elements, "active");
-
-    // KarmaFieldsAlpha.History.backup([], currentIds, false, "selection");
-    this.selectionBuffer.set([]);
-    this.ta.value = "";
-  }
-
-  async changeSelection(segment) {
-
-    const currentIds = this.selectionBuffer.get() || [];
-
-    let elements = this.items.filter(item => currentIds.includes(item.id)).map(item => item.element);
-
-    this.unpaint(elements, "active");
-
-    const ids = KarmaFieldsAlpha.Segment.toArray(segment).map(index => this.items[index].id);
-
-    elements = this.items.filter(item => ids.includes(item.id)).map(item => item.element);
-
-    this.paint(elements, "active");
-
-    // KarmaFieldsAlpha.History.backup(ids, currentIds, false, "selection");
-
-    this.selectionBuffer.set(ids);
-
-    this.ta.value = ids.join("\n");
-    this.ta.focus();
-    this.ta.select();
-  }
+  // async changeSelection(segment) {
+  //
+  //   const currentIds = this.selectionBuffer.get() || [];
+  //
+  //   let elements = this.items.filter(item => currentIds.includes(item.id)).map(item => item.element);
+  //
+  //   this.unpaint(elements, "active");
+  //
+  //   const ids = KarmaFieldsAlpha.Segment.toArray(segment).map(index => this.items[index].id);
+  //
+  //   elements = this.items.filter(item => ids.includes(item.id)).map(item => item.element);
+  //
+  //   this.paint(elements, "active");
+  //
+  //   // KarmaFieldsAlpha.History.backup(ids, currentIds, false, "selection");
+  //
+  //   this.selectionBuffer.set(ids);
+  //
+  //   this.ta.value = ids.join("\n");
+  //   this.ta.focus();
+  //   this.ta.select();
+  // }
 
 
 
@@ -711,8 +698,18 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
             grid.element.classList.add("loading");
             this.dispatch({
               action: "upload",
-              data: event.dataTransfer.files
-            }).then(() => {
+              files: event.dataTransfer.files
+            }).then(async request => {
+              if (KarmaFieldsAlpha.Nav.has("post_parent")) {
+                const parentId = KarmaFieldsAlpha.Nav.get("post_parent");
+                for (let fileId of request.data) {
+                  await this.dispatch({
+                    action: "set",
+                    data: [parentId],
+                    path: [fileId, "post_parent"]
+                  });
+                }
+              }
               grid.element.classList.remove("loading");
             });
           }
@@ -784,6 +781,7 @@ KarmaFieldsAlpha.fields.table.medias = class extends KarmaFieldsAlpha.fields.fie
         const ids = this.selectionBuffer.get() || [];
         this.ta.value = ids.join("\n");
         this.ta.focus();
+        this.ta.select();
         // if (ids.length) {
         //   this.ta.focus();
         // }

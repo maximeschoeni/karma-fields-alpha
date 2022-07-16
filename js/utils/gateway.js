@@ -56,7 +56,7 @@ KarmaFieldsAlpha.Gateway = class {
 	// 	this.optionPromises = {};
 	// }
 
-	static upload(file, driver) {
+	static upload(file) {
 	  let fileName = file.name.normalize();
 	  const chunkSize = 1048576; // 1MB
 	  let chunkIndex = 0;
@@ -74,7 +74,7 @@ KarmaFieldsAlpha.Gateway = class {
 	        formData.append('name', fileName);
 	        formData.append('chunk', chunkIndex);
 	        formData.append('chunks', chunkTotal);
-	        return fetch(KarmaFieldsAlpha.restURL+"/upload/"+driver, {
+	        return fetch(KarmaFieldsAlpha.restURL+"/upload", {
 						headers: {
 							// 'Content-Type': 'application/json',
 							'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce

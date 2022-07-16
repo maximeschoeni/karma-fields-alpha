@@ -102,27 +102,42 @@ KarmaFieldsAlpha.Store = class {
     return promise;
   }
 
-  join(join, ids) {
+  join(join, paramString) {
 
     // if (!this.constructor.cache[this.driver]) {
     //   this.constructor.cache[this.driver] = {};
     // }
 
-    const query = ids.toString();
+    // const query = ids.toString();
 
-    let promise = this.cache.get("join", query, join);
+
+    let promise = this.cache.get("join", paramString, join);
 
     if (!promise) {
 
-      promise = KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+query).then(relations => {
+      // const ids = await this.query(paramString);
+      //
+      // promise = KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+ids.join(",")).then(relations => {
+      //   for (let relation of relations) {
+      //     let values = this.buffer.get(relation.id, relation.key) || [];
+      //     this.buffer.set([...values, relation.value], relation.id, relation.key);
+      //   }
+      //   return relations;
+      // });
+
+      promise = this.query(paramString).then(ids => {
+        return KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+ids.join(","));
+      }).then(relations => {
         for (let relation of relations) {
-          let values = this.buffer.get(relation.id, relation.key) || [];
-          this.buffer.set([...values, relation.value], relation.id, relation.key);
+          const id = relation.id.toString();
+          const key = relation.key;
+          const values = this.buffer.get(id, key) || [];
+          this.buffer.set([...values, relation.value], id, key);
         }
         return relations;
       });
 
-      this.cache.set(promise, "join", query, join);
+      this.cache.set(promise, "join", paramString, join);
 
     }
 
@@ -140,8 +155,8 @@ KarmaFieldsAlpha.Store = class {
 
       for (let paramString in queries) {
 
-        const ids = await this.query(paramString);
-        // const ids = await query;
+        // const ids = await this.query(paramString);
+        const ids = await queries[paramString];
 
         if (ids.includes(id)) {
 
@@ -151,7 +166,7 @@ KarmaFieldsAlpha.Store = class {
 
             for (let join of this.joins) {
 
-              await this.join(join, ids);
+              await this.join(join, paramString);
 
             }
 
