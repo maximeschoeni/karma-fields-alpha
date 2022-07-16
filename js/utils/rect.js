@@ -43,6 +43,17 @@ KarmaFieldsAlpha.Rect = class {
 		return new this(r.x + x, r.y + y, r.width, r.height);
 	}
 
+	// static getIndexes(r) {
+	// 	const indexes = [];
+	// 	for (let i = 0; i < r.height; i++) {
+	// 		for (let j = 0; j < r.width; j++) {
+	// 			const index = (r.y+i)*r.width + r.x + j;
+	// 			indexes.push(index);
+	// 		}
+	// 	}
+	// 	return indexes;
+	// }
+
 	offset(x, y) {
 		return this.constructor.offset(this, x, y);
 	}

@@ -11,6 +11,65 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
     this.fieldsMap = new KarmaFieldsAlpha.Grid();
     this.indexMap = {};
 
+    this.items = [];
+    this.elementIndex = new Map();
+    this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", "selection");
+
+    this.ta = document.createElement("textarea");
+    document.body.appendChild(this.ta);
+    this.ta.className = "karma-fields-ta";
+    this.ta.style = "position:fixed;bottom:0;right:0;z-index:999999999";
+
+    this.ta.oninput = async event => {
+
+      const ids = this.ta.value && this.ta.value.split(/[\r\n]/) || [];
+      const currentIds = this.selectionBuffer.get() || [];
+      const post_parent = KarmaFieldsAlpha.Nav.get("post_parent") || 0;
+
+      switch (event.inputType) {
+
+        case "deleteByCut":
+        case "deleteContentBackward":
+        case "deleteContentForward":
+        case "deleteContent":
+
+          if (currentIds.length) {
+
+            await this.dispatch({
+              action: "delete",
+              data: currentIds
+            });
+
+          }
+
+          break;
+
+        case "insertFromPaste":
+
+          if (ids.length || currentIds.length) {
+
+            for (let id of ids) {
+
+              await this.dispatch({
+                action: "set",
+                path: [id, "post_parent"],
+                data: [post_parent]
+              });
+
+            }
+
+            await this.dispatch({
+              action: "insert",
+              data: ids
+            });
+
+          }
+
+          break;
+
+      }
+
+    }
 
   }
 
@@ -69,18 +128,38 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
   registerTable(element) {
 
-    this.endSelection();
+    // this.endSelection();
 
-    this.elementsMap = new KarmaFieldsAlpha.Grid();
-    this.fieldsMap = new KarmaFieldsAlpha.Grid();
-    this.indexMap = {};
+    // this.elementsMap = new KarmaFieldsAlpha.Grid();
+    // this.fieldsMap = new KarmaFieldsAlpha.Grid();
+    // this.indexMap = {};
 
+    this.items = [];
+    this.elementIndex = new Map();
+    this.elementRowIndex = new Map();
+    this.width = 0;
+    this.height = 0;
+    this.ids = [];
   }
 
   registerCell(element, col, row, field) {
 
-    this.elementsMap.set(element, col, row);
-    this.fieldsMap.set(field, col, row);
+    // this.elementsMap.set(element, col, row);
+    // this.fieldsMap.set(field, col, row);
+
+    this.elementIndex.set(element, this.items.length);
+
+    this.items.push({
+      element: element,
+      field: field,
+      col: col,
+      row: row
+    });
+
+    this.width = Math.max(col, this.width);
+    this.height = Math.max(row, this.height);
+
+
 
     const onMouseUp = event => {
       document.removeEventListener("mouseup", onMouseUp);
@@ -92,9 +171,15 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
     const onMouseMove = event => {
       const elementUnderPoint = document.elementFromPoint(event.clientX, event.clientY);
       const target = elementUnderPoint && elementUnderPoint.closest(".td");
-      const point = target && this.elementsMap.find(target);
-      if (point) {
-        this.growSelection({...point, width: 1, height: 1});
+      // const point = target && this.elementsMap.find(target);
+      // if (point) {
+      //   this.growSelection({...point, width: 1, height: 1});
+      // }
+
+      const index = this.elementIndex.get(target);
+      const item = this.items[index];
+      if (item) {
+        this.growSelection({x: item.col, y: item.row, width: 1, height: 1});
       }
     }
 
@@ -110,30 +195,30 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       document.addEventListener("mousemove", onMouseMove);
     }
 
-    // element.onfocusin = event => {
-    //   this.focusTarget = event.target;
-    // }
-
-
   }
 
-  registerIndex(element, row) {
+  registerIndex(element, row, id) {
 
-    this.indexMap[row] = element;
+    // this.indexMap[row] = element;
+
+
+
+    this.elementRowIndex.set(element, this.ids.length);
+    this.ids.push(id);
 
     const onMouseUp = event => {
       document.removeEventListener("mouseup", onMouseUp);
       this.selecting = false;
-      this.editSelection();
+      this.endSelection();
     }
 
     element.onmousedown = event => {
       this.selecting = true;
       if (event.shiftKey) {
         event.preventDefault(); // -> prevent focus lose on TA
-        this.growSelection({x: 0, y: row, width: this.elementsMap.width, height: 1});
+        this.growSelection({x: 0, y: row, width: this.width, height: 1});
       } else {
-        this.startSelection({x: 0, y: row, width: this.elementsMap.width, height: 1});
+        this.startSelection({x: 0, y: row, width: this.width, height: 1});
       }
       document.addEventListener("mouseup", onMouseUp);
     }
@@ -158,16 +243,16 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       this.selecting = true;
       if (event.shiftKey) {
         event.preventDefault(); // -> prevent focus lose on TA
-        this.growSelection({x: col, y: 0, width: 1, height: this.elementsMap.height});
+        this.growSelection({x: col, y: 0, width: 1, height: this.height});
       } else {
-        this.startSelection({x: col, y: 0, width: 1, height: this.elementsMap.height});
+        this.startSelection({x: col, y: 0, width: 1, height: this.height});
       }
       document.addEventListener("mouseup", onMouseUp);
     }
 
     element.onmouseover = event => {
       if (this.selecting && event.buttons === 1) {
-        this.growSelection({x: col, y: 0, width: 1, height: this.elementsMap.height});
+        this.growSelection({x: col, y: 0, width: 1, height: this.height});
       }
     }
 
@@ -178,18 +263,18 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
     const onMouseUp = event => {
       document.removeEventListener("mouseup", onMouseUp);
       this.selecting = false;
-      this.editSelection();
+      this.endSelection();
     }
 
     element.onmousedown = event => {
       this.selecting = true;
-      this.startSelection({x: 0, y: 0, width:this.elementsMap.width, height:this.elementsMap.height});
+      this.startSelection({x: 0, y: 0, width:this.width, height:this.height});
       document.addEventListener("mouseup", onMouseUp);
     }
 
     element.onmouseover = event => {
       if (this.selecting && event.buttons === 1) {
-        this.growSelection({x: 0, y: 0, width:this.elementsMap.width, height:this.elementsMap.height});
+        this.growSelection({x: 0, y: 0, width:this .width, height:this.height});
       }
     }
 
@@ -269,27 +354,64 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
   // }
 
   endSelection() {
-    if (this.selection) {
-      this.unpaint(this.selection);
-      this.selection = null;
-      this.hasSelection = false;
+  //   if (this.selection) {
+  //     this.unpaint(this.selection);
+  //     this.selection = null;
+  //     this.hasSelection = false;
+  //   }
+  // }
+  //
+  // // hasRowSelected() {
+  // //   return this.selection && this.selection.x === 0 && this.selection.width === this.elementsMap.width || false;
+  // // }
+  // // hasCellsSelected() {
+  // //   return this.selection && (this.selection.width*this.selection.height > 1) || false;
+  // // }
+  //
+  // editSelection() {
+
+    this.selecting = false;
+
+    const selectedIds = this.selectionBuffer.get() || [];
+
+    const newIds = [];
+
+    if (this.selection && this.selection.width === this.width) {
+
+      for (let i = 0; i < this.selection.height; i++) {
+        newIds.push(this.ids[this.selection.y + i])
+      }
+
     }
-  }
 
-  hasRowSelected() {
-    return this.selection && this.selection.x === 0 && this.selection.width === this.elementsMap.width || false;
-  }
-  hasCellsSelected() {
-    return this.selection && (this.selection.width*this.selection.height > 1) || false;
-  }
+    if (KarmaFieldsAlpha.DeepObject.differ(selectedIds, newIds)) {
+      KarmaFieldsAlpha.History.save();
+      this.selectionBuffer.backup(newIds);
+      this.selectionBuffer.set(newIds);
 
-  editSelection() {
-    const request = this.createEvent({
-      action: "edit-selection"
+      this.dispatch({
+        action: "render"
+      });
+    }
+
+
+
+
+
+
+    // this.dispatch({
+    //   action: "edit-selection"
+    // });
+    this.dispatch({
+      action: "render"
     });
 
-    this.dispatch(request);
-    this.render();
+    // const request = this.createEvent({
+    //   action: "edit-selection"
+    // });
+    //
+    // this.dispatch(request);
+    // this.render();
   }
 
   paint(rect) {
@@ -609,7 +731,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
                     }
                   },
                   update: th => {
-                    this.registerIndex(th.element, rowIndex);
+                    this.registerIndex(th.element, rowIndex, id);
                   }
                 },
                 ...columns.map((colId, colIndex) => {
