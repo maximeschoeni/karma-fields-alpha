@@ -32,10 +32,10 @@ Class Karma_Fields_Alpha_Posts {
 				// array('driver' => 'taxonomy?taxonomy=post_tag')
 			),
 			'ppp' => 30,
-			'index' => array(
-				'title' => '#',
-				'width' => 'auto'
-			),
+			// 'index' => array(
+			// 	'title' => '#',
+			// 	'width' => 'auto'
+			// ),
 			'style' => 'flex: 1 1 0;',
 			'orderby' => 'post_title',
 			'autosave' => false,
@@ -59,8 +59,29 @@ Class Karma_Fields_Alpha_Posts {
       //   )
       // ),
 
-			'children' => array(
+			'modal' => array(
+				'body' => array(
+					'children' => array(
+						array(
+							'type' => 'input',
+							'label' => 'Title',
+							'key' => 'post_title'
+						),
+						array(
+							'type' => 'textarea',
+							'label' => 'Content',
+							'key' => 'post_content'
+						)
+					)
+				)
+			),
 
+			'children' => array(
+				// 'index',
+				array(
+					'type' => 'tableIndex',
+					'value' => 'asdfasdf'
+				),
 
 				// array(
 				// 	'label' => 'Title',
@@ -79,23 +100,23 @@ Class Karma_Fields_Alpha_Posts {
 					'width' => '1fr',
 					// 'value' => '{{post_title}}',
 					// 'value' => ['<>', 'post_title'],
-					'title' => ['get', 'post_title'],
+					'value' => ['get', 'post_title'],
 					'type' => 'modal',
-					'body' => array(
-						'type' => 'group',
-						'children' => array(
-							array(
-								'type' => 'input',
-								'label' => 'Title',
-								'key' => 'post_title'
-							),
-							array(
-								'type' => 'textarea',
-								'label' => 'Content',
-								'key' => 'post_content'
-							)
-						)
-					)
+					// 'body' => array(
+					// 	'type' => 'group',
+					// 	'children' => array(
+					// 		array(
+					// 			'type' => 'input',
+					// 			'label' => 'Title',
+					// 			'key' => 'post_title'
+					// 		),
+					// 		array(
+					// 			'type' => 'textarea',
+					// 			'label' => 'Content',
+					// 			'key' => 'post_content'
+					// 		)
+					// 	)
+					// )
 				),
 				array(
 					'label' => 'AA',

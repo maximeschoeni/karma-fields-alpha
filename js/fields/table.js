@@ -178,12 +178,15 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
   // }
 
   async queryIds() {
+    const ids = this.idsBuffer.get() || [];
     const paramString = this.getParamString();
-    const ids = await this.store.query(paramString);
-    this.idsBuffer.backup(ids);
-    this.idsBuffer.set(ids);
-    this.interface.selectionBuffer.backup();
-    this.interface.selectionBuffer.remove();
+    const newIds = await this.store.query(paramString);
+    if (KarmaFieldsAlpha.DeepObject.differ(newIds, ids)) {
+      this.idsBuffer.backup(newIds);
+      this.idsBuffer.set(newIds);
+      this.interface.selectionBuffer.backup();
+      this.interface.selectionBuffer.remove();
+    }
     return ids;
   }
 
@@ -344,8 +347,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
             break;
 
           case "selection": // -> deprecated. use actives
-            event.data = [this.interface.hasRowSelected()];
-            break;
+            // event.data = [this.interface.hasRowSelected()];
+            // break;
 
           case "actives":
             event.data = this.interface.selectionBuffer.get() || [];
@@ -1073,8 +1076,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         // table.element.style.display = active ? "flex" : "none";
 
         // const singleOpen = Boolean(this.modal) && KarmaFieldsAlpha.Nav.has("id");
+        const idSelection = this.interface.selectionBuffer.get() || [];
 
-        const singleOpen = Boolean(this.modal) && this.interface.selectionBuffer.get() || [];
+        const singleOpen = Boolean(this.modal) && idSelection.length > 0;
 
         // if (active) {
 

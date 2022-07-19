@@ -544,7 +544,7 @@ body.karma-table-open {
 }
 .karma-fields .table .td,
 .karma-fields .table .th.table-header-cell {
-  min-width: 120px;
+  /* min-width: 120px; */
 }
 .karma-fields .table .flying {
   position: relative;
@@ -614,15 +614,19 @@ body.karma-table-open {
 
 
 /* .karma-fields .table .td:focus-within, */
-.karma-fields .table .td.selected {
-  background-color: white;
-}
-.karma-fields .table .td.active,
+
+.karma-fields .table .td.active:not(.selected),
 .karma-fields .table .th.active {
   background-color: #484848;
   /* background-color: #737373; */
   color: #f1f1f1;
 
+}
+.karma-fields .table:not(.ta-focus) .td.active {
+  background-color: #c3c4c7;
+}
+.karma-fields .table .td.selected {
+  background-color: white !important;
 }
 
 .karma-fields .table .th.selected {
