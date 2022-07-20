@@ -263,40 +263,47 @@ Class Karma_Fields_Alpha_Driver_Posts {
   /**
 	 * add
 	 */
-  public function add($data) {
+  public function add($data, $num = 1) {
 
     add_filter('wp_insert_post_empty_content', '__return_false', 10, 2);
 
-    $args = array();
+    $output = array();
 
-    foreach ($data as $key => $value) {
+    for ($i = 0; $i < $num; $i++) {
 
-      switch ($key) {
+      $args = array();
 
-        case 'post_type':
-        case 'post_status':
-          $args[$key] = $value;
-          break;
+      foreach ($data as $key => $value) {
 
-        case 'post_parent':
-          $args[$key] = intval($value);
-          break;
+        switch ($key) {
+
+          case 'post_type':
+          case 'post_status':
+            $args[$key] = $value;
+            break;
+
+          case 'post_parent':
+            $args[$key] = intval($value);
+            break;
+
+        }
 
       }
 
+
+      // var_dump($args, $data);
+
+      $output[] = wp_insert_post($args);
+
     }
 
-
-    // var_dump($args, $data);
-
-    $id = wp_insert_post($args);
 
     // return $id;
     // $item['id'] = $id;
     //
     // return $item;
 
-    return $id;
+    return $output;
 
   }
 

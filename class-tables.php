@@ -705,22 +705,25 @@ Class Karma_Fields_Alpha {
 
 		$driver_name = $request->get_param('driver');
 		$data = $request->get_param('data');
+		// $num = $request->has_param('num') ? $request->get_param('num') : 1;
 		$driver = $this->get_driver($driver_name);
 
 		if (method_exists($driver, 'add')) {
 
 			// $num = isset($data['num']) ? intval($data['num']) : 1;
-			$num = $request->has_param('num') ? $request->get_param('num') : 1;
 
-			$output = array();
+			//
+			// $output = array();
+			//
+			// for ($i = 0; $i < $num; $i++) {
+			//
+			// 	$output[] = $driver->add($data);
+			//
+			// }
+			//
+			// return $output;
 
-			for ($i = 0; $i < $num; $i++) {
-
-				$output[] = $driver->add($data);
-
-			}
-
-			return $output;
+			return $driver->add($data, $request->get_param('num'));
 
 		} else {
 

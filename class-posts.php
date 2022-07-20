@@ -31,7 +31,7 @@ Class Karma_Fields_Alpha_Posts {
 				// array('driver' => 'taxonomy?taxonomy=category'),
 				// array('driver' => 'taxonomy?taxonomy=post_tag')
 			),
-			'ppp' => 30,
+			'ppp' => 100,
 			// 'index' => array(
 			// 	'title' => '#',
 			// 	'width' => 'auto'
@@ -102,6 +102,7 @@ Class Karma_Fields_Alpha_Posts {
 					// 'value' => ['<>', 'post_title'],
 					'value' => ['get', 'post_title'],
 					'type' => 'modal',
+					'orderby' => 'post_title'
 					// 'body' => array(
 					// 	'type' => 'group',
 					// 	'children' => array(
@@ -138,7 +139,10 @@ Class Karma_Fields_Alpha_Posts {
 					// ),
 					'default' => '1',
 					// 'driver' => 'taxonomy?taxonomy=category'
-					'options' => array('queryArray', 'taxonomy?taxonomy=category')
+					// 'options' => array('queryArray', 'taxonomy?taxonomy=category')
+					'options' => array('getOptions', 'taxonomy', 'taxonomy=category')
+
+
 					// 'params' => array('taxonomy' => 'category')
 				),
 				array(

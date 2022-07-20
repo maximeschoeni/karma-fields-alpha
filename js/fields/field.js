@@ -229,7 +229,7 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   getDefault() {
-    return this.resource.default || "";
+    return this.parse(this.resource.default || "");
   }
 
   // write(...path) {

@@ -631,6 +631,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         break;
 
       case "add": {
+        KarmaFieldsAlpha.History.save();
         const ids = await this.add(1, event.data || {});
         this.interface.selectionBuffer.backup(ids);
         this.interface.selectionBuffer.set(ids);
@@ -639,22 +640,59 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       }
 
       case "delete": {
-        const selectedIds = event.data || await this.getSelectedIds();
-        await this.remove(selectedIds);
-        this.interface.selectionBuffer.backup([]);
-        this.interface.selectionBuffer.set([]);
-        await this.render();
+        const selectedIds = event.data || this.interface.selectionBuffer.get() || [];
+        if (selectedIds.length) {
+          KarmaFieldsAlpha.History.save();
+          await this.remove(selectedIds);
+          this.interface.selectionBuffer.backup([]);
+          this.interface.selectionBuffer.set([]);
+          await this.render();
+        }
         break;
       }
 
       case "insert": {
         const insertIds = event.data || [];
-        const removeIds = this.interface.selectionBuffer.get();
-        await this.insert(insertIds, removeIds);
-        this.interface.selectionBuffer.backup(insertIds);
-        this.interface.selectionBuffer.set(insertIds);
-        this.store.empty();
-        await this.render();
+        const removeIds = this.interface.selectionBuffer.get() || [];
+        if (insertIds.length || removeIds.length) {
+          KarmaFieldsAlpha.History.save();
+          if (insertIds.length && removeIds.length) {
+            // await this.overwrite(insertIds, removeIds);
+            const data = this.read(insertIds);
+            await this.write(data, removeIds);
+          } else if (insertIds.length) {
+            await this.duplicate(insertIds);
+          } else if (removeIds.length) {
+            await this.remove(removeIds);
+          }
+          this.interface.selectionBuffer.backup(insertIds);
+          this.interface.selectionBuffer.set(insertIds);
+          await this.render();
+        }
+        break;
+      }
+
+      case "write": {
+        const data = event.data || [];
+        const ids = this.interface.selectionBuffer.get() || [];
+        let insertIds = [];
+
+        if (ids.length || data.length) {
+          KarmaFieldsAlpha.History.save();
+          if (data.length && ids.length) {
+            await this.write(data, ids);
+            insertIds = ids;
+          } else if (data.length) {
+            let createdIds = await this.add(data.length);
+            await this.write(data, createdIds);
+            insertIds = createdIds;
+          } else if (ids.length) {
+            await this.remove(ids);
+          }
+          this.interface.selectionBuffer.backup(insertIds);
+          this.interface.selectionBuffer.set(insertIds);
+          await this.render();
+        }
         break;
       }
 
@@ -785,7 +823,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         let order = KarmaFieldsAlpha.Nav.get("order");
         let orderby = KarmaFieldsAlpha.Nav.get("orderby");
 
-        const key = event.path[0];
+        const key = event.data;
 
         if (orderby === key) {
 
@@ -881,9 +919,16 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
 
 
-    const navParams = KarmaFieldsAlpha.Nav.getObject();
+    // const navParams = KarmaFieldsAlpha.Nav.getObject();
 
-    let createdIds = await KarmaFieldsAlpha.Gateway.post("add/"+this.driver, {...navParams, ...params}, {num: num});
+    const filterParams = this.getFilterParams();
+
+    params = {...filterParams, ...params};
+
+    delete params.trash;
+    delete params.id;
+
+    let createdIds = await KarmaFieldsAlpha.Gateway.post("add/"+this.driver, params, {num: num});
 
     createdIds = createdIds.map(id => id.toString());
     // compat
@@ -903,7 +948,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     // const resources = KarmaFieldsAlpha.Resource.getSubResources(this.resource);
 
     // this.stage();
-    KarmaFieldsAlpha.History.save();
+
+
 
     for (let id of createdIds) {
 
@@ -913,6 +959,15 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       this.grid.buffer.backup(["0"], id, "trash");
       this.grid.buffer.set(["0"], id, "trash");
       // this.writeHistory(["0"], ["1"], id, "trash");
+
+      for (let key in params) {
+
+        const value = params[key];
+
+        this.grid.buffer.backup([value], id, key);
+        this.grid.buffer.set([value], id, key);
+
+      }
 
     }
 
@@ -927,7 +982,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
   async remove(removeIds) {
 
-    KarmaFieldsAlpha.History.save();
 
     for (let id of removeIds) {
 
@@ -943,26 +997,105 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
   }
 
-  async insert(insertIds = [], removeIds = []) {
+  // overwrite(insertIds = [], removeIds = []) {
+  //
+  //   // for (let id of removeIds) {
+  //   //
+  //   //   this.grid.buffer.set(["0"], id, "trash");
+  //   //   this.grid.buffer.backup({trash: ["1"]}, id);
+  //   //   this.grid.buffer.set({trash: ["1"]}, id);
+  //   //
+  //   // }
+  //   //
+  //   // const filterParams = this.getFilterParams();
+  //   //
+  //   // for (let id of insertIds) {
+  //   //
+  //   //   this.buffer.set(["1"], id, "trash");
+  //   //   this.grid.buffer.backup(["0"], id, "trash");
+  //   //   this.grid.buffer.set(["0"], id, "trash");
+  //   //
+  //   //   for (let key in filterParams) {
+  //   //
+  //   //     const value = filterParams[key];
+  //   //
+  //   //     this.grid.buffer.backup([value], id, key);
+  //   //     this.grid.buffer.set([value], id, key);
+  //   //
+  //   //   }
+  //   //
+  //   // }
+  //   //
+  //   //
+  //   // const ids = this.getIds().filter(id => !removeIds.includes(id)).concat(insertIds);
+  //   //
+  //   // this.idsBuffer.backup(ids);
+  //   // this.idsBuffer.set(ids);
+  //
+  //   // debugger;
+  //
+  //   for (let i = 0; i < removeIds.length; i++) {
+  //     const removeId = removeIds[i];
+  //     const insertId = insertIds[i%insertIds.length];
+  //
+  //     const bufferData = this.buffer.get(insertId);
+  //     const formBufferData = this.grid.buffer.get(insertId);
+  //     const filterParams = this.getFilterParams();
+  //
+  //     const clone = KarmaFieldsAlpha.DeepObject.clone(bufferData);
+  //
+  //     delete clone.id;
+  //
+  //     KarmaFieldsAlpha.DeepObject.merge(clone, formBufferData);
+  //     KarmaFieldsAlpha.DeepObject.merge(clone, filterParams);
+  //
+  //     // clone.id = [removeId];
+  //
+  //     this.grid.buffer.backup(clone, removeId);
+  //     this.grid.buffer.set(clone, removeId);
+  //
+  //   }
+  //
+  // }
 
-    for (let id of insertIds) {
+  read(ids) {
+    const data = [];
 
-      this.grid.buffer.backup(["0"], id, "trash");
-      this.grid.buffer.set(["0"], id, "trash");
+    for (let i = 0; i < ids.length; i++) {
+
+      const bufferData = this.buffer.get(ids);
+      const formBufferData = this.grid.buffer.get(ids);
+
+      const clone = KarmaFieldsAlpha.DeepObject.clone(bufferData);
+
+      // delete clone.id;
+
+      KarmaFieldsAlpha.DeepObject.merge(clone, formBufferData);
+
+      data.push(clone);
 
     }
+  }
 
-    for (let id of removeIds) {
+  write(data, ids) {
 
-      this.grid.buffer.backup({trash: ["1"]}, id);
-      this.grid.buffer.set({trash: ["1"]}, id);
+    const filterParams = this.getFilterParams();
+
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i];
+      const item = data[i%data.length];
+
+      for (let key in filterParams) {
+        item[key] = [key[filterParams]];
+      }
+
+      delete item.id;
+      delete item.trash;
+
+      this.grid.buffer.backup(item, id);
+      this.grid.buffer.set(item, id);
 
     }
-
-    const ids = this.getIds().filter(id => !removeIds.includes(id)).concat(insertIds);
-
-    this.idsBuffer.backup(ids);
-    this.idsBuffer.set(ids);
 
   }
 
@@ -970,19 +1103,23 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
     const cloneIds = await this.add(ids.length);
 
-    for (let i = 0; i < ids.length; i++) {
-      let id = ids[i];
-      let cloneId = cloneIds[i];
+    const data = this.read(ids);
 
-      const clone = KarmaFieldsAlpha.DeepObject.clone(this.buffer);
-      KarmaFieldsAlpha.DeepObject.merge(clone, this.grid.buffer.get(id));
+    this.write(data, cloneIds);
 
-      clone.id = [cloneId];
-
-      this.grid.buffer.backup(clone, cloneId);
-      this.grid.buffer.set(clone, cloneId);
-
-    }
+    // for (let i = 0; i < ids.length; i++) {
+    //   let id = ids[i];
+    //   let cloneId = cloneIds[i];
+    //
+    //   const clone = KarmaFieldsAlpha.DeepObject.clone(this.buffer.get(id));
+    //   KarmaFieldsAlpha.DeepObject.merge(clone, this.grid.buffer.get(id));
+    //
+    //   clone.id = [cloneId];
+    //
+    //   this.grid.buffer.backup(clone, cloneId);
+    //   this.grid.buffer.set(clone, cloneId);
+    //
+    // }
 
     return cloneIds;
   }

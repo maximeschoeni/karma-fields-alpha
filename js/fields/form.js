@@ -226,16 +226,23 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 				let currentValue = this.buffer.get(...event.path);
 
 				if (!currentValue) {
+
 					let request = await super.dispatch({
 						action: "get",
 						path: [...event.path]
 					});
 
+					if (!request.data) {
+						request.data = await event.field.getDefault();
+					}
+
 					currentValue = KarmaFieldsAlpha.Type.toArray(request.data);
+
 				}
 
 				if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
 
+					this.buffer.set(currentValue, ...event.path);
 					this.buffer.backup(newValue, ...event.path);
 					this.buffer.set(newValue, ...event.path);
 

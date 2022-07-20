@@ -132,6 +132,10 @@ KarmaFieldsAlpha.Store = class {
           const id = relation.id.toString();
           const key = relation.key;
           const values = this.buffer.get(id, key) || [];
+
+
+          if (key === "id") console.log(paramString, join, id, key, values, relation.value);
+
           this.buffer.set([...values, relation.value], id, key);
         }
         return relations;

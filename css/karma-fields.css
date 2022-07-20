@@ -625,8 +625,12 @@ body.karma-table-open {
 .karma-fields .table:not(.ta-focus) .td.active {
   background-color: #c3c4c7;
 }
-.karma-fields .table .td.selected {
-  background-color: white !important;
+.karma-fields .table.selecting-data .td.selected {
+  background-color: white;
+}
+.karma-fields .table.selecting-ids .td.selected {
+  background-color: #484848;
+  color: #f1f1f1;
 }
 
 .karma-fields .table .th.selected {
