@@ -1209,13 +1209,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       update: async table => {
 
         table.element.classList.add("table-loading");
-        // const active = this.getParam("karma") === this.resource.id;
-        // table.element.style.display = active ? "flex" : "none";
 
-        // const singleOpen = Boolean(this.modal) && KarmaFieldsAlpha.Nav.has("id");
         const idSelection = this.interface.selectionBuffer.get() || [];
 
-        const singleOpen = Boolean(this.modal) && idSelection.length > 0;
+        // const singleOpen = Boolean(this.modal) && idSelection.length > 0;
+        const singleOpen = KarmaFieldsAlpha.Nav.has("id");
 
         // if (active) {
 
@@ -1472,12 +1470,17 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       switch (event.action) {
 
         case "close": {
-          const currentIds = this.parent.selectionBuffer.get();
-          if (currentIds.length) {
+          // const currentIds = this.parent.selectionBuffer.get();
+
+          if (KarmaFieldsAlpha.Nav.has("id")) {
+
             KarmaFieldsAlpha.History.save();
 
             this.parent.selectionBuffer.backup([]);
             this.parent.selectionBuffer.set([]);
+
+            KarmaFieldsAlpha.Nav.backup(null, "id");
+            KarmaFieldsAlpha.Nav.remove("id");
 
             event.action = "edit-selection";
             await super.dispatch(event);

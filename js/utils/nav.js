@@ -124,7 +124,7 @@ KarmaFieldsAlpha.Nav = class {
 	// 		KarmaFieldsAlpha.History.backup(newValue, currentValue, type === "tie", "nav", key);
 	//
 	// 	}
-	// 
+	//
   // }
 
 	static change(value, key) {
@@ -140,6 +140,13 @@ KarmaFieldsAlpha.Nav = class {
 			KarmaFieldsAlpha.History.backup(value, current, false, "nav", key);
 
 		}
+	}
+
+	static backup(value, key) {
+
+		const current = this.get(key);
+
+		KarmaFieldsAlpha.History.backup(value, current, false, "nav", key);
 	}
 
 	// static change(params, saveHistory = false) {

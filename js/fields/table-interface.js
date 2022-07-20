@@ -123,54 +123,54 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
 
 
-  async importData(data, field) {
-
-    const point = field && this.fieldsMap.find(field) || {};
-
-    const {x, y, width, height} = {...new KarmaFieldsAlpha.Rect(), ...point, ...this.selection};
-
-
-
-    // for (let j = 0; j < Math.max(height, data.length); j++) {
-    //   for (let i = 0; i < Math.max(width, data[j%data.length].length); i++) {
-    //     const field = this.fieldsMap.get(x + i, y + j);
-    //     if (field) {
-    //       await field.backup();
-    //     }
-    //   }
-    // }
-
-    // this.parent.grid.save("import-data");
-    KarmaFieldsAlpha.History.save();
-
-    for (let j = 0; j < Math.max(height, data.length); j++) {
-      for (let i = 0; i < Math.max(width, data[j%data.length].length); i++) {
-
-        const field = this.fieldsMap.get(x + i, y + j);
-
-        if (field) {
-          const value = data[j%data.length][i%data[j%data.length].length];
-
-          await field.dispatch({
-  					action: "set",
-  					type: "string",
-  					backup: "pack",
-  					// autosave: this.resource.autosave,
-  					data: [value]
-  				});
-
-
-
-          // await field.render();
-        }
-      }
-    }
-
-    await this.dispatch({
-      action: "edit"
-    });
-
-  }
+  // async importData(data, field) {
+  //
+  //   const point = field && this.fieldsMap.find(field) || {};
+  //
+  //   const {x, y, width, height} = {...new KarmaFieldsAlpha.Rect(), ...point, ...this.selection};
+  //
+  //
+  //
+  //   // for (let j = 0; j < Math.max(height, data.length); j++) {
+  //   //   for (let i = 0; i < Math.max(width, data[j%data.length].length); i++) {
+  //   //     const field = this.fieldsMap.get(x + i, y + j);
+  //   //     if (field) {
+  //   //       await field.backup();
+  //   //     }
+  //   //   }
+  //   // }
+  //
+  //   // this.parent.grid.save("import-data");
+  //   KarmaFieldsAlpha.History.save();
+  //
+  //   for (let j = 0; j < Math.max(height, data.length); j++) {
+  //     for (let i = 0; i < Math.max(width, data[j%data.length].length); i++) {
+  //
+  //       const field = this.fieldsMap.get(x + i, y + j);
+  //
+  //       if (field) {
+  //         const value = data[j%data.length][i%data[j%data.length].length];
+  //
+  //         await field.dispatch({
+  // 					action: "set",
+  // 					type: "string",
+  // 					backup: "pack",
+  // 					// autosave: this.resource.autosave,
+  // 					data: [value]
+  // 				});
+  //
+  //
+  //
+  //         // await field.render();
+  //       }
+  //     }
+  //   }
+  //
+  //   await this.dispatch({
+  //     action: "edit"
+  //   });
+  //
+  // }
 
 
 
@@ -227,11 +227,34 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
       switch (selectMode) {
 
+        // case "open-modal": {
+        //   // element.parentNode.classList.remove("selecting-ids");
+        //   this.selectIds(this.selectionRect);
+        //
+        //
+        //
+        //   // this.selectionRect = null;
+        //   // this.startRect = null;
+        //
+        //   this.dispatch({action: "render"});
+        //   break;
+        // }
+
         case "ids": {
           // element.parentNode.classList.remove("selecting-ids");
           this.selectIds(this.selectionRect);
           // this.selectionRect = null;
           // this.startRect = null;
+
+          if (field.openModal) {
+            const ids = this.selectionBuffer.get() || [];
+            const value = ids.join(",");
+
+            KarmaFieldsAlpha.Nav.backup(value, "id");
+            KarmaFieldsAlpha.Nav.set(value, "id");
+          }
+
+
 
           this.dispatch({action: "render"});
           break;
@@ -579,9 +602,10 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       this.selectionBuffer.set(ids);
     }
 
-    this.ta.value = ids.join("\n");
-    this.ta.focus();
-    this.ta.select();
+    // this.ta.value = ids.join("\n");
+    // this.ta.focus();
+    // this.ta.select();
+    // this.updateTA();
 
     // return this.dispatch({action: "render"});
   }
@@ -663,11 +687,12 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
     this.startRect = null;
 
 
-    if (this.getChild("modal")) {
-      const ids = this.selectionBuffer.get() || [];
-      this.ta.value = ids.join("\n");
+    if (KarmaFieldsAlpha.Nav.has("id")) {
+      // const ids = this.selectionBuffer.get() || [];
+      // this.ta.value = ids.join("\n");
       this.ta.focus();
       this.ta.select();
+      // this.updateTA();
     } else {
 
       const ids = this.selectionBuffer.get() || [];
@@ -927,6 +952,31 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
   //   }
   // }
 
+  async updateTA() {
+    const ids = this.selectionBuffer.get() || [];
+
+    if (this.resource.copyMode === "id") {
+      this.ta.value = ids.join("\n");
+    } else {
+      if (ids.length) {
+        const array = [];
+        for (let id of ids) {
+          const item = await this.dispatch({
+            action: "row",
+            path: [id]
+          }).then(request => request.data);
+          array.push(item);
+        }
+        this.ta.value = JSON.stringify(array);
+      } else {
+        this.ta.value = "";
+      }
+    }
+
+    this.ta.focus();
+    this.ta.select();
+  }
+
 
   build(ids, page, ppp, columns) {
 
@@ -1075,29 +1125,30 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
         }
       },
       complete: async grid => {
-        const ids = this.selectionBuffer.get() || [];
-        // this.ta.value = ids.join("\n");
+        this.updateTA();
+        // const ids = this.selectionBuffer.get() || [];
+        // // this.ta.value = ids.join("\n");
+        // // this.ta.focus();
+        // // this.ta.select();
+        //
+        // if (this.resource.copyMode === "id") {
+        //   this.ta.value = ids.join("\n");
+        // } else {
+        //   if (ids.length) {
+        //     const array = [];
+        //     for (let id of ids) {
+        //       const item = await this.dispatch({
+        //         action: "row",
+        //         path: [id]
+        //       }).then(request => request.data);
+        //       array.push(item);
+        //     }
+        //     this.ta.value = JSON.stringify(array);
+        //   }
+        // }
+        //
         // this.ta.focus();
         // this.ta.select();
-
-        if (this.resource.copyMode === "id") {
-          this.ta.value = ids.join("\n");
-        } else {
-          if (ids.length) {
-            const array = [];
-            for (let id of ids) {
-              const item = await this.dispatch({
-                action: "row",
-                path: [id]
-              }).then(request => request.data);
-              array.push(item);
-            }
-            this.ta.value = JSON.stringify(array);
-          }
-        }
-
-        this.ta.focus();
-        this.ta.select();
 
 
       }
@@ -1250,6 +1301,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
         super(...args);
 
         this.selectMode = "ids";
+        this.openModal = true;
       }
 
       // build() {
@@ -1261,6 +1313,19 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       //   };
       // }
 
+      build() {
+        return {
+          tag: this.resource.tag,
+          class: "text karma-field",
+          init: node => {
+            node.element.style.cursor = "pointer";
+          },
+          update: async node => {
+            node.element.innerHTML = await this.parse(this.resource.value || "");
+          }
+        };
+      }
+
     }
 
     static tableIndex = class extends this.modal {
@@ -1271,6 +1336,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
           ...resource
         });
 
+        this.openModal = false;
 
       }
 
