@@ -19,108 +19,87 @@
 		let resource = <?php echo json_encode($args); ?>;
 		let id = "<?php echo $post_id; ?>";
 
-
-
-		// let form = new KarmaFieldsAlpha.fields.form({
-		// 	type: "form",
+		// let gateway = KarmaFieldsAlpha.tables.createChild({
+		// 	type: "gateway",
 		// 	driver: "posts",
-		// 	children: [
-		// 		{
-		// 			type: "field",
-		// 			key: id,
-		// 			children: [resource]
-		// 		}
-		// 	]
+		// 	joins: ["postmeta", "taxonomy"]
+		// });
+		// let form = gateway.createChild({
+		// 	id: "form",
+		// 	key: id,
+		// 	type: "form",
+		// 	bufferPath: ["data"],
+		// 	children: [resource]
 		// });
 		//
 		// form.buffer.getObject = function() {
-		// 	return JSON.parse(input.value || "{}");
+		// 	return {data: JSON.parse(input.value || "{}")};
 		// };
 		// form.buffer.setObject = function(delta) {
-		// 	input.value = JSON.stringify(delta);
+		// 	input.value = JSON.stringify(delta.data);
 		// }
+		// KarmaFieldsAlpha.build({
+		// 	child: form.build()
+		// }, container);
 
-		// let gateway = new KarmaFieldsAlpha.fields.gateway({
-		// 	driver: "posts",
-		// 	children: [
-		// 		{
-		// 			id: "form",
-		// 			type: "form",
-		// 			children: [
-		// 				{
-		// 					type: "field",
-		// 					key: id,
-		// 					children: [
-		// 						{
-		// 							type: "group",
-		// 							children: [resource]
-		// 						}
-		// 					]
-		// 				}
-		// 			]
-		// 		}
-		// 	]
-		// });
 
-		// let gateway = new KarmaFieldsAlpha.fields.gateway({
-		// 	driver: "posts",
-		// 	children: [
-		// 		{
-		// 			id: "form",
-		// 			key: id,
-		// 			type: "form",
-		// 			// children: [
-		// 			// 	{
-		// 			// 		type: "field",
-		// 			// 		key: id,
-		// 					children: [resource]
-		// 			// 	}
-		// 			// ]
-		// 		}
-		// 	]
-		// });
 
-		// let gateway = new KarmaFieldsAlpha.fields.gateway({
-		// 	driver: "posts",
-		// });
-		let gateway = KarmaFieldsAlpha.tables.createChild({
-			type: "gateway",
-			driver: "posts",
-			// joins: [{driver: "postmeta"}, {driver: "taxonomy"}]
-			joins: ["postmeta", "taxonomy"]
-		});
-		let form = gateway.createChild({
-			id: "form",
-			key: id,
-			type: "form",
-			bufferPath: ["data"],
-			children: [resource]
-			// children: [
-			// 	{
-			// 		type: "field",
-			// 		key: id,
-			// 		children: [resource]
-			// 	}
-			// ]
-		});
+		class Embeder extends KarmaFieldsAlpha.fields.gateway {
 
-		form.buffer.getObject = function() {
-			return {data: JSON.parse(input.value || "{}")};
-		};
-		form.buffer.setObject = function(delta) {
-			input.value = JSON.stringify(delta.data);
+			constructor(resource, input) {
+
+				super(resource);
+
+				this.form = this.createChild({
+					id: "form",
+					key: resource.id,
+					type: "form",
+					bufferPath: ["data"],
+					children: resource.children
+				});
+
+				this.form.buffer.getObject = function() {
+					return {data: JSON.parse(input.value || "{}")};
+				};
+				this.form.buffer.setObject = function(delta) {
+					input.value = JSON.stringify(delta.data);
+				}
+
+			}
+
+			async dispatch(event) {
+				switch (event.action) {
+					case "edit":
+						await this.render();
+						break;
+
+					default:
+						await super.dispatch(event);
+						break;
+				}
+				return event;
+			}
+
+			build() {
+				return {
+					init: div => {
+						this.render = div.render;
+					},
+					child: this.form.build()
+				}
+			}
+
 		}
 
-		// gateway.buffer.getObject = function() {
-		// 	return JSON.parse(input.value || "{}");
-		// };
-		// gateway.buffer.setObject = function(delta) {
-		// 	console.log(delta);
-		// 	// input.value = JSON.stringify(delta.form);
-		// }
+		// const embeder = new Embeder(id, resource, input);
 
-		KarmaFieldsAlpha.build({
-			child: form.build()
-		}, container);
+		const embeder = new Embeder({
+			driver: "posts",
+			joins: ["postmeta", "taxonomy"],
+			children: [resource],
+			id: id
+		}, input);
+
+		KarmaFieldsAlpha.build(embeder.build(), container);
 	});
 </script>

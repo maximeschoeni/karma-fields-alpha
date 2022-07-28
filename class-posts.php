@@ -71,6 +71,12 @@ Class Karma_Fields_Alpha_Posts {
 							'type' => 'textarea',
 							'label' => 'Content',
 							'key' => 'post_content'
+						),
+						array(
+							'type' => 'gallery',
+							'uploader' => 'wp',
+							'key' => 'images',
+							'label' => 'Gallery'
 						)
 					)
 				)
@@ -192,7 +198,12 @@ Class Karma_Fields_Alpha_Posts {
 						// ),
 						//
 						// 'driver' => 'taxonomy?taxonomy=category&field=name',
-						'options' => array('queryArray', 'taxonomy?taxonomy=category')
+						// 'options' => array('queryArray', 'taxonomy?taxonomy=category')
+						'options' => array(
+							'...',
+							array('id' => '', 'name' => '–'),
+							array('getOptions', 'taxonomy', 'taxonomy=category')
+						)
 					),
 					array(
 						'type' => 'dropdown',

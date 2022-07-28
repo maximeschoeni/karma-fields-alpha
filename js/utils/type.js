@@ -20,6 +20,7 @@ KarmaFieldsAlpha.Type = class {
     return value;
   }
 
+
   static toString(value) {
     if (Array.isArray(value)) {
       value = value[0];

@@ -1007,6 +1007,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       },
       update: async grid => {
 
+
         this.registerTable(grid.element);
 
         this.idIndex = new Map();

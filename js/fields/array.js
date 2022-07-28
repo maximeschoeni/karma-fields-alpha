@@ -260,6 +260,14 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
         await this.delete(event.path[0]);
         break;
 
+      // case "edit":
+      //   await this.render();
+      //   break;
+
+      default:
+        super.dispatch(event);
+        break;
+
     }
 
 

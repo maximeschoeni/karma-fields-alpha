@@ -180,7 +180,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
   async queryIds() {
     const ids = this.idsBuffer.get() || [];
     const paramString = this.getParamString();
-    const newIds = await this.store.query(paramString);
+    const newIds = await this.store.queryIds(paramString);
     if (KarmaFieldsAlpha.DeepObject.differ(newIds, ids)) {
       this.idsBuffer.backup(newIds);
       this.idsBuffer.set(newIds);
@@ -329,6 +329,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         switch (key) {
 
           case "content":
+            // const value = await this.store.getValue(...event.path);
+            // event.data = KarmaFieldsAlpha.DeepObject.clone(value);
             event.data = await this.store.getValue(...event.path);
             break;
 
@@ -405,10 +407,22 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
           default: { // -> filters
 
-            const value = KarmaFieldsAlpha.Type.toString(event.data);
+            const value = KarmaFieldsAlpha.Type.toString(event.data) || "";
+            const current = KarmaFieldsAlpha.Nav.get(key) || "";
 
-            KarmaFieldsAlpha.Nav.change(value, key);
-            KarmaFieldsAlpha.Nav.change(1, "page");
+            if (value !== current) {
+
+              KarmaFieldsAlpha.Nav.backup(value, key);
+              KarmaFieldsAlpha.Nav.set(value, key); // -> will remove key instead of setting ""
+
+              const page = KarmaFieldsAlpha.Nav.get("page") || "1";
+
+              if (page !== "1") {
+                KarmaFieldsAlpha.Nav.backup(1, "page");
+                KarmaFieldsAlpha.Nav.change(1, "page");
+              }
+
+            }
 
             await this.queryIds();
 
@@ -492,8 +506,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         const [context, id] = event.path;
         const data = this.store.buffer.get(id) || {};
         const editedData = this.grid.buffer.get(id) || {};
-        KarmaFieldsAlpha.DeepObject.merge(data, editedData);
-        event.data = data;
+        const row = {};
+        KarmaFieldsAlpha.DeepObject.merge(row, data);
+        KarmaFieldsAlpha.DeepObject.merge(row, editedData);
+        event.data = row;
         break;
       }
 
@@ -568,7 +584,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
         if (page < numpage) {
           KarmaFieldsAlpha.History.save();
-          KarmaFieldsAlpha.Nav.change(page+1, "page");
+          KarmaFieldsAlpha.Nav.backup(page+1, "page");
+          KarmaFieldsAlpha.Nav.set(page+1, "page");
           await this.queryIds();
           await this.render();
         }
@@ -721,8 +738,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       case "save":
         // await this.grid.submit();
 
-
-        await this.send(this.grid.buffer.get()); // -> data is an object
+        const data = this.grid.buffer.get();
+        await this.send(data); // -> data is an object
         this.grid.buffer.remove();
         this.store.empty();
         await this.queryIds();
@@ -954,7 +971,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     for (let id of createdIds) {
 
 
-      this.buffer.set(["1"], id, "trash"); // -> when add and delete a row without saving
+      // this.buffer.set(["1"], id, "trash"); // -> when add and delete a row without saving
+      this.grid.buffer.set(["1"], id, "trash");
 
       this.grid.buffer.backup(["0"], id, "trash");
       this.grid.buffer.set(["0"], id, "trash");
@@ -1066,10 +1084,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       const bufferData = this.buffer.get(ids);
       const formBufferData = this.grid.buffer.get(ids);
 
-      const clone = KarmaFieldsAlpha.DeepObject.clone(bufferData);
+      // const clone = KarmaFieldsAlpha.DeepObject.clone(bufferData);
+      const clone = {};
 
       // delete clone.id;
-
+      KarmaFieldsAlpha.DeepObject.merge(clone, bufferData);
       KarmaFieldsAlpha.DeepObject.merge(clone, formBufferData);
 
       data.push(clone);
@@ -1345,6 +1364,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
                 }
               },
               update: footer => {
+
                 footer.element.classList.toggle("hidden", this.resource.controls === false);
                 if (this.resource.controls !== false) {
                   footer.child = this.controls.build();
@@ -1363,8 +1383,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       },
       complete: table => {
         table.element.classList.remove("table-loading");
-
-
 
         // if (KarmaFieldsAlpha.History.getIndex() === 0) {
         //   KarmaFieldsAlpha.History.save();
@@ -1835,7 +1853,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       action: "delete",
       title: "Delete",
       // disabled: "!selection"
-      disabled: ["!", ["get", "selection"]]
+      disabled: ["!", ["get", "string", "selection"]]
     }
 
   	static undo = {
@@ -1844,7 +1862,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       action: "undo",
       dashicon: "undo",
       // disabled: "!undo"
-      disabled: ["!", ["get", "undo"]]
+      disabled: ["!", ["get", "string", "undo"]]
     }
 
   	static redo = {
@@ -1853,7 +1871,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       action: "redo",
       dashicon: "redo",
       // disabled: "!redo"
-      disabled: ["!", ["get", "redo"]]
+      disabled: ["!", ["get", "string", "redo"]]
     }
 
     static separator = {
@@ -1927,7 +1945,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       id: "count",
       type: "text",
       style: "justify-content:center",
-      value: ["replace", "# elements", "#", ["get", "count"]],
+      value: ["replace", "# elements", "#", ["get", "string", "count"]],
       dynamic: true
     }
 
@@ -1956,7 +1974,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
           display: "flex",
           style: "flex: 0 1 auto;min-width:0",
           // hidden: "numpage=1",
-          hidden: ["==", ["get", "numpage"], 1],
+          hidden: ["==", ["get", "number", "numpage"], 1],
           children: [
             "firstpage",
             "prevpage",
@@ -1979,7 +1997,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         title: "First Page",
         text: "«",
         // disabled: "page=1",
-        disabled: ["==", ["get", "page"], 1],
+        disabled: ["==", ["get", "number", "page"], 1],
         // hidden: "numpage=1"
       }
 
@@ -1990,7 +2008,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         title: "Previous Page",
         text: "‹",
         // disabled: "page=1",
-        disabled: ["==", ["get", "page"], 1],
+        disabled: ["==", ["get", "number", "page"], 1],
         // hidden: "numpage=1"
       }
 
@@ -1999,7 +2017,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     		type: "text",
         style: "min-width: 4em;text-align: right;",
         // value: "{{page}} / {{numpage}}",
-        value: ["replace", "# / #", "#", ["get", "page"], ["get", "numpage"]],
+        value: ["replace", "# / #", "#", ["get", "string", "page"], ["get", "string", "numpage"]],
         // hidden: "numpage=1",
         // dynamic: true
       }
@@ -2011,7 +2029,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         title: "Next Page",
         text: "›",
         // disabled: "lastpage",
-        disabled: ["get", "lastpage"],
+        disabled: ["get", "boolean", "lastpage"],
         // hidden: "numpage=1"
         // value: [
         //   "resolveAll",
@@ -2028,7 +2046,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         title: "Last Page",
         text: "»",
         // disabled: "lastpage",
-        disabled: ["get", "lastpage"],
+        disabled: ["get", "boolean", "lastpage"],
         // hidden: "numpage=1"
       }
 
@@ -2066,7 +2084,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
       const children = [];
 
-      const childrenIds = await store.query(`post_type=karma-folder&post_status=inherit&${this.resource.key}=${parent}`);
+      const childrenIds = await store.queryIds(`post_type=karma-folder&post_status=inherit&${this.resource.key}=${parent}`);
 
       for (let childId of childrenIds) {
         children.push({

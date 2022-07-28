@@ -169,16 +169,9 @@ KarmaFieldsAlpha.History = class {
 			// rewind previous state
 			const data = this.buffer.get("history", index, "data") || {};
 			this.buffer.merge(data, "data");
-			// this.buffer.clean("data");
 
       const nav = this.buffer.get("history", index, "nav") || {};
 			KarmaFieldsAlpha.Nav.merge(nav);
-
-			// const ids = this.buffer.get("history", index, "ids") || [];
-			// this.buffer.set(ids, "ids");
-			//
-			// const selection = this.buffer.get("history", index, "selection") || [];
-			// this.buffer.set(selection, "selection");
 
 			const state = this.buffer.get("history", index, "state") || {};
 			this.buffer.merge(state, "state");

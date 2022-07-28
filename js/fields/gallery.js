@@ -9,7 +9,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
   }
 
   async openLibrary(ids) {
-    if (this.resource.library === "wp") {
+    if ((this.resource.uploader || this.resource.library)  === "wp") {
       this.uploader.open(ids);
     } else {
       await this.dispatch(this.createEvent({
@@ -48,6 +48,11 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
         break;
       }
 
+      case "selection": {
+        event.data = await this.getSelection();
+        break;
+      }
+
       // case "get": {
       //   const value = await this.getValue(...event.path);
       //   event.setValue(value);
@@ -64,24 +69,25 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
   }
 
   async getSelection() {
-    return this.selection && this.slice(this.selection.index, this.selection.length) || await this.getArray();
+    // return this.selection && this.slice(this.selection.index, this.selection.length) || await this.getArray();
+    return this.selection && this.slice(this.selection.index, this.selection.length);
   }
 
-  async getValue(key) {
-
-    switch(key) {
-
-      case "selection":
-        return await this.getSelection().length > 0;
-
-      case "empty": {
-        const array = await this.getArray();
-        return array.length === 0;
-      }
-
-    }
-
-  }
+  // async getValue(key) {
+  //
+  //   switch(key) {
+  //
+  //     case "selection":
+  //       return await this.getSelection().length > 0;
+  //
+  //     case "empty": {
+  //       const array = await this.getArray();
+  //       return array.length === 0;
+  //     }
+  //
+  //   }
+  //
+  // }
 
   async add(ids) {
     let array = await this.getArray();
@@ -152,7 +158,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
     await super.dispatch({
       action: "set",
       type: "array",
-      backup: "always",
+      backup: true,
       autosave: this.resource.autosave,
       data: KarmaFieldsAlpha.Type.toArray(value)
     });
@@ -185,11 +191,11 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
         });
         uploader.addFrame.on("select", async () => {
           const attachments = uploader.addFrame.state().get("selection").toJSON();
-          const attachmentIds = attachments.map(attachment => attachment.id);
-          uploader.imageIds = attachmentIds;
+          const attachmentIds = attachments.map(attachment => attachment.id.toString());
+          uploader.imageIds = attachmentIds; //.map(id => id.toString());
           // await this.setArray(attachmentIds);
-
           if (this.editSelection) {
+
 
             await this.insert(attachmentIds, this.editSelection.index, this.editSelection.length);
             this.editSelection = null;
@@ -211,56 +217,56 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
   }
 
 
-  getDefault() {
-    return [];
-  }
+  // getDefault() {
+  //   return [];
+  // }
 
 
-  async validate(value) {
+  // async validate(value) {
+  //
+  //   if (!this.getFile(value[0])) {
+  //     await this.fetchIds(value);
+  //   }
+  //   return value;
+  //
+  // }
 
-    if (!this.getFile(value[0])) {
-      await this.fetchIds(value);
-    }
-    return value;
-
-  }
-
-  async fetchFiles(array) {
-    if (!this.hasFiles(array)) {
-      await this.fetchIds(array);
-    }
-  }
-
-  async fetchIds(ids, args) {
-    // const driver = this.resource.driver || "attachment";
-    const driver = this.resource.driver || "medias";
-    const argString = args && new URLSearchParams(args).toString();
-    const results = await KarmaFieldsAlpha.Gateway.getOptions(driver+"?ids="+ids.join(",")+(argString && "&"+argString || ""));
-    this.setFiles(results);
-    return results;
-  }
-
-  hasFiles(ids) {
-    return ids.every(id => this.getFile(id));
-  }
-
-  setFiles(files) {
-    files.forEach(file => {
-      this.setFile(file.id, file);
-    });
-  }
-
-  getFiles(ids) {
-    return ids.map(id => this.files[id]);
-  }
-
-  getFile(id) {
-    return this.files[id];
-  }
-
-  setFile(id, file) {
-    this.files[id] = file;
-  }
+  // async fetchFiles(array) {
+  //   if (!this.hasFiles(array)) {
+  //     await this.fetchIds(array);
+  //   }
+  // }
+  //
+  // async fetchIds(ids, args) {
+  //   // const driver = this.resource.driver || "attachment";
+  //   const driver = this.resource.driver || "medias";
+  //   const argString = args && new URLSearchParams(args).toString();
+  //   const results = await KarmaFieldsAlpha.Gateway.getOptions(driver+"?ids="+ids.join(",")+(argString && "&"+argString || ""));
+  //   this.setFiles(results);
+  //   return results;
+  // }
+  //
+  // hasFiles(ids) {
+  //   return ids.every(id => this.getFile(id));
+  // }
+  //
+  // setFiles(files) {
+  //   files.forEach(file => {
+  //     this.setFile(file.id, file);
+  //   });
+  // }
+  //
+  // getFiles(ids) {
+  //   return ids.map(id => this.files[id]);
+  // }
+  //
+  // getFile(id) {
+  //   return this.files[id];
+  // }
+  //
+  // setFile(id, file) {
+  //   this.files[id] = file;
+  // }
 
   getMax() {
     return this.resource.max || this.resource.multiple === false && 1 || 999999;
@@ -326,20 +332,25 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
       update: async container => {
 
 
-        // let array = await this.getArray();
+        // const request = await this.dispatch({
+        //   action: "get",
+        //   type: "array"
+        // });
+        //
+        // let ids = KarmaFieldsAlpha.Type.toArray(request.data);
 
-        // const filePromise = this.fetchFiles(array);
-
-        const request = await this.dispatch({
+        const ids = await this.dispatch({
           action: "get",
-          type: "array"
-        });
+        }).then(request => KarmaFieldsAlpha.Type.toArray(request.data));
 
-        // let ids = request.data || [];
-        let ids = KarmaFieldsAlpha.Type.toArray(request.data);
+        const store = new KarmaFieldsAlpha.Store("posts", ["files"]);
 
-        const paramString = "posts?post_type=attachment&post_status=inherit&ids="+ids.join(",");
-        const query = KarmaFieldsAlpha.Query.create(paramString, ["files"]);
+        if (ids.length) {
+          await store.query("post_type=attachment&post_status=inherit&ids="+ids.join(","));
+        }
+
+
+
         // KarmaFieldsAlpha.Driver.join(paramString, "files");
 
         container.children = [
@@ -358,36 +369,10 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                     this.registerCell(frame.element, index);
                     frame.element.classList.add("loading");
 
-                    // const fileRequest = this.createEvent({
-                    //   action: "query",
-                    //   type: "object",
-                    //   absolutePathes: [[id, "thumb_src"], [id, "thumb_width"], [id, "thumb_height"], [id, "type"]]
-                    // });
-                    //
-                    // await this.dispatch(fileRequest);
-                    //
-                    // const value = fileRequest.getValue();
-
-                    // const fileRequest = await this.dispatch({
-                    //   action: "query",
-                    //   absolutePathes: [[id, "thumb_src"], [id, "thumb_width"], [id, "thumb_height"], [id, "type"]]
-                    // });
-                    //
-                    // const file = fileRequest.data[id];
-
-
-
-
-                    // const src = await KarmaFieldsAlpha.Driver.get("posts", paramString, ["files"], id, "thumb_src");
-                    // const width = await KarmaFieldsAlpha.Driver.get("posts", paramString, ["files"], id, "thumb_width");
-                    // const height = await KarmaFieldsAlpha.Driver.get("posts", paramString, ["files"], id, "thumb_height");
-                    // const type = await KarmaFieldsAlpha.Driver.get("posts", paramString, ["files"], id, "type");
-
-                    const src = await query.get(id, "thumb_src");
-                    const width = await query.get(id, "thumb_width");
-                    const height = await query.get(id, "thumb_height");
-                    const type = await query.get(id, "type");
-
+                    const src = await store.getValue(id, "thumb_src");
+                    const width = await store.getValue(id, "thumb_width");
+                    const height = await store.getValue(id, "thumb_height");
+                    const type = await store.getValue(id, "type");
 
                     frame.element.classList.remove("loading");
 
@@ -438,101 +423,21 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                 }];
               }
 
+            }
+          },
+          {
+            class: "controls",
+            init: controls => {
+              controls.element.onmousedown = event => {
+                event.preventDefault(); // -> prevent losing focus on selected items
+              }
             },
-            // children: array.map((id, index) => {
-            //   return {
-            //     class: "frame",
-            //     update: frame => {
-            //
-            //       this.registerCell(frame.element, index);
-            //
-            //
-            //     },
-            //     children: [
-            //       {
-            //         // class: "image-container",
-            //         tag: "figure",
-            //         update: wrapper => {
-            //           const file = id && this.getFile(id);
-            //           if (file) {
-            //             wrapper.children = [{
-            //               tag: "img",
-            //               update: image => {
-            //                 image.element.src = file.src;
-            //                 image.element.width = file.width;
-            //                 image.element.height = file.height;
-            //               }
-            //             }];
-            //             wrapper.element.classList.toggle("type-image", file.type && file.type.startsWith("image") || false);
-            //           } else {
-            //             wrapper.children = [];
-            //           }
-            //         }
-            //       }
-            //     ]
-            //   };
-            // }).concat({
-            //   class: "frame",
-            //   update: frame => {
-            //     this.registerCell(frame.element, array.length);
-            //     frame.element.style.order = "99999";
-            //     frame.element.classList.toggle("hidden", array.length >= this.getMax());
-            //   },
-            //   children: [
-            //     {
-            //       // class: "image-container",
-            //       tag: "figure",
-            //       children: []
-            //     },
-            //     // {
-            //     //   class: "button-container",
-            //     //   child: this.createChild({
-            //     //     type: "button",
-            //     //     title: "Add image",
-            //     //     // dashicon: "plus",
-            //     //     action: "add"
-            //     //   }).build()
-            //     // }
-            //     this.createChild({
-            //       type: "button",
-            //       title: "Add image",
-            //       // dashicon: "plus",
-            //       action: "add"
-            //     }).build()
-            //   ]
-            // })
+            update: controls => {
+              if (this.resource.controls !== false) {
+                controls.child = this.createChild(this.resource.controls || "controls").build();
+              }
+            }
           }
-          // {
-          //   class: "controls",
-          //   update: controls => {
-          //     if (this.resource.controls) {
-          //       controls.child = this.createChild({
-          //         type: "group",
-          //         children: [
-          //           {
-          //             type: "button",
-          //             title: "Add",
-          //             action: "add"
-          //           },
-          //           {
-          //             type: "button",
-          //             title: "Remove",
-          //             action: "delete",
-          //             disabled: "!selection",
-          //             hidden: "empty"
-          //           },
-          //           {
-          //             type: "button",
-          //             title: "Change",
-          //             action: "edit",
-          //             disabled: "!selection",
-          //             hidden: "empty"
-          //           }
-          //         ]
-          //       }).build();
-          //     }
-          //   }
-          // }
         ]
       }
 		};
@@ -724,6 +629,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
     this.ta.select();
 
     this.ta.onfocusout = event => {
+      console.log(event);
       this.selection = null;
       this.focusRange = null;
       this.renderSelection();
@@ -788,6 +694,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
           break;
       }
     }
+
 
   }
 
@@ -991,7 +898,54 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
 
 
 
+  static controls = class extends KarmaFieldsAlpha.fields.group {
 
+    constructor(resource, ...args) {
+
+      super({
+        ...{
+          id: "controls",
+          children: [
+            "add",
+            "remove",
+            "edit"
+          ]
+        },
+        ...resource
+      }, ...args);
+
+    }
+
+    static test = {
+      type: "button",
+      title: "Test",
+      action: "test"
+    }
+
+    static add = {
+      type: "button",
+      title: "Add",
+      action: "add",
+      hidden: ["count", ["get", "array"]]
+    }
+
+    static remove = {
+      type: "button",
+      title: "Remove",
+      action: "delete",
+      // disabled: ["empty", ["selection"]],
+      hidden: ["empty", ["get", "array"]]
+    }
+
+    static edit = {
+      type: "button",
+      title: "Change",
+      action: "edit",
+      // disabled: ["empty", ["selection"]],
+      hidden: ["empty", ["get", "array"]]
+    }
+
+  }
 
 
 }

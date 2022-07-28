@@ -9,6 +9,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 		const bufferPath = this.resource.bufferPath || ["data", this.resource.driver || this.resource.key || "nodriver"];
 		this.buffer = new KarmaFieldsAlpha.Buffer(...bufferPath);
 
+
 		this.listeners = [];
 	}
 

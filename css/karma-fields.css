@@ -477,7 +477,8 @@ body.karma-table-open {
 }
 .karma-gallery .controls {
   flex-shrink: 0;
-  width: 8.9231em;
+  max-width: 8.9231em;
+  flex-grow: 1;
 }
 .karma-gallery .gallery .frame:last-child {
   align-items: center;
@@ -565,6 +566,9 @@ body.karma-table-open {
   min-width: 40px;
 }
 
+.karma-fields .table .td {
+  min-height: 2.6667em;
+}
 
 .karma-fields .table .th.table-index {
   justify-content: flex-end;

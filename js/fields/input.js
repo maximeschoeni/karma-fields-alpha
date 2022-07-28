@@ -242,13 +242,16 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 				// input.element.value = await this.getValue();
 
+
 				const request = await this.dispatch({
 					action: "get",
 					type: "string",
 					default: await this.getDefault()
 				});
 
+
 				input.element.value = KarmaFieldsAlpha.Type.toString(request.data);
+
 
 				input.element.placeholder = request.manifold && "— No Change —" || this.resource.placeholder || "";
 

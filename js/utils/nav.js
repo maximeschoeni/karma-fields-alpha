@@ -127,7 +127,7 @@ KarmaFieldsAlpha.Nav = class {
 	//
   // }
 
-	static change(value, key) {
+	static change(value, key) { // deprecated?
 
 		value = encodeURIComponent(value);
 
@@ -135,9 +135,9 @@ KarmaFieldsAlpha.Nav = class {
 
 		if (value !== current) {
 
-			this.set(value, key);
-
 			KarmaFieldsAlpha.History.backup(value, current, false, "nav", key);
+
+			this.set(value, key);
 
 		}
 	}
@@ -199,10 +199,10 @@ KarmaFieldsAlpha.Nav = class {
 }
 
 
-addEventListener("DOMContentLoaded", event => {
-	// KarmaFieldsAlpha.Nav.init();
-	const params = KarmaFieldsAlpha.Nav.getObject();
-	for (let key in params) {
-		KarmaFieldsAlpha.History.pack(params[key], null, "nav", key);
-	}
-});
+// addEventListener("DOMContentLoaded", event => {
+// 	// KarmaFieldsAlpha.Nav.init();
+// 	const params = KarmaFieldsAlpha.Nav.getObject();
+// 	for (let key in params) {
+// 		KarmaFieldsAlpha.History.pack(params[key], null, "nav", key);
+// 	}
+// });

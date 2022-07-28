@@ -302,29 +302,19 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 			}
 
 			case "get": {
-				// const path = event.absolutePath || event.path;
-				// let promise = this.getRemoteValue(event.allowSingle !== false, ...path);
+				console.log("gateway get");
+				// const [id, ...path] = event.absolutePath || event.path;
 				//
-				// if (event.join) {
-				// 	event.join.forEach(driver => this.registerJoin(driver, promise)); // -> event.join is an array of drivers
-				// }
-				// event.data = await promise;
-				//
-				// const id = event.id || event.path[0];
-				// const path = event.key || event.path
+				// const [driver, ...params] = this.resource.driver.split("?");
+				// const paramString = this.driver+"?"+[...params, "id="+id].join("&");
+				// const query = KarmaFieldsAlpha.Query.create(paramString, this.resource.joins);
+				// event.driver = this.driver;
+				// event.data = await query.get(id, ...path);
 
-				// event.joins = [{driver: "driverName", on: "fieldName"}]
 
-				const [id, ...path] = event.absolutePath || event.path;
-				// const paramString = "id="+id;
-				// event.driver = this.resource.driver;
-				// event.data = await KarmaFieldsAlpha.Driver.get(this.resource.driver, paramString, this.resource.joins, id, ...path);
-
-				const [driver, ...params] = this.resource.driver.split("?");
-				const paramString = this.driver+"?"+[...params, "id="+id].join("&");
-				const query = KarmaFieldsAlpha.Query.create(paramString, this.resource.joins);
-				event.driver = this.driver;
-				event.data = await query.get(id, ...path);
+				const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins || []);
+				await store.query(this.resource.params || "");
+				event.data = await store.getValue(...event.path);
 
 
 
@@ -342,6 +332,7 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 
 
 			case "query": {
+				console.error("deprecated");
 				// if (event.absolutePathes) {
 				// 	event.data = {};
 				// 	for (let path of event.absolutePathes) {
@@ -389,6 +380,11 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 			// 	await KarmaFieldsAlpha.Relations.request(event.driver, ...event.path);
 			// 	event.setValue();
 
+
+			case "edit":
+				await this.render();
+				break;
+
 			default:
 				await super.dispatch(event);
 
@@ -415,25 +411,23 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 
 	async send(value, ...path) {
 
-		// this.buffer.merge(value, ...path); // ! -> May have type conflicts
 
-		// KarmaFieldsAlpha.DeepObject.forEach(value, (item, ...subpath) => {
-		//
-		// 	console.log(item,...path, ...subpath);
-		// 	this.buffer.remove(...path, ...subpath);
-		// });
+		const data = KarmaFieldsAlpha.DeepObject.clone(value);
+
+
+		// console.log(data);
 
 		// if (path.length) {
 		// 	this.buffer.set(value, ...path);
 		// } else {
-			this.buffer.merge(value, ...path);
+			// this.buffer.merge(data, ...path);
 		// }
 
 
 
 		// this.clear();
 
-		value = KarmaFieldsAlpha.DeepObject.create(value, ...path);
+		value = KarmaFieldsAlpha.DeepObject.create(data, ...path);
 
 		if (!this.resource.driver) {
 			console.error("Resource driver not set");

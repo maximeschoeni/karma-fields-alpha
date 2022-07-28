@@ -51,14 +51,14 @@ KarmaFieldsAlpha.Expression = class {
         // case "string":
         //   return String(await this.resolve(field, params[0]));
 
-				case "join":
-          return this.arrayFn(field, key, ...params);
-
-        case "split":
-          return this.arrayFn(field, key, ...params);
-
-				case "toFixed":
-          return this.numberFn(field, key, ...params);
+				// case "join":
+        //   return this.arrayFn(field, key, ...params);
+        //
+        // case "split":
+        //   return this.arrayFn(field, key, ...params);
+        //
+				// case "toFixed":
+        //   return this.numberFn(field, key, ...params);
 
 				default:
           if (this[key]) {
@@ -163,19 +163,29 @@ KarmaFieldsAlpha.Expression = class {
   //   }
   // }
 
-  static async arrayFn(field, fn, expression, ...params) {
-    const array = await this.resolve(field, expression);
-    return array[fn](...params);
+  // static async arrayFn(field, fn, expression, ...params) {
+  //   const array = await this.resolve(field, expression);
+  //   return array[fn](...params);
+  // }
+  //
+  // static async stringFn(field, fn, expression, ...params) {
+  //   const string = await this.resolve(field, expression);
+  //   return string.toString()[fn](...params);
+  // }
+  //
+  // static async numberFn(field, fn, expression, ...params) {
+  //   const number = await this.resolve(field, expression);
+  //   return Number(number)[fn](...params);
+  // }
+
+  static async js(field, value, fn, ...params) {
+    params = await this.resolveAll(field, params);
+    return value[fn](...params);
   }
 
-  static async stringFn(field, fn, expression, ...params) {
-    const string = await this.resolve(field, expression);
-    return string.toString()[fn](...params);
-  }
-
-  static async numberFn(field, fn, expression, ...params) {
-    const number = await this.resolve(field, expression);
-    return Number(number)[fn](...params);
+  static async math(field, fn, ...params) {
+    params = await this.resolveAll(field, params);
+    return Math[fn](...params);
   }
 
   static async date(field, expression, option = {}, locale = null, noDate = null) {
@@ -220,9 +230,30 @@ KarmaFieldsAlpha.Expression = class {
 
   }
 
-  static async get(field, ...expressionPath) {
-    const array = await this.getArray(field, ...expressionPath);
-    return KarmaFieldsAlpha.Type.toString(array);
+  static async get(field, type, ...path) {
+
+    // -> compat
+    switch (type) {
+      case "string":
+      case "array":
+      case "object":
+      case "number":
+      case "boolean":
+        break;
+      default:
+        path = [type, ...path];
+        type = "string";
+        break;
+    }
+
+    path = await this.resolveAll(field, path);
+
+    return field.dispatch({
+      action: "get",
+      type: "array",
+      path: path
+    }).then(request => KarmaFieldsAlpha.Type.convert(request.data, type));
+
   }
 
   static async getIds(field) {
@@ -240,7 +271,7 @@ KarmaFieldsAlpha.Expression = class {
   }
 
   static async queryArray(field, expressionDriver, ...expressionPath) {
-
+    console.error("Deprecated queryArray. Use query");
     // const driver = await this.resolve(field, expressionDriver);
     //
     // const [request, ...joins] = driver.split("+");
@@ -285,18 +316,28 @@ KarmaFieldsAlpha.Expression = class {
 
   }
 
-  static async query(field, ...expressionPath) {
-    const array = await this.queryArray(field, ...expressionPath);
-    return array[0];
+  static async query(field, driver, paramString = "", joins = [], type = "array", ...path) {
+
+    driver = await this.resolve(field, driver);
+    paramString = await this.resolve(field, paramString);
+    const store = new KarmaFieldsAlpha.Store(driver, joins);
+    const results = await store.query(paramString);
+    if (path.length) {
+      path = await this.resolveAll(field, path);
+      const value = await store.getValue(...path);
+      return KarmaFieldsAlpha.Type.convert(value, type);
+    }
+    return results;
   }
 
-  static async getOptions(field, driver, paramString, nameField = 'name') {
+  static async getOptions(field, driver, paramString = "", nameField = 'name') {
 
     driver = await this.resolve(field, driver);
     paramString = await this.resolve(field, paramString);
 
     const store = new KarmaFieldsAlpha.Store(driver);
-    const ids = await store.query(paramString);
+
+    const ids = await store.queryIds(paramString);
     const options = [];
 
     for (let id of ids) {
@@ -314,6 +355,12 @@ KarmaFieldsAlpha.Expression = class {
     let value = KarmaFieldsAlpha.Nav.get(key);
     // value = decodeURI(value);
     return value;
+  }
+
+  static async params(field, ...keys) {
+    keys = await this.resolveAll(field, keys);
+    const params = Object.fromEntries(keys.map(key => [key, KarmaFieldsAlpha.Nav.get(key)]).filter(entry => entry[1]));
+    return Object.entries(params).map(entry => entry.join("=")).join("&");
   }
 
   static async modified(field, ...expressionPath) {
@@ -403,47 +450,17 @@ KarmaFieldsAlpha.Expression = class {
   //
   // }
 
-  static async map(field, expression, token, replacementExpression) {
+  static async map(field, array, replacement) {
 
-    const array = await this.resolve(field, expression);
+    array = await this.resolve(field, array);
 
     const output = [];
 
-    // const replaceDeep = (expression, token, replacement) => {
-    //   if (Array.isArray(expression)) {
-    //     if (expression[0] === "item") {
-    //       // expression.splice(1, 0, replacement);
-    //       return ["getChild", replacement, ...expression.slice(1)];
-    //     } else {
-    //       return expression.map(item => replaceDeep(item, token, replacement));
-    //     }
-    //   } else if (expression === token) {
-    //     return replacement;
-    //   } else {
-    //     return expression;
-    //   }
-    // }
-
-    // const replaceDeep = (expression, token, replacement) => {
-    //   if (Array.isArray(expression)) {
-    //     return expression.map(item => replaceDeep(item, token, replacement));
-    //   } else if (expression === token) {
-    //     return replacement;
-    //   } else {
-    //     return expression;
-    //   }
-    // }
-
     for (let value of array) {
-
-      // const replacement = replaceDeep(replacementExpression, token, value);
-      //
-      // const item = await this.resolve(field, replacement);
-
 
       field.loopItem = value;
 
-      const item = await this.resolve(field, replacementExpression);
+      const item = await this.object(field, replacement);
 
       output.push(item);
 
@@ -451,6 +468,8 @@ KarmaFieldsAlpha.Expression = class {
 
     return output;
   }
+
+
 
   // compat
   static async loop(field, expression, wildcard, replacementExpression, glue = "") {
@@ -522,21 +541,30 @@ KarmaFieldsAlpha.Expression = class {
   }
 
   static async object(field, value) {
-    const object = {};
-    for (let i in value) {
-      object[i] = await this.resolve(field, value[i]);
+    if (value && value.constructor === Object) {
+      const object = {};
+      for (let i in value) {
+        object[i] = await this.resolve(field, value[i]);
+      }
+      return object;
     }
-    return object;
+    return this.resolve(field, value);
   }
 
-  static async getChild(field, expression, ...expressionPath) {
-    const value = await this.resolve(field, expression);
-    const path = await this.resolveAll(field, expressionPath);
+  static async getChild(field, value, ...path) {
+    value = await this.resolve(field, value);
+    path = await this.resolveAll(field, path);
     return KarmaFieldsAlpha.DeepObject.get(value, ...path);
   }
 
   static async item(field, ...path) {
-    return this.getChild(field, field.loopItem, ...path);
+    path = await this.resolveAll(field, path);
+    return KarmaFieldsAlpha.DeepObject.get(field.loopItem, ...path);
+  }
+
+  static async convert(field, value, type) {
+    value = await this.resolve(field, value);
+    return KarmaFieldsAlpha.Type.convert(value, type);
   }
 
 
@@ -550,9 +578,21 @@ KarmaFieldsAlpha.Expression = class {
     return array.length;
   }
 
+  static async empty(field, array) {
+    array = await this.resolve(field, array);
+    return array.length === 0;
+  }
+
   static async actives(field) {
     const request = await field.dispatch({
       action: "actives"
+    });
+    return KarmaFieldsAlpha.Type.toArray(request.data);
+  }
+
+  static async selection(field) {
+    const request = await field.dispatch({
+      action: "selection"
     });
     return KarmaFieldsAlpha.Type.toArray(request.data);
   }
@@ -591,18 +631,22 @@ KarmaFieldsAlpha.Expression = class {
 			"<ul>#</ul>",
 			"#",
 			[
+        "js",
 				"join",
         [
           "map",
-          ["getArray", taxonomy],
+          ["get", "array", taxonomy],
           [
             "replace",
             "<li><a hash=\"driver=taxonomy&taxonomy=#\">#</a></li>",
             "#",
-            taxonomy,
+            ["item"],
             [
               "query",
-              ["replace", "taxonomy?taxonomy=#", "#", taxonomy],
+              "taxonomy",
+              ["replace", "taxonomy=#", "#", taxonomy],
+              [],
+              "string",
               ["item"],
               "name"
             ]

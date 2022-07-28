@@ -183,11 +183,11 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 				// 	break;
 				// }
 
-				case "edit": {
-					await this.splash(parent, event.field);
-					await super.dispatch(event, this);
-					break;
-				}
+				// case "edit": {
+				// 	await this.splash(parent, event.field);
+				// 	await super.dispatch(event, this);
+				// 	break;
+				// }
 
 				default: {
 					await super.dispatch(event, this);
