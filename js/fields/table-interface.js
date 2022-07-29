@@ -11,6 +11,12 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
     // this.fieldsMap = new KarmaFieldsAlpha.Grid();
     // this.indexMap = {};
 
+    this.selectionManager = new KarmaFieldsAlpha.SelectionManager();
+
+
+
+
+
     this.items = [];
     this.elementIndex = new Map();
     this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", "selection");
@@ -174,188 +180,188 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
 
 
-  registerTable(element) {
-
-    // this.endSelection();
-
-    // this.elementsMap = new KarmaFieldsAlpha.Grid();
-    // this.fieldsMap = new KarmaFieldsAlpha.Grid();
-    // this.indexMap = {};
-
-    this.items = [];
-    // this.elementIndex = new Map();
-    // this.elementRowIndex = new Map();
-    this.width = 0;
-    this.height = 0;
-
-    this.headerItems = [];
-
-    // this.idSelection = new Set();
-  }
-
-  registerCell(element, col, row, field, id, selectMode) {
-
-    // this.elementsMap.set(element, col, row);
-    // this.fieldsMap.set(field, col, row);
-
-    // this.elementIndex.set(element, this.items.length);
-
-    this.items.push({
-      element: element,
-      field: field,
-      x: col,
-      y: row,
-      id: id
-    });
-
-    this.width = Math.max(col+1, this.width);
-    this.height = Math.max(row+1, this.height);
-
-    // this.idSelection = new Set();
-
-    // this.startRect;
-    // this.selectionRect;
-
-
-
-    const onMouseUp = async event => {
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousemove", onMouseMove);
-      // this.selecting = false;
-      onMouseMove(event);
-
-
-      switch (selectMode) {
-
-        // case "open-modal": {
-        //   // element.parentNode.classList.remove("selecting-ids");
-        //   this.selectIds(this.selectionRect);
-        //
-        //
-        //
-        //   // this.selectionRect = null;
-        //   // this.startRect = null;
-        //
-        //   this.dispatch({action: "render"});
-        //   break;
-        // }
-
-        case "ids": {
-          // element.parentNode.classList.remove("selecting-ids");
-          this.selectIds(this.selectionRect);
-          // this.selectionRect = null;
-          // this.startRect = null;
-
-          if (field.openModal) {
-            const ids = this.selectionBuffer.get() || [];
-            const value = ids.join(",");
-
-            KarmaFieldsAlpha.Nav.backup(value, "id");
-            KarmaFieldsAlpha.Nav.set(value, "id");
-          }
-
-
-
-          this.dispatch({action: "render"});
-          break;
-        }
-
-        case "data": {
-          // element.parentNode.classList.remove("selecting-data");
-          this.selectData(this.selectionRect);
-          break;
-        }
-
-      }
-      // if (selectMode === "ids") {
-      //   element.parentNode.classList.add("selecting-ids");
-      // } else if (selectMode === "data") {
-      //   element.parentNode.classList.add("selecting-data");
-      // }
-
-
-      // this.endSelection();
-    }
-
-    const onMouseMove = event => {
-
-      const item = this.items.find(item => KarmaFieldsAlpha.Rect.contains(item.element.getBoundingClientRect(), event.clientX, event.clientY));
-
-      if (item) {
-
-        if (!this.startRect) {
-          this.startRect = {x: item.x, y: item.y, width: 1, height: 1};
-        }
-
-        // let rect = KarmaFieldsAlpha.Rect.union(this.startRect, {x: item.x, y: item.y, width: 1, height: 1});
-        let rect;
-
-        if (selectMode === "ids") {
-          rect = KarmaFieldsAlpha.Rect.union(this.startRect, {x: 0, y: item.y, width: this.width, height: 1});
-        } else {
-          rect = KarmaFieldsAlpha.Rect.union(this.startRect, {x: item.x, y: item.y, width: 1, height: 1});
-        }
-
-
-        if (!this.selectionRect || !KarmaFieldsAlpha.Rect.equals(rect, this.selectionRect)) {
-
-          if (this.selectionRect) {
-            this.unpaint(this.selectionRect, "selected");
-          }
-
-          this.paint(rect, "selected");
-          this.selectionRect = rect;
-
-        }
-
-      }
-
-    }
-
-    element.onmousedown = event => {
-      // this.selecting = true;
-
-
-
-      if (event.buttons === 1) {
-
-        element.parentNode.classList.toggle("selecting-ids", selectMode === "ids");
-        element.parentNode.classList.toggle("selecting-data", selectMode === "data");
-
-        // switch (selectMode) {
-        //
-        //   case "ids": {
-        //     element.parentNode.classList.add("selecting-ids");
-        //     break;
-        //   }
-        //
-        //   case "data": {
-        //     element.parentNode.classList.add("selecting-data");
-        //     break;
-        //   }
-        //
-        // }
-
-        if (this.startRect && event.shiftKey) {
-          event.preventDefault(); // -> prevent focus lose on TA
-          // this.growSelection({x: col, y:row, width: 1, height: 1});
-        } else {
-          // this.startSelection({x: col, y:row, width: 1, height: 1});
-          this.startRect = {x: col, y:row, width: 1, height: 1};
-          //this.idSelection = new Set();
-        }
-
-        onMouseMove(event);
-
-
-        document.addEventListener("mouseup", onMouseUp);
-        document.addEventListener("mousemove", onMouseMove);
-
-      }
-
-    }
-
-  }
+  // registerTable(element) {
+  //
+  //   // this.endSelection();
+  //
+  //   // this.elementsMap = new KarmaFieldsAlpha.Grid();
+  //   // this.fieldsMap = new KarmaFieldsAlpha.Grid();
+  //   // this.indexMap = {};
+  //
+  //   this.items = [];
+  //   // this.elementIndex = new Map();
+  //   // this.elementRowIndex = new Map();
+  //   this.width = 0;
+  //   this.height = 0;
+  //
+  //   this.headerItems = [];
+  //
+  //   // this.idSelection = new Set();
+  // }
+  //
+  // registerCell(element, col, row, field, id, selectMode) {
+  //
+  //   // this.elementsMap.set(element, col, row);
+  //   // this.fieldsMap.set(field, col, row);
+  //
+  //   // this.elementIndex.set(element, this.items.length);
+  //
+  //   this.items.push({
+  //     element: element,
+  //     field: field,
+  //     x: col,
+  //     y: row,
+  //     id: id
+  //   });
+  //
+  //   this.width = Math.max(col+1, this.width);
+  //   this.height = Math.max(row+1, this.height);
+  //
+  //   // this.idSelection = new Set();
+  //
+  //   // this.startRect;
+  //   // this.selectionRect;
+  //
+  //
+  //
+  //   const onMouseUp = async event => {
+  //     document.removeEventListener("mouseup", onMouseUp);
+  //     document.removeEventListener("mousemove", onMouseMove);
+  //     // this.selecting = false;
+  //     onMouseMove(event);
+  //
+  //
+  //     switch (selectMode) {
+  //
+  //       // case "open-modal": {
+  //       //   // element.parentNode.classList.remove("selecting-ids");
+  //       //   this.selectIds(this.selectionRect);
+  //       //
+  //       //
+  //       //
+  //       //   // this.selectionRect = null;
+  //       //   // this.startRect = null;
+  //       //
+  //       //   this.dispatch({action: "render"});
+  //       //   break;
+  //       // }
+  //
+  //       case "ids": {
+  //         // element.parentNode.classList.remove("selecting-ids");
+  //         this.selectIds(this.selectionRect);
+  //         // this.selectionRect = null;
+  //         // this.startRect = null;
+  //
+  //         if (field.openModal) {
+  //           const ids = this.selectionBuffer.get() || [];
+  //           const value = ids.join(",");
+  //
+  //           KarmaFieldsAlpha.Nav.backup(value, "id");
+  //           KarmaFieldsAlpha.Nav.set(value, "id");
+  //         }
+  //
+  //
+  //
+  //         this.dispatch({action: "render"});
+  //         break;
+  //       }
+  //
+  //       case "data": {
+  //         // element.parentNode.classList.remove("selecting-data");
+  //         this.selectData(this.selectionRect);
+  //         break;
+  //       }
+  //
+  //     }
+  //     // if (selectMode === "ids") {
+  //     //   element.parentNode.classList.add("selecting-ids");
+  //     // } else if (selectMode === "data") {
+  //     //   element.parentNode.classList.add("selecting-data");
+  //     // }
+  //
+  //
+  //     // this.endSelection();
+  //   }
+  //
+  //   const onMouseMove = event => {
+  //
+  //     const item = this.items.find(item => KarmaFieldsAlpha.Rect.contains(item.element.getBoundingClientRect(), event.clientX, event.clientY));
+  //
+  //     if (item) {
+  //
+  //       if (!this.startRect) {
+  //         this.startRect = {x: item.x, y: item.y, width: 1, height: 1};
+  //       }
+  //
+  //       // let rect = KarmaFieldsAlpha.Rect.union(this.startRect, {x: item.x, y: item.y, width: 1, height: 1});
+  //       let rect;
+  //
+  //       if (selectMode === "ids") {
+  //         rect = KarmaFieldsAlpha.Rect.union(this.startRect, {x: 0, y: item.y, width: this.width, height: 1});
+  //       } else {
+  //         rect = KarmaFieldsAlpha.Rect.union(this.startRect, {x: item.x, y: item.y, width: 1, height: 1});
+  //       }
+  //
+  //
+  //       if (!this.selectionRect || !KarmaFieldsAlpha.Rect.equals(rect, this.selectionRect)) {
+  //
+  //         if (this.selectionRect) {
+  //           this.unpaint(this.selectionRect, "selected");
+  //         }
+  //
+  //         this.paint(rect, "selected");
+  //         this.selectionRect = rect;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //   element.onmousedown = event => {
+  //     // this.selecting = true;
+  //
+  //
+  //
+  //     if (event.buttons === 1) {
+  //
+  //       element.parentNode.classList.toggle("selecting-ids", selectMode === "ids");
+  //       element.parentNode.classList.toggle("selecting-data", selectMode === "data");
+  //
+  //       // switch (selectMode) {
+  //       //
+  //       //   case "ids": {
+  //       //     element.parentNode.classList.add("selecting-ids");
+  //       //     break;
+  //       //   }
+  //       //
+  //       //   case "data": {
+  //       //     element.parentNode.classList.add("selecting-data");
+  //       //     break;
+  //       //   }
+  //       //
+  //       // }
+  //
+  //       if (this.startRect && event.shiftKey) {
+  //         event.preventDefault(); // -> prevent focus lose on TA
+  //         // this.growSelection({x: col, y:row, width: 1, height: 1});
+  //       } else {
+  //         // this.startSelection({x: col, y:row, width: 1, height: 1});
+  //         this.startRect = {x: col, y:row, width: 1, height: 1};
+  //         //this.idSelection = new Set();
+  //       }
+  //
+  //       onMouseMove(event);
+  //
+  //
+  //       document.addEventListener("mouseup", onMouseUp);
+  //       document.addEventListener("mousemove", onMouseMove);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
   // registerIndex(element, row, id) {
   //
@@ -391,133 +397,133 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
   //
   // }
 
-  registerHeader(element, col, selectMode) {
-
-    this.headerItems.push({
-      element: element,
-      x: col
-    });
-
-    const onMouseUp = event => {
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousemove", onMouseMove);
-
-      onMouseMove(event);
-
-      switch (selectMode) {
-
-        case "ids": {
-          // element.parentNode.classList.remove("selecting-ids");
-          this.selectIds(this.selectionRect);
-          this.dispatch({action: "render"});
-          break;
-        }
-
-        case "data": {
-          // element.parentNode.classList.remove("selecting-data");
-          this.selectData(this.selectionRect);
-          break;
-        }
-
-      }
-
-    }
-
-    const onMouseMove = event => {
-
-      const headerItem = this.headerItems.find(item => KarmaFieldsAlpha.Rect.contains(item.element.getBoundingClientRect(), event.clientX, event.clientY));
-
-      if (headerItem) {
-
-        const rect = KarmaFieldsAlpha.Rect.union(this.startRect, {x: headerItem.x, y: 0, width: 1, height: this.height});
-
-        if (!this.selectionRect || !KarmaFieldsAlpha.Rect.equals(rect, this.selectionRect)) {
-
-          if (this.selectionRect) {
-            this.unpaint(this.selectionRect, "selected");
-          }
-
-          this.paint(rect, "selected");
-          this.selectionRect = rect;
-
-        }
-
-      }
-
-    }
-
-    element.onmousedown = event => {
-
-      if (event.buttons === 1) {
-
-        element.parentNode.classList.toggle("selecting-ids", selectMode === "ids");
-        element.parentNode.classList.toggle("selecting-data", selectMode === "data");
-
-        // switch (selectMode) {
-        //
-        //   case "ids": {
-        //     element.parentNode.classList.add("selecting-ids");
-        //     break;
-        //   }
-        //
-        //   case "data": {
-        //     element.parentNode.classList.add("selecting-data");
-        //     break;
-        //   }
-        //
-        // }
-
-        if (this.startRect && event.shiftKey) {
-          event.preventDefault(); // -> prevent focus lose on TA
-        } else {
-          this.startRect = {x: col, y:0, width: 1, height: this.height};
-        }
-
-        onMouseMove(event);
-
-        document.addEventListener("mouseup", onMouseUp);
-        document.addEventListener("mousemove", onMouseMove);
-
-      }
-
-    }
-
-
-
-
-  }
-
-  registerHeaderIndex(element) {
-
-    // const onMouseUp = event => {
-    //   document.removeEventListener("mouseup", onMouseUp);
-    //   this.selecting = false;
-    //   this.endSelection();
-    // }
-    //
-    // element.onmousedown = event => {
-    //   this.selecting = true;
-    //   this.startSelection({x: 0, y: 0, width:this.width, height:this.height});
-    //   document.addEventListener("mouseup", onMouseUp);
-    // }
-    //
-    // element.onmouseover = event => {
-    //   if (this.selecting && event.buttons === 1) {
-    //     this.growSelection({x: 0, y: 0, width:this .width, height:this.height});
-    //   }
-    // }
-
-    // element.onmousedown = event => {
-    //   event.preventDefault();
-    //   this.toggleSelection({x:0, y:0, width:this.elementsMap.width, height:this.elementsMap.height});
-    // }
-    //
-    // element.onmousemove = event => {
-    //   if (event.buttons === 1) {
-    //     this.growSelection({x: 0, y :0, width: this.elementsMap.width, height: this.elementsMap.height});
-    //   }
-    // }
-  }
+  // registerHeader(element, col, selectMode) {
+  //
+  //   this.headerItems.push({
+  //     element: element,
+  //     x: col
+  //   });
+  //
+  //   const onMouseUp = event => {
+  //     document.removeEventListener("mouseup", onMouseUp);
+  //     document.removeEventListener("mousemove", onMouseMove);
+  //
+  //     onMouseMove(event);
+  //
+  //     switch (selectMode) {
+  //
+  //       case "ids": {
+  //         // element.parentNode.classList.remove("selecting-ids");
+  //         this.selectIds(this.selectionRect);
+  //         this.dispatch({action: "render"});
+  //         break;
+  //       }
+  //
+  //       case "data": {
+  //         // element.parentNode.classList.remove("selecting-data");
+  //         this.selectData(this.selectionRect);
+  //         break;
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //   const onMouseMove = event => {
+  //
+  //     const headerItem = this.headerItems.find(item => KarmaFieldsAlpha.Rect.contains(item.element.getBoundingClientRect(), event.clientX, event.clientY));
+  //
+  //     if (headerItem) {
+  //
+  //       const rect = KarmaFieldsAlpha.Rect.union(this.startRect, {x: headerItem.x, y: 0, width: 1, height: this.height});
+  //
+  //       if (!this.selectionRect || !KarmaFieldsAlpha.Rect.equals(rect, this.selectionRect)) {
+  //
+  //         if (this.selectionRect) {
+  //           this.unpaint(this.selectionRect, "selected");
+  //         }
+  //
+  //         this.paint(rect, "selected");
+  //         this.selectionRect = rect;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //   element.onmousedown = event => {
+  //
+  //     if (event.buttons === 1) {
+  //
+  //       element.parentNode.classList.toggle("selecting-ids", selectMode === "ids");
+  //       element.parentNode.classList.toggle("selecting-data", selectMode === "data");
+  //
+  //       // switch (selectMode) {
+  //       //
+  //       //   case "ids": {
+  //       //     element.parentNode.classList.add("selecting-ids");
+  //       //     break;
+  //       //   }
+  //       //
+  //       //   case "data": {
+  //       //     element.parentNode.classList.add("selecting-data");
+  //       //     break;
+  //       //   }
+  //       //
+  //       // }
+  //
+  //       if (this.startRect && event.shiftKey) {
+  //         event.preventDefault(); // -> prevent focus lose on TA
+  //       } else {
+  //         this.startRect = {x: col, y:0, width: 1, height: this.height};
+  //       }
+  //
+  //       onMouseMove(event);
+  //
+  //       document.addEventListener("mouseup", onMouseUp);
+  //       document.addEventListener("mousemove", onMouseMove);
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  //
+  //
+  // }
+  //
+  // registerHeaderIndex(element) {
+  //
+  //   // const onMouseUp = event => {
+  //   //   document.removeEventListener("mouseup", onMouseUp);
+  //   //   this.selecting = false;
+  //   //   this.endSelection();
+  //   // }
+  //   //
+  //   // element.onmousedown = event => {
+  //   //   this.selecting = true;
+  //   //   this.startSelection({x: 0, y: 0, width:this.width, height:this.height});
+  //   //   document.addEventListener("mouseup", onMouseUp);
+  //   // }
+  //   //
+  //   // element.onmouseover = event => {
+  //   //   if (this.selecting && event.buttons === 1) {
+  //   //     this.growSelection({x: 0, y: 0, width:this .width, height:this.height});
+  //   //   }
+  //   // }
+  //
+  //   // element.onmousedown = event => {
+  //   //   event.preventDefault();
+  //   //   this.toggleSelection({x:0, y:0, width:this.elementsMap.width, height:this.elementsMap.height});
+  //   // }
+  //   //
+  //   // element.onmousemove = event => {
+  //   //   if (event.buttons === 1) {
+  //   //     this.growSelection({x: 0, y :0, width: this.elementsMap.width, height: this.elementsMap.height});
+  //   //   }
+  //   // }
+  // }
 
   // growSelection(r) {
   //   if (this.focusRect) {
@@ -584,56 +590,56 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
   //   }
   // }
 
-  selectIds(rect) {
-    const ids = [];
+  // selectIds(rect) {
+  //   const ids = [];
+  //
+  //   for (let i = 0; i < rect.height; i++) {
+  //     const index = (rect.y+i)*this.width;
+  //     const item = this.items[index];
+  //     if (item) {
+  //       ids.push(item.id);
+  //     }
+  //   }
+  //
+  //   const selectedIds = this.selectionBuffer.get() || [];
+  //
+  //   if (KarmaFieldsAlpha.DeepObject.differ(ids, selectedIds)) {
+  //     this.selectionBuffer.backup(ids);
+  //     this.selectionBuffer.set(ids);
+  //   }
+  //
+  //   // this.ta.value = ids.join("\n");
+  //   // this.ta.focus();
+  //   // this.ta.select();
+  //   // this.updateTA();
+  //
+  //   // return this.dispatch({action: "render"});
+  // }
 
-    for (let i = 0; i < rect.height; i++) {
-      const index = (rect.y+i)*this.width;
-      const item = this.items[index];
-      if (item) {
-        ids.push(item.id);
-      }
-    }
-
-    const selectedIds = this.selectionBuffer.get() || [];
-
-    if (KarmaFieldsAlpha.DeepObject.differ(ids, selectedIds)) {
-      this.selectionBuffer.backup(ids);
-      this.selectionBuffer.set(ids);
-    }
-
-    // this.ta.value = ids.join("\n");
-    // this.ta.focus();
-    // this.ta.select();
-    // this.updateTA();
-
-    // return this.dispatch({action: "render"});
-  }
-
-  async selectData(rect) {
-
-    if (rect && rect.width*rect.height > 1) {
-
-      const data = [];
-
-      for (let i = 0; i < rect.height; i++) {
-        const row = [];
-        for (let j = 0; j < rect.width; j++) {
-          const index = (rect.y+i)*this.width + rect.x + j;
-          const item = this.items[index];
-          const value = await item.field.exportValue();
-          row.push(value);
-        }
-        data.push(row);
-      }
-
-      this.dataTA.value = data.map(row => row.join("\t")).join("\n");
-      this.dataTA.focus();
-      this.dataTA.select();
-
-    }
-
-  }
+  // async selectData(rect) {
+  //
+  //   if (rect && rect.width*rect.height > 1) {
+  //
+  //     const data = [];
+  //
+  //     for (let i = 0; i < rect.height; i++) {
+  //       const row = [];
+  //       for (let j = 0; j < rect.width; j++) {
+  //         const index = (rect.y+i)*this.width + rect.x + j;
+  //         const item = this.items[index];
+  //         const value = await item.field.exportValue();
+  //         row.push(value);
+  //       }
+  //       data.push(row);
+  //     }
+  //
+  //     this.dataTA.value = data.map(row => row.join("\t")).join("\n");
+  //     this.dataTA.focus();
+  //     this.dataTA.select();
+  //
+  //   }
+  //
+  // }
 
 
   // async endSelection() {
@@ -669,30 +675,19 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
   refocus() {
 
-    // return;
+    // this.selectionManager.clearSelection();
 
-
-    // if (this.selection) {
-    //   this.unpaint(this.selection);
+    // if (this.selectionRect) {
+    //   this.unpaint(this.selectionRect);
     // }
     //
-    // this.selection = null;
-    // this.focusRect = null;
-
-    if (this.selectionRect) {
-      this.unpaint(this.selectionRect);
-    }
-
-    this.selectionRect = null;
-    this.startRect = null;
+    // this.selectionRect = null;
+    // this.startRect = null;
 
 
     if (KarmaFieldsAlpha.Nav.has("id")) {
-      // const ids = this.selectionBuffer.get() || [];
-      // this.ta.value = ids.join("\n");
       this.ta.focus();
       this.ta.select();
-      // this.updateTA();
     } else {
 
       const ids = this.selectionBuffer.get() || [];
@@ -700,11 +695,13 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       if (ids.length) {
         this.selectionBuffer.backup();
         this.selectionBuffer.remove();
-        this.dispatch({action: "render"});
+
       }
 
 
     }
+
+    this.dispatch({action: "render"});
 
 
   }
@@ -712,70 +709,70 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
 
 
-  paint(rect, className = "selected") {
-    // console.log("paint");
-    // console.time("paint");
-    // for (let j = rect.y; j < rect.y + rect.height; j++) {
-    //   const fullLine = rect.x === 0 && rect.width === this.elementsMap.width;
-    //   if (fullLine && this.indexMap[j]) {
-    //     this.indexMap[j].classList.add("active");
-    //   }
-    //   for (let i = rect.x; i < rect.x + rect.width; i++) {
-    //     let element = this.elementsMap.get(i, j);
-    //     if (element) {
-    //       element.classList.add("selected");
-    //       if (fullLine) {
-    //         element.classList.add("active");
-    //       }
-    //     }
-    //   }
-    // }
-    // console.timeEnd("paint");
-
-    for (let j = rect.y; j < rect.y + rect.height; j++) {
-      for (let i = rect.x; i < rect.x + rect.width; i++) {
-        let index = j*this.width + i;
-        let item = this.items[index];
-        if (item) {
-          item.element.classList.add(className);
-        }
-      }
-    }
-  }
-
-  unpaint(rect, className = "selected") {
-    // console.log("unpaint");
-    // console.time("unpaint");
-    // for (let j = rect.y; j < rect.y + rect.height; j++) {
-    //   const fullLine = rect.x === 0 && rect.width === this.elementsMap.width;
-    //
-    //   if (fullLine) {
-    //     if (this.indexMap[j]) {
-    //       this.indexMap[j].classList.remove("active");
-    //     }
-    //   }
-    //   for (let i = rect.x; i < rect.x + rect.width; i++) {
-    //     let element = this.elementsMap.get(i, j);
-    //     if (element) {
-    //       element.classList.remove("selected");
-    //       if (fullLine) {
-    //         element.classList.remove("active");
-    //       }
-    //     }
-    //   }
-    // }
-    // console.timeEnd("unpaint");
-
-    for (let j = rect.y; j < rect.y + rect.height; j++) {
-      for (let i = rect.x; i < rect.x + rect.width; i++) {
-        let index = j*this.width + i;
-        let item = this.items[index];
-        if (item) {
-          item.element.classList.remove(className);
-        }
-      }
-    }
-  }
+  // paint(rect, className = "selected") {
+  //   // console.log("paint");
+  //   // console.time("paint");
+  //   // for (let j = rect.y; j < rect.y + rect.height; j++) {
+  //   //   const fullLine = rect.x === 0 && rect.width === this.elementsMap.width;
+  //   //   if (fullLine && this.indexMap[j]) {
+  //   //     this.indexMap[j].classList.add("active");
+  //   //   }
+  //   //   for (let i = rect.x; i < rect.x + rect.width; i++) {
+  //   //     let element = this.elementsMap.get(i, j);
+  //   //     if (element) {
+  //   //       element.classList.add("selected");
+  //   //       if (fullLine) {
+  //   //         element.classList.add("active");
+  //   //       }
+  //   //     }
+  //   //   }
+  //   // }
+  //   // console.timeEnd("paint");
+  //
+  //   for (let j = rect.y; j < rect.y + rect.height; j++) {
+  //     for (let i = rect.x; i < rect.x + rect.width; i++) {
+  //       let index = j*this.width + i;
+  //       let item = this.items[index];
+  //       if (item) {
+  //         item.element.classList.add(className);
+  //       }
+  //     }
+  //   }
+  // }
+  //
+  // unpaint(rect, className = "selected") {
+  //   // console.log("unpaint");
+  //   // console.time("unpaint");
+  //   // for (let j = rect.y; j < rect.y + rect.height; j++) {
+  //   //   const fullLine = rect.x === 0 && rect.width === this.elementsMap.width;
+  //   //
+  //   //   if (fullLine) {
+  //   //     if (this.indexMap[j]) {
+  //   //       this.indexMap[j].classList.remove("active");
+  //   //     }
+  //   //   }
+  //   //   for (let i = rect.x; i < rect.x + rect.width; i++) {
+  //   //     let element = this.elementsMap.get(i, j);
+  //   //     if (element) {
+  //   //       element.classList.remove("selected");
+  //   //       if (fullLine) {
+  //   //         element.classList.remove("active");
+  //   //       }
+  //   //     }
+  //   //   }
+  //   // }
+  //   // console.timeEnd("unpaint");
+  //
+  //   for (let j = rect.y; j < rect.y + rect.height; j++) {
+  //     for (let i = rect.x; i < rect.x + rect.width; i++) {
+  //       let index = j*this.width + i;
+  //       let item = this.items[index];
+  //       if (item) {
+  //         item.element.classList.remove(className);
+  //       }
+  //     }
+  //   }
+  // }
 
   // throttle(callback, delay = 200) {
 	// 	if (this.throttleTimer) {
@@ -999,6 +996,50 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
           grid.element.classList.remove("ta-focus");
         }
 
+        this.selectionManager.onSelectionStart = (selectMode) => {
+          // grid.element.classList.toggle("selecting-ids", selectMode === "row");
+          // grid.element.classList.toggle("selecting-data", selectMode === "cell");
+        }
+
+        this.selectionManager.onSelect = (selectMode) => {
+          this.selectionManager.getSelectedElements().forEach(element => {
+            element.classList.toggle("selected-cell", selectMode === "cell");
+            element.classList.toggle("selected-row", selectMode === "row");
+          });
+        }
+
+        this.selectionManager.onUnselect = (selectMode) => {
+          this.selectionManager.getSelectedElements().forEach(element => {
+            element.classList.remove("selected-cell");
+            element.classList.remove("selected-row");
+          });
+        }
+
+        this.selectionManager.onSelectionComplete = async (selectMode) => {
+          if (selectMode === "row") {
+            const ids = this.selectionManager.getSelectedIds();
+            const selectedIds = this.selectionBuffer.get() || [];
+            if (KarmaFieldsAlpha.DeepObject.differ(ids, selectedIds)) {
+              this.selectionBuffer.backup(ids);
+              this.selectionBuffer.set(ids);
+            }
+            // if (field.openModal) {
+              const value = ids.join(",");
+              KarmaFieldsAlpha.Nav.backup(value, "id");
+              KarmaFieldsAlpha.Nav.set(value, "id");
+            // }
+            await this.dispatch({action: "render"});
+
+          } else {
+            if (this.selectionManager.countSelection() > 1) {
+              const data = await this.selectionManager.getSelectedData();
+              this.dataTA.value = data.map(row => row.join("\t")).join("\n");
+              this.dataTA.focus();
+              this.dataTA.select();
+            }
+          }
+        }
+
         // if (this.resource.style) {
         //   grid.element.style = this.resource.style;
         // } else if (this.resource.grid && this.resource.grid.style) {
@@ -1008,7 +1049,8 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       update: async grid => {
 
 
-        this.registerTable(grid.element);
+        // this.registerTable(grid.element);
+        this.selectionManager.reset();
 
         this.idIndex = new Map();
 
@@ -1047,7 +1089,8 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
                     }).build());
 
                   }
-                  this.registerHeader(th.element, colIndex, "data");
+                  // this.registerHeader(th.element, colIndex, "data");
+                  this.selectionManager.registerHeader(th.element, colIndex);
                 }
               }
             }),
@@ -1061,6 +1104,8 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
               });
 
               this.idIndex.set(id, offset + rowIndex + 1);
+
+
 
               const isSelected = selectedIds.includes(id);
 
@@ -1095,9 +1140,13 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
                       td.element.tabIndex = -1;
                     },
                     update: td => {
-                      td.element.classList.toggle("active", isSelected);
-                      td.element.classList.remove("selected");
-                      this.registerCell(td.element, colIndex, rowIndex, field, id, field.selectMode || "data");
+                      td.element.classList.remove("selected-cell");
+                      td.element.classList.remove("selected-row");
+                      td.element.classList.toggle("active-row", isSelected);
+                      // td.element.classList.remove("selected");
+                      // this.registerCell(td.element, colIndex, rowIndex, field, id, field.selectMode || "data");
+
+                      this.selectionManager.registerCell(td.element, colIndex, rowIndex, id, field, field.selectMode || "cell");
                     },
                     // child: field.build()
                     children: [
@@ -1301,7 +1350,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       constructor(...args) {
         super(...args);
 
-        this.selectMode = "ids";
+        this.selectMode = "row";
         this.openModal = true;
       }
 
@@ -1317,10 +1366,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       build() {
         return {
           tag: this.resource.tag,
-          class: "text karma-field",
-          init: node => {
-            node.element.style.cursor = "pointer";
-          },
+          class: "text karma-field modal-btn",
           update: async node => {
             node.element.innerHTML = await this.parse(this.resource.value || "");
           }

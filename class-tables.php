@@ -195,7 +195,11 @@ Class Karma_Fields_Alpha {
 				// wp_enqueue_script('karma-fields-utils-deepmap', $plugin_url . '/js/utils/deepmap.js', array(), $this->version, true);
 				// wp_enqueue_script('karma-fields-utils-buffermap', $plugin_url . '/js/utils/buffermap.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-selection-manager', $plugin_url . '/js/utils/selection-manager.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-clipboard', $plugin_url . '/js/utils/clipboard.js', array(), $this->version, true);
 
+
+				// external dependancies
+				wp_enqueue_script('papaparse', $plugin_url . '/js/vendor/papaparse.min.js', array(), $this->version, true);
 
 
 				wp_enqueue_script('karma-fields-alpha', $plugin_url . '/js/noop.js', array(

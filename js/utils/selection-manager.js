@@ -11,74 +11,140 @@ KarmaFieldsAlpha.SelectionManager = class {
 
   }
 
-  pickItems(rect) {
+  countSelection() {
+    return this.selection.width*this.selection.height;
+  }
 
-    const items = [];
-
-    for (let j = rect.y; j < rect.y + rect.height; j++) {
-      for (let i = rect.x; i < rect.x + rect.width; i++) {
-        let index = j*this.width + i;
-        if (this.items[index]) {
-          items.push(this.items[index]);
+  getSelectedElements() {
+    const elements = [];
+    if (this.selection) {
+      for (let j = 0; j < this.selection.height; j++) {
+        for (let i = 0; i < this.selection.width; i++) {
+          const index = (this.selection.y + j)*this.width + this.selection.x + i;
+          const item = this.items[index];
+          elements.push(item.element);
         }
       }
     }
-
-    return items;
+    return elements;
   }
 
-  pickIds(rect) {
-
-    const ids = [];
-
-    for (let j = rect.y; j < rect.y + rect.height; j++) {
-      rows.push(this.items[j].id);
+  async getSelectedData() {
+    const data = [];
+    if (this.selection) {
+      for (let j = 0; j < this.selection.height; j++) {
+        const row = [];
+        for (let i = 0; i < this.selection.width; i++) {
+          const index = (this.selection.y + j)*this.width + this.selection.x + i;
+          const item = this.items[index];
+          const value = await item.field.exportValue();
+          row.push(value);
+        }
+        data.push(row);
+      }
     }
-
-    return rows;
+    return data;
   }
 
+  getSelectedIds() {
+    const ids = [];
+    if (this.selection) {
+      for (let j = 0; j < this.selection.height; j++) {
+        const index = (this.selection.y + j)*this.width;
+        ids.push(this.items[index].id);
+      }
+    }
+    return ids;
+  }
 
-  updateSelection(rect) {
+  // pickItems(rect) {
+  //
+  //   const items = [];
+  //
+  //   for (let j = rect.y; j < rect.y + rect.height; j++) {
+  //     for (let i = rect.x; i < rect.x + rect.width; i++) {
+  //       let index = j*this.width + i;
+  //       if (this.items[index]) {
+  //         items.push(this.items[index]);
+  //       }
+  //     }
+  //   }
+  //
+  //   return items;
+  // }
+
+  // pickIds(rect) {
+  //
+  //   const ids = [];
+  //
+  //   for (let j = rect.y; j < rect.y + rect.height; j++) {
+  //     rows.push(this.items[j].id);
+  //   }
+  //
+  //   return rows;
+  // }
+
+
+  updateSelection(rect, selectMode) {
 
     let selection = KarmaFieldsAlpha.Rect.union(this.startRect, rect);
 
     if (!this.selection || !KarmaFieldsAlpha.Rect.equals(selection, this.selection)) {
 
       if (this.selection && this.onUnselect) {
-        this.onUnselect(this.pickItems(this.selection), this.selectMode);
-      }
-
-      if (this.onSelect) {
-        this.onSelect(this.pickItems(selection), this.selectMode);
+        this.onUnselect(selectMode);
       }
 
       this.selection = selection;
+
+      if (this.onSelect) {
+        this.onSelect(selectMode);
+      }
 
     }
 
   }
 
   completeSelection(selectMode) {
-    // if (this.onSelectedIds) {
-    //   this.onSelectedIds(this.pickIds(this.selection), selectMode);
-    // }
     if (this.onSelectionComplete) {
-      this.onSelectionComplete(this.pickCells(this.selection), this.pickIds(this.selection), selectMode);
+      this.onSelectionComplete(selectMode);
     }
   }
 
-  startSelection(selectMode) {
+  startSelection(rect, selectMode) {
     if (this.onSelectionStart) {
       this.onSelectionStart(selectMode);
     }
-    if (!this.startRect && !event.shiftKey) {
-      this.startRect = {x: col, y:0, width: 1, height: this.height};
+    if (!this.startRect || !event.shiftKey) {
+      this.startRect = rect;
     }
   }
 
 
-  registerCell(element, col, row, id, field, selectMode) {
+  clearSelection() {
+
+    if (this.selection && this.onUnselect) {
+      this.onUnselect(this.selectMode);
+    }
+
+    this.selection = null;
+    this.startRect = null;
+
+  }
+
+  reset() {
+
+    this.items = [];
+    this.headerItems = [];
+    this.width = 0;
+    this.height = 0;
+
+    this.selection = null;
+    this.startRect = null;
+
+  }
+
+  registerCell(element, col, row, id, field, selectMode, isSelected) {
 
     this.items.push({
       element: element,
@@ -95,7 +161,7 @@ KarmaFieldsAlpha.SelectionManager = class {
 
       if (event.buttons === 1) {
 
-        event.preventDefault(); // -> prevent focus lose on TA
+        // event.preventDefault(); // -> prevent focus lose on TA
 
         const onMouseMove = event => {
 
@@ -104,17 +170,13 @@ KarmaFieldsAlpha.SelectionManager = class {
           if (item) {
 
             if (selectMode === "cell") {
-              this.updateSelection({
-                x: item.x,
-                y: item.y,
-                width: 1,
-                height: 1});
+
+              this.updateSelection({x: item.x, y: item.y, width: 1, height: 1}, selectMode);
+
             } else if (selectMode === "row") {
-              this.updateSelection({
-                x: 0,
-                y: item.y,
-                width: this.width,
-                height: 1});
+
+              this.updateSelection({x: 0, y: item.y, width: this.width, height: 1}, selectMode);
+
             }
 
           }
@@ -131,7 +193,7 @@ KarmaFieldsAlpha.SelectionManager = class {
 
         }
 
-        this.startSelection(selectMode);
+        this.startSelection({x: col, y: row, width: 1, height: 1}, selectMode);
 
         onMouseMove(event);
 
@@ -154,11 +216,13 @@ KarmaFieldsAlpha.SelectionManager = class {
 
     this.width = Math.max(col+1, this.width);
 
+    const selectMode = "cell";
+
     element.onmousedown = event => {
 
       if (event.buttons === 1) {
 
-        event.preventDefault(); // -> prevent focus lose...
+        // event.preventDefault(); // -> prevent focus lose...
 
         const onMouseMove = event => {
           const headerItem = this.headerItems.find(item => KarmaFieldsAlpha.Rect.contains(item.element.getBoundingClientRect(), event.clientX, event.clientY));
@@ -167,7 +231,7 @@ KarmaFieldsAlpha.SelectionManager = class {
               x: headerItem.x,
               y: 0,
               width: 1,
-              height: this.height});
+              height: this.height}, selectMode);
           }
         }
 
@@ -177,11 +241,11 @@ KarmaFieldsAlpha.SelectionManager = class {
 
           onMouseMove(event);
 
-          this.completeSelection("col");
+          this.completeSelection(selectMode);
 
         }
 
-        this.startSelection("col");
+        this.startSelection({x: col, y:0, width: 1, height: this.height}, selectMode);
 
         onMouseMove(event);
 

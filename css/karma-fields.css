@@ -619,33 +619,44 @@ body.karma-table-open {
 
 /* .karma-fields .table .td:focus-within, */
 
-.karma-fields .table .td.active:not(.selected),
+/* .karma-fields .table .td.active:not(.selected),
 .karma-fields .table .th.active {
   background-color: #484848;
-  /* background-color: #737373; */
   color: #f1f1f1;
 
-}
-.karma-fields .table:not(.ta-focus) .td.active {
-  background-color: #c3c4c7;
-}
-.karma-fields .table.selecting-data .td.selected {
+} */
+
+/* .karma-fields .table .td.selected-cell {
   background-color: white;
 }
-.karma-fields .table.selecting-ids .td.selected {
+.karma-fields .table .td.selected-row:not(.selected-cell),
+.karma-fields .table .td.active-row:not(.selected-cell) {
   background-color: #484848;
   color: #f1f1f1;
 }
+.karma-fields .table:not(.ta-focus) .td.active-row:not(.selected-cell,.selected-row) {
+  background-color: #c3c4c7;
+} */
 
-.karma-fields .table .th.selected {
-  /* background-color: #ddd; */
-  /* background-color: #1d2327; */
-  /* color: #f0f0f1; */
+
+.karma-fields .table .td.active-row {
+  background-color: #c3c4c7;
+}
+.karma-fields .table .td.selected-row,
+.karma-fields .table.ta-focus .td.active-row {
+  background-color: #484848;
+  color: #f1f1f1;
+}
+.karma-fields .table .td.selected-cell {
+  background-color: white;
 }
 
-/* .karma-fields ::selection {
-  background-color: white;
-} */
+.karma-fields .table .td .modal-btn {
+  cursor: cell;
+}
+.karma-fields .table.ta-focus .td.active-row .modal-btn {
+  cursor: pointer;
+}
 
 
 
