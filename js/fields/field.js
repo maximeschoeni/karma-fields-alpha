@@ -334,9 +334,9 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   return this.get(0);
   // }
   //
-  // async importValue(value) {
-  //   await this.set(value, 0);
-  // }
+  async importValue(value) {
+    // noop
+  }
 
 
 

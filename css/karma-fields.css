@@ -643,7 +643,7 @@ body.karma-table-open {
   background-color: #c3c4c7;
 }
 .karma-fields .table .td.selected-row,
-.karma-fields .table.ta-focus .td.active-row {
+.karma-fields .table.ta-focus:not(.select-mode-cell) .td.active-row:not(.selected-cell) {
   background-color: #484848;
   color: #f1f1f1;
 }

@@ -8,23 +8,33 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 	}
 
 	async importValue(value) {
-		const event = this.createEvent();
-		event.action = "set";
-		event.type = "string";
-		event.autosave = this.resource.autosave;
-		event.setValue(value);
+		// const event = this.createEvent();
+		// event.action = "set";
+		// event.type = "string";
+		// event.autosave = this.resource.autosave;
+		// event.setValue(value);
+		//
+		// await this.dispatch(event);
 
-		await this.dispatch(event);
+		await this.dispatch({
+			action: "set",
+			type: "string",
+			data: KarmaFieldsAlpha.Type.toArray(value)
+		});
 	}
 
 	async exportValue() {
-		const event = this.createEvent();
-		event.action = "get";
-		event.type = "string";
+		// const event = this.createEvent();
+		// event.action = "get";
+		// event.type = "string";
+		//
+		// await this.dispatch(event);
+		//
+		// return event.getValue();
 
-		await this.dispatch(event);
-
-		return event.getValue();
+		return this.dispatch({
+			action: "get"
+		}).then(request => KarmaFieldsAlpha.Type.toString(request.data));
 	}
 
 

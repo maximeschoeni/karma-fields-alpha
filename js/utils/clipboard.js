@@ -21,7 +21,8 @@ KarmaFieldsAlpha.Clipboard = class {
         case "insertFromPaste": {
 
           if (this.onInput) {
-            this.onInput(this.parse(this.ta.value)); // -> to dataArray
+            const dataArray = this.prepare(this.ta.value);
+            this.onInput(dataArray)
           }
 
           break;
@@ -35,6 +36,10 @@ KarmaFieldsAlpha.Clipboard = class {
 
     }
 
+  }
+
+  static getTA() {
+    return this.ta;
   }
 
   static parse(string) {
@@ -65,13 +70,24 @@ KarmaFieldsAlpha.Clipboard = class {
     return [];
   }
 
-  static set(data) {
+  static setData(dataArray) {
+    const value = this.unparse(dataArray);
+    this.set(value);
+  }
 
-    this.ta.value = this.unparse(data);
+  static setJson(data) {
+    const dataArray = this.toDataArray(data);
+    this.setData(dataArray);
+  }
 
+  static set(value) {
+    this.ta.value = value;
     this.ta.focus();
     this.ta.select();
+  }
 
+  static prepare(string) {
+    return this.parse(string);
   }
 
   static {
