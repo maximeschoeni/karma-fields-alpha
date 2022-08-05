@@ -372,7 +372,7 @@ KarmaFieldsAlpha.Expression = class {
     return KarmaFieldsAlpha.Type.toBoolean(request.data);
   }
 
-  static async dispatch(field, action, params = {}, type = "string") {
+  static async dispatch(field, action, type = "string", params = {}) {
     action = await this.resolve(field, action);
     params = await this.resolve(field, params);
 

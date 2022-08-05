@@ -1,5 +1,11 @@
 KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
+	constructor(...args) {
+		super(...args);
+
+		// console.log("create input", this.resource);
+	}
+
 	getDefault() {
 		if (this.resource.default === null) {
 			return null; // -> no default

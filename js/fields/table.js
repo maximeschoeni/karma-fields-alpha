@@ -1396,6 +1396,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
   static modal = class extends KarmaFieldsAlpha.fields.field {
 
+    constructor(resource) {
+      super(resource);
+    }
+
     build() {
 
       return {
@@ -1451,7 +1455,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
                 //   body.children = [];
                 // }
 
-                body.child = this.createChild(this.resource.body || "group").build();
+                body.child = this.createChild({
+                  id: "body",
+                  ...this.resource.body
+                }).build();
               }
 
 

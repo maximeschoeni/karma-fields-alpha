@@ -7,14 +7,14 @@ KarmaFieldsAlpha.Segment = class {
 	// 	this.height = height || 1;
 	// }
 
-	static create(indexes) {
-		let index = Math.min(...indexes);
-		let length = Math.max(...indexes) - index;
-    return {
-			index: index,
-			length: length
-		};
-	}
+	// static create(indexes) {
+	// 	let index = Math.min(...indexes);
+	// 	let length = Math.max(...indexes) - index;
+  //   return {
+	// 		index: index,
+	// 		length: length
+	// 	};
+	// }
 
 	static union(s1, s2) {
 		let index = Math.min(s1.index, s2.index);

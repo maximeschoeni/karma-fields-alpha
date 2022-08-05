@@ -55,27 +55,38 @@ KarmaFieldsAlpha.fields.field = class Field {
     return this.createChild(idOrResource);
   }
 
+  sanitizeResource(resource) {
+    if (typeof resource === "string") {
+      resource = {
+        type: resource
+      };
+    }
+    if (!resource.id) {
+      resource.id = resource.key || resource.type;
+    }
+    return resource;
+  }
+
   createField(resource = {}) {
 
 
 
-
-
-    // if (typeof resource === "string" && this.constructor[resource]) {
-    //   return new this.constructor[resource]({
+    // if (typeof resource === "string") {
+    //   // if (typeof this.constructor[resource] === "function" ) {
+    //   //   return new this.constructor[resource]({
+    //   //     id: resource
+    //   //   });
+    //   // } else if (typeof this.constructor[resource] === "object") {
+    //   //   return this.createField(this.constructor[resource]);
+    //   // }
+    //
+    //   resource = {
+    //     type: resource,
     //     id: resource
-    //   });
+    //   };
     // }
 
-    if (typeof resource === "string") {
-      if (typeof this.constructor[resource] === "function" ) {
-        return new this.constructor[resource]({
-          id: resource
-        });
-      } else if (typeof this.constructor[resource] === "object") {
-        return this.createField(this.constructor[resource]);
-      }
-    }
+    resource = this.sanitizeResource(resource);
 
 
 

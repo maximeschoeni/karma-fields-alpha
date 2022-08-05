@@ -312,6 +312,10 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 					group.children = (this.resource.children || []).map((child, index) => {
 
+						child = this.sanitizeResource(child);
+
+						child.id = child.id || index.toString();
+
 						const field = this.createChild(child);
 
 						return {

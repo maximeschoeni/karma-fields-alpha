@@ -2,13 +2,14 @@
 
 KarmaFieldsAlpha.Clipboard = class {
 
-
-  static build() {
+  constructor() {
 
     this.ta = document.createElement("textarea");
-    document.body.appendChild(this.ta);
-    this.ta.className = "karma-fields-ta";
-    this.ta.style = "position:fixed;bottom:0;left:200px;z-index:999999999";
+
+    // document.body.appendChild(this.ta);
+    this.constructor.container.appendChild(this.ta);
+    // this.ta.className = "karma-fields-ta";
+    // this.ta.style = "position:fixed;bottom:0;left:200px;z-index:999999999";
 
     this.ta.oninput = async event => {
 
@@ -38,9 +39,71 @@ KarmaFieldsAlpha.Clipboard = class {
 
   }
 
-  static getTA() {
-    return this.ta;
+  setData(dataArray) {
+    const value = this.constructor.unparse(dataArray);
+    this.set(value);
   }
+
+  setJson(data) {
+    const dataArray = this.constructor.toDataArray(data);
+    this.setData(dataArray);
+  }
+
+  set(value) {
+    this.ta.value = value;
+    this.ta.focus();
+    this.ta.select();
+  }
+
+  prepare(string) {
+    return this.constructor.parse(string);
+  }
+
+
+  static build() {
+
+    this.container = document.createElement("div");
+    document.body.appendChild(this.container);
+    this.container.className = "karma-fields-clipboard";
+    this.container.style = "position:fixed;bottom:0;left:0;z-index:999999999";
+
+
+    // this.ta = document.createElement("textarea");
+    // document.body.appendChild(this.ta);
+    // this.ta.className = "karma-fields-ta";
+    // this.ta.style = "position:fixed;bottom:0;left:200px;z-index:999999999";
+    //
+    // this.ta.oninput = async event => {
+    //
+    //   switch (event.inputType) {
+    //
+    //     case "deleteByCut":
+    //     case "deleteContentBackward":
+    //     case "deleteContentForward":
+    //     case "deleteContent":
+    //     case "insertFromPaste": {
+    //
+    //       if (this.onInput) {
+    //         const dataArray = this.prepare(this.ta.value);
+    //         this.onInput(dataArray)
+    //       }
+    //
+    //       break;
+    //     }
+    //
+    //     default: {
+    //       break;
+    //     }
+    //
+    //   }
+    //
+    // }
+
+  }
+
+  // static getTA() {
+  //   return this.ta;
+  // }
 
   static parse(string) {
     return Papa.parse(string, {
@@ -70,25 +133,25 @@ KarmaFieldsAlpha.Clipboard = class {
     return [];
   }
 
-  static setData(dataArray) {
-    const value = this.unparse(dataArray);
-    this.set(value);
-  }
-
-  static setJson(data) {
-    const dataArray = this.toDataArray(data);
-    this.setData(dataArray);
-  }
-
-  static set(value) {
-    this.ta.value = value;
-    this.ta.focus();
-    this.ta.select();
-  }
-
-  static prepare(string) {
-    return this.parse(string);
-  }
+  // static setData(dataArray) {
+  //   const value = this.unparse(dataArray);
+  //   this.set(value);
+  // }
+  //
+  // static setJson(data) {
+  //   const dataArray = this.toDataArray(data);
+  //   this.setData(dataArray);
+  // }
+  //
+  // static set(value) {
+  //   this.ta.value = value;
+  //   this.ta.focus();
+  //   this.ta.select();
+  // }
+  //
+  // static prepare(string) {
+  //   return this.parse(string);
+  // }
 
   static {
     this.build();

@@ -1,5 +1,4 @@
 
-
 KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.field {
 
   constructor(...args) {
@@ -11,9 +10,12 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
     // this.fieldsMap = new KarmaFieldsAlpha.Grid();
     // this.indexMap = {};
 
-    this.selectionManager = new KarmaFieldsAlpha.SelectionManager();
+    // this.selectionManager = new KarmaFieldsAlpha.SelectionManager();
 
+    this.cellSelector = new KarmaFieldsAlpha.CellSelector();
+    this.idSelector = new KarmaFieldsAlpha.IdSelector();
 
+    this.clipboard = new KarmaFieldsAlpha.Clipboard();
 
 
 
@@ -1031,62 +1033,114 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
       class: "table grid",
       init: async grid => {
 
-        // this.grid.render = grid.render;
-
         if (this.resource.style) {
           grid.element.style = this.resource.style;
         }
 
-        this.selectionManager.onSelectionStart = (selectMode) => {
-          grid.element.classList.toggle("select-mode-row", selectMode === "row");
-          grid.element.classList.toggle("select-mode-cell", selectMode === "cell");
-        }
+        // this.selectionManager.onSelectionStart = (selectMode) => {
+        //   grid.element.classList.toggle("select-mode-row", selectMode === "row");
+        //   grid.element.classList.toggle("select-mode-cell", selectMode === "cell");
+        // }
+        //
+        // this.selectionManager.onSelect = (selectMode) => {
+        //   this.selectionManager.getSelectedElements().forEach(element => {
+        //     element.classList.toggle("selected-cell", selectMode === "cell");
+        //     element.classList.toggle("selected-row", selectMode === "row");
+        //   });
+        // }
+        //
+        // this.selectionManager.onUnselect = (selectMode) => {
+        //   this.selectionManager.getSelectedElements().forEach(element => {
+        //     element.classList.remove("selected-cell");
+        //     element.classList.remove("selected-row");
+        //   });
+        // }
+        //
+        // this.selectionManager.onSelectionComplete = async (selectMode) => {
+        //   if (selectMode === "row") {
+        //     const ids = this.selectionManager.getSelectedIds();
+        //     const selectedIds = this.selectionBuffer.get() || [];
+        //     if (KarmaFieldsAlpha.DeepObject.differ(ids, selectedIds)) {
+        //       this.selectionBuffer.backup(ids);
+        //       this.selectionBuffer.set(ids);
+        //     }
+        //     // if (field.openModal) {
+        //       const value = ids.join(",");
+        //       KarmaFieldsAlpha.Nav.backup(value, "id");
+        //       KarmaFieldsAlpha.Nav.set(value, "id");
+        //     // }
+        //     await this.dispatch({action: "render"});
+        //
+        //   } else {
+        //     if (this.selectionManager.countSelection() > 1) {
+        //       const dataArray = await this.selectionManager.getSelectedData();
+        //       KarmaFieldsAlpha.Clipboard.setData(dataArray);
+        //       // this.dataTA.value =
+        //       // this.dataTA.focus();
+        //       // this.dataTA.select();
+        //     }
+        //   }
+        // }
 
-        this.selectionManager.onSelect = (selectMode) => {
-          this.selectionManager.getSelectedElements().forEach(element => {
-            element.classList.toggle("selected-cell", selectMode === "cell");
-            element.classList.toggle("selected-row", selectMode === "row");
+
+        this.cellSelector.onSelectionStart = () => {
+          grid.element.classList.remove("select-mode-row");
+          grid.element.classList.add("select-mode-cell");
+          this.selectMode === "cell";
+        }
+        this.cellSelector.onSelect = manager => {
+          manager.getSelectedItems().forEach(item => {
+            item.element.classList.add("selected-cell");
           });
         }
-
-        this.selectionManager.onUnselect = (selectMode) => {
-          this.selectionManager.getSelectedElements().forEach(element => {
-            element.classList.remove("selected-cell");
-            element.classList.remove("selected-row");
+        this.cellSelector.onUnselect = manager => {
+          manager.getSelectedItems().forEach(item => {
+            item.element.classList.remove("selected-cell");
           });
         }
+        this.cellSelector.onSelectionComplete = async manager => {
+          if (manager.countSelection() > 1) {
+            const dataArray = await manager.getSelectedData();
+            // KarmaFieldsAlpha.Clipboard.setData(dataArray);
 
-        this.selectionManager.onSelectionComplete = async (selectMode) => {
-          if (selectMode === "row") {
-            const ids = this.selectionManager.getSelectedIds();
-            const selectedIds = this.selectionBuffer.get() || [];
-            if (KarmaFieldsAlpha.DeepObject.differ(ids, selectedIds)) {
-              this.selectionBuffer.backup(ids);
-              this.selectionBuffer.set(ids);
-            }
-            // if (field.openModal) {
-              const value = ids.join(",");
-              KarmaFieldsAlpha.Nav.backup(value, "id");
-              KarmaFieldsAlpha.Nav.set(value, "id");
-            // }
-            await this.dispatch({action: "render"});
-
-          } else {
-            if (this.selectionManager.countSelection() > 1) {
-              const dataArray = await this.selectionManager.getSelectedData();
-              KarmaFieldsAlpha.Clipboard.setData(dataArray);
-              // this.dataTA.value =
-              // this.dataTA.focus();
-              // this.dataTA.select();
-            }
+            this.clipboard.setData(dataArray);
           }
         }
 
-        // if (this.resource.style) {
-        //   grid.element.style = this.resource.style;
-        // } else if (this.resource.grid && this.resource.grid.style) {
-        //   grid.element.style = this.resource.grid.style;
-        // }
+        this.idSelector.onSelectionStart = () => {
+          grid.element.classList.add("select-mode-row");
+          grid.element.classList.remove("select-mode-cell");
+          this.selectMode === "id";
+        }
+        this.idSelector.onSelect = manager => {
+          manager.getSelectedItems().forEach(item => {
+            item.elements.forEach(element => {
+              element.classList.add("selected-row");
+            });
+          });
+        }
+        this.idSelector.onUnselect = manager => {
+          manager.getSelectedItems().forEach(item => {
+            item.elements.forEach(element => {
+              element.classList.remove("selected-row");
+            });
+          });
+        }
+        this.idSelector.onSelectionComplete = async manager => {
+          const ids = manager.getSelectedItems().map(item => item.id);
+          const selectedIds = this.selectionBuffer.get() || [];
+          if (KarmaFieldsAlpha.DeepObject.differ(ids, selectedIds)) {
+            this.selectionBuffer.backup(ids);
+            this.selectionBuffer.set(ids);
+          }
+          // if (field.openModal) {
+            const value = ids.join(",");
+            KarmaFieldsAlpha.Nav.backup(value, "id");
+            KarmaFieldsAlpha.Nav.set(value, "id");
+          // }
+          await this.dispatch({action: "render"});
+        }
+
       },
       update: async grid => {
 
@@ -1095,15 +1149,17 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
 
         // this.registerTable(grid.element);
-        this.selectionManager.reset();
+        this.cellSelector.reset();
+        this.idSelector.reset();
 
-        KarmaFieldsAlpha.Clipboard.onInput = dataArray => {
-          if (this.selectionManager.selectMode === "cell") {
+        // KarmaFieldsAlpha.Clipboard.onInput = dataArray => {
+        this.clipboard.onInput = dataArray => {
+          if (this.selectMode === "cell") {
             this.selectionManager.setData(dataArray);
             this.dispatch({
               action: "render"
             });
-          } else if (this.selectionManager.selectMode === "row") {
+          } else if (this.selectMode === "id") {
             const data = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
             this.dispatch({
               action: "write",
@@ -1112,12 +1168,12 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
           }
         }
 
-        KarmaFieldsAlpha.Clipboard.getTA().onfocus = event => {
-          // if (this.selectionManager.selectMode !== "cell") {
-            grid.element.classList.add("ta-focus");
-          // }
+        // KarmaFieldsAlpha.Clipboard.ta.onfocus = event => {
+        this.clipboard.ta.onfocus = event => {
+          grid.element.classList.add("ta-focus");
         }
-        KarmaFieldsAlpha.Clipboard.getTA().onblur = event => {
+        // KarmaFieldsAlpha.Clipboard.ta.onblur = event => {
+        this.clipboard.ta.onblur = event => {
           grid.element.classList.remove("ta-focus");
         }
 
@@ -1159,7 +1215,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
                   }
                   // this.registerHeader(th.element, colIndex, "data");
-                  this.selectionManager.registerHeader(th.element, colIndex);
+                  this.cellSelector.registerHeader(th.element, colIndex);
                 }
               }
             }),
@@ -1174,6 +1230,7 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
               this.idIndex.set(id, offset + rowIndex + 1);
 
+              const selectorItem = this.idSelector.registerItem(id, rowIndex);
 
 
               const isSelected = selectedIds.includes(id);
@@ -1215,7 +1272,13 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
                       // td.element.classList.remove("selected");
                       // this.registerCell(td.element, colIndex, rowIndex, field, id, field.selectMode || "data");
 
-                      this.selectionManager.registerCell(td.element, colIndex, rowIndex, id, field, field.selectMode || "cell");
+                      // this.selectionManager.registerCell(td.element, colIndex, rowIndex, id, field, field.selectMode || "cell");
+
+                      this.cellSelector.registerCell(td.element, colIndex, rowIndex, field, field.selectMode !== "row");
+                      this.idSelector.registerCell(rowIndex, td.element, field.selectMode === "row");
+
+
+
                     },
                     // child: field.build()
                     children: [
@@ -1249,7 +1312,8 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
         const request = await this.dispatch({
           action: "rows"
         });
-        KarmaFieldsAlpha.Clipboard.setJson(request.data);
+        // KarmaFieldsAlpha.Clipboard.setJson(request.data);
+        this.clipboard.setJson(request.data);
 
         // this.updateTA();
         //
