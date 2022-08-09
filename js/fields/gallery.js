@@ -593,7 +593,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
           action: "get",
         });
 
-        console.log(request);
+        // console.log(request.manifold);
 
         const ids = KarmaFieldsAlpha.Type.toArray(request.data);
 

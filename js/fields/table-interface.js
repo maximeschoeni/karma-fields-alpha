@@ -691,13 +691,17 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
 
     // this.selectionManager.selectMode = null;
 
-    if (KarmaFieldsAlpha.Nav.has("id")) {
+    // console.log(this.parent.parent);
 
-      // const ta = KarmaFieldsAlpha.Clipboard.getTA();
-      // ta.focus();
-      // ta.select();
+    // if (KarmaFieldsAlpha.Nav.has("id")) {
+    //
+    //   // const ta = KarmaFieldsAlpha.Clipboard.getTA();
+    //   // ta.focus();
+    //   // ta.select();
+    //
+    // } else {
 
-    } else {
+    if (this.parent.parent.resource.modal) { // = table.resource
 
       const ids = this.selectionBuffer.get() || [];
 
@@ -1130,13 +1134,14 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
           const ids = manager.getSelectedItems().map(item => item.id);
           const selectedIds = this.selectionBuffer.get() || [];
           if (KarmaFieldsAlpha.DeepObject.differ(ids, selectedIds)) {
+            KarmaFieldsAlpha.History.save();
             this.selectionBuffer.backup(ids);
             this.selectionBuffer.set(ids);
           }
           // if (field.openModal) {
-            const value = ids.join(",");
-            KarmaFieldsAlpha.Nav.backup(value, "id");
-            KarmaFieldsAlpha.Nav.set(value, "id");
+            // const value = ids.join(",");
+            // KarmaFieldsAlpha.Nav.backup(value, "id");
+            // KarmaFieldsAlpha.Nav.set(value, "id");
           // }
           await this.dispatch({action: "render"});
         }

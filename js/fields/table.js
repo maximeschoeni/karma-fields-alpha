@@ -1231,8 +1231,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
         const idSelection = this.interface.selectionBuffer.get() || [];
 
-        // const singleOpen = Boolean(this.modal) && idSelection.length > 0;
-        const singleOpen = KarmaFieldsAlpha.Nav.has("id");
+        const singleOpen = Boolean(this.resource.modal) && idSelection.length > 0;
+        // const singleOpen = KarmaFieldsAlpha.Nav.has("id");
 
         // if (active) {
 
