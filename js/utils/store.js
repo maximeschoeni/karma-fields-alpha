@@ -17,6 +17,7 @@ KarmaFieldsAlpha.Store = class {
   empty() {
     // this.constructor.cache[this.driver] = {};
     this.cache.remove();
+    this.buffer.remove();
   }
 
   // get(context, key) {

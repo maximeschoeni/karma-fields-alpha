@@ -71,7 +71,7 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
   render() {
 
-    const gap = this.gap || 1;
+    const gap = 1;
 
     let y = gap;
     let x = gap;
@@ -260,16 +260,14 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
       }
 
       const scroll = event => {
-        // this.scrollDiffY = this.scrollContainer.scrollTop - this.scrollTop;
-        if (event.target.contains(this.element)) {
-          this.drag();
-        }
+        this.scrollDiffY = this.scrollContainer.scrollTop - this.scrollTop;
+        this.drag();
       }
 
       const mouseup = event => {
         window.removeEventListener("mousemove", mousemove);
         window.removeEventListener("mouseup", mouseup);
-        window.removeEventListener("scroll", scroll, true);
+        window.removeEventListener("scroll", scroll);
         this.drop();
       }
 
@@ -277,7 +275,7 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
       window.addEventListener("mousemove", mousemove);
       window.addEventListener("mouseup", mouseup);
-      window.addEventListener("scroll", scroll, true);
+      window.addEventListener("scroll", scroll);
 
     } else {
 
@@ -287,23 +285,23 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
   }
 
-  // splice(index, length, target) {
-  //
-  //   const items = this.items.splice(index, length);
-  //   this.items.splice(target - length + 1, 0, ...items);
-  //
-  //   // const min = Math.min(index, target);
-  //   // const max = Math.min(index, target);
-  //   //
-  //   // for (let i = min; i < max; i++) {
-  //   //   this.items[i].elements.forEach(element => {
-  //   //     element.style.order = i;
-  //   //   });
-  //   //   this.items[i]
-  //   // }
-  //
-  //   this.render();
-  // }
+  splice(index, length, target) {
+
+    const items = this.items.splice(index, length);
+    this.items.splice(target - length + 1, 0, ...items);
+
+    // const min = Math.min(index, target);
+    // const max = Math.min(index, target);
+    //
+    // for (let i = min; i < max; i++) {
+    //   this.items[i].elements.forEach(element => {
+    //     element.style.order = i;
+    //   });
+    //   this.items[i]
+    // }
+
+    this.render();
+  }
 
   swap(index, length, target) {
 
@@ -380,30 +378,22 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
   startDrag(index, pointerX, pointerY) {
 
-    // const index = this.getIndex(item.x, item.y);
+    console.log(this.items);
 
-    this.mouseX = pointerX;
-    this.mouseY = pointerY;
+    // const index = this.getIndex(item.x, item.y);
 
     this.currentRect = this.getRect({index: index, length:1});
 
-
-
-    // this.mouseX = pointerX - box.left;
-    // this.mouseY = pointerY - box.top;
-
-
     const box = this.element.getBoundingClientRect();
 
-    // this.offsetX = this.mouseX - box.left - this.currentRect.x;
-    // this.offsetY = this.mouseY - box.top - this.currentRect.y;
+    this.mouseX = pointerX - box.left;
+    this.mouseY = pointerY - box.top;
 
-    this.offsetX = this.mouseX - box.left - this.items[index].box.x;
-    this.offsetY = this.mouseY - box.top - this.items[index].box.y;
+    this.offsetX = this.mouseX - this.currentRect.x;
+    this.offsetY = this.mouseY - this.currentRect.y;
 
-
-    // this.originX = this.mouseX;
-    // this.originY = this.mouseY;
+    this.originX = this.mouseX;
+    this.originY = this.mouseY;
 
 
     // this.pointerX = pointerX;
@@ -440,8 +430,6 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
         cell.element.classList.add("drag");
       });
     });
-
-    this.element.classList.add("dragging");
   }
 
   // isBefore() {
@@ -515,24 +503,21 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
   drag(pointerX = -1, pointerY = -1) {
 
-
     const Rect = KarmaFieldsAlpha.Rect;
 
     if (pointerX > -1 && pointerY > -1) {
       // this.mouseX = pointerX;
       // this.mouseY = pointerY;
 
+      const box = this.element.getBoundingClientRect();
 
-
-      this.mouseX = pointerX;
-      this.mouseY = pointerY;
+      this.mouseX = pointerX - box.left;
+      this.mouseY = pointerY - box.top;
 
     }
 
-    const box = this.element.getBoundingClientRect();
-
-    const deltaX = this.mouseX - box.left;
-    const deltaY = this.mouseY - box.top;
+    // let diffX = this.getDiffX();
+    // let diffY = this.getDiffY();
 
 
     const first = this.selection.index;
@@ -567,8 +552,8 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
     // const currentRectOffset = Rect.offset(currentRect, this.mouseX - this.offsetX, this.mouseY - this.offsetY);
 
     const currentRectOffset = {
-      x: deltaX - this.offsetX,
-      y: deltaY - this.offsetY,
+      x: this.mouseX - this.offsetX,
+      y: this.mouseY - this.offsetY,
       width: this.items[current].box.width,
       height: this.items[current].box.height
     };
@@ -637,7 +622,7 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
 
 
-    if (first > 0 && KarmaFieldsAlpha.Rect.isBefore(currentRectOffset, {
+    if (first > 1 && KarmaFieldsAlpha.Rect.isBefore(currentRectOffset, {
       x: this.items[prev].box.x + this.items[prev].box.width - this.items[before].box.width,
       y: this.items[prev].box.y + this.items[prev].box.height - this.items[before].box.height,
       width: this.items[before].box.width,
@@ -659,14 +644,14 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
     }
 
-    let offsetX = deltaX - this.offsetX - this.items[this.selection.index + this.indexOffset].box.x;
-    let offsetY = deltaY - this.offsetY - this.items[this.selection.index + this.indexOffset].box.y;
+    let deltaX = this.mouseX - this.offsetX - this.items[this.selection.index + this.indexOffset].box.x;
+    let deltaY = this.mouseY - this.offsetY - this.items[this.selection.index + this.indexOffset].box.y;
 
 
     this.getSelectedItems().forEach(item => {
       item.cells.forEach(cell => {
         // cell.element.style.transform = "translate("+currentRectOffset.x+"px, "+currentRectOffset.y+"px)";
-        cell.element.style.transform = `translate(${cell.box.x + offsetX}px, ${cell.box.y + offsetY}px)`;
+        cell.element.style.transform = `translate(${cell.box.x + deltaX}px, ${cell.box.y + deltaY}px)`;
         // element.style.transform = "translate("+(this.mouseX - this.mouseOffsetX)+"px, "+(this.mouseY - this.mouseOffsetY)+"px)";
       });
     });
@@ -680,18 +665,14 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
       this.getSelectedItems().forEach(item => {
         item.cells.forEach(cell => {
           cell.element.classList.remove("drag");
-          // cell.element.style.transform = "none";
+          cell.element.style.transform = "none";
           // element.classList.remove("grabbing");
         });
       });
 
-      this.element.classList.remove("dragging");
-
-      this.render();
-
-      // this.items[this.index + this.indexOffset].cells.forEach(cell => {
-      //   cell.element.classList.remove("grabbing");
-      // });
+      this.items[this.index + this.indexOffset].cells.forEach(cell => {
+        cell.element.classList.remove("grabbing");
+      });
 
 
       // this.container.classList.remove("dragging");
@@ -701,27 +682,15 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
       if (this.index !== this.selection.index && this.onSwap) {
 
+        const min = Math.min(this.index, this.selection.index);
+        const max = Math.max(this.index + this.selection.length, this.selection.index + this.selection.length);
 
+        const items = this.getItems({
+          index: min,
+          length: max
+        });
 
-
-        // console.log(this.index, this.selection.length, this.selection.index);
-        //
-        // const min = Math.min(this.index, this.selection.index);
-        // const max = Math.max(this.index + this.selection.length, this.selection.index + this.selection.length);
-        //
-        // const items = this.getItems({
-        //   index: min,
-        //   length: max
-        // });
-        //
-        // this.onSwap(items);
-
-        const ids = this.items.map(item => item.id);
-
-        this.onSwap(ids, this.selection);
-
-
-        this.clearSelection();
+        this.onSwap(items);
 
       }
 

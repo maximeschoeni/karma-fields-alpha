@@ -26,7 +26,7 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 				if (this.resource.primary) {
 					button.element.classList.add("primary");
 				}
-				button.element.title = this.resource.title || "";
+				// button.element.title = this.resource.title || "";
 
 				if (this.resource.active || this.resource.disabled) {
 					// this.setEventListener(event => button.render());

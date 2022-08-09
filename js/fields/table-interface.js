@@ -1114,15 +1114,15 @@ KarmaFieldsAlpha.fields.table.interface = class extends KarmaFieldsAlpha.fields.
         }
         this.idSelector.onSelect = manager => {
           manager.getSelectedItems().forEach(item => {
-            item.elements.forEach(element => {
-              element.classList.add("selected-row");
+            item.cells.forEach(cell => {
+              cell.element.classList.add("selected-row");
             });
           });
         }
         this.idSelector.onUnselect = manager => {
           manager.getSelectedItems().forEach(item => {
-            item.elements.forEach(element => {
-              element.classList.remove("selected-row");
+            item.cells.forEach(cell => {
+              cell.element.classList.remove("selected-row");
             });
           });
         }

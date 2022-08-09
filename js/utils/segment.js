@@ -29,6 +29,10 @@ KarmaFieldsAlpha.Segment = class {
 		return s1.index === s2.index && s1.length === s2.length;
 	}
 
+	static contains(segment, index) {
+		return index >= segment.index && index < segment.index + segment.length;
+	}
+
 	static toArray(segment) {
 		const array = [];
 		for (let i = segment.index; i < segment.index + segment.length; i++) {
@@ -36,6 +40,10 @@ KarmaFieldsAlpha.Segment = class {
 		}
 		return array;
 	}
+
+	// static insert(array, segment, ...items) {
+	// 	array.splice(segment.index, segment.length, ...items);
+	// }
 
 
 
