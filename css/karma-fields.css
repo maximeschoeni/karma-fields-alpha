@@ -498,7 +498,8 @@ body.karma-table-open {
 .karma-gallery .gallery.has-selection .frame.selected.grabbing {
   cursor: grabbing;
 }
-.karma-gallery .gallery .frame.selected img {
+.karma-gallery .gallery .frame.selected img,
+.karma-gallery .gallery .frame.selecting img {
   /* opacity: 0.25; */
   filter: saturate(0.5) brightness(0.5);
 }
@@ -668,15 +669,18 @@ body.karma-table-open {
 } */
 
 
-.karma-fields .table .td.active-row {
+/* .karma-fields .table .td.active-row { */
+.karma-fields .table .td.selected {
   background-color: #c3c4c7;
 }
-.karma-fields .table .td.selected-row,
-.karma-fields .table.ta-focus:not(.select-mode-cell) .td.active-row:not(.selected-cell) {
+/* .karma-fields .table .td.selected-row,
+.karma-fields .table.ta-focus:not(.select-mode-cell) .td.active-row:not(.selected-cell) { */
+.karma-fields .table .td.selecting,
+.karma-fields .table.ta-focus .td.selected:not(.selecting-cell) {
   background-color: #484848;
   color: #f1f1f1;
 }
-.karma-fields .table .td.selected-cell {
+.karma-fields .table .td.selecting-cell {
   background-color: white;
 }
 

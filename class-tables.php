@@ -150,7 +150,7 @@ Class Karma_Fields_Alpha {
 
 				// table
 				wp_enqueue_script('karma-fields-alpha-table', $plugin_url . '/js/fields/table.js', array('karma-fields-alpha-field'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-table-interface', $plugin_url . '/js/fields/table-interface.js', array('karma-fields-alpha-table'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-table-grid', $plugin_url . '/js/fields/table-grid.js', array('karma-fields-alpha-table'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-table-medias', $plugin_url . '/js/fields/table-medias.js', array('karma-fields-alpha-table'), $this->version, true);
 
 				// wp_enqueue_script('karma-fields-alpha-table-gateway', $plugin_url . '/js/fields/table-gateway.js', array('karma-fields-alpha-gateway'), $this->version, true);

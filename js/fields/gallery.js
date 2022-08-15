@@ -33,6 +33,21 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
 
   }
 
+  async getSelectedIds() {
+
+    const selection = this.dragAndDrop.selection;
+
+    if (selection) {
+
+      const ids = await this.getArray();
+
+      return ids.slice(event.selection.index, event.selection.length);
+
+    }
+
+    return [];
+  }
+
   async dispatch(event) {
 
     switch(event.action) {
@@ -46,7 +61,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
         // const ids = await this.slice(event.selection.index, event.selection.length);
         // this.editSelection = event.selection;
 
-        const ids = this.dragAndDrop.getSelectedIds();
+        const ids = await this.getSelectedIds();
 
         if (ids.length) {
           await this.openLibrary(ids);
@@ -56,34 +71,48 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
       }
 
       case "delete": {
-        if (this.dragAndDrop.selection) {
-          const ids = await this.dragAndDrop.items.map(item => item.id);
-          ids.splice(this.dragAndDrop.selection.index, this.dragAndDrop.selection.length);
+          // const ids = await this.dragAndDrop.items.map(item => item.id);
+          // ids.splice(this.dragAndDrop.selection.index, this.dragAndDrop.selection.length);
+          //
+          // this.dragAndDrop.clearSelection();
 
-          this.dragAndDrop.clearSelection();
+        const selection = this.dragAndDrop.selection;
+
+        if (selection) {
+
+          const ids = await this.getArray();
+          const newIds = [...ids];
+
+          newIds.splice(this.dragAndDrop.selection.index, this.dragAndDrop.selection.length);
+
+          this.dragAndDrop.updateSelection();
 
           KarmaFieldsAlpha.History.save();
 
           await this.dispatch({
             action: "set",
-            data: ids
+            data: newIds
           });
           await this.dispatch({
             action: "render"
           });
+
         }
+
+
         break;
       }
 
       case "insert": {
 
-        const inputIds = KarmaFieldsAlpha.Type.toArray(event.data);
+        const inputIds = KarmaFieldsAlpha.Type.toArray(event.data); // pasted ids
 
-        let ids = this.dragAndDrop.items.map(item => item.id);
+        // let ids = this.dragAndDrop.items.map(item => item.id);
+        let ids = await this.getArray();
 
         if (this.dragAndDrop.selection) {
           ids.splice(this.dragAndDrop.selection.index, this.dragAndDrop.selection.length, ...inputIds);
-          this.dragAndDrop.clearSelection();
+          this.dragAndDrop.updateSelection();
         } else if (inputIds.length) {
           ids.push(...inputIds);
         } else {
@@ -106,13 +135,17 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
 
       case "swap": {
 
-        const ids = this.dragAndDrop.items.map(item => item.id);
+        const ids = await this.getArray();
+        const newIds = [...ids];
+
+        const items = newIds.splice(event.index, event.length);
+        newIds.splice(event.target, 0, ...items);
 
         KarmaFieldsAlpha.History.save();
 
         await super.dispatch({
           action: "set",
-          data: ids
+          data: newIds
         });
         await super.dispatch({
           action: "render"
@@ -152,10 +185,10 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
     return event;
   }
 
-  async getSelection() {
-    // return this.selection && this.slice(this.selection.index, this.selection.length) || await this.getArray();
-    return this.selection && this.slice(this.selection.index, this.selection.length);
-  }
+  // async getSelection() {
+  //   // return this.selection && this.slice(this.selection.index, this.selection.length) || await this.getArray();
+  //   return this.selection && this.slice(this.selection.index, this.selection.length);
+  // }
 
   // async getValue(key) {
   //
@@ -521,11 +554,37 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
 
         this.clipboard.onInput = async dataArray => {
 
-          const ids = dataArray.map(row => row[0]);
+          // const ids = dataArray.map(row => row[0]);
+
+          // await this.dispatch({
+          //   action: "insert",
+          //   data: ids,
+          //   selection: this.dragAndDrop.selection
+          // });
+
+          const inputIds = dataArray.map(row => row[0]);
+
+          // let ids = this.dragAndDrop.items.map(item => item.id);
+          let ids = await this.getArray();
+
+          if (this.dragAndDrop.selection) {
+            ids.splice(this.dragAndDrop.selection.index, this.dragAndDrop.selection.length, ...inputIds);
+            this.dragAndDrop.updateSelection();
+          } else if (inputIds.length) {
+            ids.push(...inputIds);
+          } else {
+            return;
+          }
+
+          KarmaFieldsAlpha.History.save();
 
           await this.dispatch({
-            action: "insert",
+            action: "set",
             data: ids
+          });
+
+          await this.dispatch({
+            action: "render"
           });
 
           // const inputIds = dataArray.map(row => row[0]);
@@ -552,9 +611,12 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
           // });
         }
 
-        this.dragAndDrop.onSelectionComplete = async manager => {
-          const ids = manager.getSelectedItems().map(item => item.id);
-          this.clipboard.setData(ids.map(id => [id]));
+        this.dragAndDrop.onSelectionComplete = async segment => {
+          // const ids = manager.getSelectedItems().map(item => item.id);
+          const ids = await this.getArray();
+          const selectedIds = ids.slice(segment.index, segment.index + segment.length);
+
+          this.clipboard.setData(selectedIds.map(id => [id]));
           // await this.render();
           // await this.dispatch({action: "edit-selection"});
           if (this.renderControls) {
@@ -562,11 +624,37 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
           }
         }
 
-        this.dragAndDrop.onSwap = async ids => {
+        this.dragAndDrop.onSwap = async index => {
 
-          await this.dispatch({
-            action: "swap"
+          // await this.dispatch({
+          //   action: "swap",
+          //   index: index,
+          //   target: this.dragAndDrop.selection.index,
+          //   length: this.dragAndDrop.selection.length
+          // });
+
+
+
+          const target = this.dragAndDrop.selection.index;
+          const length = this.dragAndDrop.selection.length;
+
+          const ids = await this.getArray();
+          const newIds = [...ids];
+
+          const items = newIds.splice(index, length);
+          newIds.splice(target, 0, ...items);
+
+          KarmaFieldsAlpha.History.save();
+
+          await super.dispatch({
+            action: "set",
+            data: newIds
           });
+          await super.dispatch({
+            action: "render"
+          });
+
+          this.dragAndDrop.updateSelection();
 
           // KarmaFieldsAlpha.History.save();
           //
@@ -628,7 +716,8 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                 gallery.element.classList.remove("focus");
                 // this.selectedIds = [];
                 // this.idSelector.clearSelection();
-                this.dragAndDrop.clearSelection();
+                // this.dragAndDrop.clearSelection();
+                this.dragAndDrop.updateSelection();
               }
             },
             update: async gallery => {
@@ -646,6 +735,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
 
               // const selectedIds = this.idSelector.getItems().map(item => item.id);
 
+
               gallery.children = ids.map((id, index) => {
                 return {
                   class: "frame",
@@ -655,7 +745,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                     //
                     // frame.element.classList.toggle("active", isSelected);
 
-                    this.dragAndDrop.registerItem(id, index);
+                    // this.dragAndDrop.registerItem(index);
                     this.dragAndDrop.registerCell(index, frame.element, {
                       minWidth: this.fontSize*8,
                       minHeight: this.fontSize*8,
@@ -676,6 +766,8 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                     const width = await store.getValue(id, "thumb_width");
                     const height = await store.getValue(id, "thumb_height");
                     const type = await store.getValue(id, "type");
+
+
 
                     frame.element.classList.remove("loading");
 

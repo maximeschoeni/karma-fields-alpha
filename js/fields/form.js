@@ -63,7 +63,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 		// return this.buffer.has(...path);
 
-
+		return false;
 
 
 		if (path.length) {
@@ -156,16 +156,20 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 		switch (event.action) {
 
-			case "modified":
-
-
-			// console.log(this.resource, event.path);
-			// if (this.resource.driver === "spectacles") debugger;
-
-				// event.data = this.buffer.has(...event.path);
-				event.data = await this.isModified(...event.path);
-
-				break;
+			// case "modified":
+			//
+			// 	// event.data = await this.isModified(...event.path);
+			// 	event.delta = this.buffer.get(...event.path);
+			//
+			// 	console.log(event.delta, event.path);
+			//
+			//
+			//
+			// 	await super.dispatch(event);
+			//
+			//
+			//
+			// 	break;
 
 			case "get": {
 				let value = this.buffer.get(...event.path);
@@ -194,19 +198,32 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 
 
-
-					if ((!event.data || !event.data.length) && event.default !== null && event.default !== undefined) { // -> event.default is an expression or a string
-
-						value = await KarmaFieldsAlpha.Expression.resolve(event.field, event.default);
-						value = KarmaFieldsAlpha.Type.toArray(value);
-
-
-						this.buffer.backup(value, ...path); // -> backup or not?
-						this.buffer.set(value, ...path);
-
-						event.data = value;
-
-					}
+					//
+					// // if ((!event.data || !event.data.length) && event.default !== null && event.default !== undefined) { // -> event.default is an expression or a string
+					// if (!event.data) { // -> event.default is an expression or a string
+					//
+					// 	// value = await KarmaFieldsAlpha.Expression.resolve(event.field, event.default);
+					//
+					// 	value = await event.field.getDefault();
+					//
+					// 	// if (value !== undefined && value !== null) { // -> e.g. gallery field
+					//
+					// 	value = KarmaFieldsAlpha.Type.toArray(value);
+					//
+					// 	if (value.length) { // -> e.g. gallery field
+					//
+					//
+					//
+					// 		this.buffer.backup(value, ...path); // -> backup or not?
+					// 		this.buffer.set(value, ...path);
+					//
+					// 		event.data = value;
+					//
+					// 	}
+					//
+					// 	event.data = value;
+					//
+					// }
 				}
 				break;
 
@@ -225,6 +242,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 				// if (event.backup === "pack") debugger;
 				const newValue = KarmaFieldsAlpha.Type.toArray(event.data);
 				let currentValue = this.buffer.get(...event.path);
+
 
 				if (!currentValue) {
 

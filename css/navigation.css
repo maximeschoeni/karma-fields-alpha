@@ -502,36 +502,45 @@
   visibility: hidden;
 }
 
-
+.karma-field-table .media-table .frame .file-caption {
+  display: flex;
+  align-items: center;
+  min-height: 2em;
+}
 .karma-field-table .media-table .frame .filename {
   /* position: absolute;
   bottom: 0; */
 
   /* background-color: #efefefef; */
   /* background-color: #ffffffe3; */
-  width: 100%;
+  /* width: 100%;
 
-  min-height: 2em;
-  padding: 0 0.75em;
+
+  padding: 0 0.75em; */
 
   /* word-break: break-word; */
+
+  padding: 0 0.75em;
+  width: 100%;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 
-  display: flex;
+  /* display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; */
+
+  text-align: center;
 }
-.karma-field-table .media-table .frame.image-type .filename {
+.karma-field-table .media-table .frame.image-type .file-caption {
   /* display: none; */
 }
-.karma-field-table .media-table .frame.active .filename {
+.karma-field-table .media-table .frame.active .file-caption {
   background-color: #c3c4c7;
   color: #f1f1f1;
 }
-.karma-field-table .media-table .frame.selected .filename,
-.karma-field-table .media-table.ta-focus .frame.active .filename {
+.karma-field-table .media-table .frame.selected .file-caption,
+.karma-field-table .media-table.ta-focus .frame.active .file-caption {
   background-color: #484848;
   color: #f1f1f1;
 }

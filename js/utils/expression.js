@@ -17,6 +17,7 @@ KarmaFieldsAlpha.Expression = class {
         case "%":
 				case "&&":
 				case "||":
+        case "=":
 				case "==":
         case "===":
 				case "!=":
@@ -26,6 +27,7 @@ KarmaFieldsAlpha.Expression = class {
 				case "<=":
 				case ">=":
         case "in":
+        case "notin":
 					return this.operate(field, ...expression);
 
         case "!":
@@ -121,24 +123,61 @@ KarmaFieldsAlpha.Expression = class {
     const value1 = await this.resolve(field, expression1);
     const value2 = await this.resolve(field, expression2);
 
-    switch (operation) {
-      case "==": return value1 == value2;
-      case "===": return value1 === value2;
-      case "!=": return value1 != value2;
-      case "!==": return value1 !== value2;
-      case ">": return value1 > value2;
-      case "<": return value1 < value2;
-      case ">=": return value1 >= value2;
-      case "<=": return value1 <= value2;
-      case "+": return Number(value1)+Number(value2);
-      case "-": return Number(value1)-Number(value2);
-      case "*": return Number(value1)*Number(value2);
-      case "/": return Number(value1)/Number(value2);
-      case "%": return Number(value1)%Number(value2);
-      case "&&": return value1 && value2;
-      case "||": return value1 || value2;
-      case "in": return value2.includes(value1);
+    if (Array.isArray(value1)) {
+
+      if (Array.isArray(value2)) {
+
+        switch (operation) {
+          case "==":
+          case "===": return KarmaFieldsAlpha.DeepObject.equal(value1, value2);
+          case "!=":
+          case "!==": return KarmaFieldsAlpha.DeepObject.differ(value1, value2);
+          case "+": return [...value1, ...value2];
+          case "-": return value1.filter(item => !value2.includes(item));
+        }
+
+      } else {
+
+        switch (operation) {
+          case "==": return value1.every(item => item == value2);
+          case "===": return value1.every(item => item === value2);
+          case "!=": return value1.some(item => item != value2);
+          case "!==": return value1.some(item => item !== value2);
+          case "+": return [...value1, value2];
+          case "-": return value1.filter(item => item !== value2);
+          case "in": return value2.includes(value1);
+          case "notin": return !value2.includes(value1);
+        }
+
+      }
+
+    } else {
+
+      switch (operation) {
+        case "=":
+        case "==": return value1 == value2;
+        case "===": return value1 === value2;
+        case "!=": return value1 != value2;
+        case "!==": return value1 !== value2;
+        case ">": return value1 > value2;
+        case "<": return value1 < value2;
+        case ">=": return value1 >= value2;
+        case "<=": return value1 <= value2;
+        case "+": return Number(value1)+Number(value2);
+        case "-": return Number(value1)-Number(value2);
+        case "*": return Number(value1)*Number(value2);
+        case "/": return Number(value1)/Number(value2);
+        case "%": return Number(value1)%Number(value2);
+        case "&&": return value1 && value2;
+        case "||": return value1 || value2;
+
+        // case "in": return value2.includes(value1);
+      }
+
     }
+
+    console.error("illegal operation", operation, value1, value2);
+
   }
 
   static async max(value1, value2) {

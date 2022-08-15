@@ -278,14 +278,14 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 				// 	group.element.parentNode.classList.toggle("hidden", hidden);
 				// }
 
-				if (this.resource.hidden) {
-					// this.setEventListener(async request => {
-					// 	group.element.parentNode.classList.toggle("hidden", await this.check(this.resource.hidden));
-					// });
-					// group.element.parentNode.classList.add("hidden");
-
-					this.update = () => group.render();
-				}
+				// if (this.resource.hidden) {
+				// 	// this.setEventListener(async request => {
+				// 	// 	group.element.parentNode.classList.toggle("hidden", await this.check(this.resource.hidden));
+				// 	// });
+				// 	// group.element.parentNode.classList.add("hidden");
+				//
+				// 	this.update = () => group.render();
+				// }
 
 				// if (this.resource.key) {
 				// 	this.content = this.createChild({
@@ -330,11 +330,17 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 								if (field.resource.flex) {
 									container.element.style.flex = field.resource.flex;
 								}
+								// if (field.build) { // -> not separators
+								// 	container.onclick = event => {
+								// 		event.preventDefault(); // -> prevent losing focus on table selection...
+								// 	}
+								// }
 							},
 							update: async (container) => {
 								container.children = [];
 
-								const hidden = field.resource.hidden && await this.parse(field.resource.hidden);
+								const hidden = field.resource.hidden && await this.parse(field.resource.hidden)
+									|| field.resource.visible && !await this.parse(field.resource.visible);
 
 								container.element.classList.toggle("hidden", Boolean(hidden));
 
@@ -347,7 +353,9 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 										if (field.resource.label) {
 											container.children.push(this.buildLabel(field));
 										}
-										container.children.push(field.build());
+										if (field.build) { // -> not separators
+											container.children.push(field.build());
+										}
 
 									}
 

@@ -43,6 +43,22 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 		}).then(request => KarmaFieldsAlpha.Type.toString(request.data));
 	}
 
+	// async getString() {
+	//
+	// 	const value = await this.getObject();
+	//
+	// 	if (value === undefined) {
+	//
+	// 		const value = this.getDefault();
+	//
+	// 		await this.dispatch({
+	// 			action: "set",
+	// 			data: await this.parse(value || "");
+	// 		});
+	// 	}
+	//
+	// }
+
 
 	async getValue() {
 
@@ -267,6 +283,8 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 
 				input.element.value = KarmaFieldsAlpha.Type.toString(request.data);
+
+				// input.element.value = await this.getString();
 
 
 				input.element.placeholder = request.manifold && "— No Change —" || this.resource.placeholder || "";

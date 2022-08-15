@@ -80,7 +80,11 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
 
     for (let item of this.items) {
 
+      if (!item) console.log(this, item);
+
       const clientWidth = this.element.clientWidth - gap*(item.cells.length-1);
+
+
 
       item.box = {};
       item.box.x = x;
@@ -175,12 +179,12 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
   }
 
 
-  registerItem(id, index) {
+  registerItem(index, parent = 0) {
 
-    const item = super.registerItem(id, index);
+    const item = super.registerItem(index);
 
     item.order = index;
-    item.parent = 0;
+    item.parent = parent;
     item.cells = [];
 
     // this.items[index] = {
@@ -250,6 +254,8 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
   // }
 
   onMouseDown(index, event) {
+
+    event.preventDefault();
 
     if (this.selection && KarmaFieldsAlpha.Segment.contains(this.selection, index)) {
 
@@ -716,12 +722,15 @@ KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector 
         //
         // this.onSwap(items);
 
-        const ids = this.items.map(item => item.id);
-
-        this.onSwap(ids, this.selection);
+        // const ids = this.items.map(item => item.id);
 
 
-        this.clearSelection();
+        this.onSwap(this.index);
+
+
+        this.updateSelection();
+
+        // this.clearSelection();
 
       }
 

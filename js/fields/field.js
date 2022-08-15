@@ -70,7 +70,6 @@ KarmaFieldsAlpha.fields.field = class Field {
   createField(resource = {}) {
 
 
-
     // if (typeof resource === "string") {
     //   // if (typeof this.constructor[resource] === "function" ) {
     //   //   return new this.constructor[resource]({
@@ -88,7 +87,7 @@ KarmaFieldsAlpha.fields.field = class Field {
 
     resource = this.sanitizeResource(resource);
 
-
+    const constructor = this.constructor;
 
     const type = resource.type || "group";
 
@@ -240,50 +239,21 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   getDefault() {
-    return this.parse(this.resource.default || "");
+    // return this.parse(this.resource.default || "");
+    // return [];
+    // return undefined;
   }
 
-  // write(...path) {
-  //   // compat
-  //   this.setState(null, ...path, "write");
+  // build() {
+  //   if (this.resource.children) {
+  //     return this.createChild(this.resource.children[0] || {type: "field"}).build();
+  //   }
+  //   return {};
   // }
-  //
-  // async save(value, ...path) {
-  //   // compat
-  //   this.setState(value, ...path, "save");
-  // }
-  //
-  // async send(value, ...path) {
-  //   // compat
-  //   this.setState(value, ...path, "submit");
-  // }
-  //
-  //
-  // getEmpty() {
-  //   return "";
-  // }
-
-  build() {
-    if (this.resource.children) {
-      return this.createChild(this.resource.children[0] || {type: "field"}).build();
-    }
-    return {};
-  }
 
   render() {
     // noop
   }
-
-  // backup(...path) {
-  //   // keys = this.getKeyPath(keys);
-  //   // if (this.resource.key) {
-  //   //   path = [this.resource.key, ...path];
-  //   // }
-  //   // if (this.parent) {
-  //   //   return this.parent.backup(...path);
-  //   // }
-  //   this.setState(null, ...path, "backup");
-  // }
 
 
   // !! this method is specifique for dropdown
@@ -340,123 +310,24 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   }
 
-  // // import/export API
-  // async exportValue() {
-  //   return this.get(0);
-  // }
-  //
+  // import/export API
+  async exportValue() {
+    return "";
+  }
+
   async importValue(value) {
     // noop
   }
 
 
 
-  // à supprimer
-  // async edit(value, ...path) {
-  //   if (this.resource.key) {
-  //     path = [this.resource.key, ...path];
-  //   }
-  //   return this.parent && this.parent.edit(value, ...path);
-  // }
-
-
-  // async update() {
-  //   for (let child of this.children) {
-  //     await child.update();
-  //   }
-  //
-  //   // console.log(this.resource);
-  //
-  //   await this.updateState();
-  //
-  // }
-
-  // async updateState() {
-  //
-  //   if (this.resource.active && this.activate && this.parent) {
-  //     this.activate(await this.parent.check(this.resource.active));
-  //   }
-  //
-  //   if (this.resource.disabled && this.disable && this.parent) {
-  //     this.disable(await this.parent.check(this.resource.disabled));
-  //   }
-  //
-  //   if (this.resource.hidden && this.hide && this.parent) {
-  //     this.hide(await this.parent.check(this.resource.hidden));
-  //   }
-  //
-  // }
-
-  // async setEventListener(listener) {
-  //   const event = this.createEvent();
-  //   event.action = "listen";
-  //   event.callback = listener;
-  //   await this.dispatch(event);
-  // }
-  //
-  //
-  // async triggerListeners() {
-  //   for (let listener of this.listeners) {
-  //     await listener();
-  //   }
-  // }
-
-
-
-  // update() {
-  //   for (let child of this.children) {
-  //     child.update();
-  //   }
-  // }
-
-
-
-  // nextup(value) {
-  //   //compat
-  //   this.setState(value, "nextup");
-  // }
-
-  // fetchState(value, ...path) {
-  //   //compat
-  //   return this.getState(...path, value);
-  // }
-
-  // getState(...path) {
-  //   if (this.resource.key !== undefined) {
-  //     path = [this.resource.key, ...path];
-  //   }
-  //   if (this.parent) {
-  //     return this.parent.getState(...path);
-  //   }
-  // }
-  //
-  // async setState(value, ...path) {
-  //   if (this.resource.key !== undefined) {
-  //     path = [this.resource.key, ...path];
-  //   }
-  //   if (this.parent) {
-  //     await this.parent.setState(value, ...path);
-  //   }
-  // }
-
-  // getState(key) {
-  //   if (this.parent) {
-  //     return this.parent.getState(key);
-  //   }
-  // }
-  //
-  // async setState(value, key) {
-  //   if (this.parent) {
-  //     await this.parent.setState(value, key);
-  //   }
-  // }
-
-
   getParam(key) {
+    console.error("Deprecated");
     return KarmaFieldsAlpha.Nav.get(key);
   }
 
   setParam(value, key) {
+    console.error("Deprecated");
     if (value) {
       KarmaFieldsAlpha.Nav.set(value, key);
     } else {
@@ -465,10 +336,12 @@ KarmaFieldsAlpha.fields.field = class Field {
   }
 
   hasParam(key) {
+    console.error("Deprecated");
     return KarmaFieldsAlpha.Nav.has(key);
   }
 
   removeParam(key) {
+    console.error("Deprecated");
     KarmaFieldsAlpha.Nav.remove(key);
   }
 
@@ -743,6 +616,7 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
   createEvent(args) {
+    console.error("Deprecated createEvent");
     // return new KarmaFieldsAlpha.Event({
     //   default: this.getDefault(),
     //   autosave: this.resource.autosave,
@@ -756,10 +630,40 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   return this.dispatch(event);
   // }
 
+
+  async dispatch2(request, ...path) {
+
+    if (!this.parent) {
+
+      return;
+
+    }
+
+    if (!request.field) {
+
+      request.field = this;
+
+    }
+
+    if (this.resource.key !== undefined) {
+
+      return this.parent.dispatch(request, this.resource.key, ...path);
+
+    }
+
+    return this.parent.dispatch(request, ...path);
+
+  }
+
+
   async dispatch(event, parent, origin) {
     if (!event.path) {
       event.path = [];
     }
+    // if (!event.trace) {
+    //   event.trace = [];
+    // }
+    // event.trace.push(this);
     if (this.resource.key !== undefined) {
 
       if (event.path[0] === "..") {
@@ -770,25 +674,26 @@ KarmaFieldsAlpha.fields.field = class Field {
         // event.relativeIndex.set(this, event.index--);
         // event.relativePath.set(this, [...event.path]);
 
-        if (this.resource.useExpression) {
+        // if (this.resource.useExpression) {
+        //
+        //   const key = await this.parse(this.resource.key);
+        //   event.path.unshift(key);
+        //
+        // } else {
+        //
+        //   event.path.unshift(this.resource.key);
+        //
+        // }
 
-          const key = await this.parse(this.resource.key);
-          event.path.unshift(key);
 
-        } else {
-
-          event.path.unshift(this.resource.key);
-
-        }
-
-
-
+        event.path.unshift(this.resource.key);
 
       }
     }
     if (!event.field) {
       event.field = this;
     }
+
     if (this.parent) {
 
       // event.dispatcher = this;
@@ -973,6 +878,71 @@ KarmaFieldsAlpha.fields.field = class Field {
     return KarmaFieldsAlpha.Expression.resolve(this, expression);
   }
 
+  async request(action, type, param, ...path) {
+
+    const request = await this.dispatch({
+      action: action,
+      path: path,
+      field: this,
+      ...param
+    });
+
+    return KarmaFieldsAlpha.Type.convert(request.data, type);
+  }
+
+  // async request(params, type, ...path) {
+  //
+  //   const request = this.dispatch({
+  //     path: path,
+  //     ...params
+  //   });
+  //
+  //   return KarmaFieldsAlpha.Type.convert(request.data, type);
+  // }
+
+  async get(type, ...path) {
+
+    // return this.request("get", type, null, ...path);
+
+    const request = await this.dispatch({
+      action: "get",
+      path: path
+    });
+
+    return KarmaFieldsAlpha.Type.convert(request.data, type);
+  }
+
+  async getString(...path) {
+    return this.get("string", ...path);
+    // return this.dispatch({
+    //   action: "get",
+    //   path: path
+    // }).then(request => KarmaFieldsAlpha.Type.toString(request.data));
+  }
+
+  async getNumber(...path) {
+    return this.get("number", ...path);
+    // return this.dispatch({
+    //   action: "get",
+    //   path: path
+    // }).then(request => KarmaFieldsAlpha.Type.toNumber(request.data));
+  }
+
+  async getArray(...path) {
+    return this.get("array", ...path);
+    // return this.dispatch({
+    //   action: "get",
+    //   path: path
+    // }).then(request => KarmaFieldsAlpha.Type.toArray(request.data));
+  }
+
+  async getObject(...path) {
+    return this.get("object", ...path);
+    // return this.dispatch({
+    //   action: "get",
+    //   path: path
+    // }).then(request => KarmaFieldsAlpha.Type.toObject(request.data));
+  }
 
 
 

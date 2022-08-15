@@ -21,7 +21,7 @@ Class Karma_Fields_Alpha_Posts {
 
 			'driver' => 'posts?post_type=post',
 			'id' => 'posts',
-			'type' => 'table',
+			'type' => 'tableGrid',
 			'joins' => array(
 				'taxonomy',
 				'postmeta',
@@ -107,7 +107,7 @@ Class Karma_Fields_Alpha_Posts {
 					// 'value' => '{{post_title}}',
 					// 'value' => ['<>', 'post_title'],
 					'value' => ['get', 'post_title'],
-					'type' => 'modal',
+					'type' => 'modalHandle',
 					'orderby' => 'post_title'
 					// 'body' => array(
 					// 	'type' => 'group',
