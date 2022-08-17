@@ -431,9 +431,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
             }
 
-            this.interface.unselect();
+            // this.interface.unselect();
 
             await this.queryIds();
+
+            // will not render yet!
 
             break;
           }
@@ -726,6 +728,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         if (page > 1) {
           KarmaFieldsAlpha.History.save();
           KarmaFieldsAlpha.Nav.change(page-1, "page");
+          this.interface.unselect();
           await this.queryIds();
           await this.render();
         }
@@ -760,7 +763,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       case "reload": {
         this.store.empty();
         this.buffer.empty();
-        this.interface.unselect();
+        // this.interface.unselect();
         await this.queryIds();
         await this.render();
         break;
@@ -838,26 +841,25 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       case "write": {
 
         // const selection = this.interface.selectionBuffer.get();
-        // const ids = this.idsBuffer.get() || [];
-        // const selectedIds = ids.slice(selection.index, selection.length);
+        const ids = this.idsBuffer.get() || [];
+        const selectedIds = ids.slice(event.index, event.length);
 
 
         const data = event.data || [];
-        // const ids = this.interface.selectionBuffer.get() || [];
-        const ids = this.getSelectedIds();
+        // const ids = this.getSelectedIds();
         let insertIds = [];
 
-        if (ids.length || data.length) {
+        if (selectedIds.length || data.length) {
+
           KarmaFieldsAlpha.History.save();
-          if (data.length && ids.length) {
-            await this.write(data, ids);
-            insertIds = ids;
+
+          if (data.length && selectedIds.length) {
+            await this.write(data, selectedIds);
           } else if (data.length) {
             let createdIds = await this.add(data.length);
             await this.write(data, createdIds);
-            insertIds = createdIds;
-          } else if (ids.length) {
-            await this.remove(ids);
+          } else if (selectedIds.length) {
+            await this.remove(selectedIds);
           }
           // this.interface.selectionBuffer.backup(insertIds);
           // this.interface.selectionBuffer.set(insertIds);
@@ -916,8 +918,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       case "close":
         this.buffer.empty();
         this.store.empty();
-        this.interface.unselect();
+
         KarmaFieldsAlpha.History.save();
+
+        this.interface.unselect();
         this.idsBuffer.backup();
         this.idsBuffer.remove();
         // this.interface.selectionBuffer.backup();
@@ -940,8 +944,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
             // this.interface.selectionBuffer.set([id]);
             // KarmaFieldsAlpha.History.backup([id], selectedIds, false, "selection");
             // await this.render();
-            await this.controls.render();
-            await this.modal.render();
+            // await this.controls.render();
+            // await this.modal.render();
+
+            await this.render();
         }
         break;
       }
@@ -967,8 +973,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
             index: selection.index - 1,
             length: 1
           });
-          await this.controls.render();
-          await this.modal.render();
+          // await this.controls.render();
+          // await this.modal.render();
+          await this.render();
         }
         break;
       }
@@ -1003,6 +1010,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
           this.interface.select(selection);
           await this.controls.render();
           await this.modal.render();
+          await this.render();
         }
 
 
@@ -1536,9 +1544,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
                                   if (selection) {
                                     KarmaFieldsAlpha.History.save();
-                                    this.interface.unselect();
-                                    await this.controls.render();
-                                    await this.modal.render();
+                                    // this.interface.unselect();
+                                    // await this.controls.render();
+                                    // await this.modal.render();
+                                    await this.render();
                                   }
 
                                 }
@@ -1626,7 +1635,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         this.selectionBuffer.backup(selection);
         this.selectionBuffer.set(selection);
 
-        this.idSelector.updateSelection(selection);
+        // this.idSelector.updateSelection(selection);
 
       }
 
@@ -1641,7 +1650,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         this.selectionBuffer.backup();
         this.selectionBuffer.remove();
 
-        this.idSelector.updateSelection();
+        // this.idSelector.updateSelection();
 
       }
 
@@ -1660,9 +1669,12 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
           if (this.selectionBuffer.get()) {
             KarmaFieldsAlpha.History.save();
-            this.unselect();
+            // this.unselect();
+            // await super.dispatch({
+            //   action: "edit-selection"
+            // });
             await super.dispatch({
-              action: "edit-selection"
+              action: "render"
             });
           }
 

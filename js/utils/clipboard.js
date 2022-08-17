@@ -55,6 +55,11 @@ KarmaFieldsAlpha.Clipboard = class {
     this.ta.select();
   }
 
+  focus(value) {
+    this.ta.focus();
+    this.ta.select();
+  }
+
   prepare(string) {
     return this.constructor.parse(string);
   }

@@ -30,16 +30,19 @@ KarmaFieldsAlpha.Segment = class {
 	}
 
 	static contains(segment, index) {
-		return index >= segment.index && index < segment.index + segment.length;
+		if (segment) {
+			return index >= segment.index && index < segment.index + segment.length;
+		}
+		return false;
 	}
 
-	static toArray(segment) {
-		const array = [];
-		for (let i = segment.index; i < segment.index + segment.length; i++) {
-			array.push(i);
-		}
-		return array;
-	}
+	// static toArray(segment) {
+	// 	const array = [];
+	// 	for (let i = segment.index; i < segment.index + segment.length; i++) {
+	// 		array.push(i);
+	// 	}
+	// 	return array;
+	// }
 
 	// static insert(array, segment, ...items) {
 	// 	array.splice(segment.index, segment.length, ...items);

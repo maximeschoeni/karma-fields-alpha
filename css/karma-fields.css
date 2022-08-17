@@ -398,10 +398,10 @@ body.karma-table-open {
   /* gap: 0.7em; */
 }
 .karma-gallery .gallery {
-  /* display: flex;
+  display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start; */
+  align-items: flex-start;
+  justify-content: flex-start;
   border: 1px solid #3f3f3f;
   min-height: 9em;
   position: relative;
@@ -421,11 +421,11 @@ body.karma-table-open {
 } */
 
 .karma-gallery .gallery .frame {
-  /* background-color: #f0f0f1;
+  /* background-color: #f0f0f1; */
   display: flex;
   width: 9em;
-  height: 9em; */
-  position: absolute;
+  height: 9em;
+  /* position: absolute; */
 
 
 }

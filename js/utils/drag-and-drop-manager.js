@@ -2,6 +2,253 @@
 
 KarmaFieldsAlpha.DragAndDropManager = class extends KarmaFieldsAlpha.IdSelector {
 
+  // static sliceElements(segment) {
+  //
+  //   const elements = [];
+  //
+  //   for (let j = 0; j < segment.length; j++) {
+  //
+  //     for (let i = 0; i < this.width; i++) {
+  //
+  //       const index = (segment.index + j)*this.width + i;
+  //       elements.push(this.elements[index]);
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return elements;
+  // }
+  //
+  // static getBox(segment) {
+  //
+  //   const selectedElements = this.sliceElements(segment);
+  //
+  //   if (selectedElements.length === 1) {
+  //
+  //     return selectedElements[0].getBoundingClientRect();
+  //
+  //   } else {
+  //
+  //     const first = selectedElements[0].getBoundingClientRect();
+  //     const last = selectedElements[selectedElements.length-1].getBoundingClientRect();
+  //
+  //     return {
+  //       x: first.x,
+  //       y: first.y,
+  //       width: last.x + last.width - first.x,
+  //       height: last.y + last.height - first.y
+  //     };
+  //
+  //   }
+  //
+  // }
+  //
+  // static getIndexBox(index) {
+  //   return this.getBox({index: index, length: 1});
+  // }
+
+  static updateMap() {
+
+    for (let i = Math.max(this.selection.index - 1, 0); i < Math.min(this.selection.index + this.selection.length + 1, this.height); i++) {
+
+      this.map[i] = this.getBox({index: i, length: 1});
+
+    }
+
+  }
+
+  static swap(index, length, target) {
+
+    const elements = this.elements.splice(index, length);
+    this.elements.splice(target, 0, ...elements);
+
+    // for (let i = 0; i < this.elements.length; i++) {
+    //
+    //   this.elements[i].style.order = i;
+    //
+    // }
+
+    // for (let j = 0; j < this.height; j++) {
+    //   for (let i = 0; i < this.width; i++) {
+    //     const index = j*this.width + i;
+    //     this.elements[index].style.order = j;
+    //   }
+    // }
+
+    this.container.replaceChildren(...this.elements);
+
+  }
+
+  static dragMove() {
+
+    const deltaX = this.mouseX - this.box.left;
+    const deltaY = this.mouseY - this.box.top;
+
+    let first = this.selection.index;
+    let last = first + this.selection.length - 1;
+    let before = first - 1;
+    let after = last + 1;
+    let current = first + this.indexOffset;
+    let prev = current - 1;
+    let next = current + 1;
+
+    const currentRectOffset = {
+      x: deltaX - this.offsetX,
+      y: deltaY - this.offsetY,
+      width: this.map[current].width,
+      height: this.map[current].height
+    };
+
+    if (first > 0 && KarmaFieldsAlpha.Rect.isBefore(currentRectOffset, {
+      x: this.map[prev].x + this.map[prev].width - this.map[before].width,
+      y: this.map[prev].y + this.map[prev].height - this.map[before].height,
+      width: this.map[before].width,
+      height: this.map[before].height
+    })) {
+
+      this.sliceElements(this.selection).forEach(element => {
+        element.style.transform = "none";
+        element.classList.remove("selected");
+      });
+      // this.unpaint(this.selection, "selected");
+
+      this.swap(first, this.selection.length, first - 1);
+      this.selection.index--;
+
+      this.updateMap();
+      // this.paint(this.selection, "selected");
+      this.sliceElements(this.selection).forEach(element => {
+        element.classList.add("selected");
+      });
+
+    } else if (last < this.height - 1 && KarmaFieldsAlpha.Rect.isAfter(currentRectOffset, {
+      x: this.map[next].x,
+      y: this.map[next].y,
+      width: this.map[after].width,
+      height: this.map[after].height
+    })) {
+
+      this.sliceElements(this.selection).forEach(element => {
+        element.style.transform = "none";
+        element.classList.remove("selected");
+      });
+      // this.unpaint(this.selection, "selected");
+
+      this.swap(first, this.selection.length, first + 1);
+      this.selection.index++;
+
+      this.updateMap(this.selection);
+      // this.paint(this.selection, "selected");
+      this.sliceElements(this.selection).forEach(element => {
+        element.classList.add("selected");
+      });
+
+    }
+
+    current = this.selection.index + this.indexOffset;
+
+    let offsetX = deltaX - this.offsetX - this.map[current].x;
+    let offsetY = deltaY - this.offsetY - this.map[current].y;
+
+
+
+    for (let j = 0; j < this.selection.length; j++) {
+      for (let i = 0; i < this.width; i++) {
+        const index = (this.selection.index + j)*this.width;
+        this.elements[index].style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+      }
+    }
+
+  }
+
+  static drag(event, elements, width, height, col, row, selection) {
+
+    event.preventDefault();
+
+    return new Promise((resolve, reject) => {
+
+      this.selection = selection;
+      this.width = width;
+      this.height = height;
+      this.elements = elements;
+
+      this.mouseX = event.clientX;
+      this.mouseY = event.clientY;
+      this.element = event.currentTarget;
+      this.currentRect = this.element.getBoundingClientRect();
+
+      this.map = {};
+      this.updateMap(selection);
+
+      this.container = this.element.parentNode;
+      this.box = this.container.getBoundingClientRect();
+
+      this.offsetX = this.mouseX - this.box.left - this.currentRect.x;
+      this.offsetY = this.mouseY - this.box.top - this.currentRect.y;
+
+      this.index = selection.index;
+
+      this.indexOffset = row - this.index;
+
+      // this.paint(this.selection, "drag");
+      this.sliceElements(this.selection).forEach(element => {
+        element.classList.add("drag");
+      });
+
+      this.element.classList.add("dragging");
+
+      const mousemove = event => {
+        this.mouseX = event.clientX;
+        this.mouseY = event.clientY;
+        this.dragMove();
+      }
+
+      const scroll = event => {
+        if (event.target.contains(this.element)) {
+          this.dragMove();
+        }
+      }
+
+      const mouseup = event => {
+        window.removeEventListener("mousemove", mousemove);
+        window.removeEventListener("mouseup", mouseup);
+        window.removeEventListener("scroll", scroll, true);
+
+        this.sliceElements(this.selection).forEach(element => {
+          element.classList.remove("drag");
+          element.style.transform = "none";
+        });
+
+        this.element.classList.remove("dragging");
+
+        // this.unpaint(this.selection, "selected");
+
+        resolve(this.selection.index);
+
+      }
+
+      // for (let j = 0; j < this.height; j++) {
+      //   for (let i = 0; i < this.width; i++) {
+      //     const index = j*this.width + i;
+      //     this.elements[index].style.order = index;
+      //   }
+      // }
+
+      this.dragMove();
+
+      window.addEventListener("mousemove", mousemove);
+      window.addEventListener("mouseup", mouseup);
+      window.addEventListener("scroll", scroll, true);
+
+    });
+
+  }
+
+
+
+
+
   constructor() {
 
     super();
