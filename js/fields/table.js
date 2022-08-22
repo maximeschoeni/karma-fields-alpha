@@ -235,7 +235,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       }
 
       delete params.id;
-      delete params.karma;
+      delete params.table;
       delete params.selection;
 
       return KarmaFieldsAlpha.Nav.toString(params);
@@ -254,7 +254,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     delete params.orderby;
     delete params.order;
     delete params.id;
-    delete params.karma;
+    delete params.table;
     delete params.selection;
 
     return KarmaFieldsAlpha.Nav.toString(params);
@@ -291,7 +291,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     delete params.orderby;
     delete params.order;
     delete params.id;
-    delete params.karma;
+    delete params.table;
 
     return params;
   }
@@ -1590,7 +1590,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
                   },
                   children: [
                     {
-                      class: "table-main-header karma-field-frame",
+                      class: "karma-header table-main-header",
                       child: this.header.build()
                     },
                     {
@@ -1841,7 +1841,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
             modal.children = [
               {
-                class: "table-modal-header",
+                class: "karma-header table-modal-header",
                 update: header => {
                   // const field = selectedIds.length === 1 ? this.createChild({
                   //   type: "header",
@@ -2060,6 +2060,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
             display: "flex",
             children: [
               "title",
+              "separator",
               "prev",
               "next",
               "close"

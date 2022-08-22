@@ -141,7 +141,7 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
       },
       update: popup => {
 
-        popup.element.classList.toggle("hidden", !KarmaFieldsAlpha.Nav.has("karma"));
+        popup.element.classList.toggle("hidden", !KarmaFieldsAlpha.Nav.has("table"));
       },
       child: {
         class: "popup-content",
@@ -202,9 +202,9 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
           {
             class: "tables",
             update: container => {
-              document.body.classList.toggle("karma-table-open", KarmaFieldsAlpha.Nav.has("karma"));
+              document.body.classList.toggle("karma-table-open", KarmaFieldsAlpha.Nav.has("table"));
 
-              const tableId = KarmaFieldsAlpha.Nav.get("karma");
+              const tableId = KarmaFieldsAlpha.Nav.get("table");
 
 
 

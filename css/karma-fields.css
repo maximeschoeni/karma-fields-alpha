@@ -14,11 +14,6 @@
 /* WP Layout
 --------------------------------------*/
 
-/* body.karma-dragging #adminmenuwrap {
-  position: relative !important;
-} */
-
-
 .karma-fields-post {
   padding: 12px;
   margin: -6px -12px -12px;
@@ -29,8 +24,695 @@ body.karma-table-open {
   overflow: hidden;
 }
 
+
+
+/* Loading
+--------------------------------------*/
+
+.karma-fields .loading,
+.karma-fields .editing
+{
+  background-color: transparent !important;
+  background-image: repeating-linear-gradient(60deg, transparent 0 25%, #0000000a 25% 50%);
+
+  background-size: 10em 17.4em;
+  animation: slide 4s infinite linear;
+  color: #e8e8e8 !important;
+  border-color: #c3c4c7 !important;
+}
+
+@keyframes slide {
+	100% {
+		background-position-x: -10em;
+	}
+}
+
+
+
+
+/* Fields
+--------------------------------------*/
+
+
+.karma-field-frame {
+  background-color: #f1f1f1;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+.karma-field-frame.hidden {
+  display: none !important;
+}
+.karma-field-container {
+  gap: 0.7em;
+}
+.karma-fields label {
+  font-weight: bold;
+  font-size: 1em;
+  line-height: 1.08em;
+  vertical-align: baseline;
+  margin: 0 0 0.33em;
+  display: block;
+}
+.karma-field-container.disabled label {
+  color: #c3c4c7;
+}
+.karma-field-container.display-block>.karma-field-frame {
+  flex-grow: 0;
+}
+
+
+
+/* shadow boxes */
+.navigation,
+.table-main-header,
+.table-footer,
+.table-modal,
+.table-modal-header,
+.karma-field-table-section {
+  /* box-shadow: 0 0 6px 0px #484848; */
+  box-shadow: 0 0 8px 0px #4848487a;
+  outline: 1px solid #484848;
+  position: relative;
+}
+.karma-field-table-section {
+  z-index: 2;
+}
+.table-main-header,
+.table-modal-header {
+  z-index: 3;
+}
+.table-modal {
+  z-index: 4;
+}
+.table-footer {
+  z-index: 5;
+}
+.navigation {
+  z-index: 8;
+}
+
+/* gap */
+.karma-fields .karma-field-table,
+.karma-fields .karma-field-table .table-body,
+.karma-fields .karma-field-table .table-body .table-main,
+.karma-fields .karma-field-table .karma-modal {
+  /* gap: 1px; */
+}
+
+
+
+
+/* Table
+--------------------------------------*/
+
+
+.karma-fields * {
+  box-sizing: border-box;
+}
+.karma-fields .hidden {
+  display: none !important;
+}
+.karma-fields .popup {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 99999;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.7);
+  padding: 30px;
+  box-sizing: border-box;
+  display: flex;
+  overflow: hidden;
+}
+.karma-fields .popup-content {
+  flex-grow: 1;
+  display: flex;
+  min-width: 0;
+
+  background-color: #f1f1f1;
+}
+.karma-fields .navigation {
+  /* display: flex; */
+  flex-shrink: 0;
+  width: 10em;
+  padding: 0.75em;
+}
+.karma-fields .navigation ul li {
+  /* padding: 0.7em 0; */
+}
+
+.karma-fields .navigation ul li:hover a,
+.karma-fields .navigation ul li.active a {
+  color: black;
+  text-decoration: none;
+}
+
+.karma-fields .tables {
+  flex-grow: 1;
+  display: flex;
+  min-width: 0;
+}
+.karma-fields .table-container {
+  flex-grow: 1;
+  display: flex;
+  min-width: 0;
+}
+
+.karma-field-table {
+  margin-right: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.karma-fields .karma-field-table .table-body {
+  overflow: hidden;
+  flex-grow: 1;
+  display: flex;
+  position: relative;
+}
+.karma-fields .karma-field-table .table-body .table-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.karma-fields .karma-header .karma-field-container {
+  flex-grow: 1;
+}
+.karma-fields .karma-header .karma-field-container .karma-field-frame {
+  justify-content: center;
+}
+
+.karma-fields .karma-field-table .table-main-header {
+  background-color: #f1f1f1;
+}
+.karma-fields .karma-field-table h1 {
+  margin: 0;
+  font-size: 1.5em;
+  line-height: 1.15em;
+}
+.karma-fields .karma-field-table .table-main-header .modal-navigation {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  background-color: #f1f1f1;
+}
+.karma-fields button.hidden {
+  display: none;
+}
+.karma-fields .karma-field-table .table-main-header .table-pagination .current-page {
+  min-width: 75px;
+  display: flex;
+  justify-content: center;
+}
+.karma-fields .karma-field-table .karma-field-table-section {
+  flex-grow: 0;
+  padding: 0.75em;
+}
+.karma-fields .karma-field-table .table-main-body {
+  flex-grow: 1;
+  overflow: hidden;
+}
+.karma-fields .karma-field-table-grid-container {
+  overflow: auto;
+  flex-direction: row;
+
+  padding: 0.75em;
+}
+
+
+.karma-fields .karma-field-table .table-main-header {
+  display: flex;
+  flex-shrink: 0;
+  padding: 0.75em;
+}
+.karma-fields .karma-field-table.loading .karma-field-frame {
+  background-color: #f1f1f1;
+}
+
+
+.karma-fields .karma-field-table .table-main-header .header-tab a {
+  cursor: pointer;
+}
+.karma-fields .karma-field-table .table-main-header .header-tab.active a {
+  color: black;
+}
+
+
+/* Table Control */
+.karma-fields .karma-field-table .table-control {
+  background-color: #f1f1f1;
+  padding: 0.75em;
+}
+
+
+
+
+
+/* Table Modal
+--------------------------------------*/
+.karma-fields .karma-field-table .table-body .table-modal {
+  display: flex;
+  flex-shrink: 0;
+  min-width: 0;
+  order: 2;
+  width: 0;
+  transition: width 200ms;
+}
+
+.karma-fields .karma-field-table .karma-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-grow: 1;
+}
+.karma-fields .karma-field-table .table-modal .modal-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  bottom: 0;
+  width: 10px;
+  z-index: 10;
+  cursor: col-resize;
+  user-select: none;
+}
+
+.karma-fields .karma-field-table .table-body .karma-modal .table-modal-header {
+  background-color: #f1f1f1;
+  display: flex;
+  overflow: auto;
+  padding: 0.75em;
+  flex-shrink: 0;
+}
+.karma-fields .karma-field-table .table-body .karma-modal .table-modal-header>.karma-field-container {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.karma-fields .karma-field-table .table-body .karma-modal .table-modal-body {
+  background-color: #f1f1f1;
+  display: flex;
+  overflow: auto;
+  padding: 0.75em;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+
+/* Table Grid
+--------------------------------------*/
+
+.karma-fields .table {
+  display: grid;
+  grid-gap: 1px;
+  margin: 2em 0;
+  background-color: black;
+
+  width: max-content;
+  height: max-content;
+
+  position: relative;
+}
+
+.karma-fields .table.filled {
+  border: 1px solid black;
+}
+.karma-fields .table .th,
+.karma-fields .table .td {
+  box-sizing: border-box;
+  text-align: left;
+  padding: 0;
+  display: flex;
+}
+.karma-fields .table .th {
+  background-color: #f1f1f1;
+  font-weight: bold;
+
+  min-height: 3em;
+  min-width: 3em;
+}
+
+.karma-fields .table .td {
+  min-height: 2.6667em;
+}
+
+.karma-fields .table .td {
+  background-color: #f1f1f1;
+  position: relative;
+}
+.karma-fields .table .td::after {
+  font-family: dashicons;
+  position: absolute;
+  font-size: 1.5em;
+  top: 0.2em;
+  right: 0.2em;
+  color: #0000002b;
+}
+.karma-fields .table .td.modified::after {
+  content: "";
+  background-color: #0000002b;
+  border-radius: 50%;
+  width: 0.6em;
+  height: 0.6em;
+}
+
+.karma-fields .table .td.selected {
+  background-color: #c3c4c7;
+}
+.karma-fields .table .td.selecting,
+.karma-fields .table.ta-focus .td.selected:not(.selecting-cell) {
+  background-color: #484848;
+  color: #f1f1f1;
+}
+.karma-fields .table .td.selecting-cell {
+  background-color: white;
+}
+.karma-fields .table .td .modal-btn {
+  cursor: cell;
+}
+.karma-fields .table.ta-focus .td.active-row .modal-btn {
+  cursor: pointer;
+}
+
+.karma-fields .table .td.modified {
+  color: black;
+}
+.karma-fields .table .td > div {
+  display: flex;
+  width: 100%;
+}
+
+.karma-field-table.table-loading .table {
+  opacity: 0.333;
+  filter: grayscale(1);
+}
+
+.karma-field-table .table ::selection {
+  background-color: #e7e7e7;
+}
+
+
+
+/* Table Grid Header
+--------------------------------------*/
+
+.karma-fields .table .th a {
+  color: inherit;
+  padding: 0 0 0 0.75em;
+  font-size: 1em;
+  line-height: 1.08em;
+
+  display: flex;
+  align-items: center;
+}
+.karma-fields .table .th a:first-child {
+  flex-grow: 1;
+}
+.karma-fields .table .th a:last-child {
+  padding: 0 0.75em;
+}
+.karma-fields .table .th a.header-cell-order {
+  cursor: pointer;
+}
+.karma-fields .table .th a.header-cell-order .dashicons {
+  /* font-size: 1.5em; */
+}
+.karma-fields .table .th a.header-cell-order .dashicons-sort,
+.karma-fields .table .th a.header-cell-order .dashicons-leftright {
+  opacity: 0.3;
+}
+.karma-fields .table .th a.header-cell-order:hover .dashicons-sort,
+.karma-fields .table .th a.header-cell-order:hover .dashicons-leftright {
+  opacity: 1;
+}
+.karma-fields .table .th a.header-cell-order .dashicons-leftright {
+  transform: rotate(90deg);
+}
+
+
+
+/* Table Medias
+--------------------------------------*/
+
+.karma-field-table figure {
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.karma-field-table figure img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  -webkit-user-drag: none;
+}
+
+.karma-field-table ul.media-table {
+  display: flex;
+  gap: 0.75em;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  margin: 2em 0;
+  position: relative; /* needed for children offset calculation */
+}
+.karma-field-table ul.media-table li {
+  margin: 0;
+}
+.karma-field-table .media-table .frame {
+  position: relative;
+  user-select: none;
+  background-color: #f1f1f1;
+  width: 10em;
+  height: 12em;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.karma-field-table .media-table .selected .frame {
+  background-color: #c3c4c7;
+}
+.karma-field-table .media-table.focus .selected .frame,
+.karma-field-table .media-table .selecting .frame {
+  background-color: #484848;
+}
+.karma-field-table .media-table .selecting .frame figure,
+.karma-field-table .media-table.focus .selected .frame figure {
+  filter: saturate(0.5) opacity(0.5);
+}
+.karma-field-table .media-table.loading .frame figure {
+  filter: saturate(0) opacity(0.2);
+}
+.karma-field-table .media-table .frame.loading figure {
+  visibility: hidden;
+}
+.karma-field-table .media-table .frame .file-caption {
+  display: flex;
+  align-items: center;
+  min-height: 2em;
+}
+.karma-field-table .media-table .frame .filename {
+  padding: 0 0.75em;
+  width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-align: center;
+}
+.karma-field-table .media-table .frame.active .file-caption {
+  background-color: #c3c4c7;
+  color: #f1f1f1;
+}
+.karma-field-table .media-table .selecting .frame .file-caption,
+.karma-field-table .media-table.focus .selected .frame .file-caption {
+  background-color: #484848;
+  color: #f1f1f1;
+}
+
+.karma-field-table .media-table figure {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Folder */
+.karma-field-table .media-table figure.dashicons::before {
+  font-size: 4em;
+  color: #7da4c5;
+}
+
+/* Breadcrumb */
+ul.karma-breadcrumb {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+}
+ul.karma-breadcrumb li {
+  margin: 0;
+}
+ul.karma-breadcrumb li:not(:last-child)::after {
+  content: ">";
+  margin: 0 0.5em;
+}
+ul.karma-breadcrumb li a {
+  cursor: pointer;
+}
+ul.karma-breadcrumb li a.active {
+  color: #484848;
+}
+ul.karma-breadcrumb li a:hover {
+  /* text-decoration: underline; */
+  color: #484848;
+}
+
+
+
 /* Buttons
 --------------------------------------*/
+
+.karma-field-frame.karma-field-button {
+  min-width: 2em;
+  flex-shrink: 0;
+}
+
+button.karma-button {
+  color: #1d2327;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5em;
+  min-width: 2.5em;
+  padding: 0;
+  background-color: transparent;
+  box-shadow: none;
+  text-shadow: none;
+  border-radius: 3px;
+  font-size: 1em;
+  line-height: 1.08em;
+  position: relative;
+  border: 1px solid #1d2327;
+  cursor: pointer;
+}
+button.karma-button .text {
+  padding: 0 0.75em;
+}
+button.karma-button .dashicons {
+  padding: 0 0.625em;
+  line-height: 1em;
+  font-size: 1.2em;
+  height: auto;
+  width: auto;
+  transition: none;
+}
+button.karma-button.primary {
+  background-color: #1d2327;
+  border-color: #1d2327;
+  color: #f1f1f1;
+  box-shadow: none;
+}
+button.karma-button.active,
+button.karma-button:hover,
+button.karma-button:focus {
+  box-shadow: none;
+  outline: none;
+}
+button.karma-button:hover:not(.loading,.editing),
+button.karma-button.active:not(.loading,.editing),
+button.karma-button:active:not(.loading,.editing) {
+  background-color: white;
+}
+
+button.karma-button:active {
+  border: 1px solid #bbbcc0;
+  color: #bbbcc0;
+}
+
+button.karma-button.primary:hover:not(.loading,.editing),
+button.karma-button.primary.active:not(.loading,.editing),
+button.karma-button.primary:active:not(.loading,.editing),
+button.karma-button.primary:focus:not(.loading,.editing) {
+  background-color: white;
+  color: #1d2327;
+  box-shadow: none;
+}
+
+button.karma-button[disabled] {
+  color: #c3c4c7 !important;
+  background-color: transparent !important;
+  border: 1px solid #c3c4c7 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  cursor: default;
+}
+.primary[disabled] {
+  background-color: #c3c4c7 !important;
+  color: #f1f1f1 !important;
+  border: 1px solid #c3c4c7 !important;
+}
+
+button.karma-button.loading::after,
+button.karma-button.editing::after {
+  content: "...";
+}
+
+button.karma-button.loading,
+button.karma-button.primary.loading,
+button.karma-button.editing,
+button.karma-button.primary.editing {
+  color: #c3c4c7;
+  border: 1px solid #c3c4c7 ;
+}
+
+button.karma-button.loading .button-content,
+button.karma-button.loading span,
+button.karma-button.editing span {
+  visibility: hidden;
+}
+
+.karma-field-table .grid button.karma-button {
+  height: auto;
+  border: none;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+
+/* Upload button
+----------------------------------- */
+
+.karma-fields .karma-upload {
+
+}
+.karma-fields .karma-upload label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5em;
+  min-width: 2.5em;
+  border-radius: 3px;
+  font-size: 1em;
+  line-height: 1.08em;
+  border: 1px solid #1d2327;
+  cursor: pointer;
+  font-weight: normal;
+  padding: 0 0.75em;
+  color: #1d2327;
+  margin: 0;
+}
+.karma-fields .karma-upload label:hover {
+  background-color: white;
+}
+.karma-fields .karma-upload label:active {
+  border: 1px solid #bbbcc0;
+  color: #bbbcc0;
+}
+
 
 
 
@@ -104,375 +786,8 @@ body.karma-table-open {
 
 
 
-/* Table
---------------------------------------*/
-
-.karma-fields .table {
-  display: grid;
-  grid-gap: 1px;
-  margin: 2em 0;
-  background-color: black;
-
-  width: max-content;
-  height: max-content;
-
-  position: relative;
-}
-
-.karma-fields .table.filled {
-  border: 1px solid black;
-}
-.karma-fields .table .th,
-.karma-fields .table .td {
-  box-sizing: border-box;
-  text-align: left;
-  padding: 0;
-  display: flex;
-}
-.karma-fields .table .th {
-  background-color: #f1f1f1;
-  font-weight: bold;
-
-  min-height: 3em;
-  min-width: 3em;
-}
-
-.karma-fields .table .td {
-  min-height: 2.6667em;
-}
-
-.karma-fields .table .td {
-  background-color: #f1f1f1;
-  position: relative;
-}
-.karma-fields .table .td::after {
-  font-family: dashicons;
-  position: absolute;
-  font-size: 1.5em;
-  top: 0.2em;
-  right: 0.2em;
-  color: #0000002b;
-}
-.karma-fields .table .td.modified::after {
-  /* content: "\f176"; */
-  content: "";
-  background-color: #0000002b;
-  border-radius: 50%;
-  width: 0.6em;
-  height: 0.6em;
-}
-.karma-fields .table .td.autosaving::after {
-  /* content: "\f137"; */
-  content: "";
-  background-color: #0000002b;
-  border-radius: 50%;
-  width: 0.6em;
-  height: 0.6em;
-  /* animation: 1s linear 0s infinite alternate blink; */
-}
-/* @keyframes blink {
-  from { opacity:0; }
-  to { opacity:1; }
-} */
-
-
-
-.karma-fields .table .td.autosaved::after {
-  content: "\f137";
-}
-
-
-
-/* .karma-fields .table .td:focus-within, */
-
-/* .karma-fields .table .td.active:not(.selected),
-.karma-fields .table .th.active {
-  background-color: #484848;
-  color: #f1f1f1;
-
-} */
-
-/* .karma-fields .table .td.selected-cell {
-  background-color: white;
-}
-.karma-fields .table .td.selected-row:not(.selected-cell),
-.karma-fields .table .td.active-row:not(.selected-cell) {
-  background-color: #484848;
-  color: #f1f1f1;
-}
-.karma-fields .table:not(.ta-focus) .td.active-row:not(.selected-cell,.selected-row) {
-  background-color: #c3c4c7;
-} */
-
-
-/* .karma-fields .table .td.active-row { */
-.karma-fields .table .td.selected {
-  background-color: #c3c4c7;
-}
-/* .karma-fields .table .td.selected-row,
-.karma-fields .table.ta-focus:not(.select-mode-cell) .td.active-row:not(.selected-cell) { */
-.karma-fields .table .td.selecting,
-.karma-fields .table.ta-focus .td.selected:not(.selecting-cell) {
-  background-color: #484848;
-  color: #f1f1f1;
-}
-.karma-fields .table .td.selecting-cell {
-  background-color: white;
-}
-
-.karma-fields .table .td .modal-btn {
-  cursor: cell;
-}
-.karma-fields .table.ta-focus .td.active-row .modal-btn {
-  cursor: pointer;
-}
-
-
-
-.karma-fields .table .td.modified {
-  color: black;
-}
-.karma-fields .table .td > div {
-  display: flex;
-  width: 100%;
-}
-
-
-.karma-field-table.table-loading .table {
-  opacity: 0.333;
-  filter: grayscale(1);
-}
-
-
-
-
-
-/* Table Header
---------------------------------------*/
-
-.karma-fields .table .th a {
-  color: inherit;
-  padding: 0 0 0 0.75em;
-
-  /* font-size: 0.875em; */
-  font-size: 1em;
-  line-height: 1.08em;
-
-  display: flex;
-  align-items: center;
-}
-.karma-fields .table .th a:first-child {
-  flex-grow: 1;
-}
-.karma-fields .table .th a:last-child {
-  padding: 0 0.75em;
-}
-.karma-fields .table .th a.header-cell-order {
-  /* display: block; */
-  /* width: 20px; */
-  /* height: 20px; */
-  cursor: pointer;
-  /* background-image: url(../dashicons/sort.svg); */
-  /* background-repeat: no-repeat; */
-  /* opacity: 0.15; */
-}
-.karma-fields .table .th a.header-cell-order .dashicons {
-  /* font-size: 1.5em; */
-}
-.karma-fields .table .th a.header-cell-order .dashicons-sort,
-.karma-fields .table .th a.header-cell-order .dashicons-leftright {
-  opacity: 0.3;
-}
-.karma-fields .table .th a.header-cell-order:hover .dashicons-sort,
-.karma-fields .table .th a.header-cell-order:hover .dashicons-leftright {
-  opacity: 1;
-}
-.karma-fields .table .th a.header-cell-order .dashicons-leftright {
-  transform: rotate(90deg);
-}
-
-.karma-fields .table .th a.header-cell-order:hover {
-  /* opacity: 0.5; */
-}
-.karma-fields .table .th a.header-cell-order.asc {
-  /* background-image: url(../dashicons/arrow-up.svg); */
-  /* opacity: 0.5; */
-}
-.karma-fields .table .th a.header-cell-order.desc {
-  /* background-image: url(../dashicons/arrow-down.svg); */
-  /* opacity: 0.5; */
-}
-.karma-fields .loading .table .th a.header-cell-order,
-.karma-fields .table .th a.header-cell-order.loading {
-  /* background-image: none; */
-  /* opacity: 0.5; */
-}
-
-.karma-fields .table .th .table-index {
-  padding: 0.75em;
-  display: flex;
-  align-items: center;
-
-  font-size: 1em;
-  line-height: 1.08em;
-}
-
-
-
-
-/* Grid Text Input
---------------------------------------*/
-/*
-.karma-fields .table .td input.text,
-.karma-fields .table .td input.date,
-.karma-fields .table .td textarea {
-  margin: 0;
-  padding: 5px 5px;
-  border: 0;
-  width: 100%;
-  box-sizing: border-box;
-  outline: none;
-  border-radius: 0;
-  color: inherit;
-  height: 100%;
-}
-.karma-fields .table .td input.text:focus,
-.karma-fields .table .td input.date:focus {
-  box-shadow: none;
-}
-
-
-.karma-fields .table .td input,
-.karma-fields .table .td textarea,
-.karma-fields .table .td button {
-  background-color: transparent;
-}
- */
-
-
-
-/* Grid Cell Button
---------------------------------------*/
-
-/* .karma-fields .table .td button {
-  border: none;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  box-sizing: content-box;
-  background-color: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.karma-fields .table .td button:focus {
-  box-shadow: none;
-  outline: none;
-}
-.karma-fields .table .td button svg {
-  display: block;
-}
-.karma-fields .table .td button .karma-icon {
-  width: 20px;
-}
-.on-off svg path {
-  fill: #535c63;
-}
-.td.modified .on-off svg path {
-  fill: black;
-} */
-
-
-/* Grid Cell Files
---------------------------------------*/
-
-.karma-fields .table .td .field-file {
-  flex-wrap: nowrap;
-  margin: 0;
-}
-.karma-fields .table .td .field-file .field-control button.edit {
-  display: none;
-}
-.karma-fields .table .td .field-file .image-frame {
-  border: none;
-  width: 75px;
-  height: 75px;
-  cursor: pointer;
-  margin: 0;
-}
-
-
-/* Grid Group
---------------------------------------*/
-
-.karma-fields .table>.karma-field-container {
-  margin: 0;
-}
-.karma-fields .table .karma-field-frame {
-  min-height: 100%;
-}
-
-
-
-
-
-/* PPP Selector
---------------------------------------*/
-/*
-.ppp-selector {
-  display: flex;
-  flex-direction: column-reverse;
-}
-.ppp-selector-options {
-  position: relative;
-  display: none;
-}
-.ppp-selector:focus-within .ppp-selector-options {
-
-  display: block;
-}
-.ppp-selector-options ul {
-  margin: 0;
-  position: absolute;
-  bottom: 5px;
-  left: 5px;
-  background-color: #f1f1f1;
-  border: 1px solid #c3c4c7;
-
-}
-.ppp-selector-options ul li {
-  margin: 0;
-  border-bottom: 1px solid #c3c4c7;
-}
-.ppp-selector-options ul li:last-child {
-  border-bottom: none;
-}
-.ppp-selector-options ul li label {
-  padding: 5px 12px;
-}
-.ppp-selector-options ul li button {
-  width: 100%;
-  border: none;
-  display: flex;
-  justify-content: space-between;
-}
-.ppp-selector-options ul li button:hover {
-  border: none;
-  background-color: white;
-}
-.ppp-selector-options ul li button:focus {
-  border: none;
-} */
-
-
-
 /* Text
 --------------------------------------*/
-
-.karma-field-container.display-flex .karma-field-frame {
-  justify-content: center; /* -> vertical center table header */
-}
 
 .karma-field-frame.ellipsis {
   overflow: hidden;
@@ -481,4 +796,575 @@ body.karma-table-open {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.karma-field-table .table .text {
+  padding: 0 0.75em;
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+
+/* TinyMCE Field
+--------------------------------------*/
+
+.karma-field.tinymce .editor-content {
+  padding: 1px 10px;
+  box-sizing: border-box;
+  border: 1px solid #7d8993;
+
+  min-height: 150px;
+}
+.karma-field.tinymce .editor-content.mce-edit-focus {
+  outline: 2px solid #7d8993;
+  outline-offset: -2px;
+}
+
+
+
+
+/* Group
+--------------------------------------*/
+
+.karma-fields label {
+  font-weight: bold;
+}
+
+.karma-field-group label {
+  display: block;
+}
+
+.karma-field-container {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+}
+.karma-field-container.display-flex {
+  flex-direction: row;
+}
+.karma-field-container.display-block {
+  flex-wrap: nowrap;
+}
+.karma-field-group {
+  min-width: 260px;
+  flex: 1 1 0;
+  cursor: default; /* when containing array is selected and cursor set to grab */
+}
+
+
+
+/* Separator
+--------------------------------------*/
+.karma-field-separator {
+  flex-grow: 1;
+}
+
+
+/* Array
+--------------------------------------*/
+
+.karma-field-array {
+  flex-grow: 1;
+}
+.karma-fields .array .array-body {
+  display: grid;
+  grid-gap: 1px;
+  background-color: #c3c4c7;
+  border: 1px solid #c3c4c7;
+  border-radius: 2px;
+  min-height: 2em;
+
+  grid-auto-flow: row dense;
+
+  position: relative;
+}
+.karma-fields .array .array-footer {
+  flex-shrink: 0;
+  flex-grow: 1;
+  padding: 0.7em 0;
+}
+
+.karma-fields .array .array-body.empty {
+  display: none;
+}
+.karma-fields .array .th {
+  padding: 5px;
+  font-weight: bold;
+}
+.karma-fields .array .th,
+.karma-fields .array .td {
+  box-sizing: border-box;
+  background-color: white;
+  display: flex;
+  background-color: #f0f0f1;
+  transition: transform 100ms;
+  padding: 1em;
+}
+.karma-fields .array .td.drag {
+  z-index: 99999;
+}
+.karma-fields .array .td.array-index {
+  align-items: flex-start;
+  padding: 1em;
+  min-width: 3em;
+  font-weight: bold;
+}
+.karma-fields .array .td.array-index.grabbing {
+  cursor: grabbing;
+}
+.karma-fields .array .td.array-delete {
+  padding: 1em;
+  align-items: flex-start;
+}
+
+.karma-fields .array .drag {
+  outline: 1px solid #c3c4c7;
+  transition: none;
+}
+
+.karma-fields .array.dragging {
+  user-select: none;
+}
+
+.karma-fields .array.has-selection .td.selected {
+  cursor: grab;
+}
+.karma-fields .array .td.selected,
+.karma-fields .array .td.selecting,
+.karma-fields .array .td.selected .td,
+.karma-fields .array .td.selecting .td,
+.karma-fields .array .td.selected .th,
+.karma-fields .array .td.selecting .th {
+  background-color: white;
+}
+
+.array .karma-field-frame {
+  min-width: 0;
+}
+
+
+
+
+/* Checkbox
+--------------------------------------*/
+
+.karma-field.checkboxes ul {
+  margin: 2px 0;
+}
+.karma-field.checkboxes ul li,
+.karma-field.checkbox {
+  display: flex;
+  align-items: flex-end;
+}
+.karma-field.checkboxes ul li label,
+.karma-field.checkbox label {
+  font-size: inherit;
+  font-weight: inherit;
+}
+.karma-field .karma-field-checkbox input {
+  margin: 0;
+}
+.karma-field .checkbox-container {
+  display: flex;
+}
+.karma-field .checkbox-container label {
+  margin: 0 0.4em;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1.08em;
+  user-select: none;
+}
+
+
+.karma-field-table .table input[type=checkbox] {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  justify-content: center;
+  border: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+
+  background-color: transparent;
+}
+.karma-field-table .table input[type=checkbox]:focus {
+  background-color: white;
+}
+.karma-field-table .table input[type=checkbox]:checked::before {
+  display: block;
+  float: none;
+}
+.karma-fields input[type=checkbox].selected {
+  background-color: white;
+}
+.karma-fields input[type=checkbox]:focus {
+  background-color: white;
+  border-color: #c3c4c7;
+  box-shadow: none;
+  outline: none;
+}
+
+.karma-field-frame.karma-field-checkbox {
+  grid-template-columns: auto auto auto 1fr;
+  grid-column-gap: 5px;
+}
+
+
+
+/* Dropdown
+--------------------------------------*/
+
+.karma-fields select.karma-field {
+  border-color: #1d2327;
+  color: inherit;
+  max-width: 100%;
+  font-size: 1em;
+  min-height: 2.5em;
+  background-color: transparent;
+  padding: 0 2.0em 0 0.75em;
+  margin: 0;
+  box-shadow: none;
+}
+
+.karma-fields select.karma-field.active:not(.loading,.editing) {
+  background-color: white;
+}
+
+.karma-field-table .table select.karma-field {
+  border: none;
+  margin: 0;
+  border-radius: 0;
+  width: 100%;
+}
+
+
+
+
+/* Input
+--------------------------------------*/
+
+.karma-fields input.text-input,
+.karma-fields textarea {
+  box-shadow: none;
+  box-sizing: border-box;
+  border-color: #484848;
+  border-radius: 0;
+  min-height: 2.5em;
+  max-width: none;
+  font-size: 1em;
+  padding: 0 0.75em;
+  background-color: transparent;
+}
+.karma-fields textarea {
+  padding: 0.75em 0.75em;
+}
+.karma-fields .modified input.text-input:not(:focus),
+.karma-fields .modified textarea:not(:focus) {
+  color: black;
+}
+.karma-fields input.text-input:focus,
+.karma-fields textarea:focus {
+  outline: none;
+  background-color: white;
+
+  flex-grow: 1;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+.karma-fields input.text-input:disabled,
+.karma-fields textarea:disabled {
+  border-color: #c3c4c7;
+}
+.karma-fields  input[type=number] {
+  height: auto;
+}
+.karma-field-input input {
+  margin: 0;
+}
+.karma-fields input[type=number]::-webkit-inner-spin-button {
+  appearance: none;
+}
+.karma-fields input:read-only {
+  color: #a0a0a0;
+}
+.karma-field-input-datalist {
+  display: flex;
+}
+
+/* Grid + Table Input */
+
+.karma-fields .karma-field-input input.text-input,
+.karma-fields .karma-field-input textarea {
+  flex-grow: 0;
+}
+
+/* Table Input */
+
+.karma-fields .table input.text-input,
+.karma-fields .table textarea {
+  border: none;
+  margin: 0;
+  min-width: 10em;
+  width: 100%;
+  min-height: 3em;
+}
+.karma-fields .table textarea {
+  line-height: 1.1em;
+  min-height: 4em;
+}
+
+/* Input Datalist */
+
+.karma-field-input-datalist {
+  display: flex;
+  flex-grow: 1;
+}
+
+
+
+
+/* Input Date
+--------------------------------------*/
+
+.karma-field-date.selected input {
+  background-color: #ffffff;
+}
+.karma-field-date {
+  display: flex;
+  flex-direction: column;
+}
+.karma-field-date .date-popup-container {
+	position: relative;
+	z-index: 100;
+  top: 100%;
+}
+.karma-field-date .calendar {
+	position: absolute;
+	bottom: 2px;
+	z-index: 100;
+	width: 100%;
+  min-width: 196px;
+  max-width: 280px;
+	user-select: none;
+  box-shadow: 0 0 8px rgb(0 0 0 / 30%);
+  background: white;
+}
+.karma-field-date .popup .calendar {
+  /* padding-bottom: 10px; */
+}
+.karma-field-date .date-popup-container.open-down .calendar {
+	top: 100%;
+	bottom: auto;
+}
+.karma-field-date .date-popup-container.open-left .calendar {
+	right: 0;
+}
+
+/* calendar */
+.karma-field-date .calendar-nav {
+	display: flex;
+  height: 28px;
+}
+.karma-field-date .calendar-nav li.calendar-arrow {
+  align-items: stretch;
+  justify-content: stretch;
+}
+.karma-field-date .calendar-nav .current-month {
+  flex-grow: 1;
+}
+.karma-field-date .calendar-body {
+	display: flex;
+  flex-direction: column;
+}
+.karma-field-date ul {
+	display: flex;
+  margin: 0;
+  height: 28px;
+}
+.karma-field-date ul li {
+	display: flex;
+  justify-content: center;
+  align-items: center;
+	width: 14.2857%; /* 1/7 */
+  margin: 0;
+}
+.karma-field-date ul li a {
+	display: flex;
+  flex-grow: 1;
+  justify-content: center;
+  align-items: center;
+}
+.karma-field-date ul.calendar-days-title li {
+  font-weight: bolder;
+  font-size: 0.875em;
+  line-height: 1.08em;
+}
+.karma-field-date ul.calendar-days-content {
+  cursor: pointer;
+}
+.karma-field-date ul.calendar-days-content li {
+  justify-content: stretch;
+  align-items: stretch;
+}
+.karma-field-date ul li.offset {
+	cursor: default;
+}
+.karma-field-date ul li.offset a {
+	visibility: hidden;
+}
+.karma-field-date .calendar-arrow:hover,
+.karma-field-date ul li:hover,
+.karma-field-date ul li.today {
+}
+.karma-field-date ul li.today a {
+	text-decoration: underline;
+}
+.karma-field-date ul li:active a,
+.karma-field-date ul li.active a {
+  color: white;
+  background-color: #2271b1;
+}
+.karma-field-date ul li:not(.active).today,
+.karma-field-date ul li:not(.active):hover {
+}
+
+
+
+/* Tiny MCE
+--------------------------------------*/
+
+.karma-field-tinymce label {
+  z-index: 3;
+}
+.karma-tinymce {
+  position: relative;
+}
+
+.karma-tinymce .editor-header {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+.karma-tinymce .editor-header .toolbar {
+  position: sticky;
+  top: 32px;
+
+  background-color: #f0f0f1;
+  z-index: 2;
+  padding: 0.75em;
+  border: 1px solid #484848;
+}
+.selected .karma-tinymce .editor-header .toolbar {
+  background-color: white;
+}
+.karma-tinymce.theme-white .editor-header .toolbar {
+  background-color: white;
+}
+.karma-tinymce.theme-white button.karma-button:not(.primary).active,
+.karma-tinymce.theme-white button.karma-button:not(.primary):hover,
+.karma-tinymce.theme-white button.karma-button:not(.primary):focus {
+  background-color: #f0f0f1;
+}
+.karma-tinymce .editor-body {
+  padding: 3.8462em 0.7692em 0;
+  border: 1px solid #484848;
+  border-top: none;
+  min-height: 8em;
+  border-radius: 3px;
+}
+.karma-tinymce .editor-body:focus {
+  background-color: white;
+}
+
+
+/* Links */
+.karma-tinymce .editor-body a[href='#'] {
+  color: black;
+  text-decoration-style: dashed;
+}
+.karma-tinymce .karma-tinymce-popover {
+  border: 1px solid #0b73aa;
+  padding: 0.7692em;
+  position: absolute;
+  background-color: white;
+  top: 0;
+  left: 100px;
+  z-index: 1;
+
+  transition: transform 150ms;
+  transform-origin: top left;
+  transform: scale(0);
+}
+.karma-tinymce .karma-tinymce-popover.active {
+  transform: scale(1);
+}
+
+/* UL/OL */
+.karma-tinymce ul,
+.karma-tinymce ol {
+  padding: 0 2em;
+}
+.karma-tinymce ol {
+  margin-left: 0;
+}
+
+/* Table */
+.karma-tinymce table {
+  border-collapse: collapse;
+}
+.karma-tinymce table td {
+  border: 1px solid #0c73aa;
+}
+
+/* Heading */
+.karma-tinymce .editor-body h1,
+.karma-tinymce .editor-body h2,
+#poststuff .karma-tinymce .editor-body h2, /* wtf? */
+.karma-tinymce .editor-body h3,
+.karma-tinymce .editor-body h4,
+.karma-tinymce .editor-body h5,
+.karma-tinymce .editor-body h6 {
+  font-weight: 600;
+  padding: 0;
+  margin: 1em 0;
+  line-height: 1.2;
+}
+.karma-tinymce .editor-body h1 {
+  font-size: 2.5em;
+}
+.karma-tinymce .editor-body h2,
+#poststuff .karma-tinymce .editor-body h2 { /* wtf? */
+  font-size: 2em;
+}
+.karma-tinymce .editor-body h3 {
+  font-size: 1.5em;
+}
+.karma-tinymce .editor-body h4 {
+  font-size: 1.25em;
+}
+.karma-tinymce .editor-body h5 {
+  font-size: 1.125em;
+}
+.karma-tinymce .editor-body h6 {
+  font-size: 1em;
+}
+
+/* Image */
+.karma-tinymce img {
+  display: block;
+}
+.karma-tinymce img.alignleft {
+  margin-right: 2em;
+}
+.karma-tinymce img.alignright {
+  margin-left: 2em;
+}
+.karma-tinymce img.aligncenter {
+  margin: 0 auto;
 }
