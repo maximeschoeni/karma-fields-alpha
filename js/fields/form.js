@@ -261,7 +261,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 				if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
 
-					this.buffer.set(currentValue, ...event.path);
+					this.buffer.set(currentValue, ...event.path); // -> todo get ride of this
 					this.buffer.backup(newValue, ...event.path);
 					this.buffer.set(newValue, ...event.path);
 

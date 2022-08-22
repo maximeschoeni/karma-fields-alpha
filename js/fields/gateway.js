@@ -302,7 +302,7 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 			}
 
 			case "get": {
-				console.log("gateway get");
+				console.log("gateway get", event.path);
 				// const [id, ...path] = event.absolutePath || event.path;
 				//
 				// const [driver, ...params] = this.resource.driver.split("?");

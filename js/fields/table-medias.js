@@ -11,9 +11,9 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
       super(...args);
 
-      this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", "selection");
+      this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.context, "selection");
 
-      this.idSelector = new KarmaFieldsAlpha.IdSelector();
+      // this.idSelector = new KarmaFieldsAlpha.IdSelector();
 
       this.clipboard = new KarmaFieldsAlpha.Clipboard();
 
@@ -68,13 +68,16 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
         //   break;
         // }
 
-        case "open-folder":
-
-          const id = KarmaFieldsAlpha.Type.toString(event.data);
+        case "open-folder": {
+          const [id] = event.path;
+          // const id = KarmaFieldsAlpha.Type.toString(event.data);
 
           if (id !== KarmaFieldsAlpha.Nav.get("post_parent")) {
 
             KarmaFieldsAlpha.History.save();
+
+            this.unselect();
+
             KarmaFieldsAlpha.Nav.change(id, "post_parent");
 
             await super.dispatch({
@@ -87,6 +90,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
           }
           break;
+        }
 
         // case "actives": // -> deprec
         // case "selection":
@@ -105,8 +109,8 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
             this.unselect();
 
-            KarmaFieldsAlpha.Nav.backup(id, "post_parent");
-            KarmaFieldsAlpha.Nav.set(id, "post_parent"); // -> will remove key instead of setting ""
+            KarmaFieldsAlpha.Nav.backup(parent, "post_parent");
+            KarmaFieldsAlpha.Nav.set(parent, "post_parent"); // -> will remove key instead of setting ""
 
             const page = KarmaFieldsAlpha.Nav.get("page") || "1";
 
@@ -199,6 +203,42 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
     //
     // }
 
+    async updateSelection(index, length) {
+
+      const selection = this.selectionBuffer.get() || {};
+      const segment = new KarmaFieldsAlpha.Segment(index, length);
+
+      if (!segment.equals(selection.index, selection.length)) {
+
+        KarmaFieldsAlpha.History.save();
+
+        this.select(index, length);
+
+        // const request = await this.dispatch({
+        //   action: "rows",
+        //   index: index,
+        //   length: length
+        // });
+        //
+        // console.log(request.data);
+
+        const ids = await this.dispatch({
+          action: "ids"
+        }).then(request => KarmaFieldsAlpha.Type.toArray(request => request.data));
+
+        const selectedIds = ids.slice(index, index + length);
+
+        this.clipboard.setData(selectedIds.map(id => [id]));
+        await this.dispatch({action: "edit-selection"});
+
+      } else {
+
+        this.clipboard.focus();
+
+      }
+
+    }
+
     build(ids, page, ppp, columns) {
       return {
         class: "media-table",
@@ -244,29 +284,29 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
           //   element.classList.remove("selected");
           // }
 
-          this.idSelector.onSelectionComplete = async selection => {
-            // const ids = manager.getSelectedIds();
-            // const selectedIds = this.selectionBuffer.get() || [];
-
-            const currentSelection = this.selectionBuffer.get();
-
-            if (!KarmaFieldsAlpha.Segment.equals(selection, currentSelection)) {
-
-              KarmaFieldsAlpha.History.save();
-
-              this.selectionBuffer.backup(selection);
-              this.selectionBuffer.set(selection);
-
-              const request = await this.dispatch({
-                action: "selectedIds"
-              });
-
-              const ids = KarmaFieldsAlpha.Type.toArray(request.data);
-
-              this.clipboard.setData(ids.map(id => [id]));
-              await this.dispatch({action: "edit-selection"});
-            }
-          }
+          // this.idSelector.onSelectionComplete = async selection => {
+          //   // const ids = manager.getSelectedIds();
+          //   // const selectedIds = this.selectionBuffer.get() || [];
+          //
+          //   const currentSelection = this.selectionBuffer.get();
+          //
+          //   if (!KarmaFieldsAlpha.Segment.equals(selection, currentSelection)) {
+          //
+          //     KarmaFieldsAlpha.History.save();
+          //
+          //     this.selectionBuffer.backup(selection);
+          //     this.selectionBuffer.set(selection);
+          //
+          //     const request = await this.dispatch({
+          //       action: "selectedIds"
+          //     });
+          //
+          //     const ids = KarmaFieldsAlpha.Type.toArray(request.data);
+          //
+          //     this.clipboard.setData(ids.map(id => [id]));
+          //     await this.dispatch({action: "edit-selection"});
+          //   }
+          // }
 
 
 
@@ -274,11 +314,15 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
           this.clipboard.onInput = dataArray => {
             const data = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
-            this.dispatch({
-              action: "write",
-              data: data,
-              selection: this.selectionBuffer.get()
-            });
+            const selection = this.selectionBuffer.get();
+            if (selection) {
+              this.dispatch({
+                action: "write",
+                data: data,
+                index: selection.index,
+                length: selection.length
+              });
+            }
           }
 
           this.clipboard.ta.onfocus = event => {
@@ -287,6 +331,8 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
           this.clipboard.ta.onblur = event => {
             grid.element.classList.remove("focus");
           }
+
+          const currentSelection = this.selectionBuffer.get() || {};
 
           // const selectedIds = this.selectionBuffer.get() || [];
 
@@ -298,6 +344,45 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
               return {
                 tag: "li",
+                update: li => {
+
+
+
+                  const isSelected = KarmaFieldsAlpha.Segment.contains(currentSelection, index);
+
+                  li.element.classList.toggle("selected", isSelected);
+
+                  li.element.onmousedown = async event => {
+
+                    const currentSelection = this.selectionBuffer.get();
+
+                    const newSelection = new KarmaFieldsAlpha.Selection(event, grid.element, [...grid.element.children], 1, ids.length, 0, index, currentSelection);
+
+                    await newSelection.select();
+
+                    await this.updateSelection(newSelection.index, newSelection.length);
+
+                    // const segment = new KarmaFieldsAlpha.Segment(newSelection.index, newSelection.length);
+                    //
+                    // if (!segment.equals(currentSelection.index, currentSelection.length)) {
+                    //
+                    //   KarmaFieldsAlpha.History.save();
+                    //
+                    //   this.select(newSelection);
+                    //
+                    //   const selectedIds = ids.slice(newSelection.index, newSelection.index + newSelection.length);
+                    //
+                    //   this.clipboard.setData(selectedIds.map(id => [id]));
+                    //   await this.dispatch({action: "edit-selection"});
+                    //
+                    // } else {
+                    //
+                    //   this.clipboard.focus();
+                    //
+                    // }
+
+                  }
+                },
                 child: {
                   class: "frame",
                   init: frame => {
@@ -306,10 +391,10 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
                   update: async frame => {
 
                     frame.element.classList.add("loading");
-                    // frame.element.classList.toggle("selected", isSelected);
 
-                    this.idSelector.registerItem(id, index);
-                    this.idSelector.registerCell(index, frame.element);
+
+                    // this.idSelector.registerItem(id, index);
+                    // this.idSelector.registerCell(index, frame.element);
 
                     const postType = await this.dispatch({
                       action: "get",
@@ -320,7 +405,8 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
                       if (postType !== "attachment") {
                         this.dispatch({
                           action: "open-folder",
-                          data: this.resource.key
+                          path: [id]
+                          // data: this.resource.key
                         });
                       }
                     }
@@ -381,9 +467,9 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
         },
         complete: async grid => {
           // const selectedIds = this.selectionBuffer.get() || [];
-          const selection = this.selectionBuffer.get();
-
-          this.idsSelector.updateSelection(selection);
+          // const selection = this.selectionBuffer.get();
+          //
+          // this.idsSelector.updateSelection(selection);
 
           const request = await this.dispatch({
             action: "selectedIds"
@@ -531,6 +617,26 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
             break;
           }
 
+          case "open-folder": {
+            const id = await super.dispatch({action: "selectedIds"}).then(request => KarmaFieldsAlpha.Type.toString(request.data));
+
+            if (id) {
+              event.path = [id, ...event.path];
+              await super.dispatch(event);
+            }
+
+
+            // -> future:
+            // const id = await super.dispatch({action: "selectedIds", type: "string"});
+            //
+            // if (id) {
+            //   return super.dispatch(event, id, ...path);
+            // }
+
+
+            break;
+          }
+
           case "is-attachment": {
 
             // -> handle multi selection
@@ -539,7 +645,9 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
               path: ["post_type"]
             }); //.then(request => request.dataArray.every(data => KarmaFieldsAlpha.Type.toArray(data) === "attachment"));
 
-            event.data = request.dataArray.every(data => KarmaFieldsAlpha.Type.toString(data) === "attachment")
+            // console.log(request.data, request.dataArray);
+
+            event.data = request.dataArray.length > 0 && request.dataArray.every(data => KarmaFieldsAlpha.Type.toString(data) === "attachment")
 
             break;
           }
@@ -576,12 +684,21 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
               //   action: "selection"
               // }).then(request => request.data);
               // const selectedIds = await this.getArray("id");
-              const selection = await this.getObject("selection");
+
+              // debugger;
+
+              // const selection = await this.getObject("selection");
+              const selection = await this.dispatch({
+                action: "selection"
+              }).then(request => KarmaFieldsAlpha.Type.toObject(request.data));
 
               const type = await this.getString("post_type");
 
-              const isAttachment = await this.dispatch({action: "is-attachment"});
-              console.log(isAttachment);
+
+              const isAttachment = await this.dispatch({
+                action: "is-attachment"
+              }).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
+
 
               container.children = [
                 {
@@ -590,7 +707,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
                     {
                       // -> multiple attachments/folders
                       update: frame => {
-                        frame.element.classList.toggle("hidden", !selection || selection <= 1); // selectedIds.length <= 1
+                        frame.element.classList.toggle("hidden", !selection || selection.length <= 1);
                         if (selection && selection.length > 1) {
                           frame.child = {
                             tag: "span",
@@ -739,7 +856,8 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
                     },
                     {
                       // -> 1 folder
-                      update: frame => {
+                      class: "one-folder",
+                      update: async frame => {
                         frame.element.classList.toggle("hidden", !selection || selection.length !== 1 || type === "attachment");
                         if (selection && selection.length === 1 && type !== "attachment") {
                           frame.children = [
@@ -747,17 +865,18 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
                               id: "open-folder",
                               type: "button",
                               title: "Open",
-                              action: "open-folder",
+                              action: "open-folder"
                               // value: await this.getString("id")
                               // hidden: [">", ["count", ["selection"]], 1]
-                            }),
-                            this.createChild({
-                              id: "folder-name",
-                              type: "input",
-                              title: "Folder Name",
-                              key: "post_title"
-                            })
-                          ]
+                            }).build(),
+                            // this.createChild({
+                            //   id: "folder-name",
+                            //   type: "input",
+                            //   title: "Folder Name",
+                            //   key: "post_title"
+                            // }).build()
+                          ];
+
                         }
                       }
                     },

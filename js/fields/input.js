@@ -6,11 +6,20 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 		// console.log("create input", this.resource);
 	}
 
-	getDefault() {
-		if (this.resource.default === null) {
-			return null; // -> no default
+	async getDefault() {
+		// if (this.resource.default === null) {
+		// 	return null; // -> no default
+		// }
+		// return this.resource.default || "";
+		const defaults = {};
+
+		if (this.resource.key && this.resource.default !== null) {
+
+			defaults[this.resource.key] = await this.parse(this.resource.default || "");
+
 		}
-		return this.resource.default || "";
+
+		return defaults;
 	}
 
 	async importValue(value) {
@@ -102,45 +111,14 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 	async setValue(value) {
 
-		// this.promise = Promise.resolve(this.promise).then(async () => {
-
-		// debugger;
-
-			// const event = this.createEvent();
-			// event.action = "set";
-			// event.type = "string";
-			// event.backup = "always";
-			// event.autosave = this.resource.autosave;
-			// event.splash = true;
-			// event.setValue(value);
+			// if (this.resource.autosave) {
 			//
-			// await this.dispatch(event);
-
-			// const event = this.createEvent();
-			// event.action = "set";
-			// event.type = "string";
-			// event.backup = "always";
-			// event.autosave = this.resource.autosave;
-			// event.splash = true;
-			// event.setValue(value);
-
-			// await this.dispatch({
-			// 	action: "backup"
-			// });
+			// 	await this.dispatch({
+			// 		action: "send",
+			// 		data: KarmaFieldsAlpha.Type.toArray(value)
+			// 	});
 			//
-			// await this.dispatch({
-			// 	action: "stage"
-			// });
-
-
-			if (this.resource.autosave) {
-
-				await this.dispatch({
-					action: "send",
-					data: KarmaFieldsAlpha.Type.toArray(value)
-				});
-
-			} else {
+			// } else {
 
 				if (!this.isBusy()) {
 					KarmaFieldsAlpha.History.save();
@@ -148,25 +126,25 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 				await this.dispatch({
 					action: "set",
-					type: "string",
+					// type: "string",
 					// backup: this.isBusy() ? "pack" : "tie",
-					backup: "pack",
+					// backup: "pack",
 					// autosave: this.resource.autosave,
 					// splash: true, // deprec -> use 'edit'
-					data: KarmaFieldsAlpha.Type.toArray(value)
+					data: value // KarmaFieldsAlpha.Type.toArray(value)
 					// edit: true
 				});
 
-			}
+			// }
 
 
-			if (this.resource.onchange) {
-				await this.parse(this.resource.onchange);
-			}
+			// if (this.resource.onchange) {
+			// 	await this.parse(this.resource.onchange);
+			// }
 
 			await this.dispatch({
-				action: "edit",
-				data: this.resource.editmode || "splash"
+				action: "edit"
+				// data: this.resource.editmode || "splash"
 			});
 
 	}
@@ -315,7 +293,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 						type: "string",
 						backup: "always",
 						pasted: true,
-						data: [event.clipboardData.getData("text").normalize()]
+						data: event.clipboardData.getData("text").normalize()
 					});
 				}
 

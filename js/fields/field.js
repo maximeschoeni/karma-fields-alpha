@@ -3,6 +3,22 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   static fieldId = 0;
 
+  // static Response = class {
+  //
+  //   constructor(data) {
+  //     this.data = data;
+  //   }
+  //
+  //   toArray(data) {
+  //     return KarmaFieldsAlpha.Type.toArray(this.data);
+  //   }
+  //
+  //   toString(data) {
+  //     return KarmaFieldsAlpha.Type.toString(this.data);
+  //   }
+  //
+  // }
+
   constructor(resource = {}, parent = null, deprecated = null) {
     this.parent = parent;
 		this.children = [];
@@ -14,7 +30,7 @@ KarmaFieldsAlpha.fields.field = class Field {
     //   ...resource
     // };
 
-    this.listeners = [];
+    // this.listeners = [];
 
 		this.fieldId = KarmaFieldsAlpha.fields.field.fieldId++;
 
@@ -34,12 +50,12 @@ KarmaFieldsAlpha.fields.field = class Field {
     return "karma-fields-"+this.fieldId;
   }
 
-  addChild(child) {
+  addChild(child, id) {
     this.children.push(child);
     // if (child.resource.id || child.resource.key !== undefined) {
     //   this.childMap[child.resource.id || child.resource.type+"-"+child.resource.key] = child;
     // }
-    this.childMap[child.resource.id || child.resource.type] = child;
+    this.childMap[id || child.resource.id || child.resource.type] = child;
 
     child.parent = this;
   }
@@ -61,13 +77,13 @@ KarmaFieldsAlpha.fields.field = class Field {
         type: resource
       };
     }
-    if (!resource.id) {
-      resource.id = resource.key || resource.type;
-    }
+    // if (!resource.id) {
+    //   resource.id = resource.key || resource.type;
+    // }
     return resource;
   }
 
-  createField(resource = {}) {
+  createField(resource) {
 
 
     // if (typeof resource === "string") {
@@ -85,7 +101,17 @@ KarmaFieldsAlpha.fields.field = class Field {
     //   };
     // }
 
-    resource = this.sanitizeResource(resource);
+    // resource = this.sanitizeResource(resource);
+
+    if (typeof resource === "string") {
+
+      resource = {
+        type: resource
+      };
+
+    }
+
+
 
     const constructor = this.constructor;
 
@@ -118,7 +144,7 @@ KarmaFieldsAlpha.fields.field = class Field {
     // return new KarmaFieldsAlpha.fields[type](resource);
   }
 
-  createChild(resource) {
+  createChild(resource, id) {
 
     // if (typeof resource === "string" && KarmaFieldsAlpha.fields.presets[resource]) {
     //   resource = KarmaFieldsAlpha.fields.presets[resource];
@@ -134,7 +160,7 @@ KarmaFieldsAlpha.fields.field = class Field {
     // const id = typeof resource === "string" ? resource : resource.id;
 
     // let child = this.childMap[resource.id || resource.type+"-"+resource.key];
-    let child = this.childMap[resource.id || resource];
+    let child = this.childMap[id || resource.id || resource.type || resource];
 
     if (!child) {
 
@@ -148,7 +174,11 @@ KarmaFieldsAlpha.fields.field = class Field {
 
       child = this.createField(resource);
 
-      this.addChild(child);
+      this.children.push(child);
+      this.childMap[id || resource.id || resource.type] = child;
+      child.parent = this;
+
+
     }
 
     return child;
@@ -194,21 +224,37 @@ KarmaFieldsAlpha.fields.field = class Field {
     return [];
   }
 
-  getSubResources(resource) {
-    return KarmaFieldsAlpha.Resource.getSubResources(resource);
-    // if (resource.children) {
-    //   return resource.children.reduce((array, item) => {
-    //     if (item.key !== undefined) {
-    //       return [...array, item];
-    //     } else {
-    //       return [
-    //         ...array,
-    //         ...this.getSubResources(item)
-    //       ];
-    //     }
-    //   }, []);
-    // }
-    // return [];
+  getKeyedResources(resource) {
+
+    if (!resource) {
+      resource = this.resource;
+    }
+
+    if (resource.children) {
+
+      return resource.children.reduce((array, child) => {
+
+        if (child.key !== undefined) {
+
+          return [...array, child];
+
+        } else {
+
+          return [
+            ...array,
+            ...this.getKeyedResources(child)
+          ];
+
+        }
+
+      }, []);
+
+    }
+
+    return [];
+
+    // return KarmaFieldsAlpha.Resource.getSubResources(resource);
+
   }
 
   getChild(id, ...path) {

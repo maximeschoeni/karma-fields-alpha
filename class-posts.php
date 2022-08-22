@@ -15,10 +15,32 @@ Class Karma_Fields_Alpha_Posts {
 	 */
 	public function karma_fields_init($karma_fields) {
 
-		$karma_fields->register_menu_item('karma=posts', 'edit.php');
+		// -> moved in karma-editor-theme
+		// $karma_fields->register_menu_item('karma=posts', 'edit.php');
+
+		// $karma_fields->register_navigation(array(
+		// 	'children' => array(
+		// 		array(
+		// 			'type' => 'menu',
+		// 			'items' => array(
+		// 				array(
+		// 					'title' => 'Post',
+		// 					'hash' => 'karma=posts'
+		// 				),
+		// 				array(
+		// 					'title' => 'Pages',
+		// 					'hash' => 'karma=pages'
+		// 				),
+		// 				array(
+		// 					'title' => 'Medias',
+		// 					'hash' => 'karma=medias'
+		// 				)
+		// 			)
+		// 		)
+		// 	)
+		// ));
 
 		$karma_fields->register_table(array(
-
 			'driver' => 'posts?post_type=post',
 			'id' => 'posts',
 			'type' => 'tableGrid',
@@ -74,9 +96,43 @@ Class Karma_Fields_Alpha_Posts {
 						),
 						array(
 							'type' => 'gallery',
-							'uploader' => 'wp',
+							// 'uploader' => 'wp',
 							'key' => 'images',
-							'label' => 'Gallery'
+							'label' => 'Gallery',
+							// 'max' => 1
+						),
+						array(
+							'label' => 'Array',
+							'type' => 'array',
+							'key' => 'array1',
+							'children' => array(
+								'index',
+								array(
+									'type' => 'input',
+									'key' => 'x'
+								),
+								array(
+									'type' => 'input',
+									'key' => 'y'
+								),
+								'delete'
+							)
+						),
+						array(
+							'label' => 'Array 2',
+							'type' => 'array',
+							'children' => array(
+								'index',
+								array(
+									'type' => 'input',
+									'key' => 'x'
+								),
+								array(
+									'type' => 'input',
+									'key' => 'y'
+								),
+								'delete'
+							)
 						)
 					)
 				)

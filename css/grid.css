@@ -1221,7 +1221,7 @@ button.karma-button[title]:hover::before {
 
 .karma-field-container {
   /* margin: -10px; */
-  flex-grow: 1;
+  /* flex-grow: 1; */ /* removed for Actinic Arrays */
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
@@ -1296,25 +1296,25 @@ button.karma-button[title]:hover::before {
   /* padding: 10px; */
 }
 .karma-field-frame.final {
-  background-color: #f1f1f1;
+  /* background-color: #f1f1f1; */
   /* padding: 0.8333em; */
 }
 .karma-field-frame.final .final {
-  background-color: transparent;
+  /* background-color: transparent; */
   /* padding: 0; */
 }
 /* .karma-field-frame.karma-field-group .karma-field-container { */
 .karma-field-container {
-  gap: 0.7em;
+  /* gap: 0.7em; */
 }
 
 .karma-field-frame.initial {
-  padding: 1em;
+  /* padding: 1em; */
 }
 
 /* -> embed fields in post edit page: */
 .karma-fields-post .karma-field-frame.final {
-  background-color: transparent;
+  /* background-color: transparent; */
 }
 
 

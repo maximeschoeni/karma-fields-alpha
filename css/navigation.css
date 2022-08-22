@@ -1,12 +1,12 @@
 
 
-.karma-fields-navigation * {
+.karma-fields * {
   box-sizing: border-box;
 }
-.karma-fields-navigation .hidden {
+.karma-fields .hidden {
   display: none !important;
 }
-.karma-fields-navigation .karma-field-table {
+.karma-fields .popup {
   position: fixed;
   left: 0;
   top: 0;
@@ -21,16 +21,48 @@
 
   overflow: hidden;
 }
+.karma-fields .popup-content {
+  flex-grow: 1;
+  display: flex;
+  min-width: 0;
 
+  background-color: #f1f1f1;
+}
+.karma-fields .navigation {
+  /* display: flex; */
+  flex-shrink: 0;
+  width: 10em;
+  padding: 0.75em;
+}
+.karma-fields .navigation ul li {
+  /* padding: 0.7em 0; */
+}
 
-.karma-fields-navigation .karma-field-table .table-view {
+.karma-fields .navigation ul li:hover a,
+.karma-fields .navigation ul li.active a {
+  color: black;
+  text-decoration: none;
+}
+
+.karma-fields .tables {
+  flex-grow: 1;
+  display: flex;
+  min-width: 0;
+}
+.karma-fields .table-container {
+  flex-grow: 1;
+  display: flex;
+  min-width: 0;
+}
+
+.karma-fields .karma-field-table .table-body {
   overflow: hidden;
   flex-grow: 1;
   display: flex;
   position: relative;
   /* gap: 1px; */
 }
-.karma-fields-navigation .karma-field-table .table-view .table-main {
+.karma-fields .karma-field-table .table-body .table-main {
   /* position: absolute;
   width: 60%;
   height: 100%; */
@@ -50,7 +82,7 @@
 
 
 
-.karma-fields-navigation.single-open .karma-field-table .table-view .table-main {
+.karma-fields.single-open .karma-field-table .table-body .table-main {
   /* transform: translateX(calc(80% + 1px)); */
   /* filter: brightness(0.7); */
 
@@ -58,7 +90,7 @@
 }
 
 
-.karma-fields-navigation .karma-field-table .table-header {
+.karma-fields .karma-field-table .table-main-header {
   /* padding: 10px 20px 10px; */
   /* margin: 0 0 1px; */
   background-color: #f1f1f1;
@@ -66,7 +98,7 @@
   /* height: 50px; */
   /* box-sizing: border-box; */
 }
-.karma-fields-navigation .karma-field-table h1 {
+.karma-fields .karma-field-table h1 {
   /* flex-grow: 1;
   display: flex;
   align-items: center; */
@@ -74,34 +106,34 @@
   font-size: 1.5em;
   line-height: 1.15em;
 }
-.karma-fields-navigation .karma-field-table .table-header .modal-navigation {
+.karma-fields .karma-field-table .table-main-header .modal-navigation {
   display: flex;
   align-items: center;
   padding: 0 10px;
   background-color: #f1f1f1;
   /* gap: 10px; */
 }
-.karma-fields-navigation button.hidden {
+.karma-fields button.hidden {
   display: none;
 }
-.karma-fields-navigation .karma-field-table .table-header .table-pagination .current-page {
+.karma-fields .karma-field-table .table-main-header .table-pagination .current-page {
   min-width: 75px;
   display: flex;
   justify-content: center;
 }
 
-/* .karma-fields-navigation .karma-field-table .table-filters {
+/* .karma-fields .karma-field-table .table-filters {
   padding: 10px 10px 10px;
   background-color: #f1f1f1;
 } */
-/* .karma-fields-navigation .karma-field-table .table-filters, */
+/* .karma-fields .karma-field-table .table-filters, */
 
-.karma-fields-navigation .karma-field-table .karma-field-table-section {
+.karma-fields .karma-field-table .karma-field-table-section {
   flex-grow: 0;
 
   padding: 0.75em;
 }
-.karma-fields-navigation .karma-field-table .table-body {
+.karma-fields .karma-field-table .table-main-body {
   /* overflow: auto;
   padding: 10px 10px 10px;
   background-color: #f1f1f1;
@@ -112,21 +144,19 @@
   overflow: hidden;
 }
 
-.karma-fields-navigation .karma-field-table-columns {
+/* .karma-fields .karma-field-table-columns {
   display: flex;
-  /* gap: 1px; */
   width: 100%;
 }
-.karma-fields-navigation .karma-field-table-column {
+.karma-fields .karma-field-table-column {
   display: flex;
   flex-direction: column;
-  /* gap: 1px; */
 }
-.karma-fields-navigation .karma-field-table-column.grid-column {
+.karma-fields .karma-field-table-column.grid-column {
   flex-grow: 1;
   overflow: hidden;
-}
-.karma-fields-navigation .karma-field-table-grid-container {
+} */
+.karma-fields .karma-field-table-grid-container {
   overflow: auto;
   flex-direction: row;
 
@@ -137,7 +167,7 @@
 
 /* Table Modal */
 
-.karma-fields-navigation .karma-field-table .table-view .table-modal {
+.karma-fields .karma-field-table .table-body .table-modal {
 
   /* margin-right: 1px; */
   /* overflow: hidden; */
@@ -167,7 +197,7 @@
   transition: width 200ms;
 }
 
-.karma-fields-navigation .karma-field-table .table-view.single-open .table-modal {
+.karma-fields .karma-field-table .table-body.single-open .table-modal {
 
 
   /* width: 40em; /* should be set in js */
@@ -175,14 +205,14 @@
 
 
 
-.karma-fields-navigation.single-open .karma-field-table .table-modal,
-.karma-fields-navigation .karma-fields-content.single-open .karma-field-table .table-modal {
+.karma-fields.single-open .karma-field-table .table-modal,
+.karma-fields .karma-fields-content.single-open .karma-field-table .table-modal {
 
   /* display: flex;
   position: relative; */
 }
 
-.karma-fields-navigation .karma-field-table .karma-modal {
+.karma-fields .karma-field-table .karma-modal {
   display: flex;
   /* gap: 1px; */
   flex-direction: column;
@@ -191,7 +221,7 @@
 
   /* min-width: 40em; /* should be set in js */
 }
-.karma-fields-navigation .karma-field-table .table-modal .modal-resize-handle {
+.karma-fields .karma-field-table .table-modal .modal-resize-handle {
   position: absolute;
   top: 0;
   right: -5px;
@@ -206,7 +236,7 @@
 
 
 
-.karma-fields-navigation .karma-field-table .table-header {
+.karma-fields .karma-field-table .table-main-header {
   display: flex;
   /* max-height: 3.75em; */
   flex-shrink: 0;
@@ -214,7 +244,7 @@
 
   padding: 0.75em;
 }
-/* .karma-fields-navigation .karma-field-table .table-header h1 {
+/* .karma-fields .karma-field-table .table-main-header h1 {
   padding: 0 10px;
   flex-grow: 1;
   margin: 0;
@@ -225,19 +255,19 @@
   overflow: hidden;
   line-height: 1.2em;
 }
-.karma-fields-navigation .karma-field-table .table-header h1 span {
+.karma-fields .karma-field-table .table-main-header h1 span {
   display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 } */
-.karma-fields-navigation .karma-field-table .table-header .table-header-title {
+.karma-fields .karma-field-table .table-main-header .table-main-header-title {
   /* flex-grow: 1;
   display: flex;
   align-items: center; */
   /* overflow: hidden; */
 }
-.karma-fields-navigation .karma-field-table .table-header h1 {
+.karma-fields .karma-field-table .table-main-header h1 {
   /* white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis; */
@@ -247,7 +277,7 @@
 }
 
 
-/* .karma-fields-navigation .karma-field-table .table-header button.close {
+/* .karma-fields .karma-field-table .table-main-header button.close {
   appearance: none;
   border: none;
   width: 50px;
@@ -258,54 +288,54 @@
   background-color: #f1f1f1;
   border-radius: 0;
 } */
-/* .karma-fields-navigation .karma-field-table .table-header button[disabled] {
+/* .karma-fields .karma-field-table .table-main-header button[disabled] {
   background-color: #f1f1f1 !important;
   cursor: default;
 } */
-.karma-fields-navigation .karma-field-table .table-header button.close span {
+.karma-fields .karma-field-table .table-main-header button.close span {
   /* grid-area: 1 / 1; */
 }
-.karma-fields-navigation .karma-field-table .table-header button.close:hover {
+.karma-fields .karma-field-table .table-main-header button.close:hover {
   /* background-color: white; */
 }
-.karma-fields-navigation .karma-field-table .table-header button.close.loading span {
+.karma-fields .karma-field-table .table-main-header button.close.loading span {
   /* visibility: hidden; */
 }
-.karma-fields-navigation .karma-field-table .table-header button.close.loading::after {
+.karma-fields .karma-field-table .table-main-header button.close.loading::after {
   /* content: "...";
   grid-area: 1 / 1; */
 }
-.karma-fields-navigation .karma-field-table .table-header .header-item {
+.karma-fields .karma-field-table .table-main-header .header-item {
   /* display: flex;
   background-color: #f1f1f1;
   align-items: center;
   padding: 0 10px; */
   /* gap: 10px; */
 }
-.karma-fields-navigation .karma-field-table .table-header .header-item.total-items {
+.karma-fields .karma-field-table .table-main-header .header-item.total-items {
   /* min-width: 125px; */
 }
-.karma-fields-navigation .karma-field-table .table-header .header-item.total-items a {
+.karma-fields .karma-field-table .table-main-header .header-item.total-items a {
   /* cursor: pointer; */
 }
-.karma-fields-navigation .karma-field-table .table-header .header-item.total-items .set-ppp {
+.karma-fields .karma-field-table .table-main-header .header-item.total-items .set-ppp {
   /* display: flex;
   align-items: baseline; */
   /* gap: 10px; */
 }
 
 
-/* .karma-fields-navigation .karma-field-table .table-header .total-items.loading::after {
+/* .karma-fields .karma-field-table .table-main-header .total-items.loading::after {
   content: "...";
 } */
-.karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header {
+.karma-fields .karma-field-table .table-body .karma-modal .table-modal-header {
   background-color: #f1f1f1;
   display: flex;
   overflow: auto;
   padding: 0.75em;
   flex-shrink: 0;
 }
-.karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header>.karma-field-container {
+.karma-fields .karma-field-table .table-body .karma-modal .table-modal-header>.karma-field-container {
   flex-wrap: nowrap;
   overflow: hidden;
 }
@@ -313,13 +343,13 @@
 
 
 
-.karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-header h1 {
+.karma-fields .karma-field-table .table-body .karma-modal .table-modal-header h1 {
   /* font-size: 1.5em;
   line-height: 1.15em; */
 }
 
 
-.karma-fields-navigation .karma-field-table .table-view .karma-modal .karma-modal-body {
+.karma-fields .karma-field-table .table-body .karma-modal .table-modal-body {
   /* background-color: #c3c4c7; */
   background-color: #f1f1f1;
   /* display: grid; */
@@ -331,19 +361,19 @@
 
   flex-direction: column;
 }
-.karma-fields-navigation .karma-field-table.loading .karma-field-frame {
+.karma-fields .karma-field-table.loading .karma-field-frame {
   background-color: #f1f1f1;
 }
 
 
-.karma-fields-navigation .karma-field-table .table-header .header-tab a {
+.karma-fields .karma-field-table .table-main-header .header-tab a {
   cursor: pointer;
 }
-.karma-fields-navigation .karma-field-table .table-header .header-tab.active {
+.karma-fields .karma-field-table .table-main-header .header-tab.active {
   /* position: relative;
   top: 1px; */
 }
-.karma-fields-navigation .karma-field-table .table-header .header-tab.active a {
+.karma-fields .karma-field-table .table-main-header .header-tab.active a {
   color: black;
 }
 
@@ -351,7 +381,7 @@
 
 
 /* Table Control */
-.karma-fields-navigation .karma-field-table .table-control {
+.karma-fields .karma-field-table .table-control {
   background-color: #f1f1f1;
   /* height: 3.75em; */
   /* flex-shrink: 0;
@@ -360,24 +390,24 @@
 
   padding: 0.75em;
 }
-.karma-fields-navigation .karma-field-table .table-control :last-child {
+.karma-fields .karma-field-table .table-control :last-child {
   /* flex-grow: 0; */
 }
-.karma-fields-navigation .karma-field-table .table-control .table-control-group {
+.karma-fields .karma-field-table .table-control .table-control-group {
   /* display: flex;
   align-items: center;
   padding: 0 10px;
   gap: 10px; */
 }
-.karma-fields-navigation .karma-field-table .table-control .table-control-group.table-edit {
+.karma-fields .karma-field-table .table-control .table-control-group.table-edit {
   /* flex-grow: 1; */
 }
-.karma-fields-navigation .karma-field-table .table-control .table-edit button.karma-button {
+.karma-fields .karma-field-table .table-control .table-edit button.karma-button {
   /* margin: 0 5px; */
 }
 
 /* Options */
-.karma-fields-navigation .karma-field-table .karma-field-table-column.options-column {
+.karma-fields .karma-field-table .karma-field-table-column.options-column {
   /* display: flex;
   flex-direction: column;
   flex-shrink: 0; */
@@ -388,11 +418,24 @@
 
 
 
+
+/* General */
+
+.karma-field-frame {
+  background-color: #f1f1f1;
+}
+.karma-field-container {
+  gap: 0.7em;
+}
+
+
+
 /* shadow boxes */
-.table-header,
+.navigation,
+.table-main-header,
 .table-footer,
 .table-modal,
-.karma-modal-header,
+.table-modal-header,
 .karma-field-table-section {
   /* box-shadow: 0 0 6px 0px #484848; */
   box-shadow: 0 0 8px 0px #4848487a;
@@ -402,8 +445,8 @@
 .karma-field-table-section {
   z-index: 2;
 }
-.table-header,
-.karma-modal-header {
+.table-main-header,
+.table-modal-header {
   z-index: 3;
 }
 .table-modal {
@@ -412,12 +455,15 @@
 .table-footer {
   z-index: 5;
 }
+.navigation {
+  z-index: 8;
+}
 
 /* gap */
-.karma-fields-navigation .karma-field-table,
-.karma-fields-navigation .karma-field-table .table-view,
-.karma-fields-navigation .karma-field-table .table-view .table-main,
-.karma-fields-navigation .karma-field-table .karma-modal {
+.karma-fields .karma-field-table,
+.karma-fields .karma-field-table .table-body,
+.karma-fields .karma-field-table .table-body .table-main,
+.karma-fields .karma-field-table .karma-modal {
   /* gap: 1px; */
 }
 
@@ -446,6 +492,8 @@
   align-self: flex-start;
 
   margin: 2em 0;
+
+  position: relative; /* needed for children offset calculation */
 }
 .karma-field-table ul.media-table li {
   margin: 0;
@@ -469,28 +517,28 @@
   outline-offset: -1px; */
   /* box-shadow: 0 0 8px 0px #4848487a; */
 }
-.karma-field-table .media-table.ta-focus .frame.selected {
+.karma-field-table .media-table.focus .frame.selected {
   /* outline-color: #484848; */
 }
 
-.karma-field-table .media-table .frame.active,
-.karma-field-table .media-table .frame.selected {
+/* .karma-field-table .media-table .frame.active, */
+.karma-field-table .media-table .selected .frame {
   /* box-shadow: 0 0 8px 0px #4848487a; */
   background-color: #c3c4c7;
 }
-.karma-field-table .media-table.ta-focus .frame.active,
-.karma-field-table .media-table .frame.selected {
+.karma-field-table .media-table.focus .selected .frame,
+.karma-field-table .media-table .selecting .frame {
   background-color: #484848;
 }
 
 
-.karma-field-table .media-table .frame.active figure {
+/* .karma-field-table .media-table .frame.active figure {
   filter: opacity(0.5) saturate(0.5);
 
 
-}
-.karma-field-table .media-table .frame.selected figure,
-.karma-field-table .media-table.ta-focus .frame.active figure {
+} */
+.karma-field-table .media-table .selecting .frame figure,
+.karma-field-table .media-table.focus .selected .frame figure {
   filter: saturate(0.5) opacity(0.5);
 }
 
@@ -539,8 +587,8 @@
   background-color: #c3c4c7;
   color: #f1f1f1;
 }
-.karma-field-table .media-table .frame.selected .file-caption,
-.karma-field-table .media-table.ta-focus .frame.active .file-caption {
+.karma-field-table .media-table .selecting .frame .file-caption,
+.karma-field-table .media-table.focus .selected .frame .file-caption {
   background-color: #484848;
   color: #f1f1f1;
 }

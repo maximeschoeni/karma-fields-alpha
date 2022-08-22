@@ -239,15 +239,31 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 	}
 
 	async getDefault() {
-		const value = {};
 
-		const subResources = this.getSubResources(this.resource);
 
-		for (let resource in subResources) {
-			value[resource.key] = await this.createChild(resource).getDefault();
+		//
+		// const subResources = this.getSubResources(this.resource);
+		//
+		// for (let resource in subResources) {
+		// 	value[resource.key] = await this.createChild(resource).getDefault();
+		// }
+		//
+		// return value;
+
+		let defaults = {};
+
+		for (let index in this.resource.children) {
+
+			const child = this.createChild(this.resource.children[index], index);
+
+			defaults = {
+				...defaults,
+				...await child.getDefault()
+			};
+
 		}
 
-		return value;
+		return defaults;
 	}
 
 	buildLabel(field) {
@@ -314,9 +330,12 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 						child = this.sanitizeResource(child);
 
-						child.id = child.id || index.toString();
+						// child.id = child.id || index.toString();
 
-						const field = this.createChild(child);
+						const field = this.createChild({
+							...child,
+							id: index
+						});
 
 						return {
 							class: "karma-field-frame karma-field-"+field.resource.type,

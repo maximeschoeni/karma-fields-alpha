@@ -5,7 +5,7 @@
 .karma-field-array {
   flex-grow: 1;
 }
-.karma-fields .array {
+.karma-fields .array .array-body {
   display: grid;
   grid-gap: 1px;
   /* margin: 1px 0 1em; */
@@ -15,14 +15,22 @@
   min-height: 2em;
 
   grid-auto-flow: row dense;
+
+  position: relative;
 }
-.karma-fields .array.selecting {
+.karma-fields .array .array-footer {
+  flex-shrink: 0;
+  flex-grow: 1;
+  padding: 0.7em 0;
+}
+
+/* .karma-fields .array.selecting {
    user-select: none;
-}
-.karma-fields .table.array {
+} */
+/* .karma-fields .table.array {
   margin-bottom: 10px;
-}
-.karma-fields .array.empty {
+} */
+.karma-fields .array .array-body.empty {
   display: none;
 }
 .karma-fields .array .th {
@@ -90,8 +98,11 @@
   cursor: grab;
 }
 .karma-fields .array .td.selected,
+.karma-fields .array .td.selecting,
 .karma-fields .array .td.selected .td,
-.karma-fields .array .td.selected .th {
+.karma-fields .array .td.selecting .td,
+.karma-fields .array .td.selected .th,
+.karma-fields .array .td.selecting .th {
   background-color: white;
 }
 

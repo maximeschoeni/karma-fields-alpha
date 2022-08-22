@@ -2,53 +2,61 @@
 KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field {
 
 	async getDefault() {
-		const options = await this.fetchOptions(this.resource.driver);
-		if (this.resource.default && options.some(option => option.key === this.resource.default)) {
-			return this.resource.default.split(",");
-		}
-		const value = KarmaFieldsAlpha.Nav.getParam(this.resource.key);
-		if (value && options.some(option => option.key === value)) {
-			return [value];
-		}
-		return [];
+		// const options = await this.fetchOptions(this.resource.driver);
+		// if (this.resource.default && options.some(option => option.key === this.resource.default)) {
+		// 	return this.resource.default.split(",");
+		// }
+		// const value = KarmaFieldsAlpha.Nav.getParam(this.resource.key);
+		// if (value && options.some(option => option.key === value)) {
+		// 	return [value];
+		// }
+		// return [];
+
+		// return {};
 	}
 
-	async getArray() {
-
-		const event = this.createEvent({
-			action: "get",
-			type: "array",
-			default: await this.getDefault() // -> dropdown default is async
-		});
-
-		await super.dispatch(event);
-
-		return event.getArray();
-	}
-
-	async setArray(value) {
-
-		const event = this.createEvent({
-			action: "set",
-			type: "array",
-			backup: "once",
-			autosave: this.resource.autosave
-		});
-
-		event.setValue(value);
-
-		await super.dispatch(event);
-
-	}
+	// async getArray() {
+	//
+	// 	const event = this.createEvent({
+	// 		action: "get",
+	// 		type: "array",
+	// 		// default: await this.getDefault() // -> dropdown default is async
+	// 	});
+	//
+	// 	await super.dispatch(event);
+	//
+	// 	return event.getArray();
+	// }
+	//
+	// async setArray(value) {
+	//
+	// 	const event = this.createEvent({
+	// 		action: "set",
+	// 		type: "array",
+	// 		backup: "once",
+	// 		autosave: this.resource.autosave
+	// 	});
+	//
+	// 	event.setValue(value);
+	//
+	// 	await super.dispatch(event);
+	//
+	// }
 
 	async dispatch(event) {
 
 		switch (event.action) {
 
 			case "get": {
-				const key = event.path[0];
-				const array = await this.getArray();
-				event.setValue(array.indexOf(key) > -1 ? "1" : "")
+
+				const [key] = event.path;
+
+				const set = await super.dispatch({
+					action: "get",
+					type: "array"
+				}).then(request => new Set(KarmaFieldsAlpha.Type.toArray(request.data)));
+
+				event.data = set.has(key);
 				break;
 			}
 
@@ -60,23 +68,43 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 				// 	await this.remove(key);
 				// }
 				// break;
-				const key = event.path[0];
-				const array = await this.getArray();
-				if (event.getValue()) {
-					array.push(key);
-				} else {
-					const index = array.indexOf(key);
-					if (index > -1) {
-						array.splice(index, 1);
-					}
+				// const key = event.path[0];
+				// const array = await this.getArray();
+				// if (event.getValue()) {
+				// 	array.push(key);
+				// } else {
+				// 	const index = array.indexOf(key);
+				// 	if (index > -1) {
+				// 		array.splice(index, 1);
+				// 	}
+				// }
+				// const options = await this.fetchOptions(this.resource.driver);
+				// await this.setArray(options.map(option => option.key).filter(key => array.indexOf(key) > -1));
+				// break;
+
+				const [key] = event.path;
+				// const options = await this.parse(this.resource.options);
+				const set = await super.dispatch({
+					action: "get",
+					type: "array"
+				}).then(request => new Set(KarmaFieldsAlpha.Type.toArray(request.data)));
+
+				if (event.data && !set.has(key)) {
+					set.add(key);
+				} else if (!event.data && set.has(key)) {
+					set.delete(key);
 				}
-				const options = await this.fetchOptions(this.resource.driver);
-				await this.setArray(options.map(option => option.key).filter(key => array.indexOf(key) > -1));
-				break;
+
+				await super.dispatch({
+					action: "set",
+					data: [...set]
+				})
+
 			}
 
 		}
 
+		return event;
 	}
 
 	// async get(key, context) {
@@ -131,39 +159,39 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 	//
 	// }
 
-	async add(key) {
-		let array = await this.getArray();
-		const index = array.indexOf(key);
-		if (index === -1) {
-			// array.push(key);
-			// this.setValue(array);
-			// super.setValue(key, array.length.toString()); // -> specific value only
-			// this.setValue([...array, key]);
-			// array = [...array, key];
-			// array.sort();
-			// this.setValue(array);
-
-			await this.setArray([...array, key]);
-		}
-  }
-
-  async remove(key) {
-		const array = await this.getArray();
-		const index = array.indexOf(key);
-		if (index > -1) {
-			// array.splice(index, 1);
-			// this.setValue(array);
-			// super.removeValue(index.toString());
-			// this.setValue(array.filter(item => item !== key));
-			await this.setArray(array.filter(item => item !== key));
-		}
-  }
-
-	async has(key) {
-		const array = await this.getArray();
-		const index = array.indexOf(key);
-		return index > -1;
-  }
+	// async add(key) {
+	// 	let array = await this.getArray();
+	// 	const index = array.indexOf(key);
+	// 	if (index === -1) {
+	// 		// array.push(key);
+	// 		// this.setValue(array);
+	// 		// super.setValue(key, array.length.toString()); // -> specific value only
+	// 		// this.setValue([...array, key]);
+	// 		// array = [...array, key];
+	// 		// array.sort();
+	// 		// this.setValue(array);
+	//
+	// 		await this.setArray([...array, key]);
+	// 	}
+  // }
+	//
+  // async remove(key) {
+	// 	const array = await this.getArray();
+	// 	const index = array.indexOf(key);
+	// 	if (index > -1) {
+	// 		// array.splice(index, 1);
+	// 		// this.setValue(array);
+	// 		// super.removeValue(index.toString());
+	// 		// this.setValue(array.filter(item => item !== key));
+	// 		await this.setArray(array.filter(item => item !== key));
+	// 	}
+  // }
+	//
+	// async has(key) {
+	// 	const array = await this.getArray();
+	// 	const index = array.indexOf(key);
+	// 	return index > -1;
+  // }
 
 	// buildCheckboxList(options) {
 	// 	return {
@@ -229,18 +257,24 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 			class: "karma-field checkboxes",
 			update: async dropdown => {
 				dropdown.element.classList.add("loading");
-				const options = await this.fetchOptions(this.resource.driver);
+				// const options = await this.fetchOptions(this.resource.driver);
+				const options = await this.parse(this.resource.options);
+
+				if (!Array.isArray(options)) {
+					console.error("options is not an array");
+				}
 
 				dropdown.child = {
 					tag: "ul",
 					update: ul => {
 						ul.children = options.map((option, index) => {
-							let checkboxField = this.createChild({
+
+							const checkboxField = this.createChild({
 								type: "checkbox",
-								key: option.key,
+								key: option.id,
 								text: option.name,
 								tag: "li",
-								id: option.key
+								id: option.id
 							});
 							return checkboxField.build();
 						});

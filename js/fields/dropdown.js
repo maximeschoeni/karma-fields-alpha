@@ -16,15 +16,26 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
   }
 
 	async getDefault() {
-		const options = await this.fetchOptions();
 
-		let value = await this.parse(this.resource.default);
+		const options = await this.parse(this.resource.options || []);
 
-		if (!options.some(option => option.id === value) && options.length) {
-			value = options[0].id;
+		const defaults = {};
+
+		if (this.resource.key && options.length > 0) {
+
+			defaults[this.resource.key] = options[0].id;
+
 		}
 
-		return value;
+		return defaults;
+
+		// let value = await this.parse(this.resource.default);
+		//
+		// if (!options.some(option => option.id === value) && options.length) {
+		// 	value = options[0].id;
+		// }
+		//
+		// return value;
 	}
 
 	async fetchOptions() {

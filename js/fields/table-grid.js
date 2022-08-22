@@ -6,13 +6,13 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
     constructor(...args) {
       super(...args);
 
-      this.cellSelector = new KarmaFieldsAlpha.CellSelector();
+      // this.cellSelector = new KarmaFieldsAlpha.CellSelector();
       // this.idSelector = new KarmaFieldsAlpha.IdSelector();
 
       this.clipboard = new KarmaFieldsAlpha.Clipboard();
       this.cellClipboard = new KarmaFieldsAlpha.Clipboard();
 
-      this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", "selection");
+      this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.context, "selection");
 
     }
 
@@ -139,6 +139,36 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
       }
 
+    }
+
+
+    async updateSelection(index, length) {
+
+      const selection = this.selectionBuffer.get() || {};
+      const segment = new KarmaFieldsAlpha.Segment(index, length);
+
+      if (!segment.equals(selection.index, selection.length)) {
+
+        KarmaFieldsAlpha.History.save();
+
+        this.select(index, length);
+
+        const request = await this.dispatch({
+          action: "rows",
+          index: index,
+          length: length
+        });
+
+        this.clipboard.setData(request.data);
+
+        // await this.dispatch({action: "edit-selection"});
+        await this.dispatch({action: "render"});
+
+      } else {
+
+        this.clipboard.focus();
+
+      }
     }
 
 
@@ -283,15 +313,16 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
             if (this.cellSelection) {
 
-              KarmaFieldsAlpha.CellSelector.update(elements, columns.length, ids.length, this.cellSelection);
+              // KarmaFieldsAlpha.CellSelector.update(elements, columns.length, ids.length, this.cellSelection);
 
-              this.cellSelection = null;
+              this.cellSelection.kill();
+              // this.cellSelection = null;
 
             }
 
           }
 
-          const selection = this.selectionBuffer.get();
+          const selection = this.selectionBuffer.get() || {};
 
           // this.idIndex = new Map(); // used for table indexes
 
@@ -335,26 +366,38 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
                     th.element.onmousedown = async event => {
 
-                      // KarmaFieldsAlpha.CellSelector.clear(grid.element);
+                      this.cellSelection = new KarmaFieldsAlpha.CellSelection(event, grid.element, [...grid.element.children], columns.length, ids.length, colIndex, 0, this.cellSelection);
 
-                      if (true /* field.selectMode !== "row" */) {
+                      if (this.cellSelection.getArea() > 1) {
 
-                        const rectangle = await KarmaFieldsAlpha.CellSelector.selectHeaders(event, [...grid.element.children], columns.length, ids.length, colIndex, rowIndex, this.cellSelection);
-
-                        if (rectangle && rectangle.width*rectangle.height > 1) {
-
-                          const dataArray = await this.exportCellData(rectangle);
-                          this.cellClipboard.setData(dataArray); // + set focus
-
-                        }
-
-                        this.cellSelection = rectangle;
-
-                      } else {
-
-                        // select all rows ?
+                        const dataArray = await this.exportCellData(this.cellSelection);
+                        this.cellClipboard.setData(dataArray); // + set focus
 
                       }
+
+                      // this.cellSelection = rectangle;
+
+
+                      // KarmaFieldsAlpha.CellSelector.clear(grid.element);
+
+                      // if (true /* field.selectMode !== "row" */) {
+                      //
+                      //   // const rectangle = await KarmaFieldsAlpha.CellSelector.selectHeaders(event, grid.element, [...grid.element.children], columns.length, ids.length, colIndex, rowIndex, this.cellSelection);
+                      //   //
+                      //   // if (rectangle && rectangle.width*rectangle.height > 1) {
+                      //   //
+                      //   //   const dataArray = await this.exportCellData(rectangle);
+                      //   //   this.cellClipboard.setData(dataArray); // + set focus
+                      //   //
+                      //   // }
+                      //   //
+                      //   // this.cellSelection = rectangle;
+                      //
+                      // } else {
+                      //
+                      //   // select all rows ?
+                      //
+                      // }
 
                     }
 
@@ -418,55 +461,65 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
                         td.element.onmousedown = async event => {
 
-                          const elements = [...grid.element.children];
-
-                          const bodyElements = elements.slice(columns.length);
+                          const bodyElements = [...grid.element.children].slice(columns.length);
 
                           if (this.cellSelection) {
 
-                            KarmaFieldsAlpha.CellSelector.update(bodyElements, columns.length, ids.length, this.cellSelection);
-
-                            this.cellSelection = null;
+                            this.cellSelection.kill();
 
                           }
 
+                          if (event.buttons === 1) {
 
-                          if (field.selectMode !== "row") {
+                            if (field.selectMode !== "row") {
 
-                            const rectangle = await KarmaFieldsAlpha.CellSelector.start(event, bodyElements, columns.length, ids.length, colIndex, rowIndex);
+                              this.cellSelection = new KarmaFieldsAlpha.CellSelection(event, grid.element, bodyElements, columns.length, ids.length, colIndex, rowIndex);
 
-                            if (rectangle && rectangle.width*rectangle.height > 1) {
+                              await this.cellSelection.select();
 
-                              const dataArray = await this.exportCellData(rectangle);
-                              this.cellClipboard.setData(dataArray); // + set focus
+                              if (this.cellSelection.getArea() > 1) {
+
+                                const dataArray = await this.exportCellData(this.cellSelection);
+                                this.cellClipboard.setData(dataArray); // + set focus
+
+                              }
+
+                            } else {
+
+                              const currentSelection = this.selectionBuffer.get() || {};
+
+                              const newSelection = new KarmaFieldsAlpha.Selection(event, grid.element, bodyElements, columns.length, ids.length, colIndex, rowIndex, currentSelection);
+
+                              await newSelection.select();
+
+                              await this.updateSelection(newSelection.index, newSelection.length);
+
+                              // if (!KarmaFieldsAlpha.Segment.equals(selection, newSelection)) {
+                              //
+                              //   KarmaFieldsAlpha.History.save();
+                              //
+                              //   this.selectionBuffer.backup(newSelection.index, "index");
+                              //   this.selectionBuffer.backup(newSelection.length, "length");
+                              //   this.selectionBuffer.set(newSelection.index, "index");
+                              //   this.selectionBuffer.set(newSelection.length, "length");
+                              //
+                              //   const request = await this.dispatch({
+                              //     action: "rows",
+                              //     index: newSelection.index,
+                              //     length: newSelection.length
+                              //   });
+                              //
+                              //   this.clipboard.setData(request.data);
+                              //
+                              //   await this.dispatch({action: "edit-selection"});
+                              //
+                              // } else {
+                              //
+                              //   this.clipboard.focus();
+                              //
+                              // }
 
                             }
-
-                            this.cellSelection = rectangle;
-
-                          } else {
-
-                            const currentSelection = this.selectionBuffer.get()
-                            const newSelection = await KarmaFieldsAlpha.IdSelector.start(event, bodyElements, columns.length, ids.length, colIndex, rowIndex, currentSelection);
-
-                            if (!KarmaFieldsAlpha.Segment.equals(currentSelection, newSelection)) {
-
-                              KarmaFieldsAlpha.History.save();
-
-                              this.selectionBuffer.backup(newSelection);
-                              this.selectionBuffer.set(newSelection);
-
-                            }
-
-                            const request = await this.dispatch({
-                              action: "rows",
-                              index: newSelection.index,
-                              length: newSelection.length
-                            });
-
-                            this.clipboard.setData(request.data);
-
-                            await this.dispatch({action: "edit-selection"});
 
                           }
 

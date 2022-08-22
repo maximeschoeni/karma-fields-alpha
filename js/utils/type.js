@@ -28,7 +28,7 @@ KarmaFieldsAlpha.Type = class {
     if (value === undefined || value === null) {
       value = "";
     }
-    return value;
+    return value.toString();
   }
 
   static toNumber(value) {

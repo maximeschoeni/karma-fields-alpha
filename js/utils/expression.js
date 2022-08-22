@@ -633,7 +633,7 @@ KarmaFieldsAlpha.Expression = class {
     const request = await field.dispatch({
       action: "selection"
     });
-    return KarmaFieldsAlpha.Type.toArray(request.data);
+    return KarmaFieldsAlpha.Type.toObject(request.data);
   }
 
   // static async id(field) {

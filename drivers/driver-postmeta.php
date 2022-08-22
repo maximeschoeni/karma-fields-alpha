@@ -131,6 +131,8 @@ class Karma_Fields_Alpha_Driver_Postmeta {
 
         $result->value = maybe_unserialize($result->value);
 
+        $result->value = apply_filters('karma_fields_posts_driver_join_meta', $result->value, $result->key, $result->id); // -> actinic (works)
+
       }
 
       return $results;

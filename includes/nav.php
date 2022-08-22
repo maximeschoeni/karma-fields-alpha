@@ -4,10 +4,8 @@
 
 	document.addEventListener("DOMContentLoaded", function() {
 		var container = document.getElementById("karma-fields-field-nav");
-		var tables = <?php echo json_encode($this->tables); ?>;
-		var field = new KarmaFieldsAlpha.fields.tables({
-			children: tables
-		});
+		var resource = <?php echo json_encode($this->resource) ?>;
+		var field = new KarmaFieldsAlpha.fields.tables(resource);
 
 		KarmaFieldsAlpha.build(field.build(), container);
 		KarmaFieldsAlpha.tables = field;

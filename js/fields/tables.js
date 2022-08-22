@@ -37,10 +37,22 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
         await this.render();
         break;
 
-      case "media-library":
-        KarmaFieldsAlpha.Nav.setObject(new URLSearchParams({karma: "medias"})); // , id: event.id
+      case "render": {
+        // const tableId = KarmaFieldsAlpha.Nav.get("karma");
+        // const tableField = this.getChild(tableId);
+        //
+        // if (tableField) {
+        //   await tableField.queryIds();
+        // }
+
         await this.render();
         break;
+      }
+
+      // case "media-library":
+      //   KarmaFieldsAlpha.Nav.setObject(new URLSearchParams({karma: "medias"})); // , id: event.id
+      //   await this.render();
+      //   break;
 
       // case "nav":
       //   this.render(true);
@@ -91,11 +103,19 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
 
   build() {
     return {
-      class: "karma-fields-navigation",
+      class: "popup",
       init: container => {
         this.render = container.render;
 
         window.addEventListener("popstate", async event => {
+
+          // const tableId = KarmaFieldsAlpha.Nav.get("karma");
+          // const table = this.getChild(tableId);
+          // if (table && table.hash !== location.hash.slice(1)) {
+          //   table.hash = location.hash.slice(1);
+          //   await table.queryIds();
+          // }
+
 
           // if (KarmaFieldsAlpha.Nav.has("karma")) {
           //   const tableId = KarmaFieldsAlpha.Nav.get("karma");
@@ -119,30 +139,142 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
         });
 
       },
-      update: container => {
-        document.body.classList.toggle("karma-table-open", KarmaFieldsAlpha.Nav.has("karma"));
-        // const table = this.createChild({
-        //   id: resource.id || resource.key || resource.driver, // -> compat (id should be set)
-        //   ...resource
-        // })
+      update: popup => {
 
-        const tableId = KarmaFieldsAlpha.Nav.get("karma");
-        container.children = this.resource.children.map((resource, index) => {
-          return {
-            class: "table-container",
-            update: async container => {
-              container.element.classList.toggle("hidden", tableId !== resource.id);
-              if (tableId === resource.id) {
-                // await field.queryIds();
-                container.child = this.createChild(resource).build();
-              } else {
-                container.children = []
+        popup.element.classList.toggle("hidden", !KarmaFieldsAlpha.Nav.has("karma"));
+      },
+      child: {
+        class: "popup-content",
+        children: [
+          {
+            class: "navigation karma-field-frame",
+            update: navigation => {
+              navigation.element.classList.toggle("hidden", !this.resource.navigation);
+              if (this.resource.navigation) {
+                navigation.child = this.createChild({
+                  ...this.resource.navigation,
+                  type: "navigation"
+                }).build();
               }
             }
-          };
-        });
+            // child: {
+            //   tag: "ul",
+            //   children: [
+            //     {
+            //       tag: "li",
+            //       child: {
+            //         tag: "a",
+            //         init: li => {
+            //           li.element.innerHTML = "Posts";
+            //           li.element.href = "#karma=posts";
+            //         }
+            //       },
+            //       update: li => {
+            //         li.element.classList.toggle("active", KarmaFieldsAlpha.Nav.get("karma") === "posts");
+            //       }
+            //     },
+            //     {
+            //       tag: "li",
+            //       child: {
+            //         tag: "a",
+            //         init: li => {
+            //           li.element.innerHTML = "Pages";
+            //           li.element.href = "#karma=pages";
+            //         }
+            //       }
+            //     },
+            //     {
+            //       tag: "li",
+            //       child: {
+            //         tag: "a",
+            //         init: li => {
+            //           li.element.innerHTML = "Medias";
+            //           li.element.href = "#karma=medias";
+            //         }
+            //       },
+            //       update: li => {
+            //         li.element.classList.toggle("active", KarmaFieldsAlpha.Nav.get("karma") === "medias");
+            //       }
+            //     }
+            //   ]
+            // }
+          },
+          {
+            class: "tables",
+            update: container => {
+              document.body.classList.toggle("karma-table-open", KarmaFieldsAlpha.Nav.has("karma"));
+
+              const tableId = KarmaFieldsAlpha.Nav.get("karma");
+
+
+
+              container.children = this.resource.tables.map((resource, index) => {
+                return {
+                  class: "table-container",
+                  update: async container => {
+                    container.element.classList.toggle("hidden", tableId !== resource.id);
+                    if (tableId === resource.id) {
+                      const table = this.createChild(resource);
+                      if (table.hash !== location.hash.slice(1)) {
+                        table.hash = location.hash.slice(1);
+                        await table.queryIds();
+                      }
+                      container.child = table.build();
+                    } else {
+                      container.children = []
+                    }
+                  }
+                };
+              });
+            }
+          }
+        ]
       }
     };
+  }
+
+  static navigation = class extends KarmaFieldsAlpha.fields.group {
+
+    static menu = class extends KarmaFieldsAlpha.fields.field {
+
+      getItems() {
+        return this.resource.items || [];
+      }
+
+      build() {
+        return {
+          tag: "ul",
+          children: this.getItems().map((item, index) => {
+            return {
+              tag: "li",
+              children: [
+                {
+                  tag: "a",
+                  init: li => {
+                    li.element.innerHTML = item.title;
+                    li.element.href = "#"+item.hash;
+                  }
+                },
+                this.createChild({
+                  items: this.resource.children,
+                  type: "menu"
+                }, index).build()
+              ],
+              update: li => {
+                this.active = location.hash.slice(1) === item.hash;
+                li.element.classList.toggle("active", this.active);
+              },
+              complete: li => {
+                this.current = this.children.some(child => child.active || child.current);
+                // this.active = this.resource.children.some((child, index) => this.getChild(index).active);
+                li.element.classList.toggle("current", this.current);
+              }
+            };
+          })
+        }
+      }
+    }
+
   }
 
 

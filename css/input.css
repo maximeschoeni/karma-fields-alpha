@@ -5,7 +5,7 @@
 
 .karma-fields input.text-input,
 .karma-fields textarea {
-  flex-grow: 1;
+  /* flex-grow: 1; */ /* removed because in an array cell (flex-direction column) it got vertically stretched */
   box-shadow: none;
   box-sizing: border-box;
   border-color: #484848;

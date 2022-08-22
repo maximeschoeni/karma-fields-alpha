@@ -81,15 +81,19 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 					// 	button.element.disabled = disabled;
 					// });
 				}
-				if (this.resource.active) {
-					button.element.classList.toggle("active", Boolean(await this.check(this.resource.active)));
-					// this.check(this.resource.active).then(active => {
-					// 	button.element.classList.toggle("active", active);
-					// });
-				}
+				// if (this.resource.active) {
+				// 	button.element.classList.toggle("active", Boolean(await this.check(this.resource.active)));
+				// 	// this.check(this.resource.active).then(active => {
+				// 	// 	button.element.classList.toggle("active", active);
+				// 	// });
+				// }
 				// if (this.resource.hidden) {
 				// 	button.element.parentNode.classList.toggle("hidden", Boolean(await this.check(this.resource.hidden)));
 				// }
+
+				if (this.resource.test) {
+					console.log(await this.parse(this.resource.test));
+				}
 
 			}
 		};

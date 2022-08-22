@@ -69,9 +69,18 @@
 
 			async dispatch(event) {
 				switch (event.action) {
+					case "render":
 					case "edit":
 						await this.render();
 						break;
+
+					case "get": {
+						const [id, key] = event.path;
+						const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins || []);
+						await store.query(`id=${id}`);
+						event.data = await store.getValue(...event.path);
+						break;
+					}
 
 					default:
 						await super.dispatch(event);

@@ -13,46 +13,77 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 		return this.resource.false || "";
 	}
 
-	getDefault() {
-		if (this.resource.default === null) {
-			return null; // -> no default
+	// getDefault() {
+	// 	if (this.resource.default === null) {
+	// 		return null; // -> no default
+	// 	}
+	// 	return this.resource.default ? this.true() : this.false();
+	// }
+
+	async getDefault() {
+
+		const object = {};
+
+		if (this.resource.key && this.resource.default !== null) {
+
+			const value = await this.parse(this.resource.default || "") ? this.true() : this.false();
+
+			object[this.resource.key] = value;
+
 		}
-		return this.resource.default ? this.true() : this.false();
+
+		return object;
 	}
 
 	async importValue(value) {
-		await this.setValue(value);
+		// await this.setValue(value);
+		//
+		// const event = this.createEvent();
+		// event.action = "set";
+		// event.type = "string";
+		// event.backup = "once";
+		// event.autosave = this.resource.autosave;
+		// event.setValue(value);
+
+		await this.dispatch({
+			action: "set",
+			data: value ? this.true() : this.false()
+		});
 	}
 
 	async exportValue() {
-		return this.getValue();
-	}
-
-	async getValue() {
-
-		const event = this.createEvent({
+		// return this.getValue();
+		return this.dispatch({
 			action: "get",
-			type: "string",
-			default: this.getDefault()
-		});
-
-		await this.dispatch(event);
-
-		return event.getString();
+			type: "boolean"
+		}).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
 	}
 
-	async setValue(value) {
+	// async getValue() {
+	//
+	// 	const event = this.createEvent({
+	// 		action: "get",
+	// 		type: "string",
+	// 		default: this.getDefault()
+	// 	});
+	//
+	// 	await this.dispatch(event);
+	//
+	// 	return event.getString();
+	// }
 
-		const event = this.createEvent();
-		event.action = "set";
-		event.type = "string";
-		event.backup = "once";
-		event.autosave = this.resource.autosave;
-		event.setValue(value);
-
-		await this.dispatch(event);
-
-	}
+	// async setValue(value) {
+	//
+	// 	const event = this.createEvent();
+	// 	event.action = "set";
+	// 	event.type = "string";
+	// 	event.backup = "once";
+	// 	event.autosave = this.resource.autosave;
+	// 	event.setValue(value);
+	//
+	// 	await this.dispatch(event);
+	//
+	// }
 
 	async setMultipleFields(checked, fields) {
 
@@ -62,44 +93,44 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 		//
 		// await this.stage();
 
-		if (!this.resource.autosave) {
+		// if (!this.resource.autosave) {
+		//
+		//
+		//
+		// }
 
-			KarmaFieldsAlpha.History.save();
 
-		}
-
-
-
+		KarmaFieldsAlpha.History.save();
 
 
 		for (let field of fields) {
 
-			let value = checked ? field.true() : field.false();
-			value = KarmaFieldsAlpha.Type.toArray(value);
+			const value = checked ? field.true() : field.false();
+			// value = KarmaFieldsAlpha.Type.toArray(value);
 
-			if (this.resource.autosave) {
-
-				await field.dispatch({
-					action: "send",
-					data: value
-				});
-
-			} else {
+			// if (this.resource.autosave) {
+			//
+			// 	await field.dispatch({
+			// 		action: "send",
+			// 		data: value
+			// 	});
+			//
+			// } else {
 
 				await field.dispatch({
 					action: "set",
-					backup: "pack",
+					// backup: "pack",
 					data: value,
-					default: field.getDefault
+					// default: field.getDefault
 				});
 
-			}
+			// }
 
 		}
 
-		if (this.resource.onchange) {
-			await this.parse(this.resource.onchange);
-		}
+		// if (this.resource.onchange) {
+		// 	await this.parse(this.resource.onchange);
+		// }
 
 		await this.dispatch({
 			action: "edit"
@@ -132,9 +163,9 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 			update: async container => {
 				this.render = container.render;
 
-				this.checkModified = async () => {
-					container.element.parentNode.classList.toggle("modified", await this.isModified());
-				};
+				// this.checkModified = async () => {
+				// 	container.element.parentNode.classList.toggle("modified", await this.isModified());
+				// };
 				// this.autoSave = async saving => {
 				// 	// container.element.parentNode.classList.toggle("autosaving", saving);
 				// }
@@ -198,9 +229,18 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 								window.addEventListener("mouseup", mouseup);
 							}
 
-							checkbox.element.checked = await this.getValue() === this.true();
+							// checkbox.element.checked = await this.getValue() === this.true();
 
-							await this.checkModified();
+							checkbox.element.checked = await this.dispatch({
+								action: "get",
+								type: "boolean"
+							}).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
+
+							// await this.dispatch(event);
+
+							// return event.getString();
+
+							// await this.checkModified();
 
 						}
 					},

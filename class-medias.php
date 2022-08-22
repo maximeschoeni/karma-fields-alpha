@@ -150,8 +150,8 @@ Class Karma_Fields_Alpha_Media_Library {
 			'Karma_Fields_Alpha_Driver_Files_Sources'
 		);
 
-
-		$karma_fields->register_menu_item('karma=medias', 'upload.php');
+		// -> moved in karma-editor-theme
+		// $karma_fields->register_menu_item('karma=medias', 'upload.php');
 
 		$karma_fields->register_table(array(
 
@@ -204,11 +204,13 @@ Class Karma_Fields_Alpha_Media_Library {
 					),
 					'delete',
 					'undo',
-					'redo'
+					'redo',
+					'insert'
 				)
 			),
 			'modal' => array(
 				'width' => '25em',
+				'keepAlive' => true,
 				'header' => array(
 					'children' => array(
 						array(
@@ -257,12 +259,13 @@ Class Karma_Fields_Alpha_Media_Library {
 						),
 						array(
 							'type' => 'input',
+							'hidden' => array('!', array('selection')),
 							'label' => 'Title',
 							'key' => 'post_title'
 						),
 						array(
 							'type' => 'textarea',
-							'visible' => array("dispatch", "is-attachment"),
+							'visible' => array('&&', array("dispatch", "is-attachment"), array('selection')),
 							'label' => 'Caption',
 							'key' => 'post_excerpt'
 						),
@@ -285,7 +288,8 @@ Class Karma_Fields_Alpha_Media_Library {
 						// ),
 						array(
 							'type' => 'breadcrumb',
-							'visible' => array('empty', array('selection'))
+							'key' => 'post_parent',
+							'visible' => array('!', array('selection'))
 						)
 					)
 				)

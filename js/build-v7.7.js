@@ -2,30 +2,14 @@
  * build (V7.6)
  */
 
-// KarmaFieldsAlpha.buildChildren = function(children, element, clean) {
-// 	let i = 0;
-// 	let child = element.firstElementChild;
-// 	const promises = [];
-// 	while (i < children.length) {
-// 		const promise = this.build(children[i], element, child, clean);
-// 		promises.push(promise);
-// 		i++;
-// 		child = child && child.nextElementSibling;
-// 	}
-// 	while (child) {
-// 		let next = child && child.nextElementSibling;
-// 		element.removeChild(child);
-// 		child = next;
-// 	}
-// 	return Promise.all(promises);
-// }
-
-KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
+// -> parallele
+KarmaFieldsAlpha.buildChildren = function(children, element, clean) {
 	let i = 0;
 	let child = element.firstElementChild;
 	const promises = [];
 	while (i < children.length) {
-		await this.build(children[i], element, child, clean);
+		const promise = this.build(children[i], element, child, clean);
+		promises.push(promise);
 		i++;
 		child = child && child.nextElementSibling;
 	}
@@ -34,13 +18,38 @@ KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
 		element.removeChild(child);
 		child = next;
 	}
-	// return Promise.all(promises);
+	return Promise.all(promises);
 }
+
+
+// -> serial
+// KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
+// 	let i = 0;
+// 	let child = element.firstElementChild;
+// 	const promises = [];
+// 	while (i < children.length) {
+// 		await this.build(children[i], element, child, clean);
+// 		i++;
+// 		child = child && child.nextElementSibling;
+// 	}
+// 	while (child) {
+// 		let next = child && child.nextElementSibling;
+// 		element.removeChild(child);
+// 		child = next;
+// 	}
+// }
 
 
 
 KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
-	args.render = (clean) => this.build(args, parent, args.element, clean);
+	// args.render = (clean) => this.build(args, parent, args.element, clean);
+	args.render = async (clean) => {
+		if (args.queue) {
+			await args.queue;
+		}
+		args.queue = this.build(args, parent, args.element, clean);
+		return args.queue;
+	}
 	if (!element || clean) {
 		args.element = document.createElement(args.tag || "div");
 		if (args.class) {

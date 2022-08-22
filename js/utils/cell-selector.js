@@ -117,7 +117,7 @@ KarmaFieldsAlpha.CellSelector = class extends KarmaFieldsAlpha.IdSelector {
 
   }
 
-  static start(event, elements, width, height, col, row, selection) {
+  static start(event, container, elements, width, height, col, row, selection) {
 
     return new Promise((resolve, reject) => {
 
@@ -157,7 +157,7 @@ KarmaFieldsAlpha.CellSelector = class extends KarmaFieldsAlpha.IdSelector {
 
   }
 
-  static selectHeaders(event, elements, width, height, col, row, selection) {
+  static selectHeaders(event, container, elements, width, height, col, row, selection) {
 
     return new Promise((resolve, reject) => {
 

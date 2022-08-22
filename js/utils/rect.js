@@ -1,10 +1,10 @@
 KarmaFieldsAlpha.Rect = class {
 
-	constructor(x, y, width, height) {
-		this.x = x || 0;
-		this.y = y || 0;
-		this.width = width || 1;
-		this.height = height || 1;
+	constructor(x = 0, y = 0, width = 0, height = 0) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
 	}
 
 	static union(r1, r2) {
@@ -24,7 +24,7 @@ KarmaFieldsAlpha.Rect = class {
 	}
 
 	static contains(r, x, y) {
-		return x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height;
+		return r.width > 0 && r.height > 0 && x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height;
 	}
 
 	static intersects(r1, r2) {
@@ -70,8 +70,8 @@ KarmaFieldsAlpha.Rect = class {
 		return this.constructor.isAfter(this, r);
 	}
 
-	contains(r) {
-		return this.constructor.includes(r, this);
+	contains(x, y) {
+		return this.constructor.contains(this, x, y);
 	}
 
 	union(r) {
@@ -82,19 +82,16 @@ KarmaFieldsAlpha.Rect = class {
 		return this.constructor.intersects(this, r);
 	}
 
+	equals(r) {
+		return this.constructor.equals(r, this);
+	}
 
+  getArea() {
+    return this.width*this.height;
+  }
 
-
-	// equals(r) {
-	// 	return this.constructor.equals(r, this);
-	// }
-	//
-  // getArea() {
-  //   return this.width*this.height;
-  // }
-	//
-	// includes(r) {
-	// 	return this.constructor.includes(r, this);
-	// }
+	includes(r) {
+		return this.constructor.includes(r, this);
+	}
 
 }

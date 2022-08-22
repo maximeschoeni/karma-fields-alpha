@@ -70,7 +70,7 @@ KarmaFieldsAlpha.Clipboard = class {
     this.container = document.createElement("div");
     document.body.appendChild(this.container);
     this.container.className = "karma-fields-clipboard";
-    this.container.style = "position:fixed;bottom:0;left:0;z-index:999999999";
+    this.container.style = "position:fixed;bottom:100%;left:0;z-index:999999999";
 
 
     // this.ta = document.createElement("textarea");
