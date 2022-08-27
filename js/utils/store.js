@@ -76,10 +76,13 @@ KarmaFieldsAlpha.Store = class {
 
         for (let item of results) {
 
-          const id = item.id.toString();
+          const id = KarmaFieldsAlpha.Type.toString(item.id);
 
           for (let key in item) {
-            this.buffer.set([item[key]], id, key);
+
+            const value = KarmaFieldsAlpha.Type.toArray(item[key]);
+
+            this.buffer.set(value, id, key);
           }
 
           this.buffer.set(["0"], id, "trash"); // -> to be removed!

@@ -323,82 +323,190 @@ Class Karma_Fields_Alpha_Driver_Files {
 
 			}
 
+      $upload_dir = wp_get_upload_dir()['basedir'];
+
       foreach ($attachments as $attachment) {
 
         $attachment = get_post($attachment->ID);
-        $filename = get_attached_file($attachment->ID);
-        // $filename = get_post_meta($attachment->ID, '_wp_attached_file', true);
-        $metadata = wp_get_attachment_metadata($attachment->ID);
-        $file_url = wp_get_attachment_url($attachment->ID);
-        $thumb_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
+
+        if ($attachment->post_type === 'attachment') {
+
+          // $filename = get_attached_file($attachment->ID);
+          $filename = get_post_meta($attachment->ID, '_wp_attached_file', true);
+          $metadata = wp_get_attachment_metadata($attachment->ID);
+
+          $file = $upload_dir.'/'.$filename; // -> just for size
+          // $file_url = wp_get_attachment_url($attachment->ID);
+          // $thumb_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
+
+          if (isset($metadata['sizes']) && $metadata['sizes']) {
+
+            $dir = dirname($filename);
+
+            foreach ($metadata['sizes'] as $key => $size) {
+
+              $results[] = array(
+                'id' => $attachment->ID,
+                'key' => 'sizes',
+                'value' => array(
+                  'key' => $key,
+                  'filename' => $dir.'/'.$size['file'],
+                  'width' => $size['width'],
+                  'height' => $size['height']
+                )
+              );
+
+            }
+
+            $results[] = array(
+              'id' => $attachment->ID,
+              'key' => 'thumb',
+              'value' => array(
+                'key' => 'thumb',
+                'filename' => $dir.'/'.$metadata['sizes']['thumbnail']['file'],
+                'width' => $metadata['sizes']['thumbnail']['width'],
+                'height' => $metadata['sizes']['thumbnail']['height']
+              )
+            );
+
+          }
+
+
+
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'sizes',
+          //   'value' => $sizes
+          // );
+
+
+
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'type',
+            'value' => get_post_mime_type($attachment)
+          );
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'src',
+          //   'value' => $file_url
+          // );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'width',
+            'value' => $metadata['width']
+          );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'height',
+            'value' => $metadata['height']
+          );
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'thumb_src',
+          //   'value' => $thumb_data[0]
+          // );
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'thumb_width',
+          //   'value' => $thumb_data[1]
+          // );
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'thumb_height',
+          //   'value' => $thumb_data[2]
+          // );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'size',
+            'value' => filesize($file) //intval(filesize($filename)/1000).' KB'
+          );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'name',
+            'value' => basename($filename)
+          );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'filename',
+            'value' => $filename
+          );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'filetype',
+            'value' => 'file'
+          );
+
+        } else {
+
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'type',
+            'value' => ''
+          );
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'src',
+          //   'value' => ''
+          // );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'width',
+            'value' => ''
+          );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'height',
+            'value' => ''
+          );
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'thumb_src',
+          //   'value' => ''
+          // );
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'thumb_width',
+          //   'value' => ''
+          // );
+          // $results[] = array(
+          //   'id' => $attachment->ID,
+          //   'key' => 'thumb_height',
+          //   'value' => ''
+          // );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'size',
+            'value' => '0'
+          );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'name',
+            'value' => $attachment->post_title
+          );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'filename',
+            'value' => $attachment->post_title
+          );
+          $results[] = array(
+            'id' => $attachment->ID,
+            'key' => 'filetype',
+            'value' => 'folder'
+          );
+
+        }
 
         $results[] = array(
           'id' => $attachment->ID,
-          'key' => 'type',
-          'value' => get_post_mime_type($attachment)
+          'key' => 'parent',
+          'value' => $attachment->post_parent
         );
         $results[] = array(
           'id' => $attachment->ID,
-          'key' => 'src',
-          'value' => $file_url
+          'key' => 'date',
+          'value' => $attachment->post_date
         );
-        $results[] = array(
-          'id' => $attachment->ID,
-          'key' => 'width',
-          'value' => $metadata['width']
-        );
-        $results[] = array(
-          'id' => $attachment->ID,
-          'key' => 'height',
-          'value' => $metadata['height']
-        );
-        $results[] = array(
-          'id' => $attachment->ID,
-          'key' => 'thumb_src',
-          'value' => $thumb_data[0]
-        );
-        $results[] = array(
-          'id' => $attachment->ID,
-          'key' => 'thumb_width',
-          'value' => $thumb_data[1]
-        );
-        $results[] = array(
-          'id' => $attachment->ID,
-          'key' => 'thumb_height',
-          'value' => $thumb_data[2]
-        );
-        $results[] = array(
-          'id' => $attachment->ID,
-          'key' => 'size',
-          'value' => filesize($filename) //intval(filesize($filename)/1000).' KB'
-        );
-        $results[] = array(
-          'id' => $attachment->ID,
-          'key' => 'file',
-          'value' => $filename
-        );
-        $results[] = array(
-          'id' => $attachment->ID,
-          'key' => 'filename',
-          'value' => basename($filename)
-        );
-
-        // if (isset($params['sources']) && $params['sources']) {
-        //
-        //   $img_sizes = is_array($params['sources']) ? $params['sources'] : array(
-        //     'medium',
-        //     'medium_large',
-        //     'large',
-        //     '1536x1536',
-        //     '2048x2048'
-        //   );
-        //
-        //   $img_sizes = apply_filters('karma_fields_attachment_driver_image_sizes', $img_sizes, $image, $params);
-        //
-        //   $image['sources'] = $this->get_image_source($attachment->ID, $img_sizes);
-        //
-        // }
-
 
       }
 
@@ -527,6 +635,59 @@ Class Karma_Fields_Alpha_Driver_Files {
     // return $file_path;
 
   }
+
+
+  // public function get($id) {
+  //
+  //   $attachment = get_post($id);
+  //
+  //   if ($attachment->post_type === 'attachment') {
+  //
+  //     $filename = get_attached_file($attachment->ID);
+  //     // $filename = get_post_meta($attachment->ID, '_wp_attached_file', true);
+  //     $metadata = wp_get_attachment_metadata($attachment->ID);
+  //     $file_url = wp_get_attachment_url($attachment->ID);
+  //     $thumb_data = wp_get_attachment_image_src($attachment->ID, 'thumbnail', true);
+  //
+  //     return array(
+  //       'id' => $attachment->ID,
+  //       'type' => get_post_mime_type($attachment),
+  //       'src' => $file_url,
+  //       'width' => $metadata['width'],
+  //       'height' => $metadata['height'],
+  //       'thumb_src' => $thumb_data[0],
+  //       'thumb_width' => $thumb_data[1],
+  //       'thumb_height' => $thumb_data[2],
+  //       'size' => filesize($filename),
+  //       'name' => basename($filename),
+  //       'file' => $filename,
+  //       'filetype' => 'file',
+  //       'parent' => $attachment->post_parent,
+  //       'date' => $attachment->post_date
+  //     );
+  //
+  //   } else {
+  //
+  //     return array(
+  //       'id' => $attachment->ID,
+  //       'type' => '',
+  //       'src' => '',
+  //       'width' => '',
+  //       'height' => '',
+  //       'thumb_src' => '',
+  //       'thumb_width' => '',
+  //       'thumb_height' => '',
+  //       'size' => '0',
+  //       'name' => $attachment->post_title,
+  //       'file' => '',
+  //       'filetype' => 'folder',
+  //       'parent' => $attachment->post_parent,
+  //       'date' => $attachment->post_date
+  //     );
+  //
+  //   }
+  //
+  // }
 
 
 }

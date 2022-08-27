@@ -5,7 +5,10 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
 
     super();
 
-    this.ground = new KarmaFieldsAlpha.Rect(col, row, 1, 1);
+    // this.ground = new KarmaFieldsAlpha.Rect(col, row, 1, 1);
+    this.selection = selection;
+    this.col = col;
+    this.row = row;
     this.containerWidth = width;
     this.containerHeight = height;
     this.elements = elements;
@@ -18,10 +21,10 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
 
     return new Promise((resolve, reject) => {
 
-      const onMouseMove = event => {
+      const update = () => {
 
-        const x = event.clientX - this.box.x;
-        const y = event.clientY - this.box.y;
+        const x = this.mouseX - this.box.x;
+        const y = this.mouseY - this.box.y;
 
         const box = this.findBox(x, y);
 
@@ -33,9 +36,19 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
 
       }
 
+      const onMouseMove = event => {
+
+        this.mouseX = event.clientX;
+        this.mouseY = event.clientY;
+
+        update();
+
+      }
+
       const onMouseUp = event =>  {
         document.removeEventListener("mouseup", onMouseUp);
         document.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("scroll", scroll, true);
 
         onMouseMove(event);
 
@@ -43,10 +56,31 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
 
       }
 
-      this.kill();
+      const scroll = event => {
+        if (event.target.contains(this.container)) {
+          this.box = this.container.getBoundingClientRect();
+          update();
+        }
+      }
+
+      this.ground = new KarmaFieldsAlpha.Rect(this.col, this.row, 1, 1);
+
+      if (this.selection) {
+
+        if (event.shiftKey) {
+
+          this.ground.x = this.selection.x;
+          this.ground.y = this.selection.y;
+
+        }
+
+        this.selection.kill();
+
+      }
 
       document.addEventListener("mouseup", onMouseUp);
       document.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("scroll", scroll, true);
     });
 
   }
@@ -55,10 +89,10 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
 
     return new Promise((resolve, reject) => {
 
-      const onMouseMove = event => {
+      const update = () => {
 
-        const x = event.clientX - this.box.x;
-        const y = event.clientY - this.box.y;
+        const x = this.mouseX - this.box.x;
+        const y = this.mouseY - this.box.y;
 
         const box = this.findBox(x, y);
 
@@ -70,9 +104,19 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
 
       }
 
+      const onMouseMove = event => {
+
+        this.mouseX = event.clientX;
+        this.mouseY = event.clientY;
+
+        update();
+
+      }
+
       const onMouseUp = event =>  {
         document.removeEventListener("mouseup", onMouseUp);
         document.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("scroll", scroll, true);
 
         onMouseMove(event);
 
@@ -80,11 +124,31 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
 
       }
 
-      this.ground.y = 1;
-      this.ground.height = this.containerHeight;
+      const scroll = event => {
+        if (event.target.contains(this.container)) {
+          this.box = this.container.getBoundingClientRect();
+          update();
+        }
+      }
+
+      this.ground = new KarmaFieldsAlpha.Rect(this.col, 1, 1, this.containerHeight);
+
+      if (this.selection) {
+
+        if (event.shiftKey) {
+
+          this.ground.x = this.selection.x;
+
+        }
+
+        this.selection.kill();
+
+      }
 
       document.addEventListener("mouseup", onMouseUp);
       document.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("scroll", scroll, true);
+
     });
 
   }
@@ -142,6 +206,8 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
     }
 
   }
+
+
 
   growSelection(rectangle) {
 

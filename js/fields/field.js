@@ -46,6 +46,14 @@ KarmaFieldsAlpha.fields.field = class Field {
   //   return new KarmaFieldsAlpha.fields[resource && resource.type || "group"](resource, parent);
   // }
 
+  getKey() {
+    return this.resource.key;
+  }
+
+  getLabel() {
+    return this.resource.label;
+  }
+
   getId() {
     return "karma-fields-"+this.fieldId;
   }
@@ -710,29 +718,16 @@ KarmaFieldsAlpha.fields.field = class Field {
     //   event.trace = [];
     // }
     // event.trace.push(this);
-    if (this.resource.key !== undefined) {
+    const key = this.getKey();
+
+    if (key !== undefined) {
 
       if (event.path[0] === "..") {
         event.path.shift();
       } else {
 
 
-        // event.relativeIndex.set(this, event.index--);
-        // event.relativePath.set(this, [...event.path]);
-
-        // if (this.resource.useExpression) {
-        //
-        //   const key = await this.parse(this.resource.key);
-        //   event.path.unshift(key);
-        //
-        // } else {
-        //
-        //   event.path.unshift(this.resource.key);
-        //
-        // }
-
-
-        event.path.unshift(this.resource.key);
+        event.path.unshift(key);
 
       }
     }

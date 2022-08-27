@@ -5,101 +5,60 @@
 Class Karma_Fields_Alpha_Driver_Posts {
 
 
-  /**
-	 * is postfield
-	 */
-  public function is_postfield($key) {
-
-    switch($key) {
-
-      case 'post_name':
-      case 'post_title':
-      case 'post_content':
-      case 'post_excerpt':
-      case 'post_parent':
-      case 'post_date':
-      case 'post_status':
-      case 'post_author':
-      case 'post_type':
-      case 'menu_order':
-      case 'post_mime_type':
-        return true;
-
-    }
-
-    return false;
-
-    // return property_exists('WP_Post', $key);
-  }
+  // /**
+	//  * is postfield
+	//  */
+  // public function is_postfield($key) {
+  //
+  //   switch($key) {
+  //
+  //     case 'post_name':
+  //     case 'post_title':
+  //     case 'post_content':
+  //     case 'post_excerpt':
+  //     case 'post_parent':
+  //     case 'post_date':
+  //     case 'post_status':
+  //     case 'post_author':
+  //     case 'post_type':
+  //     case 'menu_order':
+  //     case 'post_mime_type':
+  //       return true;
+  //
+  //   }
+  //
+  //   return false;
+  //
+  //   // return property_exists('WP_Post', $key);
+  // }
 
   /**
 	 * get
 	 */
-  public function get($path) {
+  public function get($id) {
 
-    $keys = explode('/', $path);
+    $post = get_post($id);
 
-    if (count($keys) === 2) {
+    if ($post) {
 
-      $id = $keys[0];
-      $key = $keys[1];
-      // $index = $keys[2];
-
-      $post = get_post($id);
-
-      if ($post) {
-
-        $check = apply_filters('karma_fields_posts_driver_get', null, $post, $key);
-
-        if ($check !== null) {
-
-          return $check;
-
-        } else if ($this->is_postfield($key)) {
-
-          return array($post->$key);
-
-        } else if (taxonomy_exists($key)) {
-
-          $terms = get_the_terms($post, $key);
-
-          if ($terms && !is_wp_error($terms)) {
-
-            return array_map(function($term) {
-              return $term->term_id;
-            }, $terms);
-
-          } else {
-
-            return array();
-
-          }
-
-        } else {
-
-          // if (registered_meta_key_exists('post', $key)) {
-          //
-          //   $value = get_registered_metadata('post', $post->ID, $key);
-          //
-          // } else {
-
-            $value = get_post_meta($post->ID, $key);
-
-            // if (isset($index)) {
-            //   $value = $value[$value];
-            // }
-
-          // }
-
-          return apply_filters('karma_fields_posts_driver_get_meta', $value, $key, $post->ID);
-
-        }
-
-      }
+      return array(
+        'id' => $post->ID,
+        'name' => $post->post_title,
+        'post_name' => $post->post_name,
+        'post_title' => $post->post_title,
+        'post_content' => $post->post_content,
+        'post_excerpt' => $post->post_excerpt,
+        'post_parent' => $post->post_parent,
+        'post_date' => $post->post_date,
+        'post_status' => $post->post_status,
+        'post_author' => $post->post_author,
+        'post_type' => $post->post_type
+      );
 
     }
 
   }
+
 
   /**
 	 * update
@@ -332,8 +291,6 @@ Class Karma_Fields_Alpha_Driver_Posts {
 	 */
   public function get_query_args($params) {
 
-    $output = array();
-
     $args = array(
       'post_status' => array('publish', 'pending', 'draft', 'future'),
       'post_type' => 'any',
@@ -371,9 +328,9 @@ Class Karma_Fields_Alpha_Driver_Posts {
               $args['orderby'] = array('author' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
               break;
 
-            case 'post_type': // -> for medias
-              $args['orderby'] = array('post_type' => 'DESC', 'date' => 'DESC');
-              break;
+            // case 'post_type': // -> for medias
+            //   $args['orderby'] = array('post_type' => 'DESC', 'date' => 'DESC');
+            //   break;
 
             default:
               // todo: handle numeric meta, taxonomies
@@ -486,6 +443,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
             'id' => (string) $post->ID,
           );
         }, $query->posts);
+        break;
 
       case 'post_title':
       case 'post_excerpt':
@@ -499,15 +457,17 @@ Class Karma_Fields_Alpha_Driver_Posts {
             $args['field'] => $post->{$args['field']}
           );
         }, $query->posts);
+        break;
 
       default:
         $output = array_map(function($post) {
           return array(
             'id' => (string) $post->ID,
+            'name' => $post->post_title,
             'post_title' => $post->post_title,
             'post_excerpt' => $post->post_excerpt,
             'post_name' => $post->post_name,
-            'post_parent' => $post->post_parent,
+            'post_parent' => (string) $post->post_parent,
             'post_status' => $post->post_status,
             'post_type' => $post->post_type,
             'post_date' => $post->post_date,
@@ -677,107 +637,107 @@ Class Karma_Fields_Alpha_Driver_Posts {
   //
   //
 
-
-  /**
-	 * fetch
-	 */
-  public function fetch($request, $params) {
-    global $wpdb;
-
-    $key = isset($params['key']) ? $params['key'] : null;
-
-    // if ($key === 'post_status') {
-    //
-    //   return array(
-    //     'items' => array(
-    //       array(
-    //         'key' => 'draft',
-    //         'name' => 'Draft'
-    //       ),
-    //       array(
-    //         'key' => 'publish',
-    //         'name' => 'Publish'
-    //       ),
-    //       array(
-    //         'key' => 'pending',
-    //         'name' => 'Pending'
-    //       ),
-    //       array(
-    //         'key' => 'trash',
-    //         'name' => 'Trash'
-    //       )
-    //     )
-    //   );
-    //
-    // } else
-
-    // if (taxonomy_exists($key)) {
-    //
-    //   $args = array(
-    //     'taxonomy' => $key,
-    //     'hide_empty' => false,
-    //   );
-    //
-    //   $args = apply_filters('karma_fields_query_key_taxonomy_args', $args, $params);
-    //
-    //   $terms = get_terms($args);
-    //
-    //   if ($terms && !is_wp_error($terms)) {
-    //
-    //     return array(
-    //       'items' => array_map(function($term) {
-    //         return array(
-    //           'key' => $term->term_id,
-    //           'name' => $term->name
-    //         );
-    //       }, $terms)
-    //     );
-    //
-    //   }
-    //
-    // } else {
-
-    $args = array(
-      // 'post_type' => isset($params['post_type']) ? $params['post_type'] : 'any',
-      'post_status' => 'publish',
-      'posts_per_page' => -1,
-      'orderby' => 'title',
-      'order' => 'asc'
-    );
-
-
-    if (post_type_exists($key)) {
-
-      $args['post_type'] = $key;
-
-    } else if (isset($params['post_type']) && $params['post_type']) {
-
-      $args['post_type'] = explode(',', $params['post_type']);
-
-    }
-
-    $args = apply_filters('karma_fields_driver_posts_query_key_args', $args, $params, $key);
-
-    $query = new WP_Query($args);
-
-    $results = array();
-
-    while ($query->have_posts()) {
-
-      $query->the_post();
-
-      $results['items'][] = array(
-        'key' => (string) $query->post->ID,
-        'name' => get_the_title($query->post->ID)
-      );
-
-    }
-
-    return apply_filters('karma_fields_driver_posts_query_key_results', $results, $query, $params, $key);
-
-    // }
-
-  }
+  //
+  // /**
+	//  * fetch
+	//  */
+  // public function fetch($request, $params) {
+  //   global $wpdb;
+  //
+  //   $key = isset($params['key']) ? $params['key'] : null;
+  //
+  //   // if ($key === 'post_status') {
+  //   //
+  //   //   return array(
+  //   //     'items' => array(
+  //   //       array(
+  //   //         'key' => 'draft',
+  //   //         'name' => 'Draft'
+  //   //       ),
+  //   //       array(
+  //   //         'key' => 'publish',
+  //   //         'name' => 'Publish'
+  //   //       ),
+  //   //       array(
+  //   //         'key' => 'pending',
+  //   //         'name' => 'Pending'
+  //   //       ),
+  //   //       array(
+  //   //         'key' => 'trash',
+  //   //         'name' => 'Trash'
+  //   //       )
+  //   //     )
+  //   //   );
+  //   //
+  //   // } else
+  //
+  //   // if (taxonomy_exists($key)) {
+  //   //
+  //   //   $args = array(
+  //   //     'taxonomy' => $key,
+  //   //     'hide_empty' => false,
+  //   //   );
+  //   //
+  //   //   $args = apply_filters('karma_fields_query_key_taxonomy_args', $args, $params);
+  //   //
+  //   //   $terms = get_terms($args);
+  //   //
+  //   //   if ($terms && !is_wp_error($terms)) {
+  //   //
+  //   //     return array(
+  //   //       'items' => array_map(function($term) {
+  //   //         return array(
+  //   //           'key' => $term->term_id,
+  //   //           'name' => $term->name
+  //   //         );
+  //   //       }, $terms)
+  //   //     );
+  //   //
+  //   //   }
+  //   //
+  //   // } else {
+  //
+  //   $args = array(
+  //     // 'post_type' => isset($params['post_type']) ? $params['post_type'] : 'any',
+  //     'post_status' => 'publish',
+  //     'posts_per_page' => -1,
+  //     'orderby' => 'title',
+  //     'order' => 'asc'
+  //   );
+  //
+  //
+  //   if (post_type_exists($key)) {
+  //
+  //     $args['post_type'] = $key;
+  //
+  //   } else if (isset($params['post_type']) && $params['post_type']) {
+  //
+  //     $args['post_type'] = explode(',', $params['post_type']);
+  //
+  //   }
+  //
+  //   $args = apply_filters('karma_fields_driver_posts_query_key_args', $args, $params, $key);
+  //
+  //   $query = new WP_Query($args);
+  //
+  //   $results = array();
+  //
+  //   while ($query->have_posts()) {
+  //
+  //     $query->the_post();
+  //
+  //     $results['items'][] = array(
+  //       'key' => (string) $query->post->ID,
+  //       'name' => get_the_title($query->post->ID)
+  //     );
+  //
+  //   }
+  //
+  //   return apply_filters('karma_fields_driver_posts_query_key_results', $results, $query, $params, $key);
+  //
+  //   // }
+  //
+  // }
 
   // /**
 	//  * query_key

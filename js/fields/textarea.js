@@ -35,7 +35,13 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 						input.element.parentNode.classList.toggle("modified", await this.isModified());
 					});
 
+
+					input.element.style.height = "auto";
+					input.element.style.height = (input.element.scrollHeight) + "px";
+
 				};
+
+
 
 
 				// input.element.value = await this.getValue();
@@ -47,6 +53,9 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				});
 
 				input.element.value = KarmaFieldsAlpha.Type.toString(request.data);
+
+				input.element.style.height = "auto";
+				input.element.style.height = (input.element.scrollHeight) + "px";
 
 				input.element.placeholder = request.manifold && "— No Change —" || this.resource.placeholder || "";
 

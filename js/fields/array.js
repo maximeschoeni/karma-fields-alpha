@@ -440,7 +440,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
                   ...this.resource,
                   key: index,
                   type: "arrayRow"
-                }, index);
+                }, index.toString());
 
                 row.index = index;
 
@@ -448,7 +448,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
                   ...array,
                   ...this.resource.children.map((column, colIndex) => {
 
-                    const field = row.createChild(column, colIndex);
+                    const field = row.createChild(column, colIndex.toString());
 
                     return {
                       class: "td array-cell karma-field-frame",

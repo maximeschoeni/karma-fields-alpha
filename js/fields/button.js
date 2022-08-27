@@ -28,10 +28,10 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 				}
 				// button.element.title = this.resource.title || "";
 
-				if (this.resource.active || this.resource.disabled) {
-					// this.setEventListener(event => button.render());
-					this.update = () => button.render();
-				}
+				// if (this.resource.active || this.resource.disabled) {
+				// 	// this.setEventListener(event => button.render());
+				// 	this.update = () => button.render();
+				// }
 				// if (this.resource.hidden) {
 				// 	button.element.parentNode.classList.add("hidden");
 				// }
@@ -57,7 +57,7 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 						requestIdleCallback(() => {
 
 							this.dispatch({
-								action: action, // compat
+								action: action,
 								data: value
 							}).then(() => {
 								button.element.classList.remove("editing");
@@ -71,16 +71,14 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 
 
 				if (this.resource.disabled) {
-					// const instance = this;
-					// debugger;
-					// if (this.resource.action === "delete") debugger;
-
-
 					button.element.disabled = Boolean(await this.parse(this.resource.disabled));
-					// this.check(this.resource.disabled).then(disabled => {
-					// 	button.element.disabled = disabled;
-					// });
 				}
+
+				if (this.resource.active) {
+					const active = await this.parse(this.resource.active);
+					button.element.classList.toggle("active", Boolean(active));
+				}
+
 				// if (this.resource.active) {
 				// 	button.element.classList.toggle("active", Boolean(await this.check(this.resource.active)));
 				// 	// this.check(this.resource.active).then(active => {

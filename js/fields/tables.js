@@ -141,7 +141,7 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
       },
       update: popup => {
 
-        popup.element.classList.toggle("hidden", !KarmaFieldsAlpha.Nav.has("table"));
+        popup.element.classList.toggle("hidden", !KarmaFieldsAlpha.Nav.has("table") && !this.resource.navigation);
       },
       child: {
         class: "popup-content",

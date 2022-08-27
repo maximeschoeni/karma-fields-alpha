@@ -155,7 +155,8 @@ Class Karma_Fields_Alpha_Media_Library {
 
 		$karma_fields->register_table(array(
 
-			'driver' => 'posts?post_type=attachment,karma-folder&post_status=inherit&orderby=post_type',
+			// 'driver' => 'posts?post_type=attachment,karma-folder&post_status=inherit&orderby=post_type',
+			'driver' => 'medias',
 			'id' => 'medias',
 			'type' => 'tableMedias',
 			// 'interface' => 'medias',
@@ -169,7 +170,6 @@ Class Karma_Fields_Alpha_Media_Library {
 				'width' => 'auto'
 			),
 			'style' => 'flex: 1 1 0;',
-			// 'orderby' => 'filename',
 			'autosave' => false,
 			'title' => 'Media Library',
 			'header' => array(
@@ -288,7 +288,7 @@ Class Karma_Fields_Alpha_Media_Library {
 						// ),
 						array(
 							'type' => 'breadcrumb',
-							'key' => 'post_parent',
+							'key' => 'parent',
 							'visible' => array('!', array('selection'))
 						)
 					)
@@ -620,16 +620,17 @@ Class Karma_Fields_Alpha_Media_Library {
 				'children' => array(
 					array(
 						'label' => 'Directory',
-						'type' => 'directoryDropdown'
+						'type' => 'directoryDropdown',
+						'key' => 'parent'
 					),
 					array(
 						'label' => 'Dates',
 						'type' => 'dropdown',
-						'key' => 'post_date',
+						'key' => 'date',
 						'options' => array(
 							array('id' => '', 'name' => 'All dates')
 						),
-						'driver' => 'postdate?post_type=attachment&groupby=month',
+						// 'driver' => 'postdate?post_type=attachment&groupby=month',
 						'style' => 'flex:1'
 					),
 					array(

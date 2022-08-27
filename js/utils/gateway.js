@@ -30,8 +30,8 @@ KarmaFieldsAlpha.Gateway = class {
 		return fetch(KarmaFieldsAlpha.restURL+"/"+queryString, {
 			method: "post",
 			headers: {
-				'Content-Type': 'application/json',
-				'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+				"Content-Type": "application/json",
+				"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce
 			},
 			body: JSON.stringify({
 				data: data || {},
@@ -56,7 +56,7 @@ KarmaFieldsAlpha.Gateway = class {
 	// 	this.optionPromises = {};
 	// }
 
-	static upload(file) {
+	static upload(file, params) {
 	  let fileName = file.name.normalize();
 	  const chunkSize = 1048576; // 1MB
 	  let chunkIndex = 0;
@@ -70,14 +70,20 @@ KarmaFieldsAlpha.Gateway = class {
 	      const filePart = file.slice(start, end);
 	      fileReader.onload = function() {
 	        const formData = new FormData();
-	        formData.append('file', filePart);
-	        formData.append('name', fileName);
-	        formData.append('chunk', chunkIndex);
-	        formData.append('chunks', chunkTotal);
+	        formData.append("file", filePart);
+	        formData.append("name", fileName);
+	        formData.append("chunk", chunkIndex);
+	        formData.append("chunks", chunkTotal);
+					formData.append("chunkSize", chunkSize);
+					if (params) {
+						for (let key in params) {
+							formData.append(key, params[key]);
+						}
+					}
 	        return fetch(KarmaFieldsAlpha.restURL+"/upload", {
 						headers: {
-							// 'Content-Type': 'application/json',
-							'X-WP-Nonce': KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+							// "Content-Type": "application/json",
+							"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce
 						},
 	          method: "post",
 	          body: formData,

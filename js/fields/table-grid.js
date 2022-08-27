@@ -119,20 +119,40 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
     // -> cell selection
     async importCellData(data, rectangle) {
 
+      // const ids = await this.request("ids", "array");
+      // const columns = await this.request("columns", "array");
+      //
+      // for (let j = 0; j < Math.max(rectangle.height, data.length); j++) {
+      //
+      //   const id = ids[rectangle.y + j];
+      //   const rowField = this.getChild(id); // !!! may colid with modal !!!
+      //
+      //   for (let i = 0; i < Math.max(rectangle.width, data[j%data.length].length); i++) {
+      //
+      //     const colId = columns[rectangle.x + i]; // (colId = index of the column in resource)
+      //     const field = rowField.getChild(colId);
+      //
+      //     const value = data[j%data.length][i%data[j%data.length].length];
+      //
+      //     await field.importValue(value);
+      //   }
+      //
+      // }
+
       const ids = await this.request("ids", "array");
       const columns = await this.request("columns", "array");
 
-      for (let j = 0; j < Math.max(rectangle.height, data.length); j++) {
+      for (let j = 0; j < rectangle.height; j++) {
 
         const id = ids[rectangle.y + j];
         const rowField = this.getChild(id); // !!! may colid with modal !!!
+        const rowValue = data[j%data.length];
 
-        for (let i = 0; i < Math.max(rectangle.width, data[j%data.length].length); i++) {
+        for (let i = 0; i < rectangle.width; i++) {
 
           const colId = columns[rectangle.x + i]; // (colId = index of the column in resource)
           const field = rowField.getChild(colId);
-
-          const value = data[j%data.length][i%data[j%data.length].length];
+          const value = rowValue && rowValue[i%rowValue.length] || null;
 
           await field.importValue(value);
         }
@@ -173,7 +193,7 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
 
 
-    build(ids, page, ppp, columns) {
+    build(ids, page, ppp) {
 
       const offset = (Number(page) - 1)* Number(ppp);
 
@@ -267,6 +287,8 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
           // this.idSelector.width = columns.length;
           // this.idSelector.height = ids.length;
 
+          const columns = await this.request("columns", "array");
+
 
           // KarmaFieldsAlpha.Clipboard.onInput = dataArray => {
           this.clipboard.onInput = dataArray => {
@@ -287,6 +309,9 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
               // if (!dataArray.length) {
               //   dataArray = [[""]];
               // }
+
+              KarmaFieldsAlpha.History.save();
+
               await this.importCellData(dataArray, this.cellSelection);
               await this.dispatch({
                 action: "render"
@@ -410,9 +435,8 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
                 const row = this.createChild({
                   key: id,
                   type: "row",
-                  children: this.resource.children || [],
-                  id: id
-                });
+                  children: this.resource.children || []
+                }, id.toString());
 
                 row.index = offset + rowIndex + 1;
 
@@ -430,9 +454,8 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
                     const child = this.resource.children[colId];
                     const field = row.createChild({
                       ...child,
-                      id: colId,
                       index: colIndex
-                    });
+                    }, colId.toString());
 
                     return {
                       class: "td table-cell",
@@ -463,17 +486,11 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
                           const bodyElements = [...grid.element.children].slice(columns.length);
 
-                          if (this.cellSelection) {
-
-                            this.cellSelection.kill();
-
-                          }
-
                           if (event.buttons === 1) {
 
                             if (field.selectMode !== "row") {
 
-                              this.cellSelection = new KarmaFieldsAlpha.CellSelection(event, grid.element, bodyElements, columns.length, ids.length, colIndex, rowIndex);
+                              this.cellSelection = new KarmaFieldsAlpha.CellSelection(event, grid.element, bodyElements, columns.length, ids.length, colIndex, rowIndex, this.cellSelection);
 
                               await this.cellSelection.select();
 
@@ -485,6 +502,12 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
                               }
 
                             } else {
+
+                              if (this.cellSelection) {
+
+                                this.cellSelection.kill();
+
+                              }
 
                               const currentSelection = this.selectionBuffer.get() || {};
 

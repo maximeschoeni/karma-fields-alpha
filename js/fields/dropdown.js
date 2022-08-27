@@ -9,7 +9,7 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 	async importValue(value) {
 		const options = await this.fetchOptions();
-		const option = options.find(option => option.name === value);
+		const option = options.find(option => option.name === value) || options[0];
 		if (option) {
 			await this.setValue(option.key);
 		}
@@ -20,10 +20,11 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 		const options = await this.parse(this.resource.options || []);
 
 		const defaults = {};
+		const key = this.getKey();
 
-		if (this.resource.key && options.length > 0) {
+		if (key && options.length > 0) {
 
-			defaults[this.resource.key] = options[0].id;
+			defaults[key] = options[0].id;
 
 		}
 

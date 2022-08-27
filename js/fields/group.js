@@ -254,7 +254,7 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 		for (let index in this.resource.children) {
 
-			const child = this.createChild(this.resource.children[index], index);
+			const child = this.createChild(this.resource.children[index], index.toString());
 
 			defaults = {
 				...defaults,
@@ -272,7 +272,7 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 			init: label => {
 				if (field.resource.label) {
 					label.element.htmlFor = field.getId();
-					label.element.textContent = field.resource.label;
+					label.element.textContent = field.getLabel();
 				}
 			}
 		};
@@ -328,14 +328,16 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 					group.children = (this.resource.children || []).map((child, index) => {
 
-						child = this.sanitizeResource(child);
+						// child = this.sanitizeResource(child);
 
 						// child.id = child.id || index.toString();
 
-						const field = this.createChild({
-							...child,
-							id: index
-						});
+						// const field = this.createChild({
+						// 	...child,
+						// 	id: index
+						// }, index.toString());
+
+						const field = this.createChild(child, index.toString());
 
 						return {
 							class: "karma-field-frame karma-field-"+field.resource.type,

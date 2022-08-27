@@ -227,11 +227,12 @@ Class Karma_Fields_Alpha {
 
 			$karma_fields = array(
 				// 'ajax_url' => admin_url('admin-ajax.php'),
-				'icons_url' => plugin_dir_url(__FILE__).'dashicons',
+				// 'icons_url' => plugin_dir_url(__FILE__).'dashicons',
 				'restURL' => rest_url().'karma-fields-alpha/v1',
+				'uploadURL' => wp_get_upload_dir()['baseurl'],
 				// 'getURL' => rest_url().'karma-fields/v1/get',
 				// 'getURL' => apply_filters('karma_cache_url', rest_url().'karma-fields/v1/get'), // -> apply_filters('karma_fields_get')
-				'cacheURL' => apply_filters('karma_cache_url', false),
+				// 'cacheURL' => apply_filters('karma_cache_url', false),
 				// 'queryURL' => rest_url().'karma-fields/v1/query',
 				// 'saveURL' => rest_url().'karma-fields/v1/update',
 				// 'fetchURL' => rest_url().'karma-fields/v1/fetch',
@@ -424,19 +425,19 @@ Class Karma_Fields_Alpha {
 	 */
 	public function rest_api_init() {
 
-		// register_rest_route('karma-fields-alpha/v1', '/get/(?P<driver>[^/]+)/(?P<path>.+)', array(
-		// 	'methods' => 'GET',
-		// 	'callback' => array($this, 'rest_get'),
-		// 	'permission_callback' => '__return_true',
-		// 	'args' => array(
-		// 		'driver' => array(
-		// 			'required' => true
-		// 		),
-		// 		'path' => array(
-		// 			'required' => true
-		// 		)
-	  //   )
-		// ));
+		register_rest_route('karma-fields-alpha/v1', '/get/(?P<driver>[^/]+)/(?P<id>\d+)', array(
+			'methods' => 'GET',
+			'callback' => array($this, 'rest_get'),
+			'permission_callback' => '__return_true',
+			'args' => array(
+				'driver' => array(
+					'required' => true
+				),
+				'id' => array(
+					'required' => true
+				)
+	    )
+		));
 
 		register_rest_route('karma-fields-alpha/v1', '/update/(?P<driver>[^/]+)', array(
 			'methods' => 'POST',
@@ -626,35 +627,35 @@ Class Karma_Fields_Alpha {
 	//
 	// }
 
-	// /**
-	//  *	@rest 'wp-json/karma-fields/v1/get/'
-	//  */
-	// public function rest_get($request) {
-	//
-	// 	$driver_name = $request->get_param('driver');
-	// 	$path = $request->get_param('path');
-	//
-	// 	$driver = $this->get_driver($driver_name);
-	//
-	// 	if ($driver) {
-	//
-	// 		if (method_exists($driver, 'get')) {
-	//
-	// 			return $driver->get($path);
-	//
-	// 		} else {
-	//
-	// 			return "karma fields error: driver has no method 'get'";
-	//
-	// 		}
-	//
-	// 	} else {
-	//
-	// 		return "karma fields error: driver not found";
-	//
-	// 	}
-	//
-	// }
+	/**
+	 *	@rest 'wp-json/karma-fields/v1/get/'
+	 */
+	public function rest_get($request) {
+
+		$driver_name = $request->get_param('driver');
+		$id = $request->get_param('id');
+
+		$driver = $this->get_driver($driver_name);
+
+		if ($driver) {
+
+			if (method_exists($driver, 'get')) {
+
+				return $driver->get($id);
+
+			} else {
+
+				return "karma fields error: driver has no method 'get'";
+
+			}
+
+		} else {
+
+			return "karma fields error: driver not found";
+
+		}
+
+	}
 
 
 	/**

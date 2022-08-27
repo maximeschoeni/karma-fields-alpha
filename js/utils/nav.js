@@ -8,6 +8,7 @@ KarmaFieldsAlpha.Nav = class {
 
 	static setSearchParams(urlSearchParams, replace = false) {
 		const hash = urlSearchParams.toString();
+
 		history.replaceState({}, "", "#"+hash);
 
 		// if (replace) {

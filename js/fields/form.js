@@ -251,10 +251,6 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 						path: [...event.path]
 					});
 
-					if (!request.data) {
-						request.data = await event.field.getDefault();
-					}
-
 					currentValue = KarmaFieldsAlpha.Type.toArray(request.data);
 
 				}

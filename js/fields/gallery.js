@@ -42,7 +42,11 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
 
       await this.dispatch({
         action: "fetch",
-        params: {karma: "medias", selection: selectedIds.join(",")},
+        params: {
+          table: this.resource.table || "medias",
+          selection: selectedIds.join(","),
+          parent: this.resource.parent
+        },
         callback: async inputIds => {
 
           const insertIds = [...ids];
@@ -685,10 +689,10 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
 
         const ids = array.map(id => id.toString()).slice(0, this.getMax());
 
-        const store = new KarmaFieldsAlpha.Store("posts", ["files"]);
+        const store = new KarmaFieldsAlpha.Store(this.resource.driver || "medias", this.resource.joins || ["files"]);
 
         if (ids.length) {
-          await store.query("post_type=attachment&post_status=inherit&ids="+ids.join(","));
+          await store.query("ids="+ids.join(","));
         }
 
         this.clipboard.onInput = async dataArray => {
@@ -788,9 +792,10 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                     frame.element.classList.add("loading");
 
 
-                    const src = await store.getValue(id, "thumb_src").then(value => KarmaFieldsAlpha.Type.toString(value));
-                    const width = await store.getValue(id, "thumb_width").then(value => KarmaFieldsAlpha.Type.toString(value));
-                    const height = await store.getValue(id, "thumb_height").then(value => KarmaFieldsAlpha.Type.toString(value));
+                    // const src = await store.getValue(id, "thumb_src").then(value => KarmaFieldsAlpha.Type.toString(value));
+                    // const width = await store.getValue(id, "thumb_width").then(value => KarmaFieldsAlpha.Type.toString(value));
+                    // const height = await store.getValue(id, "thumb_height").then(value => KarmaFieldsAlpha.Type.toString(value));
+                    const thumb = await store.getValue(id, "thumb").then(value => KarmaFieldsAlpha.Type.toObject(value));
                     const type = await store.getValue(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
 
                     frame.element.classList.remove("loading");
@@ -801,13 +806,13 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                         tag: "figure",
                         update: wrapper => {
                           // const file = id && this.getFile(id);
-                          if (src) {
+                          if (thumb) {
                             wrapper.children = [{
                               tag: "img",
                               update: image => {
-                                image.element.src = src;
-                                image.element.width = width;
-                                image.element.height = height;
+                                image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
+                                image.element.width = thumb.width;
+                                image.element.height = thumb.height;
                               }
                             }];
                             wrapper.element.classList.toggle("type-image", type.startsWith("image") || false);

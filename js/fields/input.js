@@ -13,9 +13,11 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 		// return this.resource.default || "";
 		const defaults = {};
 
-		if (this.resource.key && this.resource.default !== null) {
+		const key = this.getKey();
 
-			defaults[this.resource.key] = await this.parse(this.resource.default || "");
+		if (key && this.resource.default !== null) {
+
+			defaults[key] = await this.parse(this.resource.default || "");
 
 		}
 
@@ -34,7 +36,7 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 		await this.dispatch({
 			action: "set",
 			type: "string",
-			data: KarmaFieldsAlpha.Type.toArray(value)
+			data: KarmaFieldsAlpha.Type.toArray(value || "")
 		});
 	}
 
