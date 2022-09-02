@@ -433,7 +433,16 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         switch (key) {
 
           case "content": // -> autosave
-            await this.send(event.data, ...event.path); // -> data is an array
+            // await this.send(event.data, ...event.path); // -> data is an array
+
+            const [id, ...path] = event.path;
+
+            const value = KarmaFieldsAlpha.Type.toArray(event.data);
+
+						const data = KarmaFieldsAlpha.DeepObject.create(value, ...path);
+
+						await this.send(data, this.driver, id); // -> data is an array
+
             break;
 
           default: { // -> filters
@@ -456,6 +465,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
             }
 
             // this.interface.unselect();
+
+
+            this.store.empty();
 
             await this.queryIds();
 
@@ -558,6 +570,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
             const delta = this.grid.buffer.get(...event.path);
             event.data = delta && KarmaFieldsAlpha.DeepObject.differ(delta, this.buffer.get(...event.path)) || false;
+
+            // const value = this.buffer.get(...event.path);
+            // console.log(event.data, value);
+            // event.data = KarmaFieldsAlpha.DeepObject.differ(event.data, value);
 
             // console.log(event.data, delta, this.buffer.get(...event.path), event.path);
             break;
@@ -903,15 +919,15 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         break;
       }
 
-      case "upload": {
-        this.interface.unselect();
-        const ids = await this.upload(event.files, event.params);
-        event.data = ids;
-        // this.interface.selectionBuffer.backup(ids);
-        // this.interface.selectionBuffer.set(ids);
-        await this.render();
-        break;
-      }
+      // case "upload": {
+      //   this.interface.unselect();
+      //   const ids = await this.upload(event.files, event.params);
+      //   event.data = ids;
+      //   // this.interface.selectionBuffer.backup(ids);
+      //   // this.interface.selectionBuffer.set(ids);
+      //   await this.render();
+      //   break;
+      // }
 
       case "duplicate": {
         const ids = this.getSelectedIds();
@@ -930,10 +946,12 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
         // await this.grid.submit();
 
         const data = this.grid.buffer.get();
-        await this.send(data); // -> data is an object
+        for (let id in data) {
+          await this.send(data[id], this.driver, id);
+        }
+        // await this.send(data); // -> data is an object
         this.grid.buffer.remove();
         this.store.empty();
-        // this.interface.unselect();
         await this.queryIds();
         await this.render();
         break;
@@ -1457,52 +1475,52 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     return cloneIds;
   }
 
-  async upload(files, params = {}) {
+  // async upload(files, params = {}) {
+  //
+  //   KarmaFieldsAlpha.History.save();
+  //
+  //   const newIds = [];
+  //
+  //   for (let file of files) {
+  //
+  //     let id = await KarmaFieldsAlpha.Gateway.upload(file, params);
+  //
+  //     id = id.toString();
+  //
+  //     newIds.push(id);
+  //
+  //     await this.store.query("id="+id);
+  //
+  //     this.buffer.set(["0"], id, "trash");
+  //
+  //     this.grid.buffer.set(["1"], id, "trash");
+  //     this.grid.buffer.backup(["0"], id, "trash");
+  //     this.grid.buffer.set(["0"], id, "trash");
+  //
+  //     const ids = [id, ...this.getIds()];
+  //
+  //     this.idsBuffer.backup(ids);
+  //     this.idsBuffer.set(ids);
+  //
+  //
+  //     for (let key in params) {
+  //
+  //       const value = params[key];
+  //
+  //       this.grid.buffer.backup([value], id, key);
+  //       this.grid.buffer.set([value], id, key);
+  //
+  //     }
+  //
+  //     await this.render();
+  //
+  //   }
+  //
+  //   return newIds;
+  // }
 
-    KarmaFieldsAlpha.History.save();
 
-    const newIds = [];
-
-    for (let file of files) {
-
-      let id = await KarmaFieldsAlpha.Gateway.upload(file, params);
-
-      id = id.toString();
-
-      newIds.push(id);
-
-      await this.store.query("id="+id);
-
-      this.buffer.set(["0"], id, "trash");
-
-      this.grid.buffer.set(["1"], id, "trash");
-      this.grid.buffer.backup(["0"], id, "trash");
-      this.grid.buffer.set(["0"], id, "trash");
-
-      const ids = [id, ...this.getIds()];
-
-      this.idsBuffer.backup(ids);
-      this.idsBuffer.set(ids);
-
-
-      for (let key in params) {
-
-        const value = params[key];
-
-        this.grid.buffer.backup([value], id, key);
-        this.grid.buffer.set([value], id, key);
-
-      }
-
-      await this.render();
-
-    }
-
-    return newIds;
-  }
-
-
-  async getSelectedIds() {
+  getSelectedIds() {
 
     const selection = this.interface.selectionBuffer.get();
 
@@ -1633,10 +1651,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
                               },
                               // child: this.filters.build()
                               child: this.createChild({
-                                type: "group",
+
                                 ...this.resource.filters,
                                 id: "filters",
-                                value: "filters"
+                                type: "filters"
+                                // value: "filters"
                               }).build()
                             },
                             // ...this.subsections.map(subsection => {
@@ -1992,24 +2011,73 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
               break;
             }
 
-            // -> bulk edit
+            if (ids.length) {
 
-            event.dataArray = [];
+              if (ids.length > 1 && event.multiValue) {
 
-            for (let id of ids) {
+                // -> export csv
 
-              const request = await super.dispatch({
-                ...event,
-                path: [id, ...event.path]
-              });
+                const data = [];
 
-              event.dataArray.push(request.data);
+                for (let id of ids) {
+
+                  const request = await super.dispatch({
+                    ...event,
+                    path: [id, ...event.path]
+                  });
+
+                  const value = KarmaFieldsAlpha.Type.toArray(request.data);
+
+                  data.push(value);
+
+                }
+
+                const csv = KarmaFieldsAlpha.Clipboard.unparse(data);
+
+                event.data = new KarmaFieldsAlpha.MultiValue(csv);
+
+                // -> todo: handle when all data are the same ?
+
+              } else {
+
+                event.path = [ids[0], ...event.path];
+
+                await super.dispatch(event);
+
+                if (event.data) {
+                  event.data.multiValue = true;
+                }
+
+
+
+              }
+
+              // if (ids.length > 1) {
+              //
+              //   event.data.multiValue = true;
+              //
+              // }
+
+
 
             }
 
-            event.data = event.dataArray[0];
-            event.manifold = event.dataArray.length > 1;
-            event.ids = ids;
+            // event.dataArray = [];
+            //
+            // for (let id of ids) {
+            //
+            //   const request = await super.dispatch({
+            //     ...event,
+            //     path: [id, ...event.path]
+            //   });
+            //
+            //   event.dataArray.push(request.data);
+            //
+            // }
+            //
+            // event.data = event.dataArray[0];
+            // event.manifold = event.dataArray.length > 1;
+            // event.ids = ids;
 
             break;
           }
@@ -2018,16 +2086,44 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
             const ids = await super.request("selectedIds", "array");
 
-            // KarmaFieldsAlpha.History.save();
-
             // -> bulk edit
 
-            for (let id of ids) {
-              await super.dispatch({
-                ...event,
-                path: [id, ...event.path]
-              });
+            if (ids.length > 1 && typeof event.data === "string") {
+
+              // -> check for csv value
+
+              const data = KarmaFieldsAlpha.Clipboard.parse(event.data);
+
+              for (let i = 0; i < ids.length; i++) {
+
+                await super.dispatch({
+                  ...event,
+                  event: data[i%data.length] || [],
+                  path: [ids[i], ...event.path]
+                });
+
+              }
+
+            } else {
+
+              for (let id of ids) {
+
+                await super.dispatch({
+                  ...event,
+                  path: [id, ...event.path]
+                });
+
+              }
+
             }
+
+
+            // for (let id of ids) {
+            //   await super.dispatch({
+            //     ...event,
+            //     path: [id, ...event.path]
+            //   });
+            // }
             break;
           }
 
@@ -2178,138 +2274,138 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
     }
 
-    // shouldn't move to media ??
-    static upload = class extends KarmaFieldsAlpha.fields.button {
-
-      build() {
-
-        return {
-    			class: "karma-upload karma-field",
-          init: button => {
-            button.element.id = "upload-button";
-          },
-          children: [
-            {
-              tag: "input",
-              init: input => {
-                input.element.type = "file",
-                input.element.id = this.getId();
-                input.element.multiple = true;
-                input.element.hidden = true;
-              },
-              update: input => {
-                input.element.onchange = async event => {
-                  const files = input.element.files;
-                  if (files.length) {
-                    input.element.classList.add("editing");
-                    requestIdleCallback(() => {
-        							this.dispatch({
-                        action: "upload",
-                        files: files,
-                        params: {
-                          parent: KarmaFieldsAlpha.Nav.get("parent") || "0"
-                        }
-                      }).then(async request => {
-                        // if (KarmaFieldsAlpha.Nav.has("post_parent")) {
-                        //   const parentId = KarmaFieldsAlpha.Nav.get("post_parent");
-                        //   for (let fileId of request.data) {
-                        //     await this.dispatch({
-                        //       action: "set",
-                        //       data: [parentId],
-                        //       path: ["content", fileId, "post_parent"]
-                        //     });
-                        //   }
-                        // }
-        								input.element.classList.remove("editing");
-        								input.element.blur();
-        							});
-        						});
-                    // await this.dispatch({
-                    //   action: "upload",
-                    //   data: files
-                    // });
-                    // input.element.classList.remove("loading");
-                  }
-                }
-              }
-            },
-            {
-              tag: "label",
-              init: input => {
-                input.element.htmlFor = this.getId();
-                input.element.textContent = this.resource.title || "Add File";
-              }
-            }
-          ]
-
-          // child: {
-    			// 	tag: "span",
-    			// 	update: async span => {
-    			// 		if (this.resource.dashicon) {
-    			// 			span.element.className = "dashicons dashicons-"+this.resource.dashicon;
-    			// 			span.element.textContent = this.resource.text || "";
-    			// 		} else {
-    			// 			span.element.className = "text";
-    			// 			span.element.textContent = await this.parse(this.resource.text || this.resource.title || "");
-    			// 		}
-          //
-    			// 	}
-    			// },
-    			// init: async button => {
-          //
-          //
-    			// },
-    			// update: async button => {
-          //
-    			// 	if (this.resource.primary) {
-    			// 		button.element.classList.add("primary");
-    			// 	}
-    			// 	button.element.title = this.resource.title || "";
-          //
-    			// 	if (this.resource.active || this.resource.disabled || this.resource.hidden) {
-    			// 		// this.setEventListener(event => button.render());
-    			// 		this.update = () => button.render();
-    			// 	}
-    			// 	if (this.resource.hidden) {
-    			// 		button.element.parentNode.classList.add("hidden");
-    			// 	}
-          //
-    			// 	button.element.onclick = async event => {
-    			// 		event.preventDefault(); // -> prevent submitting form in post-edit
-          //
-          //
-    			// 		if (!button.element.classList.contains("editing")) {
-    			// 			button.element.classList.add("editing");
-          //
-    			// 			requestIdleCallback(() => {
-    			// 				this.dispatch({
-    			// 					action: this.resource.action || this.resource.state || this.resource.value || "submit" // compat
-    			// 				}).then(() => {
-    			// 					button.element.classList.remove("editing");
-    			// 					button.element.blur();
-    			// 				});
-    			// 			});
-          //
-    			// 		}
-          //
-    			// 	}
-          //
-          //
-    			// 	if (this.resource.disabled) {
-    			// 		button.element.disabled = Boolean(await this.parse(this.resource.disabled));
-    			// 	}
-    			// 	if (this.resource.active) {
-    			// 		button.element.classList.toggle("active", Boolean(await this.check(this.resource.active)));
-    			// 	}
-    			// 	if (this.resource.hidden) {
-    			// 		button.element.parentNode.classList.toggle("hidden", Boolean(await this.check(this.resource.hidden)));
-    			// 	}
-          //
-    			// }
-    		};
-      }
-
-    }
+    // // shouldn't move to media ??
+    // static upload = class extends KarmaFieldsAlpha.fields.button {
+    //
+    //   build() {
+    //
+    //     return {
+    // 			class: "karma-upload karma-field",
+    //       init: button => {
+    //         button.element.id = "upload-button";
+    //       },
+    //       children: [
+    //         {
+    //           tag: "input",
+    //           init: input => {
+    //             input.element.type = "file",
+    //             input.element.id = this.getId();
+    //             input.element.multiple = true;
+    //             input.element.hidden = true;
+    //           },
+    //           update: input => {
+    //             input.element.onchange = async event => {
+    //               const files = input.element.files;
+    //               if (files.length) {
+    //                 input.element.classList.add("editing");
+    //                 requestIdleCallback(() => {
+    //     							this.dispatch({
+    //                     action: "upload",
+    //                     files: files,
+    //                     params: {
+    //                       parent: KarmaFieldsAlpha.Nav.get("parent") || "0"
+    //                     }
+    //                   }).then(async request => {
+    //                     // if (KarmaFieldsAlpha.Nav.has("post_parent")) {
+    //                     //   const parentId = KarmaFieldsAlpha.Nav.get("post_parent");
+    //                     //   for (let fileId of request.data) {
+    //                     //     await this.dispatch({
+    //                     //       action: "set",
+    //                     //       data: [parentId],
+    //                     //       path: ["content", fileId, "post_parent"]
+    //                     //     });
+    //                     //   }
+    //                     // }
+    //     								input.element.classList.remove("editing");
+    //     								input.element.blur();
+    //     							});
+    //     						});
+    //                 // await this.dispatch({
+    //                 //   action: "upload",
+    //                 //   data: files
+    //                 // });
+    //                 // input.element.classList.remove("loading");
+    //               }
+    //             }
+    //           }
+    //         },
+    //         {
+    //           tag: "label",
+    //           init: input => {
+    //             input.element.htmlFor = this.getId();
+    //             input.element.textContent = this.resource.title || "Add File";
+    //           }
+    //         }
+    //       ]
+    //
+    //       // child: {
+    // 			// 	tag: "span",
+    // 			// 	update: async span => {
+    // 			// 		if (this.resource.dashicon) {
+    // 			// 			span.element.className = "dashicons dashicons-"+this.resource.dashicon;
+    // 			// 			span.element.textContent = this.resource.text || "";
+    // 			// 		} else {
+    // 			// 			span.element.className = "text";
+    // 			// 			span.element.textContent = await this.parse(this.resource.text || this.resource.title || "");
+    // 			// 		}
+    //       //
+    // 			// 	}
+    // 			// },
+    // 			// init: async button => {
+    //       //
+    //       //
+    // 			// },
+    // 			// update: async button => {
+    //       //
+    // 			// 	if (this.resource.primary) {
+    // 			// 		button.element.classList.add("primary");
+    // 			// 	}
+    // 			// 	button.element.title = this.resource.title || "";
+    //       //
+    // 			// 	if (this.resource.active || this.resource.disabled || this.resource.hidden) {
+    // 			// 		// this.setEventListener(event => button.render());
+    // 			// 		this.update = () => button.render();
+    // 			// 	}
+    // 			// 	if (this.resource.hidden) {
+    // 			// 		button.element.parentNode.classList.add("hidden");
+    // 			// 	}
+    //       //
+    // 			// 	button.element.onclick = async event => {
+    // 			// 		event.preventDefault(); // -> prevent submitting form in post-edit
+    //       //
+    //       //
+    // 			// 		if (!button.element.classList.contains("editing")) {
+    // 			// 			button.element.classList.add("editing");
+    //       //
+    // 			// 			requestIdleCallback(() => {
+    // 			// 				this.dispatch({
+    // 			// 					action: this.resource.action || this.resource.state || this.resource.value || "submit" // compat
+    // 			// 				}).then(() => {
+    // 			// 					button.element.classList.remove("editing");
+    // 			// 					button.element.blur();
+    // 			// 				});
+    // 			// 			});
+    //       //
+    // 			// 		}
+    //       //
+    // 			// 	}
+    //       //
+    //       //
+    // 			// 	if (this.resource.disabled) {
+    // 			// 		button.element.disabled = Boolean(await this.parse(this.resource.disabled));
+    // 			// 	}
+    // 			// 	if (this.resource.active) {
+    // 			// 		button.element.classList.toggle("active", Boolean(await this.check(this.resource.active)));
+    // 			// 	}
+    // 			// 	if (this.resource.hidden) {
+    // 			// 		button.element.parentNode.classList.toggle("hidden", Boolean(await this.check(this.resource.hidden)));
+    // 			// 	}
+    //       //
+    // 			// }
+    // 		};
+    //   }
+    //
+    // }
 
     static save = {
       id: "save",
@@ -2406,7 +2502,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
 
     static title = class extends KarmaFieldsAlpha.fields.text {
 
-      constructor(resource, ...args) {
+      constructor(resource) {
 
         const defaultResource = {
           id: "title",
@@ -2416,7 +2512,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
           value: "Table"
         };
 
-        super({...defaultResource, ...resource}, ...args);
+        super({...defaultResource, ...resource});
 
       }
 
@@ -2434,7 +2530,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
     static count = {
       id: "count",
       type: "text",
-      style: "justify-content:center",
+      style: "justify-content:center;white-space: nowrap;",
       value: ["replace", "# elements", "#", ["get", "string", "count"]],
       dynamic: true
     }
@@ -2541,6 +2637,32 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.gateway {
       }
 
     }
+
+  }
+
+  static filters = class extends KarmaFieldsAlpha.fields.group {
+
+
+
+    async dispatch(event) {
+
+      switch (event.action) {
+
+        case "set": {
+          await super.dispatch(event);
+          this.render();
+          break;
+        }
+
+        default:
+          await super.dispatch(event);
+          break;
+
+      }
+
+      return event;
+    }
+
 
   }
 

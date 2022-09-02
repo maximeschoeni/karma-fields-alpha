@@ -609,6 +609,10 @@ KarmaFieldsAlpha.fields.field = class Field {
     });
 
     return KarmaFieldsAlpha.Type.toBoolean(event.data);
+
+    // const response = await this.request("modified");
+    //
+    // return response.toBoolean();
   }
 
   async check(condition) {
@@ -687,25 +691,19 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   async dispatch2(request, ...path) {
 
-    if (!this.parent) {
+    if (this.parent) {
 
-      return;
+      const key = this.getKey();
 
-    }
+      if (key !== undefined) {
 
-    if (!request.field) {
+        return this.parent.dispatch(request, key, ...path);
 
-      request.field = this;
+      }
 
-    }
-
-    if (this.resource.key !== undefined) {
-
-      return this.parent.dispatch(request, this.resource.key, ...path);
+      return this.parent.dispatch(request, ...path);
 
     }
-
-    return this.parent.dispatch(request, ...path);
 
   }
 
@@ -984,6 +982,27 @@ KarmaFieldsAlpha.fields.field = class Field {
     //   path: path
     // }).then(request => KarmaFieldsAlpha.Type.toObject(request.data));
   }
+
+
+  // async send(value, ...path) {
+  //
+	// 	// const data = KarmaFieldsAlpha.DeepObject.clone(value);
+  //
+  //
+	// 	// this.clear();
+  //
+	// 	// value = KarmaFieldsAlpha.DeepObject.create(data, ...path);
+  //
+	// 	// if (!this.resource.driver) {
+	// 	// 	console.error("Resource driver not set");
+	// 	// }
+  //
+	// 	// const [driverName] = this.resource.driver.split("?");
+  //
+	// 	await KarmaFieldsAlpha.Gateway.post("update/"+path.join("/"), value);
+  //
+  // }
+
 
 
 

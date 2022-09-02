@@ -484,6 +484,11 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 	}
 
 	async exportValue() {
+		return this.getContent();
+	}
+
+
+	async getContent() {
 		return this.parse(this.resource.value || "");
 	}
 
@@ -493,28 +498,19 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 			tag: this.resource.tag,
 			class: "text karma-field",
 			init: node => {
-				if (this.resource.dynamic || this.resource.disabled) {
-					this.update = request => node.render();
-				}
 				if (this.resource.classes) {
 					node.element.classList.add(...this.resource.classes);
 				}
 			},
 			update: async node => {
-				this.render = node.render;
 
 
+				node.element.innerHTML = await this.getContent();
 
-				// node.element.innerHTML = this.preParse(this.resource.value);
-
-// console.log(this.resource.id, this.resource.value);
-// if (this.resource.id == "xx") debugger;
-
-
-
-				await this.parse(this.resource.value || "").then(value => {
-					node.element.innerHTML = value;
-				});
+				if (this.resource.highlight) {
+					const highlight = await this.parse(this.resource.highlight);
+					node.element.classList.toggle("highlight", Boolean(highlight));
+				}
 
 				if (this.resource.disabled) {
 					node.element.classList.add("disabled");
@@ -522,12 +518,6 @@ KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
 						node.element.classList.toggle("disabled", disabled);
 					});
 				}
-
-				// if (this.resource.hidden) {
-				// 	node.element.parentNode.classList.add("hidden");
-				// 	this.parse(this.resource.hidden).then(hidden => node.element.parentNode.classList.toggle("hidden", hidden));
-				// }
-
 
 			}
 		};

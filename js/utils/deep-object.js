@@ -600,7 +600,7 @@ KarmaFieldsAlpha.DeepObject = class {
 
   static create(value, ...path) {
     if (path.length) {
-      const object = typeof path[0] === "number" ? [] : {};
+      const object = {};
       KarmaFieldsAlpha.DeepObject.assign(object, value, ...path);
       return object;
 		}

@@ -121,6 +121,7 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 					action: "set",
 					// backup: "pack",
 					data: value,
+					autosave: this.resource.autosave
 					// default: field.getDefault
 				});
 

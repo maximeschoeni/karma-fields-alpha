@@ -213,12 +213,15 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
                   class: "table-container",
                   update: async container => {
                     container.element.classList.toggle("hidden", tableId !== resource.id);
+
                     if (tableId === resource.id) {
                       const table = this.createChild(resource);
-                      if (table.hash !== location.hash.slice(1)) {
-                        table.hash = location.hash.slice(1);
+                      // if (table.hash !== location.hash.slice(1)) {
+                        // table.hash = location.hash.slice(1);
+                        table.store.empty();
+
                         await table.queryIds();
-                      }
+                      // }
                       container.child = table.build();
                     } else {
                       container.children = []

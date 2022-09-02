@@ -39,36 +39,70 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 		// return value;
 	}
 
-	async fetchOptions() {
-		// let options = await super.fetchOptions(this.resource.driver);
+	async getOptions(driver, paramString = "", nameField = "name", joins = []) {
 
-		if (this.resource.options) {
-			return this.parse(this.resource.options);
-		} else if (this.resource.driver) {
-			return this.parse([
-				"...",
-				{id: "", name: "-"},
-				["queryArray", this.resource.driver]
-			]);
-		} else if (this.resource.postdriver) {
-			return this.parse([
-				"...",
-				{id: "", name: "-"},
-				[
-					"map",
-					["queryArray", this.resource.postdriver],
-					[
-						"object",
-						{
-							id: ["item", "ID"],
-							name: ["item", "post_title"]
-						}
-					]
-				]
-			]);
+    driver = await this.parse(driver);
+    paramString = await this.parse(paramString);
+
+    const store = new KarmaFieldsAlpha.Store(driver, joins);
+
+    const ids = await store.queryIds(paramString);
+    const options = [];
+
+    for (let id of ids) {
+      options.push({
+        id: id,
+        name: await store.getValue(id, nameField)
+      });
+    }
+
+    return options;
+  }
+
+	async fetchOptions() {
+
+		let options = await this.parse(this.resource.options) || [];
+
+		if (this.resource.driver) {
+
+			const array = await this.getOptions(this.resource.driver, this.resource.paramstring || "", this.resource.namefield || "name");
+
+			options = [...options, ...array];
+
 		}
 
-		return [];
+		return options;
+
+
+		// let options = await super.fetchOptions(this.resource.driver);
+
+		// if (this.resource.options) {
+		// 	return this.parse(this.resource.options);
+		// } else if (this.resource.driver) {
+		// 	return this.parse([
+		// 		"...",
+		// 		{id: "", name: "-"},
+		// 		["queryArray", this.resource.driver]
+		// 	]);
+		// } else if (this.resource.postdriver) {
+		// 	return this.parse([
+		// 		"...",
+		// 		{id: "", name: "-"},
+		// 		[
+		// 			"map",
+		// 			["queryArray", this.resource.postdriver],
+		// 			[
+		// 				"object",
+		// 				{
+		// 					id: ["item", "ID"],
+		// 					name: ["item", "post_title"]
+		// 				}
+		// 			]
+		// 		]
+		// 	]);
+		// }
+		//
+		// return [];
 
 		//
 		//
@@ -280,6 +314,8 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 				const options = await this.fetchOptions();
 				// const value = await this.getValue();
 
+
+
 				const value = await this.dispatch({
 					action: "get",
 				}).then(request => KarmaFieldsAlpha.Type.toString(request.data));
@@ -287,19 +323,21 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 				// -> set default
 				let currentOption = options.find(option => option.id == value);
 
-				if (!currentOption && options.length) {
 
-					currentOption = options[0];
 
-					await this.dispatch({
-						action: "set",
-						data: [currentOption.id]
-					});
-					await this.dispatch({
-						action: "edit"
-					});
-
-				} else {
+				// if (!currentOption && options.length) {
+				//
+				// 	currentOption = options[0];
+				//
+				// 	await this.dispatch({
+				// 		action: "set",
+				// 		data: [currentOption.id]
+				// 	});
+				// 	await this.dispatch({
+				// 		action: "edit"
+				// 	});
+				//
+				// } else {
 
 					const currentOptions = [...dropdown.element.options];
 
@@ -329,10 +367,13 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 						}
 					}
 
+
 					dropdown.element.onchange = async event => {
 						dropdown.element.classList.add("editing");
+
 						await this.setValue(dropdown.element.value);
-						// await dropdown.render();
+
+
 						dropdown.element.classList.remove("editing");
 					}
 
@@ -346,11 +387,28 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 					dropdown.element.parentNode.classList.toggle("modified", await this.isModified());
 
 
-				}
+				// }
 
 				dropdown.element.classList.remove("loading");
 
+
+
+				if (!currentOption && options.length) {
+
+					currentOption = options[0];
+
+					await this.dispatch({
+						action: "set",
+						data: [currentOption.id]
+					});
+					this.dispatch({
+						action: "edit"
+					});
+
+				}
+
 			}
+
 		};
 	}
 

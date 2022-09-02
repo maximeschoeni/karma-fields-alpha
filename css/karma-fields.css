@@ -1,4 +1,21 @@
 
+/* Variables
+--------------------------------------*/
+
+.karma-fields {
+
+  --background-color: #f0f0f1;
+  --selected-color: #484848;
+  --active-color: white;
+  --disabled-color: #c3c4c7;
+  --primary-color: #484848;
+  --frame-border-color: black;
+  --link-active-color: #484848;
+  --link-hover-color: #484848;
+
+  --gap-width: 0.75em;
+
+}
 
 
 /* Table selection TA
@@ -17,7 +34,7 @@
 .karma-fields-post {
   padding: 12px;
   margin: -6px -12px -12px;
-  background-color: #f0f0f1;
+  background-color: var(--background-color);
 }
 
 body.karma-table-open {
@@ -38,7 +55,7 @@ body.karma-table-open {
   background-size: 10em 17.4em;
   animation: slide 4s infinite linear;
   color: #e8e8e8 !important;
-  border-color: #c3c4c7 !important;
+  border-color: var(--disabled-color) !important;
 }
 
 @keyframes slide {
@@ -55,7 +72,7 @@ body.karma-table-open {
 
 
 .karma-field-frame {
-  background-color: #f1f1f1;
+  background-color: var(--background-color);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -64,7 +81,7 @@ body.karma-table-open {
   display: none !important;
 }
 .karma-field-container {
-  gap: 0.7em;
+  gap: var(--gap-width);
 }
 .karma-fields label {
   font-weight: bold;
@@ -75,7 +92,7 @@ body.karma-table-open {
   display: block;
 }
 .karma-field-container.disabled label {
-  color: #c3c4c7;
+  color: var(--disabled-color);
 }
 .karma-field-container.display-block>.karma-field-frame {
   flex-grow: 0;
@@ -92,7 +109,7 @@ body.karma-table-open {
 .karma-field-table-section {
   /* box-shadow: 0 0 6px 0px #484848; */
   box-shadow: 0 0 8px 0px #4848487a;
-  outline: 1px solid #484848;
+  outline: 1px solid var(--frame-border-color);
   position: relative;
 }
 .karma-field-table-section {
@@ -151,16 +168,15 @@ body.karma-table-open {
   display: flex;
   min-width: 0;
 
-  background-color: #f1f1f1;
+  background-color: var(--background-color);
 }
 .karma-fields .navigation {
   /* display: flex; */
   flex-shrink: 0;
   width: 10em;
-  padding: 0.75em;
+  padding: var(--gap-width);
 }
 .karma-fields .navigation ul li {
-  /* padding: 0.7em 0; */
 }
 
 .karma-fields .navigation ul li:hover a,
@@ -202,13 +218,17 @@ body.karma-table-open {
 
 .karma-fields .karma-header .karma-field-container {
   flex-grow: 1;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
 }
 .karma-fields .karma-header .karma-field-container .karma-field-frame {
   justify-content: center;
 }
 
 .karma-fields .karma-field-table .table-main-header {
-  background-color: #f1f1f1;
+  /* background-color: #f1f1f1; */
 }
 .karma-fields .karma-field-table h1 {
   margin: 0;
@@ -219,7 +239,7 @@ body.karma-table-open {
   display: flex;
   align-items: center;
   padding: 0 10px;
-  background-color: #f1f1f1;
+  /* background-color: #f1f1f1; */
 }
 .karma-fields button.hidden {
   display: none;
@@ -231,7 +251,7 @@ body.karma-table-open {
 }
 .karma-fields .karma-field-table .karma-field-table-section {
   flex-grow: 0;
-  padding: 0.75em;
+  padding: var(--gap-width);
 }
 .karma-fields .karma-field-table .table-main-body {
   flex-grow: 1;
@@ -241,17 +261,17 @@ body.karma-table-open {
   overflow: auto;
   flex-direction: row;
 
-  padding: 0.75em;
+  padding: var(--gap-width);
 }
 
 
 .karma-fields .karma-field-table .table-main-header {
   display: flex;
   flex-shrink: 0;
-  padding: 0.75em;
+  padding: var(--gap-width);
 }
 .karma-fields .karma-field-table.loading .karma-field-frame {
-  background-color: #f1f1f1;
+  background-color: var(--background-color);
 }
 
 
@@ -265,8 +285,8 @@ body.karma-table-open {
 
 /* Table Control */
 .karma-fields .karma-field-table .table-control {
-  background-color: #f1f1f1;
-  padding: 0.75em;
+  /* background-color: #f1f1f1; */
+  padding: var(--gap-width);
 }
 
 
@@ -302,10 +322,10 @@ body.karma-table-open {
 }
 
 .karma-fields .karma-field-table .table-body .karma-modal .table-modal-header {
-  background-color: #f1f1f1;
+  /* background-color: #f1f1f1; */
   display: flex;
   overflow: auto;
-  padding: 0.75em;
+  padding: var(--gap-width);
   flex-shrink: 0;
 }
 .karma-fields .karma-field-table .table-body .karma-modal .table-modal-header>.karma-field-container {
@@ -313,10 +333,10 @@ body.karma-table-open {
   overflow: hidden;
 }
 .karma-fields .karma-field-table .table-body .karma-modal .table-modal-body {
-  background-color: #f1f1f1;
+  /* background-color: #f1f1f1; */
   display: flex;
   overflow: auto;
-  padding: 0.75em;
+  padding: var(--gap-width);
   flex-grow: 1;
   flex-direction: column;
 }
@@ -350,19 +370,17 @@ body.karma-table-open {
   display: flex;
 }
 .karma-fields .table .th {
-  background-color: #f1f1f1;
+  background-color: var(--background-color);
   font-weight: bold;
 
-  min-height: 3em;
+  min-height: 3.5em;
   min-width: 3em;
 }
 
 .karma-fields .table .td {
-  min-height: 2.6667em;
-}
+  min-height: 3.5em;
 
-.karma-fields .table .td {
-  background-color: #f1f1f1;
+  background-color: var(--background-color);
   position: relative;
 }
 .karma-fields .table .td::after {
@@ -382,12 +400,12 @@ body.karma-table-open {
 }
 
 .karma-fields .table .td.selected {
-  background-color: #c3c4c7;
+  background-color: var(--disabled-color);
 }
 .karma-fields .table .td.selecting,
 .karma-fields .table.ta-focus .td.selected:not(.selecting-cell) {
-  background-color: #484848;
-  color: #f1f1f1;
+  background-color: var(--selected-color);
+  color: var(--background-color);
 }
 .karma-fields .table .td.selecting-cell {
   background-color: white;
@@ -413,7 +431,7 @@ body.karma-table-open {
 }
 
 .karma-field-table .table ::selection {
-  background-color: #e7e7e7;
+  background-color: var(--background-color);
 }
 
 
@@ -423,7 +441,7 @@ body.karma-table-open {
 
 .karma-fields .table .th a {
   color: inherit;
-  padding: 0 0 0 0.75em;
+  padding: 0 0 0 var(--gap-width);
   font-size: 1em;
   line-height: 1.08em;
 
@@ -434,7 +452,7 @@ body.karma-table-open {
   flex-grow: 1;
 }
 .karma-fields .table .th a:last-child {
-  padding: 0 0.75em;
+  padding: 0 var(--gap-width);
 }
 .karma-fields .table .th a.header-cell-order {
   cursor: pointer;
@@ -475,11 +493,15 @@ body.karma-table-open {
 
 .karma-field-table ul.media-table {
   display: flex;
-  gap: 0.75em;
+  gap: var(--gap-width);
   flex-wrap: wrap;
   align-self: flex-start;
-  margin: 2em 0;
+  margin: 0;
+  padding: 2em 0;
   position: relative; /* needed for children offset calculation */
+
+  flex-grow: 1;
+  min-height: 100%; /* -> for droping files */
 }
 .karma-field-table ul.media-table li {
   margin: 0;
@@ -487,7 +509,7 @@ body.karma-table-open {
 .karma-field-table .media-table .frame {
   position: relative;
   user-select: none;
-  background-color: #f1f1f1;
+  /* background-color: #f1f1f1; */
   width: 10em;
   height: 12em;
 
@@ -496,11 +518,11 @@ body.karma-table-open {
 }
 
 .karma-field-table .media-table .selected .frame {
-  background-color: #c3c4c7;
+  background-color: var(--disabled-color);
 }
 .karma-field-table .media-table.focus .selected .frame,
 .karma-field-table .media-table .selecting .frame {
-  background-color: #484848;
+  background-color: var(--selected-color);
 }
 .karma-field-table .media-table .selecting .frame figure,
 .karma-field-table .media-table.focus .selected .frame figure {
@@ -519,7 +541,7 @@ body.karma-table-open {
   min-height: 2em;
 }
 .karma-field-table .media-table .frame .filename {
-  padding: 0 0.75em;
+  padding: 0 var(--gap-width);
   width: 100%;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -527,13 +549,13 @@ body.karma-table-open {
   text-align: center;
 }
 .karma-field-table .media-table .frame.active .file-caption {
-  background-color: #c3c4c7;
-  color: #f1f1f1;
+  background-color: var(--disabled-color);
+  color: var(--background-color);
 }
 .karma-field-table .media-table .selecting .frame .file-caption,
 .karma-field-table .media-table.focus .selected .frame .file-caption {
-  background-color: #484848;
-  color: #f1f1f1;
+  background-color: var(--selected-color);
+  color: var(--background-color);
 }
 
 .karma-field-table .media-table figure {
@@ -574,11 +596,11 @@ ul.karma-breadcrumb li a {
   cursor: pointer;
 }
 ul.karma-breadcrumb li a.active {
-  color: #484848;
+  color: var(--link-active-color);
 }
 ul.karma-breadcrumb li a:hover {
   /* text-decoration: underline; */
-  color: #484848;
+  color: var(--link-hover-color);
 }
 
 /* Media description */
@@ -589,7 +611,11 @@ ul.karma-breadcrumb li a:hover {
 .karma-field-table .media-description .karma-field-frame video {
   max-width: 100%;
 }
-
+.karma-field-table .media-description .filename .value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 
 /* Buttons
@@ -601,7 +627,7 @@ ul.karma-breadcrumb li a:hover {
 }
 
 button.karma-button {
-  color: #1d2327;
+  color: var(--frame-border-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -615,11 +641,11 @@ button.karma-button {
   font-size: 1em;
   line-height: 1.08em;
   position: relative;
-  border: 1px solid #1d2327;
+  border: 1px solid var(--frame-border-color);
   cursor: pointer;
 }
 button.karma-button .text {
-  padding: 0 0.75em;
+  padding: 0 var(--gap-width);
 }
 button.karma-button .dashicons {
   padding: 0 0.625em;
@@ -630,9 +656,9 @@ button.karma-button .dashicons {
   transition: none;
 }
 button.karma-button.primary {
-  background-color: #1d2327;
-  border-color: #1d2327;
-  color: #f1f1f1;
+  background-color: var(--frame-border-color);
+  border-color: var(--frame-border-color);
+  color: var(--background-color);
   box-shadow: none;
 }
 button.karma-button.active,
@@ -657,22 +683,22 @@ button.karma-button.primary.active:not(.loading,.editing),
 button.karma-button.primary:active:not(.loading,.editing),
 button.karma-button.primary:focus:not(.loading,.editing) {
   background-color: white;
-  color: #1d2327;
+  color: var(--frame-border-color);
   box-shadow: none;
 }
 
 button.karma-button[disabled] {
-  color: #c3c4c7 !important;
+  color: var(--disabled-color) !important;
   background-color: transparent !important;
-  border: 1px solid #c3c4c7 !important;
+  border: 1px solid var(--disabled-color) !important;
   box-shadow: none !important;
   text-shadow: none !important;
   cursor: default;
 }
 .primary[disabled] {
-  background-color: #c3c4c7 !important;
+  background-color: var(--disabled-color) !important;
   color: #f1f1f1 !important;
-  border: 1px solid #c3c4c7 !important;
+  border: 1px solid var(--disabled-color) !important;
 }
 
 button.karma-button.loading::after,
@@ -684,8 +710,8 @@ button.karma-button.loading,
 button.karma-button.primary.loading,
 button.karma-button.editing,
 button.karma-button.primary.editing {
-  color: #c3c4c7;
-  border: 1px solid #c3c4c7 ;
+  color: var(--disabled-color);
+  border: 1px solid var(--disabled-color);
 }
 
 button.karma-button.loading .button-content,
@@ -718,11 +744,11 @@ button.karma-button.editing span {
   border-radius: 3px;
   font-size: 1em;
   line-height: 1.08em;
-  border: 1px solid #1d2327;
+  border: 1px solid var(--frame-frame-border);
   cursor: pointer;
   font-weight: normal;
-  padding: 0 0.75em;
-  color: #1d2327;
+  padding: 0 var(--gap-width);
+  color: var(--frame-frame-border);
   margin: 0;
 }
 .karma-fields .karma-upload label:hover {
@@ -751,7 +777,7 @@ button.karma-button.editing span {
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: flex-start;
-  border: 1px solid #3f3f3f;
+  outline: 1px solid #3f3f3f;
   min-height: 9em;
   min-width: 9em;
   position: relative;
@@ -781,7 +807,16 @@ button.karma-button.editing span {
   margin: 0;
   pointer-events: none;
   user-select: none;
+
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
+.karma-gallery .gallery .frame figure.dashicons::before {
+  font-size: 6em;
+  color: #a5a5a5;
+}
+
 .karma-gallery .gallery .frame img {
   display: block;
   width: 100%;
@@ -789,8 +824,9 @@ button.karma-button.editing span {
   object-fit: cover;
   object-position: center;
 }
+.karma-gallery .gallery .frame.selecting,
 .karma-gallery .gallery .frame.selected {
-  background-color: white;
+  background-color: var(--selected-color);
 }
 
 .karma-gallery .gallery .frame.selected img,
@@ -801,7 +837,7 @@ button.karma-button.editing span {
   flex-shrink: 0;
   flex-grow: 1;
 
-  padding: 0.7em 0;
+  padding: var(--gap-width) 0;
 }
 
 
@@ -818,7 +854,7 @@ button.karma-button.editing span {
   text-overflow: ellipsis;
 }
 .karma-field-table .table .text {
-  padding: 0 0.75em;
+  padding: 0 var(--gap-width);
   font-size: 1em;
   display: flex;
   align-items: center;
@@ -891,8 +927,8 @@ button.karma-button.editing span {
 .karma-fields .array .array-body {
   display: grid;
   grid-gap: 1px;
-  background-color: #c3c4c7;
-  border: 1px solid #c3c4c7;
+  background-color: var(--disabled-color);
+  border: 1px solid var(--disabled-color);
   border-radius: 2px;
   min-height: 2em;
 
@@ -903,7 +939,7 @@ button.karma-button.editing span {
 .karma-fields .array .array-footer {
   flex-shrink: 0;
   flex-grow: 1;
-  padding: 0.7em 0;
+  padding: var(--gap-width) 0;
 }
 
 .karma-fields .array .array-body.empty {
@@ -918,7 +954,7 @@ button.karma-button.editing span {
   box-sizing: border-box;
   background-color: white;
   display: flex;
-  background-color: #f0f0f1;
+  background-color: var(--background-color);
   transition: transform 100ms;
   padding: 1em;
 }
@@ -940,7 +976,7 @@ button.karma-button.editing span {
 }
 
 .karma-fields .array .drag {
-  outline: 1px solid #c3c4c7;
+  outline: 1px solid var(--disabled-color);
   transition: none;
 }
 
@@ -1025,7 +1061,7 @@ button.karma-button.editing span {
 }
 .karma-fields input[type=checkbox]:focus {
   background-color: white;
-  border-color: #c3c4c7;
+  border-color: var(--disabled-color);
   box-shadow: none;
   outline: none;
 }
@@ -1041,13 +1077,13 @@ button.karma-button.editing span {
 --------------------------------------*/
 
 .karma-fields select.karma-field {
-  border-color: #1d2327;
+  border-color: var(--frame-frame-border);
   color: inherit;
   max-width: 100%;
   font-size: 1em;
   min-height: 2.5em;
   background-color: transparent;
-  padding: 0 2.0em 0 0.75em;
+  padding: 0 2.0em 0 var(--gap-width);
   margin: 0;
   box-shadow: none;
 }
@@ -1073,16 +1109,16 @@ button.karma-button.editing span {
 .karma-fields textarea {
   box-shadow: none;
   box-sizing: border-box;
-  border-color: #484848;
+  border-color: var(--frame-border-color);
   border-radius: 0;
   min-height: 2.5em;
   max-width: none;
   font-size: 1em;
-  padding: 0 0.75em;
+  padding: 0 var(--gap-width);
   background-color: transparent;
 }
 .karma-fields textarea {
-  padding: 0.75em 0.75em;
+  padding: var(--gap-width) var(--gap-width);
 }
 .karma-fields .modified input.text-input:not(:focus),
 .karma-fields .modified textarea:not(:focus) {
@@ -1099,7 +1135,7 @@ button.karma-button.editing span {
 }
 .karma-fields input.text-input:disabled,
 .karma-fields textarea:disabled {
-  border-color: #c3c4c7;
+  border-color: var(--disabled-color);
 }
 .karma-fields  input[type=number] {
   height: auto;
@@ -1275,10 +1311,10 @@ button.karma-button.editing span {
   position: sticky;
   top: 32px;
 
-  background-color: #f0f0f1;
+  background-color: var(--background-color);
   z-index: 2;
-  padding: 0.75em;
-  border: 1px solid #484848;
+  padding: var(--gap-width);
+  border: 1px solid var(--frame-border-color);
 }
 .selected .karma-tinymce .editor-header .toolbar {
   background-color: white;
@@ -1289,11 +1325,11 @@ button.karma-button.editing span {
 .karma-tinymce.theme-white button.karma-button:not(.primary).active,
 .karma-tinymce.theme-white button.karma-button:not(.primary):hover,
 .karma-tinymce.theme-white button.karma-button:not(.primary):focus {
-  background-color: #f0f0f1;
+  background-color: var(--background-color);
 }
 .karma-tinymce .editor-body {
   padding: 3.8462em 0.7692em 0;
-  border: 1px solid #484848;
+  border: 1px solid var(--frame-border-color);
   border-top: none;
   min-height: 8em;
   border-radius: 3px;
@@ -1309,7 +1345,7 @@ button.karma-button.editing span {
   text-decoration-style: dashed;
 }
 .karma-tinymce .karma-tinymce-popover {
-  border: 1px solid #0b73aa;
+  border: 1px solid var(--frame-border-color);
   padding: 0.7692em;
   position: absolute;
   background-color: white;
@@ -1339,7 +1375,7 @@ button.karma-button.editing span {
   border-collapse: collapse;
 }
 .karma-tinymce table td {
-  border: 1px solid #0c73aa;
+  border: 1px solid var(--frame-border-color);
 }
 
 /* Heading */

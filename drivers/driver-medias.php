@@ -40,25 +40,25 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
   /**
 	 * update
 	 */
-  public function update($data) {
+  public function update($data, $id) {
 
-    foreach ($data as $id => $row) {
+    // foreach ($data as $id => $row) {
 
-      if (isset($row['parent'])) {
+      if (isset($data['parent'])) {
 
-        $data[$id]['post_parent'] = $row['parent'];
-
-      }
-
-      if (isset($row['date'])) {
-
-        $data[$id]['post_dte'] = $row['date'];
+        $data['post_parent'] = $data['parent'];
 
       }
 
-    }
+      if (isset($data['date'])) {
 
-    parent::update($data);
+        $data['post_dte'] = $data['date'];
+
+      }
+
+    // }
+
+    parent::update($data, $id);
 
   }
 

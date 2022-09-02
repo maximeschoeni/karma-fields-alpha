@@ -15,6 +15,10 @@ KarmaFieldsAlpha.buildChildren = function(children, element, clean) {
 	}
 	while (child) {
 		let next = child && child.nextElementSibling;
+
+		const event = new Event("remove");
+		element.dispatchEvent(event);
+
 		element.removeChild(child);
 		child = next;
 	}
@@ -61,12 +65,16 @@ KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 			parent.appendChild(args.element);
 		}
 
+		// if (args.remove) {
+		// 	args.element.addEventListener("remove", args.remove);
+		// }
+
 		if (args.init) {
 			await args.init(args);
 		}
 	} else {
 		args.element = element;
-
+		delete args.ready;
 	}
 	if (args.update) {
 		await args.update(args);
@@ -74,7 +82,10 @@ KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
 	if (args.children || args.child) {
 		await this.buildChildren(args.children || [args.child], args.element, args.clean);
 	}
+	if (args.ready) {
+		await args.ready(args);
+	}
 	if (args.complete) {
-		args.complete(args);
+		await args.complete(args);
 	}
 };

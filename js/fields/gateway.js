@@ -287,98 +287,110 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 
 		switch (event.action) {
 
-			case "driver": {
-				event.data = this.resource.driver;
-				break;
-			}
-
-			case "join": { // deprecated
-				const path = event.absolutePath || event.path;
-				const idsPromise = this.getRemoteValue(false, ...path);
-				event.data.forEach(driver => this.registerJoin(driver, idsPromise)); // -> event.data is an array of drivers
-
-				// this.registerJoin(event.data, ...(event.absolutePath || event.path)); // -> event.data is an array of drivers
-				break;
-			}
-
-			case "get": {
-				console.log("gateway get", event.path);
-				// const [id, ...path] = event.absolutePath || event.path;
-				//
-				// const [driver, ...params] = this.resource.driver.split("?");
-				// const paramString = this.driver+"?"+[...params, "id="+id].join("&");
-				// const query = KarmaFieldsAlpha.Query.create(paramString, this.resource.joins);
-				// event.driver = this.driver;
-				// event.data = await query.get(id, ...path);
-
-
-				const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins || []);
-				await store.query(this.resource.params || "");
-				event.data = await store.getValue(...event.path);
-
-
-
-				break;
-			}
-
-			case "set":
-				await this.send(event.getArray(), ...event.path);
-				break;
-
-			case "send":
-				await this.send(event.data, ...event.path);
-				break;
-
-
-
-			case "query": {
-				console.error("deprecated");
-				// if (event.absolutePathes) {
-				// 	event.data = {};
-				// 	for (let path of event.absolutePathes) {
-				// 		const value = await this.getRemoteValue(event.allowSingle !== false, ...path);
-				// 		KarmaFieldsAlpha.DeepObject.assign(event.data, value, ...path);
-				// 	}
-				// } else if (event.absolutePath) {
-				// 	event.data = await this.getRemoteValue(event.allowSingle !== false, ...event.absolutePath);
-				// }
-
-				const [id, ...path] = event.absolutePath;
-				const paramString = "id="+id;
-				event.driver = this.resource.driver;
-				event.data = await KarmaFieldsAlpha.Driver.get(this.resource.driver, paramString, event.joins, id, ...path);
-
-
-
-				// if (event.keys) {
-				// 	event.value = {};
-				// 	for (let key of event.keys) {
-				// 		event.value[key] = await this.getRemoteValue(...event.queryPath, key);
-				// 	}
-				//
-				// 	// const values = await Promise.all(event.keys.map(key => {
-				// 	// 	return this.getRemoteValue(...event.queryPath, key)
-				// 	// }));
-				// 	// event.value = values.reduce((object, item, index) => {
-				// 	// 	return {...object, [event.keys[index]]: item};
-				// 	// }, {});
-				// 	// console.log(event.value);
-				// } else {
-				// 	const value = await this.getRemoteValue(...event.queryPath);
-				// 	event.setValue(value);
-				// }
-
-
-				break;
-			}
-
-			case "getDriver":
-        event.data = this.resource.driver;
-        break;
+			// case "driver": {
+			// 	event.data = this.resource.driver;
+			// 	break;
+			// }
+			//
+			// case "join": { // deprecated
+			// 	const path = event.absolutePath || event.path;
+			// 	const idsPromise = this.getRemoteValue(false, ...path);
+			// 	event.data.forEach(driver => this.registerJoin(driver, idsPromise)); // -> event.data is an array of drivers
+			//
+			// 	// this.registerJoin(event.data, ...(event.absolutePath || event.path)); // -> event.data is an array of drivers
+			// 	break;
+			// }
+			//
+			// case "get": {
+			// 	console.log("gateway get", event.path);
+			// 	// const [id, ...path] = event.absolutePath || event.path;
+			// 	//
+			// 	// const [driver, ...params] = this.resource.driver.split("?");
+			// 	// const paramString = this.driver+"?"+[...params, "id="+id].join("&");
+			// 	// const query = KarmaFieldsAlpha.Query.create(paramString, this.resource.joins);
+			// 	// event.driver = this.driver;
+			// 	// event.data = await query.get(id, ...path);
+			//
+			//
+			// 	const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins || []);
+			// 	await store.query(this.resource.params || "");
+			// 	event.data = await store.getValue(...event.path);
+			//
+			//
+			//
+			// 	break;
+			// }
+			//
+			// case "set":
+			// 	await this.send(event.getArray(), ...event.path);
+			// 	break;
+			//
+			// case "send":
+			// 	await this.send(event.data, ...event.path);
+			// 	break;
+			//
+			//
+			//
+			// case "query": {
+			// 	console.error("deprecated");
+			// 	// if (event.absolutePathes) {
+			// 	// 	event.data = {};
+			// 	// 	for (let path of event.absolutePathes) {
+			// 	// 		const value = await this.getRemoteValue(event.allowSingle !== false, ...path);
+			// 	// 		KarmaFieldsAlpha.DeepObject.assign(event.data, value, ...path);
+			// 	// 	}
+			// 	// } else if (event.absolutePath) {
+			// 	// 	event.data = await this.getRemoteValue(event.allowSingle !== false, ...event.absolutePath);
+			// 	// }
+			//
+			// 	const [id, ...path] = event.absolutePath;
+			// 	const paramString = "id="+id;
+			// 	event.driver = this.resource.driver;
+			// 	event.data = await KarmaFieldsAlpha.Driver.get(this.resource.driver, paramString, event.joins, id, ...path);
+			//
+			//
+			//
+			// 	// if (event.keys) {
+			// 	// 	event.value = {};
+			// 	// 	for (let key of event.keys) {
+			// 	// 		event.value[key] = await this.getRemoteValue(...event.queryPath, key);
+			// 	// 	}
+			// 	//
+			// 	// 	// const values = await Promise.all(event.keys.map(key => {
+			// 	// 	// 	return this.getRemoteValue(...event.queryPath, key)
+			// 	// 	// }));
+			// 	// 	// event.value = values.reduce((object, item, index) => {
+			// 	// 	// 	return {...object, [event.keys[index]]: item};
+			// 	// 	// }, {});
+			// 	// 	// console.log(event.value);
+			// 	// } else {
+			// 	// 	const value = await this.getRemoteValue(...event.queryPath);
+			// 	// 	event.setValue(value);
+			// 	// }
+			//
+			//
+			// 	break;
+			// }
+			//
+			// case "getDriver":
+      //   event.data = this.resource.driver;
+      //   break;
 
 			// case "join":
 			// 	await KarmaFieldsAlpha.Relations.request(event.driver, ...event.path);
 			// 	event.setValue();
+
+			// case "compare": {
+			// 	const originalValue = this.buffer.get(...event.path);
+			// 	event.data = KarmaFieldsAlpha.DeepObject.differ(event.data, originalValue);
+			// 	break;
+			// }
+
+			case "modified": {
+				const originalValue = this.buffer.get(...event.path);
+				event.data = KarmaFieldsAlpha.DeepObject.differ(event.data, originalValue);
+				break;
+			}
 
 
 			case "edit":
@@ -408,34 +420,35 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 	//
   // }
 
-
 	async send(value, ...path) {
 
 
-		const data = KarmaFieldsAlpha.DeepObject.clone(value);
-
-
-		// console.log(data);
-
-		// if (path.length) {
-		// 	this.buffer.set(value, ...path);
-		// } else {
-			// this.buffer.merge(data, ...path);
+		// const data = KarmaFieldsAlpha.DeepObject.clone(value);
+		//
+		//
+		// // console.log(data);
+		//
+		// // if (path.length) {
+		// // 	this.buffer.set(value, ...path);
+		// // } else {
+		// 	// this.buffer.merge(data, ...path);
+		// // }
+		//
+		//
+		//
+		// // this.clear();
+		//
+		// value = KarmaFieldsAlpha.DeepObject.create(data, ...path);
+		//
+		// if (!this.resource.driver) {
+		// 	console.error("Resource driver not set");
 		// }
+		//
+		// // const [driverName] = this.resource.driver.split("?");
+		//
+		// await KarmaFieldsAlpha.Gateway.post("update/"+this.driver, value);
 
-
-
-		// this.clear();
-
-		value = KarmaFieldsAlpha.DeepObject.create(data, ...path);
-
-		if (!this.resource.driver) {
-			console.error("Resource driver not set");
-		}
-
-		// const [driverName] = this.resource.driver.split("?");
-
-		await KarmaFieldsAlpha.Gateway.post("update/"+this.driver, value);
+		await KarmaFieldsAlpha.Gateway.post("update/"+path.join("/"), value);
 
   }
 

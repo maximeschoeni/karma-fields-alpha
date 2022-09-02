@@ -72,43 +72,7 @@ KarmaFieldsAlpha.Clipboard = class {
     this.container.className = "karma-fields-clipboard";
     this.container.style = "position:fixed;bottom:100%;left:0;z-index:999999999";
 
-
-    // this.ta = document.createElement("textarea");
-    // document.body.appendChild(this.ta);
-    // this.ta.className = "karma-fields-ta";
-    // this.ta.style = "position:fixed;bottom:0;left:200px;z-index:999999999";
-    //
-    // this.ta.oninput = async event => {
-    //
-    //   switch (event.inputType) {
-    //
-    //     case "deleteByCut":
-    //     case "deleteContentBackward":
-    //     case "deleteContentForward":
-    //     case "deleteContent":
-    //     case "insertFromPaste": {
-    //
-    //       if (this.onInput) {
-    //         const dataArray = this.prepare(this.ta.value);
-    //         this.onInput(dataArray)
-    //       }
-    //
-    //       break;
-    //     }
-    //
-    //     default: {
-    //       break;
-    //     }
-    //
-    //   }
-    //
-    // }
-
   }
-
-  // static getTA() {
-  //   return this.ta;
-  // }
 
   static parse(string) {
     return Papa.parse(string, {
@@ -138,58 +102,6 @@ KarmaFieldsAlpha.Clipboard = class {
     return [];
   }
 
-  // static setData(dataArray) {
-  //   const value = this.unparse(dataArray);
-  //   this.set(value);
-  // }
-  //
-  // static setJson(data) {
-  //   const dataArray = this.toDataArray(data);
-  //   this.setData(dataArray);
-  // }
-  //
-  // static set(value) {
-  //   this.ta.value = value;
-  //   this.ta.focus();
-  //   this.ta.select();
-  // }
-  //
-  // static prepare(string) {
-  //   return this.parse(string);
-  // }
-
-  static {
-    this.build();
-  }
-
-
-
-  //
-  // static async updateTA() {
-  //   const ids = this.selectionBuffer.get() || [];
-  //
-  //   if (this.resource.copyMode === "id") {
-  //     this.ta.value = ids.join("\n");
-  //   } else {
-  //     if (ids.length) {
-  //       const array = [];
-  //       for (let id of ids) {
-  //         const item = await this.dispatch({
-  //           action: "row",
-  //           path: [id]
-  //         }).then(request => request.data);
-  //         array.push(item);
-  //       }
-  //       this.ta.value = JSON.stringify(array);
-  //     } else {
-  //       this.ta.value = "";
-  //     }
-  //   }
-  //
-  //   this.ta.focus();
-  //   this.ta.select();
-  // }
-  //
-
-
 }
+
+KarmaFieldsAlpha.Clipboard.build();

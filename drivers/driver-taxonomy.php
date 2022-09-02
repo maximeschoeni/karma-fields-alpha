@@ -7,10 +7,10 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
   /**
 	 * update
 	 */
-  public function update($data) {
+  public function update($data, $id) {
     global $wpdb;
 
-    foreach ($data as $id => $item) {
+    // foreach ($data as $id => $item) {
 
       $args = array();
 
@@ -18,7 +18,7 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
       $term = get_term($id);
 
-      foreach ($item as $key => $value) {
+      foreach ($data as $key => $value) {
 
         if (apply_filters('karma_fields_taxonomy_driver_update', null, $value, $key, $id, $args) === null) {
 
@@ -80,7 +80,7 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
       }
 
-    }
+    // }
 
     return true;
   }

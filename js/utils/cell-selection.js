@@ -28,6 +28,8 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
 
         const box = this.findBox(x, y);
 
+
+
         if (box) {
 
           this.growSelection(box);
@@ -77,6 +79,8 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
         this.selection.kill();
 
       }
+
+
 
       document.addEventListener("mouseup", onMouseUp);
       document.addEventListener("mousemove", onMouseMove);
@@ -192,6 +196,8 @@ KarmaFieldsAlpha.CellSelection = class extends KarmaFieldsAlpha.Rect {
     for (let i = 0; i < this.containerWidth; i++) {
 
       for (let j = 0; j < this.containerHeight; j++) {
+
+
 
         const box = this.getBox(i, j);
 

@@ -241,6 +241,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 			case "set": {
 				// if (event.backup === "pack") debugger;
 				const newValue = KarmaFieldsAlpha.Type.toArray(event.data);
+
 				let currentValue = this.buffer.get(...event.path);
 
 
@@ -257,12 +258,49 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 				if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
 
-					this.buffer.set(currentValue, ...event.path); // -> todo get ride of this
-					this.buffer.backup(newValue, ...event.path);
-					this.buffer.set(newValue, ...event.path);
+					if (event.autosave) {
+
+						await super.dispatch(event);
+
+					} else {
+
+						this.buffer.set(currentValue, ...event.path); // -> todo get ride of this
+						this.buffer.backup(newValue, ...event.path);
+						this.buffer.set(newValue, ...event.path);
+
+					}
 
 				}
 
+				break;
+			}
+
+			// case "modified": {
+			// 	const delta = this.grid.buffer.get(...event.path);
+			// 	if (delta) {
+			// 		event.data = await this.dispatch({
+			// 			action: "compare",
+			// 			data: delta
+			// 		}).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
+			// 	} else {
+			// 		event.data = false;
+			// 	}
+			// 	break;
+			// }
+
+			case "modified": {
+				const delta = this.buffer.get(...event.path);
+
+				if (event.data) {
+					event.data = KarmaFieldsAlpha.DeepObject.differ(event.data, delta);
+				} else if (delta) {
+					event.data = delta;
+					await super.dispatch(event);
+					// event.data = await this.dispatch({
+					// 	action: "compare",
+					// 	data: delta
+					// }).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
+				}
 				break;
 			}
 

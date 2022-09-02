@@ -2,18 +2,149 @@
 
 KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.table {
 
-  // async dispatch(event) {
-  //
-  //   switch (event.action) {
-  //
-  //     case "queryChildren"
-  //
-  //
-  //   }
-  //
-  //
-  //   return event;
-  // }
+  async dispatch(event) {
+
+    switch (event.action) {
+
+      case "change-file": {
+
+        const selectedIds = this.getSelectedIds();
+
+        if (selectedIds.length === 1) {
+          await this.changeFile(event.files[0], selectedIds[0], event.params);
+          await this.render();
+        }
+
+        break;
+      }
+
+      case "upload": {
+
+        this.interface.unselect();
+        const ids = await this.upload(event.files, event.params);
+        event.data = ids;
+
+        await this.render();
+        break;
+      }
+
+      case "regen": {
+        const selectedIds = this.getSelectedIds();
+        for (let id of selectedIds) {
+          await this.regen(id);
+        }
+        await this.render();
+        break;
+      }
+
+      default:
+        await super.dispatch(event);
+
+
+    }
+
+
+    return event;
+  }
+
+
+
+  async upload(files, params = {}) {
+
+    KarmaFieldsAlpha.History.save();
+
+    const newIds = [];
+
+    for (let file of files) {
+
+      let id = await KarmaFieldsAlpha.Gateway.upload(file, params);
+
+      id = id.toString();
+
+      newIds.push(id);
+
+      await this.store.query("id="+id);
+
+      this.buffer.set(["0"], id, "trash");
+
+      this.grid.buffer.set(["1"], id, "trash");
+      this.grid.buffer.backup(["0"], id, "trash");
+      this.grid.buffer.set(["0"], id, "trash");
+
+      const ids = [id, ...this.getIds()];
+
+      this.idsBuffer.backup(ids);
+      this.idsBuffer.set(ids);
+
+
+      for (let key in params) {
+
+        const value = params[key];
+
+        this.grid.buffer.backup([value], id, key);
+        this.grid.buffer.set([value], id, key);
+
+      }
+
+      await this.render();
+
+    }
+
+    return newIds;
+  }
+
+  async changeFile(file, id, params = {}) {
+
+    const item = this.buffer.get(id);
+    const original = KarmaFieldsAlpha.DeepObject.clone(item);
+
+    // const name = this.buffer.get(id, "name");
+    // const filename = this.buffer.get(id, "filename");
+    // const type = this.buffer.get(id, "type");
+    // const size = this.buffer.get(id, "size");
+
+    KarmaFieldsAlpha.History.save();
+
+    await KarmaFieldsAlpha.Gateway.upload(file, {...params, id: id});
+
+    await this.store.get(id);
+
+    const newItem = this.buffer.get(id);
+    const newClone = KarmaFieldsAlpha.DeepObject.clone(newItem);
+
+    this.grid.buffer.set(original, id);
+    this.grid.buffer.backup(newClone, id);
+    this.grid.buffer.set(newClone, id);
+
+    // const newName = this.buffer.get(id, "name");
+    // const newFilename = this.buffer.get(id, "filename");
+    // const newType = this.buffer.get(id, "type");
+    // const newSize = this.buffer.get(id, "size");
+    //
+    // this.grid.buffer.set(name, id, "name");
+    // this.grid.buffer.backup(newName, id, "name");
+    // this.grid.buffer.set(newName, id, "name");
+    //
+    // this.grid.buffer.set(filename, id, "filename");
+    // this.grid.buffer.backup(newFilename, id, "filename");
+    // this.grid.buffer.set(newFilename, id, "filename");
+    //
+    // this.grid.buffer.set(type, id, "type");
+    // this.grid.buffer.backup(newType, id, "type");
+    // this.grid.buffer.set(newType, id, "type");
+    //
+    // this.grid.buffer.set(size, id, "size");
+    // this.grid.buffer.backup(newSize, id, "size");
+    // this.grid.buffer.set(newSize, id, "size");
+
+  }
+
+  async regen(id) {
+
+    await KarmaFieldsAlpha.Gateway.post("regen/"+id);
+
+  }
+
 
 
 
@@ -442,7 +573,6 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
 
 
-
                     frame.element.ondblclick = event => {
                       if (isFolder) {
                         this.dispatch({
@@ -476,7 +606,10 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
                             figure.child = {
                               tag: "img",
                               update: async img => {
-                                img.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
+                                const src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
+                                if (!img.element.src.endsWith(src)) {
+                                  img.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
+                                }
                               }
                             }
                           } else {
@@ -697,8 +830,10 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
             // console.log(request.data, request.dataArray);
 
-            event.data = request.dataArray.length > 0 && request.dataArray.every(data => KarmaFieldsAlpha.Type.toString(data) === "file")
+            // event.data = request.dataArray.length > 0 && request.dataArray.every(data => KarmaFieldsAlpha.Type.toString(data) === "file")
 
+
+            event.data = KarmaFieldsAlpha.Type.toString(request.data) === "file";
             break;
           }
 
@@ -710,7 +845,9 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
               path: ["filetype"]
             }); //.then(request => request.dataArray.some(data => KarmaFieldsAlpha.Type.toString(data) !== "attachment"));
 
-            event.data = request.dataArray.some(data => KarmaFieldsAlpha.Type.toString(data) !== "file")
+            // event.data = request.dataArray.some(data => KarmaFieldsAlpha.Type.toString(data) !== "file")
+
+            event.data = KarmaFieldsAlpha.Type.toString(request.data) !== "file";
 
             break;
           }
@@ -891,6 +1028,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
                         if (selection && selection.length === 1 && filetype === "file") {
                           frame.children = [
                             {
+                              class: "filename",
                               children: [
                                 {
                                   tag: "label",
@@ -899,6 +1037,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
                                   }
                                 },
                                 {
+                                  class: "value",
                                   child: {
                                     tag: "a",
                                     update: async a => {
@@ -1021,6 +1160,76 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
       }
 
+
+
+
+
+    }
+
+  }
+
+
+  static upload = class extends KarmaFieldsAlpha.fields.button {
+
+    build() {
+
+      return {
+        class: "karma-upload karma-field",
+        init: button => {
+          button.element.id = "upload-button";
+        },
+        children: [
+          {
+            tag: "input",
+            init: input => {
+              input.element.type = "file",
+              input.element.id = this.getId();
+              input.element.multiple = true;
+              input.element.hidden = true;
+            },
+            update: input => {
+              input.element.onchange = async event => {
+                const files = input.element.files;
+                if (files.length) {
+                  input.element.classList.add("editing");
+                  requestIdleCallback(() => {
+                    this.dispatch({
+                      action: "upload",
+                      files: files,
+                      params: {
+                        parent: KarmaFieldsAlpha.Nav.get("parent") || "0"
+                      }
+                    }).then(async request => {
+                      input.element.classList.remove("editing");
+                      input.element.blur();
+                    });
+                  });
+                }
+              }
+            }
+          },
+          {
+            tag: "label",
+            init: input => {
+              input.element.htmlFor = this.getId();
+              input.element.textContent = this.resource.title || "Add File";
+            }
+          }
+        ]
+
+      };
+    }
+
+  }
+
+  static changeFile = class extends this.upload {
+
+    async dispatch(event) {
+      if (event.action === "upload") {
+        event.action = "change-file";
+      }
+      await super.dispatch(event);
+      return event;
     }
 
   }

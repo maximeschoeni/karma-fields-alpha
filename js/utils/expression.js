@@ -565,6 +565,8 @@ KarmaFieldsAlpha.Expression = class {
       return array;
     }, []);
 
+    // return values.reduce((array, value) => Array.isArray(value) ? [...array, ...value] : [...array, value], []);
+
     // return Promise.all(values.map(item => this.resolve(field, item))).reduce((array, value) => {
     //   if (Array.isArray(value)) {
     //     array.push(...value);

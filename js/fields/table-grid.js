@@ -193,7 +193,7 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
 
 
-    build(ids, page, ppp) {
+    build(idsXX, page, ppp) {
 
       const offset = (Number(page) - 1)* Number(ppp);
 
@@ -205,87 +205,10 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
             grid.element.style = this.resource.style;
           }
 
-          // this.cellSelector.onSelectionStart = () => {
-          //   grid.element.classList.remove("select-mode-row");
-          //   grid.element.classList.add("select-mode-cell");
-          //   this.selectMode === "cell";
-          // }
-          // this.cellSelector.onSelect = manager => {
-          //   manager.getSelectedItems().forEach(item => {
-          //     item.element.classList.add("selected-cell");
-          //   });
-          // }
-          // this.cellSelector.onUnselect = manager => {
-          //   manager.getSelectedItems().forEach(item => {
-          //     item.element.classList.remove("selected-cell");
-          //   });
-          // }
-          // this.cellSelector.onCellSelectionComplete = async rectangle => {
-          //   if (rectangle && rectangle.width*rectangle.height > 1) {
-          //     const dataArray = await this.exportCellData(rectangle);
-          //     this.cellClipboard.setData(dataArray); // + set focus
-          //   }
-          // }
-
-          // this.idSelector.onSelectionStart = () => {
-          //   grid.element.classList.add("select-mode-row");
-          //   grid.element.classList.remove("select-mode-cell");
-          //   this.selectMode === "id";
-          // }
-          // this.idSelector.onSelect = manager => {
-          //   manager.getSelectedItems().forEach(item => {
-          //     item.cells.forEach(cell => {
-          //       cell.element.classList.add("selected-row");
-          //     });
-          //   });
-          // }
-          // this.idSelector.onUnselect = manager => {
-          //   manager.getSelectedItems().forEach(item => {
-          //     item.cells.forEach(cell => {
-          //       cell.element.classList.remove("selected-row");
-          //     });
-          //   });
-          // }
-          // this.idSelector.onSelectionComplete = async selection => {
-          //   // const ids = manager.getSelectedItems().map(item => item.id);
-          //   // const selectedIds = this.selectionBuffer.get() || [];
-          //   // if (KarmaFieldsAlpha.DeepObject.differ(ids, selectedIds)) {
-          //   //   KarmaFieldsAlpha.History.save();
-          //   //   this.selectionBuffer.backup(ids);
-          //   //   this.selectionBuffer.set(ids);
-          //   // }
-          //
-          //   const currentSelection = this.selectionBuffer.get() || [];
-          //
-          //   if (!KarmaFieldsAlpha.Segment.equals(currentSelection, selection)) {
-          //     KarmaFieldsAlpha.History.save();
-          //     this.selectionBuffer.backup(selection);
-          //     this.selectionBuffer.set(selection);
-          //
-          //   }
-          //
-          //   const request = await this.dispatch({
-          //     action: "rows",
-          //     index: selection.index,
-          //     length: selection.length
-          //   });
-          //
-          //   this.clipboard.setData(request.data);
-          //   this.idSelector.updateSelection(selection, currentSelection);
-          //
-          //
-          //
-          //   await this.dispatch({action: "edit-selection"});
-          // }
-
         },
         update: async grid => {
 
-          // this.idSelector.reset();
-          // this.cellSelector.reset();
-
-          // this.idSelector.width = columns.length;
-          // this.idSelector.height = ids.length;
+          let ids = await this.dispatch({action: "ids"}).then(request => request.data);
 
           const columns = await this.request("columns", "array");
 
@@ -391,6 +314,8 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
                     th.element.onmousedown = async event => {
 
+
+
                       this.cellSelection = new KarmaFieldsAlpha.CellSelection(event, grid.element, [...grid.element.children], columns.length, ids.length, colIndex, 0, this.cellSelection);
 
                       if (this.cellSelection.getArea() > 1) {
@@ -486,9 +411,13 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
                           const bodyElements = [...grid.element.children].slice(columns.length);
 
+
+
                           if (event.buttons === 1) {
 
                             if (field.selectMode !== "row") {
+
+
 
                               this.cellSelection = new KarmaFieldsAlpha.CellSelection(event, grid.element, bodyElements, columns.length, ids.length, colIndex, rowIndex, this.cellSelection);
 

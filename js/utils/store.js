@@ -39,6 +39,34 @@ KarmaFieldsAlpha.Store = class {
   //   this.cache.set(promise, context, key);
   // }
 
+  get(id) {
+
+    let promise = this.cache.get("get", id);
+
+    if (!promise) {
+
+      promise = KarmaFieldsAlpha.Gateway.get("get/"+this.driver+"/"+id).then(item => {
+
+        if (item) {
+
+          for (let key in item) {
+
+            const value = KarmaFieldsAlpha.Type.toArray(item[key]);
+
+            this.buffer.set(value, id, key);
+          }
+
+        }
+
+        return item;
+      });
+
+      this.cache.set(promise, "get", id);
+    }
+
+    return promise;
+  }
+
   count(paramString) {
 
     let promise = this.cache.get("count", paramString);
@@ -121,17 +149,35 @@ KarmaFieldsAlpha.Store = class {
 
     if (!promise) {
 
-      promise = this.queryIds(paramString).then(ids => {
-        return KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+ids.join(","));
-      }).then(relations => {
-        for (let relation of relations) {
-          const id = relation.id.toString();
-          const key = relation.key;
-          const values = this.buffer.get(id, key) || [];
+      // promise = this.queryIds(paramString).then(ids => {
+      //   return KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+ids.join(","));
+      // }).then(relations => {
+      //   for (let relation of relations) {
+      //     const id = relation.id.toString();
+      //     const key = relation.key;
+      //     const values = this.buffer.get(id, key) || [];
+      //
+      //     this.buffer.set([...values, relation.value], id, key);
+      //   }
+      //   return relations;
+      // });
 
-          this.buffer.set([...values, relation.value], id, key);
+
+      promise = this.queryIds(paramString).then(async ids => {
+        const querySize = 50;
+        let i = 0;
+        while (i < ids.length) {
+          const slice = ids.slice(i, i+querySize);
+          await KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+slice.join(",")).then(relations => {
+            for (let relation of relations) {
+              const id = relation.id.toString();
+              const key = relation.key;
+              const values = this.buffer.get(id, key) || [];
+              this.buffer.set([...values, relation.value], id, key);
+            }
+          });
+          i += querySize;
         }
-        return relations;
       });
 
       this.cache.set(promise, "join", paramString, join);

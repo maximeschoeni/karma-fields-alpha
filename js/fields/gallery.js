@@ -48,7 +48,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
           parent: this.resource.parent
         },
         callback: async inputIds => {
-
+          
           const insertIds = [...ids];
 
           if (length) {
@@ -804,10 +804,21 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                       {
                         // class: "image-container",
                         tag: "figure",
-                        update: wrapper => {
+                        update: figure => {
                           // const file = id && this.getFile(id);
+
+                          const [mediaType] = type.split("/");
+
+                          figure.element.classList.toggle("dashicons", !thumb);
+                          figure.element.classList.toggle("dashicons-media-video", !thumb && mediaType === "video");
+                          figure.element.classList.toggle("dashicons-media-audio", !thumb && mediaType === "audio");
+                          figure.element.classList.toggle("dashicons-media-text", !thumb && mediaType === "text");
+                          figure.element.classList.toggle("dashicons-media-document", !thumb && type === "application/pdf");
+                          figure.element.classList.toggle("dashicons-media-default", !thumb && mediaType !== "video" && mediaType !== "audio" && mediaType !== "text" && type !== "application/pdf");
+
+
                           if (thumb) {
-                            wrapper.children = [{
+                            figure.children = [{
                               tag: "img",
                               update: image => {
                                 image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
@@ -815,9 +826,9 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
                                 image.element.height = thumb.height;
                               }
                             }];
-                            wrapper.element.classList.toggle("type-image", type.startsWith("image") || false);
+                            figure.element.classList.toggle("type-image", type.startsWith("image") || false);
                           } else {
-                            wrapper.children = [];
+                            figure.children = [];
                           }
                         }
                       }

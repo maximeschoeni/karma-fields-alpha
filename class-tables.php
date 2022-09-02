@@ -192,6 +192,8 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-sorter', $plugin_url . '/js/utils/sorter.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-clipboard', $plugin_url . '/js/utils/clipboard.js', array(), $this->version, true);
 
+				wp_enqueue_script('karma-fields-utils-multi-value', $plugin_url . '/js/utils/multi-value.js', array(), $this->version, true);
+
 
 				// external dependancies
 				wp_enqueue_script('papaparse', $plugin_url . '/js/vendor/papaparse.min.js', array(), $this->version, true);
@@ -439,12 +441,15 @@ Class Karma_Fields_Alpha {
 	    )
 		));
 
-		register_rest_route('karma-fields-alpha/v1', '/update/(?P<driver>[^/]+)', array(
+		register_rest_route('karma-fields-alpha/v1', '/update/(?P<driver>[^/]+)/(?P<id>[^/]+)/?', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_update'),
 			'permission_callback' => '__return_true',
 			'args' => array(
 				'driver' => array(
+					'required' => true
+				),
+				'id' => array(
 					'required' => true
 				),
 				'data' => array(
@@ -664,6 +669,7 @@ Class Karma_Fields_Alpha {
 	public function rest_update($request) {
 
 		$driver_name = $request->get_param('driver');
+		$id = $request->get_param('id');
 		$data = $request->get_param('data');
 		$driver = $this->get_driver($driver_name);
 
@@ -671,7 +677,7 @@ Class Karma_Fields_Alpha {
 
 			if (method_exists($driver, 'update')) {
 
-				return $driver->update($data);
+				return $driver->update($data, $id);
 
 			} else {
 
