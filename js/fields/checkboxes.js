@@ -107,6 +107,31 @@ KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field
 		return event;
 	}
 
+
+	async export() {
+
+		const key = this.getKey();
+
+		const request = await this.dispatch({action: "get"});
+    const array = KarmaFieldsAlpha.Type.toArray(request.data);
+		const value = array.join(",");
+    return {[key]: value};
+	}
+
+	async import(object) {
+
+    // -> todo: import from url
+
+		const key = this.getKey();
+    const string = KarmaFieldsAlpha.Type.toString(object[key]);
+    const array = string.split(",").map(item => item.trim());
+
+		await this.dispatch({
+			action: "set",
+			data: value
+		});
+	}
+
 	// async get(key, context) {
 	//
 	// 	switch (context) {

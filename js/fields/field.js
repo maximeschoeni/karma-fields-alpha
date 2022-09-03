@@ -1003,7 +1003,13 @@ KarmaFieldsAlpha.fields.field = class Field {
   //
   // }
 
+  async export() {
+    // noop
+	}
 
+	async import(object) {
+    // noop
+	}
 
 
 };

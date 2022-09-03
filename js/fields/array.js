@@ -23,6 +23,66 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
   // async getDefault() {
   // }
 
+  async export() {
+
+		const array = await this.getValue();
+    const object = {};
+    const suffix = this.key() || "array";
+
+    for (let index in array) {
+
+      const rowField = this.createChild({
+        type: "arrayRow",
+        key: index.toString(),
+        children: this.resource.children
+      }, index.toString());
+
+      const row = await rowfield.export();
+
+      for (let key in row) {
+
+        object[`${suffix}-${index}-${key}`] = row[key];
+
+      }
+
+    }
+
+    return object;
+	}
+
+	async import(object) {
+
+		const key = this.getKey();
+    let suffix = "";
+
+    if (key) {
+      suffix = key+"-";
+    }
+
+    for (let key in object) {
+
+      const matches = key.match(/^(.*?)-(\d+)-(.+)$/);
+
+      if (matches) {
+        const index = matches[2];
+        const subKey = matches[3];
+
+        const rowField = this.createChild({
+          type: "arrayRow",
+          key: index,
+          children: this.resource.children
+        }, index.toString());
+
+        await rowField.import({[subKey]: object[key]});
+
+      }
+
+    }
+
+	}
+
+
+
   async getEmptyRow() {
 
     const row = this.createChild({
@@ -598,6 +658,32 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       }
 
       return event;
+    }
+
+    async export() {
+
+      const row = {};
+
+      for (let index in this.resource.children) {
+
+        const field = this.createChild(this.resource.children[index], index.toString());
+        const values = await field.export();
+        row = {...row, ...values};
+
+      }
+
+      return row;
+    }
+
+    async import(object) {
+
+      for (let index in this.resource.children) {
+
+        const field = this.createChild(this.resource.children[index], index.toString());
+        await field.import(object);
+
+      }
+
     }
 
     static index = class extends KarmaFieldsAlpha.fields.field {

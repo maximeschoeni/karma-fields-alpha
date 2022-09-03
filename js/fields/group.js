@@ -240,16 +240,6 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
 	async getDefault() {
 
-
-		//
-		// const subResources = this.getSubResources(this.resource);
-		//
-		// for (let resource in subResources) {
-		// 	value[resource.key] = await this.createChild(resource).getDefault();
-		// }
-		//
-		// return value;
-
 		let defaults = {};
 
 		for (let index in this.resource.children) {
@@ -264,6 +254,36 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 		}
 
 		return defaults;
+	}
+
+	async export() {
+
+		let object = {};
+
+		for (let index in this.resource.children) {
+
+			const child = this.createChild(this.resource.children[index], index.toString());
+
+			object = {
+				...object,
+				...await child.export()
+			};
+
+		}
+
+		return object;
+	}
+
+	async import(object) {
+
+		for (let index in this.resource.children) {
+
+			const child = this.createChild(this.resource.children[index], index.toString());
+
+			await child.import(object);
+
+		}
+
 	}
 
 	buildLabel(field) {

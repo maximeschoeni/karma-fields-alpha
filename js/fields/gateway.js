@@ -16,18 +16,20 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 
 		// const [driverName] = this.resource.driver.split("?");
 
-		[this.driver, this.params] = this.resource.driver.split("?");
+		// [this.driver, this.params] = this.resource.driver.split("?");
 
-		this.buffer = new KarmaFieldsAlpha.Buffer("gateway", this.driver);
+		this.buffer = new KarmaFieldsAlpha.Buffer("gateway", this.resource.driver);
+
+		this.store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins);
 
 		// this.valuePromises = {};
 		// this.optionPromises = {};
 
 	}
 
-	getGateway() {
-		return this;
-	}
+	// getGateway() {
+	// 	return this;
+	// }
 
 	// queryValue(...path) {
 	// 	if (!this.valuePromises) {
@@ -386,11 +388,35 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 			// 	break;
 			// }
 
+			case "get": {
+        event.data = await this.store.getValue(...event.path);
+        break;
+			}
+
+			case "set": {
+				// -> autosave
+        const [id, ...path] = event.path;
+        const value = KarmaFieldsAlpha.Type.toArray(event.data);
+				const data = KarmaFieldsAlpha.DeepObject.create(value, ...path);
+
+				await this.send(data, this.driver, id); // -> data is an array
+
+        break;
+
+			}
+
 			case "modified": {
 				const originalValue = this.buffer.get(...event.path);
 				event.data = KarmaFieldsAlpha.DeepObject.differ(event.data, originalValue);
 				break;
 			}
+
+			// -> like get_post()
+      // -> for media breadcrumb (ancestors)
+      case "queryid": {
+        event.data = await KarmaFieldsAlpha.Gateway.get("get/"+this.driver+"/"+event.id);
+        break;
+      }
 
 
 			case "edit":
@@ -419,6 +445,8 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 	// 	}
 	//
   // }
+
+
 
 	async send(value, ...path) {
 

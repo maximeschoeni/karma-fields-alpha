@@ -218,7 +218,7 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
                       const table = this.createChild(resource);
                       // if (table.hash !== location.hash.slice(1)) {
                         // table.hash = location.hash.slice(1);
-                        table.store.empty();
+                        table.server.store.empty();
 
                         await table.queryIds();
                       // }

@@ -10,23 +10,23 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 		this.buffer = new KarmaFieldsAlpha.Buffer(...bufferPath);
 
 
-		this.listeners = [];
+		// this.listeners = [];
 	}
 
-	getRelativeParent() {
-    return this;
-  }
+	// getRelativeParent() {
+  //   return this;
+  // }
 
 
-	// used for checkboxes
-	getForm() {
-    return this;
-  }
-
-	// used for checkboxes
-	getPath() {
-		return [];
-	}
+	// // used for checkboxes
+	// getForm() {
+  //   return this;
+  // }
+	//
+	// // used for checkboxes
+	// getPath() {
+	// 	return [];
+	// }
 
 	// async isModified(...path) {
 	//
@@ -59,57 +59,57 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 	// 	return false;
 	// }
 
-	async isModified(...path) {
-
-		// return this.buffer.has(...path);
-
-		return false;
-
-
-		if (path.length) {
-
-			let value = this.buffer.get(...path); // -> value is an array
-
-			if (value) {
-
-				value = KarmaFieldsAlpha.Type.toArray(value);
-
-				const event = await super.dispatch({
-					path: path,
-					action: "get"
-				});
-
-				const original = KarmaFieldsAlpha.Type.toArray(event.data);
-
-				return KarmaFieldsAlpha.DeepObject.differ(value, original);
-			}
-
-		} else {
-
-			const delta = this.buffer.get();
-
-			for (let key in delta) {
-
-				const event = await super.dispatch({
-					path: [key],
-					action: "get",
-				});
-
-				let original = KarmaFieldsAlpha.Type.toArray(event.data);
-				let value = KarmaFieldsAlpha.Type.toArray(delta[key]);
-
-				if (KarmaFieldsAlpha.DeepObject.differ(value, original)) {
-
-					return true;
-
-				}
-
-			}
-
-		}
-
-		return false;
-	}
+	// async isModified(...path) {
+	//
+	// 	// return this.buffer.has(...path);
+	//
+	// 	return false;
+	//
+	//
+	// 	if (path.length) {
+	//
+	// 		let value = this.buffer.get(...path); // -> value is an array
+	//
+	// 		if (value) {
+	//
+	// 			value = KarmaFieldsAlpha.Type.toArray(value);
+	//
+	// 			const event = await super.dispatch({
+	// 				path: path,
+	// 				action: "get"
+	// 			});
+	//
+	// 			const original = KarmaFieldsAlpha.Type.toArray(event.data);
+	//
+	// 			return KarmaFieldsAlpha.DeepObject.differ(value, original);
+	// 		}
+	//
+	// 	} else {
+	//
+	// 		const delta = this.buffer.get();
+	//
+	// 		for (let key in delta) {
+	//
+	// 			const event = await super.dispatch({
+	// 				path: [key],
+	// 				action: "get",
+	// 			});
+	//
+	// 			let original = KarmaFieldsAlpha.Type.toArray(event.data);
+	// 			let value = KarmaFieldsAlpha.Type.toArray(delta[key]);
+	//
+	// 			if (KarmaFieldsAlpha.DeepObject.differ(value, original)) {
+	//
+	// 				return true;
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	return false;
+	// }
 
 	// async getValue(...path) {
 	// 	let value = this.buffer.get(...path);
@@ -156,86 +156,19 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 
 		switch (event.action) {
 
-			// case "modified":
-			//
-			// 	// event.data = await this.isModified(...event.path);
-			// 	event.delta = this.buffer.get(...event.path);
-			//
-			// 	console.log(event.delta, event.path);
-			//
-			//
-			//
-			// 	await super.dispatch(event);
-			//
-			//
-			//
-			// 	break;
 
 			case "get": {
 				let value = this.buffer.get(...event.path);
 				if (value) {
-					// if (event.checkModified) {
-					// 	await super.dispatch(event);
-					// 	event.modified = KarmaFieldsAlpha.DeepObject.differ(value, event.data);
-					// }
-					// event.setValue(value);
-					// event.data = value || [];
+
 					event.data = KarmaFieldsAlpha.Type.toArray(value);
 				} else {
 					const path = [...event.path];
 					await super.dispatch(event);
-					// if (!event.hasValue() && event.default) { // -> event.default is a promise
-					// if ((!event.data || !event.data.length) && event.default) { // -> event.default is a promise
-					// if (!event.data || !event.data.length) { // -> event.default is a promise
-					//
-					// 	value = await event.field.getDefault();
-					//
-					// 	value = KarmaFieldsAlpha.Type.toArray(value);
-					// 	this.buffer.set(value, ...path);
-					// 	event.data = value;
-					//
-					// }
 
-
-
-					//
-					// // if ((!event.data || !event.data.length) && event.default !== null && event.default !== undefined) { // -> event.default is an expression or a string
-					// if (!event.data) { // -> event.default is an expression or a string
-					//
-					// 	// value = await KarmaFieldsAlpha.Expression.resolve(event.field, event.default);
-					//
-					// 	value = await event.field.getDefault();
-					//
-					// 	// if (value !== undefined && value !== null) { // -> e.g. gallery field
-					//
-					// 	value = KarmaFieldsAlpha.Type.toArray(value);
-					//
-					// 	if (value.length) { // -> e.g. gallery field
-					//
-					//
-					//
-					// 		this.buffer.backup(value, ...path); // -> backup or not?
-					// 		this.buffer.set(value, ...path);
-					//
-					// 		event.data = value;
-					//
-					// 	}
-					//
-					// 	event.data = value;
-					//
-					// }
 				}
 				break;
 
-				// const value = await this.getValue(...event.path); // -> value is array
-				// if (value.length === 0 && event.default !== undefined) {
-				// 	this.setValue([event.default], ...event.path);
-				// 	event.setValue(event.default);
-				// 	await this.update();
-				// } else {
-				// 	event.setValue(value);
-				// }
-				// break;
 			}
 
 			case "set": {
@@ -398,23 +331,23 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.field {
 	// 	}));
 	// }
 
-	getContent() {
-		return this.createChild({
-			display: this.resource.display,
-			children: this.resource.children,
-			id: "content",
-			type: "group"
-		});
-	}
-
-
-	build() {
-		return this.getContent().build();
-	}
-
-	render() {
-		this.getContent().render();
-	}
+	// getContent() {
+	// 	return this.createChild({
+	// 		display: this.resource.display,
+	// 		children: this.resource.children,
+	// 		id: "content",
+	// 		type: "group"
+	// 	});
+	// }
+	//
+	//
+	// build() {
+	// 	return this.getContent().build();
+	// }
+	//
+	// render() {
+	// 	this.getContent().render();
+	// }
 
 
 };

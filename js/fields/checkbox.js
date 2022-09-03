@@ -35,28 +35,41 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 		return object;
 	}
 
-	async importValue(value) {
-		// await this.setValue(value);
-		//
-		// const event = this.createEvent();
-		// event.action = "set";
-		// event.type = "string";
-		// event.backup = "once";
-		// event.autosave = this.resource.autosave;
-		// event.setValue(value);
+	// async importValue(value) {
+	//
+	// 	await this.dispatch({
+	// 		action: "set",
+	// 		data: value ? this.true() : this.false()
+	// 	});
+	// }
+	//
+	// async exportValue() {
+	// 	// return this.getValue();
+	// 	return this.dispatch({
+	// 		action: "get",
+	// 		type: "boolean"
+	// 	}).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
+	// }
+
+	async export() {
+
+		const key = this.getKey();
+		const request = await this.dispatch({action: "get"});
+		const value = KarmaFieldsAlpha.Type.toBoolean(request.data);
+
+    return {[key]: value};
+	}
+
+	async import(object) {
+
+		const key = this.getKey();
+    const value = KarmaFieldsAlpha.Type.toBoolean(object[key]);
 
 		await this.dispatch({
 			action: "set",
-			data: value ? this.true() : this.false()
+			data: value
 		});
-	}
-
-	async exportValue() {
-		// return this.getValue();
-		return this.dispatch({
-			action: "get",
-			type: "boolean"
-		}).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
+		
 	}
 
 	// async getValue() {

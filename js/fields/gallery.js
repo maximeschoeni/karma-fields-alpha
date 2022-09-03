@@ -48,7 +48,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
           parent: this.resource.parent
         },
         callback: async inputIds => {
-          
+
           const insertIds = [...ids];
 
           if (length) {
@@ -108,6 +108,30 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
     }
 
   }
+
+  async export() {
+
+		const key = this.getKey();
+
+		const request = await this.dispatch({action: "get"});
+    const array = KarmaFieldsAlpha.Type.toArray(request.data);
+
+    return {[key]: array.join(",")};
+	}
+
+	async import(object) {
+
+    // -> todo: import from url
+
+		const key = this.getKey();
+    const string = KarmaFieldsAlpha.Type.toString(object[key]);
+    const array = string.split(",").map(item => item.trim());
+
+		await this.dispatch({
+			action: "set",
+			data: value
+		});
+	}
 
   async getSelectedIds() {
 

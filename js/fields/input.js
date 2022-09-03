@@ -41,17 +41,34 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 	}
 
 	async exportValue() {
-		// const event = this.createEvent();
-		// event.action = "get";
-		// event.type = "string";
-		//
-		// await this.dispatch(event);
-		//
-		// return event.getValue();
+
+		console.error("Deprecated exportValue");
 
 		return this.dispatch({
 			action: "get"
 		}).then(request => KarmaFieldsAlpha.Type.toString(request.data));
+	}
+
+	async export() {
+
+		const object = {};
+		const key = this.getKey();
+
+		object[key] = await this.dispatch({
+			action: "get"
+		}).then(request => KarmaFieldsAlpha.Type.toString(request.data));
+
+		return object;
+	}
+
+	async import(object) {
+
+		const key = this.getKey();
+
+		await this.dispatch({
+			action: "set",
+			data: object[key] || ""
+		});
 	}
 
 	// async getString() {

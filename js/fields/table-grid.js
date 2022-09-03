@@ -96,14 +96,20 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
       for (let j = 0; j < rectangle.height; j++) {
 
         const id = ids[rectangle.y + j];
-        const rowField = this.getChild(id); // !!! may colid with modal !!!
-        const row = [];
+        const rowField = this.createChild({
+          key: id,
+          type: "row",
+          children: this.resource.children
+        }, id);
+
+        let row = [];
 
         for (let i = 0; i < rectangle.width; i++) {
 
           const colId = columns[rectangle.x + i]; // (colId = index of the column in resource)
-          const field = rowField.getChild(colId);
-          const value = await field.exportValue();
+          const field = rowField.createChild(this.resource.children[colId], colId);
+          const object = await field.export();
+          const value = Object.values(object)[0];
 
           row.push(value);
 
@@ -145,16 +151,31 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
       for (let j = 0; j < rectangle.height; j++) {
 
         const id = ids[rectangle.y + j];
-        const rowField = this.getChild(id); // !!! may colid with modal !!!
+        // const rowField = this.getChild(id); // !!! may colid with modal !!!
+        const rowField = this.createChild({
+          key: id,
+          type: "row",
+          children: this.resource.children
+        }, id);
+
         const rowValue = data[j%data.length];
 
         for (let i = 0; i < rectangle.width; i++) {
 
           const colId = columns[rectangle.x + i]; // (colId = index of the column in resource)
-          const field = rowField.getChild(colId);
+          // const field = rowField.getChild(colId);
+          const field = rowField.createChild(this.resource.children[colId], colId);
           const value = rowValue && rowValue[i%rowValue.length] || null;
 
-          await field.importValue(value);
+          const fieldKey = field.getKey();
+
+          if (fieldKey) {
+
+            await field.import({[fieldKey]: value});
+
+          }
+
+
         }
 
       }
@@ -174,12 +195,16 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
         this.select(index, length);
 
         const request = await this.dispatch({
-          action: "rows",
-          index: index,
-          length: length
+          action: "export"
         });
 
-        this.clipboard.setData(request.data);
+        console.log(request.data);
+
+        const data = KarmaFieldsAlpha.Clipboard.toDataArray(request.data);
+
+        console.log(data);
+
+        this.clipboard.setData(data);
 
         // await this.dispatch({action: "edit-selection"});
         await this.dispatch({action: "render"});
@@ -216,15 +241,19 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
           // KarmaFieldsAlpha.Clipboard.onInput = dataArray => {
           this.clipboard.onInput = dataArray => {
             const data = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
-            const selection = this.selectionBuffer.get();
-            if (selection) {
-              this.dispatch({
-                action: "write",
-                data: data,
-                index: selection.index,
-                length: selection.length
-              });
-            }
+            this.dispatch({
+              action: "import",
+              data: data
+            });
+            // const selection = this.selectionBuffer.get();
+            // if (selection) {
+            //   this.dispatch({
+            //     action: "import",
+            //     data: data,
+            //     index: selection.index,
+            //     length: selection.length
+            //   });
+            // }
           }
 
           this.cellClipboard.onInput = async dataArray => {
@@ -502,12 +531,12 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
           if (selection) {
 
             const request = await this.dispatch({
-              action: "rows",
-              index: selection.index,
-              length: selection.length
+              action: "export"
             });
 
-            this.clipboard.setData(request.data);
+            const data = KarmaFieldsAlpha.Clipboard.toDataArray(request.data);
+
+            this.clipboard.setData(data);
           }
         }
       };
@@ -517,31 +546,31 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
       switch (event.action) {
 
-        case "set": {
-
-          if (event.field.resource.type === "input" && event.pasted) {
-
-            const value = KarmaFieldsAlpha.Type.toString(event.data);
-            const data = value.split(/[\r\n]/).map(row => row.split("\t"));
-
-            // if (data.length > 1 || data[0].length > 1) {
-
-              await super.dispatch({
-                action: "importselection",
-                data: data,
-                field: event.field
-              });
-
-              break;
-
-            // }
-
-          }
-
-          await super.dispatch(event);
-
-          break;
-        }
+        // case "set": {
+        //
+        //   if (event.field.resource.type === "input" && event.pasted) {
+        //
+        //     const value = KarmaFieldsAlpha.Type.toString(event.data);
+        //     const data = value.split(/[\r\n]/).map(row => row.split("\t"));
+        //
+        //     // if (data.length > 1 || data[0].length > 1) {
+        //
+        //       await super.dispatch({
+        //         action: "importselection",
+        //         data: data,
+        //         field: event.field
+        //       });
+        //
+        //       break;
+        //
+        //     // }
+        //
+        //   }
+        //
+        //   await super.dispatch(event);
+        //
+        //   break;
+        // }
 
         // case "index": {
         //   const [id] = event.path;
@@ -624,36 +653,32 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
     static row = class extends KarmaFieldsAlpha.fields.field {
 
 
-      async dispatch(event) {
 
-        switch (event.action) {
 
-          // case "get":
-          //   if (event.path && event.path[event.path.length-1] === "id") {
-          //     if (event.join) {
-          //       await super.dispatch({
-          //         action: "join",
-          //         data: event.join,
-          //         path: [...event.path]
-          //       });
-          //     }
-          //     event.data = [this.resource.key];
-          //     break;
-          //   }
-          //
-          //   await super.dispatch(event);
-          //   break;
+      async export() {
 
-          default:
-            await super.dispatch(event);
-            break;
+        const row = {};
+
+        for (let index in this.resource.children) {
+
+          const field = this.createChild(this.resource.children[index], index.toString());
+          const values = await field.export();
+          row = {...row, ...values};
 
         }
 
+        return row;
+      }
 
+      async import(object) {
 
+        for (let index in this.resource.children) {
 
-        return event;
+          const field = this.createChild(this.resource.children[index], index.toString());
+          await field.import(object);
+
+        }
+
       }
 
       static modalHandle = class extends KarmaFieldsAlpha.fields.field {

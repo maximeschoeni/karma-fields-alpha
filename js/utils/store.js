@@ -14,6 +14,13 @@ KarmaFieldsAlpha.Store = class {
 
   }
 
+  static empty() {
+    const buffer = new KarmaFieldsAlpha.Buffer("gateway");
+    const cache = new KarmaFieldsAlpha.Buffer("cache");
+    cache.remove();
+    buffer.remove();
+  }
+
   empty() {
     // this.constructor.cache[this.driver] = {};
     this.cache.remove();

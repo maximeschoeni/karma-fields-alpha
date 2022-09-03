@@ -63,9 +63,9 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
       newIds.push(id);
 
-      await this.store.query("id="+id);
+      await this.server.store.query("id="+id);
 
-      this.buffer.set(["0"], id, "trash");
+      this.server.buffer.set(["0"], id, "trash");
 
       this.grid.buffer.set(["1"], id, "trash");
       this.grid.buffer.backup(["0"], id, "trash");
@@ -95,7 +95,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
   async changeFile(file, id, params = {}) {
 
-    const item = this.buffer.get(id);
+    const item = this.server.buffer.get(id);
     const original = KarmaFieldsAlpha.DeepObject.clone(item);
 
     // const name = this.buffer.get(id, "name");
@@ -107,7 +107,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
     await KarmaFieldsAlpha.Gateway.upload(file, {...params, id: id});
 
-    await this.store.get(id);
+    await this.server.store.get(id);
 
     const newItem = this.buffer.get(id);
     const newClone = KarmaFieldsAlpha.DeepObject.clone(newItem);
@@ -115,27 +115,6 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
     this.grid.buffer.set(original, id);
     this.grid.buffer.backup(newClone, id);
     this.grid.buffer.set(newClone, id);
-
-    // const newName = this.buffer.get(id, "name");
-    // const newFilename = this.buffer.get(id, "filename");
-    // const newType = this.buffer.get(id, "type");
-    // const newSize = this.buffer.get(id, "size");
-    //
-    // this.grid.buffer.set(name, id, "name");
-    // this.grid.buffer.backup(newName, id, "name");
-    // this.grid.buffer.set(newName, id, "name");
-    //
-    // this.grid.buffer.set(filename, id, "filename");
-    // this.grid.buffer.backup(newFilename, id, "filename");
-    // this.grid.buffer.set(newFilename, id, "filename");
-    //
-    // this.grid.buffer.set(type, id, "type");
-    // this.grid.buffer.backup(newType, id, "type");
-    // this.grid.buffer.set(newType, id, "type");
-    //
-    // this.grid.buffer.set(size, id, "size");
-    // this.grid.buffer.backup(newSize, id, "size");
-    // this.grid.buffer.set(newSize, id, "size");
 
   }
 
