@@ -7,11 +7,7 @@ KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.text {
 
 			update: async a => {
 
-				a.element.innerHTML = await this.parse(this.resource.value || "");
-
-				if (this.resource.active) {
-					this.update = () => a.render();
-				}
+				a.element.innerHTML = await this.getContent();
 
 				if (this.resource.href) {
 					a.element.href = this.resource.href;
@@ -19,21 +15,17 @@ KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.text {
 					a.element.onclick = async event => {
 						if (!a.element.classList.contains("editing")) {
 							a.element.classList.add("editing");
-							requestIdleCallback(() => {
-								this.dispatch({
-									action: this.resource.action
-								}).then(() => {
-									a.element.classList.remove("editing");
-								});
-							});
+							setTimeout(async () => {
+								await this.parent.request(this.resource.action, this.resource.params || {});
+								a.element.classList.remove("editing");
+							}, 50);
 						}
 					}
 				}
 
-
-
 				if (this.resource.active) {
-					a.element.classList.toggle("active", Boolean(await this.parse(this.resource.active)));
+					const isActive = await this.parse(this.resource.active);
+					a.element.classList.toggle("active", Boolean(isActive));
 				}
 
 			}

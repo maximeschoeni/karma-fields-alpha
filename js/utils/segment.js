@@ -38,10 +38,23 @@ KarmaFieldsAlpha.Segment = class {
 	}
 
 	static equals(s1, s2) {
-		return s1 && s2 && s1.index === s2.index && s1.length === s2.length;
+		return this.compare(s1, s2);
+		// return s1 && s2 && s1.index === s2.index && s1.length === s2.length;
 	}
 
 	static contains(segment, index) {
+		return this.contain(segment, index);
+		// if (segment) {
+		// 	return index >= segment.index && index < segment.index + segment.length;
+		// }
+		// return false;
+	}
+
+	static compare(s1, s2) {
+		return s1 && s2 && s1.index === s2.index && s1.length === s2.length;
+	}
+
+	static contain(segment, index) {
 		if (segment) {
 			return index >= segment.index && index < segment.index + segment.length;
 		}
@@ -53,7 +66,7 @@ KarmaFieldsAlpha.Segment = class {
 		const last = array.lastIndexOf(slice[slice.length - 1]);
 
 		if (first > -1 && last > -1) {
-			return new this(first, last - first + 1);
+			return {index: first, length: last - first + 1};
 		}
 	}
 

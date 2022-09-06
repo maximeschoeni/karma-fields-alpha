@@ -257,15 +257,11 @@ KarmaFieldsAlpha.Expression = class {
 
   static async getArray(field, ...expressionPath) {
 
-    const path = await this.resolveAll(field, expressionPath);
+    // const path = await this.resolveAll(field, expressionPath);
+    // const response = await field.parent.request("get", {}, ...path);
+    // return KarmaFieldsAlpha.Type.toArray(response);
 
-    const request = await field.dispatch({
-      action: "get",
-      type: "array",
-      path: path
-    });
-
-    return KarmaFieldsAlpha.Type.toArray(request.data);
+    return this.get(field, "array", ...expressionPath);
 
   }
 
@@ -287,66 +283,49 @@ KarmaFieldsAlpha.Expression = class {
 
     path = await this.resolveAll(field, path);
 
-    return field.dispatch({
-      action: "get",
-      type: "array",
-      path: path
-    }).then(request => KarmaFieldsAlpha.Type.convert(request.data, type));
+    const response = await field.request("get", {}, ...path);
+
+    return KarmaFieldsAlpha.Type.convert(response, type);
 
   }
 
   static async getIds(field) {
-    const request = await field.dispatch({
-      action: "ids"
-    });
-    return request.data;
+    return await field.parent.request("ids");
   }
 
   static async getDriver(field) {
-    const request = await field.dispatch({
-      action: "driver"
-    });
-    return request.data;
+    console.error("deprecated");
+    // const request = await field.dispatch({
+    //   action: "driver"
+    // });
+    // return request.data;
   }
 
   static async queryArray(field, expressionDriver, ...expressionPath) {
     console.error("Deprecated queryArray. Use query");
-    // const driver = await this.resolve(field, expressionDriver);
-    //
-    // const [request, ...joins] = driver.split("+");
-    //
-    // const query = KarmaFieldsAlpha.Query.create(request, joins);
-    //
+
+
+
+    // let driver = await this.resolve(field, expressionDriver);
     // const path = await this.resolveAll(field, expressionPath);
     //
-    // const value = await query.get(...path);
     //
-    // field.queriedArrayRequest = request;
+    // if (typeof driver === "string") {
+    //   driver = KarmaFieldsAlpha.Nav.parse(driver);
+    // }
     //
-    // return KarmaFieldsAlpha.Type.toArray(value);
-
-
-
-    let driver = await this.resolve(field, expressionDriver);
-    const path = await this.resolveAll(field, expressionPath);
-
-
-    if (typeof driver === "string") {
-      driver = KarmaFieldsAlpha.Nav.parse(driver);
-    }
-
-    const paramString = KarmaFieldsAlpha.Nav.toString(driver.params);
-    const store = new KarmaFieldsAlpha.Store(driver.name, driver.joins);
-    const results = await store.query(paramString);
-
-    if (path.length) {
-
-      let value = await store.getValue(...path);
-      return KarmaFieldsAlpha.Type.toArray(value);
-
-    }
-
-    return results;
+    // const paramString = KarmaFieldsAlpha.Nav.toString(driver.params);
+    // const store = new KarmaFieldsAlpha.Store(driver.name, driver.joins);
+    // const results = await store.query(paramString);
+    //
+    // if (path.length) {
+    //
+    //   let value = await store.getValue(...path);
+    //   return KarmaFieldsAlpha.Type.toArray(value);
+    //
+    // }
+    //
+    // return results;
 
 
     // field.queriedArrayRequest = request; // -> for dropdown...
@@ -369,31 +348,72 @@ KarmaFieldsAlpha.Expression = class {
     return results;
   }
 
-  static async getOptions(field, driver, paramString = "", nameField = 'name') {
+  // static async getOptions(field, driver, paramString = "", nameField = 'name') {
+  //
+  //   driver = await this.resolve(field, driver);
+  //   paramString = await this.resolve(field, paramString);
+  //
+  //   const store = new KarmaFieldsAlpha.Store(driver);
+  //
+  //   const ids = await store.queryIds(paramString);
+  //   const options = [];
+  //
+  //   for (let id of ids) {
+  //     options.push({
+  //       id: id,
+  //       name: await store.getValue(id, nameField)
+  //     });
+  //   }
+  //
+  //   return options;
+  // }
 
-    driver = await this.resolve(field, driver);
-    paramString = await this.resolve(field, paramString);
+  static async getOptions(field, driver, paramString = "", nameField = "name") {
 
-    const store = new KarmaFieldsAlpha.Store(driver);
+    // driver = await this.resolve(field, driver);
 
-    const ids = await store.queryIds(paramString);
-    const options = [];
+    const expressionKey = JSON.stringify(["getOptions", driver, paramString, nameField]);
 
-    for (let id of ids) {
-      options.push({
-        id: id,
-        name: await store.getValue(id, nameField)
+    const cache = new KarmaFieldsAlpha.Buffer("cache");
+
+    let promise = cache.get(driver, "expressions", expressionKey);
+
+    if (!promise) {
+
+      promise = new Promise(async (resolve, reject) => {
+
+        paramString = await this.resolve(field, paramString);
+
+        const store = new KarmaFieldsAlpha.Store(driver);
+
+        const ids = await store.queryIds(paramString);
+        const options = [];
+
+        for (let id of ids) {
+
+          const array = await store.getValue(id, nameField);
+          const value = KarmaFieldsAlpha.Type.toString(array);
+
+          options.push({
+            id: id,
+            name: value
+          });
+
+        }
+
+        resolve(options);
       });
+
+      cache.set(promise, driver, "expressions", expressionKey);
+
     }
 
-    return options;
+    return promise;
   }
 
   static async getParam(field, expressionKey) {
     const key = await this.resolve(field, expressionKey);
-    let value = KarmaFieldsAlpha.Nav.get(key);
-    // value = decodeURI(value);
-    return value;
+    return KarmaFieldsAlpha.Nav.get(key);
   }
 
   static async params(field, ...keys) {
@@ -404,63 +424,49 @@ KarmaFieldsAlpha.Expression = class {
 
   static async modified(field, ...expressionPath) {
     const path = await this.resolveAll(field, expressionPath);
-    const request = await field.dispatch({
-      action: "modified",
-      path: path
-    });
-    return KarmaFieldsAlpha.Type.toBoolean(request.data);
+    const response = await field.request("modified", {}, ...path);
+    return KarmaFieldsAlpha.Type.toBoolean(response);
   }
 
-  static async dispatch(field, action, type = "string", params = {}) {
-    action = await this.resolve(field, action);
-    params = await this.resolve(field, params);
-
-    const request = await field.dispatch({
-      action: action,
-      ...params
-    });
-
-    return KarmaFieldsAlpha.Type.convert(request.data, type);
-  }
-
-
-  // static async setArray(field, array, ...path) {
-  //
-  //   path = await this.resolveAll(field, path);
+  // static async dispatch(field, action, type = "string", params = {}) {
+  //   action = await this.resolve(field, action);
+  //   params = await this.resolve(field, params);
   //
   //   const request = await field.dispatch({
-  //     action: "set",
-  //     type: "array",
-  //     // backup: "push",
-  //     data: array,
-  //     path: path
+  //     action: action,
+  //     ...params
   //   });
   //
+  //   return KarmaFieldsAlpha.Type.convert(request.data, type);
   // }
+
+  static async request(field, action, type = "string", params = {}, ...path) {
+    action = await this.resolve(field, action);
+    params = await this.resolve(field, params);
+    path = await this.resolveAll(field, path);
+
+    const response = await field.request(action, params, ...path);
+
+    return KarmaFieldsAlpha.Type.convert(response, type);
+  }
 
   static async set(field, value, ...path) {
     value = await this.resolve(field, value);
     path = await this.resolveAll(field, path);
 
-    const array = KarmaFieldsAlpha.Type.toArray(value);
+    await field.request("set", {data: value}, ...path);
 
-    const request = await field.dispatch({
-      action: "get",
-      type: "array",
-      path: [...path]
-    });
-
-    if (KarmaFieldsAlpha.DeepObject.differ(request.data, array)) {
-
-      await field.dispatch({
-        action: "set",
-        type: "array",
-        backup: "pack",
-        data: array,
-        path: [...path]
-      });
-
-    }
+    // const array = KarmaFieldsAlpha.Type.toArray(value);
+    //
+    // const request = await field.request("get", {}, ...path);
+    //
+    // if (KarmaFieldsAlpha.DeepObject.differ(request.data, array)) {
+    //
+    //   await field.request("set", {
+    //     data: array,
+    //   }, ...path);
+    //
+    // }
     // await this.setArray(field, array, ...path);
   }
 
@@ -625,26 +631,12 @@ KarmaFieldsAlpha.Expression = class {
   }
 
   static async actives(field) {
-    const request = await field.dispatch({
-      action: "actives"
-    });
-    return KarmaFieldsAlpha.Type.toArray(request.data);
+    return await field.request("actives");
   }
 
   static async selection(field) {
-    const request = await field.dispatch({
-      action: "selection"
-    });
-    return KarmaFieldsAlpha.Type.toObject(request.data);
+    return await field.request("selection");
   }
-
-  // static async id(field) {
-  //   const request = await field.dispatch({
-  //     action: "get",
-  //     path: ["id"]
-  //   });
-  //   return KarmaFieldsAlpha.Type.toArray(request.data);
-  // }
 
 
 
@@ -700,7 +692,7 @@ KarmaFieldsAlpha.Expression = class {
 
 
   static async geocoding(field, value) {
-    const url = "https://www.mapquestapi.com/geocoding/v1/address?key=G3kgQdWrvD383JfqnxG6OXn90YPI3Hep&location="+value+",CH";
+    const url = "https://www.mapquestapi.com/geocoding/v1/address?key=KEY&location="+value+",CH";
     const response = await fetch(url).then(response => response.json());
 
     if (response.results && response.results[0] && response.results[0].locations && response.results[0].locations.length) {

@@ -16,6 +16,11 @@ KarmaFieldsAlpha.Rect = class {
 	}
 
 	static equals(r1, r2) {
+		return this.compare(r1, r2);
+		// return r1.x === r2.x && r1.y === r2.y && r1.width === r2.width && r1.height === r2.height;
+	}
+
+	static compare(r1, r2) {
 		return r1.x === r2.x && r1.y === r2.y && r1.width === r2.width && r1.height === r2.height;
 	}
 
@@ -24,6 +29,10 @@ KarmaFieldsAlpha.Rect = class {
 	}
 
 	static contains(r, x, y) {
+		return this.contain(r, x, y);
+		// return r.width > 0 && r.height > 0 && x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height;
+	}
+	static contain(r, x, y) {
 		return r.width > 0 && r.height > 0 && x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height;
 	}
 

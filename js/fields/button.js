@@ -17,33 +17,12 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 
 				}
 			},
-			init: async button => {
-
-
-			},
 			update: async button => {
 
 				if (this.resource.primary) {
 					button.element.classList.add("primary");
 				}
-				// button.element.title = this.resource.title || "";
 
-				// if (this.resource.active || this.resource.disabled) {
-				// 	// this.setEventListener(event => button.render());
-				// 	this.update = () => button.render();
-				// }
-				// if (this.resource.hidden) {
-				// 	button.element.parentNode.classList.add("hidden");
-				// }
-
-
-				// button.element.onmousedown = event => {
-				// 	event.preventDefault(); // -> prevent active element losing focus
-				// }
-
-				// button.element.onmouseup = event => {
-				// 	button.element.blur();
-				// }
 
 				button.element.onclick = async event => {
 					event.preventDefault(); // -> prevent submitting form in post-edit
@@ -54,21 +33,26 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 						const action = await this.parse(this.resource.action || this.resource.state || "submit");
 						const value = await this.parse(this.resource.value);
 
-						requestIdleCallback(() => {
+						// requestIdleCallback(() => {
+						//
+						// 	this.dispatch({
+						// 		action: action,
+						// 		data: value
+						// 	}).then(() => {
+						// 		button.element.classList.remove("editing");
+						// 		button.element.blur();
+						// 	});
+						// });
 
-							this.dispatch({
-								action: action,
-								data: value
-							}).then(() => {
-								button.element.classList.remove("editing");
-								button.element.blur();
-							});
-						});
+						setTimeout(async () => {
+							await this.parent.request(action, {data: value});
+							button.element.classList.remove("editing");
+							button.element.blur();
+						}, 50);
 
 					}
 
 				}
-
 
 				if (this.resource.disabled) {
 					button.element.disabled = Boolean(await this.parse(this.resource.disabled));
@@ -79,16 +63,6 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 					button.element.classList.toggle("active", Boolean(active));
 				}
 
-				// if (this.resource.active) {
-				// 	button.element.classList.toggle("active", Boolean(await this.check(this.resource.active)));
-				// 	// this.check(this.resource.active).then(active => {
-				// 	// 	button.element.classList.toggle("active", active);
-				// 	// });
-				// }
-				// if (this.resource.hidden) {
-				// 	button.element.parentNode.classList.toggle("hidden", Boolean(await this.check(this.resource.hidden)));
-				// }
-
 				if (this.resource.test) {
 					console.log(await this.parse(this.resource.test));
 				}
@@ -98,9 +72,9 @@ KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
 
 	}
 
-	getModal() {
-		return this.resource.modal && this.createChild(this.resource.modal);
-	}
+	// getModal() {
+	// 	return this.resource.modal && this.createChild(this.resource.modal);
+	// }
 
 
 }

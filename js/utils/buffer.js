@@ -94,4 +94,22 @@ KarmaFieldsAlpha.Buffer = class {
     KarmaFieldsAlpha.History.backup(value, this.get(...path), false, ...this.path, ...path);
   }
 
+  change(value, prevValue, ...path) {
+
+    if (!prevValue) {
+
+      prevValue = this.get(...path);
+
+    }
+
+    KarmaFieldsAlpha.History.backup(value, prevValue, false, ...this.path, ...path);
+
+    if (value === null) {
+      this.remove(...path);
+    } else {
+      this.set(value, ...path);
+    }
+
+  }
+
 }

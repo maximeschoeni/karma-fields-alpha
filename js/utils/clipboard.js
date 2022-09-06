@@ -94,10 +94,16 @@ KarmaFieldsAlpha.Clipboard = class {
     return [];
   }
 
-  static toDataArray(data) {
+  static toDataArray(data, headers = true) {
     if (data && data.length) {
       const keys = Object.keys(data[0]);
-      return [keys, ...data.map(row => keys.map(key => row[key]))];
+      const array = data.map(row => keys.map(key => row[key]))
+      if (headers) {
+        return [keys, ...array];
+      } else {
+        return array;
+      }
+
     }
     return [];
   }

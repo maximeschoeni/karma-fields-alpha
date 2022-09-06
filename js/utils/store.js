@@ -194,6 +194,32 @@ KarmaFieldsAlpha.Store = class {
     return promise;
   }
 
+  join2(join, paramString, offset = 0, max = 9999999) {
+
+    let promise = this.cache.get("join", paramString, join, offset);
+
+    if (!promise) {
+
+      promise = this.queryIds(paramString).then(ids => {
+        const slice = ids.slice(offset, offset+max);
+        return KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+slice.join(","));
+      }).then(relations => {
+        for (let relation of relations) {
+          const id = relation.id.toString();
+          const key = relation.key;
+          const values = this.buffer.get(id, key) || [];
+
+          this.buffer.set([...values, relation.value], id, key);
+        }
+        return relations;
+      });
+
+      this.cache.set(promise, "join", paramString, join, offset);
+
+    }
+
+    return promise;
+  }
 
   async getValue(id, ...path) {
 
@@ -218,19 +244,28 @@ KarmaFieldsAlpha.Store = class {
 
             for (let join of this.joins) {
 
-              await this.join(join, paramString);
+              const max = 10;
+              let i = 0;
+
+              while (i < ids.length) {
+
+                await this.join2(join, paramString, i, max);
+
+                i += max;
+
+                value = this.buffer.get(id, ...path);
+
+                if (value) break;
+
+              }
+
+              if (value) break;
 
             }
 
-            value = this.buffer.get(id, ...path);
-
           }
 
-          if (value) {
-
-            break;
-
-          }
+          if (value) break;
 
         }
 
@@ -240,6 +275,53 @@ KarmaFieldsAlpha.Store = class {
 
     return value;
   }
+
+
+  // async getValue(id, ...path) {
+  //
+  //   let value = this.buffer.get(id, ...path);
+  //
+  //   if (!value) {
+  //
+  //     // const queries = this.cache.get("ids") || {};
+  //
+  //     const queries = this.cache.get("query") || {};
+  //
+  //     for (let paramString in queries) {
+  //
+  //       // const ids = await queries[paramString];
+  //       const ids = await this.queryIds(paramString)
+  //
+  //       if (ids.includes(id)) {
+  //
+  //         value = this.buffer.get(id, ...path);
+  //
+  //         if (!value) {
+  //
+  //           for (let join of this.joins) {
+  //
+  //             await this.join(join, paramString);
+  //
+  //           }
+  //
+  //           value = this.buffer.get(id, ...path);
+  //
+  //         }
+  //
+  //         if (value) {
+  //
+  //           break;
+  //
+  //         }
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return value;
+  // }
 
 
 

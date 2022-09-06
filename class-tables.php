@@ -187,12 +187,15 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-store', $plugin_url . '/js/utils/store.js', array(), $this->version, true);
 				// wp_enqueue_script('karma-fields-utils-deepmap', $plugin_url . '/js/utils/deepmap.js', array(), $this->version, true);
 				// wp_enqueue_script('karma-fields-utils-buffermap', $plugin_url . '/js/utils/buffermap.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-clipboard', $plugin_url . '/js/utils/clipboard.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-multi-value', $plugin_url . '/js/utils/multi-value.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-selection-manager', $plugin_url . '/js/utils/manager-selection.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-cells-manager', $plugin_url . '/js/utils/manager-cells.js', array(), $this->version, true);
+
+				// deprecated
 				wp_enqueue_script('karma-fields-utils-selection', $plugin_url . '/js/utils/selection.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-cell-selection', $plugin_url . '/js/utils/cell-selection.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-sorter', $plugin_url . '/js/utils/sorter.js', array(), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-clipboard', $plugin_url . '/js/utils/clipboard.js', array(), $this->version, true);
-
-				wp_enqueue_script('karma-fields-utils-multi-value', $plugin_url . '/js/utils/multi-value.js', array(), $this->version, true);
 
 
 				// external dependancies

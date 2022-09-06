@@ -60,8 +60,10 @@ KarmaFieldsAlpha.Nav = class {
 	}
 
 	static set(value, key, replace = false) { // replace = deprecated
+
 		const urlSearchParams = this.getSearchParams();
 		if (value) {
+			value = encodeURIComponent(value);
 			urlSearchParams.set(key, value);
 		} else {
 			urlSearchParams.delete(key);
@@ -82,7 +84,8 @@ KarmaFieldsAlpha.Nav = class {
 		const urlSearchParams = this.getSearchParams();
 		for (let key in params) {
 			if (params[key]) {
-				urlSearchParams.set(key, params[key]);
+				const value = decodeURIComponent(params[key]);
+				urlSearchParams.set(key, value);
 			} else {
 				urlSearchParams.delete(key);
 			}
@@ -128,19 +131,49 @@ KarmaFieldsAlpha.Nav = class {
 	//
   // }
 
-	static change(value, key) { // deprecated?
+	// static change(value, key) {
+	//
+	// 	value = encodeURIComponent(value);
+	//
+	// 	const current = this.get(key);
+	//
+	// 	if (value !== current) {
+	//
+	// 		KarmaFieldsAlpha.History.backup(value, current, false, "nav", key);
+	//
+	// 		this.set(value, key);
+	//
+	// 	}
+	// }
 
-		value = encodeURIComponent(value);
+	static change(value, prevValue, key) {
 
-		const current = this.get(key);
+		console.warn("function redefinition!");
 
-		if (value !== current) {
-
-			KarmaFieldsAlpha.History.backup(value, current, false, "nav", key);
-
-			this.set(value, key);
-
+		if (!prevValue) {
+			prevValue = this.get(key);
 		}
+
+		KarmaFieldsAlpha.History.backup(value, prevValue, false, "nav", key);
+
+		this.set(value, key);
+
+		// value = encodeURIComponent(value);
+		//
+		// const current = this.get(key);
+		//
+		// if (value !== current) {
+		//
+		// 	KarmaFieldsAlpha.History.backup(value, current, false, "nav", key);
+		//
+		// 	this.set(value, key);
+		//
+		// }
+	}
+
+	static compare(value, key) {
+		const current = this.get(key);
+		return current !== value;
 	}
 
 	static backup(value, key) {

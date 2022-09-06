@@ -16,51 +16,42 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 				}
 			},
 			update: async input => {
-				this.render = input.render;
 				input.element.classList.add("loading");
-				input.element.value = "";
+
+				const key = this.getKey();
 
 				input.element.oninput = async event => {
-					// input.element.classList.add("editing");
-					// await this.backup();
-					// await this.editValue(input.element.value);
-
-					// debugger;
-
-					// await this.setValue(input.element.value);
 
 					this.throttle(async () => {
-						await this.setValue(input.element.value.normalize());
 
-						input.element.parentNode.classList.toggle("modified", await this.isModified());
+						await this.parent.request("set", {
+							data: input.element.value.normalize(),
+							autosave: this.resource.autosave
+						}, key);
+
+						const modified = await this.isModified();
+
+						input.element.parentNode.classList.toggle("modified", modified);
 					});
-
-
-					// input.element.style.height = "auto";
-					// input.element.style.height = (input.element.scrollHeight) + "px";
 
 				};
 
+				const response = await this.parent.request("get", {}, key);
 
+				if (Array.isArray(response) && response.multivalue) {
 
+					input.element.placeholder =  "— No Change —" || this.resource.placeholder || "";
+					input.element.value = "";
 
-				// input.element.value = await this.getValue();
+				} else {
 
-				const request = await this.dispatch({
-					action: "get",
-					type: "string",
-					default: await this.getDefault()
-				});
+					input.element.value = KarmaFieldsAlpha.Type.toString(response);
 
-				input.element.value = KarmaFieldsAlpha.Type.toString(request.data);
+				}
 
-				// input.element.style.height = "auto";
-				// input.element.style.height = (input.element.scrollHeight) + "px";
+				const modified = await this.isModified();
 
-				input.element.placeholder = request.manifold && "— No Change —" || this.resource.placeholder || "";
-
-
-				input.element.parentNode.classList.toggle("modified", await this.isModified());
+				input.element.parentNode.classList.toggle("modified", modified);
 				input.element.classList.remove("loading");
 			}
 		};
