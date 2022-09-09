@@ -171,7 +171,12 @@ KarmaFieldsAlpha.CellManager = class {
       for (let i = box.x; i < box.x + box.width; i++) {
 
         const element = this.getElement(i, j + this.rowOffset);
-        elements.push(element);
+
+        if (element) {
+
+          elements.push(element);
+
+        }
 
       }
 

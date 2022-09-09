@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.link = class extends KarmaFieldsAlpha.fields.text {
+KarmaFieldsAlpha.field.link = class extends KarmaFieldsAlpha.field.text {
 
 	build() {
 		return {

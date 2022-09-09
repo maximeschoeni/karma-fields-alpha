@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.separator = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.separator = class extends KarmaFieldsAlpha.field {
 	// build() {
 	// 	return {
 	// 		class: "separator"

@@ -348,68 +348,68 @@ KarmaFieldsAlpha.Expression = class {
     return results;
   }
 
-  // static async getOptions(field, driver, paramString = "", nameField = 'name') {
-  //
-  //   driver = await this.resolve(field, driver);
-  //   paramString = await this.resolve(field, paramString);
-  //
-  //   const store = new KarmaFieldsAlpha.Store(driver);
-  //
-  //   const ids = await store.queryIds(paramString);
-  //   const options = [];
-  //
-  //   for (let id of ids) {
-  //     options.push({
-  //       id: id,
-  //       name: await store.getValue(id, nameField)
-  //     });
-  //   }
-  //
-  //   return options;
-  // }
-
   static async getOptions(field, driver, paramString = "", nameField = "name") {
 
-    // driver = await this.resolve(field, driver);
+    driver = await this.resolve(field, driver);
+    paramString = await this.resolve(field, paramString);
 
-    const expressionKey = JSON.stringify(["getOptions", driver, paramString, nameField]);
+    const store = new KarmaFieldsAlpha.Store(driver);
 
-    const cache = new KarmaFieldsAlpha.Buffer("cache");
+    const ids = await store.queryIds(paramString);
+    const options = [];
 
-    let promise = cache.get(driver, "expressions", expressionKey);
-
-    if (!promise) {
-
-      promise = new Promise(async (resolve, reject) => {
-
-        paramString = await this.resolve(field, paramString);
-
-        const store = new KarmaFieldsAlpha.Store(driver);
-
-        const ids = await store.queryIds(paramString);
-        const options = [];
-
-        for (let id of ids) {
-
-          const array = await store.getValue(id, nameField);
-          const value = KarmaFieldsAlpha.Type.toString(array);
-
-          options.push({
-            id: id,
-            name: value
-          });
-
-        }
-
-        resolve(options);
+    for (let id of ids) {
+      options.push({
+        id: id,
+        name: KarmaFieldsAlpha.Type.toString(await store.getValue(id, nameField))
       });
-
-      cache.set(promise, driver, "expressions", expressionKey);
-
     }
 
-    return promise;
+    return options;
   }
+
+  // static async getOptions(field, driver, paramString = "", nameField = "name") {
+  //
+  //   // driver = await this.resolve(field, driver);
+  //
+  //   const expressionKey = JSON.stringify(["getOptions", driver, paramString, nameField]);
+  //
+  //   const cache = new KarmaFieldsAlpha.Buffer("cache");
+  //
+  //   let promise = cache.get(driver, "expressions", expressionKey);
+  //
+  //   if (!promise) {
+  //
+  //     promise = new Promise(async (resolve, reject) => {
+  //
+  //       paramString = await this.resolve(field, paramString);
+  //
+  //       const store = new KarmaFieldsAlpha.Store(driver);
+  //
+  //       const ids = await store.queryIds(paramString);
+  //       const options = [];
+  //
+  //       for (let id of ids) {
+  //
+  //         const array = await store.getValue(id, nameField);
+  //         const value = KarmaFieldsAlpha.Type.toString(array);
+  //
+  //         options.push({
+  //           id: id,
+  //           name: value
+  //         });
+  //
+  //       }
+  //
+  //       resolve(options);
+  //     });
+  //
+  //     cache.set(promise, driver, "expressions", expressionKey);
+  //
+  //   }
+  //
+  //   return promise;
+  // }
 
   static async getParam(field, expressionKey) {
     const key = await this.resolve(field, expressionKey);
@@ -473,7 +473,8 @@ KarmaFieldsAlpha.Expression = class {
   static async setParam(field, value, key) {
     key = await this.resolve(field, key);
     value = await this.resolve(field, value);
-    KarmaFieldsAlpha.Nav.set(value, key);
+    // KarmaFieldsAlpha.Nav.set(value, key);
+    KarmaFieldsAlpha.Nav.change(value, undefined, key);
   }
 
 

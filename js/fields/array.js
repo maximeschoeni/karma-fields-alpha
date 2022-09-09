@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   constructor(resource) {
     super(resource);
@@ -518,7 +518,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
 
   // createRow() {
-  //   // return new KarmaFieldsAlpha.fields.arrayRow({
+  //   // return new KarmaFieldsAlpha.field.arrayRow({
   //   //   children: this.resource.columns.map(column => column.field)
   //   // });
   //   return this.createField({
@@ -763,7 +763,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
     };
   }
 
-  static footer = class extends KarmaFieldsAlpha.fields.group {
+  static footer = class extends KarmaFieldsAlpha.field.group {
 
     constructor(resource) {
 
@@ -789,7 +789,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
   }
 
 
-  static arrayRow = class extends KarmaFieldsAlpha.fields.group {
+  static arrayRow = class extends KarmaFieldsAlpha.field.group {
 
     // async dispatch(event) {
     //
@@ -847,7 +847,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
 
     }
 
-    static index = class extends KarmaFieldsAlpha.fields.field {
+    static index = class extends KarmaFieldsAlpha.field {
 
       constructor(resource) {
         super({

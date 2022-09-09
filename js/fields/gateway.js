@@ -1,11 +1,13 @@
 
-KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.gateway = class extends KarmaFieldsAlpha.field {
 
 	constructor(...args) {
 		super(...args);
 
 		this.buffer = new KarmaFieldsAlpha.Buffer("gateway", this.resource.driver);
 		this.store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins);
+
+		this.trashBuffer = new KarmaFieldsAlpha.Buffer("trash", this.resource.driver);
 
 	}
 
@@ -155,27 +157,63 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 	// 	return event;
 	// }
 
+	async getValue(...path) {
+
+		let value = await this.store.getValue(...path);
+
+		if (!value) {
+
+			// const [id, key] = path;
+			//
+			// if (key === "trash") {
+			//
+			// 	value = "1";
+			//
+			// } else {
+
+				value = this.trashBuffer.get(...path);
+
+			// }
+
+		}
+
+		return value;
+	}
+
 	async request(subject, content, ...path) {
 
 		switch (subject) {
 
 			case "get": {
-        return this.store.getValue(...path);
+        // return this.store.getValue(...path);
+				// let value = await this.store.getValue(...path);
+				// if (!value) {
+				// 	value = this.trashBuffer.get(...path);
+				// }
+				// return value;
+				return this.getValue(...path);
 			}
 
 			case "set": {
 				// -> autosave
-        const [id, ...subpath] = path;
-        const value = KarmaFieldsAlpha.Type.toArray(content.data);
-				const data = KarmaFieldsAlpha.DeepObject.create(value, ...subpath);
+        // const [id, key] = path;
 
-				await this.send(data, this.driver, id); // -> data is an array
+				const value = KarmaFieldsAlpha.Type.toArray(content.data);
+				const data = KarmaFieldsAlpha.DeepObject.create(value, ...path);
 
-        break;
+				return this.send(data); // -> data is an object of arrays
+			}
+
+			case "send": {
+				// -> form submit
+				await this.send(content.data);
+				this.store.empty();
+				this.render();
 			}
 
 			case "modified": {
-				const originalValue = this.buffer.get(...path);
+				// const originalValue = this.buffer.get(...path);
+				const originalValue = await this.getValue(...path);
 				return KarmaFieldsAlpha.DeepObject.differ(content.data, originalValue);
 			}
 
@@ -195,11 +233,44 @@ KarmaFieldsAlpha.fields.gateway = class extends KarmaFieldsAlpha.fields.field {
 
 	}
 
-	async send(value, ...path) {
+	async send(data) {
 
-		await KarmaFieldsAlpha.Gateway.post("update/"+path.join("/"), value);
+		// const mask = KarmaFieldsAlpha.DeepObject.mask(data, this.buffer.get());
+		//
+		// this.trashBuffer.merge(mask);
+
+		// -> for history, to be able to restore deleted things
+		// if (!this.trashBuffer.has()) {
+		//
+		// 	this.trashBuffer.set(this.buffer.get());
+		//
+		// }
+
+		this.buffer.merge(data); // -> needed for autosave
+
+		for (let id in data) {
+
+			await KarmaFieldsAlpha.Gateway.post(`update/${this.resource.driver}/${id}`, data[id]);
+
+		}
+
+
+
+
+
+		// this.store.empty();
+
+		// await KarmaFieldsAlpha.Gateway.post("update/"+path.join("/"), value);
 
   }
+
+
+	build() {
+		return this.createChild({
+			type: "form",
+			...this.resource.form
+		}).build();
+	}
 
 
 };

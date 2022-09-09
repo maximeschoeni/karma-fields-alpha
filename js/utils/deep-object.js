@@ -568,11 +568,26 @@ KarmaFieldsAlpha.DeepObject = class {
 	// }
 
   static equal(object1, object2) {
-  	if (Array.isArray(object1) && Array.isArray(object2) && object1.length === object2.length) {
+  	// if (Array.isArray(object1) && Array.isArray(object2) && object1.length === object2.length) {
+    //   return object1.every((item, index) => this.equal(item, object2[index]));
+		// } else if (object1 && object1.constructor === Object && object2 && object2.constructor === Object) {
+    //   for (let key in object1) {
+    //     if (!this.equal(object1[key], object2[key])) {
+    //       return false;
+    //     }
+    //   }
+    //   return true;
+		// } else {
+		// 	return object1 == object2;
+		// }
+
+    // {} must equals undefined:
+
+    if (Array.isArray(object1) && Array.isArray(object2) && object1.length === object2.length) {
       return object1.every((item, index) => this.equal(item, object2[index]));
-		} else if (object1 && object1.constructor === Object && object2 && object2.constructor === Object) {
+		} else if (object1 && object1.constructor === Object) {
       for (let key in object1) {
-        if (!this.equal(object1[key], object2[key])) {
+        if (!object2 || object2.constructor !== Object || !this.equal(object1[key], object2[key])) {
           return false;
         }
       }
@@ -608,19 +623,51 @@ KarmaFieldsAlpha.DeepObject = class {
   }
 
   static isEmpty(object) {
-    if (Array.isArray(object)) {
-      return object.every(item => this.isEmpty(item));
-		} else if (object && object.constructor === Object) {
+    // if (Array.isArray(object)) {
+    //   return object.every(item => this.isEmpty(item));
+		// } else if (object && object.constructor === Object) {
+    //   for (let key in object) {
+    //     if (this.isEmpty(object[key])) {
+    //       return false;
+    //     }
+    //   }
+    //   return true;
+		// } else {
+		// 	return Boolean(object);
+		// }
+
+    // {a: []} is not considered as empty!
+
+    if (object && object.constructor === Object) {
       for (let key in object) {
-        if (this.isEmpty(object[key])) {
+        if (!this.isEmpty(object[key])) {
           return false;
         }
       }
       return true;
 		} else {
-			return Boolean(object);
+			return object === undefined;
 		}
   }
+
+  // no more used
+  static mask(delta, object) {
+    if (delta.constructor === Object) {
+      const mask = {};
+      for (let key in delta) {
+        if (object && object.constructor === Object && object[key] !== undefined) {
+          mask[key] = this.mask(delta[key], object[key]);
+        }
+      }
+      return mask;
+		} else {
+			return object;
+		}
+  }
+
+
+
+
 
   // static clean(object, ...path) {
   //   const cleanObject = this.filter(object, item => item === undefined || item === null, ...path);

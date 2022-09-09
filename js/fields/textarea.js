@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
+KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 	build() {
 		return {
@@ -24,14 +24,16 @@ KarmaFieldsAlpha.fields.textarea = class extends KarmaFieldsAlpha.fields.input {
 
 					this.throttle(async () => {
 
-						await this.parent.request("set", {
-							data: input.element.value.normalize(),
-							autosave: this.resource.autosave
-						}, key);
+						// await this.parent.request("set", {
+						// 	data: input.element.value.normalize(),
+						// 	autosave: this.resource.autosave
+						// }, key);
 
-						const modified = await this.isModified();
+						await this.set(input.element.value.normalize());
 
-						input.element.parentNode.classList.toggle("modified", modified);
+						// const modified = await this.isModified();
+
+						// input.element.parentNode.classList.toggle("modified", modified);
 					});
 
 				};

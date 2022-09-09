@@ -37,7 +37,7 @@
 // };
 
 
-KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 	constructor(...args) {
 		super(...args);
@@ -710,7 +710,7 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.field {
 
 	parseResource(resource) {
 		if (typeof resource === "string") {
-			resource = KarmaFieldsAlpha.fields.tinymce.defaults[resource];
+			resource = KarmaFieldsAlpha.field.tinymce.defaults[resource];
 		}
 		return resource;
 
@@ -941,7 +941,7 @@ KarmaFieldsAlpha.fields.tinymce = class extends KarmaFieldsAlpha.fields.field {
 	}
 }
 
-KarmaFieldsAlpha.fields.tinymce.defaults = {
+KarmaFieldsAlpha.field.tinymce.defaults = {
 	format: {
 		id: "format",
 		type: "dropdown",

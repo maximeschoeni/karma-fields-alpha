@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.tables = class extends KarmaFieldsAlpha.field {
 
 
   constructor(...args) {
@@ -55,7 +55,8 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
     switch (subject) {
 
       case "close":
-        KarmaFieldsAlpha.Nav.empty();
+        KarmaFieldsAlpha.Nav.remove();
+        KarmaFieldsAlpha.History.buffer.remove("history");
         await this.render();
         break;
 
@@ -73,18 +74,110 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
 
   }
 
+  async queryTable() {
+
+    // -> not on undo/redo !
+
+    const tableId = KarmaFieldsAlpha.Nav.get("table");
+    const resource = this.resource.tables.find(resource => resource.id === tableId);
+
+    if (resource) {
+      const table = this.createChild(resource);
+      await table.queryIds();
+    }
+
+    // await this.render();
+  }
+
   build() {
     return {
       class: "popup",
-      init: container => {
+      init: async container => {
+
         this.render = container.render;
 
+        // window.addEventListener("popstate", async event => {
+        //
+        //   let index = KarmaFieldsAlpha.History.getIndex();
+        //   const hash = KarmaFieldsAlpha.Nav.getHash();
+        //   const newHash = location.hash.slice(1);
+        //   const newParams = KarmaFieldsAlpha.Nav.toObject(newHash);
+        //
+        //   if (event.state) {
+        //
+        //     while (event.state.index < index) {
+        //       KarmaFieldsAlpha.History.undo();
+        //       index = KarmaFieldsAlpha.History.getIndex();
+        //     }
+        //
+        //     while (event.state.index > index) {
+        //       KarmaFieldsAlpha.History.redo();
+        //       index = KarmaFieldsAlpha.History.getIndex();
+        //     }
+        //
+        //   } else if (hash !== location.hash.slice(1) && newParams.table) {
+        //
+        //     const currentParams = KarmaFieldsAlpha.Nav.get();
+        //
+        //     KarmaFieldsAlpha.History.save();
+        // 		KarmaFieldsAlpha.History.backup(newParams, currentParams, false, "nav");
+        // 		this.set(newParams);
+        //     history.replaceState({index: index}, null, newHash);
+        //
+        //     await this.queryTable();
+        //
+        //   }
+        //
+        //   return this.render();
+        // });
+
         window.addEventListener("popstate", async event => {
-          await container.render();
+
+          // let index = KarmaFieldsAlpha.History.getIndex();
+          const params = KarmaFieldsAlpha.Nav.get() || {};
+          const hash = KarmaFieldsAlpha.Nav.toString(params);
+          const newHash = location.hash.slice(1);
+          const newParams = KarmaFieldsAlpha.Nav.toObject(newHash);
+
+          if (newHash !== hash) {
+
+            if (params.table) { // -> not when open first
+
+              KarmaFieldsAlpha.History.save();
+
+            }
+
+            KarmaFieldsAlpha.Nav.change(newParams);
+
+            await this.queryTable();
+
+          }
+
+          return this.render();
         });
+
+        // window.addEventListener("popstate", event => {
+        //
+        //   console.log(window.history, event, location.hash);
+        //
+        //   KarmaFieldsAlpha.History.save();
+        //   this.queryTable();
+        // });
+
+        const newHash = location.hash.slice(1);
+        const newParams = KarmaFieldsAlpha.Nav.toObject(newHash);
+
+        if (newParams.table) {
+          KarmaFieldsAlpha.Nav.set(newParams);
+          await this.queryTable();
+        }
+
+
+
 
       },
       update: popup => {
+
         popup.element.classList.toggle("hidden", !KarmaFieldsAlpha.Nav.has("table") && !this.resource.navigation);
       },
       child: {
@@ -124,7 +217,9 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
 
                         // table.server.store.empty();
 
-                        await table.queryIds();
+
+
+                        // await table.queryIds();
                       // }
                       container.child = table.build();
                     } else {
@@ -140,9 +235,9 @@ KarmaFieldsAlpha.fields.tables = class extends KarmaFieldsAlpha.fields.field {
     };
   }
 
-  static navigation = class extends KarmaFieldsAlpha.fields.group {
+  static navigation = class extends KarmaFieldsAlpha.field.group {
 
-    static menu = class extends KarmaFieldsAlpha.fields.field {
+    static menu = class extends KarmaFieldsAlpha.field {
 
       getItems() {
         return this.resource.items || [];

@@ -1,6 +1,9 @@
-KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
+KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
-
+	// constructor(resource) {
+	// 	super(resource);
+	// 	this.cache = new KarmaFieldsAlpha.Buffer("expressions");
+	// }
 	// async exportValue() {
 	// 	const value = await this.getValue();
 	// 	const options = await this.fetchOptions();
@@ -83,9 +86,17 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 		const defaults = {};
 		const key = this.getKey();
 
-		if (key && options.length > 0) {
+		if (key) {
 
-			defaults[key] = options[0].id;
+			if (this.resource.default !== undefined) {
+
+				defaults[key] = await this.parse(this.resource.default);
+
+			} else if (options.length > 0) {
+
+				defaults[key] = options[0].id;
+
+			}
 
 		}
 
@@ -115,17 +126,22 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 	async fetchOptions() {
 
-		let options = await this.parse(this.resource.options) || [];
+		// return this.parse(this.resource.options) || [];
 
-		if (this.resource.driver) {
 
-			const array = await this.getOptions(this.resource.driver, this.resource.paramstring || "", this.resource.namefield || "name");
+		const expressionKey = JSON.stringify(this.resource.options);
 
-			options = [...options, ...array];
+    let promise = this.expressionCache.get(expressionKey);
 
-		}
+    if (!promise) {
 
-		return options;
+      promise = this.parse(this.resource.options) || [];;
+
+      this.expressionCache.set(promise, expressionKey);
+
+    }
+
+    return promise;
 
 	}
 
@@ -290,9 +306,15 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 				dropdown.element.onchange = async event => {
 					dropdown.element.classList.add("editing");
 
+					KarmaFieldsAlpha.History.save();
+
 					await this.parent.request("set", {data: dropdown.element.value}, key);
 
-					await this.parent.request("render");
+					if (this.resource.onchange) {
+						await this.parse(this.resource.onchange);
+					}
+
+					await this.parent.request("edit");
 
 					dropdown.element.classList.remove("editing");
 				}
@@ -309,8 +331,8 @@ KarmaFieldsAlpha.fields.dropdown = class extends KarmaFieldsAlpha.fields.input {
 
 					currentOption = options[0];
 
-					await this.parent.request("set", {data: currentOption.id});
-					this.parent.request("edit");
+					// await this.parent.request("set", {data: currentOption.id});
+					// this.parent.request("edit");
 
 				}
 

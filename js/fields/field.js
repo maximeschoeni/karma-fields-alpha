@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.field = class Field {
+KarmaFieldsAlpha.field = class {
 
   static fieldId = 0;
 
@@ -9,12 +9,15 @@ KarmaFieldsAlpha.fields.field = class Field {
     this.childMap = {};
 		this.resource = resource || {};
 
-		this.fieldId = KarmaFieldsAlpha.fields.field.fieldId++;
+		this.fieldId = KarmaFieldsAlpha.field.fieldId++;
+
+    this.expressionCache = new KarmaFieldsAlpha.Buffer("expressions");
 
   }
 
+
   // static create(resource, parent) {
-  //   return new KarmaFieldsAlpha.fields[resource && resource.type || "group"](resource, parent);
+  //   return new KarmaFieldsAlpha.field[resource && resource.type || "group"](resource, parent);
   // }
 
   getKey() {
@@ -51,9 +54,9 @@ KarmaFieldsAlpha.fields.field = class Field {
 
     const type = resource.type || "group";
 
-    if (KarmaFieldsAlpha.fields[type]) {
-      return new KarmaFieldsAlpha.fields[type](resource);
-    }
+    // if (KarmaFieldsAlpha.field[type]) {
+    //   return new KarmaFieldsAlpha.field[type](resource);
+    // }
 
     if (this.constructor[type] && typeof this.constructor[type] === "function") {
       return new this.constructor[type](resource);
@@ -73,20 +76,38 @@ KarmaFieldsAlpha.fields.field = class Field {
 
   }
 
+  // createChild(resource, id) {
+  //
+  //   let child = this.childMap[id || resource.id || resource.type || resource];
+  //
+  //   if (!child) {
+  //
+  //     child = this.createField(resource);
+  //
+  //     this.children.push(child);
+  //     this.childMap[id || resource.id || resource.type] = child;
+  //     child.parent = this;
+  //
+  //
+  //   }
+  //
+  //   return child;
+  // }
+
   createChild(resource, id) {
 
-    let child = this.childMap[id || resource.id || resource.type || resource];
+    // let child = this.childMap[id || resource.id || resource.type || resource];
+    //
+    // if (!child) {
 
-    if (!child) {
+      const child = this.createField(resource);
 
-      child = this.createField(resource);
-
-      this.children.push(child);
-      this.childMap[id || resource.id || resource.type] = child;
+      // this.children.push(child);
+      // this.childMap[id || resource.id || resource.type] = child;
       child.parent = this;
 
 
-    }
+    // }
 
     return child;
   }
@@ -265,6 +286,21 @@ KarmaFieldsAlpha.fields.field = class Field {
 
 
   async parse(expression) {
+
+    // const expressionKey = JSON.stringify(expression);
+    //
+    // let promise = this.cache.get(expressionKey);
+    //
+    // if (!promise) {
+    //
+    //   promise = KarmaFieldsAlpha.Expression.resolve(this, expression);
+    //
+    //   this.cache.set(promise, expressionKey);
+    //
+    // }
+    //
+    // return promise;
+
     return KarmaFieldsAlpha.Expression.resolve(this, expression);
   }
 

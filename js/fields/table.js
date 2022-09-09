@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
 
   static pile = [];
 
@@ -183,13 +183,17 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
   async queryIds() {
     const ids = this.idsBuffer.get() || [];
-    const paramString = this.getParamString();
+    const params = this.getParams();
+    // const paramString = this.getParamString();
+    const paramString = KarmaFieldsAlpha.Nav.toString(params);
     const newIds = await this.server.store.queryIds(paramString);
     // if (KarmaFieldsAlpha.DeepObject.differ(newIds, ids)) {
     //   this.idsBuffer.backup(newIds);
     //   this.idsBuffer.set(newIds);
     // }
     this.idsBuffer.change(newIds);
+
+    this.expressionCache.remove();
 
     // -> for table transfers
     if (KarmaFieldsAlpha.Nav.has("selection")) {
@@ -204,6 +208,27 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
     return ids;
   }
 
+  getParams() {
+
+    const {id, table, selection, language, ...params} = {
+      page: 1,
+      ppp: 10,
+      ...this.params,
+      ...KarmaFieldsAlpha.Nav.get()
+    };
+
+    return params;
+
+  }
+
+  getCountParams() {
+
+    const {page, ppp, orderby, order, ...params} = this.getParams();
+
+    return params || {};
+
+  }
+
   getParamString() {
 
 
@@ -213,24 +238,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
         page: 1,
         ppp: 10,
         ...this.params,
-        ...KarmaFieldsAlpha.Nav.getObject()
+        ...KarmaFieldsAlpha.Nav.get()
       };
-
-      // if (params.page === undefined) {
-      //   params.page = "1";
-      // }
-      //
-      // if (params.ppp === undefined) {
-      //   params.ppp = this.getPpp();
-      // }
-
-      // if (params.orderby === undefined) {
-      //   params.orderby = this.getOrderby();
-      // }
-      //
-      // if (params.order === undefined) {
-      //   params.order = this.getOrder();
-      // }
 
       delete params.id;
       delete params.table;
@@ -246,7 +255,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
     const params = {
       // ...KarmaFieldsAlpha.Nav.toObject(this.params),
       ...this.params,
-      ...KarmaFieldsAlpha.Nav.getObject()
+      ...KarmaFieldsAlpha.Nav.get()
     };
 
     delete params.page;
@@ -263,11 +272,11 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
   }
 
-  // used by add()
+  // used by add()... I think no more used yet...
   getFilterParams() {
     const params = {
       ...this.params,
-      ...KarmaFieldsAlpha.Nav.getObject()
+      ...KarmaFieldsAlpha.Nav.get()
     };
 
     delete params.page;
@@ -285,7 +294,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
   async getCount() {
 
-    const paramString = this.getCountParamString();
+    // const paramString = this.getCountParamString();
+    const params = this.getCountParams();
+    const paramString = KarmaFieldsAlpha.Nav.toString(params);
     const count = await this.server.store.count(paramString);
 
     return Number(count || 0);
@@ -326,846 +337,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
 
 
-
-
-
-  // async dispatch(event, parent, origin) {
-  //
-  //
-  //   switch (event.action) {
-  //
-  //     case "get": {
-  //     //
-  //     //   const key = event.path.shift();
-  //     //
-  //     //   switch (key) {
-  //     //
-  //     //     // case "content":
-  //     //     //   // const value = await this.store.getValue(...event.path);
-  //     //     //   // event.data = KarmaFieldsAlpha.DeepObject.clone(value);
-  //     //     //   event.data = await this.store.getValue(...event.path);
-  //     //     //   break;
-  //     //     //
-  //     //     // case "options":
-  //     //     //
-  //     //     //   switch (event.path.shift()) {
-  //     //     //     case "ppp":
-  //     //     //       event.data = [this.getPpp()];
-  //     //     //       break;
-  //     //     //
-  //     //     //     case "columns":
-  //     //     //       event.data = this.getColumns();
-  //     //     //       break;
-  //     //     //   }
-  //     //     //
-  //     //     //   break;
-  //     //
-  //     //     case "selection": // -> deprecated. use actives
-  //     //       // event.data = [this.interface.hasRowSelected()];
-  //     //       // break;
-  //     //
-  //     //     case "actives":
-  //     //       event.data = this.interface.selectionBuffer.get();
-  //     //       break;
-  //     //
-  //     //     case "undo":
-  //     //       // event.data = [this.hasUndo()];
-  //     //
-  //     //       event.data = [KarmaFieldsAlpha.History.hasUndo()];
-  //     //       break;
-  //     //
-  //     //     case "redo":
-  //     //       // event.data = [this.hasRedo()];
-  //     //       event.data = [KarmaFieldsAlpha.History.hasRedo()];
-  //     //       break;
-  //     //
-  //     //     case "count":
-  //     //       event.data = [await this.getCount()];
-  //     //       break;
-  //     //
-  //     //     case "page":
-  //     //       event.data = [this.getPage()];
-  //     //       break;
-  //     //
-  //     //     case "lastpage":
-  //     //       event.data = [await this.getNumPage() === this.getPage()];
-  //     //       break;
-  //     //
-  //     //     case "numpage":
-  //     //       event.data = [await this.getNumPage()];
-  //     //       break;
-  //
-  //
-  //
-  //         // default: // -> filters
-  //           // event.data = [this.getParam(key)];
-  //
-  //           const [key] = event.path;
-  //           event.data = KarmaFieldsAlpha.Nav.get(key) || "";
-  //           // break;
-  //
-  //       // }
-  //
-  //       break;
-  //     }
-  //
-  //     case "set": {
-  //
-  //       const [key] = event.path;
-  //
-  //       // switch (key) {
-  //       //
-  //       //   case "content": // -> autosave
-  //       //     // await this.send(event.data, ...event.path); // -> data is an array
-  //       //
-  //       //     const [id, ...path] = event.path;
-  //       //
-  //       //     const value = KarmaFieldsAlpha.Type.toArray(event.data);
-  //       //
-	// 			// 		const data = KarmaFieldsAlpha.DeepObject.create(value, ...path);
-  //       //
-	// 			// 		await this.send(data, this.driver, id); // -> data is an array
-  //       //
-  //       //     break;
-  //       //
-  //       //   default: { // -> filters
-  //
-  //           const value = KarmaFieldsAlpha.Type.toString(event.data) || "";
-  //           const current = KarmaFieldsAlpha.Nav.get(key) || "";
-  //
-  //           if (value !== current) {
-  //
-  //             KarmaFieldsAlpha.Nav.backup(value, key);
-  //             KarmaFieldsAlpha.Nav.set(value, key); // -> will remove key instead of setting ""
-  //
-  //             const page = KarmaFieldsAlpha.Nav.get("page") || "1";
-  //
-  //             if (page !== "1") {
-  //               KarmaFieldsAlpha.Nav.backup(1, "page");
-  //               KarmaFieldsAlpha.Nav.change(1, "page");
-  //             }
-  //
-  //           }
-  //
-  //           // this.interface.unselect();
-  //
-  //
-  //           this.server.store.empty();
-  //
-  //           await this.queryIds();
-  //
-  //           // will not render yet!
-  //         //
-  //         //   break;
-  //         // }
-  //       //
-  //       // }
-  //
-  //       break;
-  //     }
-  //
-  //     // case "setParam": {
-  //     //
-  //     //   const value = KarmaFieldsAlpha.Type.toString(event.data) || "";
-  //     //   const current = KarmaFieldsAlpha.Nav.get(key) || "";
-  //     //
-  //     //   if (value !== current) {
-  //     //
-  //     //     KarmaFieldsAlpha.Nav.backup(value, key);
-  //     //     KarmaFieldsAlpha.Nav.set(value, key); // -> will remove key instead of setting ""
-  //     //
-  //     //     const page = KarmaFieldsAlpha.Nav.get("page") || "1";
-  //     //
-  //     //     if (page !== "1") {
-  //     //       KarmaFieldsAlpha.Nav.backup(1, "page");
-  //     //       KarmaFieldsAlpha.Nav.change(1, "page");
-  //     //     }
-  //     //
-  //     //   }
-  //     //
-  //     //   this.interface.unselect();
-  //     //
-  //     //   await this.queryIds();
-  //     // }
-  //
-  //     // case "send": {
-  //     //
-  //     //   console.error("Deprecated event send. Must be intercepted in form");
-  //     //
-  //     //   const key = event.path.shift();
-  //     //
-  //     //   switch (key) {
-  //     //
-  //     //     case "content": // -> save grid
-  //     //
-  //     //       await this.send(event.data, ...(event.absolutePath || event.path)); // -> data is an object
-  //     //       break;
-  //     //
-  //     //     case "options": {
-  //     //       this.options.open = false;
-  //     //       const value = KarmaFieldsAlpha.Type.toObject(event.data);
-  //     //
-  //     //       if (value.ppp) {
-  //     //
-  //     //         // -> no history save
-  //     //         if (KarmaFieldsAlpha.Nav.get("page") !== "1") {
-  //     //           KarmaFieldsAlpha.Nav.set("1", "page");
-  //     //         }
-  //     //         KarmaFieldsAlpha.Nav.set(value, "ppp");
-  //     //
-  //     //         if (event.edit) {
-  //     //
-  //     //           // this.clearCount();
-  //     //           // this.clearQuery();
-  //     //           this.render();
-  //     //         }
-  //     //       }
-  //     //       if (value.columns) {
-  //     //         this.options.buffer.set(event.data.columns, "columns");
-  //     //         await this.render(true);
-  //     //       }
-  //     //       break;
-  //     //     }
-  //     //
-  //     //     default: // -> filters + order
-  //     //       this.setParams(event.data);
-  //     //       // this.clearCount();
-  //     //       // this.clearQuery();
-  //     //       this.render();
-  //     //       break;
-  //     //
-  //     //   }
-  //     //
-  //     //   // await this.sendValue(event.getValue(), ...event.path);
-  //     //   break;
-  //     // }
-  //
-  //     case "modified": {
-  //
-  //       // switch (event.path.shift()) {
-  //       //
-  //       //   case "content": {
-  //       //
-  //           const delta = this.grid.buffer.get(...event.path);
-  //           event.data = delta && KarmaFieldsAlpha.DeepObject.differ(delta, this.server.buffer.get(...event.path)) || false;
-  //
-  //           break;
-  //       //   }
-  //       //
-  //       // }
-  //
-	// 			break;
-  //     }
-  //
-  //     case "columns": { // -> column indexes
-  //       event.data = this.getColumns();
-  //       break;
-  //     }
-  //
-  //     case "column": {
-  //       event.data = [];
-  //
-  //       const paramString = this.getParamString();
-  //       const ids = this.getIds();
-  //       const key = event.path[0];
-  //
-  //       for (let id of ids) {
-  //         const value = await this.server.store.getValue(id, key);
-  //         event.data.push(value);
-  //       }
-  //
-  //       break;
-  //     }
-  //
-  //
-  //
-  //     case "row": {
-  //
-  //       // const [id] = event.path;
-  //       // const data = this.store.buffer.get(id) || {};
-  //       // const editedData = this.grid.buffer.get(id) || {};
-  //       // const row = {};
-  //       // KarmaFieldsAlpha.DeepObject.merge(row, data);
-  //       // KarmaFieldsAlpha.DeepObject.merge(row, editedData);
-  //       // event.data = row;
-  //
-  //
-  //       const [id] = event.path;
-  //       // const defaults = await this.getDefault();
-  //       // const row = {};
-  //       //
-  //       // for (let key in defaults) {
-  //       //
-  //       //   row[key] = this.grid.buffer.get(id, key) || this.server.buffer.get(id, key);
-  //       //
-  //       // }
-  //       //
-  //       //
-  //       // const data = this.store.buffer.get(id) || {};
-  //       // const editedData = this.grid.buffer.get(id) || {};
-  //       // const row = {};
-  //       // KarmaFieldsAlpha.DeepObject.merge(row, data);
-  //       // KarmaFieldsAlpha.DeepObject.merge(row, editedData);
-  //       event.data = await this.interface.exportRow(id);
-  //       break;
-  //     }
-  //
-  //
-  //     // case "rows": {
-  //     //   const ids = await this.getIds();
-  //     //   const selectedIds = ids.slice(event.index, event.index + event.length);
-  //     //
-  //     //   event.data = [[]];
-  //     //
-  //     //   for (let resource of this.resource.children) {
-  //     //
-  //     //     event.data[0].push(resource.label || resource.key || resource.id || "");
-  //     //
-  //     //   }
-  //     //
-  //     //   for (let selectedId of selectedIds) {
-  //     //
-  //     //     const row = [];
-  //     //
-  //     //     for (let index in this.resource.children) {
-  //     //
-  //     //       const field = this.interface.getChild(selectedId).getChild(index);
-  //     //       const value = await field.exportValue();
-  //     //       const string = KarmaFieldsAlpha.Type.toString(value);
-  //     //
-  //     //       row.push(string);
-  //     //
-  //     //     }
-  //     //
-  //     //     event.data.push(row);
-  //     //   }
-  //     //
-  //     //   break;
-  //     // }
-  //
-  //     case "rows": {
-  //       // deprecated: use export
-  //       const ids = await this.getIds();
-  //       const selectedIds = ids.slice(event.index, event.index + event.length);
-  //       const rows = [];
-  //
-  //       for (let selectedId of selectedIds) {
-  //
-  //         const row = await this.interface.exportRow(selectedId);
-  //
-  //         rows.push(row);
-  //       }
-  //
-  //       event.data = KarmaFieldsAlpha.Clipboard.toDataArray(data);
-  //
-  //       break;
-  //     }
-  //
-  //     case "ids": {
-  //       event.data = await this.getIds();
-  //       break;
-  //     }
-  //
-  //     case "selectedIds":
-  //       const selection = this.interface.selectionBuffer.get();
-  //       if (selection) {
-  //         const ids = this.idsBuffer.get() || [];
-  //         event.data = ids.slice(selection.index, selection.index + selection.length);
-  //       }
-  //       break;
-  //
-  //     // -> used by media "upper-folder"
-  //     case "query-ids": {
-  //       event.data = await this.queryIds();
-  //       break;
-  //     }
-  //
-  //     case "edit": {
-  //
-  //       // const key = event.path.shift();
-  //       //
-  //       //
-  //       //
-  //       //
-  //       // switch (key) {
-  //       //
-  //       //   case "content":
-  //       //     this.controls.render();
-  //       //     break;
-  //       //
-  //       //   default: // filters
-  //       //     await this.render();
-  //       //
-  //       //
-  //       //
-  //       // }
-  //
-  //       await this.render();
-  //       break;
-  //     }
-  //
-  //
-  //
-  //     // case "importselection": { // -> an input field received a multiple row/column pasted data...
-  //     //   // const point = this.interface.fieldsMap.find(event.field);
-  //     //
-  //     //   await this.interface.importData(event.data, event.field);
-  //     //   this.controls.render();
-  //     //   break;
-  //     // }
-  //
-  //     case "edit-selection":
-  //       await this.render();
-  //       break;
-  //
-  //
-  //     case "selection":
-  //     case "actives":
-  //       event.data = this.interface.getSelection();
-  //       break;
-  //
-  //     case "undo":
-  //       event.data = KarmaFieldsAlpha.History.hasUndo();
-  //       break;
-  //
-  //     case "redo":
-  //       event.data = KarmaFieldsAlpha.History.hasRedo();
-  //       break;
-  //
-  //     case "count":
-  //       event.data = await this.getCount();
-  //       break;
-  //
-  //     case "page":
-  //       event.data = this.getPage();
-  //       break;
-  //
-  //     case "lastpage":
-  //       event.data = [await this.getNumPage() === this.getPage()];
-  //       break;
-  //
-  //     case "numpage":
-  //       event.data = [await this.getNumPage()];
-  //       break;
-  //
-  //     case "nextpage": {
-  //       const page = this.getPage();
-  //       const numpage = await this.getNumPage();
-  //
-  //       if (page < numpage) {
-  //         KarmaFieldsAlpha.History.save();
-  //         KarmaFieldsAlpha.Nav.backup(page+1, "page");
-  //         KarmaFieldsAlpha.Nav.set(page+1, "page");
-  //         this.interface.unselect();
-  //         await this.queryIds();
-  //         await this.render();
-  //       }
-  //
-  //       break;
-  //     }
-  //
-  //     case "prevpage": {
-  //       const page = this.getPage();
-  //       if (page > 1) {
-  //         KarmaFieldsAlpha.History.save();
-  //         KarmaFieldsAlpha.Nav.change(page-1, "page");
-  //         this.interface.unselect();
-  //         await this.queryIds();
-  //         await this.render();
-  //       }
-  //       break;
-  //     }
-  //
-  //     case "firstpage": {
-  //       const page = this.getPage();
-  //       if (page > 1) {
-  //         KarmaFieldsAlpha.History.save();
-  //         KarmaFieldsAlpha.Nav.change(1, "page");
-  //         this.interface.unselect();
-  //         await this.queryIds();
-  //         await this.render();
-  //       }
-  //       break;
-  //     }
-  //
-  //     case "lastpage": {
-  //       const page = this.getPage();
-  //       const numpage = await this.getNumPage();
-  //       if (page < numpage) {
-  //         KarmaFieldsAlpha.History.save();
-  //         KarmaFieldsAlpha.Nav.change(numpage, "page");
-  //         this.interface.unselect();
-  //         await this.queryIds();
-  //         await this.render();
-  //       }
-  //       break;
-  //     }
-  //
-  //     case "reload": {
-  //       this.server.store.empty();
-  //       // this.buffer.empty();
-  //       // this.interface.unselect();
-  //       await this.queryIds();
-  //       await this.render();
-  //       break;
-  //     }
-  //
-  //     // case "toggle-options":
-  //     //   this.options.open = !this.options.open;
-  //     //   this.options.render();
-  //     //   break;
-  //     //
-  //     // case "close-options":
-  //     //   this.options.open = false;
-  //     //   // await this.render();
-  //     //   // await this.triggerListeners();
-  //     //   this.options.render();
-  //     //   break;
-  //
-  //     case "add": {
-  //       KarmaFieldsAlpha.History.save();
-  //       const ids = await this.add(event.data || {});
-  //       this.interface.select(0, 1);
-  //       await this.render();
-  //       break;
-  //
-  //
-  //       // KarmaFieldsAlpha.History.save();
-  //       // const ids = await this.add(1, event.data || {});
-  //       // const selection = {index: 0, length: 1};
-  //       // this.interface.selectionBuffer.backup(selection);
-  //       // this.interface.selectionBuffer.set(selection);
-  //       // await this.render();
-  //       // break;
-  //     }
-  //
-  //     case "delete": {
-  //
-  //       const selection = this.interface.selectionBuffer.get();
-  //       if (selection) {
-  //         const ids = this.idsBuffer.get() || [];
-  //         const selectedIds = ids.slice(selection.index, selection.index + selection.length);
-  //         if (selectedIds.length) {
-  //           KarmaFieldsAlpha.History.save();
-  //           this.interface.unselect();
-  //           await this.remove(selectedIds);
-  //           await this.render();
-  //         }
-  //       }
-  //       break;
-  //     }
-  //
-  //     // case "insert": {
-  //     //   const insertIds = event.data || [];
-  //     //   const removeIds = this.getSelectedIds();
-  //     //
-  //     //   if (insertIds.length || removeIds.length) {
-  //     //     KarmaFieldsAlpha.History.save();
-  //     //     if (insertIds.length && removeIds.length) {
-  //     //       // await this.overwrite(insertIds, removeIds);
-  //     //       const data = this.read(insertIds);
-  //     //       await this.write(data, removeIds);
-  //     //     } else if (insertIds.length) {
-  //     //       await this.duplicate(insertIds);
-  //     //     } else if (removeIds.length) {
-  //     //       await this.remove(removeIds);
-  //     //     }
-  //     //     // this.interface.selectionBuffer.backup(insertIds);
-  //     //     // this.interface.selectionBuffer.set(insertIds);
-  //     //     await this.render();
-  //     //   }
-  //     //   break;
-  //     // }
-  //
-  //     case "export": {
-  //
-  //       // const ids = this.getSelectedIds();
-  //       //
-  //       // const rows = [];
-  //       //
-  //       // for (let id of ids) {
-  //       //
-  //       //   const row = await this.interface.exportRow(selectedId);
-  //       //
-  //       //   rows.push(row);
-  //       // }
-  //
-  //       // const rows = await this.export();
-  //       //
-  //       // event.data = KarmaFieldsAlpha.Clipboard.toDataArray(rows);
-  //
-  //       event.data = await this.export();
-  //
-  //       break;
-  //     }
-  //
-  //     case "import": {
-  //
-  //       KarmaFieldsAlpha.History.save();
-  //
-  //       // const selection = this.interface.getSelection();
-  //       // let index;
-  //       //
-  //       // if (selection) {
-  //       //
-  //       //   index = selection.index;
-  //       //
-  //       //   const ids = this.getSelectedIds();
-  //       //
-  //       //   if (ids) {
-  //       //     this.interface.unselect();
-  //       //     await this.remove(ids);
-  //       //   }
-  //       //
-  //       // } else {
-  //       //
-  //       //   index = this.getIds().length;
-  //       //
-  //       // }
-  //       //
-  //       // const ids = await this.addMultiple(data.length, {}, index);
-  //       //
-  //       // for (let i in ids) {
-  //       //
-  //       //   await this.interface.importRow(data[i]);
-  //       //
-  //       // }
-  //
-  //       await this.import(event.data);
-  //       await this.render();
-  //
-  //       break;
-  //     }
-  //
-  //     case "write": {
-  //       const ids = this.idsBuffer.get() || [];
-  //       const selectedIds = ids.slice(event.index, event.length);
-  //       const data = event.data || [];
-  //       let insertIds = [];
-  //
-  //       if (selectedIds.length || data.length) {
-  //
-  //         KarmaFieldsAlpha.History.save();
-  //
-  //         if (data.length && selectedIds.length) {
-  //           await this.write(data, selectedIds);
-  //         } else if (data.length) {
-  //           let createdIds = await this.addMultiple(data.length);
-  //           await this.write(data, createdIds);
-  //         } else if (selectedIds.length) {
-  //           await this.remove(selectedIds);
-  //         }
-  //         // this.interface.selectionBuffer.backup(insertIds);
-  //         // this.interface.selectionBuffer.set(insertIds);
-  //         await this.render();
-  //       }
-  //       break;
-  //     }
-  //
-  //     case "duplicate": {
-  //       const ids = this.getSelectedIds();
-  //       if (ids.length) {
-  //         const cloneIds = await this.duplicate(ids);
-  //         // this.interface.selectionBuffer.backup(cloneIds);
-  //         // this.interface.selectionBuffer.set(cloneIds);
-  //         this.store.empty();
-  //         await this.render();
-  //       }
-  //       break;
-  //     }
-  //
-  //
-  //     case "save":
-  //       // await this.grid.submit();
-  //
-  //       const data = this.grid.buffer.get();
-  //       for (let id in data) {
-  //         await this.server.send(data[id], this.driver, id);
-  //       }
-  //       this.grid.buffer.remove();
-  //       this.server.store.empty();
-  //       await this.queryIds();
-  //       await this.render();
-  //       break;
-  //
-  //     case "undo": {
-  //       KarmaFieldsAlpha.History.undo();
-  //       await this.parent.dispatch(event);
-  //       break;
-  //     }
-  //
-  //     case "redo": {
-  //       KarmaFieldsAlpha.History.redo();
-  //       await this.parent.dispatch(event);
-  //       break;
-  //     }
-  //
-  //     case "close":
-  //       this.server.buffer.empty();
-  //       this.server.store.empty();
-  //
-  //       KarmaFieldsAlpha.History.save();
-  //
-  //       this.interface.unselect();
-  //       this.idsBuffer.backup();
-  //       this.idsBuffer.remove();
-  //       // this.interface.selectionBuffer.backup();
-  //       // this.interface.selectionBuffer.remove();
-  //       await super.dispatch(event);
-  //       break;
-  //
-  //     // modal:
-  //     case "prev": {
-  //       let selection = this.interface.selectionBuffer.get();
-  //       if (selection && selection.index > 0) {
-  //         KarmaFieldsAlpha.History.save();
-  //         this.interface.select(selection.index - 1, 1);
-  //         await this.render();
-  //       }
-  //       break;
-  //     }
-  //
-  //     case "next": {
-  //       let selection = this.interface.selectionBuffer.get();
-  //       if (selection && selection.index > 0) {
-  //         KarmaFieldsAlpha.History.save();
-  //         this.interface.select(selection.index + 1, 1);
-  //         await this.render();
-  //       }
-  //       break;
-  //     }
-  //
-  //     case "clear-selection":
-  //     case "close-modal": {
-  //       KarmaFieldsAlpha.History.save();
-  //       this.interface.unselect();
-  //       await this.render();
-  //       break;
-  //     }
-  //
-  //     // case "open-modal": {
-  //     //   const ids = this.idsBuffer.get() || [];
-  //     //   const id = KarmaFieldsAlpha.Type.toString(event.data);
-  //     //   const index = ids.indexOf(id);
-  //     //   const currentSelection = this.interface.selectionBuffer.get();
-  //     //   const selection = {index: index, length: 1};
-  //     //
-  //     //   if (index > -1 && !KarmaFieldsAlpha.Segment.equals(selection, currentSelection)) {
-  //     //     // this.interface.select(selection);
-  //     //     KarmaFieldsAlpha.History.save();
-  //     //     this.interface.select(selection.index, selection.length);
-  //     //     await this.controls.render();
-  //     //     await this.modal.render();
-  //     //     await this.render();
-  //     //   }
-  //     //
-  //     //   break;
-  //     // }
-  //
-  //
-  //     case "order": {
-  //
-  //       KarmaFieldsAlpha.History.save();
-  //
-  //       let order = KarmaFieldsAlpha.Nav.get("order");
-  //       let orderby = KarmaFieldsAlpha.Nav.get("orderby");
-  //
-  //       const key = event.data;
-  //
-  //       if (orderby === key) {
-  //
-  //         const newOrder = order === "asc" ? "desc" : "asc";
-  //         KarmaFieldsAlpha.Nav.change(newOrder, "order");
-  //
-  //       } else {
-  //
-  //         const newOrder = event.order || "asc";
-  //         KarmaFieldsAlpha.Nav.change(newOrder, "order");
-  //         KarmaFieldsAlpha.Nav.change(key, "orderby");
-  //
-  //       }
-  //
-  //       this.interface.unselect();
-  //
-  //       await this.queryIds();
-  //       await this.render();
-  //       break;
-  //     }
-  //
-  //
-  //     case "fetch": {
-  //       // -> table transfers
-  //
-  //       const params = KarmaFieldsAlpha.Nav.getObject();
-  //
-  //       KarmaFieldsAlpha.History.save();
-  //
-  //       for (let key in {...params, ...event.params}) {
-  //         KarmaFieldsAlpha.Nav.backup(event.params[key] || "", key);
-  //         KarmaFieldsAlpha.Nav.set(event.params[key] || "", key);
-  //       }
-  //
-  //       KarmaFieldsAlpha.fields.table.pile.push({
-  //         params: params,
-  //         callback: event.callback
-  //       });
-  //
-  //       await this.parent.dispatch({
-  //         action: "render"
-  //       });
-  //
-  //       break;
-  //
-  //     }
-  //
-  //
-  //     case "insert": {
-  //
-  //       const selection = this.interface.selectionBuffer.get();
-  //
-  //       if (selection && KarmaFieldsAlpha.fields.table.pile.length > 0) {
-  //
-  //         const ids = this.getIds();
-  //         const inputIds = ids.slice(selection.index, selection.index + selection.length);
-  //         const state = KarmaFieldsAlpha.fields.table.pile.pop();
-  //         const currentParams = KarmaFieldsAlpha.Nav.getObject();
-  //
-  //         KarmaFieldsAlpha.History.save();
-  //
-  //         for (let key in {...currentParams, ...state.params}) {
-  //           KarmaFieldsAlpha.Nav.backup(state.params[key] || "", key);
-  //           KarmaFieldsAlpha.Nav.set(state.params[key] || "", key);
-  //         }
-  //
-  //         await state.callback(inputIds);
-  //
-  //         await this.parent.dispatch({
-  //           action: "render"
-  //         });
-  //
-  //       }
-  //
-  //     }
-  //
-  //     case "pile": {
-  //       event.data = KarmaFieldsAlpha.fields.table.pile;
-  //       break;
-  //     }
-  //
-  //     case "render": {
-  //       await this.render();
-  //       break;
-  //     }
-  //
-  //     default:
-  //       await this.parent.dispatch(event);
-  //       break;
-  //
-  //   }
-  //
-  //   return event;
-  // }
-
   async request(subject, content = {}, ...path) {
 
     switch (subject) {
@@ -1183,15 +354,21 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
         if (value !== current) {
 
-          KarmaFieldsAlpha.Nav.backup(value, key);
-          KarmaFieldsAlpha.Nav.set(value, key); // -> will remove key instead of setting ""
+          // KarmaFieldsAlpha.Nav.backup(value, key);
+          // KarmaFieldsAlpha.Nav.set(value, key); // -> will remove key instead of setting ""
+
+          KarmaFieldsAlpha.Nav.change(value, current, key);
 
           const page = KarmaFieldsAlpha.Nav.get("page") || "1";
 
           if (page !== "1") {
-            KarmaFieldsAlpha.Nav.backup(1, "page");
-            KarmaFieldsAlpha.Nav.set(1, "page");
+            // KarmaFieldsAlpha.Nav.backup(1, "page");
+            // KarmaFieldsAlpha.Nav.set(1, "page");
+
+            KarmaFieldsAlpha.Nav.change(1, page, "page");
           }
+
+          // KarmaFieldsAlpha.Nav.edit(); // = pushstate
 
         }
 
@@ -1207,16 +384,26 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
         //
         // }
 
-        this.server.store.empty();
-
-        await this.queryIds();
+        // this.server.store.empty();
+        //
+        // await this.queryIds();
 
         break;
       }
 
       case "modified": {
         const delta = this.interface.buffer.get(...path);
-        return delta && KarmaFieldsAlpha.DeepObject.differ(delta, this.server.buffer.get(...path)) || false;
+        // return delta && KarmaFieldsAlpha.DeepObject.differ(delta, this.server.buffer.get(...path)) || false;
+
+        if (delta) {
+          // const orig = this.server.buffer.get(...path);
+          return KarmaFieldsAlpha.DeepObject.differ(delta, {
+            ...await this.server.trashBuffer.get(...path),
+            ...await this.server.buffer.get(...path)
+
+          });
+        }
+        return false;
       }
 
       case "columns": { // -> column indexes
@@ -1279,7 +466,15 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
         return this.queryIds();
       }
 
-      case "edit":
+      case "edit": {
+        this.expressionCache.remove();
+        // this.server.store.empty();
+        this.server.store.cache.empty(); // buffer need to stay for history
+        await this.queryIds();
+        await this.render();
+        break;
+      }
+
       case "edit-selection": {
         return this.render();
       }
@@ -1317,8 +512,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
         if (page < numpage) {
           KarmaFieldsAlpha.History.save();
-          KarmaFieldsAlpha.Nav.backup(page+1, "page");
-          KarmaFieldsAlpha.Nav.set(page+1, "page");
+          KarmaFieldsAlpha.Nav.change(page+1, "page");
           this.interface.unselect();
           await this.queryIds();
           await this.render();
@@ -1366,8 +560,6 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
       case "reload": {
         this.server.store.empty();
-        // this.buffer.empty();
-        // this.interface.unselect();
         await this.queryIds();
         await this.render();
         break;
@@ -1459,9 +651,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
         const ids = this.getSelectedIds();
         if (ids.length) {
           const cloneIds = await this.duplicate(ids);
-          // this.interface.selectionBuffer.backup(cloneIds);
-          // this.interface.selectionBuffer.set(cloneIds);
-          this.store.empty();
+          // this.server.store.empty();
+          this.server.store.cache.empty(); // buffer need to stay for history
           await this.render();
         }
         break;
@@ -1469,14 +660,21 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
 
       case "save":
-        // await this.grid.submit();
-
         const data = this.interface.buffer.get();
-        for (let id in data) {
-          await this.server.send(data[id], this.driver, id);
-        }
+        // if (!KarmaFieldsAlpha.DeepObject.empty(data)) {
+        //
+        // }
+        await this.server.send(data);
+        // this.server.store.empty();
+        this.server.store.cache.empty(); // buffer need to stay for history
         this.interface.buffer.remove();
-        this.server.store.empty();
+        const selection = this.interface.selectionBuffer.get();
+
+        if (selection) {
+          KarmaFieldsAlpha.History.save();
+          this.interface.selectionBuffer.change(null);
+        }
+
         await this.queryIds();
         await this.render();
         break;
@@ -1492,8 +690,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
       }
 
       case "close":
-        this.server.buffer.empty();
-        this.server.store.empty();
+        // this.server.buffer.empty();
+        // this.server.store.empty();
+        this.server.store.cache.empty(); // buffer need to stay for history
 
         KarmaFieldsAlpha.History.save();
 
@@ -1574,7 +773,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
       case "fetch": {
         // -> table transfers
 
-        const params = KarmaFieldsAlpha.Nav.getObject();
+        const params = KarmaFieldsAlpha.Nav.get();
 
         KarmaFieldsAlpha.History.save();
 
@@ -1583,7 +782,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
           KarmaFieldsAlpha.Nav.set(content.params[key] || "", key);
         }
 
-        KarmaFieldsAlpha.fields.table.pile.push({
+        KarmaFieldsAlpha.field.table.pile.push({
           params: params,
           callback: content.callback
         });
@@ -1597,12 +796,12 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
         const selection = this.interface.selectionBuffer.get();
 
-        if (selection && KarmaFieldsAlpha.fields.table.pile.length > 0) {
+        if (selection && KarmaFieldsAlpha.field.table.pile.length > 0) {
 
           const ids = this.getIds();
           const inputIds = ids.slice(selection.index, selection.index + selection.length);
-          const state = KarmaFieldsAlpha.fields.table.pile.pop();
-          const currentParams = KarmaFieldsAlpha.Nav.getObject();
+          const state = KarmaFieldsAlpha.field.table.pile.pop();
+          const currentParams = KarmaFieldsAlpha.Nav.get();
 
           KarmaFieldsAlpha.History.save();
 
@@ -1621,13 +820,16 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
       }
 
       case "pile": {
-        return KarmaFieldsAlpha.fields.table.pile;
+        return KarmaFieldsAlpha.field.table.pile;
       }
 
       case "render": {
         await this.render();
         break;
       }
+
+      case "render-controls":
+        return this.controls.render();
 
       default:
         return this.parent.request(subject, content, ...path);
@@ -1767,30 +969,49 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
   async add(params = {}, index = 0) {
 
-    const filterParams = this.getFilterParams();
+    // const filterParams = this.getFilterParams();
+    //
+    // params = {...filterParams, ...params};
 
-    params = {...filterParams, ...params};
+    // delete params.trash;
+    // delete params.id;
 
-    delete params.trash;
-    delete params.id;
+    // debugger;
+
+
+
+
 
     let createdId = await KarmaFieldsAlpha.Gateway.post("add/"+this.driver, params);
 
     const id = KarmaFieldsAlpha.Type.toString(createdId);
 
-    this.interface.buffer.change(["0"], ["1"], id, "trash");
+    this.interface.buffer.change(["0"], null, id, "trash");
 
     // this.grid.buffer.set(["1"], id, "trash");
     // this.grid.buffer.backup(["0"], id, "trash");
     // this.grid.buffer.set(["0"], id, "trash");
 
-    for (let key in params) {
+    // for (let key in params) {
+    //
+    //   const value = params[key];
+    //
+    //   // this.interface.buffer.backup([value], id, key);
+    //   // this.interface.buffer.set([value], id, key);
+    //   this.interface.buffer.change([value], undefined, id, key);
+    //
+    // }
 
-      const value = params[key];
+    const rowField = this.interface.createChild({
+      children: this.resource.children,
+      type: "row"
+    });
 
-      // this.interface.buffer.backup([value], id, key);
-      // this.interface.buffer.set([value], id, key);
-      this.interface.buffer.change([value], undefined, id, key);
+    const defaults = await rowField.getDefault();
+
+    for (let key in defaults) {
+
+      this.interface.buffer.change([defaults[key]], null, id, key);
 
     }
 
@@ -1810,6 +1031,17 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
     for (let id of removeIds) {
 
+      // const data = {};
+      // KarmaFieldsAlpha.DeepObject.merge(data, this.server.buffer.get(id));
+      // KarmaFieldsAlpha.DeepObject.merge(data, this.interface.buffer.get(id));
+
+      // this.interface.buffer.change({trash: ["1"]}, undefined, id);
+
+      this.server.trashBuffer.set({
+        ...this.server.buffer.get(id),
+        trash: ["1"]
+      }, id);
+
       this.interface.buffer.change(["1"], ["0"], id, "trash");
 
       // this.grid.buffer.set(["0"], id, "trash");
@@ -1819,8 +1051,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
     const ids = this.getIds().filter(id => !removeIds.includes(id));
 
-    this.idsBuffer.backup(ids);
-    this.idsBuffer.set(ids);
+    // this.idsBuffer.backup(ids);
+    // this.idsBuffer.set(ids);
+
+    this.idsBuffer.change(ids);
 
   }
 
@@ -1901,9 +1135,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
     return {
       class: "karma-field-table",
       init: async table => {
-        this.render = table.render;
+
       },
       update: async table => {
+        this.render = table.render;
 
         table.element.classList.add("table-loading");
 
@@ -2005,10 +1240,8 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
           },
           {
             class: "table-footer table-control",
-            init: footer => {
-              this.controls.render = footer.render;
-            },
             update: footer => {
+              this.controls.render = footer.render;
               footer.element.classList.toggle("hidden", this.resource.controls === false);
               if (this.resource.controls !== false) {
                 footer.child = this.controls.build();
@@ -2030,99 +1263,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
   //   });
   // }
 
-  static interface = class extends KarmaFieldsAlpha.fields.form {
-
-    // async exportRow(id, keys = []) {
-    //
-    //   const rowField = this.createChild({
-    //     ...this.resource.children,
-    //     key: id,
-    //     type: "row"
-    //   }, id);
-    //
-    //   const object = await rowField.export(keys);
-    //
-    //   // -> + export modal fields
-    //
-    //   return object;
-    // }
-
-    // async export(ids, keys = [], colIndexes = []) {
-    //
-    //   // const rowField = this.createChild({
-    //   //   ...this.resource.children,
-    //   //   key: id,
-    //   //   type: "row"
-    //   // }, id);
-    //   //
-    //   // const object = await rowField.export(keys);
-    //
-    //   const data = [];
-    //
-    //   for (let id of ids) {
-    //
-    //     const rowField = this.createChild({
-    //       ...this.resource.children,
-    //       key: id,
-    //       type: "row"
-    //     }, id);
-    //
-    //
-    //
-    //     const row = await rowField.export(keys, colIndexes);
-    //     data.push(row);
-    //
-    //   }
-    //
-    //   // -> + export modal fields
-    //
-    //   return data;
-    // }
-
-    // async exportCells(ids, colIndexes) {
-    //
-    //   const data = [];
-    //
-    //   for (let id of ids) {
-    //
-    //     const rowField = this.createChild({
-    //       ...this.resource.children,
-    //       key: id,
-    //       type: "row"
-    //     }, id);
-    //
-    //     const cols = [];
-    //
-    //     for (let index of colIndexes) {
-    //
-    //       const field = rowField.createChild(this.resource.children[index], index.toString());
-    //       const object = await field.export();
-    //       const value = Object.values(object || {});
-    //       cols.push(value || "");
-    //
-    //     }
-    //
-    //     data.push(cols);
-    //
-    //   }
-    //
-    //   return data;
-    // }
-
-    // async importRow(object, id) {
-    //
-    //   const rowField = this.createChild({
-    //     ...this.resource.children,
-    //     key: id,
-    //     type: "row"
-    //   }, id);
-    //
-    //   await rowField.import(object);
-    //
-    //
-    //   // -> + import modal fields
-    //
-    // }
+  static interface = class extends KarmaFieldsAlpha.field.form {
 
     release() {
       // noop
@@ -2210,6 +1351,9 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
       switch (subject) {
 
+        case "edit":
+          return this.parent.request("render-controls");
+
         case "selection": {
           return this.getSelection();
         }
@@ -2231,7 +1375,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
     }
 
 
-    static modal = class extends KarmaFieldsAlpha.fields.field {
+    static modal = class extends KarmaFieldsAlpha.field {
 
       build() {
 
@@ -2513,7 +1657,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
       }
 
-      static header = class extends KarmaFieldsAlpha.fields.group {
+      static header = class extends KarmaFieldsAlpha.field.group {
 
         constructor(resource) {
 
@@ -2533,7 +1677,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
           super({...defaultResource, ...resource});
         }
 
-        static title = class extends KarmaFieldsAlpha.fields.text {
+        static title = class extends KarmaFieldsAlpha.field.text {
 
           constructor(resource, ...args) {
             const defaultResource = {
@@ -2589,7 +1733,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
   }
 
 
-  static controls = class extends KarmaFieldsAlpha.fields.group {
+  static controls = class extends KarmaFieldsAlpha.field.group {
 
     constructor(resource, ...args) {
 
@@ -2622,8 +1766,10 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
       action: "save",
       title: "Save",
       // disabled: "!modified",
-      disabled: ["!", ["request", "modified", "boolean"]],
+      // disabled: ["!", ["request", "modified", "boolean"]],
+      disabled: ["!", ["modified"]],
       primary: true
+      // test: ["modified"]
     }
 
   	static add = {
@@ -2684,7 +1830,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
   }
 
-  static header = class extends KarmaFieldsAlpha.fields.group {
+  static header = class extends KarmaFieldsAlpha.field.group {
 
     constructor(resource) {
 
@@ -2706,7 +1852,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
     }
 
-    static title = class extends KarmaFieldsAlpha.fields.text {
+    static title = class extends KarmaFieldsAlpha.field.text {
 
       constructor(resource) {
 
@@ -2747,7 +1893,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
       action: "close"
     }
 
-    static pagination = class extends KarmaFieldsAlpha.fields.group {
+    static pagination = class extends KarmaFieldsAlpha.field.group {
 
       constructor(resource) {
 
@@ -2819,7 +1965,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
   }
 
-  static filters = class extends KarmaFieldsAlpha.fields.group {
+  static filters = class extends KarmaFieldsAlpha.field.group {
 
     // async dispatch(event) {
     //
@@ -2846,6 +1992,7 @@ KarmaFieldsAlpha.fields.table = class extends KarmaFieldsAlpha.fields.field {
 
         // case "set": {
         //   await super.request(subject, content, ...path);
+        //   this.expressionCache.remove();
         //   await this.render();
         //   break;
         // }

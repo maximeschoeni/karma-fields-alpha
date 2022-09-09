@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.date = class extends KarmaFieldsAlpha.fields.input {
+KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
   constructor(resource, parent, form) {
 		super(resource, parent, form);

@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
 	static mousedown = false;
 	static state = false;
@@ -72,7 +72,13 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 			// 	// default: field.getDefault
 			// });
 
-			await field.parent.request("set", {data: value}, field.getKey());
+			// console.log(checked, value);
+
+
+			await field.parent.request("set", {
+				data: value,
+				autosave: this.resource.autosave
+			}, field.getKey());
 
 		}
 
@@ -146,7 +152,7 @@ KarmaFieldsAlpha.fields.checkbox = class extends KarmaFieldsAlpha.fields.field {
 							// }).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
 
 							const response = await this.parent.request("get", {}, this.getKey());
-							checkbox.element.checked = KarmaFieldsAlpha.Type.toBoolean(response);
+							checkbox.element.checked = KarmaFieldsAlpha.Type.toString(response) === this.true();
 
 						}
 					},

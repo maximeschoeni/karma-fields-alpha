@@ -6,83 +6,87 @@ KarmaFieldsAlpha.History = class {
 
 	static save() {
 
-		// -> increase index and max
-		let index = this.getIndex() || 0;
-		index++;
+		history.pushState({}, null);
 
-		this.buffer.set(index, "history", "index");
-		this.buffer.set(index, "history", "max");
+	}
 
-		// erase history forward
-		if (this.buffer.has("history", index)) {
-			this.buffer.remove("history", index);
+	static get(...path) {
+		const state = history.state || {};
+		return KarmaFieldsAlpha.DeepObject.get(state, ...path);
+	}
+
+	static set(value, ...path) {
+		const state = {...history.state};
+		if (value) {
+			KarmaFieldsAlpha.DeepObject.assign(state, value, ...path);
+		} else {
+			KarmaFieldsAlpha.DeepObject.remove(state, ...path);
 		}
-
-	}
-
-	static get(index, ...path) {
-		return this.buffer.get("history", index, ...path);
-	}
-
-	static set(value, index, ...path) {
-		this.buffer.set(value, "history", index, ...path);
+		history.replaceState(state, null);
 	}
 
 	static remove(...path) {
-		this.buffer.remove("history", ...path);
+		this.set(null, ...path);
 	}
 
-	static getIndex() {
-		return this.buffer.get("history", "index") || 0;
-	}
+	// static getIndex() {
+	// 	return this.buffer.get("history", "index") || 0;
+	// }
 
-	static setIndex(index) {
-		return this.buffer.set(index, "history", "index");
-	}
+	// static setIndex(index) {
+	// 	return this.buffer.set(index, "history", "index");
+	// }
 
-	static tie(newValue, ...path) {
+	// static tie(newValue, ...path) {
+	//
+	// 	let index = this.getIndex() || 0;
+	//
+	// 	const lastValue = this.get(index, ...path);
+	//
+	// 	if (KarmaFieldsAlpha.DeepObject.differ(newValue, lastValue)) {
+	// 		this.save();
+	// 	}
+	//
+	// }
 
-		let index = this.getIndex() || 0;
+	// static pack(newValue, currentValue, ...path) {
+	//
+	// 	const index = this.getIndex();
+	// 	const lastValue = this.get(index-1, ...path);
+	//
+	// 	this.set(newValue, index, ...path);
+	//
+	// 	if (lastValue === undefined && index > 0) {
+	// 		this.set(currentValue, index-1, ...path);
+	// 	}
+	//
+  // }
 
-		const lastValue = this.get(index, ...path);
+	// static push(value, ...path) {
+	// 	const index = this.getIndex();
+	// 	this.set(value, index, ...path);
+  // }
 
-		if (KarmaFieldsAlpha.DeepObject.differ(newValue, lastValue)) {
-			this.save();
-		}
+	static backup(newValue, currentValue, deprec, context, ...path) {
 
-	}
+		// if (tie) {
+		// 	this.save();
+		// }
 
-	static pack(newValue, currentValue, ...path) {
-
-		const index = this.getIndex();
-		const lastValue = this.get(index-1, ...path);
-
-		this.set(newValue, index, ...path);
-
-		if (lastValue === undefined && index > 0) {
-			this.set(currentValue, index-1, ...path);
-		}
-
-  }
-
-	static push(value, ...path) {
-		const index = this.getIndex();
-		this.set(value, index, ...path);
-  }
-
-	static backup(newValue, currentValue, tie, ...path) {
-
-		if (tie) {
-			this.save();
-		}
-
-		let index = this.getIndex();
+		// let index = this.getIndex();
 
 		// if (index === 0) {
 		// 	index++;
 		// }
 
 		newValue = KarmaFieldsAlpha.DeepObject.clone(newValue);
+
+		// if (context === "nav") {
+		//
+		// 	const hash = KarmaFieldsAlpha.Nav.toString(newValue);
+		//
+		//
+		// }
 
 		this.set(newValue, index, ...path);
 
@@ -176,6 +180,8 @@ KarmaFieldsAlpha.History = class {
 			const state = this.buffer.get("history", index, "state") || {};
 			this.buffer.merge(state, "state");
 
+			KarmaFieldsAlpha.Nav.edit();
+
 		}
 
 	}
@@ -211,6 +217,8 @@ KarmaFieldsAlpha.History = class {
 
 			const state = this.buffer.get("history", index, "state") || {};
 			this.buffer.merge(state, "state");
+
+			KarmaFieldsAlpha.Nav.edit();
 
 		}
 

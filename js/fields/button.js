@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.button = class extends KarmaFieldsAlpha.fields.text {
+KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 
 	build() {
 		return {

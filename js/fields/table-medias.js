@@ -1,6 +1,6 @@
 
 
-KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.table {
+KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table {
 
   // async dispatch(event) {
   //
@@ -172,7 +172,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
 
 
-  static interface = class extends KarmaFieldsAlpha.fields.table.interface {
+  static interface = class extends KarmaFieldsAlpha.field.table.interface {
 
     constructor(...args) {
 
@@ -645,7 +645,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
     }
 
 
-    static modal = class extends KarmaFieldsAlpha.fields.table.interface.modal {
+    static modal = class extends KarmaFieldsAlpha.field.table.interface.modal {
 
       // async dispatch(event) {
       //
@@ -781,7 +781,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
       }
 
-      static mediaDescription = class extends KarmaFieldsAlpha.fields.field {
+      static mediaDescription = class extends KarmaFieldsAlpha.field {
 
         build() {
           return {
@@ -1068,7 +1068,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
   }
 
 
-  static upload = class extends KarmaFieldsAlpha.fields.button {
+  static upload = class extends KarmaFieldsAlpha.field.button {
 
     constructor(resource) {
       super({
@@ -1162,7 +1162,7 @@ KarmaFieldsAlpha.fields.tableMedias = class extends KarmaFieldsAlpha.fields.tabl
 
 
 
-  static directoryDropdown = class extends KarmaFieldsAlpha.fields.dropdown {
+  static directoryDropdown = class extends KarmaFieldsAlpha.field.dropdown {
 
     async getAncestors() {
 

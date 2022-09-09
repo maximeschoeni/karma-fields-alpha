@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table {
+KarmaFieldsAlpha.field.tableGrid = class extends KarmaFieldsAlpha.field.table {
 
   async request(subject, content, ...path) {
 
@@ -319,7 +319,7 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
   // }
 
 
-  static interface = class extends KarmaFieldsAlpha.fields.table.interface {
+  static interface = class extends KarmaFieldsAlpha.field.table.interface {
 
     constructor(...args) {
       super(...args);
@@ -588,7 +588,7 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
 
 
 
-    static row = class extends KarmaFieldsAlpha.fields.field {
+    static row = class extends KarmaFieldsAlpha.field.group {
 
       // async export(keys = [], indexes = []) { // indexes are a colIds
       //
@@ -620,32 +620,34 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
       //
       // }
 
-      async export(keys = []) { // indexes are a colIds
+      // async export(keys = []) { // indexes are a colIds
+      //
+      //   let row = {};
+      //
+      //   for (let index in this.resource.children) {
+      //
+      //     const field = this.createChild(this.resource.children[index], index.toString());
+      //     const values = await field.export(keys);
+      //     row = {...row, ...values};
+      //
+      //   }
+      //
+      //   return row;
+      //
+      // }
+      //
+      // async import(object) {
+      //
+      //   for (let index in this.resource.children) {
+      //
+      //     const field = this.createChild(this.resource.children[index], index.toString());
+      //     await field.import(object);
+      //
+      //   }
+      //
+      // }
 
-        let row = {};
-
-        for (let index in this.resource.children) {
-
-          const field = this.createChild(this.resource.children[index], index.toString());
-          const values = await field.export(keys);
-          row = {...row, ...values};
-
-        }
-
-        return row;
-
-      }
-
-      async import(object) {
-
-        for (let index in this.resource.children) {
-
-          const field = this.createChild(this.resource.children[index], index.toString());
-          await field.import(object);
-
-        }
-
-      }
+      // -> extends group instead.
 
       async request(subject, content, ...path) {
 
@@ -655,12 +657,12 @@ KarmaFieldsAlpha.fields.tableGrid = class extends KarmaFieldsAlpha.fields.table 
             return this.index;
 
           default:
-            return super.request(subject, content, this.getKey(), ...path);
+            return super.request(subject, content, ...path); // -> extends group
         }
 
       }
 
-      static modalHandle = class extends KarmaFieldsAlpha.fields.field {
+      static modalHandle = class extends KarmaFieldsAlpha.field {
 
         constructor(...args) {
           super(...args);

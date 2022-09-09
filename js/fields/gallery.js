@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
   constructor(resource) {
     super(resource);
@@ -667,7 +667,7 @@ KarmaFieldsAlpha.fields.gallery = class extends KarmaFieldsAlpha.fields.field {
 
   }
 
-  static controls = class extends KarmaFieldsAlpha.fields.group {
+  static controls = class extends KarmaFieldsAlpha.field.group {
 
     constructor(resource, ...args) {
 

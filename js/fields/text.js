@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.text = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 	async getContent() {
 		return this.parse(this.resource.value || "");

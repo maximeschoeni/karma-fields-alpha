@@ -22,6 +22,9 @@ KarmaFieldsAlpha.Store = class {
   }
 
   empty() {
+
+    // console.trace();
+
     // this.constructor.cache[this.driver] = {};
     this.cache.remove();
     this.buffer.remove();
@@ -45,6 +48,20 @@ KarmaFieldsAlpha.Store = class {
   //
   //   this.cache.set(promise, context, key);
   // }
+
+  write(value, id, key) {
+
+    const array = KarmaFieldsAlpha.Type.toArray(value);
+
+    this.buffer.set(array, id, key);
+
+    if (!this.trashBuffer.has(id, key)) {
+
+      this.trashBuffer.set(array, id, key);
+
+    }
+
+  }
 
   get(id) {
 
@@ -176,6 +193,17 @@ KarmaFieldsAlpha.Store = class {
         while (i < ids.length) {
           const slice = ids.slice(i, i+querySize);
           await KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+slice.join(",")).then(relations => {
+            // const data = {};
+            // for (let relation of relations) {
+            //   const id = relation.id.toString();
+            //   const key = relation.key;
+            //
+            //   data[id] ||= {}
+            //   data[id][key] = [...data[id][key], relation.value]
+            //
+            // }
+            // this.buffer.merge(data);
+
             for (let relation of relations) {
               const id = relation.id.toString();
               const key = relation.key;
@@ -204,13 +232,23 @@ KarmaFieldsAlpha.Store = class {
         const slice = ids.slice(offset, offset+max);
         return KarmaFieldsAlpha.Gateway.get("join/"+join+"?ids="+slice.join(","));
       }).then(relations => {
+        const data = {};
         for (let relation of relations) {
           const id = relation.id.toString();
           const key = relation.key;
-          const values = this.buffer.get(id, key) || [];
-
-          this.buffer.set([...values, relation.value], id, key);
+          data[id] ||= {};
+          data[id][key] ||= [];
+          data[id][key].push(relation.value);
         }
+        this.buffer.merge(data);
+
+        // for (let relation of relations) {
+        //   const id = relation.id.toString();
+        //   const key = relation.key;
+        //   const values = this.buffer.get(id, key) || [];
+        //
+        //   this.buffer.set([...values, relation.value], id, key);
+        // }
         return relations;
       });
 

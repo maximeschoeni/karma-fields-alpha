@@ -13,6 +13,8 @@
   --link-active-color: #484848;
   --link-hover-color: #484848;
 
+  --modified-color: #dadada;
+
   --gap-width: 0.75em;
 
 }
@@ -65,8 +67,8 @@ body.karma-table-open {
 	}
 }
 
-.karma-fields .loading,
-.karma-fields .editing {
+.karma-fields .loading:not(:focus),
+.karma-fields .editing:not(:focus) {
   color: var(--disabled-color) !important;
   border-color: var(--disabled-color) !important;
   outline-color: var(--disabled-color) !important;
@@ -396,7 +398,7 @@ body.karma-table-open {
   background-color: var(--background-color);
   position: relative;
 }
-.karma-fields .table .td::after {
+/* .karma-fields .table .td::after {
   font-family: dashicons;
   position: absolute;
   font-size: 1.5em;
@@ -410,8 +412,10 @@ body.karma-table-open {
   border-radius: 50%;
   width: 0.6em;
   height: 0.6em;
+} */
+.karma-fields .table .td.modified {
+  background-color: var(--modified-color);
 }
-
 .karma-fields .table .td.selected {
   background-color: var(--disabled-color);
 }
@@ -725,12 +729,9 @@ button.karma-button.editing::after {
   /* content: "..."; */
 }
 
-button.karma-button.loading,
 button.karma-button.primary.loading,
-button.karma-button.editing,
 button.karma-button.primary.editing {
-  /* color: var(--disabled-color);
-  border: 1px solid var(--disabled-color); */
+  background-color: var(--background-color);
 }
 
 button.karma-button.loading .button-content,
@@ -1193,6 +1194,10 @@ button.karma-button.editing span {
   min-width: 10em;
   width: 100%;
   min-height: 3em;
+}
+.karma-fields .table.ta-focus .selected input.text-input,
+.karma-fields .table.ta-focus .selected textarea {
+  color: var(--background-color);
 }
 .karma-fields .table textarea {
   line-height: 1.1em;

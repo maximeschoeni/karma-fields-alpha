@@ -67,24 +67,28 @@
 
 			}
 
-			async dispatch(event) {
-				switch (event.action) {
+			async request(subject, object, ...path) {
+				switch (subject) {
 					case "render":
 					case "edit":
 						await this.render();
 						break;
 
 					case "get": {
-						const [id, key] = event.path;
+						const [id, key] = path;
 						const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins || []);
 						await store.query(`id=${id}`);
-						event.data = await store.getValue(...event.path);
-						break;
+						return store.getValue(...path);
+					}
+
+					case "modified": {
+						// const originalValue = this.buffer.get(...path);
+						// return KarmaFieldsAlpha.DeepObject.differ(content.data, originalValue);
+						return false;
 					}
 
 					default:
-						await super.dispatch(event);
-						break;
+						return super.request(subject, object, ...path);
 				}
 				return event;
 			}

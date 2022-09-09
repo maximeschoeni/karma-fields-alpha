@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.submit = class extends KarmaFieldsAlpha.fields.button {
+KarmaFieldsAlpha.field.submit = class extends KarmaFieldsAlpha.field.button {
 
 	constructor(resource) {
 		super({

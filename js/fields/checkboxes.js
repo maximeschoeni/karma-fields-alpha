@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.checkboxes = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 	async getDefault() {
 

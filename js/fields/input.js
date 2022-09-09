@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	async getDefault() {
 
@@ -141,17 +141,25 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 				} else {
 
-					const value = KarmaFieldsAlpha.Type.toString(response);
+					if (document.activeElement !== input.element) { // -> prevent changing value while editing (e.g search field)
 
-					if (value !== input.element.value) {
+						const value = KarmaFieldsAlpha.Type.toString(response);
 
-						input.element.value = value;
+						if (value !== input.element.value) {
+
+							input.element.value = value;
+
+						}
+
+						const isModified = await this.isModified();
+
+						input.element.parentNode.classList.toggle("modified", isModified);
+
+						input.element.placeholder = await this.getPlaceholder();
 
 					}
 
-					input.element.parentNode.classList.toggle("modified", await this.isModified());
 
-					input.element.placeholder = await this.getPlaceholder();
 
 					input.element.oncopy = event => {};
 
@@ -172,9 +180,9 @@ KarmaFieldsAlpha.fields.input = class extends KarmaFieldsAlpha.fields.field {
 
 						await this.set(input.element.value.normalize());
 
-						const isModified = await this.isModified();
-
-						input.element.parentNode.classList.toggle("modified", isModified);
+						// const isModified = await this.isModified();
+						//
+						// input.element.parentNode.classList.toggle("modified", isModified);
 						input.element.classList.remove("editing");
 					});
 

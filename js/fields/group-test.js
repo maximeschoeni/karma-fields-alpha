@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 	constructor(...args) {
     super(...args);
@@ -291,8 +291,8 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 
     const type = resource.type || "group";
 
-    if (KarmaFieldsAlpha.fields[type]) {
-      return new KarmaFieldsAlpha.fields[type](resource);
+    if (KarmaFieldsAlpha.field[type]) {
+      return new KarmaFieldsAlpha.field[type](resource);
     }
 
     if (this.constructor[type] && typeof this.constructor[type] === "function") {
@@ -495,8 +495,8 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 			// children: (this.resource.children || []).map((child, index) => {
 			//
 			// 	// -> compat
-			// 	if (typeof child === "string" && KarmaFieldsAlpha.fields.presets[child]) {
-			// 		child = KarmaFieldsAlpha.fields.presets[child];
+			// 	if (typeof child === "string" && KarmaFieldsAlpha.field.presets[child]) {
+			// 		child = KarmaFieldsAlpha.field.presets[child];
 			// 	}
 			//
 			// 	// if (typeof child === "string" && this.constructor[child]) {

@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 
 	// async dispatch(event, parent) {
@@ -158,7 +158,6 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 		return {
 			class: "karma-field karma-field-container display-"+(this.resource.display || "block"),
 			init: group => {
-				this.render = group.render;
 				if (this.resource.container && this.resource.container.style) {
 					group.element.style = this.resource.container.style;
 				}
@@ -167,7 +166,7 @@ KarmaFieldsAlpha.fields.group = class extends KarmaFieldsAlpha.fields.field {
 				}
 			},
 			update: async group => {
-
+				this.render = group.render;
 				group.children = (this.resource.children || []).map((child, index) => {
 
 					const field = this.createChild(child, index.toString());

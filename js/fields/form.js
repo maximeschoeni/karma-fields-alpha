@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
+KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.group {
 
 	constructor(...args) {
 		super(...args);
@@ -135,6 +135,8 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 	// 	return event;
 	// }
 
+
+
 	async request(subject, content = {}, ...path) {
 
 		switch (subject) {
@@ -149,7 +151,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 				} else {
 
-					return this.parent.request(subject, content, ...path)
+					return super.request(subject, content, ...path); // -> extends group
 
 				}
 
@@ -164,7 +166,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 				if (!currentValue) {
 
-					const response = await this.parent.request("get", {}, ...path);
+					const response = await super.request("get", {}, ...path); // -> extends group
 
 					currentValue = KarmaFieldsAlpha.Type.toArray(response);
 
@@ -174,7 +176,11 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 					if (content.autosave) {
 
-						await this.parent.request(subject, content, ...path);
+						this.buffer.change(newValue, currentValue, ...path);
+
+						await super.request(subject, content, ...path); // -> extends group
+
+
 
 					} else {
 
@@ -202,7 +208,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 				} else if (delta) {
 
-					return this.parent.request(subject, {data: delta}, ...path);
+					return super.request(subject, {data: delta}, ...path);
 
 				}
 
@@ -213,9 +219,13 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 
 
-			case "submit":
-				await this.parent.request("save");
+			case "submit": {
+				const delta = this.buffer.get(...path);
+				await this.parent.request("send", {data: delta});
+				this.buffer.remove();
+				await this.render();
 				break;
+			}
 
 			// case "send":
 			// 	event.action = "set";
@@ -223,7 +233,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 			// 	break;
 
 			default:
-				return this.parent.request(subject, content, ...path);
+				return super.request(subject, content, ...path); // -> extends group
 
 		}
 
