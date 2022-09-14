@@ -270,7 +270,7 @@ body.karma-table-open {
 }
 .karma-fields .karma-field-table-grid-container {
   overflow: auto;
-  flex-direction: row;
+  /* flex-direction: row; */
 
   padding: var(--gap-width);
 }
@@ -364,8 +364,8 @@ body.karma-table-open {
   margin: 2em 0;
   /* background-color: black; */
 
-  width: max-content;
-  height: max-content;
+  /* width: max-content;
+  height: max-content; */
 
   position: relative;
 }
@@ -420,7 +420,7 @@ body.karma-table-open {
   background-color: var(--disabled-color);
 }
 .karma-fields .table .td.selecting,
-.karma-fields .table.ta-focus .td.selected:not(.selecting-cell) {
+.karma-fields .clipboard:focus + .table .td.selected:not(.selecting-cell) {
   background-color: var(--selected-color);
   color: var(--background-color);
 }
@@ -430,7 +430,7 @@ body.karma-table-open {
 .karma-fields .table .td .modal-btn {
   cursor: cell;
 }
-.karma-fields .table.ta-focus .td.active-row .modal-btn {
+.karma-fields .clipboard:focus + .table .td.active-row .modal-btn {
   cursor: pointer;
 }
 
@@ -543,12 +543,12 @@ body.karma-table-open {
 .karma-field-table .media-table .selected .frame {
   background-color: var(--disabled-color);
 }
-.karma-field-table .media-table.focus .selected .frame,
+.karma-field-table .clipboard:focus + .media-table .selected .frame,
 .karma-field-table .media-table .selecting .frame {
   background-color: var(--selected-color);
 }
 .karma-field-table .media-table .selecting .frame figure,
-.karma-field-table .media-table.focus .selected .frame figure {
+.karma-field-table .clipboard:focus + .media-table .selected .frame figure {
   filter: saturate(0.5) opacity(0.5);
 }
 .karma-field-table .media-table.loading .frame figure {
@@ -576,7 +576,7 @@ body.karma-table-open {
   color: var(--background-color);
 }
 .karma-field-table .media-table .selecting .frame .file-caption,
-.karma-field-table .media-table.focus .selected .frame .file-caption {
+.karma-field-table .clipboard:focus + .media-table .selected .frame .file-caption {
   background-color: var(--selected-color);
   color: var(--background-color);
 }
@@ -732,6 +732,8 @@ button.karma-button.editing::after {
 button.karma-button.primary.loading,
 button.karma-button.primary.editing {
   background-color: var(--background-color);
+  color: var(--disabled-color);
+  border-color: var(--disabled-color);
 }
 
 button.karma-button.loading .button-content,
@@ -788,6 +790,7 @@ button.karma-button.editing span {
 .karma-gallery {
   display: flex;
   flex-direction: column;
+  gap: var(--gap-width);
 }
 .karma-gallery.single {
   align-items: flex-start;
@@ -856,8 +859,11 @@ button.karma-button.editing span {
 .karma-gallery .controls {
   flex-shrink: 0;
   flex-grow: 1;
-
-  padding: var(--gap-width) 0;
+  display: flex;
+  /* padding: var(--gap-width) 0; */
+}
+.karma-gallery .controls .footer-content {
+  display: flex;
 }
 
 
@@ -946,22 +952,35 @@ button.karma-button.editing span {
 .karma-field-array {
   flex-grow: 1;
 }
+.karma-fields .array {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-width);
+}
+
+
 .karma-fields .array .array-body {
   display: grid;
   grid-gap: 1px;
   background-color: var(--disabled-color);
-  border: 1px solid var(--disabled-color);
-  border-radius: 2px;
+  /* border: 1px solid var(--disabled-color); */
+  /* border-radius: 2px; */
   min-height: 2em;
 
   grid-auto-flow: row dense;
 
   position: relative;
+
+  padding: 1px;
 }
 .karma-fields .array .array-footer {
   flex-shrink: 0;
   flex-grow: 1;
-  padding: var(--gap-width) 0;
+  display: flex;
+  /* padding: var(--gap-width) 0; */
+}
+.karma-fields .array .array-footer .array-footer-content {
+  display: flex;
 }
 
 .karma-fields .array .array-body.empty {
@@ -1154,7 +1173,7 @@ button.karma-button.editing span {
   outline: none;
   background-color: white;
 
-  flex-grow: 1;
+  /* flex-grow: 1; */
   box-shadow: none;
   box-sizing: border-box;
 }
@@ -1195,8 +1214,8 @@ button.karma-button.editing span {
   width: 100%;
   min-height: 3em;
 }
-.karma-fields .table.ta-focus .selected input.text-input,
-.karma-fields .table.ta-focus .selected textarea {
+.karma-fields .clipboard:focus + .table .selected input.text-input,
+.karma-fields .clipboard:focus + .table .selected textarea {
   color: var(--background-color);
 }
 .karma-fields .table textarea {
@@ -1211,6 +1230,23 @@ button.karma-button.editing span {
   flex-grow: 1;
 }
 
+/* Clipboard textarea */
+textarea.clipboard {
+  /* position: fixed; */
+  /* width: 1px;
+  height: 0; */
+  padding: 0;
+  border: none;
+  /* opacity: 0.01; */
+  bottom: 0;
+
+  font-size: 1px;
+  width: 1em;
+  height: 1em;
+
+  order: 999;
+
+}
 
 
 

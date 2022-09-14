@@ -94,13 +94,35 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 	}
 
+	getKeys() {
+
+		const key = this.getKey();
+		let keys = new Set();
+
+		if (key) {
+
+			keys.add(key);
+
+		} else if (this.resource.children) {
+
+		  for (let resource of this.resource.children) {
+
+				keys = new Set([...keys, ...this.createChild(resource).getKeys()]);
+
+			}
+
+		}
+
+		return keys;
+	}
+
 	async getDefault() {
 
 		let defaults = {};
 
 		for (let index in this.resource.children) {
 
-			const child = this.createChild(this.resource.children[index], index.toString());
+			const child = this.createChild(this.resource.children[index]);
 
 			defaults = {
 				...defaults,
@@ -109,21 +131,40 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 		}
 
+		const key = this.getKey();
+
+		if (key) {
+
+			return {[key]: defaults};
+
+		}
+
 		return defaults;
 	}
 
 	async export(keys = []) {
 
+		const key = this.getKey();
 		let object = {};
 
-		for (let index in this.resource.children) {
+		if (key) {
 
-			const child = this.createChild(this.resource.children[index], index.toString());
+			const response = await this.request("get", {}, key);
+			const value = KarmaFieldsAlpha.Type.toObject(response);
+			object[key] = JSON.stringify(value || {});
 
-			object = {
-				...object,
-				...await child.export(keys)
-			};
+		} else if (this.resource.children) {
+
+			for (let resource of this.resource.children) {
+
+				const child = this.createChild(resource);
+
+				object = {
+					...object,
+					...await child.export(keys)
+				};
+
+			}
 
 		}
 
@@ -132,11 +173,27 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 	async import(object) {
 
-		for (let index in this.resource.children) {
+		const key = this.getKey();
 
-			const child = this.createChild(this.resource.children[index], index.toString());
+		if (key) {
 
-			await child.import(object);
+			if (object[key] !== undefined) {
+
+				const value = JSON.parse(object[key] || "{}");
+
+				await this.parent.request("set", {data: value}, key);
+
+			}
+
+		} else if (this.resource.children) {
+
+			for (let resource of this.resource.children) {
+
+				const child = this.createChild(resource);
+
+				await child.import(object);
+
+			}
 
 		}
 

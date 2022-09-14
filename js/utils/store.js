@@ -282,7 +282,7 @@ KarmaFieldsAlpha.Store = class {
 
             for (let join of this.joins) {
 
-              const max = 10;
+              const max = 20;
               let i = 0;
 
               while (i < ids.length) {

@@ -164,13 +164,10 @@ Class Karma_Fields_Alpha_Media_Library {
 				'files',
 				'files-sources'
 			),
-			'ppp' => 100,
-			'index' => array(
-				'title' => '#',
-				'width' => 'auto'
+			'params' => array(
+				'ppp' => 100,
 			),
 			'style' => 'flex: 1 1 0;',
-			'autosave' => false,
 			'title' => 'Media Library',
 			'header' => array(
 				'children' => array(
@@ -265,7 +262,7 @@ Class Karma_Fields_Alpha_Media_Library {
 						),
 						array(
 							'type' => 'textarea',
-							'visible' => array('&&', array("dispatch", "is-attachment"), array('selection')),
+							'visible' => array('&', array("dispatch", "is-attachment"), array('selection')),
 							'label' => 'Caption',
 							'key' => 'post_excerpt'
 						),

@@ -219,19 +219,15 @@ KarmaFieldsAlpha.CellManager = class {
 
     let union = KarmaFieldsAlpha.Rect.union(this.tie, rectangle);
 
-    if (!this.rectangle || !KarmaFieldsAlpha.Rect.compare(this.rectangle, union)) {
+    if (this.rectangle) {
 
-      if (this.rectangle) {
-
-        this.sliceElements(this.rectangle).forEach(element => element.classList.remove("selecting-cell"));
-
-      }
-
-      this.rectangle = union;
-
-      this.sliceElements(this.rectangle).forEach(element => element.classList.add("selecting-cell"));
+      this.sliceElements(this.rectangle).forEach(element => element.classList.remove("selecting-cell"));
 
     }
+
+    this.rectangle = union;
+
+    this.sliceElements(this.rectangle).forEach(element => element.classList.add("selecting-cell"));
 
   }
 
@@ -251,25 +247,33 @@ KarmaFieldsAlpha.CellManager = class {
 
     }
 
+
+
   }
 
   endSelection() {
 
-    if (this.onSelect
-      && this.rectangle
-      && (!this.selection || !KarmaFieldsAlpha.Rect.compare(this.selection, this.rectangle))) {
+    // if (this.onSelect
+    //   && this.rectangle
+    //   && (!this.selection || !KarmaFieldsAlpha.Rect.compare(this.selection, this.rectangle))) {
+    //
+    //     if (this.rectangle.width*this.rectangle.height > 1) {
+    //
+    //       this.onSelect(this.rectangle);
+    //
+    //     } else {
+    //
+    //       this.clear(this.rectangle);
+    //
+    //     }
+    //
+    //
+    //
+    // }
 
-        if (this.rectangle.width*this.rectangle.height > 1) {
+    if (this.onSelect && this.rectangle) {
 
-          this.onSelect(this.rectangle);
-
-        } else {
-
-          this.clear(this.rectangle);
-
-        }
-
-
+      this.onSelect(this.rectangle);
 
     }
 

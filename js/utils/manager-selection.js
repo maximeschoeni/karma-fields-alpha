@@ -10,7 +10,8 @@ KarmaFieldsAlpha.SelectionManager = class {
     this.offsetCol = offsetCol;
     this.offsetRow = offsetRow;
 
-    this.elements = [...container.children].slice(this.width*offsetRow);
+    this.children = [...container.children];
+    this.elements = this.children.slice(this.width*offsetRow);
     this.box = this.container.getBoundingClientRect();
 
   }
@@ -153,6 +154,16 @@ KarmaFieldsAlpha.SelectionManager = class {
       this.segment = union;
 
       this.sliceElements(this.segment).forEach(element => element.classList.add("selecting"));
+
+    }
+
+  }
+
+  clear(segment = this.segment) {
+
+    if (segment) {
+
+      this.sliceElements(segment).forEach(element => element.classList.remove("selected"));
 
     }
 

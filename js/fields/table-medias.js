@@ -79,17 +79,14 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
         for (let id of selectedIds) {
           await this.regen(id);
         }
-        await this.render();
-        break;
+        return this.render();
       }
 
       default:
-        await super.request(subject, content, ...path);
+        return super.request(subject, content, ...path);
 
     }
 
-
-    return event;
   }
 
 
@@ -180,7 +177,9 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
 
       this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.context, "selection");
 
-      this.clipboard = new KarmaFieldsAlpha.Clipboard();
+      // this.clipboard = new KarmaFieldsAlpha.Clipboard();
+
+      this.clipboard = this.createChild("clipboard");
 
     }
 
@@ -399,347 +398,285 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
     }
 
 
-    async updateSelection(index, length) {
+    // async updateSelection(index, length) {
+    //
+    //   const selection = this.selectionBuffer.get() || {};
+    //   const segment = new KarmaFieldsAlpha.Segment(index, length);
+    //
+    //   if (!segment.equals(selection.index, selection.length)) {
+    //
+    //     KarmaFieldsAlpha.History.save();
+    //
+    //     this.select(index, length);
+    //
+    //     // const ids = await this.dispatch({
+    //     //   action: "ids"
+    //     // }).then(request => KarmaFieldsAlpha.Type.toArray(request.data));
+    //
+    //     const ids = await this.parent.request("ids");
+    //
+    //     const selectedIds = ids.slice(index, index + length);
+    //
+    //     this.clipboard.setData(selectedIds.map(id => [id]));
+    //     await this.parent.request("edit-selection");
+    //
+    //   } else {
+    //
+    //     this.clipboard.focus();
+    //
+    //   }
+    //
+    // }
 
-      const selection = this.selectionBuffer.get() || {};
-      const segment = new KarmaFieldsAlpha.Segment(index, length);
+    build() {
 
-      if (!segment.equals(selection.index, selection.length)) {
+      return {
+        class: "karma-field-table-grid-container karma-field-frame karma-field-group final",
+        init: body => {
+          body.element.tabIndex = -1;
+          body.element.onfocus = async event => {
+            const selection = this.selectionBuffer.get();
+            if (selection) {
+              KarmaFieldsAlpha.History.save();
+              this.selectionBuffer.change(null);
+              await this.parent.request("render");
+            }
+            this.clipboard.output("");
+            this.clipboard.focus();
+          }
+        },
+        children: [
+          this.clipboard.build(),
+          {
+            class: "media-table",
+            tag: "ul",
+            init: async grid => {
+              if (this.resource.style) {
+                grid.element.style = this.resource.style;
+              }
+              grid.element.ondrop = async event => {
+                event.preventDefault();
+                const files = event.dataTransfer.files;
+                if (event.dataTransfer.files.length) {
 
-        KarmaFieldsAlpha.History.save();
+                  grid.element.classList.add("loading");
 
-        this.select(index, length);
+                  await this.parent.request("upload", {
+                    files: event.dataTransfer.files,
+                    params: {
+                      parent: KarmaFieldsAlpha.Nav.get("parent") || "0"
+                    }
+                  });
+                  grid.element.classList.remove("loading");
+                }
+              }
+              grid.element.ondragover = function(event) {
+                event.preventDefault();
+              }
+            },
+            update: async grid => {
 
-        // const ids = await this.dispatch({
-        //   action: "ids"
-        // }).then(request => KarmaFieldsAlpha.Type.toArray(request.data));
+              const ids = await this.parent.request("ids");
+              const page = await this.parent.request("page");
+              const ppp = await this.parent.request("ppp");
+              const offset = (page - 1)*ppp;
 
-        const ids = await this.parent.request("ids");
+              // const columns = await this.parent.request("columns");
 
-        const selectedIds = ids.slice(index, index + length);
+              this.clipboard.onInput = value => {
+                const dataArray = KarmaFieldsAlpha.Clipboard.parse(value);
+                const data = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
+                this.parent.request("import", {data: data});
 
-        this.clipboard.setData(selectedIds.map(id => [id]));
-        await this.parent.request("edit-selection");
+                // const data = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
+                // const selection = this.selectionBuffer.get();
+                // if (selection) {
+                //   this.parent.request("import", {data: data});
+                // }
+              }
 
-      } else {
+              // this.clipboard.ta.onfocus = event => {
+              //   grid.element.classList.add("focus");
+              // }
+              // this.clipboard.ta.onblur = event => {
+              //   grid.element.classList.remove("focus");
+              // }
 
-        this.clipboard.focus();
+              const currentSelection = this.selectionBuffer.get() || {};
 
+              if (ids.length) {
+                grid.element.classList.add("filled"); // -> draw table borders
+                grid.children = ids.map((id, index) => {
+
+                  return {
+                    tag: "li",
+                    update: li => {
+
+
+
+                      const isSelected = KarmaFieldsAlpha.Segment.contains(currentSelection, index);
+
+                      li.element.classList.toggle("selected", isSelected);
+
+                      li.element.onmousedown = async event => {
+
+                        const selectionManager = new KarmaFieldsAlpha.SelectionManager(grid.element, 1, ids.length, 0, 0);
+
+                        selectionManager.selection = this.selectionBuffer.get();
+
+                        selectionManager.onSelect = async (selection, hasChange) => {
+                          if (hasChange) {
+                            KarmaFieldsAlpha.History.save();
+                            this.selectionBuffer.change(selection);
+                          }
+
+                          // const data = await this.export();
+                          const jsonData = await this.parent.request("export");
+                          const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
+                          const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+                          this.clipboard.output(value);
+                          this.clipboard.focus();
+
+                          await this.parent.request("render");
+                        };
+
+                        selectionManager.select(event, 1, index);
+
+
+
+
+
+                        // const currentSelection = this.selectionBuffer.get();
+                        //
+                        // const newSelection = new KarmaFieldsAlpha.Selection(event, grid.element, [...grid.element.children], 1, ids.length, 0, index, currentSelection);
+                        //
+                        // await newSelection.select();
+                        //
+                        // await this.updateSelection(newSelection.index, newSelection.length);
+
+                      }
+                    },
+                    child: {
+                      class: "frame",
+                      init: frame => {
+                        frame.element.tabIndex = -1;
+                      },
+                      update: async frame => {
+
+                        frame.element.classList.add("loading");
+
+                         // => mime type
+                        const type = await this.request("get", {}, id, "type").then(response => KarmaFieldsAlpha.Type.toString(response));
+                        const filetype = await this.request("get", {}, id, "filetype").then(response => KarmaFieldsAlpha.Type.toString(response));
+                        const thumb = await this.request("get", {}, id, "thumb").then(response => KarmaFieldsAlpha.Type.toObject(response));
+
+                        const isFolder = !filetype || filetype === "folder";
+
+                        frame.element.ondblclick = event => {
+                          if (isFolder && id != "0") {
+                            this.request("open-folder", {}, id);
+                          }
+                        }
+
+                        frame.children = [
+                          {
+                            tag: "figure",
+                            update: async figure => {
+
+                              const [mediaType] = type.split("/");
+
+                              figure.element.classList.toggle("dashicons", !thumb);
+                              figure.element.classList.toggle("dashicons-category", isFolder);
+                              figure.element.classList.toggle("dashicons-media-video", !thumb && mediaType === "video");
+                              figure.element.classList.toggle("dashicons-media-audio", !thumb && mediaType === "audio");
+                              figure.element.classList.toggle("dashicons-media-text", !thumb && mediaType === "text");
+                              figure.element.classList.toggle("dashicons-media-document", !thumb && type === "application/pdf");
+                              figure.element.classList.toggle("dashicons-media-default", !thumb && !isFolder && mediaType !== "video" && mediaType !== "audio" && mediaType !== "text" && type !== "application/pdf");
+
+                              if (thumb) {
+                                figure.child = {
+                                  tag: "img",
+                                  update: async img => {
+                                    const src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
+                                    if (!img.element.src.endsWith(src)) { // -> setting same src will reload image!
+                                      img.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
+                                    }
+                                  }
+                                }
+                              } else {
+                                figure.children = [];
+                              }
+                            }
+                          },
+                          {
+                            class: "file-caption",
+                            child: {
+                              class: "filename",
+                              update: async filename => {
+                                const name = await this.request("get", {}, id, "name").then(response => KarmaFieldsAlpha.Type.toString(response));
+                                filename.element.innerHTML = name || "no name";
+                              }
+                            }
+                          }
+                        ];
+                      },
+                      complete: frame => {
+                        frame.element.classList.remove("loading");
+                      }
+                    }
+
+                  };
+                });
+              } else {
+                grid.children = [];
+                grid.element.classList.remove("filled");
+              }
+            },
+            complete: async grid => {
+
+              // -> caution not lose focus i.e. search field!
+
+              if (document.activeElement === document.body) {
+
+                // const jsonData = await this.parent.request("export");
+                //
+                // this.clipboard.setJson(jsonData);
+                // this.clipboard.focus();
+                const jsonData = await this.parent.request("export");
+                const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
+                const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+                this.clipboard.output(value);
+                this.clipboard.focus();
+
+              }
+
+            }
+          }
+        ]
+      };
+
+    }
+
+    static row = class extends KarmaFieldsAlpha.field.table.interface.row {
+
+      async export(keys) {
+        const key = this.getKey();
+        if (!keys.length || keys.includes("id")) {
+          return {
+            id: key,
+            filetype: await super.request("get", {}, "filetype").then(response => KarmaFieldsAlpha.Type.toString(response))
+          };
+        }
+      }
+
+      async import(object) {
+        // noop
       }
 
     }
 
-    build(ids, page, ppp, columns) {
-      return {
-        class: "media-table",
-        tag: "ul",
-        init: async grid => {
-          if (this.resource.style) {
-            grid.element.style = this.resource.style;
-          }
-          grid.element.ondrop = async event => {
-            event.preventDefault();
-            const files = event.dataTransfer.files;
-            if (event.dataTransfer.files.length) {
-
-              grid.element.classList.add("loading");
-              // this.dispatch({
-              //   action: "upload",
-              //   files: event.dataTransfer.files,
-              //   params: {
-              //     parent: KarmaFieldsAlpha.Nav.get("parent") || "0"
-              //   }
-              // }).then(async request => {
-              //   // if (KarmaFieldsAlpha.Nav.has("parent")) {
-              //   //   const parentId = KarmaFieldsAlpha.Nav.get("parent");
-              //   //   for (let fileId of request.data) {
-              //   //     await this.dispatch({
-              //   //       action: "set",
-              //   //       data: [parentId],
-              //   //       path: [fileId, "parent"]
-              //   //     });
-              //   //   }
-              //   // }
-              //   grid.element.classList.remove("loading");
-              // });
-
-              await this.parent.request("upload", {
-                files: event.dataTransfer.files,
-                params: {
-                  parent: KarmaFieldsAlpha.Nav.get("parent") || "0"
-                }
-              });
-              grid.element.classList.remove("loading");
-            }
-          }
-          grid.element.ondragover = function(event) {
-            event.preventDefault();
-          }
-        },
-        update: async grid => {
-
-          this.clipboard.onInput = dataArray => {
-            const data = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
-            const selection = this.selectionBuffer.get();
-            if (selection) {
-              // this.dispatch({
-              //   action: "write",
-              //   data: data,
-              //   index: selection.index,
-              //   length: selection.length
-              // });
-              this.parent.request("import", {data: data});
-            }
-          }
-
-          this.clipboard.ta.onfocus = event => {
-            grid.element.classList.add("focus");
-          }
-          this.clipboard.ta.onblur = event => {
-            grid.element.classList.remove("focus");
-          }
-
-          const currentSelection = this.selectionBuffer.get() || {};
-
-          if (ids.length) {
-            grid.element.classList.add("filled"); // -> draw table borders
-            grid.children = ids.map((id, index) => {
-
-              return {
-                tag: "li",
-                update: li => {
-
-                  const isSelected = KarmaFieldsAlpha.Segment.contains(currentSelection, index);
-
-                  li.element.classList.toggle("selected", isSelected);
-
-                  li.element.onmousedown = async event => {
-
-                    const currentSelection = this.selectionBuffer.get();
-
-                    const newSelection = new KarmaFieldsAlpha.Selection(event, grid.element, [...grid.element.children], 1, ids.length, 0, index, currentSelection);
-
-                    await newSelection.select();
-
-                    await this.updateSelection(newSelection.index, newSelection.length);
-
-                  }
-                },
-                child: {
-                  class: "frame",
-                  init: frame => {
-                    frame.element.tabIndex = -1;
-                  },
-                  update: async frame => {
-
-                    frame.element.classList.add("loading");
-
-                     // => mime type
-                    // const type = await this.dispatch({
-                    //   action: "get",
-                    //   path: [id, "type"]
-                    // }).then(request => KarmaFieldsAlpha.Type.toString(request.data));
-                    // const type = await super.request("get", {}, id, "type").then(response => KarmaFieldsAlpha.Type.toString(response));
-                    // const filetype = await super.request("get", {}, id, "filetype").then(response => KarmaFieldsAlpha.Type.toString(response));
-                    // const thumb = await super.request("get", {}, id, "thumb").then(response => KarmaFieldsAlpha.Type.toObject(response));
-
-                    const type = await this.getString(id, "type");
-                    const filetype = await this.getString(id, "filetype");
-                    const thumb = await this.getObject(id, "thumb");
-
-                    // const filetype = await this.dispatch({
-                    //   action: "get",
-                    //   path: [id, "filetype"]
-                    // }).then(request => KarmaFieldsAlpha.Type.toString(request.data));
-
-                    const isFolder = !filetype || filetype === "folder";
-
-                    // const thumb = !isFolder && await this.dispatch({
-                    //   action: "get",
-                    //   path: [id, "thumb"]
-                    // }).then(request => KarmaFieldsAlpha.Type.toObject(request.data));
-
-
-
-
-                    frame.element.ondblclick = event => {
-                      if (isFolder && id != "0") {
-                        // this.dispatch({
-                        //   action: "open-folder",
-                        //   path: [id]
-                        //   // data: this.resource.key
-                        // });
-                        this.request("open-folder", {}, id);
-                      }
-                    }
-
-                    frame.children = [
-                      {
-                        tag: "figure",
-                        update: async figure => {
-
-                          const [mediaType] = type.split("/");
-
-                          figure.element.classList.toggle("dashicons", !thumb);
-                          figure.element.classList.toggle("dashicons-category", isFolder);
-                          figure.element.classList.toggle("dashicons-media-video", !thumb && mediaType === "video");
-                          figure.element.classList.toggle("dashicons-media-audio", !thumb && mediaType === "audio");
-                          figure.element.classList.toggle("dashicons-media-text", !thumb && mediaType === "text");
-                          figure.element.classList.toggle("dashicons-media-document", !thumb && type === "application/pdf");
-                          figure.element.classList.toggle("dashicons-media-default", !thumb && !isFolder && mediaType !== "video" && mediaType !== "audio" && mediaType !== "text" && type !== "application/pdf");
-
-                          if (thumb) {
-                            figure.child = {
-                              tag: "img",
-                              update: async img => {
-                                const src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
-                                if (!img.element.src.endsWith(src)) {
-                                  img.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
-                                }
-                              }
-                            }
-                          } else {
-                            figure.children = [];
-                          }
-                        }
-                      },
-                      {
-                        class: "file-caption",
-                        child: {
-                          class: "filename",
-                          update: async filename => {
-                            const name = await this.getString(id, "name");
-                            filename.element.innerHTML = name || "no name";
-                          }
-                        }
-                      }
-                    ];
-                  },
-                  complete: frame => {
-                    frame.element.classList.remove("loading");
-                  }
-                }
-
-              };
-            });
-          } else {
-            grid.children = [];
-            grid.element.classList.remove("filled");
-          }
-        },
-        complete: async grid => {
-
-          // -> caution not lose focus i.e. search field!
-
-          if (document.activeElement === document.body && this.getSelection()) {
-
-            const jsonData = await this.parent.request("export");
-
-            this.clipboard.setJson(jsonData);
-            this.clipboard.focus();
-
-          }
-
-        }
-      };
-    }
-
 
     static modal = class extends KarmaFieldsAlpha.field.table.interface.modal {
-
-      // async dispatch(event) {
-      //
-      //   switch (event.action) {
-      //
-      //     case "close": {
-      //
-      //       const request = await this.dispatch({
-      //         action: "selection"
-      //       });
-      //
-      //       const selection = KarmaFieldsAlpha.Type.toObject(request.data);
-      //
-      //       if (selection) {
-      //
-      //         await this.dispatch({
-      //           action: "unselect"
-      //         });
-      //
-      //       } else {
-      //
-      //         await this.dispatch({
-      //           action: "upper-folder"
-      //         });
-      //
-      //       }
-      //
-      //       await this.dispatch({
-      //         action: "render"
-      //       });
-      //
-      //       break;
-      //     }
-      //
-      //     case "open-folder": {
-      //       const id = await super.dispatch({action: "selectedIds"}).then(request => KarmaFieldsAlpha.Type.toString(request.data));
-      //
-      //       if (id) {
-      //         event.path = [id, ...event.path];
-      //         await super.dispatch(event);
-      //       }
-      //
-      //
-      //       // -> future:
-      //       // const id = await super.dispatch({action: "selectedIds", type: "string"});
-      //       //
-      //       // if (id) {
-      //       //   return super.dispatch(event, id, ...path);
-      //       // }
-      //
-      //
-      //       break;
-      //     }
-      //
-      //     case "is-attachment": {
-      //
-      //       // -> handle multi selection
-      //       const request = await super.dispatch({
-      //         action: "get",
-      //         path: ["filetype"]
-      //       }); //.then(request => request.dataArray.every(data => KarmaFieldsAlpha.Type.toArray(data) === "attachment"));
-      //
-      //       // console.log(request.data, request.dataArray);
-      //
-      //       // event.data = request.dataArray.length > 0 && request.dataArray.every(data => KarmaFieldsAlpha.Type.toString(data) === "file")
-      //
-      //
-      //       event.data = KarmaFieldsAlpha.Type.toString(request.data) === "file";
-      //       break;
-      //     }
-      //
-      //     case "is-folder": {
-      //
-      //       // -> handle multi selection
-      //       const request = await super.dispatch({
-      //         action: "get",
-      //         path: ["filetype"]
-      //       }); //.then(request => request.dataArray.some(data => KarmaFieldsAlpha.Type.toString(data) !== "attachment"));
-      //
-      //       // event.data = request.dataArray.some(data => KarmaFieldsAlpha.Type.toString(data) !== "file")
-      //
-      //       event.data = KarmaFieldsAlpha.Type.toString(request.data) !== "file";
-      //
-      //       break;
-      //     }
-      //
-      //     default:
-      //       await super.dispatch(event);
-      //       break;
-      //
-      //   }
-      //
-      //   return event;
-      // }
 
       async request(subject, content, ...path) {
 
@@ -765,13 +702,29 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
           }
 
           case "is-attachment": {
-            const data = await this.parent.request("read", {});
-            return data.every(row => KarmaFieldsAlpha.Type.toString(row.filetype) === "file");
+            const ids = await this.parent.request("selectedIds");
+            for (let id in ids) {
+              const response = await this.parent.request("get", {}, id, "filetype");
+              const filetype = KarmaFieldsAlpha.Type.toString(response);
+              if (filetype !== "file") {
+                return false;
+              }
+            }
+            return true;
           }
 
           case "is-folder": {
-            const data = await this.parent.request("read", {});
-            return data.every(row => KarmaFieldsAlpha.Type.toString(row.filetype) === "folder");
+            // const data = await this.parent.request("read", {});
+            // return data.every(row => KarmaFieldsAlpha.Type.toString(row.filetype) === "folder");
+            const ids = await this.parent.request("selectedIds");
+            for (let id in ids) {
+              const response = await this.parent.request("get", {}, id, "filetype");
+              const filetype = KarmaFieldsAlpha.Type.toString(response);
+              if (filetype === "file") {
+                return false;
+              }
+            }
+            return true;
           }
 
           default:

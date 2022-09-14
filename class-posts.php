@@ -58,7 +58,7 @@ Class Karma_Fields_Alpha_Posts {
 			// 	'title' => '#',
 			// 	'width' => 'auto'
 			// ),
-			'style' => 'flex: 1 1 0;',
+			// 'style' => 'flex: 1 1 0;',
 			'orderby' => 'post_title',
 			'autosave' => false,
 			'title' => 'Posts',
@@ -112,8 +112,14 @@ Class Karma_Fields_Alpha_Posts {
 									'key' => 'x'
 								),
 								array(
-									'type' => 'input',
-									'key' => 'y'
+									'type' => 'array',
+									'key' => 'subarray',
+									'children' => array(
+										array(
+											'type' => 'input',
+											'key' => 'z'
+										),
+									)
 								),
 								'delete'
 							)

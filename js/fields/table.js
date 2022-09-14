@@ -30,7 +30,7 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
       const [driver, paramString] = request.split("?");
 
       this.driver = driver;
-      this.params = this.resource.params || KarmaFieldsAlpha.Nav.toObject(paramString);
+      this.params = this.resource.params || paramString && KarmaFieldsAlpha.Nav.toObject(paramString) || "";
       this.joins = this.resource.joins || joins || [];
 
       // console.log(this.driver, this.params, this.joins);
@@ -469,6 +469,9 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
       case "edit": {
         this.expressionCache.remove();
         // this.server.store.empty();
+
+        this.interface.selectionBuffer.change(null);
+
         this.server.store.cache.empty(); // buffer need to stay for history
         await this.queryIds();
         await this.render();
@@ -568,7 +571,7 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
       case "add": {
         KarmaFieldsAlpha.History.save();
         const ids = await this.add(content.data || {});
-        this.interface.select(0, 1);
+        // this.interface.select(0, 1);
         await this.render();
         break;
 
@@ -610,9 +613,15 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
 
         }
 
-        const ids = this.getIds().slice(segment.index, segment.index + segment.length);
+        if (content.data.length > 0) {
 
-        await this.import(content.data, ids);
+          const ids = this.getIds().slice(segment.index, segment.index + content.data.length);
+
+          await this.import(content.data, ids);
+
+        }
+
+
         await this.render();
         break;
       }
@@ -670,10 +679,13 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
         this.interface.buffer.remove();
         const selection = this.interface.selectionBuffer.get();
 
-        if (selection) {
-          KarmaFieldsAlpha.History.save();
-          this.interface.selectionBuffer.change(null);
-        }
+        // if (selection) {
+        //   KarmaFieldsAlpha.History.save();
+        //
+        // }
+        // this.interface.selectionBuffer.change(null);
+
+        // -> do not unselect for keeping modal open
 
         await this.queryIds();
         await this.render();
@@ -716,7 +728,8 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
 
       case "next": {
         let selection = this.interface.selectionBuffer.get();
-        if (selection && selection.index > 0) {
+        const ids = this.getIds();
+        if (selection && selection.index < ids.length - 1) {
           KarmaFieldsAlpha.History.save();
           this.interface.select(selection.index + 1, 1);
           await this.render();
@@ -894,13 +907,29 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
 
 
       const rowField = this.interface.createChild({
-        ...this.resource.children,
+        children: this.resource.children,
         key: id,
         type: "row"
-      }, id);
+      });
 
 
-      const row = await rowField.export(keys);
+      let row = await rowField.export(keys);
+
+      if (this.resource.modal) {
+
+        const modal = this.interface.createChild({
+          ...this.resource.modal.body,
+          key: id,
+          type: "row"
+        });
+
+        const modalObject = await modal.export(keys);
+
+        // console.log(modal, modalObject);
+
+        row = {...row, ...modalObject};
+
+      }
 
 
       rows.push(row);
@@ -910,6 +939,8 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
   }
 
   async import(data, ids) { // expect json array
+
+
 
     // const allIds = this.getIds();
     // const index = ids[0] && allIds.indexOf(ids[0])
@@ -936,19 +967,36 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
     //
     // const ids = await this.addMultiple(data.length, {}, index);
 
-    for (let i in ids) {
+    // for (let id in ids) {
+    for (let i = 0; i < ids.length; i++) {
 
+      const id = ids[i];
+      const object = data[i%data.length];
       // await this.interface.importRow(data[i]);
 
       const rowField = this.interface.createChild({
-        ...this.resource.children,
+        children: this.resource.children,
         key: id,
         type: "row"
       }, id);
 
       await rowField.import(object);
 
+      if (this.resource.modal) {
+
+        const modal = this.interface.createChild({
+          ...this.resource.modal.body,
+          key: id,
+          type: "row"
+        });
+
+        await modal.import(object);
+
+      }
+
     }
+
+
 
   }
 
@@ -1210,28 +1258,21 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
                           child: this.createChild(resource).build()
                         };
                       }),
-                      {
-                        class: "karma-field-table-grid-container karma-field-frame karma-field-group final",
-                        init: body => {
-                          body.element.tabIndex = -1;
-                          body.element.onfocus = async event => {
-
-                            this.interface.release();
-
-                            // const selection = this.interface.selectionBuffer.get();
-                            //
-                            // if (selection) {
-                            //   KarmaFieldsAlpha.History.save();
-                            //   this.interface.unselect();
-                            //   await this.render();
-                            // }
-
-                          }
-
-                        },
-                        // child: this.interface.build(ids, page, ppp)
-                        child: this.interface.build()
-                      }
+                      this.interface.build()
+                      // {
+                      //   class: "karma-field-table-grid-container karma-field-frame karma-field-group final",
+                      //   init: body => {
+                      //     body.element.tabIndex = -1;
+                      //     body.element.onfocus = async event => {
+                      //
+                      //       this.interface.release();
+                      //
+                      //     }
+                      //
+                      //   },
+                      //   // child: this.interface.build(ids, page, ppp)
+                      //   child: this.interface.build()
+                      // }
                     ]
                   }
                 ]
@@ -1347,6 +1388,8 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
     //   return event;
     // }
 
+
+
     async request(subject, content, ...path) {
 
       switch (subject) {
@@ -1371,6 +1414,131 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
           return super.request(subject, content, ...path);
 
       }
+
+    }
+
+    static row = class extends KarmaFieldsAlpha.field {
+
+      async request(subject, content, ...path) {
+
+        switch (subject) {
+
+          case "index":
+            return this.index;
+
+          default:
+            return super.request(subject, content, this.getKey(), ...path);
+        }
+
+      }
+
+      getKeys() {
+
+    		let keys = new Set();
+
+        for (let resource of this.resource.children) {
+
+          keys = new Set([...keys, ...this.createChild(resource).getKeys()]);
+
+        }
+
+    		return keys;
+    	}
+
+      async getDefault() {
+
+    		let defaults = {};
+
+    		for (let index in this.resource.children) {
+
+    			const child = this.createChild(this.resource.children[index]);
+
+    			defaults = {
+    				...defaults,
+    				...await child.getDefault()
+    			};
+
+    		}
+
+    		return defaults;
+    	}
+
+      async export(keys = []) {
+
+        let object = {};
+
+        for (let resource of this.resource.children) {
+
+          const child = this.createChild(resource);
+
+          object = {
+            ...object,
+            ...await child.export(keys)
+          };
+
+        }
+
+        return object;
+      }
+
+      async import(object) {
+
+        for (let resource of this.resource.children) {
+
+          const child = this.createChild(resource);
+
+          await child.import(object);
+
+        }
+
+    	}
+
+      static modalHandle = class extends KarmaFieldsAlpha.field.text {
+
+        constructor(resource) {
+          super({
+            selectMode: "row",
+            ...resource
+          });
+        }
+
+        build() {
+          return {
+            tag: this.resource.tag,
+            class: "text karma-field modal-btn",
+            init: node => {
+              // node.element.tabIndex = -1;
+            },
+            update: async node => {
+              node.element.innerHTML = await this.getContent();
+            }
+          };
+        }
+
+      }
+
+      static tableIndex = class extends this.modalHandle {
+
+        constructor(resource) {
+          super({
+            width: "40px",
+            selectMode: "row",
+            ...resource
+          });
+
+        }
+
+        build() {
+          return {
+            class: "karma-field text",
+            update: async container => {
+              container.element.textContent = await this.parent.request("index");
+            }
+          };
+        }
+
+      }
+
 
     }
 
@@ -1404,213 +1572,6 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
           }
         };
       }
-
-      // async dispatch(event, parent) {
-      //
-      //   switch (event.action) {
-      //
-      //     case "close": {
-      //       // const currentIds = this.parent.selectionBuffer.get();
-      //
-      //       // if (KarmaFieldsAlpha.Nav.has("id")) {
-      //       //
-      //       //   KarmaFieldsAlpha.History.save();
-      //       //
-      //       //   this.parent.selectionBuffer.backup([]);
-      //       //   this.parent.selectionBuffer.set([]);
-      //       //
-      //       //   KarmaFieldsAlpha.Nav.backup(null, "id");
-      //       //   KarmaFieldsAlpha.Nav.remove("id");
-      //       //
-      //       //   event.action = "edit-selection";
-      //         await super.dispatch({
-      //           action: "unselect"
-      //         });
-      //       // }
-      //
-      //       break;
-      //     }
-      //
-      //     // case "selection": {
-      //     //   event.data = this.parent.selectionBuffer.get() || [];
-      //     //   break;
-      //     // }
-      //
-      //     // case "id": {
-      //     //   event.data = this.parent.getSelectedIds();
-      //     //   break;
-      //     // }
-      //
-      //     case "get": {
-      //
-      //       const ids = await this.request("selectedIds", "array");
-      //
-      //       if (event.path[0] === "id") {
-      //         event.data = ids;
-      //         break;
-      //       }
-      //
-      //       if (ids.length) {
-      //
-      //         if (ids.length > 1 && event.multiValue) {
-      //
-      //           // -> export csv
-      //
-      //           const data = [];
-      //
-      //           for (let id of ids) {
-      //
-      //             const request = await super.dispatch({
-      //               ...event,
-      //               path: [id, ...event.path]
-      //             });
-      //
-      //             const value = KarmaFieldsAlpha.Type.toArray(request.data);
-      //
-      //             data.push(value);
-      //
-      //           }
-      //
-      //           const csv = KarmaFieldsAlpha.Clipboard.unparse(data);
-      //
-      //           event.data = new KarmaFieldsAlpha.MultiValue(csv);
-      //
-      //           // -> todo: handle when all data are the same ?
-      //
-      //         } else {
-      //
-      //           event.path = [ids[0], ...event.path];
-      //
-      //           await super.dispatch(event);
-      //
-      //           if (event.data) {
-      //             event.data.multiValue = true;
-      //           }
-      //
-      //
-      //
-      //         }
-      //
-      //         // if (ids.length > 1) {
-      //         //
-      //         //   event.data.multiValue = true;
-      //         //
-      //         // }
-      //
-      //
-      //
-      //       }
-      //
-      //       // event.dataArray = [];
-      //       //
-      //       // for (let id of ids) {
-      //       //
-      //       //   const request = await super.dispatch({
-      //       //     ...event,
-      //       //     path: [id, ...event.path]
-      //       //   });
-      //       //
-      //       //   event.dataArray.push(request.data);
-      //       //
-      //       // }
-      //       //
-      //       // event.data = event.dataArray[0];
-      //       // event.manifold = event.dataArray.length > 1;
-      //       // event.ids = ids;
-      //
-      //       break;
-      //     }
-      //
-      //     case "set": {
-      //
-      //       const ids = await super.request("selectedIds", "array");
-      //
-      //       // -> bulk edit
-      //
-      //       if (ids.length > 1 && typeof event.data === "string") {
-      //
-      //         // -> check for csv value
-      //
-      //         const data = KarmaFieldsAlpha.Clipboard.parse(event.data);
-      //
-      //         for (let i = 0; i < ids.length; i++) {
-      //
-      //           await super.dispatch({
-      //             ...event,
-      //             event: data[i%data.length] || [],
-      //             path: [ids[i], ...event.path]
-      //           });
-      //
-      //         }
-      //
-      //       } else {
-      //
-      //         for (let id of ids) {
-      //
-      //           await super.dispatch({
-      //             ...event,
-      //             path: [id, ...event.path]
-      //           });
-      //
-      //         }
-      //
-      //       }
-      //
-      //
-      //       // for (let id of ids) {
-      //       //   await super.dispatch({
-      //       //     ...event,
-      //       //     path: [id, ...event.path]
-      //       //   });
-      //       // }
-      //       break;
-      //     }
-      //
-      //     case "fetch": {
-      //       const id = await this.request("selectedIds", "string");
-      //       event.path = [id, ...event.path];
-      //       await super.dispatch(event);
-      //       break;
-      //     }
-      //
-      //     case "modified": {
-      //       const ids = await this.request("selectedIds", "array");
-      //
-      //       event.data = false;
-      //
-      //       for (let id of ids) {
-      //
-      //         const request = await super.dispatch({
-      //           action: "modified",
-      //           path: [id, ...event.path]
-      //         });
-      //
-      //         if (KarmaFieldsAlpha.Type.toBoolean(event.data)) {
-      //           event.data = true;
-      //           break;
-      //         }
-      //
-      //         // INFINITE LOOP !!
-      //         // const modified = await this.request("modified", "boolean", null, id, ...event.path);
-      //         //
-      //         // if (KarmaFieldsAlpha.Type.toBoolean(event.data)) {
-      //         //   event.data = true;
-      //         //   break;
-      //         // }
-      //       }
-      //       break;
-      //     }
-      //
-      //     default: {
-      //       await super.dispatch(event);
-      //       break;
-      //     }
-      //   }
-      //
-      //
-      //
-      //   return event;
-      // }
 
       async request(subject, content, ...path) {
 

@@ -72,7 +72,11 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 			const option = options.find(option => option.name === object[key]);
 
 			if (option) {
-				await this.parent.request("set", {data: option.name}, key);
+				await this.parent.request("set", {data: option.id}, key);
+			} else {
+				const defaults = await this.getDefault();
+				console.log(defaults);
+				await this.parent.request("set", {data: defaults[key]}, key);
 			}
 
 		}

@@ -344,5 +344,29 @@ KarmaFieldsAlpha.field = class {
     // noop
 	}
 
+  getKeys() {
+
+    const key = this.getKey();
+		let keys = new Set();
+
+    if (key) {
+
+      keys.add(key);
+
+    }
+
+    // else if (this.resource.children) {
+    //
+    //   for (let resource of this.resource.children) {
+    //
+  	// 		keys = new Set(...keys, ...this.createChild(resource).getKeys());
+    //
+  	// 	}
+    //
+    // }
+
+		return keys;
+  }
+
 
 };
