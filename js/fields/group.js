@@ -1,92 +1,12 @@
 KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
-
-	// async dispatch(event, parent) {
-	//
-	// 	// if (this.resource.key) {
-	//
-	// 		switch (event.action) {
-	//
-	// 			// case "get": {
-	// 			// 	await super.dispatch(event, this);
-	// 			// 	KarmaFieldsAlpha.Type.toArray(event.data);
-	// 			// 	break;
-	// 			//
-	// 			// 	// KarmaFieldsAlpha.Type.convert(e)
-	// 			//
-	// 			// 	// const request = await super.dispatch({
-	// 			// 	// 	action: "get"
-	// 			// 	// });
-	// 			// 	// const object = KarmaFieldsAlpha.Type.toObject(request.data);
-	// 			// 	// const value = KarmaFieldsAlpha.DeepObject.get(object, ...event.path);
-	// 			// 	// event.data = KarmaFieldsAlpha.Type.toArray(value);
-	// 			// 	// break;
-	// 			// }
-	//
-	// 			// case "set": {
-	// 			// 	const type = this.resource.keyTypes && this.resource.keyTypes[event.path[0]];
-	// 			//
-	// 			// 	if (this.resource.key && ) {
-	// 			//
-	// 			// 		KarmaFieldsAlpha.Type.convert(e)
-	// 			//
-	// 			// 		await super.dispatch(event, this);
-	// 			//
-	// 			//
-	// 			// 	}
-	// 			//
-	// 			//
-	// 			// 	this.promise = Promise.resolve(this.promise).then(async () => {
-	// 			//
-	// 			// 		const request = await super.dispatch({
-	// 			// 			action: "get"
-	// 			// 		}) || {};
-	// 			//
-	// 			// 		let object = KarmaFieldsAlpha.Type.toObject(request.data);
-	// 			//
-	// 			// 		object = KarmaFieldsAlpha.DeepObject.clone(object);
-	// 			// 		KarmaFieldsAlpha.DeepObject.assign(object, event.data, ...event.path);
-	// 			//
-	// 			// 		await super.dispatch({
-	// 			// 			action: "set",
-	// 			// 			backup: "tie",
-	// 			// 			data: object
-	// 			// 		});
-	// 			//
-	// 			// 	});
-	// 			// 	await this.promise;
-	// 			// 	break;
-	// 			// }
-	//
-	// 			// case "edit": {
-	// 			// 	await this.splash(parent, event.field);
-	// 			// 	await super.dispatch(event, this);
-	// 			// 	break;
-	// 			// }
-	//
-	// 			default: {
-	// 				await super.dispatch(event, this);
-	// 				break;
-	// 			}
-	//
-	// 		}
-	//
-	// 	// } else {
-	// 	//
-	// 	// 	await super.dispatch(event, this);
-	// 	//
-	// 	// }
-	//
-	// 	return event;
-	// }
-
 	async request(subject, content, ...path) {
 
 		const key = this.getKey();
 
 		if (key) {
 
-			return this.parent.request(subject, content, key, ...path);
+			path = [key, ...path];
 
 		}
 

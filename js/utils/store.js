@@ -157,6 +157,10 @@ KarmaFieldsAlpha.Store = class {
 
   queryIds(paramString) {
 
+    // if (typeof paramString === "object") {
+    //   paramString = KarmaFieldsAlpha.Params.stringify(paramString);
+    // }
+
     let promise = this.cache.get("ids", paramString);
 
     if (!promise) {

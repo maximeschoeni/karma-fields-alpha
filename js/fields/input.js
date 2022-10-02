@@ -29,7 +29,8 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		const key = this.getKey();
 		const defaults = {};
 		if (keys.length === 0 || keys.includes(key)) {
-			defaults[key] = await this.get("string");
+			// defaults[key] = await this.get("string");
+			defaults[key] = await this.parent.request("get", {}, key).then(response => KarmaFieldsAlpha.Type.toString(response));
 		}
 		return defaults;
 	}
@@ -93,7 +94,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		return this.parse(this.resource.placeholder || "");
 	}
 
-	build() {
+	buildInput() {
 		return {
 			tag: "input",
 			class: "text-input karma-field",
@@ -107,6 +108,10 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 				}
 				if (this.resource.readonly) {
 					input.element.readOnly = true;
+				}
+				if (this.resource.options) {
+					// input.element.list = "list-"+this.getId()
+					input.element.setAttribute("list", "list-"+this.getId());
 				}
 			},
 			update: async input => {
@@ -202,6 +207,61 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		};
 	}
 
+	buildDataListInput() {
+
+		return {
+			classs: "karma-datalist-input",
+			children: [
+				this.buildInput(),
+				{
+					tag: "datalist",
+					init: datalist => {
+						datalist.element.id = "list-"+this.getId();
+					},
+					// update: datalist => {
+					// 	this.parse(this.resource.options).then(options => {
+					// 		datalist.children = [];
+					// 		options.forEach(option => {
+					// 			datalist.children
+					// 			datalist.element.add(new Option(option.name, option.id));
+					// 		});
+					// 	});
+					// }
+					update: async datalist => {
+						const options = await this.parse(this.resource.options);
+						// options.forEach(option => {
+						// 	datalist.element.appendChild(new Option(option.name, option.name));
+						// });
+						console.log(options);
+						datalist.children = options.map(option => {
+							return {
+								tag: "option",
+								init: node => {
+									node.element.value = option.name;
+								}
+							};
+						});
+					}
+				}
+			]
+		};
+
+	}
+
+
+	build() {
+
+		if (this.resource.options) {
+
+			return this.buildDataListInput();
+
+		} else {
+
+			return this.buildInput();
+
+		}
+
+	}
 
 
 

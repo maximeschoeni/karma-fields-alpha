@@ -34,9 +34,12 @@
 --------------------------------------*/
 
 .karma-fields-post {
-  padding: 12px;
+  /* padding: 12px;
   margin: -6px -12px -12px;
-  background-color: var(--background-color);
+  background-color: var(--background-color); */
+}
+.postbox .karma-fields {
+  --background-color: white;
 }
 
 body.karma-table-open {
@@ -867,6 +870,44 @@ button.karma-button.editing span {
 }
 
 
+/* Tags
+--------------------------------------*/
+.karma-tags {
+  display: flex;
+  gap: var(--gap-width);
+  flex-wrap: wrap;
+}
+.karma-tags ul {
+  margin: 0;
+  display: flex;
+  gap: var(--gap-width);
+
+  position: relative;
+}
+.karma-tags ul li {
+  border: 1px solid black;
+  border-radius: 1.25em;
+  padding: 0 var(--gap-width);
+  min-height: 2.5em;
+  display: flex;
+  align-items: center;
+  gap: var(--gap-width);
+}
+.karma-tags ul li.selecting,
+.karma-tags ul li.selected {
+  background-color: var(--selected-color);
+  color: var(--background-color);
+}
+.karma-tags ul li a.close {
+  cursor: pointer;
+}
+.karma-tags ul li:not(.selecting,.selected) a.close {
+  display: none;
+}
+.karma-tags ul li span {
+  user-select: none;
+}
+
 
 /* Text
 --------------------------------------*/
@@ -1124,7 +1165,8 @@ button.karma-button.editing span {
   font-size: 1em;
   min-height: 2.5em;
   background-color: transparent;
-  padding: 0 2.0em 0 var(--gap-width);
+  /* padding: 0 1.0em 0 var(--gap-width); */
+  padding: 0 0.5em 0 0.5em;
   margin: 0;
   box-shadow: none;
 
@@ -1259,11 +1301,12 @@ textarea.clipboard {
 .karma-field-date {
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 .karma-field-date .date-popup-container {
-	position: relative;
+	/* position: absolute;
 	z-index: 100;
-  top: 100%;
+  top: 100%; */
 }
 .karma-field-date .calendar {
 	position: absolute;
@@ -1276,7 +1319,7 @@ textarea.clipboard {
   box-shadow: 0 0 8px rgb(0 0 0 / 30%);
   background: white;
 }
-.karma-field-date .popup .calendar {
+.karma-field-date .date-popup .calendar {
   /* padding-bottom: 10px; */
 }
 .karma-field-date .date-popup-container.open-down .calendar {

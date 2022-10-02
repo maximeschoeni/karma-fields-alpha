@@ -40,6 +40,8 @@ Class Karma_Fields_Alpha_Posts {
 		// 	)
 		// ));
 
+
+
 		$karma_fields->register_table(array(
 			'driver' => 'posts?post_type=post',
 			'id' => 'posts',

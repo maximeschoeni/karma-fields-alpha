@@ -43,6 +43,7 @@ KarmaFieldsAlpha.SortManager = class extends KarmaFieldsAlpha.SelectionManager {
       }
 
       const mouseup = event => {
+
         window.removeEventListener("mousemove", mousemove);
         window.removeEventListener("mouseup", mouseup);
         window.removeEventListener("scroll", scroll, true);

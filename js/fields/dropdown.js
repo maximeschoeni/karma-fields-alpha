@@ -132,22 +132,91 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		// return this.parse(this.resource.options) || [];
 
+		let options = [];
 
-		const expressionKey = JSON.stringify(this.resource.options);
+		if (this.resource.options) {
 
-    let promise = this.expressionCache.get(expressionKey);
+			options = [
+				...await this.parse(this.resource.options)
+			];
 
-    if (!promise) {
+		}
 
-      promise = this.parse(this.resource.options) || [];;
+		if (this.resource.driver) {
 
-      this.expressionCache.set(promise, expressionKey);
+	    // const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins);
+	    // const ids = await store.queryIds(this.resource.paramString || "");
+			//
+	    // for (let id of ids) {
+	    //   options.push({
+	    //     id: id,
+	    //     name: await store.getValue(id, this.resource.nameField || "name")
+	    //   });
+	    // }
 
-    }
+			const form = new KarmaFieldsAlpha.field.Form({
+				driver: this.resource.driver,
+				joins: this.resource.joins
+			});
 
-    return promise;
+	    const results = await form.query(this.resource.params || {});
+
+			for (let item of results) {
+				options.push({
+					id: item.id,
+					name: item[this.resource.nameField || "name"] || await form.getInitial(item.id, this.resource.nameField || "name")
+				});
+			}
+
+		} else if (this.resource.table) {
+
+			const table = await this.request("table", {id: this.resource.table});
+
+			// const paramString = KarmaFieldsAlpha.Params.stringify({
+			// 	...table.resource.params,
+			// 	...this.resource.params,
+			// 	ppp: 999
+			// });
+
+			// const results = await table.server.store.query(paramString);
+			//
+			// for (let item of results) {
+			// 	options.push({
+			// 		id: item.id,
+			// 		name: item[this.resource.nameField || "name"] || await table.server.store.getValue(item.id, this.resource.nameField || "name")
+			// 	});
+			// }
+
+			const results = await table.interface.query({...table.interface.resource.params, ...this.resource.params});
+
+			for (let item of results) {
+				options.push({
+					id: item.id,
+					name: item[this.resource.nameField || "name"] || await table.interface.getInitial(item.id, this.resource.nameField || "name")
+				});
+			}
+
+		}
+
+		return options;
+
+
+		// const expressionKey = JSON.stringify(this.resource.options);
+		//
+    // let promise = this.expressionCache.get(expressionKey);
+		//
+    // if (!promise) {
+		//
+    //   promise = this.parse(this.resource.options) || [];;
+		//
+    //   this.expressionCache.set(promise, expressionKey);
+		//
+    // }
+		//
+    // return promise;
 
 	}
+
 
 	// hasOptgroups(options) {
 	// 	return options.some(function(item) {
@@ -245,13 +314,14 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 			tag: "select",
 			class: "dropdown karma-field",
 			init: dropdown => {
-				if (this.resource.label) {
-					dropdown.element.id = this.getId();
-				}
-
-				dropdown.element.tabIndex = -1;
-
-				this.render = dropdown.render;
+				// if (this.resource.label) {
+				// 	this.id = "karma-fields-"+this.getUniqueId();
+				// 	dropdown.element.id = this.id;
+				// }
+				//
+				// dropdown.element.tabIndex = -1;
+				//
+				// this.render = dropdown.render;
 			},
 			update: async dropdown => {
 				dropdown.element.classList.add("loading");
@@ -261,50 +331,75 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 				const response = await this.parent.request("get", {}, key);
 				const value = KarmaFieldsAlpha.Type.toString(response);
 
-				// -> set default
-				let currentOption = options.find(option => option.id == value);
+				if (this.resource.lazy) {
 
-				const currentOptions = [...dropdown.element.options];
+					// -> set default
+					let currentOption = options.find(option => option.id == value);
 
-				if (options.length && !currentOptions.some(option => option.value == value)) {
+					const currentOptions = [...dropdown.element.options];
 
-					let option = options.find(option => option.id == value) || options[0];
+					if (options.length && !currentOptions.some(option => option.value == value)) {
 
-					// if (this.resource.map) {
-					// 	[option] = await KarmaFieldsAlpha.Expression.map(this, [option], this.resource.map);
-					// }
+						let option = options.find(option => option.id == value) || options[0];
 
-					dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
-
-				}
-
-				dropdown.element.value = value;
-
-				dropdown.element.onfocus = async event => {
-
-					if (currentOptions.length !== options.length) {
-
-						// let mappedOptions;
-						//
 						// if (this.resource.map) {
-						// 	mappedOptions = await KarmaFieldsAlpha.Expression.map(this, options, this.resource.map);
-						// } else {
-						// 	mappedOptions = options;
+						// 	[option] = await KarmaFieldsAlpha.Expression.map(this, [option], this.resource.map);
 						// }
-						//
-						dropdown.element.length = 0;
-						//
-						// mappedOptions.forEach(option => {
-						// 	dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
-						// });
 
-						options.forEach(option => {
-							dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
-						});
+						dropdown.element.length = 0;
+
+						dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
 
 					}
 
+					dropdown.element.value = value;
+
+					dropdown.element.onfocus = async event => {
+
+						if (currentOptions.length !== options.length) {
+
+							// let mappedOptions;
+							//
+							// if (this.resource.map) {
+							// 	mappedOptions = await KarmaFieldsAlpha.Expression.map(this, options, this.resource.map);
+							// } else {
+							// 	mappedOptions = options;
+							// }
+							//
+							dropdown.element.length = 0;
+							//
+							// mappedOptions.forEach(option => {
+							// 	dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
+							// });
+
+							options.forEach(option => {
+								dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
+							});
+
+							if (options.some(option => option.options)) {
+								// -> groups
+
+
+
+							}
+
+
+
+						}
+
+					}
+
+				} else {
+
+					dropdown.element.length = 0;
+
+					options.forEach(option => {
+						dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
+					});
+
 				}
+
+
 
 
 				dropdown.element.onchange = async event => {
@@ -331,14 +426,14 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 				dropdown.element.classList.remove("loading");
 
-				if (!currentOption && options.length) {
-
-					currentOption = options[0];
-
-					// await this.parent.request("set", {data: currentOption.id});
-					// this.parent.request("edit");
-
-				}
+				// if (!currentOption && options.length) {
+				//
+				// 	currentOption = options[0];
+				//
+				// 	// await this.parent.request("set", {data: currentOption.id});
+				// 	// this.parent.request("edit");
+				//
+				// }
 
 			}
 

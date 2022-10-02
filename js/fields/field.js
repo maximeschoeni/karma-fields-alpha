@@ -2,7 +2,7 @@
 KarmaFieldsAlpha.field = class {
 
   static fieldId = 0;
-
+  static uniqueId = 1;
 
   constructor(resource = {}) {
 		this.children = [];
@@ -30,6 +30,10 @@ KarmaFieldsAlpha.field = class {
 
   getId() {
     return "karma-fields-"+this.fieldId;
+  }
+
+  getUniqueId() {
+    return KarmaFieldsAlpha.field.uniqueId++;
   }
 
   addChild(child, id) {
@@ -306,7 +310,10 @@ KarmaFieldsAlpha.field = class {
 
   async get(type, ...path) {
     const key = this.getKey();
-    const response = await this.request("get", {}, key);
+    if (key) {
+      path = [key, ...path];
+    }
+    const response = await this.request("get", {}, ...path);
     return KarmaFieldsAlpha.Type.convert(response, type);
   }
 

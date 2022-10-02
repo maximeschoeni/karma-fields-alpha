@@ -137,12 +137,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      const keys = this.getKeys();
+      // const keys = this.getKeys();
       const columns = this.getColumns(array);
 
-      for (key of keys) {
+      for (key in columns) {
 
-        object[key] = JSON.stringify(columns[key] || []);
+        object[key] = JSON.stringify(columns[key]);
 
       }
 
@@ -306,15 +306,33 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 	// }
 
   // -> return object of arrays;
+  // getColumns(rows) {
+  //
+  //   const columns = {};
+  //
+  //   for (let i = 0; i < rows.length; i++) {
+  //     for (let key in rows[i]) {
+  //       if (!columns[key]) {
+  //         columns[key] = [];
+  //       }
+  //       columns[key][i] = rows[i][key];
+  //     }
+  //   }
+  //
+  //   return columns;
+  // }
+
   getColumns(rows) {
 
+    const keys = this.getKeys();
     const columns = {};
+
+    for (let key of keys) {
+      columns[key] = [];
+    }
 
     for (let i = 0; i < rows.length; i++) {
       for (let key in rows[i]) {
-        if (!columns[key]) {
-          columns[key] = [];
-        }
         columns[key][i] = rows[i][key];
       }
     }
@@ -434,6 +452,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       // }
 
       const columns = this.getColumns(value);
+      // const keys = this.getKeys();
 
       for (key in columns) {
 
@@ -1120,7 +1139,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       type: "button",
       id: "add",
       state: "add",
-      title: "Add Row"
+      // title: "Add Row"
+      title: "+"
     }
 
   }

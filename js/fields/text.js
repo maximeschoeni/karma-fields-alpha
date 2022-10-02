@@ -1,7 +1,13 @@
 KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 	async getContent() {
-		return this.parse(this.resource.value || "");
+		if (this.resource.value) {
+			return this.parse(this.resource.value);
+		}
+		if (this.resource.key) {
+			return this.request("get", {}, this.resource.key).then(response => KarmaFieldsAlpha.Type.toString(response));
+		}
+		return "";
 	}
 
 	async exportValue() {

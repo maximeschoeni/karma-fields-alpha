@@ -368,6 +368,45 @@ KarmaFieldsAlpha.Expression = class {
     return options;
   }
 
+  // static async getGroupOptions(field, driver, paramString = "", nameField = "name", keyField = "id", groupNameField = "group_name", groupIdField = "group_id") {
+  //
+  //   driver = await this.resolve(field, driver);
+  //   paramString = await this.resolve(field, paramString);
+  //
+  //   const store = new KarmaFieldsAlpha.Store(driver);
+  //
+  //   const ids = await store.queryIds(paramString);
+  //   const groups = [];
+  //
+  //   for (let id of ids) {
+  //     const name = KarmaFieldsAlpha.Type.toString(await store.getValue(id, nameField));
+  //     const groupId = KarmaFieldsAlpha.Type.toString(await store.getValue(id, groupIdField));
+  //
+  //     let group = groups.find(group => group.id === groupId);
+  //
+  //     if (!group) {
+  //
+  //       group = {
+  //        id: groupId,
+  //        name: KarmaFieldsAlpha.Type.toString(await store.getValue(id, groupNameField)),
+  //        options: []
+  //      };
+  //
+  //      groups.push(group);
+  //
+  //     }
+  //
+  //     group.options.push({
+  //       id: id,
+  //       name: KarmaFieldsAlpha.Type.toString(await store.getValue(id, nameField))
+  //     });
+  //
+  //   }
+  //
+  //   return groups;
+  // }
+
+
   // static async getOptions(field, driver, paramString = "", nameField = "name") {
   //
   //   // driver = await this.resolve(field, driver);

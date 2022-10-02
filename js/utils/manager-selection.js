@@ -41,6 +41,7 @@ KarmaFieldsAlpha.SelectionManager = class {
     }
 
     const onMouseUp = event =>  {
+
       document.removeEventListener("mouseup", onMouseUp);
       document.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("scroll", scroll, true);

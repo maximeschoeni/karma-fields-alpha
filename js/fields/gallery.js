@@ -9,6 +9,44 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
   }
 
+  async fetchMedias() {
+
+		if (this.resource.driver) {
+
+
+			const form = new KarmaFieldsAlpha.field.Form({
+				driver: this.resource.driver,
+				joins: this.resource.joins
+			});
+
+	    const results = await form.query(this.resource.params || {});
+
+			for (let item of results) {
+				options.push({
+					id: item.id,
+					name: item[this.resource.nameField || "name"] || await form.getInitial(item.id, this.resource.nameField || "name")
+				});
+			}
+
+		} else if (this.resource.table) {
+
+			const table = await this.request("table", {id: this.resource.table});
+
+			const results = await table.interface.query({...table.interface.resource.params, ...this.resource.params});
+
+			for (let item of results) {
+				options.push({
+					id: item.id,
+					name: item[this.resource.nameField || "name"] || await table.interface.getInitial(item.id, this.resource.nameField || "name")
+				});
+			}
+
+		}
+
+		return options;
+
+	}
+
   async openLibrary() {
 
     const ids = await this.getArray();
@@ -31,33 +69,50 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
       const {index: index, length: length} = this.selection || {index: this.resource.insertAt || 99999, length: 0};
 
-      await this.parent.request({
-        action: "fetch",
+      let parentId;
+
+      if (this.resource.folder) {
+
+        // const query = {
+        //   driver: this.resource.driver, // -> compat
+        //   joins: this.resource.joins, // -> compat
+        //   ...this.resource.query
+        // }
+        //
+        // // const store = new KarmaFieldsAlpha.Store(this.resource.driver || "medias", this.resource.joins || ["files"]);
+        //
+        // const store = new KarmaFieldsAlpha.Store(query.driver || "medias", query.joins || ["files"]);
+        //
+        // const ids = await store.queryIds("name="+this.resource.folder);
+        //
+        //
+        //
+        // [parentId] = ids;
+
+
+        const table = await this.request("table");
+        const results = await table.interface.query("name="+this.resource.folder);
+
+        if (results.length) {
+
+          parentId = results[0].id;
+
+        } else { // create folder if not exist
+
+          parentId = await table.interface.add({name: this.resource.folder});
+
+        }
+
+      }
+
+      await this.parent.request("fetch", {
         params: {
           table: this.resource.table || "medias",
           selection: selectedIds.join(","),
-          parent: this.resource.parent
+          parent: parentId
         },
         callback: async inputIds => {
-
           await this.insert(inputIds, index, length);
-          //
-          // const insertIds = [...ids];
-          //
-          // if (length) {
-          //
-          //   insertIds.splice(index, length, ...inputIds);
-          //
-          //   // this.selection = null; //inputIds.length && {index: this.selection.index, length: inputIds.length} || null;
-          //
-          // } else if (inputIds.length) {
-          //
-          //   insertIds.push(...inputIds);
-          //
-          // }
-          //
-          // await this.parent.request("set", {data: insertIds}, this.getKey());
-
         }
       });
 
@@ -497,7 +552,9 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
       }
 
       case "edit-selection": {
-        await this.renderControls();
+        if (this.onRenderControls) {
+          await this.onRenderControls();
+        }
         break;
       }
 
@@ -508,7 +565,6 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
     }
 
-    return event;
   }
 
   async getIds() {
@@ -576,7 +632,8 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
             await this.add(attachmentIds);
           }
           // await this.render();
-          await this.dispatch({action: "render"});
+          // await this.dispatch({action: "render"});
+          await this.parent.request("render");
         });
         uploader.addFrame.on("open", () => {
           let selection = uploader.addFrame.state().get("selection");
@@ -612,11 +669,39 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
         const ids = array.map(id => id.toString()).slice(0, this.getMax());
 
-        const store = new KarmaFieldsAlpha.Store(this.resource.driver || "medias", this.resource.joins || ["files"]);
+        // const store = new KarmaFieldsAlpha.Store(this.resource.driver || "medias", this.resource.joins || ["files"]);
+        //
+        // if (ids.length) {
+        //   await store.query("ids="+ids.join(","));
+        // }
+
+        let table;
 
         if (ids.length) {
-          await store.query("ids="+ids.join(","));
+
+          if (this.resource.driver) { // -> compat wp uploader
+
+            table = new KarmaFieldsAlpha.field.table({
+              content: {
+                driver: this.resource.driver,
+                joins: this.resource.joins || []
+              }
+            });
+
+          } else if (this.resource.table && typeof this.resource.table === "object") {
+
+            table = new KarmaFieldsAlpha.field.table(this.resource.table);
+
+          } else if (typeof this.resource.table === "string") {
+
+            table = await this.request("table", {id: this.resource.table});
+
+          }
+
+          table.interface.query("ids="+ids.join(","));
+
         }
+
 
 
 
@@ -670,6 +755,9 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
                 }
 
+                if (this.onRenderControls) {
+                  this.onRenderControls();
+                }
               }
 
               this.clipboard.onInput = async value => {
@@ -757,8 +845,11 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
                     frame.element.classList.add("loading");
 
-                    const thumb = await store.getValue(id, "thumb").then(value => KarmaFieldsAlpha.Type.toObject(value));
-                    const type = await store.getValue(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
+                    // const thumb = await store.getValue(id, "thumb").then(value => KarmaFieldsAlpha.Type.toObject(value));
+                    // const type = await store.getValue(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
+
+                    const thumb = await table.interface.getInitial(id, "thumb").then(value => KarmaFieldsAlpha.Type.toObject(value));
+                    const type = await table.interface.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
 
                     frame.element.classList.remove("loading");
 
@@ -803,13 +894,12 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
             child: {
               class: "footer-content",
               init: controls => {
-                this.renderControls = controls.render;
-
                 controls.element.onmousedown = event => {
                   event.preventDefault(); // -> prevent losing focus on selected items
                 }
               },
               update: controls => {
+                this.onRenderControls = controls.render;
                 if (this.resource.controls !== false) {
                   controls.child = this.createChild(this.resource.controls || "controls").build();
                 }
@@ -824,20 +914,18 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
   static controls = class extends KarmaFieldsAlpha.field.group {
 
-    constructor(resource, ...args) {
+    constructor(resource) {
 
       super({
-        ...{
-          id: "controls",
-          display: "flex",
-          children: [
-            "add",
-            "remove",
-            "edit"
-          ]
-        },
+        id: "controls",
+        display: "flex",
+        children: [
+          "add",
+          "edit",
+          "remove"
+        ],
         ...resource
-      }, ...args);
+      });
 
     }
 
@@ -850,6 +938,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
     static add = {
       type: "button",
       title: "Add",
+      text: "+",
       action: "add",
       hidden: [">=", ["count", ["get", "array"]], ["request", "max", "number"]]
     }
@@ -857,6 +946,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
     static remove = {
       type: "button",
       title: "Remove",
+      text: "×",
       action: "delete",
       disabled: ["!", ["selection"]],
       hidden: ["empty", ["get", "array"]]
@@ -864,7 +954,8 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
     static edit = {
       type: "button",
-      title: "Change",
+      title: "Edit",
+      // dashicon: "update",
       action: "edit",
       disabled: ["!", ["selection"]],
       hidden: ["empty", ["get", "array"]]
@@ -873,4 +964,11 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
   }
 
 
+}
+
+KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.gallery {}
+KarmaFieldsAlpha.field.file = class extends KarmaFieldsAlpha.field.gallery {
+  constructor(resource) {
+    super({...resource, max: 1});
+  }
 }

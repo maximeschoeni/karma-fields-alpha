@@ -44,7 +44,7 @@
 
 
 
-		class Embeder extends KarmaFieldsAlpha.fields.gateway {
+		class Embeder extends KarmaFieldsAlpha.field.gateway {
 
 			constructor(resource, input) {
 

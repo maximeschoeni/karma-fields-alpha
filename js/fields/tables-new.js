@@ -2,53 +2,13 @@
 KarmaFieldsAlpha.field.tables = class extends KarmaFieldsAlpha.field {
 
 
-  constructor(...args) {
-    super(...args);
+  constructor(resources) {
+    super(resources);
 
     KarmaFieldsAlpha.tables = this; // -> debug
 
   }
 
-  // async dispatch(event) {
-  //
-  //   switch (event.action) {
-  //
-  //     case "close":
-  //       // KarmaFieldsAlpha.Gateway.clearOptions();
-  //       KarmaFieldsAlpha.Nav.empty();
-  //       await this.render();
-  //       break;
-  //
-  //     case "undo":
-  //     case "redo":
-  //       await this.render();
-  //       break;
-  //
-  //     case "render": {
-  //       // const tableId = KarmaFieldsAlpha.Nav.get("karma");
-  //       // const tableField = this.getChild(tableId);
-  //       //
-  //       // if (tableField) {
-  //       //   await tableField.queryIds();
-  //       // }
-  //
-  //       await this.render();
-  //       break;
-  //     }
-  //
-  //     // case "media-library":
-  //     //   KarmaFieldsAlpha.Nav.setObject(new URLSearchParams({karma: "medias"})); // , id: event.id
-  //     //   await this.render();
-  //     //   break;
-  //
-  //     // case "nav":
-  //     //   this.render(true);
-  //     //   break;
-  //
-  //   }
-  //
-  //   return event;
-  // }
 
   async request(subject, content = {}, ...path) {
 
@@ -91,7 +51,7 @@ KarmaFieldsAlpha.field.tables = class extends KarmaFieldsAlpha.field {
 
     if (resource) {
       const table = this.createChild(resource);
-      await table.queryIds();
+      await table.interface.queryIds();
     }
 
     // await this.render();
@@ -104,48 +64,13 @@ KarmaFieldsAlpha.field.tables = class extends KarmaFieldsAlpha.field {
 
         this.render = container.render;
 
-        // window.addEventListener("popstate", async event => {
-        //
-        //   let index = KarmaFieldsAlpha.History.getIndex();
-        //   const hash = KarmaFieldsAlpha.Nav.getHash();
-        //   const newHash = location.hash.slice(1);
-        //   const newParams = KarmaFieldsAlpha.Nav.toObject(newHash);
-        //
-        //   if (event.state) {
-        //
-        //     while (event.state.index < index) {
-        //       KarmaFieldsAlpha.History.undo();
-        //       index = KarmaFieldsAlpha.History.getIndex();
-        //     }
-        //
-        //     while (event.state.index > index) {
-        //       KarmaFieldsAlpha.History.redo();
-        //       index = KarmaFieldsAlpha.History.getIndex();
-        //     }
-        //
-        //   } else if (hash !== location.hash.slice(1) && newParams.table) {
-        //
-        //     const currentParams = KarmaFieldsAlpha.Nav.get();
-        //
-        //     KarmaFieldsAlpha.History.save();
-        // 		KarmaFieldsAlpha.History.backup(newParams, currentParams, false, "nav");
-        // 		this.set(newParams);
-        //     history.replaceState({index: index}, null, newHash);
-        //
-        //     await this.queryTable();
-        //
-        //   }
-        //
-        //   return this.render();
-        // });
 
         window.addEventListener("popstate", async event => {
 
-          // let index = KarmaFieldsAlpha.History.getIndex();
           const params = KarmaFieldsAlpha.Nav.get() || {};
-          const hash = KarmaFieldsAlpha.Nav.toString(params);
+          const hash = KarmaFieldsAlpha.Params.stringify(params);
           const newHash = location.hash.slice(1);
-          const newParams = KarmaFieldsAlpha.Nav.toObject(newHash);
+          const newParams = KarmaFieldsAlpha.Params.parse(newHash);
 
           if (newHash !== hash) {
 
@@ -163,14 +88,6 @@ KarmaFieldsAlpha.field.tables = class extends KarmaFieldsAlpha.field {
 
           return this.render();
         });
-
-        // window.addEventListener("popstate", event => {
-        //
-        //   console.log(window.history, event, location.hash);
-        //
-        //   KarmaFieldsAlpha.History.save();
-        //   this.queryTable();
-        // });
 
         const newHash = location.hash.slice(1);
         const newParams = KarmaFieldsAlpha.Nav.toObject(newHash);
@@ -221,19 +138,10 @@ KarmaFieldsAlpha.field.tables = class extends KarmaFieldsAlpha.field {
                     if (tableId === resource.id) {
                       const table = this.createChild(resource);
 
-                      if (!table.idsBuffer.get()) {
-                        await table.queryIds(); // -> needed when fetching (table transfer)
+                      if (!table.interface.idsBuffer.get()) {
+                        await table.interface.queryIds(); // -> needed when fetching (table transfer)
                       }
 
-                      // if (table.hash !== location.hash.slice(1)) {
-                        // table.hash = location.hash.slice(1);
-
-                        // table.server.store.empty();
-
-
-
-                        // await table.queryIds();
-                      // }
                       container.child = table.build();
                     } else {
                       container.children = []

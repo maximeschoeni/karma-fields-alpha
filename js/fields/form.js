@@ -239,4 +239,15 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.group {
 
 	}
 
+
+	async send() {
+		let delta = this.buffer.get();
+		const key = this.getKey();
+		if (key) {
+			delta = {[key]: delta};
+		}
+		await this.parent.request("send", {data: delta});
+		this.buffer.remove();
+	}
+
 };

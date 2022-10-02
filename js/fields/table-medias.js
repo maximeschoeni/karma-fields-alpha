@@ -109,22 +109,27 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
 
       this.server.buffer.set(["0"], id, "trash");
 
-      this.grid.buffer.set(["1"], id, "trash");
-      this.grid.buffer.backup(["0"], id, "trash");
-      this.grid.buffer.set(["0"], id, "trash");
+      // this.grid.buffer.set(["1"], id, "trash");
+      // this.grid.buffer.backup(["0"], id, "trash");
+      // this.grid.buffer.set(["0"], id, "trash");
+      this.interface.buffer.change(["0"], ["1"], id, "trash");
 
       const ids = [id, ...this.getIds()];
 
-      this.idsBuffer.backup(ids);
-      this.idsBuffer.set(ids);
+      // this.idsBuffer.backup(ids);
+      // this.idsBuffer.set(ids);
+
+      this.idsBuffer.change(ids);
 
 
       for (let key in params) {
 
         const value = params[key];
 
-        this.grid.buffer.backup([value], id, key);
-        this.grid.buffer.set([value], id, key);
+        // this.grid.buffer.backup([value], id, key);
+        // this.grid.buffer.set([value], id, key);
+
+        this.interface.buffer.change([value], undefined, id, key);
 
       }
 
@@ -154,9 +159,11 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
     const newItem = this.buffer.get(id);
     const newClone = KarmaFieldsAlpha.DeepObject.clone(newItem);
 
-    this.grid.buffer.set(original, id);
-    this.grid.buffer.backup(newClone, id);
-    this.grid.buffer.set(newClone, id);
+    // this.grid.buffer.set(original, id);
+    // this.grid.buffer.backup(newClone, id);
+    // this.grid.buffer.set(newClone, id);
+
+    this.interface.buffer.change(newClone, original, id);
 
   }
 
@@ -331,13 +338,15 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
 
     async openFolder(id) {
 
-      if (id !== KarmaFieldsAlpha.Nav.get("parent")) {
+      const current = KarmaFieldsAlpha.Nav.get("parent");
+
+      if (id !== current) {
 
         KarmaFieldsAlpha.History.save();
 
         this.unselect();
 
-        KarmaFieldsAlpha.Nav.change(id, "parent");
+        KarmaFieldsAlpha.Nav.change(id, current, "parent");
 
         await this.parent.request("query-ids");
         await this.parent.request("render");
@@ -358,14 +367,16 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
 
         this.unselect();
 
-        KarmaFieldsAlpha.Nav.backup(parent, "parent");
-        KarmaFieldsAlpha.Nav.set(parent, "parent"); // -> will remove key instead of setting ""
+        // KarmaFieldsAlpha.Nav.backup(parent, "parent");
+        // KarmaFieldsAlpha.Nav.set(parent, "parent"); // -> will remove key instead of setting ""
+
+        KarmaFieldsAlpha.Nav.change(parent, id, "parent");
 
         const page = KarmaFieldsAlpha.Nav.get("page") || "1";
 
         if (page !== "1") {
-          KarmaFieldsAlpha.Nav.backup(1, "page");
-          KarmaFieldsAlpha.Nav.change(1, "page");
+          // KarmaFieldsAlpha.Nav.backup(1, "page");
+          KarmaFieldsAlpha.Nav.change(1, page, "page");
         }
 
         await this.parent.request("query-ids");
@@ -742,9 +753,8 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
             update: async container => {
 
               const selection = await this.parent.request("selection");
-
               const filetype = await this.getString("filetype");
-
+              // const filetype = await this.request("get", {}, "filetype").then(response => KarmaFieldsAlpha.Type.toString(response));
               const isAttachment = await this.parent.request("is-attachment");
 
 
@@ -1124,11 +1134,6 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
 
       while (parent && parent != "0") {
 
-        // let media = await this.dispatch({
-        //   action: "queryid",
-        //   id: parent
-        // }).then(request => KarmaFieldsAlpha.Type.toObject(request.data || {}));
-
         let media = await this.parent.request("queryid", {id: parent});
 
         ancestors.unshift({
@@ -1156,6 +1161,7 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
           name: "Uploads"
         }
       ];
+
 
       const ancestors = await this.getAncestors();
 
@@ -1189,9 +1195,11 @@ KarmaFieldsAlpha.field.tableMedias = class extends KarmaFieldsAlpha.field.table 
                   a.element.innerHTML = item.name || "no name";
                   a.element.onclick = async event => {
 
-                    if (!item.active) {
+                    const id = KarmaFieldsAlpha.Nav.get("parent");
+
+                    if (!item.active && id !== item.id) {
                       KarmaFieldsAlpha.History.save();
-                      KarmaFieldsAlpha.Nav.change(item.id, this.resource.key);
+                      KarmaFieldsAlpha.Nav.change(item.id, id, this.resource.key);
 
                       // await this.dispatch({
                       //   action: "query-ids"
