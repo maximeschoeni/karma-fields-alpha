@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
+KarmaFieldsAlpha.field.single = class extends KarmaFieldsAlpha.field {
 
   static pile = [];
 
@@ -10,96 +10,12 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
       console.error("Driver not defined");
     }
 
-
-    // compat
-
-    if (this.resource.columns) {
-      this.resource.children = this.resource.columns.map(column => {
-        return {
-          ...column,
-          ...column.field
-        };
-      });
-    }
-
-    if (this.resource.children) {
-
-      this.resource.content = {
-        children: this.resource.children,
-        id: this.resource.driver,
-        params: this.resource.params,
-        joins: this.resource.joins,
-        ...this.resource.content
-      }
-
-      if (typeof this.resource.driver === "string") {
-
-        const [request, ...joins] = this.resource.driver.split("+");
-        const [driver, paramString] = request.split("?");
-
-        this.resource.content.driver = driver;
-        this.resource.content.params = KarmaFieldsAlpha.Params.parse(paramString);
-        this.resource.content.joins = joins
-
-      } else if (this.resource.driver && typeof this.resource.driver === "object") {
-
-        this.resource.content.driver = this.resource.driver.name;
-        this.resource.content.params = this.resource.params || this.resource.driver.params;
-        this.resource.content.joins = this.resource.joins || this.resource.driver.joins || [];
-
-      }
-
-      if (this.resource.style) {
-        this.resource.content.style = this.resource.style;
-      }
-
-    }
-
-
-
     this.interface = this.createChild({
-      // type: "form",
-      // bufferPath: ["data", this.driver],
-      // driver: this.driver, // -> for history
-      // key: "content",
-    // }, "form");
-    //
-    //
-    // this.interface = this.grid.createChild({
       type: "form",
-      // id: "interface",
-      // context: this.resource.id, // -> selection buffer
-      // children: this.resource.children,
-      // style: this.resource.style, // -> deprec: use this.resource.content.style
-
       ...this.resource.content
     });
 
-
-    if (this.resource.modal) {
-
-      // this.modal = this.interface.createChild({
-      //   type: "modal",
-      //   ...this.resource.modal
-      // });
-
-      this.modal = this.createChild({
-        type: "modal",
-        ...this.resource.modal
-      });
-
-    }
-
-    this.controls = this.createChild({
-      id: "controls",
-      type: "controls",
-      ...this.resource.controls
-    });
-
   }
-
-
-
 
   async request(subject, content = {}, ...path) {
 
@@ -138,35 +54,6 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
         return this.interface.isModified();
       }
 
-      case "columns": { // -> column indexes
-        console.error("deprecated");
-        // return this.getColumns();
-      }
-
-      case "column": {
-        console.error("deprecated");
-        const data = [];
-
-        const ids = this.getIds();
-        const key = path[0];
-
-        for (let id of ids) {
-          const value = await this.interface.getInitial(id, key);
-          data.push(value);
-        }
-
-        return data;
-      }
-
-      case "ids": {
-        return this.interface.getIds();
-        break;
-      }
-
-      case "selectedIds": {
-        return this.interface.getSelectedIds();
-      }
-
       // -> used by media "upper-folder"
       case "query-ids": {
         return this.interface.queryIds(); // collection only !
@@ -176,34 +63,115 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
       // -> for media breadcrumb (ancestors)
       case "queryid": {
         return this.interface.get(content.id);
-        // return KarmaFieldsAlpha.Gateway.get("get/"+this.driver+"/"+content.id);
       }
 
       case "edit": {
-        // this.expressionCache.remove();
-        // this.server.store.empty();
-
-        this.interface.selectionBuffer.change(null); // why ?
-
+        this.interface.selectionBuffer.change(null); // when filter change
         this.interface.cache.empty(); // buffer need to stay for history
         await this.queryIds();
         await this.render();
         break;
       }
 
-      case "edit-selection": {
-        return this.render();
-      }
-
-      case "selection":
-      case "actives":
-        return this.interface.getSelection();
-
       case "has-undo":
         return KarmaFieldsAlpha.History.hasUndo();
 
       case "has-redo":
         return KarmaFieldsAlpha.History.hasRedo();
+
+      case "reload": {
+        this.interface.initialBuffer.empty();
+        this.interface.cache.empty();
+        await this.interface.queryIds();
+        await this.render();
+        break;
+      }
+
+      case "export": {
+        return this.interface.export(content.keys, content.index, content.length);
+      }
+
+      case "import": {
+        KarmaFieldsAlpha.History.save();
+        this.interface.import(content.data, content.index, content.length);
+        await this.render();
+        break;
+      }
+
+      case "save":
+        await this.interface.send();
+        this.interface.cache.empty(); // buffer need to stay for history
+        const selection = this.interface.selectionBuffer.get();
+        await this.interface.queryIds();
+        await this.render();
+        break;
+
+      case "undo": {
+        KarmaFieldsAlpha.History.undo();
+        return this.parent.request(subject);
+      }
+
+      case "redo": {
+        KarmaFieldsAlpha.History.redo();
+        return this.parent.request(subject);
+      }
+
+      case "close":
+        this.interface.cache.empty(); // buffer need to stay for history
+        KarmaFieldsAlpha.History.save();
+        this.interface.unselect();
+        this.interface.idsBuffer.change(null);
+        await this.parent.request("close");
+        break;
+
+      case "prev": {
+        let selection = this.interface.selectionBuffer.get();
+        if (selection && selection.index > 0) {
+          KarmaFieldsAlpha.History.save();
+          this.interface.select(selection.index - 1, 1);
+          await this.render();
+        }
+        break;
+      }
+
+      case "next": {
+        let selection = this.interface.selectionBuffer.get();
+        const ids = this.interface.getIds();
+        if (selection && selection.index < ids.length - 1) {
+          KarmaFieldsAlpha.History.save();
+          this.interface.select(selection.index + 1, 1);
+          await this.render();
+        }
+        break;
+      }
+
+      case "render": {
+        await this.render();
+        break;
+      }
+
+      case "render-controls":
+        return this.controls.render();
+
+
+
+
+      // table:
+
+      case "edit-selection": {
+        return this.render();
+      }
+
+      case "ids": {
+        return this.interface.getIds();
+      }
+
+      case "selectedIds": {
+        return this.interface.getSelectedIds();
+      }
+
+      case "selection":
+        return this.interface.getSelection();
 
       case "count":
         return this.interface.getCount();
@@ -274,21 +242,12 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
         break;
       }
 
-      case "reload": {
-        this.interface.initialBuffer.empty();
-        this.interface.cache.empty();
-        await this.interface.queryIds();
-        await this.render();
-        break;
-      }
-
       case "add": {
         KarmaFieldsAlpha.History.save();
         const ids = await this.interface.add(content.data || {});
         // this.interface.select(0, 1);
         await this.render();
         break;
-
       }
 
       case "delete": {
@@ -299,17 +258,6 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
           await this.interface.remove(selection.index, selection.length);
           await this.render();
         }
-        break;
-      }
-
-      case "export": {
-        return this.interface.export(content.keys, content.index, content.length);
-      }
-
-      case "import": {
-        KarmaFieldsAlpha.History.save();
-        this.interface.import(content.data, content.index, content.length);
-        await this.render();
         break;
       }
 
@@ -325,54 +273,6 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
         break;
       }
 
-
-      case "save":
-        await this.interface.send();
-        this.interface.cache.empty(); // buffer need to stay for history
-        const selection = this.interface.selectionBuffer.get();
-        await this.interface.queryIds();
-        await this.render();
-        break;
-
-      case "undo": {
-        KarmaFieldsAlpha.History.undo();
-        return this.parent.request(subject);
-      }
-
-      case "redo": {
-        KarmaFieldsAlpha.History.redo();
-        return this.parent.request(subject);
-      }
-
-      case "close":
-        this.interface.cache.empty(); // buffer need to stay for history
-        KarmaFieldsAlpha.History.save();
-        this.interface.unselect();
-        this.interface.idsBuffer.change(null);
-        await this.parent.request("close");
-        break;
-
-      // modal:
-      case "prev": {
-        let selection = this.interface.selectionBuffer.get();
-        if (selection && selection.index > 0) {
-          KarmaFieldsAlpha.History.save();
-          this.interface.select(selection.index - 1, 1);
-          await this.render();
-        }
-        break;
-      }
-
-      case "next": {
-        let selection = this.interface.selectionBuffer.get();
-        const ids = this.interface.getIds();
-        if (selection && selection.index < ids.length - 1) {
-          KarmaFieldsAlpha.History.save();
-          this.interface.select(selection.index + 1, 1);
-          await this.render();
-        }
-        break;
-      }
 
       case "clear-selection":
       case "close-modal": {
@@ -452,14 +352,6 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
         return KarmaFieldsAlpha.field.table.pile;
       }
 
-      case "render": {
-        await this.render();
-        break;
-      }
-
-      case "render-controls":
-        return this.controls.render();
-
       default:
         return this.parent.request(subject, content, ...path);
 
@@ -516,7 +408,7 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
                                 if (this.interface.resource.modal) {
                                   body.children.push(this.interface.createChild({
                                     type: "modal",
-                                    ...this.resource.modal
+                                    ...this.interface.resource.modal
                                   }).build());
                                 }
 
@@ -595,7 +487,11 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field {
 
       return {
         class: "karma-field-table-grid-container",
-        child: super.build()
+        child: this.createChild({
+          type: "group",
+          key: this.resource.id,
+          children: this.resource.children
+        }).build()
       }
 
     }

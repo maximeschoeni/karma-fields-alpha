@@ -82,7 +82,8 @@ KarmaFieldsAlpha.Clipboard = class {
 
   static unparse(data) {
     return Papa.unparse(data, {
-      delimiter: "\t"
+      delimiter: "\t",
+      newline: "\n"
     });
   }
 

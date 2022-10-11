@@ -120,8 +120,8 @@ KarmaFieldsAlpha.DeepObject = class {
   }
 
   static has(object, key, ...path) {
-    if (key !== undefined && object[key]) {
-      if (path.length > 0) {
+    if (key !== undefined) {
+      if (path.length > 0 && object[key]) {
         return this.has(object[key], ...path);
       } else {
         return object[key] !== undefined;

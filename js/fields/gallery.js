@@ -7,6 +7,13 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
     // this.clipboard = new KarmaFieldsAlpha.Clipboard();
     this.clipboard = this.createChild("clipboard");
 
+
+    // compat
+    if (resource.uploader === "wp") {
+      resource.driver = "medias";
+      resource.joins = ["files"];
+    }
+
   }
 
   async fetchMedias() {
@@ -30,14 +37,14 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
 		} else if (this.resource.table) {
 
-			const table = await this.request("table", {id: this.resource.table});
+			const table = await this.parent.request("table", {id: this.resource.table});
 
-			const results = await table.interface.query({...table.interface.resource.params, ...this.resource.params});
+			const results = await table.query({...table.resource.params, ...this.resource.params});
 
 			for (let item of results) {
 				options.push({
 					id: item.id,
-					name: item[this.resource.nameField || "name"] || await table.interface.getInitial(item.id, this.resource.nameField || "name")
+					name: item[this.resource.nameField || "name"] || await table.getInitial(item.id, this.resource.nameField || "name")
 				});
 			}
 
@@ -60,7 +67,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
     if ((this.resource.uploader || this.resource.library)  === "wp") {
 
-      this.uploader.open(selectedIds);
+      this.uploader.open(selectedIds, {...this.selection});
 
     } else {
 
@@ -69,37 +76,16 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
       const {index: index, length: length} = this.selection || {index: this.resource.insertAt || 99999, length: 0};
 
-      let parentId;
+      let parentId = 0;
 
-      if (this.resource.folder) {
+      if (this.resource.folder && this.resource.table) {
 
-        // const query = {
-        //   driver: this.resource.driver, // -> compat
-        //   joins: this.resource.joins, // -> compat
-        //   ...this.resource.query
-        // }
-        //
-        // // const store = new KarmaFieldsAlpha.Store(this.resource.driver || "medias", this.resource.joins || ["files"]);
-        //
-        // const store = new KarmaFieldsAlpha.Store(query.driver || "medias", query.joins || ["files"]);
-        //
-        // const ids = await store.queryIds("name="+this.resource.folder);
-        //
-        //
-        //
-        // [parentId] = ids;
-
-
-        const table = await this.request("table");
-        const results = await table.interface.query("name="+this.resource.folder);
+        const table = await this.request("table", {id: this.resource.table});
+        const results = await table.query("name="+this.resource.folder);
 
         if (results.length) {
 
           parentId = results[0].id;
-
-        } else { // create folder if not exist
-
-          parentId = await table.interface.add({name: this.resource.folder});
 
         }
 
@@ -527,7 +513,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
       case "edit": {
         const ids = await this.getSelectedIds();
-        await this.openLibrary(ids);
+        await this.openLibrary();
         break;
       }
 
@@ -595,7 +581,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
   createUploader(resource) {
     const uploader = {};
     uploader.addFrame = null;
-    uploader.open = (imageIds) => {
+    uploader.open = (imageIds, selection) => {
       uploader.imageIds = imageIds || [];
       if (!uploader.addFrame) {
         uploader.addFrame = wp.media({
@@ -621,13 +607,11 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
           uploader.imageIds = attachmentIds; //.map(id => id.toString());
           // await this.setArray(attachmentIds);
 
+
           KarmaFieldsAlpha.History.save();
 
-          if (this.editSelection) {
-
-
-            await this.insert(attachmentIds, this.editSelection.index, this.editSelection.length);
-            this.editSelection = null;
+          if (selection) {
+            await this.insert(attachmentIds, selection.index, selection.length);
           } else {
             await this.add(attachmentIds);
           }
@@ -665,248 +649,341 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
         container.element.classList.toggle("single", this.isSingle());
 
-        const array = await this.getIds();
-
-        const ids = array.map(id => id.toString()).slice(0, this.getMax());
-
-        // const store = new KarmaFieldsAlpha.Store(this.resource.driver || "medias", this.resource.joins || ["files"]);
+        // const array = await this.getIds();
         //
-        // if (ids.length) {
-        //   await store.query("ids="+ids.join(","));
-        // }
+        // const ids = array.map(id => id.toString()).slice(0, this.getMax());
 
-        let table;
+        const key = this.getKey();
+        const state = await this.parent.request("state", {}, key);
+        const ids = KarmaFieldsAlpha.Type.toArray(state.value).map(id => id.toString()).slice(0, this.getMax());
 
-        if (ids.length) {
+        if (state.multi && !state.alike) {
 
-          if (this.resource.driver) { // -> compat wp uploader
+          container.children = [
+            this.clipboard.build(),
+            {
+              class: "gallery",
+              init: async gallery => {
+                gallery.element.tabIndex = -1;
+              },
+              update: async gallery => {
+                gallery.element.onfocus = event => {
+                  if (this.selection) {
+                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, 1, 0, 0);
+                    sortManager.clear(this.selection);
+                    this.selection = null;
+                  }
+                  this.clipboard.output("");
+                  this.clipboard.focus();
+                }
+                this.clipboard.onBlur = event => {
+                  if (this.selection) {
+                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, 1, 0, 0);
+                    sortManager.clear(this.selection);
+                    this.selection = null;
+                  }
+                  if (this.onRenderControls) {
+                    this.onRenderControls();
+                  }
+                }
 
-            table = new KarmaFieldsAlpha.field.table({
-              content: {
+                this.clipboard.onInput = async value => {
+                  const arrayData = KarmaFieldsAlpha.Clipboard.parse(value);
+                  KarmaFieldsAlpha.History.save();
+                  await this.parent.request("set", {multi: true, values: arrayData}, key);
+                  this.selection = null;
+                  await this.parent.request("render");
+                }
+
+                gallery.element.ondblclick = event => {
+                  this.openLibrary([]);
+                }
+
+                gallery.children = [
+                  {
+                    class: "frame",
+                    init: async frame => {
+                      frame.element.tabIndex = -1;
+                    },
+                    update: async frame => {
+                      frame.element.classList.remove("selected");
+                      frame.element.onmousedown = async event => {
+                        if (event.buttons === 1) {
+                          const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, 1, 0, 0);
+                          sortManager.segment = this.selection;
+                          sortManager.onSelect = async (segment, hasChange) => {
+                            this.selection = segment;
+                            const value = KarmaFieldsAlpha.Clipboard.unparse(state.values);
+                            this.clipboard.output(value);
+                            this.clipboard.focus();
+                            if (this.onRenderControls) {
+                              await this.onRenderControls();
+                            }
+                          }
+                          await sortManager.sort(event, 0, 0);
+                        }
+                      }
+
+                      frame.children = [
+                        {
+                          tag: "figure",
+                          update: figure => {
+                            figure.element.classList.add("dashicons", "dashicons-images-alt");
+                            figure.children = [];
+                          }
+                        }
+                      ];
+                    }
+                  }
+                ];
+              }
+            },
+            {
+              class: "controls",
+              child: {
+                class: "footer-content",
+                init: controls => {
+                  controls.element.onmousedown = event => {
+                    event.preventDefault(); // -> prevent losing focus on selected items
+                  }
+                },
+                update: controls => {
+                  this.onRenderControls = controls.render;
+                  if (this.resource.controls !== false) {
+                    controls.child = this.createChild({
+                      type: "controls",
+                      display: "flex",
+                      children: [
+                        "remove"
+                      ],
+                    }).build();
+                  }
+                }
+              }
+            }
+          ]
+
+
+
+
+
+
+
+        } else {
+
+          let table;
+
+          if (ids.length) {
+
+            if (this.resource.driver) { // -> compat wp uploader
+
+              table = new KarmaFieldsAlpha.field.layout.table({
                 driver: this.resource.driver,
                 joins: this.resource.joins || []
-              }
-            });
+              });
 
-          } else if (this.resource.table && typeof this.resource.table === "object") {
+            } else if (this.resource.table && typeof this.resource.table === "object") {
 
-            table = new KarmaFieldsAlpha.field.table(this.resource.table);
+              table = new KarmaFieldsAlpha.field.layout.table(this.resource.table);
 
-          } else if (typeof this.resource.table === "string") {
+            } else {
 
-            table = await this.request("table", {id: this.resource.table});
+              table = await this.parent.request("table", {id: this.resource.table || "medias"});
+
+            }
+
+            table.query("ids="+ids.join(","));
 
           }
 
-          table.interface.query("ids="+ids.join(","));
+          container.children = [
+            this.clipboard.build(),
+            {
+              class: "gallery",
+              init: async gallery => {
+                gallery.element.tabIndex = -1;
+              },
+              update: async gallery => {
+
+                gallery.element.onfocus = event => {
+
+                  if (this.selection) {
+
+                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
+                    sortManager.clear(this.selection);
+                    this.selection = null;
+
+                  }
+
+                  this.clipboard.output("");
+                  this.clipboard.focus();
+                }
+
+                this.clipboard.onBlur = event => {
+
+                  if (this.selection) {
+
+                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
+                    sortManager.clear(this.selection);
+                    this.selection = null;
+
+                  }
+
+                  if (this.onRenderControls) {
+                    this.onRenderControls();
+                  }
+                }
+
+                this.clipboard.onInput = async value => {
+
+                  const array = [];
+                  const arrayData = KarmaFieldsAlpha.Clipboard.parse(value);
+                  const jsonData = KarmaFieldsAlpha.Clipboard.toJson(arrayData);
+
+                  for (let row of jsonData) {
+                    if (row.filetype === "file" && row.id !== undefined) {
+                      array.push(row.id);
+                    }
+                  }
+
+                  if (this.selection || array.length) {
+
+                    const selection = this.selection || {index: 999999, length: 0};
+
+                    KarmaFieldsAlpha.History.save();
+                    await this.insert(array, selection.index, selection.length);
+                    this.selection = null;
+                    await this.parent.request("render");
+
+                  }
+
+                }
+
+                gallery.element.ondblclick = event => {
+                  this.openLibrary([]);
+                }
+
+                gallery.children = ids.map((id, rowIndex) => {
+                  return {
+                    class: "frame",
+                    init: async frame => {
+                      frame.element.tabIndex = -1;
+                    },
+                    update: async frame => {
+
+                      frame.element.classList.remove("selected");
+
+                      frame.element.onmousedown = async event => {
+
+                        if (event.buttons === 1) {
+
+                          const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
+
+                          sortManager.segment = this.selection;
+
+                          sortManager.onSelect = async (segment, hasChange) => {
+
+                            this.selection = segment;
+
+                            const selectedIds = ids.slice(segment.index, segment.index + segment.length);
+                            const jsonData = selectedIds.map(id => ({id: id, filetype: "file"}));
+                            const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
+                            const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+
+                            this.clipboard.output(value);
+                            this.clipboard.focus();
+
+                            if (this.onRenderControls) {
+
+                              await this.onRenderControls();
+
+                            }
+
+                          }
+
+                          sortManager.onSort = async (index, length, target) => {
+
+                            await this.swap(index, length, target);
+
+                            sortManager.clear();
+
+                            await this.parent.request("render");
+
+                          }
+
+                          await sortManager.sort(event, 0, rowIndex);
+
+                        }
+
+                      }
+
+                      frame.element.classList.add("loading");
+
+                      const thumb = await table.getInitial(id, "thumb").then(value => KarmaFieldsAlpha.Type.toObject(value));
+                      const type = await table.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
+
+                      frame.element.classList.remove("loading");
+
+                      frame.children = [
+                        {
+                          tag: "figure",
+                          update: figure => {
+
+                            const [mediaType] = type.split("/");
+
+                            figure.element.classList.toggle("dashicons", !thumb);
+                            figure.element.classList.toggle("dashicons-media-video", !thumb && mediaType === "video");
+                            figure.element.classList.toggle("dashicons-media-audio", !thumb && mediaType === "audio");
+                            figure.element.classList.toggle("dashicons-media-text", !thumb && mediaType === "text");
+                            figure.element.classList.toggle("dashicons-media-document", !thumb && type === "application/pdf");
+                            figure.element.classList.toggle("dashicons-media-default", !thumb && mediaType !== "video" && mediaType !== "audio" && mediaType !== "text" && type !== "application/pdf");
+
+                            figure.element.classList.remove("dashicons-images-alt");
+
+                            if (thumb) {
+                              figure.children = [{
+                                tag: "img",
+                                update: image => {
+                                  image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
+                                  image.element.width = thumb.width;
+                                  image.element.height = thumb.height;
+                                }
+                              }];
+                              figure.element.classList.toggle("type-image", type.startsWith("image") || false);
+                            } else {
+                              figure.children = [];
+                            }
+                          }
+                        }
+                      ];
+                    }
+                  };
+                });
+              }
+            },
+            {
+              class: "controls",
+              child: {
+                class: "footer-content",
+                init: controls => {
+                  controls.element.onmousedown = event => {
+                    event.preventDefault(); // -> prevent losing focus on selected items
+                  }
+                },
+                update: controls => {
+                  this.onRenderControls = controls.render;
+                  if (this.resource.controls !== false) {
+                    controls.child = this.createChild(this.resource.controls || "controls").build();
+                  }
+                }
+              }
+            }
+          ]
 
         }
 
 
 
-
-        container.children = [
-          this.clipboard.build(),
-          {
-            class: "gallery",
-            init: async gallery => {
-              gallery.element.tabIndex = -1;
-
-
-
-
-              // gallery.element.onfocus = event => {
-              //   this.clipboard.set("");
-              // }
-              // this.clipboard.ta.onfocus = event => {
-              //   gallery.element.classList.add("focus");
-              // }
-              // this.clipboard.ta.onblur = event => {
-              //   gallery.element.classList.remove("focus");
-              //   if (this.selection) {
-              //     this.selection.kill();
-              //     this.render();
-              //   }
-              // }
-            },
-            update: async gallery => {
-
-              gallery.element.onfocus = event => {
-
-                if (this.selection) {
-
-                  const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
-                  sortManager.clear(this.selection);
-                  this.selection = null;
-
-                }
-
-                this.clipboard.output("");
-                this.clipboard.focus();
-              }
-
-              this.clipboard.onBlur = event => {
-
-                if (this.selection) {
-
-                  const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
-                  sortManager.clear(this.selection);
-                  this.selection = null;
-
-                }
-
-                if (this.onRenderControls) {
-                  this.onRenderControls();
-                }
-              }
-
-              this.clipboard.onInput = async value => {
-
-                const array = [];
-                const arrayData = KarmaFieldsAlpha.Clipboard.parse(value);
-                const jsonData = KarmaFieldsAlpha.Clipboard.toJson(arrayData);
-
-                for (let row of jsonData) {
-                  if (row.filetype === "file" && row.id !== undefined) {
-                    array.push(row.id);
-                  }
-                }
-
-                if (this.selection || array.length) {
-
-                  const selection = this.selection || {index: 999999, length: 0};
-
-                  KarmaFieldsAlpha.History.save();
-                  await this.insert(array, selection.index, selection.length);
-                  this.selection = null;
-                  await this.parent.request("render");
-
-                }
-
-              }
-
-              gallery.element.ondblclick = event => {
-                this.openLibrary([]);
-              }
-
-              gallery.children = ids.map((id, rowIndex) => {
-                return {
-                  class: "frame",
-                  init: async frame => {
-                    frame.element.tabIndex = -1;
-                  },
-                  update: async frame => {
-
-                    frame.element.classList.remove("selected");
-
-                    frame.element.onmousedown = async event => {
-
-                      if (event.buttons === 1) {
-
-                        const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
-
-                        sortManager.segment = this.selection;
-
-                        sortManager.onSelect = async (segment, hasChange) => {
-
-                          this.selection = segment;
-
-                          const selectedIds = ids.slice(segment.index, segment.index + segment.length);
-                          const jsonData = selectedIds.map(id => ({id: id, filetype: "file"}));
-                          const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
-                          const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-
-                          this.clipboard.output(value);
-                          this.clipboard.focus();
-
-                          if (this.onRenderControls) {
-
-                            await this.onRenderControls();
-
-                          }
-
-                        }
-
-                        sortManager.onSort = async (index, length, target) => {
-
-                          await this.swap(index, length, target);
-
-                          sortManager.clear();
-
-                          await this.parent.request("render");
-
-                        }
-
-                        await sortManager.sort(event, 0, rowIndex);
-
-                      }
-
-                    }
-
-                    frame.element.classList.add("loading");
-
-                    // const thumb = await store.getValue(id, "thumb").then(value => KarmaFieldsAlpha.Type.toObject(value));
-                    // const type = await store.getValue(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
-
-                    const thumb = await table.interface.getInitial(id, "thumb").then(value => KarmaFieldsAlpha.Type.toObject(value));
-                    const type = await table.interface.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
-
-                    frame.element.classList.remove("loading");
-
-                    frame.children = [
-                      {
-                        tag: "figure",
-                        update: figure => {
-
-                          const [mediaType] = type.split("/");
-
-                          figure.element.classList.toggle("dashicons", !thumb);
-                          figure.element.classList.toggle("dashicons-media-video", !thumb && mediaType === "video");
-                          figure.element.classList.toggle("dashicons-media-audio", !thumb && mediaType === "audio");
-                          figure.element.classList.toggle("dashicons-media-text", !thumb && mediaType === "text");
-                          figure.element.classList.toggle("dashicons-media-document", !thumb && type === "application/pdf");
-                          figure.element.classList.toggle("dashicons-media-default", !thumb && mediaType !== "video" && mediaType !== "audio" && mediaType !== "text" && type !== "application/pdf");
-
-
-                          if (thumb) {
-                            figure.children = [{
-                              tag: "img",
-                              update: image => {
-                                image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
-                                image.element.width = thumb.width;
-                                image.element.height = thumb.height;
-                              }
-                            }];
-                            figure.element.classList.toggle("type-image", type.startsWith("image") || false);
-                          } else {
-                            figure.children = [];
-                          }
-                        }
-                      }
-                    ];
-                  }
-                };
-              });
-            }
-          },
-          {
-            class: "controls",
-            child: {
-              class: "footer-content",
-              init: controls => {
-                controls.element.onmousedown = event => {
-                  event.preventDefault(); // -> prevent losing focus on selected items
-                }
-              },
-              update: controls => {
-                this.onRenderControls = controls.render;
-                if (this.resource.controls !== false) {
-                  controls.child = this.createChild(this.resource.controls || "controls").build();
-                }
-              }
-            }
-          }
-        ]
       }
 		};
 
@@ -917,7 +994,6 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
     constructor(resource) {
 
       super({
-        id: "controls",
         display: "flex",
         children: [
           "add",

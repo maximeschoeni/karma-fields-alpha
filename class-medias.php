@@ -156,28 +156,79 @@ Class Karma_Fields_Alpha_Media_Library {
 		$karma_fields->register_table(array(
 
 			// 'driver' => 'posts?post_type=attachment,karma-folder&post_status=inherit&orderby=post_type',
-			'driver' => 'medias',
+
 			'id' => 'medias',
-			'type' => 'tableMedias',
+			// 'type' => 'tableMedias',
 			// 'interface' => 'medias',
-			'joins' => array(
-				'files',
-				'files-sources'
-			),
-			'params' => array(
-				'ppp' => 100,
-			),
-			'style' => 'flex: 1 1 0;',
-			'title' => 'Media Library',
+
+
+
 			'header' => array(
-				'children' => array(
-					array(
-						'type' => 'title',
-						'value' => 'Media Library'
-					),
-					'count',
-					'pagination',
-					'close'
+				'title' => 'Media Library'
+				// 'children' => array(
+				// 	'title'
+				// 	'count',
+				// 	'pagination',
+				// 	'close'
+				// )
+			),
+			'modal' => array(
+				'width' => '25em',
+				'header' => array(
+					'children' => array(
+						array(
+							'type' => 'title',
+							'value' => array(
+								'?',
+								array(">", array("count", array("get", "array", "id")), 1),
+								'Multiple Items',
+								array(
+									'?',
+									array('==', array('get', 'string', 'id'), '0'),
+									'Upload',
+									array('get', 'post_title')
+								)
+							),
+						),
+
+						array(
+							'type' => 'close',
+							'action' => 'close'
+						)
+					)
+				)
+			),
+			'body' => array(
+				'type' => 'medias',
+				'driver' => 'medias',
+				'joins' => array('files', 'files-sources'),
+				'params' => array(
+					'ppp' => 100,
+				),
+				'style' => 'flex: 1 1 0;',
+				'modal' => array(
+					'children' => array(
+						array(
+							'type' => 'mediaDescription'
+						),
+						array(
+							'type' => 'input',
+							'hidden' => array('!', array('selection')),
+							'label' => 'Title',
+							'key' => 'post_title'
+						),
+						array(
+							'type' => 'textarea',
+							'visible' => array('&', array("dispatch", "is-attachment"), array('selection')),
+							'label' => 'Caption',
+							'key' => 'post_excerpt'
+						),
+						array(
+							'type' => 'breadcrumb',
+							'key' => 'parent',
+							'visible' => array('!', array('selection'))
+						)
+					)
 				)
 			),
 			'controls' => array(
@@ -205,411 +256,60 @@ Class Karma_Fields_Alpha_Media_Library {
 					'insert'
 				)
 			),
-			'modal' => array(
-				'width' => '25em',
-				'keepAlive' => true,
-				'header' => array(
-					'children' => array(
-						array(
-							'type' => 'title',
-							// 'value' => array('get', 'post_title'),
-							'value' => array(
-								'?',
-								// array(">", array("count", array("actives")), 1),
-								array(">", array("count", array("get", "array", "id")), 1),
-								'Multiple Items',
-								array(
-									'?',
-									array('==', array('get', 'string', 'id'), '0'),
-									'Upload',
-									array('get', 'post_title')
-								)
-							),
-						),
-						array(
-							'type' => 'prev',
-							'action' => 'prev',
-							'disabled' => array('!', array('dispatch', 'has-prev'))
-						),
-						array(
-							'type' => 'next',
-							'action' => 'next',
-							'disabled' => array('!', array('dispatch', 'has-next'))
-						),
-						array(
-							'type' => 'close',
-							// 'disabled' => array('==', array('get', 'id'), '0'),
-							'action' => 'close'
-							// 'action' => array(
-							// 	'?',
-							// 	array('==', array('get', 'id'), array('getParam', 'post_parent')),
-							// 	'upper-folder',
-							// 	'close'
-							// )
-						)
-					)
-				),
-				'body' => array(
-					'children' => array(
-						array(
-							'type' => 'mediaDescription'
-						),
-						array(
-							'type' => 'input',
-							'hidden' => array('!', array('selection')),
-							'label' => 'Title',
-							'key' => 'post_title'
-						),
-						array(
-							'type' => 'textarea',
-							'visible' => array('&', array("dispatch", "is-attachment"), array('selection')),
-							'label' => 'Caption',
-							'key' => 'post_excerpt'
-						),
-						// array(
-						// 	'type' => 'group',
-						//
-						// 	'children' => array(
-						// 		array(
-						// 			'type' => 'input',
-						// 			'label' => 'Title',
-						// 			'key' => 'post_title'
-						// 		),
-						// 		array(
-						// 			'type' => 'textarea',
-						// 			'visible' => array("dispatch", "is-attachment"),
-						// 			'label' => 'Caption',
-						// 			'key' => 'post_excerpt'
-						// 		)
-						// 	)
-						// ),
-						array(
-							'type' => 'breadcrumb',
-							'key' => 'parent',
-							'visible' => array('!', array('selection'))
-						)
-					)
-				)
-				// 'body' => array(
-				// 	'type' => 'group',
-				// 	'children' => array(
-				// 		array(
-				// 			'type' => 'group',
-				// 			'hidden' => array("==", array("count", array("actives")), 0),
-				// 			'children' => array(
-				// 				array(
-				// 					'type' => 'group',
-				// 					'hidden' => array("!=", array("get", "post_type"), "attachment"),
-				// 					'children' => array(
-				// 						array(
-				// 							'type' => 'text',
-				// 							'hidden' => array("==", array("count", array("actives")), 1),
-				// 							'value' => '<span class="dashicons dashicons-images-alt" style="font-size:10em;text-align:left;height:auto;width:auto;"></span>'
-				// 						),
-				// 						array(
-				// 							'hidden' => array(">", array("count", array("actives")), 1),
-				// 							'type' => 'group',
-				// 							'display' => 'flex',
-				// 							'children' => array(
-				// 								array(
-				// 									'type' => 'text',
-				// 									'style' => 'width:50%',
-				// 									'value' => array(
-				// 										'replace',
-				// 										'<figure><img src="#" srcset="#" sizes="40em"></figure>',
-				// 										'#',
-				// 										array('get', 'thumb_src'),
-				// 										array('get', 'srcset')
-				// 									)
-				// 								),
-				// 								array(
-				// 									'type' => 'group',
-				// 									'style' => 'width:50%; min-width:0',
-				// 									'children' => array(
-				// 										array(
-				// 											'label' => 'Size',
-				// 											'sortable' => true,
-				// 											'width' => 'auto',
-				// 											'value' => array('replace', '# KB', '#', array('toFixed', array('/', array('get', 'size'), '1000'))),
-				// 											'type' => 'text'
-				// 										),
-				// 										array(
-				// 											'label' => 'Uploaded on',
-				// 											'sortable' => true,
-				// 											'width' => 'auto',
-				// 											'value' => array('date', array('get', 'post_date'), array(
-				// 												'year' => 'numeric',
-				// 												'month' => 'long',
-				// 												'day' => '2-digit'
-				// 											)),
-				// 											'type' => 'text'
-				// 										),
-				// 										array(
-				// 											'label' => 'Dimensions',
-				// 											'sortable' => true,
-				// 											'width' => 'auto',
-				// 											// 'value' => '{{width}} x {{height}}',
-				// 											'value' => array('replace', '# x # pixels', '#', array('get', 'width'), array('get', 'height')),
-				// 											'type' => 'text'
-				// 										)
-				// 									)
-				// 								)
-				// 							)
-				// 						),
-				// 						array(
-				// 							'type' => 'input',
-				// 							'label' => 'Title',
-				// 							'key' => 'post_title'
-				// 						),
-				// 						array(
-				// 							'type' => 'textarea',
-				// 							'label' => 'Caption',
-				// 							'key' => 'post_excerpt'
-				// 						)
-				// 					)
-				// 				),
-				// 				array(
-				// 					'type' => 'group',
-				// 					'hidden' => array("==", array("get", "post_type"), "attachment"),
-				// 					'children' => array(
-				// 						array(
-				// 							'type' => 'group',
-				// 							'display' => 'flex',
-				// 							'children' => array(
-				// 								array(
-				// 									'type' => 'text',
-				// 									'value' => '<span class="dashicons dashicons-category" style="font-size:8em;height:auto;width:auto;"></span>'
-				//
-				// 									// 'value' => array(
-				// 									// 	'replace',
-				// 									// 	'<span class="dashicons dashicons-#" style="font-size:8em;height:auto;width:auto;"></span>',
-				// 									// 	'#',
-				// 									// 	array(
-				// 									// 		'?',
-				// 									// 		array('==', array('get', 'id'), array('getParam', 'post_parent')),
-				// 									// 		'open-folder',
-				// 									// 		'category'
-				// 									// 	)
-				// 									// )
-				// 								),
-				// 								array(
-				// 									'type' => 'button',
-				// 									'title' => 'Open',
-				// 									'action' => 'open-folder',
-				// 									'value' => array('get', 'id'),
-				// 									'hidden' => array(">", array("count", array("actives")), 1)
-				// 								)
-				// 							)
-				// 						),
-				// 						array(
-				// 							'type' => 'input',
-				// 							'label' => 'Name',
-				// 							'key' => 'post_title',
-				// 							'hidden' => array('==', array('get', 'id'), array('getParam', 'post_parent'))
-				// 						)
-				// 					)
-				// 				)
-				// 			)
-				// 		),
-				// 		array(
-				// 			'type' => 'group',
-				// 			'hidden' => array(">", array("count", array("actives")), 0),
-				// 			'children' => array(
-				// 				array(
-				// 					'type' => 'text',
-				// 					'value' => '<span class="dashicons dashicons-open-folder" style="font-size:8em;height:auto;width:auto;"></span>'
-				// 				),
-				// 				array(
-				// 					'type' => 'breadcrumb',
-				// 					'key' => 'post_parent'
-				// 				)
-				// 			)
-				// 		)
-				//
-				// 		// array(
-				// 		// 	'type' => 'text',
-				// 		// 	'hidden' => array("==", array("count", array("dispatch", "selection", null, "array")), 1),
-				// 		// 	'value' => '<span class="dashicons dashicons-images-alt" style="font-size: 10em"></span>'
-				// 		// )
-				// 	)
-				// )
-			),
-
-			'children' => array(
 
 
-
-				array(
-					'label' => 'Thumb',
-					'sortable' => false,
-					'width' => 'auto',
-					'type' => 'link',
-					'action' => 'open-modal',
-					// 'value' => '{{image::id::thumbnail}}',
-					// 'value' => array('<img src="<>">', 'thumb_src'),
-					'value' => array('replace', '<figure><img src="#"></figure>', '#', array('get', 'thumb_src')),
-					// 'header' => array(
-					// 	'children' => array(
-					// 		array(
-					// 			'type' => 'title',
-					// 			'value' => array('get', 'post_title'),
-					// 		),
-					// 		'prev',
-					// 		'next',
-					// 		'close'
-					// 	)
-					// ),
-					//
-					// 'body' => array(
-					// 	'type' => 'group',
-					// 	'children' => array(
-					// 		array(
-					// 			'type' => 'group',
-					// 			'hidden' => array("!=", array("get", "post_type"), "attachment"),
-					// 			'children' => array(
-					// 				array(
-					// 					'type' => 'text',
-					// 					'hidden' => array("==", array("count", array("dispatch", "selection", null, "array")), 1),
-					// 					'value' => '<span class="dashicons dashicons-images-alt" style="font-size:10em;text-align:left;height:auto;width:auto;"></span>'
-					// 				),
-					// 				array(
-					// 					'hidden' => array(">", array("count", array("dispatch", "selection", null, "array")), 1),
-					// 					'type' => 'group',
-					// 					'display' => 'flex',
-					// 					'children' => array(
-					// 						array(
-					// 							'type' => 'text',
-					// 							'style' => 'width:50%',
-					// 							'value' => array(
-					// 								'replace',
-					// 								'<figure><img src="#" srcset="#" sizes="40em"></figure>',
-					// 								'#',
-					// 								array('get', 'thumb_src'),
-					// 								array('get', 'srcset')
-					// 							)
-					// 						),
-					// 						array(
-					// 							'type' => 'group',
-					// 							'style' => 'width:50%; min-width:0',
-					// 							'children' => array(
-					// 								array(
-					// 									'label' => 'Size',
-					// 									'sortable' => true,
-					// 									'width' => 'auto',
-					// 									'value' => array('replace', '# KB', '#', array('toFixed', array('/', array('get', 'size'), '1000'))),
-					// 									'type' => 'text'
-					// 								),
-					// 								array(
-					// 									'label' => 'Uploaded on',
-					// 									'sortable' => true,
-					// 									'width' => 'auto',
-					// 									'value' => array('date', array('get', 'post_date'), array(
-					// 										'year' => 'numeric',
-					// 										'month' => 'long',
-					// 										'day' => '2-digit'
-					// 									)),
-					// 									'type' => 'text'
-					// 								),
-					// 								array(
-					// 									'label' => 'Dimensions',
-					// 									'sortable' => true,
-					// 									'width' => 'auto',
-					// 									// 'value' => '{{width}} x {{height}}',
-					// 									'value' => array('replace', '# x # pixels', '#', array('get', 'width'), array('get', 'height')),
-					// 									'type' => 'text'
-					// 								)
-					// 							)
-					// 						)
-					// 					)
-					// 				),
-					// 				array(
-					// 					'type' => 'input',
-					// 					'label' => 'Title',
-					// 					'key' => 'post_title'
-					// 				),
-					// 				array(
-					// 					'type' => 'textarea',
-					// 					'label' => 'Caption',
-					// 					'key' => 'post_excerpt'
-					// 				)
-					// 			)
-					// 		),
-					// 		array(
-					// 			'type' => 'group',
-					// 			'hidden' => array("in", array("get", "post_type"), array("", "attachment")),
-					// 			'children' => array(
-					// 				array(
-					// 					'type' => 'group',
-					// 					'display' => 'flex',
-					// 					'children' => array(
-					// 						array(
-					// 							'type' => 'text',
-					// 							'value' => '<span class="dashicons dashicons-category" style="font-size:10em;height:auto;width:auto;"></span>'
-					// 						),
-					// 						array(
-					// 							'type' => 'button',
-					// 							'title' => 'Open',
-					// 							'action' => 'open-folder'
-					// 						)
-					// 					)
-					// 				),
-					// 				array(
-					// 					'type' => 'input',
-					// 					'label' => 'Name',
-					// 					'key' => 'post_title'
-					// 				)
-					// 			)
-					// 		)
-					//
-					// 		// array(
-					// 		// 	'type' => 'text',
-					// 		// 	'hidden' => array("==", array("count", array("dispatch", "selection", null, "array")), 1),
-					// 		// 	'value' => '<span class="dashicons dashicons-images-alt" style="font-size: 10em"></span>'
-					// 		// )
-					// 	)
-					// )
-				),
-
-				array(
-					'label' => 'Filename',
-					'sortable' => true,
-					'order' => 'asc',
-					'width' => '1fr',
-					// 'key' => 'filename',
-					'key' => 'post_title',
-					'type' => 'input'
-				),
-				array(
-					'label' => 'Size',
-					'sortable' => true,
-					'width' => 'auto',
-					// 'value' => '{{size}}',
-					// 'value' => array('<> KB', array('size', '/', '1000')),
-					// 'value' => array('<> KB', array(array('size', '/', '1000'), 'toFixed')),
-					'value' => array('replace', '# KB', '#', array('toFixed', array('/', array('get', 'size'), '1000'))),
-					'type' => 'text'
-				),
-				array(
-					'label' => 'Date',
-					'sortable' => true,
-					'width' => 'auto',
-					// 'value' => '{{date::post_date::DD/MM/YYYY}}',
-					'value' => array('date', array('get', 'post_date'), array(
-						'year' => 'numeric',
-						'month' => 'short',
-						'day' => '2-digit'
-					)),
-					'type' => 'text'
-				),
-				array(
-					'label' => 'Dimensions',
-					'sortable' => true,
-					'width' => 'auto',
-					// 'value' => '{{width}} x {{height}}',
-					'value' => array('replace', '# x #', '#', array('get', 'width'), array('get', 'height')),
-					'type' => 'text'
-				)
-			),
+			// 'children' => array(
+			//
+			//
+			//
+			// 	array(
+			// 		'label' => 'Thumb',
+			// 		'sortable' => false,
+			// 		'width' => 'auto',
+			// 		'type' => 'link',
+			// 		'action' => 'open-modal',
+			// 		'value' => array('replace', '<figure><img src="#"></figure>', '#', array('get', 'thumb_src')),
+			// 	),
+			// 	array(
+			// 		'label' => 'Filename',
+			// 		'sortable' => true,
+			// 		'order' => 'asc',
+			// 		'width' => '1fr',
+			// 		// 'key' => 'filename',
+			// 		'key' => 'post_title',
+			// 		'type' => 'input'
+			// 	),
+			// 	array(
+			// 		'label' => 'Size',
+			// 		'sortable' => true,
+			// 		'width' => 'auto',
+			// 		// 'value' => '{{size}}',
+			// 		// 'value' => array('<> KB', array('size', '/', '1000')),
+			// 		// 'value' => array('<> KB', array(array('size', '/', '1000'), 'toFixed')),
+			// 		'value' => array('replace', '# KB', '#', array('toFixed', array('/', array('get', 'size'), '1000'))),
+			// 		'type' => 'text'
+			// 	),
+			// 	array(
+			// 		'label' => 'Date',
+			// 		'sortable' => true,
+			// 		'width' => 'auto',
+			// 		// 'value' => '{{date::post_date::DD/MM/YYYY}}',
+			// 		'value' => array('date', array('get', 'post_date'), array(
+			// 			'year' => 'numeric',
+			// 			'month' => 'short',
+			// 			'day' => '2-digit'
+			// 		)),
+			// 		'type' => 'text'
+			// 	),
+			// 	array(
+			// 		'label' => 'Dimensions',
+			// 		'sortable' => true,
+			// 		'width' => 'auto',
+			// 		// 'value' => '{{width}} x {{height}}',
+			// 		'value' => array('replace', '# x #', '#', array('get', 'width'), array('get', 'height')),
+			// 		'type' => 'text'
+			// 	)
+			// ),
 
 			'filters' => array(
 				'type' => 'group',

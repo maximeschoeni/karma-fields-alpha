@@ -115,10 +115,10 @@ body.karma-table-open {
 .navigation,
 .table-main-header,
 .table-footer,
-.table-modal,
+/* .table-modal, */
+.karma-modal,
 .table-modal-header,
 .karma-field-table-section {
-  /* box-shadow: 0 0 6px 0px #484848; */
   box-shadow: 0 0 8px 0px #4848487a;
   outline: 1px solid var(--frame-border-color);
   position: relative;
@@ -130,9 +130,9 @@ body.karma-table-open {
 .table-modal-header {
   z-index: 3;
 }
-.table-modal {
+/* .table-modal {
   z-index: 4;
-}
+} */
 .table-footer {
   z-index: 5;
 }
@@ -186,6 +186,7 @@ body.karma-table-open {
   flex-shrink: 0;
   width: 10em;
   padding: var(--gap-width);
+  background-color: var(--background-color);
 }
 .karma-fields .navigation ul li {
 }
@@ -219,13 +220,14 @@ body.karma-table-open {
   flex-grow: 1;
   display: flex;
   position: relative;
+  flex-direction: column;
 }
-.karma-fields .karma-field-table .table-body .table-main {
+/* .karma-fields .karma-field-table .table-body .table-main {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
+} */
 .karma-fields .karma-header {
   background-color: var(--background-color);
 }
@@ -240,45 +242,25 @@ body.karma-table-open {
   justify-content: center;
 }
 
-.karma-fields .karma-field-table .table-main-header {
-  /* background-color: #f1f1f1; */
-}
+
 .karma-fields .karma-field-table h1 {
   margin: 0;
   font-size: 1.5em;
   line-height: 1.15em;
 }
-.karma-fields .karma-field-table .table-main-header .modal-navigation {
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  /* background-color: #f1f1f1; */
-}
 .karma-fields button.hidden {
   display: none;
-}
-.karma-fields .karma-field-table .table-main-header .table-pagination .current-page {
-  min-width: 75px;
-  display: flex;
-  justify-content: center;
 }
 .karma-fields .karma-field-table .karma-field-table-section {
   flex-grow: 0;
   padding: var(--gap-width);
   background-color: var(--background-color);
 }
-.karma-fields .karma-field-table .table-main-body {
-  flex-grow: 1;
-  overflow: hidden;
-}
 .karma-fields .karma-field-table-grid-container {
   overflow: auto;
-  /* flex-direction: row; */
-
   padding: var(--gap-width);
+  flex-grow: 1;
 }
-
-
 .karma-fields .karma-field-table .table-main-header {
   display: flex;
   flex-shrink: 0;
@@ -287,14 +269,43 @@ body.karma-table-open {
 .karma-fields .karma-field-table.loading .karma-field-frame {
   background-color: var(--background-color);
 }
-
-
 .karma-fields .karma-field-table .table-main-header .header-tab a {
   cursor: pointer;
 }
 .karma-fields .karma-field-table .table-main-header .header-tab.active a {
   color: black;
 }
+
+
+/* Table Modal */
+
+.karma-fields .karma-field-table .table-body-columns {
+  display: flex;
+  flex-grow: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.karma-fields .karma-field-table .table-body-columns .table-body-column.table-content {
+  flex-grow: 1;
+  display: flex;
+}
+
+.karma-fields .karma-field-table .table-body .table-body-column.table-modal {
+  display: flex;
+  flex-shrink: 0;
+  min-width: 0;
+  order: 2;
+  width: 0;
+  transition: width 200ms;
+}
+.karma-fields .karma-field-table .karma-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  flex-grow: 1;
+  padding: var(--gap-width);
+}
+
 
 
 /* Table Control */
@@ -307,24 +318,9 @@ body.karma-table-open {
 
 
 
-/* Table Modal
---------------------------------------*/
-.karma-fields .karma-field-table .table-body .table-modal {
-  display: flex;
-  flex-shrink: 0;
-  min-width: 0;
-  order: 2;
-  width: 0;
-  transition: width 200ms;
-}
 
-.karma-fields .karma-field-table .karma-modal {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  flex-grow: 1;
-}
-.karma-fields .karma-field-table .table-modal .modal-resize-handle {
+
+/* .karma-fields .karma-field-table .table-modal .modal-resize-handle {
   position: absolute;
   top: 0;
   right: -5px;
@@ -334,9 +330,7 @@ body.karma-table-open {
   cursor: col-resize;
   user-select: none;
 }
-
 .karma-fields .karma-field-table .table-body .karma-modal .table-modal-header {
-  /* background-color: #f1f1f1; */
   display: flex;
   overflow: auto;
   padding: var(--gap-width);
@@ -347,14 +341,13 @@ body.karma-table-open {
   overflow: hidden;
 }
 .karma-fields .karma-field-table .table-body .karma-modal .table-modal-body {
-  /* background-color: #f1f1f1; */
   display: flex;
   overflow: auto;
   padding: var(--gap-width);
   flex-grow: 1;
   flex-direction: column;
 }
-
+ */
 
 
 
@@ -522,6 +515,7 @@ body.karma-table-open {
   gap: var(--gap-width);
   flex-wrap: wrap;
   align-self: flex-start;
+  align-items: flex-start;
   margin: 0;
   padding: 2em 0;
   position: relative; /* needed for children offset calculation */
@@ -758,7 +752,11 @@ button.karma-button.editing span {
 ----------------------------------- */
 
 .karma-fields .karma-upload {
-
+  border: 1px solid var(--frame-border-color);
+  height: 2.5em;
+  min-width: 2.5em;
+  border-radius: 3px;
+  overflow: hidden;
 }
 .karma-fields .karma-upload label {
   display: flex;
@@ -815,6 +813,25 @@ button.karma-button.editing span {
   display: flex;
   width: 9em;
   height: 9em;
+}
+.karma-gallery .gallery .frame.loading {
+  opacity: 0.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.karma-gallery .gallery .frame.loading::after {
+  font-family: dashicons;
+  font-size: 5em;
+  content: "\f128";
+
+  animation: 1s linear 0s infinite alternate blink;
+}
+@keyframes blink {
+  from {opacity: 0.2;} to {opacity:1;}
+}
+.karma-gallery .gallery .frame.loading figure {
+  display: none;
 }
 .karma-gallery .gallery.dragging {
   z-index: 9999999;
@@ -1165,8 +1182,8 @@ button.karma-button.editing span {
   font-size: 1em;
   min-height: 2.5em;
   background-color: transparent;
-  /* padding: 0 1.0em 0 var(--gap-width); */
-  padding: 0 0.5em 0 0.5em;
+  padding: 0 2.0em 0 var(--gap-width);
+  /* padding: 0 0.5em 0 0.5em; */
   margin: 0;
   box-shadow: none;
 
@@ -1232,7 +1249,8 @@ button.karma-button.editing span {
 .karma-fields input[type=number]::-webkit-inner-spin-button {
   appearance: none;
 }
-.karma-fields input:read-only {
+.karma-fields input:read-only,
+.karma-fields textarea:read-only {
   color: #a0a0a0;
 }
 .karma-field-input-datalist {
@@ -1274,7 +1292,7 @@ button.karma-button.editing span {
 
 /* Clipboard textarea */
 textarea.clipboard {
-  /* position: fixed; */
+  position: fixed;
   /* width: 1px;
   height: 0; */
   padding: 0;
@@ -1290,6 +1308,12 @@ textarea.clipboard {
 
 }
 
+
+/* bulk edit */
+.karma-fields input.multi:focus,
+.karma-fields textarea.multi:focus {
+  background-color: var(--selected-color);
+}
 
 
 /* Input Date
@@ -1409,22 +1433,50 @@ textarea.clipboard {
 .karma-tinymce {
   position: relative;
 }
-
 .karma-tinymce .editor-header {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: calc(100% + 1px);
 }
+.karma-tinymce .editor-body {
+  padding: 3.8462em 0.7692em 0;
+  border: 1px solid var(--frame-border-color);
+  border-top: none;
+  min-height: 8em;
+  border-radius: 0;
+}
+.karma-tinymce .editor-body:focus {
+  background-color: white;
+}
+
+/* TOOLBAR */
 .karma-tinymce .editor-header .toolbar {
   position: sticky;
-  top: 32px;
-
+  top: calc(-1 * var(--gap-width));
   background-color: var(--background-color);
-  z-index: 2;
-  padding: var(--gap-width);
+  z-index: 1;
+  /* padding: var(--gap-width); */
+  padding: 0;
   border: 1px solid var(--frame-border-color);
 }
-.selected .karma-tinymce .editor-header .toolbar {
+.karma-tinymce .editor-header .toolbar .karma-field-container {
+  gap: 1px;
+}
+.karma-tinymce .editor-header .toolbar .karma-field-frame {
+  border-right: 1px solid #0c0c0c;
+  overflow: hidden;
+}
+.karma-tinymce .editor-header .toolbar button,
+.karma-tinymce .editor-header .toolbar select {
+  border: none;
+  outline: none !important;
+  border-radius: 0;
+}
+.karma-tinymce .editor-header .toolbar select:hover {
+  background-color: white;
+}
+
+/* .selected .karma-tinymce .editor-header .toolbar {
   background-color: white;
 }
 .karma-tinymce.theme-white .editor-header .toolbar {
@@ -1434,17 +1486,7 @@ textarea.clipboard {
 .karma-tinymce.theme-white button.karma-button:not(.primary):hover,
 .karma-tinymce.theme-white button.karma-button:not(.primary):focus {
   background-color: var(--background-color);
-}
-.karma-tinymce .editor-body {
-  padding: 3.8462em 0.7692em 0;
-  border: 1px solid var(--frame-border-color);
-  border-top: none;
-  min-height: 8em;
-  border-radius: 3px;
-}
-.karma-tinymce .editor-body:focus {
-  background-color: white;
-}
+} */
 
 
 /* Links */

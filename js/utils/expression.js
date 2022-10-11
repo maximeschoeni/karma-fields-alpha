@@ -338,30 +338,60 @@ KarmaFieldsAlpha.Expression = class {
 
     driver = await this.resolve(field, driver);
     paramString = await this.resolve(field, paramString);
-    const store = new KarmaFieldsAlpha.Store(driver, joins);
-    const results = await store.query(paramString);
+    if (typeof paramString === "object") {
+      KarmaFieldsAlpha.Params.stringify(paramString);
+    }
+    // const store = new KarmaFieldsAlpha.Store(driver, joins);
+    // const results = await store.query(paramString);
+    const form = new KarmaFieldsAlpha.field.form({
+      driver: driver,
+      joins: joins
+    });
+
+    const results = await form.query(paramString);
+
     if (path.length) {
       path = await this.resolveAll(field, path);
-      const value = await store.getValue(...path);
+      const value = await form.getInitial(...path);
       return KarmaFieldsAlpha.Type.convert(value, type);
     }
+
     return results;
   }
 
-  static async getOptions(field, driver, paramString = "", nameField = "name") {
+  static async getOptions(field, driver, paramString = "", nameField = "name", joins = []) {
 
     driver = await this.resolve(field, driver);
     paramString = await this.resolve(field, paramString);
 
-    const store = new KarmaFieldsAlpha.Store(driver);
+    if (typeof paramString === "object") {
+      KarmaFieldsAlpha.Params.stringify(paramString);
+    }
 
-    const ids = await store.queryIds(paramString);
+    // const store = new KarmaFieldsAlpha.Store(driver);
+    //
+    // const ids = await store.queryIds(paramString);
+
+    const form = new KarmaFieldsAlpha.field.form({
+      driver: driver,
+      joins: joins
+    });
+
+    const results = await form.query(paramString);
+
     const options = [];
 
-    for (let id of ids) {
+    // for (let id of ids) {
+    //   options.push({
+    //     id: id,
+    //     name: KarmaFieldsAlpha.Type.toString(await form.getInitial(id, nameField))
+    //   });
+    // }
+
+    for (let item of results) {
       options.push({
-        id: id,
-        name: KarmaFieldsAlpha.Type.toString(await store.getValue(id, nameField))
+        id: item.id,
+        name: KarmaFieldsAlpha.Type.toString(item[nameField] || await form.getInitial(item.id, nameField))
       });
     }
 

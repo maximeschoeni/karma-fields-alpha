@@ -19,17 +19,18 @@
 		let resource = <?php echo json_encode($args); ?>;
 		let id = "<?php echo $post_id; ?>";
 
-		// let gateway = KarmaFieldsAlpha.tables.createChild({
-		// 	type: "gateway",
+
+
+		// const form = new KarmaFieldsAlpha.field.form({
 		// 	driver: "posts",
-		// 	joins: ["postmeta", "taxonomy"]
-		// });
-		// let form = gateway.createChild({
-		// 	id: "form",
-		// 	key: id,
-		// 	type: "form",
-		// 	bufferPath: ["data"],
-		// 	children: [resource]
+		// 	joins: ["postmeta", "taxonomy"],
+		// 	children: [
+		// 		{
+		// 			type: "group",
+		// 			key: id,
+		// 			children: [resource]
+		// 		}
+		// 	]
 		// });
 		//
 		// form.buffer.getObject = function() {
@@ -38,33 +39,51 @@
 		// form.buffer.setObject = function(delta) {
 		// 	input.value = JSON.stringify(delta.data);
 		// }
-		// KarmaFieldsAlpha.build({
-		// 	child: form.build()
-		// }, container);
+		// form.parent = {
+		// 	request: (subject, object, ...path) => {
+		// 		switch (subject) {
+		// 			case "render":
+		// 			case "edit":
+		// 				await this.render();
+		// 				break;
+		// 		}
+		// 	}
+		// }
 
+		class MetaField extends KarmaFieldsAlpha.field {
 
+			constructor(...args) {
 
-		class Embeder extends KarmaFieldsAlpha.field.gateway {
-
-			constructor(resource, input) {
-
-				super(resource);
+				super(...args);
 
 				this.form = this.createChild({
-					id: "form",
-					key: resource.id,
 					type: "form",
-					bufferPath: ["data"],
-					children: resource.children
+					driver: "posts",
+					joins: ["postmeta", "taxonomy"],
+					params: {
+						ids: id
+					},
+					children: [
+						{
+							type: "group",
+							key: id,
+							children: [resource]
+						}
+					]
 				});
 
 				this.form.buffer.getObject = function() {
-					return {data: JSON.parse(input.value || "{}")};
+					return {
+						data: {
+							posts: {
+								[id]: JSON.parse(input.value || "{}")
+							}
+						}
+					};
 				};
 				this.form.buffer.setObject = function(delta) {
-					input.value = JSON.stringify(delta.data);
+					input.value = JSON.stringify(delta.data.posts[id]);
 				}
-
 			}
 
 			async request(subject, object, ...path) {
@@ -73,30 +92,14 @@
 					case "edit":
 						await this.render();
 						break;
-
-					case "get": {
-						const [id, key] = path;
-						const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins || []);
-						await store.query(`id=${id}`);
-						return store.getValue(...path);
-					}
-
-					case "modified": {
-						// const originalValue = this.buffer.get(...path);
-						// return KarmaFieldsAlpha.DeepObject.differ(content.data, originalValue);
-						return false;
-					}
-
-					default:
-						return super.request(subject, object, ...path);
 				}
-				return event;
 			}
 
 			build() {
 				return {
-					init: div => {
+					init: async div => {
 						this.render = div.render;
+						await this.form.query(this.form.resource.params);
 					},
 					child: this.form.build()
 				}
@@ -104,15 +107,129 @@
 
 		}
 
+		// class Embeder extends KarmaFieldsAlpha.field {
+		//
+		// 	constructor(resource, input) {
+		//
+		// 		super(resource);
+		//
+		// 		this.form = this.createChild({
+		// 			id: "form",
+		// 			key: resource.id,
+		// 			type: "form",
+		// 			bufferPath: ["data"],
+		// 			children: resource.children
+		// 		});
+		//
+		// 		this.form.buffer.getObject = function() {
+		// 			return {data: JSON.parse(input.value || "{}")};
+		// 		};
+		// 		this.form.buffer.setObject = function(delta) {
+		// 			input.value = JSON.stringify(delta.data);
+		// 		}
+		//
+		// 	}
+		//
+		// 	async request(subject, object, ...path) {
+		// 		switch (subject) {
+		// 			case "render":
+		// 			case "edit":
+		// 				await this.render();
+		// 				break;
+		//
+		// 			case "get": {
+		// 				const [id, key] = path;
+		// 				const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins || []);
+		// 				await store.query(`id=${id}`);
+		// 				return store.getValue(...path);
+		// 			}
+		//
+		// 			case "modified": {
+		// 				// const originalValue = this.buffer.get(...path);
+		// 				// return KarmaFieldsAlpha.DeepObject.differ(content.data, originalValue);
+		// 				return false;
+		// 			}
+		//
+		// 			default:
+		// 				return super.request(subject, object, ...path);
+		// 		}
+		// 	}
+		//
+		// 	build() {
+		// 		return {
+		// 			init: div => {
+		// 				this.render = div.render;
+		// 			},
+		// 			child: this.form.build()
+		// 		}
+		// 	}
+		//
+		// }
+		//
+		//
+		// class Embeder extends KarmaFieldsAlpha.field.form {
+		//
+		// 	constructor(resource, input) {
+		//
+		// 		super(resource);
+		//
+		// 		this.form = this.createChild({
+		// 			id: "form",
+		// 			key: resource.id,
+		// 			type: "form",
+		// 			bufferPath: ["data"],
+		// 			children: resource.children
+		// 		});
+		//
+		// 		this.form.buffer.getObject = function() {
+		// 			return {data: JSON.parse(input.value || "{}")};
+		// 		};
+		// 		this.form.buffer.setObject = function(delta) {
+		// 			input.value = JSON.stringify(delta.data);
+		// 		}
+		//
+		// 	}
+		//
+		// 	async request(subject, object, ...path) {
+		// 		switch (subject) {
+		// 			case "render":
+		// 			case "edit":
+		// 				await this.render();
+		// 				break;
+		//
+		// 			case "get": {
+		// 				const [id, key] = path;
+		// 				const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins || []);
+		// 				await store.query(`id=${id}`);
+		// 				return store.getValue(...path);
+		// 			}
+		//
+		// 			case "modified": {
+		// 				// const originalValue = this.buffer.get(...path);
+		// 				// return KarmaFieldsAlpha.DeepObject.differ(content.data, originalValue);
+		// 				return false;
+		// 			}
+		//
+		// 			default:
+		// 				return super.request(subject, object, ...path);
+		// 		}
+		// 	}
+		//
+		// 	build() {
+		// 		return {
+		// 			init: div => {
+		// 				this.render = div.render;
+		// 			},
+		// 			child: this.form.build()
+		// 		}
+		// 	}
+		//
+		// }
+
 		// const embeder = new Embeder(id, resource, input);
 
-		const embeder = new Embeder({
-			driver: "posts",
-			joins: ["postmeta", "taxonomy"],
-			children: [resource],
-			id: id
-		}, input);
+		const metaField = new MetaField();
 
-		KarmaFieldsAlpha.build(embeder.build(), container);
+		KarmaFieldsAlpha.build(metaField.build(), container);
 	});
 </script>

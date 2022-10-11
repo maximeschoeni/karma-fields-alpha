@@ -30,22 +30,21 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 					if (!button.element.classList.contains("editing")) {
 						button.element.classList.add("editing");
 
-						const action = await this.parse(this.resource.action || this.resource.state || "submit");
-						const value = await this.parse(this.resource.value);
+						// const [action = this.resource.action, value = this.resource.value, ...path] = this.resource.request
 
-						// requestIdleCallback(() => {
-						//
-						// 	this.dispatch({
-						// 		action: action,
-						// 		data: value
-						// 	}).then(() => {
-						// 		button.element.classList.remove("editing");
-						// 		button.element.blur();
-						// 	});
-						// });
 
 						setTimeout(async () => {
-							await this.parent.request(action, {data: value});
+							// if (this.resource.request) {
+							// 	await this.parent.request(...this.resource.request);
+							// } else {
+							//
+							// }
+
+							// const action = await this.parse(this.resource.action || this.resource.state || "submit");
+							// const value = await this.parse(this.resource.value || {});
+
+							await this.parent.request(this.resource.action, this.resource.value, ...(this.resource.path || []));
+
 							button.element.classList.remove("editing");
 							button.element.blur();
 						}, 50);

@@ -62,6 +62,7 @@ KarmaFieldsAlpha.field = class {
     //   return new KarmaFieldsAlpha.field[type](resource);
     // }
 
+
     if (this.constructor[type] && typeof this.constructor[type] === "function") {
       return new this.constructor[type](resource);
     }
@@ -104,6 +105,7 @@ KarmaFieldsAlpha.field = class {
     //
     // if (!child) {
 
+  
       const child = this.createField(resource);
 
       // this.children.push(child);

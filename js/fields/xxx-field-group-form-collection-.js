@@ -725,7 +725,8 @@ KarmaFieldsAlpha.field.collection = class extends KarmaFieldsAlpha.field.form {
                   const row = this.createChild({
                     key: id,
                     type: "row",
-                    children: this.resource.children || []
+                    children: this.resource.children || [],
+                    index: offset + rowIndex + 1
                   });
 
                   const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, rowIndex);
@@ -849,208 +850,208 @@ KarmaFieldsAlpha.field.collection = class extends KarmaFieldsAlpha.field.form {
 
 
 
-  static row = class extends KarmaFieldsAlpha.field {
-
-    async request(subject, content, ...path) {
-
-      switch (subject) {
-
-        case "index":
-          return this.index;
-
-        default:
-          return super.request(subject, content, this.getKey(), ...path);
-      }
-
-    }
-
-    getKeys() {
-
-      let keys = new Set();
-
-      for (let resource of this.resource.children) {
-
-        keys = new Set([...keys, ...this.createChild(resource).getKeys()]);
-
-      }
-
-      return keys;
-    }
-
-    async getDefault() {
-
-      let defaults = {};
-
-      for (let index in this.resource.children) {
-
-        const child = this.createChild(this.resource.children[index]);
-
-        defaults = {
-          ...defaults,
-          ...await child.getDefault()
-        };
-
-      }
-
-      return defaults;
-    }
-
-    async export(keys = []) {
-
-      let object = {};
-
-      for (let resource of this.resource.children) {
-
-        const child = this.createChild(resource);
-
-        object = {
-          ...object,
-          ...await child.export(keys)
-        };
-
-      }
-
-      return object;
-    }
-
-    async import(object) {
-
-      for (let resource of this.resource.children) {
-
-        const child = this.createChild(resource);
-
-        await child.import(object);
-
-      }
-
-    }
-
-
-
-    static handle = class extends KarmaFieldsAlpha.field.text {
-
-      constructor(resource) {
-        super({
-          selectMode: "row",
-          ...resource
-        });
-      }
-
-      build() {
-        return {
-          tag: this.resource.tag,
-          class: "text karma-field modal-btn",
-          init: node => {
-            // node.element.tabIndex = -1;
-          },
-          update: async node => {
-            node.element.innerHTML = await this.getContent();
-          }
-        };
-      }
-
-    }
-
-    static modalHandle = class extends this.handle {}; // -> compat
-
-    static tableIndex = class extends this.handle {
-
-      constructor(resource) {
-        super({
-          width: "40px",
-          selectMode: "row",
-          ...resource
-        });
-
-      }
-
-      build() {
-        return {
-          class: "karma-field text",
-          update: async container => {
-            container.element.textContent = await this.parent.request("index");
-          }
-        };
-      }
-
-    }
-
-
-  }
-
-
-  static modal = class extends KarmaFieldsAlpha.field.table.modal {
-
-    async request(subject, content, ...path) {
-
-      switch (subject) {
-
-        case "close": {
-          return this.parent.request("unselect");
-        }
-
-        case "state": {
-
-          const ids = await this.parent.request("selectedIds");
-
-          if (ids.length === 1) {
-
-            return this.parent.request("state", {}, ids[0], ...path);
-
-          } else if (ids.length > 1) {
-
-            const response = {
-              values: [],
-              multi: true
-            };
-
-            for (id of ids) {
-
-              const state = await this.parent.request("state", {}, id, ...path);
-
-              response.values.push(state.value);
-
-              if (response.value === undefined || KarmaFieldsAlpha.DeepObject.equal(response.value, state.value)) {
-
-                response.value = state.value;
-
-              } else {
-
-                response.value = null;
-
-              }
-
-              response.alike = response.value !== null;
-              response.modified = Boolean(response.modified || state.modified);
-
-            }
-
-            return response;
-
-          } else {
-
-            return {};
-
-          }
-
-        }
-
-        default: {
-          const [id] = await this.parent.request("selectedIds");
-
-          if (id) {
-
-            path = [id, ...path];
-
-          }
-
-          return this.parent.request(subject, content, ...path);
-        }
-
-      }
-
-    }
-
-  }
+  // static row = class extends KarmaFieldsAlpha.field {
+  //
+  //   async request(subject, content, ...path) {
+  //
+  //     switch (subject) {
+  //
+  //       case "index":
+  //         return this.index;
+  //
+  //       default:
+  //         return super.request(subject, content, this.getKey(), ...path);
+  //     }
+  //
+  //   }
+  //
+  //   getKeys() {
+  //
+  //     let keys = new Set();
+  //
+  //     for (let resource of this.resource.children) {
+  //
+  //       keys = new Set([...keys, ...this.createChild(resource).getKeys()]);
+  //
+  //     }
+  //
+  //     return keys;
+  //   }
+  //
+  //   async getDefault() {
+  //
+  //     let defaults = {};
+  //
+  //     for (let index in this.resource.children) {
+  //
+  //       const child = this.createChild(this.resource.children[index]);
+  //
+  //       defaults = {
+  //         ...defaults,
+  //         ...await child.getDefault()
+  //       };
+  //
+  //     }
+  //
+  //     return defaults;
+  //   }
+  //
+  //   async export(keys = []) {
+  //
+  //     let object = {};
+  //
+  //     for (let resource of this.resource.children) {
+  //
+  //       const child = this.createChild(resource);
+  //
+  //       object = {
+  //         ...object,
+  //         ...await child.export(keys)
+  //       };
+  //
+  //     }
+  //
+  //     return object;
+  //   }
+  //
+  //   async import(object) {
+  //
+  //     for (let resource of this.resource.children) {
+  //
+  //       const child = this.createChild(resource);
+  //
+  //       await child.import(object);
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  //
+  //   static handle = class extends KarmaFieldsAlpha.field.text {
+  //
+  //     constructor(resource) {
+  //       super({
+  //         selectMode: "row",
+  //         ...resource
+  //       });
+  //     }
+  //
+  //     build() {
+  //       return {
+  //         tag: this.resource.tag,
+  //         class: "text karma-field modal-btn",
+  //         init: node => {
+  //           // node.element.tabIndex = -1;
+  //         },
+  //         update: async node => {
+  //           node.element.innerHTML = await this.getContent();
+  //         }
+  //       };
+  //     }
+  //
+  //   }
+  //
+  //   static modalHandle = class extends this.handle {}; // -> compat
+  //
+  //   static tableIndex = class extends this.handle {
+  //
+  //     constructor(resource) {
+  //       super({
+  //         width: "40px",
+  //         selectMode: "row",
+  //         ...resource
+  //       });
+  //
+  //     }
+  //
+  //     build() {
+  //       return {
+  //         class: "karma-field text",
+  //         update: async container => {
+  //           container.element.textContent = await this.parent.request("index");
+  //         }
+  //       };
+  //     }
+  //
+  //   }
+  //
+  //
+  // }
+
+
+  // static modal = class extends KarmaFieldsAlpha.field.table.modal {
+  //
+  //   async request(subject, content, ...path) {
+  //
+  //     switch (subject) {
+  //
+  //       case "close": {
+  //         return this.parent.request("unselect");
+  //       }
+  //
+  //       case "state": {
+  //
+  //         const ids = await this.parent.request("selectedIds");
+  //
+  //         if (ids.length === 1) {
+  //
+  //           return this.parent.request("state", {}, ids[0], ...path);
+  //
+  //         } else if (ids.length > 1) {
+  //
+  //           const response = {
+  //             values: [],
+  //             multi: true
+  //           };
+  //
+  //           for (id of ids) {
+  //
+  //             const state = await this.parent.request("state", {}, id, ...path);
+  //
+  //             response.values.push(state.value);
+  //
+  //             if (response.value === undefined || KarmaFieldsAlpha.DeepObject.equal(response.value, state.value)) {
+  //
+  //               response.value = state.value;
+  //
+  //             } else {
+  //
+  //               response.value = null;
+  //
+  //             }
+  //
+  //             response.alike = response.value !== null;
+  //             response.modified = Boolean(response.modified || state.modified);
+  //
+  //           }
+  //
+  //           return response;
+  //
+  //         } else {
+  //
+  //           return {};
+  //
+  //         }
+  //
+  //       }
+  //
+  //       default: {
+  //         const [id] = await this.parent.request("selectedIds");
+  //
+  //         if (id) {
+  //
+  //           path = [id, ...path];
+  //
+  //         }
+  //
+  //         return this.parent.request(subject, content, ...path);
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
 }

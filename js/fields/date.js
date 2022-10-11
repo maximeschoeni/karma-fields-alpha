@@ -252,7 +252,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
           {
             class: "date-popup-container open-down",
             update: popup => {
-              popup.element.classList.toggle("open-left", popup.element.offsetParent.clientWidth - popup.element.offsetLeft < 280);
+              popup.element.classList.toggle("open-left", popup.element.clientWidth - popup.element.offsetLeft < 280);
               popup.children = this.date && !this.resource.readonly && [this.buildPopup(value)] || [];
             }
           },

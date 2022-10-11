@@ -22,7 +22,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
     await this.parent.request("fetch", {
       params: {
-        table: this.resource.table || "medias",
+        table: this.resource.table,
         selection: selectedIds.join(","),
         ...this.resource.fetchParams
       },
@@ -251,205 +251,323 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
         container.element.classList.toggle("single", this.isSingle());
 
-        const array = await this.getIds();
-        const ids = array.map(id => id.toString()).slice(0, this.getMax());
-        const table = await this.request("table", {id: this.resource.table});
+        // const array = await this.getIds();
 
-        if (!table) {
-          console.error("table not found", this.resource.table);
-        }
+        const key = this.getKey();
+        // const response = await this.parent.request("get", {}, key);
+        // return KarmaFieldsAlpha.Type.toArray(response);
 
-        if (ids.length) {
-          // await table.server.store.query("ids="+ids.join(","));
-          await table.interface.query("ids="+ids.join(","));
-        }
+        const state = await this.parent.request("state", {}, key);
+        const ids = KarmaFieldsAlpha.Type.toArray(state.value).map(id => id.toString()).slice(0, this.getMax());
+
+        if (state.multi && !state.alike) {
 
 
+          container.children = [
+            this.clipboard.build(),
+            {
+              tag: "ul",
+              init: async content => {
+                content.element.tabIndex = -1;
+              },
+              update: async content => {
 
-        container.children = [
-          this.clipboard.build(),
-          {
-            tag: "ul",
-            init: async content => {
-              content.element.tabIndex = -1;
-            },
-            update: async content => {
-
-              content.element.classList.toggle("hidden", ids.length === 0);
-
-              content.element.onfocus = event => {
-
-                if (this.selection) {
-
-                  const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
-                  sortManager.clear(this.selection);
-                  this.selection = null;
-
+                content.element.onfocus = event => {
+                  if (this.selection) {
+                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, 1, 0, 0);
+                    sortManager.clear(this.selection);
+                    this.selection = null;
+                  }
+                  this.clipboard.output("");
+                  this.clipboard.focus();
                 }
 
-                this.clipboard.output("");
-                this.clipboard.focus();
-              }
-
-              this.clipboard.onBlur = event => {
-
-                if (this.selection) {
-
-                  const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
-                  sortManager.clear(this.selection);
-                  this.selection = null;
-
+                this.clipboard.onBlur = event => {
+                  if (this.selection) {
+                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, 1, 0, 0);
+                    sortManager.clear(this.selection);
+                    this.selection = null;
+                  }
                 }
 
-              }
-
-              this.clipboard.onInput = async value => {
-
-                // const array = [];
-                const arrayData = KarmaFieldsAlpha.Clipboard.parse(value);
-                const jsonData = KarmaFieldsAlpha.Clipboard.toJson(arrayData);
-
-                // for (let row of jsonData) {
-                //   if (row.id !== undefined) {
-                //     array.push(row.id);
-                //   }
-                // }
-
-                const array = jsonData.map(row => row.id).filter(id => id !== undefined);
-
-                if (this.selection || array.length) {
-
-                  const selection = this.selection || {index: 999999, length: 0};
-
+                this.clipboard.onInput = async value => {
+                  const arrayData = KarmaFieldsAlpha.Clipboard.parse(value);
                   KarmaFieldsAlpha.History.save();
-                  await this.insert(array, selection.index, selection.length);
+                  await this.parent.request("set", {multi: true, values: arrayData}, key);
                   this.selection = null;
                   await this.parent.request("render");
-
                 }
 
-              }
-
-              content.element.ondblclick = event => {
-                this.openLibrary([]);
-              }
-
-              content.children = ids.map((id, rowIndex) => {
-                return {
-                  tag: "li",
-                  init: frame => {
-                    frame.element.tabIndex = -1;
-                  },
-                  update: async frame => {
-
-                    frame.element.classList.remove("selected");
-
-                    frame.element.onmousedown = async event => {
-
-                      if (event.buttons === 1) {
-
-                        const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
-
-                        sortManager.segment = this.selection;
-
-                        sortManager.onSelect = async (segment, hasChange) => {
-
-                          this.selection = segment;
-
-                          const selectedIds = ids.slice(segment.index, segment.index + segment.length);
-                          const jsonData = selectedIds.map(id => ({id: id, filetype: "file"}));
-                          const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
-                          const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-
-                          this.clipboard.output(value);
-                          this.clipboard.focus();
-
-                          if (this.onRenderControls) {
-
-                            await this.onRenderControls();
-
+                content.children = [
+                  {
+                    tag: "li",
+                    init: frame => {
+                      frame.element.tabIndex = -1;
+                    },
+                    update: async frame => {
+                      frame.element.classList.remove("selected");
+                      frame.element.onmousedown = async event => {
+                        if (event.buttons === 1) {
+                          const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, 1, 0, 0);
+                          sortManager.segment = this.selection;
+                          sortManager.onSelect = async (segment, hasChange) => {
+                            this.selection = segment;
+                            const value = KarmaFieldsAlpha.Clipboard.unparse(state.values);
+                            this.clipboard.output(value);
+                            this.clipboard.focus();
+                            if (this.onRenderControls) {
+                              await this.onRenderControls();
+                            }
                           }
-
+                          await sortManager.sort(event, 0, 0);
                         }
-
-                        sortManager.onSort = async (index, length, target) => {
-
-                          await this.swap(index, length, target);
-
-                          sortManager.clear();
-
-                          await this.parent.request("render");
-
-                        }
-
-                        await sortManager.sort(event, 0, rowIndex);
-
                       }
-
-                    }
-
-                    frame.element.classList.add("loading");
-
-                    const row = table.interface.createChild({
-                      type: "row",
-                      key: id
-                    });
-
-                    const name = await row.request("get", {}, this.resource.nameField || "name") || await row.parse(this.resource.value) || "?";
-
-                    // const name = await table.server.store.getValue(id, "name").then(value => KarmaFieldsAlpha.Type.toString(value));
-
-                    frame.element.classList.remove("loading");
-
-                    frame.children = [
-                      {
-                        tag: "span",
-                        update: async span => {
-                          span.element.innerHTML = KarmaFieldsAlpha.Type.toString(name);
-                        }
-                      },
-                      {
-                        tag: "a",
-                        class: "close",
-                        init: close => {
-                          close.element.textContent = "×";
+                      frame.children = [
+                        {
+                          tag: "span",
+                          update: async span => {
+                            span.element.innerHTML = "[Multiple Values]";
+                          }
                         },
-                        update: close => {
-                          close.element.onclick = async event => {
-                            KarmaFieldsAlpha.History.save();
-                            await this.insert([], rowIndex, 1);
-                            this.selection = null;
-                            await this.parent.request("render");
+                        {
+                          tag: "a",
+                          class: "close",
+                          init: close => {
+                            close.element.textContent = "×";
+                          },
+                          update: close => {
+                            close.element.onclick = async event => {
+                              KarmaFieldsAlpha.History.save();
+                              await this.parent.request("set", {multi:true, values: []}, key);
+                              this.selection = null;
+                              await this.parent.request("render");
+                            }
                           }
                         }
-                      }
-                    ];
+                      ];
+                    }
                   }
-                };
-              });
-            }
-          },
-          {
-            class: "controls",
-            update: controls => {
-              controls.element.classList.toggle("hidden", this.resource.controls === false);
+                ];
+              }
             },
-            child: {
-              class: "footer-content",
-              init: controls => {
-                controls.element.onmousedown = event => {
-                  event.preventDefault(); // -> prevent losing focus on selected items
-                }
-              },
+            {
+              class: "controls",
               update: controls => {
-                this.onRenderControls = controls.render;
-                if (this.resource.controls !== false) {
-                  controls.child = this.createChild(this.resource.controls || "controls").build();
+                controls.element.classList.add("hidden");
+              }
+            }
+          ];
+
+
+
+
+
+
+
+
+
+
+
+        } else {
+
+          const table = await this.request("table", {id: this.resource.table});
+
+          if (!table) {
+            console.error("table not found", this.resource.table);
+          }
+
+          if (ids.length) {
+            // await table.server.store.query("ids="+ids.join(","));
+            await table.query("ids="+ids.join(","));
+          }
+
+
+
+          container.children = [
+            this.clipboard.build(),
+            {
+              tag: "ul",
+              init: async content => {
+                content.element.tabIndex = -1;
+              },
+              update: async content => {
+
+                content.element.classList.toggle("hidden", ids.length === 0);
+
+                content.element.onfocus = event => {
+
+                  if (this.selection) {
+
+                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
+                    sortManager.clear(this.selection);
+                    this.selection = null;
+
+                  }
+
+                  this.clipboard.output("");
+                  this.clipboard.focus();
+                }
+
+                this.clipboard.onBlur = event => {
+
+                  if (this.selection) {
+
+                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
+                    sortManager.clear(this.selection);
+                    this.selection = null;
+
+                  }
+
+                }
+
+                this.clipboard.onInput = async value => {
+
+                  // const array = [];
+                  const arrayData = KarmaFieldsAlpha.Clipboard.parse(value);
+                  const jsonData = KarmaFieldsAlpha.Clipboard.toJson(arrayData);
+
+                  // for (let row of jsonData) {
+                  //   if (row.id !== undefined) {
+                  //     array.push(row.id);
+                  //   }
+                  // }
+
+                  const array = jsonData.map(row => row.id).filter(id => id !== undefined);
+
+                  if (this.selection || array.length) {
+
+                    const selection = this.selection || {index: 999999, length: 0};
+
+                    KarmaFieldsAlpha.History.save();
+                    await this.insert(array, selection.index, selection.length);
+                    this.selection = null;
+                    await this.parent.request("render");
+
+                  }
+
+                }
+
+                content.element.ondblclick = event => {
+                  this.openLibrary([]);
+                }
+
+                content.children = ids.map((id, rowIndex) => {
+                  return {
+                    tag: "li",
+                    init: frame => {
+                      frame.element.tabIndex = -1;
+                    },
+                    update: async frame => {
+
+                      frame.element.classList.remove("selected");
+
+                      frame.element.onmousedown = async event => {
+
+                        if (event.buttons === 1) {
+
+                          const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
+
+                          sortManager.segment = this.selection;
+
+                          sortManager.onSelect = async (segment, hasChange) => {
+
+                            this.selection = segment;
+
+                            const selectedIds = ids.slice(segment.index, segment.index + segment.length);
+                            const jsonData = selectedIds.map(id => ({id: id, key: this.resource.key}));
+                            const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
+                            const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+
+                            this.clipboard.output(value);
+                            this.clipboard.focus();
+
+                            if (this.onRenderControls) {
+
+                              await this.onRenderControls();
+
+                            }
+
+                          }
+
+                          sortManager.onSort = async (index, length, target) => {
+
+                            await this.swap(index, length, target);
+
+                            sortManager.clear();
+
+                            await this.parent.request("render");
+
+                          }
+
+                          await sortManager.sort(event, 0, rowIndex);
+
+                        }
+
+                      }
+
+                      frame.element.classList.add("loading");
+
+                      const row = table.createChild({
+                        type: "row",
+                        key: id
+                      });
+
+                      const name = await row.request("get", {}, this.resource.nameField || "name") || await row.parse(this.resource.value) || "?";
+
+                      // const name = await table.server.store.getValue(id, "name").then(value => KarmaFieldsAlpha.Type.toString(value));
+
+                      frame.element.classList.remove("loading");
+
+                      frame.children = [
+                        {
+                          tag: "span",
+                          update: async span => {
+                            span.element.innerHTML = KarmaFieldsAlpha.Type.toString(name);
+                          }
+                        },
+                        {
+                          tag: "a",
+                          class: "close",
+                          init: close => {
+                            close.element.textContent = "×";
+                          },
+                          update: close => {
+                            close.element.onclick = async event => {
+                              KarmaFieldsAlpha.History.save();
+                              await this.insert([], rowIndex, 1);
+                              this.selection = null;
+                              await this.parent.request("render");
+                            }
+                          }
+                        }
+                      ];
+                    }
+                  };
+                });
+              }
+            },
+            {
+              class: "controls",
+              update: controls => {
+                controls.element.classList.toggle("hidden", this.resource.controls === false);
+              },
+              child: {
+                class: "footer-content",
+                init: controls => {
+                  controls.element.onmousedown = event => {
+                    event.preventDefault(); // -> prevent losing focus on selected items
+                  }
+                },
+                update: controls => {
+                  this.onRenderControls = controls.render;
+                  if (this.resource.controls !== false) {
+                    controls.child = this.createChild(this.resource.controls || "controls").build();
+                  }
                 }
               }
             }
-          }
-        ]
+          ];
+        }
       }
 		};
 

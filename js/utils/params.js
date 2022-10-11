@@ -1,7 +1,7 @@
 KarmaFieldsAlpha.Params = class {
 
 	static stringify(object) {
-		return Object.entries(object).map(entries => entries[0]+"="+encodeURIComponent(entries[1])).join("&");
+		return Object.entries(object).filter(entries => entries[1]).map(entries => entries[0]+"="+encodeURIComponent(entries[1])).join("&");
 	}
 
 	static parse(string) {

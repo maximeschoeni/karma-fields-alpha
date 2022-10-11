@@ -20,22 +20,43 @@ KarmaFieldsAlpha.field.clipboard = class extends KarmaFieldsAlpha.field {
     return {
       tag: "textarea",
       class: "clipboard",
+      init: ta => {
+        ta.element.readOnly = true;
+      },
       update: ta => {
-        ta.element.oninput = event => {
 
-          switch (event.inputType) {
-            case "deleteByCut":
-            case "deleteContentBackward":
-            case "deleteContentForward":
-            case "deleteContent":
-            case "insertFromPaste": {
-              // const dataArray = KarmaFieldsAlpha.Clipboard.parse(ta.element.value);
-              // const data = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
-              // return this.parent.request("import", {data: data});
-              this.onInput(ta.element.value);
-            }
+        ta.element.onpaste = event => {
+          const value = event.clipboardData.getData("text/plain").normalize();
+          this.onInput(value);
+        }
+
+        ta.element.oncut = event => {
+          this.onInput("");
+        }
+
+        ta.element.onkeyup = event => {
+          if (event.key === "Delete" || event.key === "Backspace") {
+            this.onInput("");
           }
-        };
+        }
+
+        // ta.element.oninput = event => {
+        //
+        //   console.log(event);
+        //
+        //   switch (event.inputType) {
+        //     case "deleteByCut":
+        //     case "deleteContentBackward":
+        //     case "deleteContentForward":
+        //     case "deleteContent":
+        //     case "insertFromPaste": {
+        //       // const dataArray = KarmaFieldsAlpha.Clipboard.parse(ta.element.value);
+        //       // const data = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
+        //       // return this.parent.request("import", {data: data});
+        //       this.onInput(ta.element.value);
+        //     }
+        //   }
+        // };
         ta.element.onblur = event => {
           this.onBlur();
         };

@@ -43,48 +43,88 @@ Class Karma_Fields_Alpha_Posts {
 
 
 		$karma_fields->register_table(array(
-			'driver' => 'posts?post_type=post',
+			// 'driver' => 'posts?post_type=post',
 			'id' => 'posts',
-			'type' => 'tableGrid',
-			'joins' => array(
-				'taxonomy',
-				'postmeta',
-				'postcontent'
-				// array('driver' => 'taxonomy', 'on' => 'id'),
-				// array('driver' => 'postmeta', 'on' => 'id')
-				// array('driver' => 'taxonomy?taxonomy=category'),
-				// array('driver' => 'taxonomy?taxonomy=post_tag')
-			),
-			'ppp' => 100,
+			// 'type' => 'layout',
+			// 'joins' => array(
+			// 	'taxonomy',
+			// 	'postmeta',
+			// 	'postcontent'
+			// 	// array('driver' => 'taxonomy', 'on' => 'id'),
+			// 	// array('driver' => 'postmeta', 'on' => 'id')
+			// 	// array('driver' => 'taxonomy?taxonomy=category'),
+			// 	// array('driver' => 'taxonomy?taxonomy=post_tag')
+			// ),
+			// 'ppp' => 100,
 			// 'index' => array(
 			// 	'title' => '#',
 			// 	'width' => 'auto'
 			// ),
 			// 'style' => 'flex: 1 1 0;',
-			'orderby' => 'post_title',
-			'autosave' => false,
-			'title' => 'Posts',
-			'header' => array(
-				'children' => array(
-					'title',
-					'count',
-					'pagination',
-					'close'
-				)
-			),
-			// 'controls' => array(
-      //   'type' => 'controls',
-      //   'children' => array(
-      //     'save',
-      //     array(
-      //       'type' => 'button',
-      //       'title' => 'xxx'
-      //     )
-      //   )
-      // ),
+			// 'orderby' => 'post_title',
+			// 'autosave' => false,
 
-			'modal' => array(
-				'body' => array(
+			'body' => array(
+				'type' => 'collection',
+				'driver' => 'posts',
+				'joins' => array('taxonomy', 'postmeta', 'postcontent'),
+				'params' => array(
+					'ppp' => 100,
+					'orderby' => 'post_title'
+				),
+				'children' => array(
+					array(
+						'type' => 'tableIndex',
+						'value' => 'asdfasdf'
+					),
+					array(
+						'label' => 'Title',
+						'sortable' => true,
+						'order' => 'asc',
+						'width' => '1fr',
+						'value' => ['get', 'post_title'],
+						'type' => 'modalHandle',
+						'orderby' => 'post_title'
+					),
+					array(
+						'label' => 'AA',
+						'sortable' => true,
+						'order' => 'asc',
+						'type' => 'input',
+						'key' => 'aa',
+					),
+					array(
+						'label' => 'Category',
+						'sortable' => true,
+						'width' => 'auto',
+						'type' => 'dropdown',
+						'key' => 'category',
+						'default' => '1',
+						'options' => array('getOptions', 'taxonomy', 'taxonomy=category')
+					),
+					array(
+						'label' => 'Status',
+						'sortable' => true,
+						'width' => 'auto',
+						'value' => ['get', 'post_status'],
+						'type' => 'text'
+					),
+					array(
+						'label' => 'Type',
+						'sortable' => true,
+						'width' => 'auto',
+						'value' => ['get', 'post_type'],
+						'type' => 'text'
+					),
+					array(
+						'label' => 'Date',
+						'sortable' => true,
+						'width' => 'auto',
+						'value' => ['date', ['get', 'post_date'], 'DD/MM/YYYY'],
+						'type' => 'text'
+					)
+				),
+				'modal' => array(
 					'children' => array(
 						array(
 							'type' => 'input',
@@ -92,7 +132,8 @@ Class Karma_Fields_Alpha_Posts {
 							'key' => 'post_title'
 						),
 						array(
-							'type' => 'textarea',
+							// 'type' => 'textarea',
+							'type' => 'tinymce',
 							'label' => 'Content',
 							'key' => 'post_content'
 						),
@@ -145,105 +186,28 @@ Class Karma_Fields_Alpha_Posts {
 					)
 				)
 			),
-
-			'children' => array(
-				// 'index',
-				array(
-					'type' => 'tableIndex',
-					'value' => 'asdfasdf'
-				),
-
-				// array(
-				// 	'label' => 'Title',
-				// 	'sortable' => true,
-				// 	'order' => 'asc',
-				// 	'width' => '1fr',
-				// 	// 'value' => '{{post_title}}',
-				// 	// 'value' => ['<>', 'post_title'],
-				// 	'value' => ['get', 'post_title'],
-				// 	'type' => 'text'
-				// ),
-				array(
-					'label' => 'Title',
-					'sortable' => true,
-					'order' => 'asc',
-					'width' => '1fr',
-					// 'value' => '{{post_title}}',
-					// 'value' => ['<>', 'post_title'],
-					'value' => ['get', 'post_title'],
-					'type' => 'modalHandle',
-					'orderby' => 'post_title'
-					// 'body' => array(
-					// 	'type' => 'group',
-					// 	'children' => array(
-					// 		array(
-					// 			'type' => 'input',
-					// 			'label' => 'Title',
-					// 			'key' => 'post_title'
-					// 		),
-					// 		array(
-					// 			'type' => 'textarea',
-					// 			'label' => 'Content',
-					// 			'key' => 'post_content'
-					// 		)
-					// 	)
-					// )
-				),
-				array(
-					'label' => 'AA',
-					'sortable' => true,
-					'order' => 'asc',
-					'type' => 'input',
-					'key' => 'aa',
-				),
-				array(
-					'label' => 'Category',
-					'sortable' => true,
-					'width' => 'auto',
-					// 'value' => '{{category}}',
-					'type' => 'dropdown',
-					'key' => 'category',
-					// 'driver' => 'taxonomy',
-					// 'options' => array(
-					// 	array('id' => '', 'name' => '-')
-					// ),
-					'default' => '1',
-					// 'driver' => 'taxonomy?taxonomy=category'
-					// 'options' => array('queryArray', 'taxonomy?taxonomy=category')
-					'options' => array('getOptions', 'taxonomy', 'taxonomy=category')
-
-
-					// 'params' => array('taxonomy' => 'category')
-				),
-				array(
-					'label' => 'Status',
-					'sortable' => true,
-					'width' => 'auto',
-					// 'value' => '{{post_status}}',
-					// 'value' => ['<>', 'post_status'],
-					'value' => ['get', 'post_status'],
-					'type' => 'text'
-				),
-				array(
-					'label' => 'Type',
-					'sortable' => true,
-					'width' => 'auto',
-					// 'value' => '{{post_type}}',
-					// 'value' => ['<>', 'post_type'],
-					'value' => ['get', 'post_type'],
-					'type' => 'text'
-				),
-
-				array(
-					'label' => 'Date',
-					'sortable' => true,
-					'width' => 'auto',
-					// 'value' => '{{date::post_date::DD/MM/YYYY}}',
-					// 'value' => ['<>', ['post_date', 'date', 'DD/MM/YYYY']],
-					'value' => ['date', ['get', 'post_date'], 'DD/MM/YYYY'],
-					'type' => 'text'
+			'header' => array(
+				'title' => 'Posts',
+				'children' => array(
+					'title',
+					'count',
+					'pagination',
+					'close'
 				)
 			),
+			// 'controls' => array(
+      //   'type' => 'controls',
+      //   'children' => array(
+      //     'save',
+      //     array(
+      //       'type' => 'button',
+      //       'title' => 'xxx'
+      //     )
+      //   )
+      // ),
+
+
+
 
 			'filters' => array(
 				'type' => 'group',

@@ -631,6 +631,63 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     switch (subject) {
 
+      case "state": {
+        const [index, subkey] = path;
+        const key = this.getKey();
+
+        if (key) {
+
+          const state = await this.parent.request("state", {}, key);
+
+          if (state.multi) {
+
+            return {
+              ...state,
+              values: state.values.map(value => value && value[index] && value[index][subkey])
+            };
+
+          } else if (state.value && state.value[index]) {
+
+            return {
+              ...state,
+              value: state.value[index][subkey]
+            };
+
+          }
+
+        } else {
+
+          // const response = await this.parent.request("get", undefined, subkey);
+          // const column = KarmaFieldsAlpha.Type.toArray(response);
+          //
+          // return column[index];
+
+
+          const state = await this.parent.request("state", {}, subkey);
+
+          if (state.multi) {
+
+            return {
+              ...state,
+              values: state.values.map(value => KarmaFieldsAlpha.Type.toArray(value)[index])
+            };
+
+          } else {
+
+            return {
+              ...state,
+              value: KarmaFieldsAlpha.Type.toArray(state.value)[index]
+            };
+
+          }
+
+        }
+
+        break;
+      }
+
+
+
       case "get": {
         const [index, subkey] = path;
         const key = this.getKey();
@@ -1138,7 +1195,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
     static add = {
       type: "button",
       id: "add",
-      state: "add",
+      action: "add",
       // title: "Add Row"
       title: "+"
     }

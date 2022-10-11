@@ -2,7 +2,6 @@
 
 KarmaFieldsAlpha.field.table.media = class extends KarmaFieldsAlpha.field.table.collection {
 
-
   async openFolder(id) {
 
     const current = KarmaFieldsAlpha.Nav.get("parent");
@@ -327,23 +326,23 @@ KarmaFieldsAlpha.field.table.media = class extends KarmaFieldsAlpha.field.table.
 
   }
 
-  static row = class extends KarmaFieldsAlpha.field.table.interface.row {
-
-    async export(keys) {
-      const key = this.getKey();
-      if (!keys.length || keys.includes("id")) {
-        return {
-          id: key,
-          filetype: await super.request("get", {}, "filetype").then(response => KarmaFieldsAlpha.Type.toString(response))
-        };
-      }
-    }
-
-    async import(object) {
-      // noop
-    }
-
-  }
+  // static row = class extends KarmaFieldsAlpha.field.table.interface.row {
+  //
+  //   async export(keys) {
+  //     const key = this.getKey();
+  //     if (!keys.length || keys.includes("id")) {
+  //       return {
+  //         id: key,
+  //         filetype: await super.request("get", {}, "filetype").then(response => KarmaFieldsAlpha.Type.toString(response))
+  //       };
+  //     }
+  //   }
+  //
+  //   async import(object) {
+  //     // noop
+  //   }
+  //
+  // }
 
   static mediaDescription = class extends KarmaFieldsAlpha.field {
 

@@ -154,7 +154,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 	    //   });
 	    // }
 
-			const form = new KarmaFieldsAlpha.field.Form({
+			const form = new KarmaFieldsAlpha.field.form({
 				driver: this.resource.driver,
 				joins: this.resource.joins
 			});
@@ -187,12 +187,12 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 			// 	});
 			// }
 
-			const results = await table.interface.query({...table.interface.resource.params, ...this.resource.params});
+			const results = await table.query({...table.resource.params, ...this.resource.params});
 
 			for (let item of results) {
 				options.push({
 					id: item.id,
-					name: item[this.resource.nameField || "name"] || await table.interface.getInitial(item.id, this.resource.nameField || "name")
+					name: item[this.resource.nameField || "name"] || await table.getInitial(item.id, this.resource.nameField || "name")
 				});
 			}
 
@@ -327,9 +327,16 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 				dropdown.element.classList.add("loading");
 
 				const key = this.getKey();
-				const options = await this.fetchOptions();
-				const response = await this.parent.request("get", {}, key);
-				const value = KarmaFieldsAlpha.Type.toString(response);
+				let options = await this.fetchOptions();
+				// const response = await this.parent.request("get", {}, key);
+				// const value = KarmaFieldsAlpha.Type.toString(response);
+				const state = await this.parent.request("state", {}, key);
+				let value = KarmaFieldsAlpha.Type.toString(state.value);
+
+				if (state.multi && !state.alike) {
+					options.splice(1, 0, {id: "[multiple-values]", name: "[Multiple Values]"});
+					value = "[multiple-values]";
+				}
 
 				if (this.resource.lazy) {
 
@@ -389,13 +396,15 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 					}
 
-				} else {
+				} else if (document.activeElement !== dropdown.element) {
 
 					dropdown.element.length = 0;
 
 					options.forEach(option => {
 						dropdown.element.add(new Option(option.name, option.id, false, value === option.id));
 					});
+
+					dropdown.element.value = value;
 
 				}
 
@@ -407,7 +416,11 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 					KarmaFieldsAlpha.History.save();
 
-					await this.parent.request("set", {data: dropdown.element.value}, key);
+					if (state.multi) {
+						await this.parent.request("set", {multi: true, values: dropdown.element.value}, key);
+					} else {
+						await this.parent.request("set", {data: dropdown.element.value}, key);
+					}
 
 					if (this.resource.onchange) {
 						await this.parse(this.resource.onchange);
@@ -422,7 +435,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 					dropdown.element.disabled = Boolean(await this.parent.parse(this.resource.disabled));
 				}
 
-				dropdown.element.parentNode.classList.toggle("modified", await this.isModified());
+				dropdown.element.parentNode.classList.toggle("modified", state.modified);
 
 				dropdown.element.classList.remove("loading");
 

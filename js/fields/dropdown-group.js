@@ -180,6 +180,179 @@ KarmaFieldsAlpha.field.dropdownGroup = class extends KarmaFieldsAlpha.field.drop
 	//
 	// }
 
+
+
+	async fetchOptions() {
+
+		let options = [];
+
+		if (this.resource.options) {
+
+			options = [
+				...await this.parse(this.resource.options)
+			];
+
+		}
+
+		if (this.resource.driver) {
+
+			const form = new KarmaFieldsAlpha.field.form({
+				driver: this.resource.driver,
+				joins: this.resource.joins
+			});
+
+	    const results = await form.query(this.resource.params || {});
+
+			options = [...options, ...results];
+
+		} else if (this.resource.table) {
+
+			const table = await this.request("table", {id: this.resource.table});
+
+			const results = await table.query({...table.resource.params, ...this.resource.params});
+
+			options = [...options, ...results];
+
+		}
+
+		const groups = [];
+
+		for (let item of options) {
+
+      let group = groups.find(group => group.id === item.group_id);
+
+      if (!group) {
+
+        group = {
+         id: item.group_id,
+         name: item.group_name,
+         options: []
+       };
+
+       groups.push(group);
+
+      }
+
+      group.options.push({
+        id: item.id,
+        name: item[this.resource.nameField || "name"] || await form.getInitial(item.id, this.resource.nameField || "name")
+      });
+
+    }
+
+
+
+		// for (let item of results) {
+		// 	options.push({
+		// 		id: item.id,
+		// 		group_id: item.group_id,
+		// 		group_name: item.group_name,
+		// 		name: item[this.resource.nameField || "name"] || await form.getInitial(item.id, this.resource.nameField || "name")
+		// 	});
+		// }
+		//
+		//
+		//
+		// for (let option of options) {
+    //   // const name = KarmaFieldsAlpha.Type.toString(await store.getValue(id, query.nameField));
+    //   // const groupId = KarmaFieldsAlpha.Type.toString(await store.getValue(id, query.groupIdField));
+		//
+    //   let group = groups.find(group => group.id === option.group_id);
+		//
+    //   if (!group) {
+		//
+    //     group = {
+    //      id: option.group_id,
+    //      name: option.group_name,
+    //      options: []
+    //    };
+		//
+    //    groups.push(group);
+		//
+    //   }
+		//
+    //   group.options.push({
+    //     id: option.id,
+    //     name: option.name
+    //   });
+		//
+    // }
+
+
+		return groups;
+
+
+		// const expressionKey = JSON.stringify(this.resource.options);
+		//
+    // let promise = this.expressionCache.get(expressionKey);
+		//
+    // if (!promise) {
+		//
+    //   promise = this.parse(this.resource.options) || [];;
+		//
+    //   this.expressionCache.set(promise, expressionKey);
+		//
+    // }
+		//
+    // return promise;
+
+	}
+
+	// async fetchGroupOptions() {
+	//
+	// 	const query = {
+	// 		driver: "none",
+	// 		paramString: "",
+	// 		nameField: "name",
+	// 		idField: "id",
+	// 		groupNameField: "group_name",
+	// 		groupIdField: "group_id",
+	// 		...this.resource.query
+	// 	};
+	//
+	//
+  //   const store = new KarmaFieldsAlpha.Store(query.driver);
+	//
+  //   const ids = await store.queryIds(query.paramString);
+  //   const groups = [];
+	//
+	// 	if (this.resource.emptyValue) {
+	// 		groups.push({
+	// 			id: "",
+	// 			name: "",
+	// 			options: [{id: "", name: "–"}]
+	// 		});
+	// 	}
+	//
+  //   for (let id of ids) {
+  //     const name = KarmaFieldsAlpha.Type.toString(await store.getValue(id, query.nameField));
+  //     const groupId = KarmaFieldsAlpha.Type.toString(await store.getValue(id, query.groupIdField));
+	//
+  //     let group = groups.find(group => group.id === groupId);
+	//
+  //     if (!group) {
+	//
+  //       group = {
+  //        id: groupId,
+  //        name: KarmaFieldsAlpha.Type.toString(await store.getValue(id, query.groupNameField)),
+  //        options: []
+  //      };
+	//
+  //      groups.push(group);
+	//
+  //     }
+	//
+  //     group.options.push({
+  //       id: id,
+  //       name: KarmaFieldsAlpha.Type.toString(await store.getValue(id, query.nameField))
+  //     });
+	//
+  //   }
+	//
+	// 	return groups;
+	//
+	// }
+
 	build() {
 
 		return {
@@ -199,19 +372,39 @@ KarmaFieldsAlpha.field.dropdownGroup = class extends KarmaFieldsAlpha.field.drop
 				const response = await this.parent.request("get", {}, key);
 				const value = KarmaFieldsAlpha.Type.toString(response);
 
-				optGroups.forEach(group => {
-					const optGroupElement = document.createElement("optgroup");
-					optGroupElement.label = group.name;
-					group.options.forEach(option => {
-						const optionElement = document.createElement("option");
-						optionElement.value = option.id;
-						optionElement.textContent = option.name;
-						optGroupElement.appendChild(optionElement);
-					});
-					dropdown.element.appendChild()
-				});
+
+				// optGroups.forEach(group => {
+				// 	const optGroupElement = document.createElement("optgroup");
+				// 	optGroupElement.label = group.name;
+				// 	group.options.forEach(option => {
+				// 		const optionElement = document.createElement("option");
+				// 		optionElement.value = option.id;
+				// 		optionElement.textContent = option.name;
+				// 		optGroupElement.appendChild(optionElement);
+				// 	});
+				// 	dropdown.element.appendChild(optGroupElement);
+				// });
+
+				if (document.activeElement !== dropdown.element) {
+
+					dropdown.element.replaceChildren(...optGroups.map(group => {
+						const optGroupElement = document.createElement("optgroup");
+						optGroupElement.label = group.name;
+						optGroupElement.replaceChildren(...group.options.map(option => {
+							const optionElement = document.createElement("option");
+							optionElement.value = option.id;
+							optionElement.textContent = option.name;
+							return optionElement;
+						}));
+						return optGroupElement;
+					}));
+
+					dropdown.element.value = value;
+
+				}
 
 				dropdown.element.onchange = async event => {
+
 					dropdown.element.classList.add("editing");
 
 					KarmaFieldsAlpha.History.save();

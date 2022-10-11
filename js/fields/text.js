@@ -11,7 +11,7 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 	}
 
 	async exportValue() {
-		return this.getContent();
+		return this.parse(this.resource.export || this.resource.value);
 	}
 
 
