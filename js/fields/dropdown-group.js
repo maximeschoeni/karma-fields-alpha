@@ -368,6 +368,7 @@ KarmaFieldsAlpha.field.dropdownGroup = class extends KarmaFieldsAlpha.field.drop
 				dropdown.element.classList.add("loading");
 
 				const key = this.getKey();
+	
 				const optGroups = await this.fetchOptions();
 				const response = await this.parent.request("get", {}, key);
 				const value = KarmaFieldsAlpha.Type.toString(response);
@@ -384,6 +385,7 @@ KarmaFieldsAlpha.field.dropdownGroup = class extends KarmaFieldsAlpha.field.drop
 				// 	});
 				// 	dropdown.element.appendChild(optGroupElement);
 				// });
+
 
 				if (document.activeElement !== dropdown.element) {
 

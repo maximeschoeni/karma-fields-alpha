@@ -144,6 +144,25 @@ KarmaFieldsAlpha.field.layout.medias = class extends KarmaFieldsAlpha.field.layo
       class: "karma-field-table-grid-container karma-field-frame karma-field-group final",
       init: body => {
         body.element.tabIndex = -1;
+        body.element.ondrop = async event => {
+          event.preventDefault();
+          const files = event.dataTransfer.files;
+          if (event.dataTransfer.files.length) {
+
+            body.element.classList.add("loading");
+
+            await this.parent.request("upload", {
+              files: event.dataTransfer.files,
+              params: {
+                parent: KarmaFieldsAlpha.Nav.get("parent") || "0"
+              }
+            });
+            body.element.classList.remove("loading");
+          }
+        }
+        body.element.ondragover = function(event) {
+          event.preventDefault();
+        }
       },
       update: body => {
         this.clipboard = this.createChild("clipboard");
@@ -166,25 +185,7 @@ KarmaFieldsAlpha.field.layout.medias = class extends KarmaFieldsAlpha.field.layo
               if (this.resource.style) {
                 grid.element.style = this.resource.style;
               }
-              grid.element.ondrop = async event => {
-                event.preventDefault();
-                const files = event.dataTransfer.files;
-                if (event.dataTransfer.files.length) {
 
-                  grid.element.classList.add("loading");
-
-                  await this.parent.request("upload", {
-                    files: event.dataTransfer.files,
-                    params: {
-                      parent: KarmaFieldsAlpha.Nav.get("parent") || "0"
-                    }
-                  });
-                  grid.element.classList.remove("loading");
-                }
-              }
-              grid.element.ondragover = function(event) {
-                event.preventDefault();
-              }
             },
             update: async grid => {
 
@@ -257,7 +258,12 @@ KarmaFieldsAlpha.field.layout.medias = class extends KarmaFieldsAlpha.field.layo
                          // => mime type
                         const type = await this.request("get", {}, id, "type").then(response => KarmaFieldsAlpha.Type.toString(response));
                         const filetype = await this.request("get", {}, id, "filetype").then(response => KarmaFieldsAlpha.Type.toString(response));
-                        const thumb = await this.request("get", {}, id, "thumb").then(response => KarmaFieldsAlpha.Type.toObject(response));
+                        const thumbResponse = await this.request("get", {}, id, "thumb");
+                        let thumb;
+
+                        if (thumbResponse) {
+                          thumb = KarmaFieldsAlpha.Type.toObject(thumbResponse); // toObject convert undefined to {}
+                        }
 
                         const isFolder = !filetype || filetype === "folder";
 

@@ -52,25 +52,39 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 				contextmenu: false,
 				toolbar: false,
 				skin: false,
+				// theme_url: "tinymce/themes/modern/theme.js",
+
+		    // paste_as_text: true,
+
+				paste_word_valid_elements: 'b,strong,i,em,ul,ol',
+
 				// plugins: "link lists table paste",
 				plugins: "link lists paste",
 				convert_urls: false,
+
+				// entity_encoding: "named",
 				// image_caption: true,
-				paste_postprocess: (pl, o) => {
-					function unwrap(node) {
-						let container = document.createElement("div");
-						for (let child of node.childNodes) {
-							if (child.nodeType === Node.ELEMENT_NODE && child.matches("div,span")) {
-								container.append(...unwrap(child).childNodes);
-							} else {
-								container.append(child);
-							}
-						}
-						return container;
-					}
-					o.node = unwrap(o.node);
-					o.node.innerHTML = o.node.innerHTML.normalize();
-			  }
+
+				// paste_preprocess: (plugin, args) => {
+			  //   console.log(args.content);
+			  // }
+
+
+				// paste_postprocess: (pl, o) => {
+				// 	function unwrap(node) {
+				// 		let container = document.createElement("div");
+				// 		for (let child of node.childNodes) {
+				// 			if (child.nodeType === Node.ELEMENT_NODE && child.matches("div,span")) {
+				// 				container.append(...unwrap(child).childNodes);
+				// 			} else {
+				// 				container.append(child);
+				// 			}
+				// 		}
+				// 		return container;
+				// 	}
+				// 	o.node = unwrap(o.node);
+				// 	o.node.innerHTML = o.node.innerHTML.normalize();
+			  // }
 			});
 
 			editor = editors.pop();
@@ -83,6 +97,20 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 			editor.on("input", event => {
 				this.saveContent();
 			});
+			editor.on("paste", event => {
+				this.saveContent();
+			});
+			editor.on("cut", event => {
+				this.saveContent();
+			});
+
+			// -> input event does not seem to capture line break (single or double) or delete line break !
+			editor.on("keyup", event => {
+				if (event.key === "Backspace" || event.key === "Enter") {
+					this.saveContent();
+				}
+			});
+
 
 			editor.on("NodeChange", event => {
 				if (event.selectionChange) {
@@ -174,6 +202,12 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 					case "link":
 						return {value: this.activeNode && this.activeNode.matches("a")};
 
+					case "ul":
+						return {value: this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true"};
+
+					case "ol":
+						return {value: this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true"};
+
 				}
 
 				break;
@@ -208,6 +242,12 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 					case "link":
 						return this.activeNode && this.activeNode.matches("a");
+
+					case "ul":
+						return this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true";
+
+					case "ol":
+						return this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true";
 
 				}
 
@@ -246,6 +286,28 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 						await this.renderPopover();
 					}
 
+					case "ul":
+						if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+							this.editor.execCommand('InsertUnorderedList', false, {
+							  'list-style-type': 'disc'
+							});
+						} else {
+							this.editor.execCommand("RemoveList");
+						}
+						await this.saveContent();
+						break;
+
+					case "ol":
+						if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+							this.editor.execCommand('InsertOrderedList', false, {
+								'list-style-type': 'decimal'
+							});
+						} else {
+							this.editor.execCommand("RemoveList");
+						}
+						await this.saveContent();
+						break;
+
 				}
 				break;
 			}
@@ -275,27 +337,27 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 					// 	await this.saveContent();
 					// 	break;
 
-					case "ul":
-						if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
-							this.editor.execCommand('InsertUnorderedList', false, {
-							  'list-style-type': 'disc'
-							});
-						} else {
-							this.editor.execCommand("RemoveList");
-						}
-						await this.saveContent();
-						break;
-
-					case "ol":
-						if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
-							this.editor.execCommand('InsertOrderedList', false, {
-								'list-style-type': 'decimal'
-							});
-						} else {
-							this.editor.execCommand("RemoveList");
-						}
-						await this.saveContent();
-						break;
+					// case "ul":
+					// 	if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+					// 		this.editor.execCommand('InsertUnorderedList', false, {
+					// 		  'list-style-type': 'disc'
+					// 		});
+					// 	} else {
+					// 		this.editor.execCommand("RemoveList");
+					// 	}
+					// 	await this.saveContent();
+					// 	break;
+					//
+					// case "ol":
+					// 	if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+					// 		this.editor.execCommand('InsertOrderedList', false, {
+					// 			'list-style-type': 'decimal'
+					// 		});
+					// 	} else {
+					// 		this.editor.execCommand("RemoveList");
+					// 	}
+					// 	await this.saveContent();
+					// 	break;
 
 					case "table":
 						this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
@@ -395,11 +457,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 
 
-			case "ul":
-				return this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true";
-
-			case "ol":
-				return this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true";
+			// case "ul":
+			// 	return this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true";
+			//
+			// case "ol":
+			// 	return this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true";
 
 			// case "bold":
 			// case "italic":
@@ -659,7 +721,10 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 		this.throttle(async () => {
 
 			const key = this.getKey();
-			const value = this.editor.getContent();
+			let value = this.editor.getContent();
+
+			value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
+
 			const current = await this.parent.request("get", {}, key);
 
 			if (value !== KarmaFieldsAlpha.Type.toString(current)) {
@@ -881,7 +946,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 			super({
 				display: "flex",
 				// children: ["format", "bold", "italic", "link", "ul", "ol"],
-				children: ["format", "bold", "italic", "link"],
+				children: ["format", "bold", "italic", "link", "ul", "ol"],
 				...resource
 			});
 
@@ -947,6 +1012,31 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 			}
 		}
 
+		static ul = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "editor-ul",
+					title: "Unordered list",
+					action: "set",
+					path: ["ul"],
+					active: ["get", "boolean", "ul"],
+					...resource
+				});
+			}
+		}
+
+		static ol = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "editor-ol",
+					title: "Ordered list",
+					action: "set",
+					path: ["ol"],
+					active: ["get", "boolean", "ol"],
+					...resource
+				});
+			}
+		}
 
 	}
 

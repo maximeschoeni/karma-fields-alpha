@@ -52,7 +52,7 @@ KarmaFieldsAlpha.Type = class {
     if (Array.isArray(value)) {
       value = value[0];
     }
-    return value;
+    return value || {};
   }
 
 

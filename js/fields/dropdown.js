@@ -144,16 +144,6 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		if (this.resource.driver) {
 
-	    // const store = new KarmaFieldsAlpha.Store(this.resource.driver, this.resource.joins);
-	    // const ids = await store.queryIds(this.resource.paramString || "");
-			//
-	    // for (let id of ids) {
-	    //   options.push({
-	    //     id: id,
-	    //     name: await store.getValue(id, this.resource.nameField || "name")
-	    //   });
-	    // }
-
 			const form = new KarmaFieldsAlpha.field.form({
 				driver: this.resource.driver,
 				joins: this.resource.joins
@@ -172,22 +162,12 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 			const table = await this.request("table", {id: this.resource.table});
 
-			// const paramString = KarmaFieldsAlpha.Params.stringify({
-			// 	...table.resource.params,
-			// 	...this.resource.params,
-			// 	ppp: 999
-			// });
+			const {ppp, ...params} = {
+				...table.resource.params,
+				...this.resource.params,
+			};
 
-			// const results = await table.server.store.query(paramString);
-			//
-			// for (let item of results) {
-			// 	options.push({
-			// 		id: item.id,
-			// 		name: item[this.resource.nameField || "name"] || await table.server.store.getValue(item.id, this.resource.nameField || "name")
-			// 	});
-			// }
-
-			const results = await table.query({...table.resource.params, ...this.resource.params});
+			const results = await table.query(params);
 
 			for (let item of results) {
 				options.push({

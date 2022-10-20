@@ -3,45 +3,45 @@
  */
 
 // -> parallele
-KarmaFieldsAlpha.buildChildren = function(children, element, clean) {
-	let i = 0;
-	let child = element.firstElementChild;
-	const promises = [];
-	while (i < children.length) {
-		const promise = this.build(children[i], element, child, clean);
-		promises.push(promise);
-		i++;
-		child = child && child.nextElementSibling;
-	}
-	while (child) {
-		let next = child && child.nextElementSibling;
-
-		const event = new Event("remove");
-		element.dispatchEvent(event);
-
-		element.removeChild(child);
-		child = next;
-	}
-	return Promise.all(promises);
-}
-
-
-// -> serial
-// KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
+// KarmaFieldsAlpha.buildChildren = function(children, element, clean) {
 // 	let i = 0;
 // 	let child = element.firstElementChild;
 // 	const promises = [];
 // 	while (i < children.length) {
-// 		await this.build(children[i], element, child, clean);
+// 		const promise = this.build(children[i], element, child, clean);
+// 		promises.push(promise);
 // 		i++;
 // 		child = child && child.nextElementSibling;
 // 	}
 // 	while (child) {
 // 		let next = child && child.nextElementSibling;
+//
+// 		const event = new Event("remove");
+// 		element.dispatchEvent(event);
+//
 // 		element.removeChild(child);
 // 		child = next;
 // 	}
+// 	return Promise.all(promises);
 // }
+
+
+// -> serial
+KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
+	let i = 0;
+	let child = element.firstElementChild;
+	const promises = [];
+	while (i < children.length) {
+		await this.build(children[i], element, child, clean);
+		i++;
+		child = child && child.nextElementSibling;
+	}
+	while (child) {
+		let next = child && child.nextElementSibling;
+		element.removeChild(child);
+		child = next;
+	}
+}
 
 
 

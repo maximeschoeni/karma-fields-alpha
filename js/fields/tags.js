@@ -34,6 +34,29 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
+  async getDefault() {
+
+		const defaults = {};
+		const key = this.getKey();
+
+		if (key) {
+
+			if (this.resource.default !== undefined) {
+
+				defaults[key] = await this.parse(this.resource.default);
+
+			} else if (KarmaFieldsAlpha.Nav.get(key)) {
+
+				defaults[key] = KarmaFieldsAlpha.Nav.get(key);
+
+			}
+
+		}
+
+		return defaults;
+
+	}
+
   async exportValue() {
     // -> export as string
 		const key = this.getKey();

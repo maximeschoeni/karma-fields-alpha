@@ -919,8 +919,13 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
                       frame.element.classList.add("loading");
 
-                      const thumb = await table.getInitial(id, "thumb").then(value => KarmaFieldsAlpha.Type.toObject(value));
+                      let thumb;
+                      const thumbRaw = await table.getValue(id, "thumb");
                       const type = await table.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
+
+                      if (thumbRaw) {
+                        thumb = KarmaFieldsAlpha.Type.toObject(thumbRaw);
+                      }
 
                       frame.element.classList.remove("loading");
 

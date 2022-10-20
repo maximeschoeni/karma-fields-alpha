@@ -330,6 +330,20 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
 
     params = {...defaults, ...params};
 
+    if (this.resource.modal) {
+
+      const modal = this.createChild({
+        ...this.resource.modal,
+        key: id,
+        type: "row"
+      });
+
+      const modalDefaults = await modal.getDefault();
+
+      params = {...modalDefaults, ...params};
+
+    }
+
     for (let key in params) {
 
       this.buffer.change([params[key]], null, id, key);

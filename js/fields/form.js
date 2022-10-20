@@ -102,6 +102,12 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 	//
 	// }
 
+	async getValue(...path) {
+
+		return this.buffer.get(...path) || await this.getInitial(...path);
+
+	}
+
 
 
 

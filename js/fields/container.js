@@ -84,7 +84,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 			children.push({
 				tag: "label",
-				init: label => {
+				update: label => {
 					if (field.resource.label) {
 						label.element.htmlFor = field.getId();
 						label.element.textContent = field.getLabel();

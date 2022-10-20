@@ -4,13 +4,13 @@ KarmaFieldsAlpha.field.navigation = class extends KarmaFieldsAlpha.field.group {
   static menu = class extends KarmaFieldsAlpha.field {
 
     getItems() {
-      return this.resource.items || [];
+      return this.resource.items || this.resource.children || [];
     }
 
     build() {
       return {
         tag: "ul",
-        children: this.getItems().map((item, index) => {
+        children: this.getItems().map(item => {
           return {
             tag: "li",
             children: [
@@ -22,9 +22,9 @@ KarmaFieldsAlpha.field.navigation = class extends KarmaFieldsAlpha.field.group {
                 }
               },
               this.createChild({
-                items: this.resource.children,
+                items: item.items || item.children || [],
                 type: "menu"
-              }, index).build()
+              }).build()
             ],
             update: li => {
               this.active = location.hash.slice(1) === item.hash;

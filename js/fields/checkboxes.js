@@ -93,7 +93,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 				const response = await this.parent.request("get", {}, this.getKey());
 				const array = KarmaFieldsAlpha.Type.toArray(response);
 
-				return array.includes(childKey);
+				return array.includes(childKey) ? "1" : "";
 			}
 
 			case "set": {
@@ -101,16 +101,21 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 				const [childKey] = path;
 				const response = await this.parent.request("get", {}, this.getKey());
 				const array = KarmaFieldsAlpha.Type.toArray(response);
-				const set = new Set(...array);
+				const set = new Set([...array]);
 
 				if (content.data && !set.has(childKey)) {
-					set.add(key);
+					set.add(childKey);
 				} else if (!content.data && set.has(childKey)) {
-					set.delete(key);
+					set.delete(childKey);
 				}
 
 				await this.parent.request("set", {data: [...set]}, this.getKey());
 
+				break;
+			}
+
+			default: {
+				await this.parent.request(subject, content, this.getKey());
 			}
 
 		}
@@ -165,6 +170,8 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 								key: option.id,
 								text: option.name,
 								tag: "li",
+								false: "",
+								true: "1",
 								id: option.id
 							});
 							return checkboxField.build();

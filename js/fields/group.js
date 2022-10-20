@@ -6,11 +6,45 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
 		if (key) {
 
-			path = [key, ...path];
+			// path = [key, ...path];
+
+			switch (subject) {
+
+				case "get": {
+					const response = await this.parent.request("get", {}, key);
+					const value = KarmaFieldsAlpha.Type.toObject(response);
+					return KarmaFieldsAlpha.DeepObject.get(value, ...path);
+				}
+
+				case "state": {
+					const state = await this.parent.request("state", {}, key);
+					const value = KarmaFieldsAlpha.Type.toObject(state.value);
+					return {
+						...state,
+						value: KarmaFieldsAlpha.DeepObject.get(value, ...path)
+					};
+				}
+
+				case "set": {
+					const response = await this.parent.request("get", {}, key);
+					const value = KarmaFieldsAlpha.Type.toObject(response);
+					const clone = KarmaFieldsAlpha.DeepObject.clone(value);
+					KarmaFieldsAlpha.DeepObject.assign(clone, content.data, ...path);
+					await this.parent.request("set", {data: clone}, key);
+					break;
+				}
+
+
+				default:
+					return this.parent.request(subject, content, key);
+
+			}
+
+		} else {
+
+			return this.parent.request(subject, content, ...path);
 
 		}
-
-		return this.parent.request(subject, content, ...path);
 
 	}
 
@@ -51,7 +85,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 		if (key) {
 
 			const object = {};
-			const response = await this.request("get", {}, key);
+			const response = await this.parent.request("get", {}, key);
 			const value = KarmaFieldsAlpha.Type.toObject(response);
 			object[key] = JSON.stringify(value || {});
 

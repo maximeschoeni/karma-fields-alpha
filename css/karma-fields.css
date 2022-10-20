@@ -185,18 +185,36 @@ body.karma-table-open {
   /* display: flex; */
   flex-shrink: 0;
   width: 10em;
-  padding: var(--gap-width);
+  /* padding: var(--gap-width); */
   background-color: var(--background-color);
 }
-.karma-fields .navigation ul li {
+.karma-fields .navigation ul {
+  margin: 0;
 }
+.karma-fields .navigation ul li {
+  border-bottom: 1px solid var(--selected-color);
 
-.karma-fields .navigation ul li:hover a,
-.karma-fields .navigation ul li.active a {
+}
+.karma-fields .navigation ul li a {
+  color: var(--selected-color);
+  padding: var(--gap-width);
+  display: block;
+}
+.karma-fields .navigation ul li:hover>a {
   color: black;
+}
+.karma-fields .navigation ul li.active>a {
+  color: var(--background-color);
+  background-color: var(--selected-color);
+
   /* text-decoration: none; */
 }
-
+.karma-fields .navigation ul li ul {
+  padding: 0 0 0 var(--gap-width);
+}
+.karma-fields .navigation ul li ul li {
+  border: none;
+}
 .karma-fields .tables {
   flex-grow: 1;
   display: flex;
@@ -897,6 +915,7 @@ button.karma-button.editing span {
 .karma-tags ul {
   margin: 0;
   display: flex;
+  flex-wrap: wrap;
   gap: var(--gap-width);
 
   position: relative;
@@ -948,6 +967,31 @@ button.karma-button.editing span {
   background-color: white;
 }
 
+/* Tag links
+--------------------------------------*/
+.karma-field-table .table ul.tag-links {
+  flex-direction: column;
+  margin: 0;
+  padding: var(--gap-width);
+  align-items: flex-start;
+  justify-content: center;
+}
+ul.tag-links li {
+  /* margin-right: 0.4em; */
+}
+ul.tag-links li:not(:last-child)::after {
+  /* content: ", "; */
+}
+.karma-field-table .table ul.tag-links a {
+  /* color: var(--selected-color); */
+  color: inherit;
+  text-decoration: underline;
+}
+.karma-field-table .table .selected ul.tag-links a,
+.karma-field-table .table .selecting ul.tag-links a {
+  /* color: white; */
+}
+
 
 /* TinyMCE Field
 --------------------------------------*/
@@ -989,6 +1033,13 @@ button.karma-button.editing span {
 .karma-field-container.display-block {
   flex-wrap: nowrap;
 }
+.karma-field-container.display-table>.karma-field-frame {
+  flex-direction: row;
+  gap: var(--gap-width);
+  align-items: baseline;
+  justify-content: flex-end;
+}
+
 .karma-field-group {
   min-width: 260px;
   flex: 1 1 0;
@@ -1055,7 +1106,7 @@ button.karma-button.editing span {
   display: flex;
   background-color: var(--background-color);
   transition: transform 100ms;
-  padding: 1em;
+  padding: var(--gap-width);
 }
 .karma-fields .array .td.drag {
   z-index: 99999;
@@ -1270,7 +1321,7 @@ button.karma-button.editing span {
 .karma-fields .table textarea {
   border: none;
   margin: 0;
-  min-width: 10em;
+  min-width: 0;
   width: 100%;
   min-height: 3em;
 }
@@ -1439,7 +1490,7 @@ textarea.clipboard {
   height: calc(100% + 1px);
 }
 .karma-tinymce .editor-body {
-  padding: 3.8462em 0.7692em 0;
+  padding: 2.6em var(--gap-width) 0;
   border: 1px solid var(--frame-border-color);
   border-top: none;
   min-height: 8em;
