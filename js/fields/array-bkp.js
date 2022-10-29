@@ -946,10 +946,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
               if (this.selection) {
 
-                const sortManager = new KarmaFieldsAlpha.SortManager(table.element);
+                const sortManager = new KarmaFieldsAlpha.SortManager(table.element, this.resource.children.length, values.length, 0, hasHeader ? 1 : 0);
 
-                sortManager.selection = this.selection;
-                sortManager.clear();
+                sortManager.clear(this.selection);
 
                 this.selection = null;
 
@@ -993,9 +992,6 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
             table.element.classList.toggle("empty", values.length === 0);
 
-            table.element.colCount = this.resource.children.length;
-            table.element.rowCount = values.length;
-            table.element.colHeader = hasHeader ? 1 : 0;
 
             table.children = [
               ...this.resource.children.filter(column => values.length && hasHeader).map(column => {
@@ -1045,21 +1041,30 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                           if (event.buttons === 1) {
 
-                            const sortManager = new KarmaFieldsAlpha.SortManager(table.element);
+                            const sortManager = new KarmaFieldsAlpha.SortManager(table.element, this.resource.children.length, values.length, 0, hasHeader ? 1 : 0);
 
-                            sortManager.selection = this.selection;
+                            sortManager.segment = this.selection;
 
-                            sortManager.onSelect = async segment => {
+                            sortManager.onSelect = async (segment, hasChange) => {
 
                               this.selection = segment;
 
                               const array = await this.exportRows(segment.index, segment.length);
+
+
+
+                              // const selecteditems = values.slice(segment.index, segment.index + segment.length);
+                              // const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray([object]);
+                              // const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
                               const value = JSON.stringify(array);
+
+
 
                               this.clipboard.output(value);
                               this.clipboard.focus();
 
                               await this.onRenderControls();
+
 
                             }
 
@@ -1075,7 +1080,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                             // if (this.selection && KarmaFieldsAlpha.Segment.contains(this.selection, index)) {
 
-                            sortManager.select(event, colIndex, index);
+                            sortManager.sort(event, colIndex, index);
 
 
 

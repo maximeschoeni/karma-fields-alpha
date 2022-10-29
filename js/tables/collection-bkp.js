@@ -744,18 +744,13 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
 
               this.cellClipboard.onBlur = event => {
                 if (this.cellSelection) {
-                  const selectionManager = new KarmaFieldsAlpha.CellManager(grid.element);
-                  selectionManager.clearCells(this.cellSelection);
+                  const cellManager = new KarmaFieldsAlpha.CellManager(grid.element, columns.length, ids.length, 0, 1);
+                  cellManager.selection = this.cellSelection;
+                  cellManager.clear();
                 }
               }
 
               const selection = this.selectionBuffer.get();
-
-              grid.element.colCount = columns.length;
-              grid.element.rowCount = ids.length;
-              grid.element.colHeader = 1;
-              grid.element.rowHeader = 0;
-
 
               if (ids.length) {
                 grid.element.classList.add("filled"); // -> draw table borders
@@ -830,17 +825,17 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
 
                         th.element.onmousedown = async event => {
                           if (event.buttons === 1) {
-                            const selectionManager = new KarmaFieldsAlpha.CellManager(grid.element);
-                            selectionManager.cellSelection = this.cellSelection;
-                            selectionManager.onSelectCells = async cellSelection => {
-                              this.cellSelection = cellSelection;
+                            const cellManager = new KarmaFieldsAlpha.CellManager(grid.element, columns.length, ids.length, 0, 1);
+                            cellManager.selection = this.cellSelection;
+                            cellManager.onSelect = async selection => {
+                              this.cellSelection = selection;
                               // const dataArray = await this.parent.request("export-cells", {rectangle: selection});
-                              const dataArray = await this.exportCells(cellSelection);
+                              const dataArray = await this.exportCells(selection);
                               const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
                               this.cellClipboard.output(value);
                               this.cellClipboard.focus();
                             };
-                            selectionManager.selectHeaders(event, colIndex);
+                            cellManager.selectHeaders(event, colIndex);
                           }
                         }
 
@@ -878,7 +873,6 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
                           update: td => {
                             td.element.classList.add("loading");
                             td.element.classList.toggle("selected", Boolean(isSelected));
-                            td.element.classList.remove("selecting-cell");
 
                             td.element.rowIndex = rowIndex;
                             td.element.colIndex = colIndex;
@@ -889,94 +883,60 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
 
                               if (event.buttons === 1) {
 
-                                // const cellManager = new KarmaFieldsAlpha.CellManager(grid.element, columns.length, ids.length, 0, 1);
-                                // const selectionManager = new KarmaFieldsAlpha.SelectionManager(grid.element, columns.length, ids.length, 0, 1);
-                                //
-                                // cellManager.selection = this.cellSelection;
-                                // selectionManager.selection = this.selectionBuffer.get();
-                                //
-                                // if (field.resource.selectMode !== "row") {
-                                //
-                                //   cellManager.onSelect = async selection => {
-                                //
-                                //     this.cellSelection = selection;
-                                //
-                                //     if (selection.width*selection.height > 1) {
-                                //
-                                //       // const dataArray = await this.parent.request("export-cells", {rectangle: selection});
-                                //       const dataArray = await this.exportCells(selection);
-                                //       const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-                                //       this.cellClipboard.output(value);
-                                //       this.cellClipboard.focus();
-                                //
-                                //     } else {
-                                //
-                                //       cellManager.clear(selection);
-                                //
-                                //     }
-                                //
-                                //
-                                //   };
-                                //
-                                //   cellManager.selectCells(event, colIndex, rowIndex);
-                                //
-                                // } else {
-                                //
-                                //   cellManager.clear();
-                                //
-                                //   selectionManager.onSelect = async (selection, hasChange) => {
-                                //     if (hasChange) {
-                                //       KarmaFieldsAlpha.History.save();
-                                //       this.selectionBuffer.change(selection);
-                                //     }
-                                //
-                                //     // const jsonData = await this.parent.request("export");
-                                //     const jsonData = await this.export([], selection.index, selection.length);
-                                //     const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
-                                //     const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-                                //     this.clipboard.output(value);
-                                //     this.clipboard.focus();
-                                //     await this.parent.request("render");
-                                //
-                                //   };
-                                //
-                                //   selectionManager.select(event, colIndex, rowIndex);
-                                //
-                                // }
+                                const cellManager = new KarmaFieldsAlpha.CellManager(grid.element, columns.length, ids.length, 0, 1);
+                                const selectionManager = new KarmaFieldsAlpha.SelectionManager(grid.element, columns.length, ids.length, 0, 1);
 
-                                const selectionManager = new KarmaFieldsAlpha.CellManager(grid.element);
+                                cellManager.selection = this.cellSelection;
+                                selectionManager.selection = this.selectionBuffer.get();
 
-                                const currentSelection = selectionManager.selection = this.selectionBuffer.get();
+                                if (field.resource.selectMode !== "row") {
 
-                                selectionManager.onSelectCells = async cellSelection => {
+                                  cellManager.onSelect = async selection => {
 
-                                  this.cellSelection = cellSelection;
+                                    this.cellSelection = selection;
 
-                                  const dataArray = await this.exportCells(cellSelection);
-                                  const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-                                  this.cellClipboard.output(value);
-                                  this.cellClipboard.focus();
+                                    if (selection.width*selection.height > 1) {
 
-                                };
+                                      // const dataArray = await this.parent.request("export-cells", {rectangle: selection});
+                                      const dataArray = await this.exportCells(selection);
+                                      const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+                                      this.cellClipboard.output(value);
+                                      this.cellClipboard.focus();
 
-                                selectionManager.onSelect = async (selection) => {
+                                    } else {
 
-                                  if (!KarmaFieldsAlpha.Segment.compare(currentSelection, selection)) {
-                                    KarmaFieldsAlpha.History.save();
-                                    this.selectionBuffer.change(selection, currentSelection);
-                                  }
+                                      cellManager.clear(selection);
 
-                                  // const jsonData = await this.parent.request("export");
-                                  const jsonData = await this.export([], selection.index, selection.length);
-                                  const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
-                                  const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-                                  this.clipboard.output(value);
-                                  this.clipboard.focus();
-                                  await this.parent.request("render");
+                                    }
 
-                                };
 
-                                selectionManager.select(event, colIndex, rowIndex, field.resource.selectMode !== "row");
+                                  };
+
+                                  cellManager.selectCells(event, colIndex, rowIndex);
+
+                                } else {
+
+                                  cellManager.clear();
+
+                                  selectionManager.onSelect = async (selection, hasChange) => {
+                                    if (hasChange) {
+                                      KarmaFieldsAlpha.History.save();
+                                      this.selectionBuffer.change(selection);
+                                    }
+
+                                    // const jsonData = await this.parent.request("export");
+                                    const jsonData = await this.export([], selection.index, selection.length);
+                                    const dataArray = KarmaFieldsAlpha.Clipboard.toDataArray(jsonData);
+                                    const value = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+                                    this.clipboard.output(value);
+                                    this.clipboard.focus();
+                                    await this.parent.request("render");
+
+                                  };
+
+                                  selectionManager.select(event, colIndex, rowIndex);
+
+                                }
 
                               }
 

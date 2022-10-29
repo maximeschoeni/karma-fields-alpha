@@ -50,40 +50,118 @@
 		// 	}
 		// }
 
+		// class MetaFieldForm extends KarmaFieldsAlpha.field.form {
+		//
+		// 	constructor() {
+		// 		super({
+		// 			driver: "posts",
+		// 			joins: ["postmeta", "taxonomy"],
+		// 			params: {
+		// 				ids: id
+		// 			},
+		// 			children: [resource]
+		// 		});
+		//
+		// 		this.buffer.getObject = function() {
+		// 			return {
+		// 				data: {
+		// 					posts: {
+		// 						[id]: JSON.parse(input.value || "{}")
+		// 					}
+		// 				}
+		// 			};
+		// 		};
+		//
+		// 		this.buffer.setObject = function(delta) {
+		// 			input.value = JSON.stringify(delta.data.posts[id]);
+		// 		}
+		//
+		// 	}
+		//
+		// 	async request(subject, object, ...path) {
+		//
+		// 		switch (subject) {
+		//
+		// 			case "render":
+		// 			case "edit":
+		// 				await this.render();
+		// 				break;
+		//
+		// 			default:
+		// 				return super.request(subject, object, id, ...path);
+		// 		}
+		//
+		// 	}
+		//
+		// 	build() {
+		// 		return {
+		// 			init: async div => {
+		// 				this.render = div.render;
+		// 				await this.query(this.resource.params);
+		// 			},
+		// 			child: super.build()
+		// 		}
+		// 	}
+		//
+		// }
+
 		class MetaField extends KarmaFieldsAlpha.field {
 
-			constructor(...args) {
+			static form = class extends KarmaFieldsAlpha.field.form {
 
-				super(...args);
+				constructor() {
+					super({
+						driver: "posts",
+						joins: ["postmeta", "taxonomy"],
+						params: {
+							ids: id
+						},
+						children: [resource]
+					});
 
-				this.form = this.createChild({
-					type: "form",
-					driver: "posts",
-					joins: ["postmeta", "taxonomy"],
-					params: {
-						ids: id
-					},
-					children: [
-						{
-							type: "group",
-							key: id,
-							children: [resource]
-						}
-					]
-				});
-
-				this.form.buffer.getObject = function() {
-					return {
-						data: {
-							posts: {
-								[id]: JSON.parse(input.value || "{}")
+					this.buffer.getObject = function() {
+						return {
+							data: {
+								posts: {
+									[id]: JSON.parse(input.value || "{}")
+								}
 							}
-						}
+						};
 					};
-				};
-				this.form.buffer.setObject = function(delta) {
-					input.value = JSON.stringify(delta.data.posts[id]);
+
+					this.buffer.setObject = function(delta) {
+						input.value = JSON.stringify(delta.data.posts[id]);
+					}
+
 				}
+
+				async request(subject, object, ...path) {
+
+					// switch (subject) {
+					//
+					// 	case "render":
+					// 	case "edit":
+					// 		await this.render();
+					// 		break;
+					//
+					// 	default:
+					// 		return super.request(subject, object, id, ...path);
+					// }
+
+					return super.request(subject, object, id, ...path);
+
+				}
+
+				// build() {
+				// 	return {
+				// 		init: async div => {
+				// 			this.render = div.render;
+				// 			await this.query(this.resource.params);
+				// 		},
+				// 		child: super.build()
+				// 	}
+				// }
+
 			}
 
 			async request(subject, object, ...path) {
@@ -99,13 +177,71 @@
 				return {
 					init: async div => {
 						this.render = div.render;
-						await this.form.query(this.form.resource.params);
-					},
-					child: this.form.build()
+						const form = this.createChild("form");
+						await form.query(form.resource.params);
+						div.child = form.build()
+					}
 				}
 			}
 
 		}
+
+		// class MetaField extends KarmaFieldsAlpha.field {
+		//
+		// 	constructor(...args) {
+		//
+		// 		super(...args);
+		//
+		// 		this.form = this.createChild({
+		// 			type: "form",
+		// 			driver: "posts",
+		// 			joins: ["postmeta", "taxonomy"],
+		// 			params: {
+		// 				ids: id
+		// 			},
+		// 			children: [
+		// 				{
+		// 					type: "group",
+		// 					key: id,
+		// 					children: [resource]
+		// 				}
+		// 			]
+		// 		});
+		//
+		// 		this.form.buffer.getObject = function() {
+		// 			return {
+		// 				data: {
+		// 					posts: {
+		// 						[id]: JSON.parse(input.value || "{}")
+		// 					}
+		// 				}
+		// 			};
+		// 		};
+		// 		this.form.buffer.setObject = function(delta) {
+		// 			input.value = JSON.stringify(delta.data.posts[id]);
+		// 		}
+		// 	}
+		//
+		// 	async request(subject, object, ...path) {
+		// 		switch (subject) {
+		// 			case "render":
+		// 			case "edit":
+		// 				await this.render();
+		// 				break;
+		// 		}
+		// 	}
+		//
+		// 	build() {
+		// 		return {
+		// 			init: async div => {
+		// 				this.render = div.render;
+		// 				await this.form.query(this.form.resource.params);
+		// 			},
+		// 			child: this.form.build()
+		// 		}
+		// 	}
+		//
+		// }
 
 		// class Embeder extends KarmaFieldsAlpha.field {
 		//
@@ -228,7 +364,10 @@
 
 		// const embeder = new Embeder(id, resource, input);
 
+		// const metaField = new MetaField();
 		const metaField = new MetaField();
+
+
 
 		KarmaFieldsAlpha.build(metaField.build(), container);
 	});

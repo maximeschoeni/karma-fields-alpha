@@ -18,7 +18,13 @@ KarmaFieldsAlpha.field.navigation = class extends KarmaFieldsAlpha.field.group {
                 tag: "a",
                 init: li => {
                   li.element.innerHTML = item.title;
-                  li.element.href = "#"+item.hash;
+                  li.element.href = "#"+(item.hash || "");
+                  if (item.action) {
+                    li.element.onclick = event => {
+                      event.preventDefault();
+                      this.parent.request(item.action, item.value);
+                    }
+                  }
                 }
               },
               this.createChild({

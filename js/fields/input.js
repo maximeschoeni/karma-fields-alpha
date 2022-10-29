@@ -125,6 +125,8 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				const state = await this.parent.request("state", {}, key);
 
+
+
 				input.element.classList.toggle("multi", Boolean(state.multi));
 				input.element.readOnly = Boolean(state.multi);
 

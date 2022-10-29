@@ -14,6 +14,15 @@ KarmaFieldsAlpha.field.layout.table.row = class extends KarmaFieldsAlpha.field.c
 
   }
 
+  // async export(keys = []) {
+  //
+	// 	const object = await super.export(keys);
+  //
+	// 	object.id = this.resource.key;
+  //
+	// 	return object;
+	// }
+
   // getKeys() {
   //
   //   let keys = new Set();

@@ -644,7 +644,7 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
           KarmaFieldsAlpha.History.save();
 
-          const index = content.index || this.resource.add_index || 0;
+          const index = content.index || table.resource.add_index || 0;
 
           const id = await table.add(content.params, index);
 
@@ -831,6 +831,26 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
       // medias
 
+      case "create-folder": {
+        const table = this.getTable();
+
+        if (table && table.createFolder) {
+
+          KarmaFieldsAlpha.History.save();
+
+          const index = content.index || table.resource.add_index || 0;
+
+          const id = await table.createFolder(index);
+
+          table.selectionBuffer.change({index: index, length: 1});
+
+          await this.render();
+
+        }
+
+        break;
+      }
+
       case "change-file": {
 
         const table = this.getTable();
@@ -857,17 +877,21 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
         if (table && table.upload) {
 
-          if (table.unselect) {
+          KarmaFieldsAlpha.History.save();
 
-            table.unselect();
+          // if (table.unselect) {
+          //
+          //   table.unselect();
+          //
+          // }
 
-          }
+          // await table.upload(content.files, content.params);
 
-          await table.upload(content.files, content.params);
+          await table.upload(content.files, table.resource.add_index || 0);
 
-          const index = content.index || this.resource.add_index || 0;
-
-          table.selectionBuffer.change({index: index, length: 1});
+          // const index = content.index || table.resource.add_index || 0;
+          //
+          // table.selectionBuffer.change({index: index, length: 1});
 
           await this.render();
 
@@ -875,6 +899,20 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
         break;
       }
+
+      // uploading from gallery field: upload one to one
+      // case "upload-file": {
+      //
+      //   const table = this.getTable();
+      //
+      //   const id = await table.uploadFile(content);
+      //
+      //   const ids = table.idsBuffer.get();
+      //
+      //   this.idsBuffer.change([id, ...ids], ids);
+      //
+      //   break;
+      // }
 
       case "regen": {
 
@@ -929,6 +967,10 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
         break;
       }
 
+      default: {
+        return this.parent && this.parent.request(subject, content, ...path);
+      }
+
     }
 
   }
@@ -963,6 +1005,12 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
           if (event.key === "s" && event.metaKey) {
             event.preventDefault();
             this.request("save");
+          } else if (event.key === "z" && event.metaKey) {
+            event.preventDefault();
+            this.request("undo");
+          } else if (event.key === "z" && event.metaKey && event.shiftKey) {
+            event.preventDefault();
+            this.request("redo");
           }
         });
 
@@ -1051,10 +1099,9 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
                             div.element.classList.add("table-loading");
 
                             if (!table.idsBuffer.get()) {
-                              await table.load(); // -> needed when fetching (table transfer)
+                              await table.load(); // -> needed when fetching (table transfer). But not when undoing
                             }
 
-                            // const modalOpen = resource.modal || resource.body.modal && table.selectionBuffer.get();
 
                             div.children = [
                               {

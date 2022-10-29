@@ -12,6 +12,8 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
     // foreach ($data as $id => $item) {
 
+
+
       $args = array();
 
       $id = intval($id);
@@ -32,17 +34,17 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
             default:
 
-              if (post_type_exists($key)) { // -> posttype. Todo: check if taxonomy is attached to posttype
-
-                $value = array_filter(array_map('intval', $value));
-
-                foreach ($value as $post_id) {
-
-                  wp_set_post_terms($post_id, array($id), $term->taxonomy, true);
-
-                }
-
-              } else { // -> meta
+              // if (post_type_exists($key)) { // -> posttype. Todo: check if taxonomy is attached to posttype
+              //
+              //   $value = array_filter(array_map('intval', $value));
+              //
+              //   foreach ($value as $post_id) {
+              //
+              //     wp_set_post_terms($post_id, array($id), $term->taxonomy, true);
+              //
+              //   }
+              //
+              // } else { // -> meta
 
                 $value = apply_filters('karma_fields_taxonomy_driver_update_meta', $value, $key, $id);
 
@@ -66,7 +68,7 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
                 }
 
-              }
+              // }
 
           }
 
@@ -270,6 +272,10 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
         case 'search':
           $args['search'] = $value;
+          break;
+
+        case 'ids':
+          $args['ids'] = explode(',', $value);
           break;
 
         default:

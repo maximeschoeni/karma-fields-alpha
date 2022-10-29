@@ -297,7 +297,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
                 content.element.onfocus = event => {
                   if (this.selection) {
-                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, 1, 0, 0);
+                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element);
                     sortManager.clear(this.selection);
                     this.selection = null;
                   }
@@ -307,7 +307,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
                 this.clipboard.onBlur = event => {
                   if (this.selection) {
-                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, 1, 0, 0);
+                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element);
                     sortManager.clear(this.selection);
                     this.selection = null;
                   }
@@ -321,6 +321,9 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                   await this.parent.request("render");
                 }
 
+                content.element.colCount = 1;
+                content.element.rowCount = 1;
+
                 content.children = [
                   {
                     tag: "li",
@@ -329,9 +332,12 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                     },
                     update: async frame => {
                       frame.element.classList.remove("selected");
+                      frame.element.rowIndex = 0;
+                      frame.element.multiSelectable = true;
+
                       frame.element.onmousedown = async event => {
                         if (event.buttons === 1) {
-                          const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, 1, 0, 0);
+                          const sortManager = new KarmaFieldsAlpha.SortManager(content.element);
                           sortManager.segment = this.selection;
                           sortManager.onSelect = async (segment, hasChange) => {
                             this.selection = segment;
@@ -421,7 +427,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
                   if (this.selection) {
 
-                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
+                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element);
                     sortManager.clear(this.selection);
                     this.selection = null;
 
@@ -435,7 +441,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
                   if (this.selection) {
 
-                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
+                    const sortManager = new KarmaFieldsAlpha.SortManager(content.element);
                     sortManager.clear(this.selection);
                     this.selection = null;
 
@@ -474,6 +480,9 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                   this.openLibrary([]);
                 }
 
+                content.element.colCount = 1;
+                content.element.rowCount = ids.length;
+
                 content.children = ids.map((id, rowIndex) => {
                   return {
                     tag: "li",
@@ -483,16 +492,18 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                     update: async frame => {
 
                       frame.element.classList.remove("selected");
+                      frame.element.rowIndex = rowIndex;
+                      frame.element.multiSelectable = true;
 
                       frame.element.onmousedown = async event => {
 
                         if (event.buttons === 1) {
 
-                          const sortManager = new KarmaFieldsAlpha.SortManager(content.element, 1, ids.length, 0, 0);
+                          const sortManager = new KarmaFieldsAlpha.SortManager(content.element);
 
-                          sortManager.segment = this.selection;
+                          sortManager.selection = this.selection;
 
-                          sortManager.onSelect = async (segment, hasChange) => {
+                          sortManager.onSelect = async (segment) => {
 
                             this.selection = segment;
 
@@ -522,7 +533,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
                           }
 
-                          await sortManager.sort(event, 0, rowIndex);
+                          await sortManager.select(event, 0, rowIndex);
 
                         }
 

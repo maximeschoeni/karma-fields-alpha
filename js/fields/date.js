@@ -73,6 +73,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
   getMonthDays(monthDate) {
 		var days = [];
+
 		var lastDayPrevMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 0);
 		var firstDayNextMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
 		var date = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1 - lastDayPrevMonth.getDay());
@@ -114,6 +115,9 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
         };
       },
       update: container => {
+        if (!this.date) {
+          this.date = new Date();
+        }
         const days = this.getMonthDays(this.date);
         let rows = [];
         while(days.length) {
@@ -284,11 +288,13 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
                 };
                 input.element.onfocus = async () => {
-                  if (!value) {
-                    this.date = new Date();
-                  } else {
-                    this.date = mDate.toDate();
-                  }
+
+                  // if (!value) {
+                  //   this.date = new Date();
+                  // } else {
+                  //   this.date = mDate && mDate.isValid() && mDate.toDate() || new Date();
+                  // }
+                  this.date = mDate && mDate.isValid() && mDate.toDate() || new Date();
                   this.render();
                 };
                 input.element.onfocusout = async () => {
@@ -302,8 +308,6 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
 
               // container.element.classList.toggle("modified", this.modified);
-
-
 
               if (mDate.isValid()) {
                 input.element.value = mDate.format(this.resource.format);

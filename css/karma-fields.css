@@ -188,12 +188,28 @@ body.karma-table-open {
   /* padding: var(--gap-width); */
   background-color: var(--background-color);
 }
+.karma-fields .navigation .karma-field-container {
+  flex-grow: 1;
+}
+
 .karma-fields .navigation ul {
   margin: 0;
 }
 .karma-fields .navigation ul li {
   border-bottom: 1px solid var(--selected-color);
-
+}
+.karma-fields .navigation ul li:last-child {
+  border-bottom: none;
+}
+.karma-fields .navigation ul {
+  border-top: 1px solid var(--selected-color);
+  border-bottom: 1px solid var(--selected-color);
+}
+.karma-fields .navigation .karma-field-menu:first-child ul {
+  border-top: none;
+}
+.karma-fields .navigation .karma-field-menu:last-child ul {
+  border-bottom: none;
 }
 .karma-fields .navigation ul li a {
   color: var(--selected-color);
@@ -211,6 +227,7 @@ body.karma-table-open {
 }
 .karma-fields .navigation ul li ul {
   padding: 0 0 0 var(--gap-width);
+  border: none;
 }
 .karma-fields .navigation ul li ul li {
   border: none;
@@ -539,11 +556,39 @@ body.karma-table-open {
   position: relative; /* needed for children offset calculation */
 
   flex-grow: 1;
-  min-height: 100%; /* -> for droping files */
+  width: 100%;
+  /* min-height: 100%; */  /* -> for droping files */
 }
 .karma-field-table ul.media-table li {
   margin: 0;
+  transition: transform 200ms;
 }
+.karma-field-table ul.media-table li.exit {
+  order: -1;
+}
+.karma-field-table ul.media-table:not(.has-selection) li.exit {
+  /* cursor: pointer; */
+}
+.karma-field-table ul.media-table:not(.has-selection) li.exit .frame {
+  /* background-color: var(--selected-color); */
+}
+.karma-field-table ul.media-table.has-selection li.exit .frame figure::before {
+  /* color: var(--disabled-color); */
+}
+.karma-field-table ul.media-table li.exit:hover .frame {
+  /* background-color: white; */
+}
+.karma-field-table ul.media-table li.exit .frame figure::before {
+
+}
+.karma-field-table ul.media-table li.exit:hover .frame figure::before {
+  /* color: #a5a5a5; */
+}
+
+.karma-field-table ul.media-table li.uploading .frame figure::before {
+  animation: 666ms linear 0s infinite alternate blink;
+}
+
 .karma-field-table .media-table .frame {
   position: relative;
   user-select: none;
@@ -571,6 +616,34 @@ body.karma-table-open {
 }
 .karma-field-table .media-table .frame.loading figure {
   visibility: hidden;
+}
+
+.karma-field-table .media-table.dragging {
+  z-index: 9999999;
+}
+.karma-field-table .media-table.dragging li {
+  transition: none;
+}
+.karma-field-table .media-table li.selected {
+  cursor: grab;
+}
+.karma-field-table .media-table li.drag {
+  z-index: 99999999;
+  cursor: grabbing;
+  opacity: 0.8;
+}
+.karma-field-table .media-table li.media-dropzone  {
+  transition: background-color 100ms;
+}
+.karma-field-table .media-table li.media-dropzone.drop-active:not(.drag) {
+  background-color: white;
+}
+.karma-field-table .media-table li.media-dropzone .frame figure::before {
+  transition: transform 100ms;
+}
+.karma-field-table .media-table li.media-dropzone.drop-active:not(.drag) .frame figure::before {
+  background-color: white;
+  transform: scale(1.2);
 }
 
 .karma-field-table .media-table .frame .file-caption {
@@ -861,7 +934,7 @@ button.karma-button.editing span {
   cursor: grab;
 }
 .karma-gallery .gallery .frame.drag {
-  z-index: 999999;
+  z-index: 99999999;
   cursor: grabbing;
 }
 .karma-gallery .gallery .frame figure {
@@ -877,7 +950,14 @@ button.karma-button.editing span {
   font-size: 6em;
   color: #a5a5a5;
 }
-
+.karma-gallery .gallery .frame figure.dashicons-upload::before {
+  animation: 1333ms cubic-bezier(0.37, 0, 0.63, 1) 0s infinite blink2;
+}
+@keyframes blink2 {
+  0% {opacity: 0.4;}
+  50% {opacity: 0.1;}
+  100% {opacity: 0.4;}
+}
 .karma-gallery .gallery .frame img {
   display: block;
   width: 100%;
@@ -903,6 +983,7 @@ button.karma-button.editing span {
 .karma-gallery .controls .footer-content {
   display: flex;
 }
+
 
 
 /* Tags

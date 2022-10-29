@@ -37,7 +37,6 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 		let editor = this.buffer.get(...path);
 
-
 		if (editor && editor.bodyElement !== element) {
 			editor.destroy();
 			editor = null;
@@ -87,7 +86,16 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 			  // }
 			});
 
+			if (!editors.length) {
+				console.warn("editor not created", editors, editor, element);
+			}
+
 			editor = editors.pop();
+
+			if (!editor) {
+				editor = tinymce.get(element.id);
+				console.log("!!", editor);
+			}
 
 			// unactivate history
 			editor.on("BeforeAddUndo", event => {

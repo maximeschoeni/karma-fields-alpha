@@ -108,6 +108,20 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
 	}
 
+	async setValue(value, ...path) {
+
+		const newValue = KarmaFieldsAlpha.Type.toArray(value);
+
+		let currentValue = await this.getValue(...path);
+
+		if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
+
+			this.buffer.change(newValue, currentValue, ...path);
+
+		}
+
+	}
+
 
 
 
@@ -147,40 +161,42 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
 			case "set": {
 
-				const newValue = KarmaFieldsAlpha.Type.toArray(content.data);
-
-				let currentValue = this.buffer.get(...path) || await this.getInitial(...path);
-
-
-				// if (!currentValue) {
+				// const newValue = KarmaFieldsAlpha.Type.toArray(content.data);
 				//
-				// 	const response = await super.request("get", {}, ...path); // -> extends group
+				// let currentValue = this.buffer.get(...path) || await this.getInitial(...path);
 				//
-				// 	currentValue = KarmaFieldsAlpha.Type.toArray(response);
+				// if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
+				//
+				// 	if (content.autosave) {
+				//
+				// 		this.buffer.change(newValue, currentValue, ...path);
+				//
+				// 		const value = KarmaFieldsAlpha.Type.toArray(content.data);
+				// 		const data = KarmaFieldsAlpha.DeepObject.create(value, ...path);
+				//
+				// 		return this.send(data); // -> data is an object of arrays
+				//
+				//
+				// 	} else {
+				//
+				// 		this.buffer.change(newValue, currentValue, ...path);
+				//
+				// 	}
 				//
 				// }
 
-				if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
+				await this.setValue(content.data, ...path);
 
-					if (content.autosave) {
+				if (content.autosave) {
 
-						this.buffer.change(newValue, currentValue, ...path);
+					const value = KarmaFieldsAlpha.Type.toArray(content.data);
+					const data = KarmaFieldsAlpha.DeepObject.create(value, ...path);
 
-						// await super.request(subject, content, ...path); // -> extends group
-
-						const value = KarmaFieldsAlpha.Type.toArray(content.data);
-						const data = KarmaFieldsAlpha.DeepObject.create(value, ...path);
-
-						return this.send(data); // -> data is an object of arrays
-
-
-					} else {
-
-						this.buffer.change(newValue, currentValue, ...path);
-
-					}
+					await this.send(data);
 
 				}
+
+
 
 				break;
 			}

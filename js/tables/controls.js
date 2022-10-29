@@ -89,4 +89,10 @@ KarmaFieldsAlpha.field.layout.controls = class extends KarmaFieldsAlpha.field.co
     hidden: ["empty", ["request", "pile", "array"]]
   }
 
+  static createFolder = {
+		type: "button",
+    action: "create-folder",
+    title: "Create Folder"
+  }
+
 }

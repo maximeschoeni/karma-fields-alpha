@@ -59,6 +59,7 @@ KarmaFieldsAlpha.Gateway = class {
 	static upload(file, params) {
 	  let fileName = file.name.normalize();
 	  const chunkSize = 1048576; // 1MB
+		// const chunkSize = 65536; // 64KB
 	  let chunkIndex = 0;
 	  let chunkTotal = Math.ceil(file.size/chunkSize);
 	  const fileReader = new FileReader();

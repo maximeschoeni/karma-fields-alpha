@@ -4,7 +4,7 @@
 
 Class Karma_Fields_Alpha {
 
-	public $version = '43';
+	public $version = '47';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -47,6 +47,8 @@ Class Karma_Fields_Alpha {
 			// add_action('karma_fields_alpha', array($this, 'print_field'));
 
 			add_action('karma_fields_post_field', array($this, 'print_post_field'), 10, 2);
+			add_action('karma_fields_term_field', array($this, 'print_term_field'), 10, 2);
+
 			// add_action('karma_fields_option_field', array($this, 'print_option_field'));
 
 
@@ -54,6 +56,10 @@ Class Karma_Fields_Alpha {
 
 			add_action('adminmenu', array($this, 'adminmenu'));
 			add_action('admin_footer', array($this, 'print_nav'));
+
+
+			add_action('save_post', array($this, 'save'), 10, 3);
+			add_action('edit_term', array($this, 'save_term'), 10, 3);
 
 
 			// -> prevent wp_admin_canonical_url() to delete history state... Dunno if theres side effects!
@@ -154,6 +160,7 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-collection', $plugin_url . '/js/tables/collection.js', array('karma-fields-alpha-table', 'karma-fields-alpha-table-row', 'karma-fields-alpha-table-modal'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-medias', $plugin_url . '/js/tables/medias.js', array('karma-fields-alpha-collection'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-medias-description', $plugin_url . '/js/tables/medias-description.js', array('karma-fields-alpha-medias'), $this->version, true);
+				// wp_enqueue_script('karma-fields-alpha-medias-row', $plugin_url . '/js/tables/medias-row.js', array('karma-fields-alpha-medias', 'karma-fields-alpha-table-row'), $this->version, true);
 
 				// layout fields
 				wp_enqueue_script('karma-fields-alpha-directory-dropdown', $plugin_url . '/js/tables/directory-dropdown.js', array('karma-fields-alpha-layout', 'karma-fields-alpha-dropdown'), $this->version, true);
@@ -175,7 +182,7 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-clipboard', $plugin_url . '/js/utils/clipboard.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-selection-manager', $plugin_url . '/js/utils/manager-selection.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-sorter-manager', $plugin_url . '/js/utils/manager-selection-sorter.js', array('karma-fields-utils-selection-manager'), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-cells-manager', $plugin_url . '/js/utils/manager-cells.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-cells-manager', $plugin_url . '/js/utils/manager-selection-cells.js', array('karma-fields-utils-selection-manager'), $this->version, true);
 
 				// external dependancies
 				wp_enqueue_script('papaparse', $plugin_url . '/js/vendor/papaparse.min.js', array(), $this->version, true);
@@ -311,7 +318,53 @@ Class Karma_Fields_Alpha {
 		// 	'Karma_Fields_Driver_Taxonomy'
 		// );
 
-		add_action('save_post', array($this, 'save'), 10, 3);
+
+
+	}
+
+	/**
+	 *  Save term meta
+   *	@hook edit_term
+   */
+	public function save_term($term_id, $tt_id, $taxonomy) {
+
+		if (current_user_can('manage_categories')) {
+
+			$action = "karma_field-action";
+			$nonce = "karma_field-nonce";
+
+	    if (isset($_REQUEST[$nonce]) && wp_verify_nonce($_POST[$nonce], $action)) {
+
+				if (isset($_REQUEST['karma-fields-items']) && $_REQUEST['karma-fields-items']) {
+
+					foreach ($_REQUEST['karma-fields-items'] as $encoded_input) {
+
+						if ($encoded_input) {
+
+							$encoded_input = stripslashes($encoded_input);
+							$input = json_decode($encoded_input, false);
+
+							if ($input) {
+
+								$driver = $this->get_driver('taxonomy');
+
+								if (method_exists($driver, 'update')) {
+
+									$driver->update($input, $term_id);
+
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+		}
 
 	}
 
@@ -321,8 +374,6 @@ Class Karma_Fields_Alpha {
 	 * @hook 'save_post'
 	 */
 	public function save($post_id, $post, $update) {
-
-
 
 		if (current_user_can('edit_post', $post_id) && (!defined( 'DOING_AUTOSAVE' ) || !DOING_AUTOSAVE )) {
 
@@ -787,6 +838,36 @@ Class Karma_Fields_Alpha {
 		$index++;
 
 		include plugin_dir_path(__FILE__) . 'includes/post-field.php';
+
+	}
+
+	/**
+	 *	@hook karma_fields_term_field
+	 */
+	public function print_term_field($term_id, $args) {
+		static $index = 0;
+
+		$index++;
+
+		if (isset($args['label']) ) {
+
+			$label = $args['label'];
+			unset($args['label']);
+
+		} else {
+
+			$label = "karma-fields";
+
+		}
+
+		?>
+		<tr class="form-field">
+		  <th scope="row"><label for="start"><?php echo $label; ?></label></th>
+		  <td>
+		    <?php include plugin_dir_path(__FILE__) . 'includes/term-field.php'; ?>
+		  </td>
+		</tr>
+		<?php
 
 	}
 

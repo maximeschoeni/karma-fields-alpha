@@ -182,13 +182,15 @@ KarmaFieldsAlpha.DeepObject = class {
   // }
 
   static merge(object1, object2) {
-  	for (var i in object2) {
+  	for (let i in object2) {
       if (object2[i] === null) {
         delete object1[i];
       } else if (object2[i].constructor === Object) {
         if (!object1[i] || typeof object1[i] !== "object") {
 					object1[i] = {};
-				}
+				} else if (Object.isFrozen(object1[i])) {
+          object1[i] = {};
+        }
 				this.merge(object1[i], object2[i]);
       } else if (object2[i] !== undefined) {
   			object1[i] = object2[i];

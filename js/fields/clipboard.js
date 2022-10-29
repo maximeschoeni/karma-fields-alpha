@@ -26,11 +26,14 @@ KarmaFieldsAlpha.field.clipboard = class extends KarmaFieldsAlpha.field {
       update: ta => {
 
         ta.element.onpaste = event => {
+          event.preventDefault();
           const value = event.clipboardData.getData("text/plain").normalize();
           this.onInput(value);
         }
 
         ta.element.oncut = event => {
+          event.preventDefault();
+          event.clipboardData.setData("text/plain", ta.element.value);
           this.onInput("");
         }
 

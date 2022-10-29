@@ -2,39 +2,73 @@
 
 KarmaFieldsAlpha.SelectionManager = class {
 
-  constructor(container, width, height, offsetCol = 0, offsetRow = 0) {
+  constructor(container) {
+
 
     this.container = container;
-    this.width = width;
-    this.height = height;
-    this.offsetCol = offsetCol;
-    this.offsetRow = offsetRow;
-
     this.children = [...container.children];
-    this.elements = this.children.slice(this.width*offsetRow);
     this.box = this.container.getBoundingClientRect();
+
+    this.colCount = this.container.colCount || 1;
+    this.rowCount = this.container.rowCount || 0;
+
+    this.colHeader = this.container.colHeader || 0;
+    this.colFooter = this.container.colFooter || 0;
+    this.rowHeader = this.container.rowHeader || 0;
+    this.rowFooter = this.container.rowFooter || 0;
+
+    this.width = this.rowHeader + this.colCount + this.rowFooter;
+    this.height = this.colHeader + this.rowCount + this.colFooter;
+
+    // compat
+    // if (!this.children.findLastIndex) {
+    //   this.children.findLastIndex = callback => {
+    //     for (let i = this.children.length - 1; i >= 0; i--) {
+    //       if (callback(this.children[i], i, this.children)) {
+    //         return i;
+    //       }
+    //     }
+    //   }
+    // }
 
   }
 
   select(event, col, row) {
 
-    this.tie = {index: row, length: 1};
+
 
     this.mouseX = event.clientX;
     this.mouseY = event.clientY;
 
-    if (this.selection) {
+    const x = this.mouseX - this.box.x;
+    const y = this.mouseY - this.box.y;
+
+    const index = this.findIndex(x, y);
+
+    this.tie = {
+      index: this.getRow(index),
+      length: 1
+    };
+
+
+    Object.freeze(this.tie);
+
+    if (this.selection) { // this.selection should be frozen
       if (event.shiftKey) {
         this.tie = this.selection;
       } else {
-        this.sliceElements(this.selection).forEach(element => element.classList.remove("selected"));
+        this.sliceSegment(this.selection).forEach(element => element.classList.remove("selected"));
+        this.selection = null;
       }
     }
+
+
 
     const onMouseMove = event => {
 
       this.mouseX = event.clientX;
       this.mouseY = event.clientY;
+
 
       this.updateSelection();
 
@@ -48,16 +82,15 @@ KarmaFieldsAlpha.SelectionManager = class {
 
       onMouseMove(event);
 
-      if (this.segment) {
+      if (this.selection) {
 
-        this.sliceElements(this.segment).forEach(element => element.classList.replace("selecting", "selected"));
+        this.sliceSegment(this.selection).forEach(element => element.classList.replace("selecting", "selected"));
 
-        // if (this.onSelect && (!this.selection || !KarmaFieldsAlpha.Segment.compare(this.selection, this.segment))) {
-        if (this.onSelect && this.segment) {
+        if (this.onSelect) {
 
-          const hasChange = Boolean(!this.selection || !KarmaFieldsAlpha.Segment.compare(this.segment, this.selection));
+          // const hasChange = Boolean(!this.selection || !KarmaFieldsAlpha.Segment.compare(this.segment, this.selection));
 
-          this.onSelect(this.segment, hasChange);
+          this.onSelect(this.selection, true); // compat
 
         }
 
@@ -89,21 +122,66 @@ KarmaFieldsAlpha.SelectionManager = class {
 
     if (index > -1) {
 
-      this.growSelection({index: index, length: 1});
+      this.growSelection({
+        index: this.getRow(index),
+        length: 1
+      });
 
     }
 
+    // const element = this.findElement(x, y);
+    //
+    //
+    //
+    // if (element && element.multiSelectable) {
+    //
+    //   this.growSelection({
+    //     index: element.rowIndex,
+    //     length: 1
+    //   });
+    //
+    // }
+
   }
 
-  sliceElements(segment) {
+
+  getCol(index) {
+
+    return (index%this.width) - this.rowHeader;
+
+  }
+
+  getRow(index) {
+
+    return Math.floor(index/this.width) - this.colHeader;
+
+  }
+
+  getIndex(col, row) {
+
+    return (row + this.colHeader)*this.width + col + this.rowHeader;
+
+  }
+
+  // use box not segment
+  slice(col, row, width, height) {
+
+    // return this.children.filter(element => element.multiSelectable && KarmaFieldsAlpha.Rect.contain(box, element.colIndex, element.rowIndex));
 
     const elements = [];
 
-    for (let j = 0; j < segment.length; j++) {
+    for (let j = 0; j < height; j++) {
 
-      for (let i = 0; i < this.width; i++) {
+      for (let i = 0; i < width; i++) {
 
-        elements.push(this.elements[(segment.index + j)*this.width + i]);
+        const index = this.getIndex(i + col, j + row);
+        const element = this.children[index];
+
+        if (element) {
+
+          elements.push(element);
+
+        }
 
       }
 
@@ -112,26 +190,115 @@ KarmaFieldsAlpha.SelectionManager = class {
     return elements;
   }
 
-  getBox(index, length = 1) {
+  sliceRect(box) {
 
-    const selectedElements = this.sliceElements({index: index, length: length});
-
-    const first = selectedElements[0];
-    const last = selectedElements[selectedElements.length-1];
-
-    return new KarmaFieldsAlpha.Rect(first.offsetLeft, first.offsetTop, last.offsetLeft + last.clientWidth - first.offsetLeft, last.offsetTop + last.clientHeight - first.offsetTop);
+    return this.slice(box.x, box.y, box.width, box.height);
 
   }
 
+  sliceSegment(segment) {
+
+    return this.slice(0, segment.index, this.width, segment.length);
+
+  }
+
+  // sliceElements(segment) {
+  //
+  //   const elements = [];
+  //
+  //   for (let j = 0; j < segment.length; j++) {
+  //
+  //     for (let i = 0; i < this.colCount; i++) {
+  //
+  //       const index = this.getIndex(i, j + segment.index);
+  //       const element = this.children[index];
+  //
+  //       elements.push(element);
+  //     }
+  //
+  //   }
+  //
+  //   return elements;
+  // }
+
+  // getElementIndex(index) {
+  //   // for (let i = 0; i < this.children.length; i++) {
+  //   //   if (this.children[i].row === index) {
+  //   //     return i;
+  //   //   }
+  //   // }
+  //   return this.children.findIndex(element => element.row === index);
+  // }
+  //
+  // getElementLastIndex(index) {
+  //   // for (let i = this.children.length - 1; i >= 0; i--) {
+  //   //   if (this.children[i].row === index) {
+  //   //     return i;
+  //   //   }
+  //   // }
+  //   return this.children.findLastIndex(element => element.row === index);
+  // }
+
+
+  // mapElements(segment) {
+  //   const index = this.getElementIndex(segment.index);
+  //   const lastIndex = this.getElementLastIndex(segment.index + segment.length);
+  //
+  //   return {
+  //     index: index,
+  //     length: lastIndex - index + 1,
+  //   };
+  //
+  // }
+  //
+  // findIndex(section) {
+  //   return this.children.findIndex(s);
+  // }
+
+  // findIndex(x, y) {
+  //
+  //   for (let j = this.colHeader; j < this.rowCount; j++) {
+  //
+  //     for (let i = this.rowHeader; i < this.colCount; i++) {
+  //
+  //       const index = j*this.width + i;
+  //       const element = this.children[index];
+  //       const box = this.getElementBox(element);
+  //
+  //       if (KarmaFieldsAlpha.Rect.contain(box, x, y)) {
+  //         return index;
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return -1;
+  // }
+
   findIndex(x, y) {
 
-    for (let j = 0; j < this.height; j++) {
+    for (let j = 0; j < this.rowCount; j++) {
 
-      const box = this.getBox(j);
+      for (let i = 0; i < this.colCount; i++) {
 
-      if (box.contains(x, y)) {
+        const index = this.getIndex(i, j);
 
-        return j;
+        const element = this.children[index];
+
+        if (y >= element.offsetTop && y < element.offsetTop + element.clientHeight) {
+
+          if (x >= element.offsetLeft && x < element.offsetLeft + element.clientWidth) {
+
+            return index;
+
+          }
+
+        } else {
+
+          break;
+
+        }
 
       }
 
@@ -140,31 +307,140 @@ KarmaFieldsAlpha.SelectionManager = class {
     return -1;
   }
 
-  growSelection(segment) {
+  findElementIndex(x, y) {
 
-    const union = KarmaFieldsAlpha.Segment.union(this.tie, segment);
+    for (let j = 0; j < this.height; j++) {
 
-    if (!this.segment || !KarmaFieldsAlpha.Segment.compare(union, this.segment)) {
+      for (let i = 0; i < this.width; i++) {
 
-      if (this.segment) {
+        const index = j*this.width + i;
+        const element = this.children[index];
 
-        this.sliceElements(this.segment).forEach(element => element.classList.remove("selecting"));
+        if (y >= element.offsetTop && y < element.offsetTop + element.clientHeight) {
+
+          if (x >= element.offsetLeft && x < element.offsetLeft + element.clientWidth) {
+
+            return index;
+
+          }
+
+        } else {
+
+          break;
+
+        }
 
       }
 
-      this.segment = union;
+    }
 
-      this.sliceElements(this.segment).forEach(element => element.classList.add("selecting"));
+    return -1;
+  }
+
+  // findElement(x, y) {
+  //
+  //   // for (let element of this.children) {
+  //   //
+  //   //   if (KarmaFieldsAlpha.Rect.contain(this.getElementBox(element), x, y)) {
+  //   //
+  //   //     return element;
+  //   //
+  //   //   }
+  //   //
+  //   // }
+  //
+  //   return this.children[this.findIndex(x, y)];
+  //
+  // }
+
+  getBox(rowIndex, rowLength = 1) {
+
+    const elementIndex = this.getIndex(0, rowIndex);
+    const lastElementIndex = this.getIndex(0, rowIndex + rowLength) - 1;
+
+    const first = this.children[elementIndex];
+    const last = this.children[lastElementIndex];
+
+    if (first && last) {
+
+      return {
+        x: first.offsetLeft,
+        y: first.offsetTop,
+        width: last.offsetLeft + last.clientWidth - first.offsetLeft,
+        height: last.offsetTop + last.clientHeight - first.offsetTop
+      };
 
     }
 
   }
 
-  clear(segment = this.segment) {
+  // getElementBox(element) {
+  //
+  //   return {
+  //     x: element.offsetLeft,
+  //     y: element.offsetTop,
+  //     width: element.clientWidth,
+  //     height: element.clientHeight
+  //   };
+  //
+  // }
+  //
+  // getElementsBox(elements) {
+  //
+  //   if (elements.length) {
+  //
+  //     const first = elements[0];
+  //     const last = elements[elements.length-1];
+  //
+  //     return {
+  //       x: first.offsetLeft,
+  //       y: first.offsetTop,
+  //       width: last.offsetLeft + last.clientWidth - first.offsetLeft,
+  //       height: last.offsetTop + last.clientHeight - first.offsetTop
+  //     };
+  //
+  //   }
+  //
+  // }
+
+  // getBox(index, length = 1) {
+  //
+  //   const elements = this.sliceElements({
+  //     index: index,
+  //     length: length
+  //   });
+  //
+  //   return this.getElementsBox(elements);
+  // }
+
+
+  growSelection(segment) {
+
+    const union = KarmaFieldsAlpha.Segment.union(this.tie, segment);
+
+    if (!this.selection || !KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
+
+      if (this.selection) {
+
+        this.sliceSegment(this.selection).forEach(element => element.classList.remove("selecting"));
+
+      }
+
+      this.selection = union;
+
+      Object.freeze(this.selection);
+
+      this.sliceSegment(this.selection).forEach(element => element.classList.add("selecting"));
+
+    }
+
+  }
+
+  clear(segment = this.selection) {
 
     if (segment) {
 
-      this.sliceElements(segment).forEach(element => element.classList.remove("selected"));
+      this.sliceSegment(segment).forEach(element => element.classList.remove("selected"));
 
     }
 

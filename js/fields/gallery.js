@@ -644,6 +644,9 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 			class: "karma-gallery karma-field",
 			init: container => {
         this.render = container.render;
+
+
+
 			},
       update: async container => {
 
@@ -655,7 +658,63 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
         const key = this.getKey();
         const state = await this.parent.request("state", {}, key);
-        const ids = KarmaFieldsAlpha.Type.toArray(state.value).map(id => id.toString()).slice(0, this.getMax());
+        const ids = KarmaFieldsAlpha.Type.toArray(state.value).filter(id => id).map(id => id.toString()).slice(0, this.getMax());
+
+        let table;
+
+        if (this.resource.driver) { // -> compat wp uploader
+
+          table = new KarmaFieldsAlpha.field.layout.medias({
+            driver: this.resource.driver,
+            joins: this.resource.joins || []
+          });
+
+        } else if (this.resource.table && typeof this.resource.table === "object") {
+
+          table = new KarmaFieldsAlpha.field.layout.table(this.resource.table);
+
+        } else {
+
+          table = await this.parent.request("table", {id: this.resource.table || "medias"});
+
+        }
+
+
+
+        container.element.ondragover = event => {
+          event.preventDefault();
+        }
+
+        container.element.ondrop = async event => {
+          event.preventDefault();
+          const files = event.dataTransfer.files;
+          if (event.dataTransfer.files.length) {
+            KarmaFieldsAlpha.History.save();
+            // const ids = await this.parent.request("upload", event.dataTransfer.files);
+            let newIds = ids.slice();
+            // if (this.resource.table) {
+              // const table = await this.request("table", {id: this.resource.table});
+              for (let file of event.dataTransfer.files) {
+                const index = newIds.length;
+                newIds[index] = "0";
+                await this.parent.request("set", {data: newIds}, key);
+                await container.render();
+                const id = await table.uploadFile(file);
+                newIds[index] = id;
+                console.log(this.resource.folder);
+                if (this.resource.folder) {
+                  const results = await table.query("name="+this.resource.folder);
+                  console.log(results);
+                  if (results.length) {
+                    await table.setValue(results[0].id, id, "parent");
+                  }
+                }
+              }
+              await this.parent.request("set", {data: newIds}, key);
+              await this.parent.request("render");
+            // }
+          }
+        }
 
         if (state.multi && !state.alike) {
 
@@ -669,7 +728,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
               update: async gallery => {
                 gallery.element.onfocus = event => {
                   if (this.selection) {
-                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, 1, 0, 0);
+                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element);
                     sortManager.clear(this.selection);
                     this.selection = null;
                   }
@@ -678,7 +737,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                 }
                 this.clipboard.onBlur = event => {
                   if (this.selection) {
-                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, 1, 0, 0);
+                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element);
                     sortManager.clear(this.selection);
                     this.selection = null;
                   }
@@ -699,6 +758,9 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                   this.openLibrary([]);
                 }
 
+                gallery.element.colCount = 1;
+                gallery.element.rowCount = 1;
+
                 gallery.children = [
                   {
                     class: "frame",
@@ -707,11 +769,14 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                     },
                     update: async frame => {
                       frame.element.classList.remove("selected");
+                      frame.element.rowIndex = 0;
+                      frame.element.multiSelectable = true;
+
                       frame.element.onmousedown = async event => {
                         if (event.buttons === 1) {
-                          const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, 1, 0, 0);
+                          const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element);
                           sortManager.segment = this.selection;
-                          sortManager.onSelect = async (segment, hasChange) => {
+                          sortManager.onSelect = async (segment) => {
                             this.selection = segment;
                             const value = KarmaFieldsAlpha.Clipboard.unparse(state.values);
                             this.clipboard.output(value);
@@ -720,7 +785,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                               await this.onRenderControls();
                             }
                           }
-                          await sortManager.sort(event, 0, 0);
+                          await sortManager.select(event, 0, 0);
                         }
                       }
 
@@ -771,28 +836,11 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
         } else {
 
-          let table;
+          const filteredIds = ids.filter(id => id !== "0");
 
-          if (ids.length) {
+          if (filteredIds.length) {
 
-            if (this.resource.driver) { // -> compat wp uploader
-
-              table = new KarmaFieldsAlpha.field.layout.table({
-                driver: this.resource.driver,
-                joins: this.resource.joins || []
-              });
-
-            } else if (this.resource.table && typeof this.resource.table === "object") {
-
-              table = new KarmaFieldsAlpha.field.layout.table(this.resource.table);
-
-            } else {
-
-              table = await this.parent.request("table", {id: this.resource.table || "medias"});
-
-            }
-
-            table.query("ids="+ids.join(","));
+            table.query("ids="+filteredIds.join(","));
 
           }
 
@@ -809,7 +857,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
                   if (this.selection) {
 
-                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
+                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element);
                     sortManager.clear(this.selection);
                     this.selection = null;
 
@@ -823,7 +871,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
                   if (this.selection) {
 
-                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
+                    const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element);
                     sortManager.clear(this.selection);
                     this.selection = null;
 
@@ -863,6 +911,10 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                   this.openLibrary([]);
                 }
 
+                gallery.element.colCount = 1;
+                gallery.element.rowCount = ids.length;
+
+
                 gallery.children = ids.map((id, rowIndex) => {
                   return {
                     class: "frame",
@@ -872,16 +924,18 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                     update: async frame => {
 
                       frame.element.classList.remove("selected");
+                      frame.element.rowIndex = rowIndex;
+                      frame.element.multiSelectable = true;
 
                       frame.element.onmousedown = async event => {
 
                         if (event.buttons === 1) {
 
-                          const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element, 1, ids.length, 0, 0);
+                          const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element);
 
-                          sortManager.segment = this.selection;
+                          sortManager.selection = this.selection;
 
-                          sortManager.onSelect = async (segment, hasChange) => {
+                          sortManager.onSelect = async segment => {
 
                             this.selection = segment;
 
@@ -911,7 +965,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
                           }
 
-                          await sortManager.sort(event, 0, rowIndex);
+                          await sortManager.select(event, 0, rowIndex);
 
                         }
 
@@ -919,13 +973,69 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
                       frame.element.classList.add("loading");
 
+                      let icon;
                       let thumb;
-                      const thumbRaw = await table.getValue(id, "thumb");
-                      const type = await table.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
 
-                      if (thumbRaw) {
-                        thumb = KarmaFieldsAlpha.Type.toObject(thumbRaw);
+                      if (id === "0") {
+
+                        icon = "upload";
+
+                      } else {
+
+                        const type = await table.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
+
+                        if (type === "image/jpeg" || type === "image/png") {
+
+                          thumb = await table.getValue(id, "thumb");
+
+                          if (thumb) {
+
+                            thumb = KarmaFieldsAlpha.Type.toObject(thumb);
+                            icon = "thumb";
+
+                          } else {
+
+                            icon = "image";
+
+                          }
+
+                        } else if (type.startsWith("image")) {
+
+                          icon = "image";
+
+                        } else if (type.startsWith("video")) {
+
+                          icon = "video";
+
+                        } else if (type.startsWith("audio")) {
+
+                          icon = "audio";
+
+                        } else if (type.startsWith("text")) {
+
+                          icon = "text";
+
+                        } else if (type === "application/pdf") {
+
+                          icon = "document";
+
+                        } else {
+
+                          icon = "default";
+
+                        }
+
                       }
+
+
+
+                      // let thumb;
+                      // const thumbRaw = id !== "0" && await table.getValue(id, "thumb");
+                      // const type = await table.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
+                      //
+                      // if (thumbRaw) {
+                      //   thumb = KarmaFieldsAlpha.Type.toObject(thumbRaw);
+                      // }
 
                       frame.element.classList.remove("loading");
 
@@ -934,27 +1044,30 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                           tag: "figure",
                           update: figure => {
 
-                            const [mediaType] = type.split("/");
+                            // const [mediaType] = type.split("/");
 
-                            figure.element.classList.toggle("dashicons", !thumb);
-                            figure.element.classList.toggle("dashicons-media-video", !thumb && mediaType === "video");
-                            figure.element.classList.toggle("dashicons-media-audio", !thumb && mediaType === "audio");
-                            figure.element.classList.toggle("dashicons-media-text", !thumb && mediaType === "text");
-                            figure.element.classList.toggle("dashicons-media-document", !thumb && type === "application/pdf");
-                            figure.element.classList.toggle("dashicons-media-default", !thumb && mediaType !== "video" && mediaType !== "audio" && mediaType !== "text" && type !== "application/pdf");
+                            figure.element.classList.toggle("dashicons", icon !== "thumb");
+                            figure.element.classList.toggle("dashicons-upload", icon === "upload");
+                            figure.element.classList.toggle("dashicons-media-video", icon === "video");
+                            figure.element.classList.toggle("dashicons-media-audio", icon === "audio");
+                            figure.element.classList.toggle("dashicons-media-text", icon === "text");
+                            figure.element.classList.toggle("dashicons-media-document", icon === "document");
+                            figure.element.classList.toggle("dashicons-media-default", icon === "default");
+                            figure.element.classList.toggle("dashicons-images-alt", icon === "image");
 
-                            figure.element.classList.remove("dashicons-images-alt");
 
-                            if (thumb) {
+                            if (icon === "thumb" && thumb) {
                               figure.children = [{
                                 tag: "img",
                                 update: image => {
                                   image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
                                   image.element.width = thumb.width;
                                   image.element.height = thumb.height;
+
+
                                 }
                               }];
-                              figure.element.classList.toggle("type-image", type.startsWith("image") || false);
+                              // figure.element.classList.toggle("type-image", type.startsWith("image") || false);
                             } else {
                               figure.children = [];
                             }

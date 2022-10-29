@@ -61,6 +61,13 @@ KarmaFieldsAlpha.Segment = class {
 		return false;
 	}
 
+	static offset(segment, offset) {
+		return {
+			index: segment.index + offset,
+			length: segment.length
+		};
+	}
+
 	static fromArrays(array, slice) {
 		const first = array.indexOf(slice[0]);
 		const last = array.lastIndexOf(slice[slice.length - 1]);
