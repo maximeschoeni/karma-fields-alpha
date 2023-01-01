@@ -10,6 +10,7 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
     KarmaFieldsAlpha.tables = this; // -> debug
 
+    this.buffer = new KarmaFieldsAlpha.Buffer();
 
     this.dataBuffer = new KarmaFieldsAlpha.Buffer("data");
     this.initialBuffer = new KarmaFieldsAlpha.Buffer("gateway");
@@ -251,9 +252,13 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
         const table = this.getTable();
 
-        if (table && table.get) {
+        if (table && table.query) {
 
-          return table.get(content.id);
+          const [result] = await table.query({
+            ids: [content.id]
+          });
+
+          return result;
 
         }
 
@@ -774,18 +779,53 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
       case "fetch": {
         // -> table transfers
 
+        const tableId = KarmaFieldsAlpha.Nav.get("table");
+
         const params = KarmaFieldsAlpha.Nav.get();
 
         KarmaFieldsAlpha.History.save();
 
-        for (let key in {...params, ...content.params}) {
-          KarmaFieldsAlpha.Nav.change(content.params[key] || "", undefined, key);
-        }
+        // for (let key in {...params, ...content.params}) {
+        //   KarmaFieldsAlpha.Nav.change(content.params[key] || "", undefined, key);
+        // }
 
-        this.pile.push({
+        KarmaFieldsAlpha.Nav.change(content.params);
+
+        const transfer = this.buffer.get("state", "transfer");
+
+        const newTransfer = {
           params: params,
-          callback: content.callback
-        });
+          path: path,
+          tableId: tableId,
+          transfer: transfer,
+          selection: this.buffer.get("state", "selection"),
+          ids: this.buffer.get("state", "ids")
+          // callback: content.callback,
+          // selectedIds: content.ids,
+          // fieldSelection: content.selection
+        };
+
+        Object.freeze(newTransfer);
+
+        // this.buffer.change(null, undefined, "state", "ids");
+
+        this.buffer.change(newTransfer, transfer, "state", "transfer");
+
+        const table = this.getTable();
+
+        await table.load();
+
+        const selection = table.createSelection(content.ids);
+
+        table.selectionBuffer.change(selection);
+
+        // this.pile.push({
+        //   params: params,
+        //   callback: content.callback
+        // });
+
+        this.buffer.set(content.callback, "transfer-callback", tableId);
+
 
         await this.render();
 
@@ -800,19 +840,37 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
         if (table && table.getIds && table.selectionBuffer) {
 
           const selection = table.selectionBuffer.get();
+          const transfer = this.buffer.get("state", "transfer");
 
-          if (selection && this.pile.length > 0) {
+          if (selection && transfer) {
 
             const ids = table.getIds();
             const inputIds = ids.slice(selection.index, selection.index + selection.length);
-            const state = this.pile.pop();
-            const currentParams = KarmaFieldsAlpha.Nav.get();
 
-            for (let key in {...currentParams, ...state.params}) {
-              KarmaFieldsAlpha.Nav.change(state.params[key] || "", undefined, key);
+            KarmaFieldsAlpha.Nav.change(transfer.params);
+
+            const originTable = this.getTable(transfer.params.table);
+
+            // await originTable.load();
+
+            this.buffer.change(transfer.ids, ids, "state", "ids");
+
+            this.buffer.change(transfer.selection, selection, "state", "selection");
+
+            //
+            // await transfer.callback(inputIds);
+
+            const callback = this.buffer.get("transfer-callback", transfer.params.table);
+
+            if (callback) {
+
+              await callback.call(originTable, inputIds);
+
+              this.buffer.remove("transfer-callback", transfer.params.table);
+
             }
 
-            await state.callback(inputIds);
+            this.buffer.change(transfer.transfer, transfer, "state", "transfer");
 
             await this.render();
 
@@ -825,7 +883,7 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
       }
 
       case "pile": {
-        return this.pile;
+        return this.buffer.get("state", "transfer");
       }
 
 
@@ -1032,7 +1090,27 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
             KarmaFieldsAlpha.Nav.change(newParams);
 
-            await this.queryTable();
+            const table = this.getTable();
+
+            const transfer = this.buffer.get("state", "transfer");
+
+            if (transfer) {
+
+              this.buffer.change(null, transfer, "state", "transfer");
+
+            }
+
+            const selection = this.buffer.get("state", "selection");
+
+            if (selection) {
+
+              this.buffer.change(null, selection, "state", "selection");
+
+            }
+
+            await table.load();
+
+            // await this.queryTable();
 
           }
 
@@ -1044,7 +1122,12 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
         if (newParams.table) {
           KarmaFieldsAlpha.Nav.set(newParams);
-          await this.queryTable();
+
+          const table = this.getTable();
+
+          await table.load();
+
+          // await this.queryTable();
         }
 
       },
@@ -1098,9 +1181,9 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
                             div.element.classList.add("table-loading");
 
-                            if (!table.idsBuffer.get()) {
-                              await table.load(); // -> needed when fetching (table transfer). But not when undoing
-                            }
+                            // if (!table.idsBuffer.get()) {
+                            //   await table.load(); // -> needed when fetching (table transfer). But not when undoing
+                            // }
 
 
                             div.children = [

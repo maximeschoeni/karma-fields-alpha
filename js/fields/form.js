@@ -44,6 +44,8 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 	// }
 
 
+	
+
 
 	async send(data) {
 
@@ -242,7 +244,6 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 			case "path": {
 				return [this.resource.driver, ...path];
 			}
-
 
 
 			default:

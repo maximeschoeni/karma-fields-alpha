@@ -4,9 +4,11 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
   constructor(resource) {
     super(resource);
 
-    this.idsBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.id || this.resource.driver, "ids");
+    // this.idsBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.id || this.resource.driver, "ids");
 
-    this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.id || this.resource.driver, "selection");
+    // this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.id || this.resource.driver, "selection");
+    this.selectionBuffer = new KarmaFieldsAlpha.Buffer("state", "selection");
+
 
 
     // this.clipboard = this.createChild("clipboard");
@@ -25,20 +27,20 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
     const results = await this.query(params);
     const newIds = results.map(item => item.id);
 
-    this.idsBuffer.change(newIds);
+    this.idsBuffer.change(newIds, ids);
 
     // this.expressionCache.remove();
 
     // -> for table transfers
-    if (KarmaFieldsAlpha.Nav.has("selection")) {
-      const selectedIds = KarmaFieldsAlpha.Nav.get("selection").split(",");
-      const currentSelection = this.selectionBuffer.get();
-      const newSelection = KarmaFieldsAlpha.Segment.fromArrays(newIds, selectedIds);
-      if (newSelection && !KarmaFieldsAlpha.Segment.compare(newSelection, currentSelection)) {
-        // this.interface.select(newSelection.index, newSelection.length);
-        this.selectionBuffer.change(newSelection);
-      }
-    }
+    // if (KarmaFieldsAlpha.Nav.has("selection")) {
+    //   const selectedIds = KarmaFieldsAlpha.Nav.get("selection").split(",");
+    //   const currentSelection = this.selectionBuffer.get();
+    //   const newSelection = KarmaFieldsAlpha.Segment.fromArrays(newIds, selectedIds);
+    //   if (newSelection && !KarmaFieldsAlpha.Segment.compare(newSelection, currentSelection)) {
+    //     // this.interface.select(newSelection.index, newSelection.length);
+    //     this.selectionBuffer.change(newSelection);
+    //   }
+    // }
 
     return ids;
   }

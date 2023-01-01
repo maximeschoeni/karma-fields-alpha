@@ -105,7 +105,7 @@ KarmaFieldsAlpha.field = class {
     //
     // if (!child) {
 
-  
+
       const child = this.createField(resource);
 
       // this.children.push(child);
@@ -376,6 +376,12 @@ KarmaFieldsAlpha.field = class {
 
 		return keys;
   }
+
+  // follow(resource, ...resPath) {
+  //
+	// 	return this.createChild(resource).follow(...resPath);
+  //
+	// }
 
 
 };

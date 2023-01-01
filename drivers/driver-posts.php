@@ -81,7 +81,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       foreach ($data as $key => $value) {
 
-        if (apply_filters('karma_fields_posts_driver_update', null, $value, $key, $id, $args) === null) {
+        if (apply_filters('karma_fields_posts_driver_update', null, $value, $key, $id, $args, $data) === null) {
 
           switch ($key) {
 
@@ -159,6 +159,11 @@ Class Karma_Fields_Alpha_Driver_Posts {
               } else { // -> meta
 
                 $value = apply_filters('karma_fields_posts_driver_update_meta', $value, $key, $id);
+
+                $value = array_map(function($value) {
+                  if ($value === null) return '';
+                  else return $value;
+                }, $value);
 
                 $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = %s AND post_id = %d", $key, $id ) );
 
@@ -457,6 +462,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
           return array(
             'id' => (string) $post->ID,
             'name' => $post->post_title,
+            'ID' => (string) $post->ID,
             'post_title' => $post->post_title,
             'post_excerpt' => $post->post_excerpt,
             'post_name' => $post->post_name,

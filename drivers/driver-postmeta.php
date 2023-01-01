@@ -135,6 +135,8 @@ class Karma_Fields_Alpha_Driver_Postmeta {
 
       }
 
+      $results = apply_filters('karma_fields_posts_driver_meta_results', $results, $ids);
+
       return $results;
 
     } else {

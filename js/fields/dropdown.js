@@ -136,6 +136,14 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		if (this.resource.options) {
 
+			if (!Array.isArray(this.resource.options)) {
+
+				console.error("dropdown options request array of objects");
+
+				this.resource.options = [this.resource.options];
+
+			}
+
 			options = [
 				...await this.parse(this.resource.options)
 			];
@@ -155,6 +163,26 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 				options.push({
 					id: item.id,
 					name: item[this.resource.nameField || "name"] || await form.getInitial(item.id, this.resource.nameField || "name")
+				});
+			}
+
+		} else if (this.resource.query) {
+
+			const query = this.resource.query;
+
+			const form = new KarmaFieldsAlpha.field.form({
+				driver: query.driver,
+				joins: query.joins || []
+			});
+
+	    const results = await form.query(query.params || {});
+
+			const alias = query.alias || {};
+
+			for (let item of results) {
+				options.push({
+					id: item[alias.id || "id"],
+					name: item[alias.name || "name"] || await form.getInitial(item.id, alias.name || "name")
 				});
 			}
 

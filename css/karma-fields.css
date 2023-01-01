@@ -71,7 +71,7 @@ body.karma-table-open {
 }
 
 .karma-fields .loading:not(:focus),
-.karma-fields .editing:not(:focus) {
+.karma-fields .editing {
   color: var(--disabled-color) !important;
   border-color: var(--disabled-color) !important;
   outline-color: var(--disabled-color) !important;
@@ -489,6 +489,49 @@ body.karma-table-open {
 }
 
 
+/* Table Grid Arrangement
+--------------------------------------*/
+.karma-fields .table .td.drag {
+  z-index: 10;
+}
+.karma-fields .arrangement li.arrangement-item {
+  outline: 1px solid black;
+  margin: 0; /* reset */
+
+  padding: 0 0 0;
+}
+.karma-fields .arrangement li.arrangement-item.empty {
+  padding: calc(var(--gap-width)*2) 0;
+}
+.karma-fields .arrangement ul.arrangement-item-header {
+  display: flex;
+  align-items: center;
+  /* height: 2.5em; */
+  padding: calc(var(--gap-width)*1.5) 0;
+}
+.karma-fields .arrangement .arrangement-item-header li {
+  margin: 0; /* reset */
+}
+.karma-fields .arrangement ul.arrangement-item-header li:first-child {
+  flex-grow: 1;
+}
+.karma-fields .arrangement li.arrangement-item.empty ul.arrangement-item-header {
+  /* height: 2.5em; */
+  padding: 0;
+}
+.karma-fields .arrangement .arrangement-item ul.arrangement-item-body {
+  padding: 0 var(--gap-width) var(--gap-width) calc(2*var(--gap-width));
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.karma-fields .arrangement li.arrangement-item.empty ul.arrangement-item-body {
+  padding: 0 var(--gap-width) 0 calc(2*var(--gap-width));
+}
+
+
+
+
 
 /* Table Grid Header
 --------------------------------------*/
@@ -759,7 +802,7 @@ button.karma-button .text {
   padding: 0 var(--gap-width);
 }
 button.karma-button .dashicons {
-  padding: 0 0.625em;
+  padding: 0 0.5em;
   line-height: 1em;
   font-size: 1.2em;
   height: auto;
@@ -1194,7 +1237,7 @@ ul.tag-links li:not(:last-child)::after {
 }
 .karma-fields .array .td.array-index {
   align-items: flex-start;
-  padding: 1em;
+  padding: var(--gap-width);
   min-width: 3em;
   font-weight: bold;
 }
@@ -1202,7 +1245,7 @@ ul.tag-links li:not(:last-child)::after {
   cursor: grabbing;
 }
 .karma-fields .array .td.array-delete {
-  padding: 1em;
+  padding: var(--gap-width);
   align-items: flex-start;
 }
 

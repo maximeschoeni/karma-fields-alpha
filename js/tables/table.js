@@ -3,8 +3,42 @@ KarmaFieldsAlpha.field.layout.table = class extends KarmaFieldsAlpha.field.form 
   constructor(resource) {
     super(resource);
 
-    this.idsBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.id || this.resource.driver, "ids");
+    // this.idsBuffer = new KarmaFieldsAlpha.Buffer("state", this.resource.id || this.resource.driver, "ids");
+    this.idsBuffer = new KarmaFieldsAlpha.Buffer("state", "ids");
 
+
+  }
+
+  // async loadParams(params) {
+  //
+  //   const queryParams = {
+  //     page: 1,
+  //     ppp: 1,
+  //     // id: params.id,
+  //     // order: params.order,
+  //     // orderby: params.orderby,
+  //     ...this.resource.params,
+  //     ...params
+  //   };
+  //
+  //   const ids = this.idsBuffer.get() || [];
+  //
+  //   const results = await this.query(queryParams);
+  //   const newIds = results.map(item => item.id);
+  //
+  //   this.idsBuffer.change(newIds, ids);
+  //
+  //
+  // }
+
+  async queryParams(params) {
+
+    return this.query({
+      page: 1,
+      ppp: 1,
+      ...this.resource.params,
+      ...params
+    });
 
   }
 
@@ -16,11 +50,11 @@ KarmaFieldsAlpha.field.layout.table = class extends KarmaFieldsAlpha.field.form 
     const results = await this.query(params);
     const newIds = results.map(item => item.id);
 
-    this.idsBuffer.change(newIds);
-
+    this.idsBuffer.change(newIds, ids);
   }
 
   unload() {
+    console.error("deprecated")
     this.idsBuffer.change(null);
   }
 

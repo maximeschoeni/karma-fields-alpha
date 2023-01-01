@@ -62,13 +62,29 @@ KarmaFieldsAlpha.Nav = class {
 
 	static change(value, prevValue, ...path) {
 
-		if (prevValue === undefined) {
-			prevValue = this.get(...path);
+		if (path.length) {
+
+			if (prevValue === undefined) {
+				prevValue = this.get(...path);
+			}
+
+			KarmaFieldsAlpha.History.backup(value, prevValue, false, "nav", ...path);
+
+			this.set(value, ...path);
+
+		} else {
+
+			const params = this.get();
+
+			for (let key in {...params, ...value}) {
+
+				KarmaFieldsAlpha.History.backup(value[key], params[key], false, "nav", key);
+				this.set(value[key], key);
+
+			}
+
 		}
 
-		KarmaFieldsAlpha.History.backup(value, prevValue, false, "nav", ...path);
-
-		this.set(value, ...path);
 
 	}
 
@@ -84,6 +100,8 @@ KarmaFieldsAlpha.Nav = class {
 		const hash = this.toString(params);
 		window.history.replaceState({}, null, "#"+hash);
 	}
+
+
 
 
 }

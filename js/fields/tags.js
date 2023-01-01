@@ -7,29 +7,55 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
+  // async getSelectedIds() {
+  //
+  //   const ids = await this.getArray();
+  //
+  //   if (this.selection && this.selection.length) {
+  //
+  //     return ids.slice(this.selection.index, this.selection.index + this.selection.length);
+  //
+  //   }
+  //
+  //   return [];
+  // }
+
   async openLibrary() {
 
-    const ids = await this.getArray();
-    let selectedIds = [];
+    let selectedIds = await this.getSelectedIds();
 
-    if (this.selection && this.selection.length) {
+    // const {index: index, length: length} = this.selection || {index: this.resource.insertAt || 99999, length: 0};
 
-      selectedIds = ids.slice(this.selection.index, this.selection.index + this.selection.length);
+    const {index, length} = this.selection || {index: 9999999, length: 0};
 
-    }
-
-    const {index: index, length: length} = this.selection || {index: this.resource.insertAt || 99999, length: 0};
+    const key = this.getKey();
 
     await this.parent.request("fetch", {
+      // params: {
+      //   table: this.resource.table,
+      //   selection: selectedIds.join(","),
+      //   ...this.resource.fetchParams
+      // },
+      // callback: async inputIds => {
+      //   await this.insert(inputIds, index, length);
+      // }
+
+      // table: this.resource.table,
+      // // selection: selectedIds.join(","),
+      // ...this.resource.fetchParams
+
+
+
       params: {
         table: this.resource.table,
-        selection: selectedIds.join(","),
-        ...this.resource.fetchParams
+        ...this.resource.params,
+        ...this.resource.fetchParams // deprec
       },
+      ids: selectedIds,
       callback: async inputIds => {
         await this.insert(inputIds, index, length);
       }
-    });
+    }, key);
 
 
   }
@@ -146,7 +172,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
   		const response = await this.parent.request("get", {}, key);
       const ids = KarmaFieldsAlpha.Type.toArray(response);
 
-      return ids.slice(this.selection.index, this.selection.length);
+      return ids.slice(this.selection.index, this.selection.index + this.selection.length);
 
     }
 

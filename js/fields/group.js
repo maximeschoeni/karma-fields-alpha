@@ -34,6 +34,10 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 					break;
 				}
 
+				// case "fetch": {
+				// 	return this.parent.request(subject, content, key, ...path); // for transfer record value
+				// }
+
 
 				default:
 					return this.parent.request(subject, content, key);

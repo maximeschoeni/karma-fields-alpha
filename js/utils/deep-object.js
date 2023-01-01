@@ -181,23 +181,6 @@ KarmaFieldsAlpha.DeepObject = class {
   // 	}
   // }
 
-  static merge(object1, object2) {
-  	for (let i in object2) {
-      if (object2[i] === null) {
-        delete object1[i];
-      } else if (object2[i].constructor === Object) {
-        if (!object1[i] || typeof object1[i] !== "object") {
-					object1[i] = {};
-				} else if (Object.isFrozen(object1[i])) {
-          object1[i] = {};
-        }
-				this.merge(object1[i], object2[i]);
-      } else if (object2[i] !== undefined) {
-  			object1[i] = object2[i];
-  		}
-  	}
-  }
-
   // static merge2(object1, object2) {
   //   if (object2 === null) {
   //
@@ -213,20 +196,6 @@ KarmaFieldsAlpha.DeepObject = class {
   //     }
   //   }
   //
-  //
-  // 	for (var i in object2) {
-  //     if (object2[i] === null) {
-  //       delete object1[i];
-  //     } else if (object2[i].constructor === Object) {
-  //       if (!object1[i] || typeof object1[i] !== "object") {
-	// 				object1[i] = {};
-	// 			}
-	// 			this.merge(object1[i], object2[i]);
-  //     } else if (object2[i] !== undefined) {
-  // 			object1[i] = object2[i];
-  // 		}
-  // 	}
-  // }
 
   // static mergeNEW(object1, object2) {
   // 	for (var i in object2) {
@@ -243,6 +212,36 @@ KarmaFieldsAlpha.DeepObject = class {
   // 	}
   // }
 
+  // static merge(object1, object2) {
+  // 	for (let i in object2) {
+  //     if (object2[i] === null) {
+  //       delete object1[i];
+  //     } else if (object2[i].constructor === Object) {
+  //       if (!object1[i] || typeof object1[i] !== "object") {
+	// 				object1[i] = {};
+	// 			}
+	// 			this.merge(object1[i], object2[i]);
+  //     } else if (object2[i] !== undefined) {
+  // 			object1[i] = object2[i];
+  // 		}
+  // 	}
+  // }
+
+  static isDeep(object) {
+    return object && object.constructor === Object && !Object.isFrozen(object);
+  }
+
+  static merge(object1, object2) {
+  	for (let i in object2) {
+      if (object2[i] === null) {
+        delete object1[i];
+      } else if (this.isDeep(object1[i]) && this.isDeep(object2[i])) {
+				this.merge(object1[i], object2[i]);
+      } else if (object2[i] !== undefined) {
+  			object1[i] = object2[i];
+  		}
+  	}
+  }
 
   // static clone(...objects) {
   //   const result = {};

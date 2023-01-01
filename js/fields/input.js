@@ -83,7 +83,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		return false;
 	}
 
-	throttle(callback, interval = 500) {
+	throttle(callback, interval = 200) {
 		if (this.throttleTimer) {
 			clearTimeout(this.throttleTimer);
 		}
@@ -113,6 +113,8 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					// input.element.list = "list-"+this.getId()
 					input.element.setAttribute("list", "list-"+this.getId());
 				}
+
+
 			},
 			update: async input => {
 
@@ -176,11 +178,21 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				input.element.oninput = async event => {
 
-					this.throttle(async () => {
+					if (this.resource.throttle) {
+
+						this.throttle(async () => {
+							input.element.classList.add("editing");
+							await this.set(input.element.value.normalize());
+							input.element.classList.remove("editing");
+						}, this.resource.throttle);
+
+					} else {
+
 						input.element.classList.add("editing");
 						await this.set(input.element.value.normalize());
 						input.element.classList.remove("editing");
-					});
+
+					}
 
 				}
 

@@ -54,16 +54,29 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
 	}
 
+  // async getSelectedIds() {
+  //
+  //   const ids = await this.getArray();
+  //
+  //   if (this.selection && this.selection.length) {
+  //
+  //     return ids.slice(this.selection.index, this.selection.index + this.selection.length);
+  //
+  //   }
+  //
+  //   return [];
+  // }
+
   async openLibrary() {
 
-    const ids = await this.getArray();
-    let selectedIds = [];
+    // const ids = await this.getArray();
+    let selectedIds = await this.getSelectedIds();
 
-    if (this.selection && this.selection.length) {
-
-      selectedIds = ids.slice(this.selection.index, this.selection.index + this.selection.length);
-
-    }
+    // if (this.selection && this.selection.length) {
+    //
+    //   selectedIds = ids.slice(this.selection.index, this.selection.index + this.selection.length);
+    //
+    // }
 
     if ((this.resource.uploader || this.resource.library)  === "wp") {
 
@@ -71,16 +84,16 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      // const index = this.selection && this.selection.index;
-      // const length = this.selection && this.selection.length;
+      const {index, length} = this.selection || {index: 9999999, length: 0};
 
-      const {index: index, length: length} = this.selection || {index: this.resource.insertAt || 99999, length: 0};
+      const table = await this.request("table", {id: this.resource.table || "medias"});
+
+      // const {index: index, length: length} = this.selection || {index: this.resource.insertAt || 99999, length: 0};
 
       let parentId = 0;
 
-      if (this.resource.folder && this.resource.table) {
+      if (this.resource.folder) {
 
-        const table = await this.request("table", {id: this.resource.table});
         const results = await table.query("name="+this.resource.folder);
 
         if (results.length) {
@@ -89,50 +102,83 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
         }
 
+      } else if (this.resource.folderId) {
+
+        parentId = this.resource.folderId;
+
       }
 
+      const key = this.getKey();
+      // const path = await this.request("path");
+
       await this.parent.request("fetch", {
+        // params: {
+        //   table: this.resource.table || "medias",
+        //   selection: selectedIds.join(","),
+        //   parent: parentId
+        // },
+        // path: await this.request("path")
+        // table: this.resource.table || "medias",
+        // // selection: selectedIds.join(","),
+        // parent: parentId
+        // callback: async inputIds => {
+        //   await this.insert(inputIds, index, length);
+        // }
         params: {
           table: this.resource.table || "medias",
-          selection: selectedIds.join(","),
           parent: parentId
         },
+        ids: selectedIds,
         callback: async inputIds => {
           await this.insert(inputIds, index, length);
         }
-      });
+      }, key);
 
-      // console.log("fetch response", request);
+      // const path = await this.parent.request("path");
+      // const nav = KarmaFieldsAlpha.Nav.get() || {};
+      // const currentIds = table.idsBuffer.get() || [];
+
+      // const mask = {};
       //
-      // const inputIds = KarmaFieldsAlpha.Type.toArray([...request.data]);
+      // for (let key in nav) {
+      //   mask[key] = null;
+      // }
+
+      // const params = table.getParams();
       //
+      // const results = await table.query({
+      //   ...params,
+      //   parent: parentId
+      // });
       //
+      // const newIds = results.map(item => item.id);
       //
-      // const ids = await this.getArray();
-      // const insertIds = [...ids];
+      // this.idsBuffer.change(newIds, ids);
+
+      // const transfert = {
+      //   nav: KarmaFieldsAlpha.Nav.get(),
+      //   path: await this.parent.request("path")
+      // };
       //
-      // if (this.selection) {
+      // Object.freeze(transfert);
       //
-      //   insertIds.splice(this.selection.index, this.selection.length, ...inputIds);
+      // // const currentSelection = table.selectionBuffer.get();
       //
-      //   this.selection = null; //inputIds.length && {index: this.selection.index, length: inputIds.length} || null;
+      // await table.load();
       //
-      // } else if (inputIds.length) {
+      // const selection = table.createSelection(selectedIds);
       //
-      //   insertIds.push(...inputIds);
+      // if (selection) {
+      //
+      //   table.selectionBuffer.change(selection);
       //
       // }
       //
-      // // KarmaFieldsAlpha.History.save();
       //
-      // await this.dispatch({
-      //   action: "set",
-      //   data: insertIds
-      // });
       //
-      // await this.dispatch({
-      //   action: "render"
-      // });
+      // const buffer = new KarmaFieldsAlpha.Buffer("state", "transfer");
+      //
+      // buffer.change(transfer);
 
 
 
@@ -266,7 +312,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
   		const response = await this.parent.request("get", {}, key);
       const ids = KarmaFieldsAlpha.Type.toArray(response);
 
-      return ids.slice(this.selection.index, this.selection.length);
+      return ids.slice(this.selection.index, this.selection.index + this.selection.length);
 
     }
 
@@ -657,7 +703,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
         // const ids = array.map(id => id.toString()).slice(0, this.getMax());
 
         const key = this.getKey();
-        const state = await this.parent.request("state", {}, key);
+        const state = await this.parent.request("state", {}, key) || {};
         const ids = KarmaFieldsAlpha.Type.toArray(state.value).filter(id => id).map(id => id.toString()).slice(0, this.getMax());
 
         let table;

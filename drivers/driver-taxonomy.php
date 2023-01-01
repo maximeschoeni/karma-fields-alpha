@@ -319,7 +319,8 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
       foreach ($terms as $term) {
 
         $output[] = array(
-          'id' => (string) $term->term_id,
+          'id' => (string) $term->term_id, // -> compat
+          'term_id' => (string) $term->term_id,
           'slug' => $term->slug,
           'name' => $term->name,
           'description' => $term->description,

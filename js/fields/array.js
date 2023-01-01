@@ -694,6 +694,10 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
         if (key) {
 
+          if (subkey === "..") {
+            return this.parent.request(subject, content, ...path.slice(2));
+          }
+
           // const array = await super.dispatch({
           //   action: "get",
           //   type: "array"
@@ -725,6 +729,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       }
 
       case "set": {
+
 
         const [index, subkey] = path;
         const key = this.getKey();
@@ -776,7 +781,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
           // }
 
 
-          const value = KarmaFieldsAlpha.Type.toObject(content.data); // -> compat:
+          // const value = KarmaFieldsAlpha.Type.toObject(content.data); // -> compat:
+
+          const value = content.data;
 
           clone[index] = value;
 
@@ -813,6 +820,15 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       // case "edit":
       //   await this.render();
       //   break;
+
+      // case "fetch": {
+      //   const [index, subkey, ...subpath] = path;
+      //   const key = this.getKey();
+      //   if (key) {
+      //     return this.parent.request(subject, content, key, index, subkey, ...subpath);
+      //   }
+      //   return this.parent.request(subject, content, subkey, index, ...subpath);
+      // }
 
       case "modified":
       default: {
