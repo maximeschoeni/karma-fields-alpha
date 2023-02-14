@@ -84,6 +84,7 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
     const resource = this.getResource(tableId);
 
+
     if (resource) {
 
       return this.createChild(resource.body);
@@ -1091,6 +1092,8 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
             KarmaFieldsAlpha.Nav.change(newParams);
 
             const table = this.getTable();
+
+            
 
             const transfer = this.buffer.get("state", "transfer");
 

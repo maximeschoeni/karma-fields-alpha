@@ -506,28 +506,50 @@ body.karma-table-open {
 .karma-fields .arrangement ul.arrangement-item-header {
   display: flex;
   align-items: center;
-  /* height: 2.5em; */
   padding: calc(var(--gap-width)*1.5) 0;
 }
 .karma-fields .arrangement .arrangement-item-header li {
   margin: 0; /* reset */
 }
-.karma-fields .arrangement ul.arrangement-item-header li:first-child {
+/* .karma-fields .arrangement ul.arrangement-item-header li:first-child {
   flex-grow: 1;
-}
-.karma-fields .arrangement li.arrangement-item.empty ul.arrangement-item-header {
-  /* height: 2.5em; */
+} */
+.karma-fields .arrangement li.arrangement-item.empty>ul.arrangement-item-header {
   padding: 0;
 }
 .karma-fields .arrangement .arrangement-item ul.arrangement-item-body {
-  padding: 0 var(--gap-width) var(--gap-width) calc(2*var(--gap-width));
+  position: relative; /* -> for calculate children position */
+  /* padding: 0 0 var(--gap-width); */
+  margin: 0 var(--gap-width) var(--gap-width);
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 .karma-fields .arrangement li.arrangement-item.empty ul.arrangement-item-body {
-  padding: 0 var(--gap-width) 0 calc(2*var(--gap-width));
+  /* padding: 0; */
+  margin-bottom: 0;
 }
+
+.karma-fields .arrangement li.modified {
+  color: black;
+  background-color: var(--modified-color);
+}
+.karma-fields .arrangement li.selected {
+  background-color: var(--disabled-color);
+}
+.karma-fields .arrangement li.selecting,
+.karma-fields .clipboard:focus + .arrangement li.selected:not(.selecting-cell) {
+  background-color: var(--selected-color);
+  color: var(--background-color);
+}
+.karma-fields .arrangement li {
+  cursor: cell;
+}
+.karma-fields .clipboard:focus + .arrangement li.active-row {
+  cursor: pointer;
+}
+
+
 
 
 
@@ -939,15 +961,36 @@ button.karma-button.editing span {
   min-height: 9em;
   min-width: 9em;
   position: relative;
+  gap: 1px;
 }
 .karma-gallery .gallery.focus:not(.has-selected-images)  {
   background-color: white;
 }
 .karma-gallery .gallery .frame {
   display: flex;
+  flex-direction: column;
   width: 9em;
   height: 9em;
+  outline: 1px solid var(--disabled-color)
 }
+.karma-gallery .gallery .frame .filename {
+  padding: 0.4em 0.4em;
+  /* background-color: white; */
+  /* border-top: 1px solid var(--disabled-color); */
+  line-height: 1.08em;
+  /* height: 4em; */
+  font-size: 0.8462em;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: var(--selected-color);
+  word-break: break-all;
+}
+.karma-gallery .gallery .frame.selected .filename,
+.karma-gallery .gallery .frame.selecting .filename {
+  background-color: var(--selected-color);
+  color: var(--disabled-color);
+}
+
 .karma-gallery .gallery .frame.loading {
   opacity: 0.2;
   display: flex;
@@ -988,9 +1031,15 @@ button.karma-button.editing span {
   width: 100%;
   height: 100%;
   overflow: hidden;
+
+  flex-grow: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .karma-gallery .gallery .frame figure.dashicons::before {
-  font-size: 6em;
+  font-size: 3.5em;
   color: #a5a5a5;
 }
 .karma-gallery .gallery .frame figure.dashicons-upload::before {

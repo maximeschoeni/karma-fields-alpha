@@ -27,13 +27,18 @@
 // });
 
 
-
 KarmaFieldsAlpha.Tracker = class {
 
 	constructor(element, threshold = 5) {
 
 		this.element = element;
 		this.threshold = threshold;
+
+		this.scrollContainer = element.closest(".scroll-container") || document;
+
+		this.trackMouse();
+
+
 
 		// console.log("ontouchstart", "ontouchstart" in window);
 		//
@@ -65,40 +70,40 @@ KarmaFieldsAlpha.Tracker = class {
 
 		// } else {
 		//
-			const onmousemove = event => {
-				this.clientX = event.clientX;
-				this.clientY = event.clientY;
-				this.event = event;
-				this.update();
-			}
+		// 	const onmousemove = event => {
+		// 		this.clientX = event.clientX;
+		// 		this.clientY = event.clientY;
+		// 		this.event = event;
+		// 		this.update();
+		// 	}
 
-			const onscroll = event => {
-	      if (event.target.contains(element)) {
-	        this.box = element.getBoundingClientRect();
-	        this.update();
-	      }
-	    }
+		// 	const onscroll = event => {
+	    //   if (event.target.contains(element)) {
+	    //     this.box = element.getBoundingClientRect();
+	    //     this.update();
+	    //   }
+	    // }
 
-			const onmouseup = event => {
-				this.event = event;
-				this.complete();
-				document.removeEventListener("mousemove", onmousemove);
-				document.removeEventListener("mouseup", onmouseup);
-				document.removeEventListener("scroll", onscroll);
-			}
+		// 	const onmouseup = event => {
+		// 		this.event = event;
+		// 		this.complete();
+		// 		document.removeEventListener("mousemove", onmousemove);
+		// 		document.removeEventListener("mouseup", onmouseup);
+		// 		document.removeEventListener("scroll", onscroll);
+		// 	}
 
-			element.onmousedown = event => {
-				this.clientX = event.clientX;
-				this.clientY = event.clientY;
-				this.event = event;
-				this.init();
-				this.update();
+		// 	element.onmousedown = event => {
+		// 		this.clientX = event.clientX;
+		// 		this.clientY = event.clientY;
+		// 		this.event = event;
+		// 		this.init();
+		// 		this.update();
 
-				document.addEventListener("mousemove", onmousemove);
-				document.addEventListener("mouseup", onmouseup);
-				document.addEventListener("scroll", onscroll);
+		// 		document.addEventListener("mousemove", onmousemove);
+		// 		document.addEventListener("mouseup", onmouseup);
+		// 		document.addEventListener("scroll", onscroll);
 
-			}
+		// 	}
 		//
 		// }
 
@@ -126,13 +131,117 @@ KarmaFieldsAlpha.Tracker = class {
 		// }
 
 	}
+	
+	trackMouse() {
+
+		
+
+		const onmousemove = event => {
+			this.clientX = event.clientX;
+			this.clientY = event.clientY;
+			this.event = event;
+			this.update();
+		}
+
+		const onscroll = event => {
+			if (!this.scrollLock && event.target.contains(this.element)) {
+				// this.box = this.element.getBoundingClientRect();
+				// this.scrollX = this.scrollContainer.scrollLeft;
+				// this.scrollY = this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
+				this.update();
+			}
+		}
+
+		const onmouseup = event => {
+			this.event = event;
+			this.complete();
+			document.removeEventListener("mousemove", onmousemove);
+			document.removeEventListener("mouseup", onmouseup);
+			this.scrollContainer.removeEventListener("scroll", onscroll);
+		}
+
+		this.element.onmousedown = event => {
+			if (event.button === 0) {
+				this.clientX = event.clientX;
+				this.clientY = event.clientY;
+				this.event = event;
+				this.init();
+	
+				document.addEventListener("mousemove", onmousemove);
+				document.addEventListener("mouseup", onmouseup);				
+				this.scrollContainer.addEventListener("scroll", onscroll);
+			}
+		}
+
+	}
+
+	trackTouch() {
+
+		const ontouchmove = event => {
+			this.clientX = event.touches[0].clientX;
+			this.clientY = event.touches[0].clientY;
+			this.event = event;
+			this.update();
+		}
+		
+		const ontouchend = event => {
+			this.event = event;
+			this.complete();
+			document.removeEventListener("touchmove", ontouchmove);
+			document.removeEventListener("touchend", ontouchend);
+		}
+		
+		this.element.ontouchstart = event => {
+			
+			this.clientX = event.touches[0].clientX;
+			this.clientY = event.touches[0].clientY;
+			this.event = event;
+			this.init();
+			
+			document.addEventListener("touchmove", ontouchmove);
+			document.addEventListener("touchend", ontouchend);
+
+		}
+
+	}
 
 	init() {
 
 		this.box = this.element.getBoundingClientRect();
 
+		// this.scrollX = 0;
+		// this.scrollY = 0;
+		this.scrollOriginX = this.scrollContainer.scrollLeft; // -> wont work if scrollContainer is document
+		this.scrollOriginY = this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
+
 		this.originX = this.clientX;
 		this.originY = this.clientY;
+
+		this.diffX = 0;
+		this.diffY = 0;
+		this.maxDX = 0;
+		this.maxDY = 0;
+		this.minDX = 0;
+		this.minDY = 0;
+
+		const x = this.clientX - this.box.left;
+		const y = this.clientY - this.box.top;
+
+		this.deltaX = 0;
+		this.deltaY = 0;
+
+		this.x = x;
+		this.y = y;
+
+		this.nX = x/this.box.width;
+		this.nY = y/this.box.height;
+
+		this.swipeRight = false;
+		this.swipeLeft = false;
+		this.swipeDown = false;
+		this.swipeUp = false;
+		this.click = false;
+		this.swipeFail = false;
 
 		if (this.oninit) {
 			this.oninit();
@@ -142,15 +251,21 @@ KarmaFieldsAlpha.Tracker = class {
 
 	update() {
 
-		this.diffX = this.clientX - this.originX;
-		this.diffY = this.clientY - this.originY;
+		const scrollX = this.scrollContainer.scrollLeft; // -> wont work if scrollContainer is document
+		const scrollY = this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
+
+		const diffScrollX = scrollX - this.scrollOriginX;
+		const diffScrollY = scrollY - this.scrollOriginY;
+
+		this.diffX = this.clientX - this.originX + diffScrollX;
+		this.diffY = this.clientY - this.originY + diffScrollY;
 		this.maxDX = Math.max(this.diffX, this.maxDX || 0);
 		this.maxDY = Math.max(this.diffY, this.maxDY || 0);
 		this.minDX = Math.min(this.diffX, this.minDX || 0);
 		this.minDY = Math.min(this.diffY, this.minDY || 0);
 
-		const x = this.clientX - this.box.left;
-		const y = this.clientY - this.box.top;
+		const x = this.clientX - this.box.left + diffScrollX;
+		const y = this.clientY - this.box.top + diffScrollY;
 
 		this.deltaX = x - this.x;
 		this.deltaY = y - this.y;

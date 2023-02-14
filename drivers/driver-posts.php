@@ -4,6 +4,28 @@
 
 Class Karma_Fields_Alpha_Driver_Posts {
 
+  // public function __construct() {
+
+  //   add_filter('karma_fields_posts_driver_join_meta', function($value, $key, $id) {
+
+  //     if ($key === '_wp_attachment_metadata') {
+    
+  //       $dir = dirname($value['file']);
+    
+  //       foreach ($value['sizes'] as $key => $size) {
+    
+  //         $value['sizes'][$key]['file'] = "$dir/{$value['sizes'][$key]['file']}";
+    
+  //       }
+    
+  //     }
+    
+  //   }, 10, 3);
+
+  //   return $value;
+  // }
+
+
 
   // /**
 	//  * is postfield
@@ -290,7 +312,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
   public function get_query_args($params) {
 
     $args = array(
-      'post_status' => array('publish', 'pending', 'draft', 'future'),
+      'post_status' => array('publish', 'pending', 'draft', 'future', 'inherit'),
       'post_type' => 'any',
       'posts_per_page' => -1,
       'cache_results' => false,
@@ -429,51 +451,22 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     $query = new WP_Query($args);
 
-    $field = isset($args['field']) ? $args['field'] : '';
-
-    $output = array();
-
-    switch ($field) {
-
-      case 'id':
-        $output = array_map(function($post) {
-          return array(
-            'id' => (string) $post->ID,
-          );
-        }, $query->posts);
-        break;
-
-      case 'post_title':
-      case 'post_excerpt':
-      case 'post_name':
-      case 'post_status':
-      case 'post_type':
-      case 'post_date':
-        $output = array_map(function($post) {
-          return array(
-            'id' => (string) $post->ID,
-            $args['field'] => $post->{$args['field']}
-          );
-        }, $query->posts);
-        break;
-
-      default:
-        $output = array_map(function($post) {
-          return array(
-            'id' => (string) $post->ID,
-            'name' => $post->post_title,
-            'ID' => (string) $post->ID,
-            'post_title' => $post->post_title,
-            'post_excerpt' => $post->post_excerpt,
-            'post_name' => $post->post_name,
-            'post_parent' => (string) $post->post_parent,
-            'post_status' => $post->post_status,
-            'post_type' => $post->post_type,
-            'post_date' => $post->post_date,
-            'menu_order' => (string) $post->menu_order
-          );
-        }, $query->posts);
-    }
+    $output = array_map(function($post) {
+      return array(
+        'id' => (string) $post->ID,
+        'name' => $post->post_title,
+        'ID' => (string) $post->ID,
+        'post_title' => $post->post_title,
+        'post_excerpt' => $post->post_excerpt,
+        'post_name' => $post->post_name,
+        'post_parent' => (string) $post->post_parent,
+        'post_status' => $post->post_status,
+        'post_type' => $post->post_type,
+        'post_date' => $post->post_date,
+        'menu_order' => (string) $post->menu_order,
+        'post_mime_type' => $post->post_mime_type
+      );
+    }, $query->posts);
 
 
 
@@ -969,6 +962,198 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
 
 
+  /**
+	 * meta relations
+	 */
+  public function meta($params) {
+    global $wpdb;
 
+    $ids = explode(',', $params['ids']);
+    $ids = array_filter($ids);
+
+    if ($ids) {
+
+      $ids = array_map('intval', $ids);
+      $ids = implode(',', $ids);
+
+      $sql = "SELECT
+        meta_value AS 'value',
+        meta_key AS 'key',
+        post_id AS 'id'
+        FROM $wpdb->postmeta
+        WHERE post_id IN ($ids) AND meta_key != '_wp_attachment_metadata'";
+
+			$results = $wpdb->get_results($sql);
+
+      foreach ($results as $result) {
+
+        $result->value = maybe_unserialize($result->value);
+
+        $result->value = apply_filters('karma_fields_posts_driver_join_meta', $result->value, $result->key, $result->id);
+
+      }
+
+      $results = apply_filters('karma_fields_posts_driver_meta_results', $results, $ids);
+
+      return $results;
+
+    } else {
+
+      return array();
+
+    }
+
+  }
+
+  /**
+	 * taxonomy relations
+	 */
+  public function taxonomy($params) {
+    global $wpdb;
+
+    $ids = explode(',', $params['ids']);
+    $ids = array_filter($ids);
+
+    if ($ids) {
+
+      $ids = array_map('intval', $ids);
+      $ids = implode(',', $ids);
+
+      $sql = "SELECT
+        tt.taxonomy AS 'key',
+        tt.term_id AS 'value',
+        tr.object_id AS 'id'
+        FROM $wpdb->term_relationships AS tr
+        INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+        WHERE tr.object_id IN ($ids)";
+
+			$results = $wpdb->get_results($sql);
+
+      return $results;
+
+    } else {
+
+      return array();
+
+    }
+
+  }
+
+
+  // /**
+	//  * relations mimetype
+	//  */
+  // public function mimetype($params) {
+  //   global $wpdb;
+
+  //   $ids = explode(',', $params['ids']);
+  //   $ids = array_filter($ids);
+
+  //   if ($ids) {
+
+  //     $ids = array_map('intval', $ids);
+  //     $ids = implode(',', $ids);
+
+	// 		return $wpdb->get_results("SELECT
+  //       post_mime_type AS 'value',
+  //       'mimetype' AS 'key',
+  //       ID AS 'id'
+  //       FROM $wpdb->posts
+  //       WHERE ID IN ($ids)");
+
+  //   } else {
+
+  //     return array();
+
+  //   }
+
+  // }
+
+
+  /**
+	 * filemeta relations
+	 */
+  public function filemeta($params) {
+    global $wpdb;
+
+    $ids = explode(',', $params['ids']);
+    $ids = array_filter($ids);
+
+    $output = array();
+
+    if ($ids) {
+
+      $ids = array_map('intval', $ids);
+      $ids = implode(',', $ids);
+
+      $sql = "SELECT
+        meta_value AS 'value',
+        meta_key AS 'key',
+        post_id AS 'id'
+        FROM $wpdb->postmeta
+        WHERE post_id IN ($ids) AND meta_key = '_wp_attachment_metadata'";
+
+			$results = $wpdb->get_results($sql);
+
+      foreach ($results as $result) {
+
+        $meta = maybe_unserialize($result->value);
+
+        $file = $meta['file'];
+
+        $dir = dirname($file);
+
+        foreach ($meta['sizes'] as $key => $size) {
+
+          $output[] = array(
+            'id' => $result->id,
+            'key' => 'sizes',
+            'value' => array(
+              'name' => $key,
+              'file' => "$dir/{$size['file']}",
+              'width' => $size['width'],
+              'height' => $size['height']
+            )
+          );
+        
+        }
+
+        $output[] = array(
+          'id' => $result->id,
+          'key' => 'file',
+          'value' => $file
+        );
+
+        $output[] = array(
+          'id' => $result->id,
+          'key' => 'filename',
+          'value' => basename($file)
+        );
+
+        $output[] = array(
+          'id' => $result->id,
+          'key' => 'width',
+          'value' => $meta['width']
+        );
+
+        $output[] = array(
+          'id' => $result->id,
+          'key' => 'height',
+          'value' => $meta['height']
+        );
+
+        $output[] = array(
+          'id' => $result->id,
+          'key' => 'image_meta',
+          'value' => $meta['image_meta']
+        );
+
+      }
+
+    }
+
+    return $output;
+
+  }
 
 }

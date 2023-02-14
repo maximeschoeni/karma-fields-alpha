@@ -661,6 +661,10 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
           } else {
             await this.add(attachmentIds);
           }
+
+
+          // await this.parent.request("clearcachefiles");
+
           // await this.render();
           // await this.dispatch({action: "render"});
           await this.parent.request("render");
@@ -706,25 +710,37 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
         const state = await this.parent.request("state", {}, key) || {};
         const ids = KarmaFieldsAlpha.Type.toArray(state.value).filter(id => id).map(id => id.toString()).slice(0, this.getMax());
 
-        let table;
 
-        if (this.resource.driver) { // -> compat wp uploader
+        await this.parent.request("cachefiles");
 
-          table = new KarmaFieldsAlpha.field.layout.medias({
-            driver: this.resource.driver,
-            joins: this.resource.joins || []
-          });
+        let table = this.createChild({
+          type: "form",
+          driver: "posts",
+          relations: ["meta", "filemeta"]
+        });
 
-        } else if (this.resource.table && typeof this.resource.table === "object") {
+        // console.log(ids);
 
-          table = new KarmaFieldsAlpha.field.layout.table(this.resource.table);
+        // await table.query({ids: ids});
 
-        } else {
 
-          table = await this.parent.request("table", {id: this.resource.table || "medias"});
 
-        }
+        // if (this.resource.driver) { // -> compat wp uploader
 
+        //   table = new KarmaFieldsAlpha.field.layout.medias({
+        //     driver: this.resource.driver,
+        //     joins: this.resource.joins || []
+        //   });
+
+        // } else if (this.resource.table && typeof this.resource.table === "object") {
+
+        //   table = new KarmaFieldsAlpha.field.layout.table(this.resource.table);
+
+        // } else {
+
+        //   table = await this.parent.request("table", {id: this.resource.table || "medias"});
+
+        // }
 
 
         container.element.ondragover = event => {
@@ -884,11 +900,11 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
           const filteredIds = ids.filter(id => id !== "0");
 
-          if (filteredIds.length) {
+          // if (filteredIds.length) {
 
-            table.query("ids="+filteredIds.join(","));
+          //   table.query("ids="+filteredIds.join(","));
 
-          }
+          // }
 
           container.children = [
             this.clipboard.build(),
@@ -958,10 +974,12 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                 }
 
                 gallery.element.colCount = 1;
-                gallery.element.rowCount = ids.length;
+                gallery.element.rowCount = filteredIds.length;
 
 
-                gallery.children = ids.map((id, rowIndex) => {
+
+
+                gallery.children = filteredIds.map((id, rowIndex) => {
                   return {
                     class: "frame",
                     init: async frame => {
@@ -1028,60 +1046,56 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
 
                       } else {
 
-                        const type = await table.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
+                        // const type = await table.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
 
-                        if (type === "image/jpeg" || type === "image/png") {
+                        
+                        const [mimetype] = await table.getInitial(id, "post_mime_type");
 
-                          thumb = await table.getValue(id, "thumb");
 
-                          if (thumb) {
+                        const sizes = await table.getInitial(id, "sizes");
 
-                            thumb = KarmaFieldsAlpha.Type.toObject(thumb);
-                            icon = "thumb";
+                        
+
+                        if (mimetype) {
+
+                          if (mimetype.startsWith("image")) {
+
+                            thumb = sizes.find(size => size.name === 'thumbnail');
+                            icon = "image";
+
+                          } else if (mimetype.startsWith("video")) {
+
+                            icon = "video";
+
+                          } else if (mimetype.startsWith("audio")) {
+
+                            icon = "audio";
+
+                          } else if (mimetype.startsWith("text")) {
+
+                            icon = "text";
+
+                          } else if (mimetype === "application/pdf") {
+
+                            icon = "document";
+
+                          } else if (mimetype === "application/zip") {
+
+                            icon = "zip";
 
                           } else {
 
-                            icon = "image";
+                            icon = "default";
 
                           }
 
-                        } else if (type.startsWith("image")) {
-
-                          icon = "image";
-
-                        } else if (type.startsWith("video")) {
-
-                          icon = "video";
-
-                        } else if (type.startsWith("audio")) {
-
-                          icon = "audio";
-
-                        } else if (type.startsWith("text")) {
-
-                          icon = "text";
-
-                        } else if (type === "application/pdf") {
-
-                          icon = "document";
-
                         } else {
 
-                          icon = "default";
+                          icon = "notfound";
 
                         }
 
                       }
-
-
-
-                      // let thumb;
-                      // const thumbRaw = id !== "0" && await table.getValue(id, "thumb");
-                      // const type = await table.getInitial(id, "type").then(value => KarmaFieldsAlpha.Type.toString(value));
-                      //
-                      // if (thumbRaw) {
-                      //   thumb = KarmaFieldsAlpha.Type.toObject(thumbRaw);
-                      // }
 
                       frame.element.classList.remove("loading");
 
@@ -1089,8 +1103,6 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                         {
                           tag: "figure",
                           update: figure => {
-
-                            // const [mediaType] = type.split("/");
 
                             figure.element.classList.toggle("dashicons", icon !== "thumb");
                             figure.element.classList.toggle("dashicons-upload", icon === "upload");
@@ -1100,23 +1112,34 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field {
                             figure.element.classList.toggle("dashicons-media-document", icon === "document");
                             figure.element.classList.toggle("dashicons-media-default", icon === "default");
                             figure.element.classList.toggle("dashicons-images-alt", icon === "image");
-
+                            figure.element.classList.toggle("dashicons-media-archive", icon === "zip");
+                            figure.element.classList.toggle("dashicons-warning", icon === "notfound");
 
                             if (icon === "thumb" && thumb) {
                               figure.children = [{
                                 tag: "img",
                                 update: image => {
-                                  image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.filename;
+                                  image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.file;
                                   image.element.width = thumb.width;
                                   image.element.height = thumb.height;
-
-
                                 }
                               }];
-                              // figure.element.classList.toggle("type-image", type.startsWith("image") || false);
                             } else {
                               figure.children = [];
                             }
+                          }
+                        },
+                        {
+                          class: "filename",
+                          update: async caption => {
+                            const [file] = await table.getInitial(id, "_wp_attached_file");
+                            if (file) {
+                              const filename = file.slice(file.lastIndexOf("/") + 1);
+                              caption.element.innerHTML = filename;
+                            } else {
+                              caption.element.innerHTML = "NOT FOUND";
+                            }
+                            
                           }
                         }
                       ];

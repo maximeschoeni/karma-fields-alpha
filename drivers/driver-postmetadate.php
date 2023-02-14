@@ -35,7 +35,7 @@ class Karma_Fields_Alpha_Driver_Postmetadate extends Karma_Fields_Alpha_Driver_P
         FROM $wpdb->postmeta AS pm
         INNER JOIN $wpdb->posts AS p ON p.ID = pm.post_id
         WHERE $where
-        ORDER BY pm.meta_value DESC"
+        ORDER BY pm.meta_value DESC";
 
     } else {
 
@@ -43,7 +43,7 @@ class Karma_Fields_Alpha_Driver_Postmetadate extends Karma_Fields_Alpha_Driver_P
         FROM $wpdb->postmeta AS pm
         INNER JOIN $wpdb->posts AS p ON p.ID = pm.post_id
         WHERE $where
-        ORDER BY pm.meta_value DESC"
+        ORDER BY pm.meta_value DESC";
 
     }
 

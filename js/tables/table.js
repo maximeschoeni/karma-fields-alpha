@@ -94,7 +94,7 @@ KarmaFieldsAlpha.field.layout.table = class extends KarmaFieldsAlpha.field.form 
   build() {
 
     return {
-      class: "karma-field-table-grid-container",
+      class: "karma-field-table-grid-container scroll-container",
       child: this.createChild({
         type: "row",
         key: this.getParams().id,

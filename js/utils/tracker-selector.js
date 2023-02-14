@@ -7,7 +7,7 @@ KarmaFieldsAlpha.Selector = class {
     this.tracker = new KarmaFieldsAlpha.Tracker(container);
 
     this.container = container;
-    this.children = [...container.children];
+    // this.children = [...container.children];
     // this.children = [];
     // this.box = this.container.getBoundingClientRect();
 
@@ -22,18 +22,19 @@ KarmaFieldsAlpha.Selector = class {
 
       this.init();
 
+      this.tracker.event.preventDefault();
       this.tracker.event.stopPropagation();
 
     }
 
     this.tracker.onupdate = () => {
-
+      
       this.update();
 
     }
 
     this.tracker.oncomplete = () => {
-
+      
       this.complete();
 
     }
@@ -48,6 +49,19 @@ KarmaFieldsAlpha.Selector = class {
 
   }
 
+  getChildren() {
+    
+    // if (!this.children) {
+
+    //   this.children = [...this.container.children];
+
+    // }
+
+    // return this.children;
+
+    return [...this.container.children];
+  }
+
   init() {
 
     const index = this.findIndex(this.tracker.x, this.tracker.y);
@@ -57,16 +71,21 @@ KarmaFieldsAlpha.Selector = class {
       length: 1
     };
 
+    
+
+
     Object.freeze(this.tie);
 
     if (this.selection) { // this.selection should be frozen
-      if (event.shiftKey) {
+      if (this.tracker.event.shiftKey) {
         this.tie = this.selection;
       } else {
         this.sliceSegment(this.selection).forEach(element => element.classList.remove("selected"));
         this.selection = null;
       }
     }
+
+    this.update();
 
   }
 
@@ -87,13 +106,14 @@ KarmaFieldsAlpha.Selector = class {
 
   complete() {
 
+
     if (this.selection) {
 
       this.sliceSegment(this.selection).forEach(element => element.classList.replace("selecting", "selected"));
 
-      if (this.onSelect) {
+      if (this.onselect) {
 
-        this.onSelect(this.selection, true); // compat
+        this.onselect(this.selection, true); // compat
 
       }
 
@@ -110,7 +130,9 @@ KarmaFieldsAlpha.Selector = class {
 
   getHeight() {
 
-    return this.colHeader + this.rowCount + this.colFooter;
+    // return this.colHeader + this.rowCount + this.colFooter;
+
+    return this.getChildren().length/this.getWidth();
 
   }
 
@@ -136,6 +158,7 @@ KarmaFieldsAlpha.Selector = class {
   // use box not segment
   slice(col, row, width, height) {
 
+    const children = this.getChildren();
     const elements = [];
 
     for (let j = 0; j < height; j++) {
@@ -143,7 +166,7 @@ KarmaFieldsAlpha.Selector = class {
       for (let i = 0; i < width; i++) {
 
         const index = this.getIndex(i + col, j + row);
-        const element = this.children[index];
+        const element = children[index];
 
         if (element) {
 
@@ -166,11 +189,19 @@ KarmaFieldsAlpha.Selector = class {
 
   sliceSegment(segment) {
 
-    return this.slice(0, segment.index, this.width, segment.length);
+    return this.slice(0, segment.index, this.getWidth(), segment.length);
+
+  }
+
+  sliceElements(index, length) {
+
+    return this.slice(0, index, this.getWidth(), length);
 
   }
 
   findIndex(x, y) {
+
+    const children = this.getChildren();
 
     for (let j = 0; j < this.rowCount; j++) {
 
@@ -178,7 +209,7 @@ KarmaFieldsAlpha.Selector = class {
 
         const index = this.getIndex(i, j);
 
-        const element = this.children[index];
+        const element = children[index];
 
         if (y >= element.offsetTop && y < element.offsetTop + element.clientHeight) {
 
@@ -203,12 +234,15 @@ KarmaFieldsAlpha.Selector = class {
 
   findElementIndex(x, y) {
 
-    for (let j = 0; j < this.height; j++) {
+    const children = this.getChildren();
+    const width = this.getWidth();
 
-      for (let i = 0; i < this.width; i++) {
+    for (let j = 0; j < this.getHeight(); j++) {
 
-        const index = j*this.width + i;
-        const element = this.children[index];
+      for (let i = 0; i < width; i++) {
+
+        const index = j*width + i;
+        const element = children[index];
 
         if (y >= element.offsetTop && y < element.offsetTop + element.clientHeight) {
 
@@ -231,13 +265,39 @@ KarmaFieldsAlpha.Selector = class {
     return -1;
   }
 
+
   getBox(rowIndex, rowLength = 1) {
 
     const elementIndex = this.getIndex(0, rowIndex);
     const lastElementIndex = this.getIndex(0, rowIndex + rowLength) - 1;
 
-    const first = this.children[elementIndex];
-    const last = this.children[lastElementIndex];
+    // const elements = this.getChildren().slice(elementIndex, lastElementIndex + 1);
+    // return this.getElementsBox(...elements);
+
+    const children = this.getChildren();
+
+    const first = children[elementIndex];
+    const last = children[lastElementIndex];
+
+    // console.log(rowIndex, rowLength, elementIndex, lastElementIndex, first, last);
+
+    if (first && last) {
+
+      return {
+        x: first.offsetLeft,
+        y: first.offsetTop,
+        width: last.offsetLeft + last.clientWidth - first.offsetLeft,
+        height: last.offsetTop + last.clientHeight - first.offsetTop
+      };
+
+    }
+
+  }
+
+  getElementsBox(...elements) {
+
+    const first = elements[0];
+    const last = elements[elements.length-1];
 
     if (first && last) {
 

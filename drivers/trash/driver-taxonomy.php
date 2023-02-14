@@ -143,13 +143,13 @@ Class Karma_Fields_Driver_Taxonomy {
 // ORDER BY t.name ASC"
 
 
-    $clauses['select'] = "t.term_id AS 'key', t.name AS 'name'";
-    $clauses['join']['tt'] = "INNER JOIN {$wpdb->term_taxonomy} AS tt ON (t.term_id = tt.term_id)";
-    $clauses['join']['tr'] = "INNER JOIN {$wpdb->term_relationships} AS tr ON (tr.term_taxonomy_id = tt.term_taxonomy_id)";
+    // $clauses['select'] = "t.term_id AS 'key', t.name AS 'name'";
+    // $clauses['join']['tt'] = "INNER JOIN {$wpdb->term_taxonomy} AS tt ON (t.term_id = tt.term_id)";
+    // $clauses['join']['tr'] = "INNER JOIN {$wpdb->term_relationships} AS tr ON (tr.term_taxonomy_id = tt.term_taxonomy_id)";
 
-    $clauses['where'][] = "tt.taxonomy IN ('member_status', 'member_activity', 'country')"
+    // $clauses['where'][] = "tt.taxonomy IN ('member_status', 'member_activity', 'country')"
 
-    $clauses['order'] = "t.name ASC";
+    // $clauses['order'] = "t.name ASC";
 
   }
 

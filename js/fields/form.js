@@ -20,6 +20,11 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 		this.cache = new KarmaFieldsAlpha.Buffer("cache", this.resource.driver);
 
 
+    // this.queryBuffer = new KarmaFieldsAlpha.Buffer("queries", this.resource.driver); // query cache indexed by ids
+
+    // this.lazyBuffer = new KarmaFieldsAlpha.Buffer("lazy", this.resource.driver); // query cache indexed by ids
+
+
 	}
 
 	// async getInitial(...path) {
@@ -338,10 +343,27 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
     return promise;
   }
 
+  // updateQuery() {
+
+  //   const params = this.getParams();
+  //   const paramString = KarmaFieldsAlpha.Params.stringify(params);
+
+  //   if (this.paramString !== paramString) {
+
+
+
+  //   }
+
+
+
+
+
+  // }
+
   query(paramString) {
 
 		if (typeof paramString === "object") {
-
+      
 			paramString = KarmaFieldsAlpha.Params.stringify(paramString);
 
 		}
@@ -374,6 +396,9 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
           this.initialBuffer.set(["0"], id, "trash"); // -> to be removed!
 
+
+          // this.queryBuffer.set(promise, id, "query");
+
         }
 
         return results;
@@ -386,6 +411,70 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
     return promise;
   }
+
+
+  // query2(params) {
+
+  //   const paramString = KarmaFieldsAlpha.Params.stringify(params || {}) || "";    
+
+	// 	return KarmaFieldsAlpha.Gateway.get(`query/${this.resource.driver}?${paramString}`).then(results => {
+
+  //     results = results.items || results || []; // -> compat
+
+  //     for (let item of results) {
+
+  //       const id = KarmaFieldsAlpha.Type.toString(item.id);
+
+  //       for (let key in item) {
+
+  //         const value = KarmaFieldsAlpha.Type.toArray(item[key]);
+
+  //         this.initialBuffer.set(value, id, key);
+
+  //       }
+
+  //       this.initialBuffer.set(["0"], id, "trash"); // -> to be removed!
+
+  //     }
+
+  //     return results;
+
+  //   });
+
+  // }
+
+
+
+  // query2(params) {
+
+  //   params = {page: 1, ppp: 10, ...this.resource.params, ...params};
+
+
+	// 	return KarmaFieldsAlpha.Gateway.get(`query/${this.resource.driver}?${KarmaFieldsAlpha.Params.stringify(params)}`).then(results => {
+
+  //     results = results.items || results || []; // -> compat
+
+  //     for (let item of results) {
+
+  //       const id = KarmaFieldsAlpha.Type.toString(item.id);
+
+  //       for (let key in item) {
+
+  //         const value = KarmaFieldsAlpha.Type.toArray(item[key]);
+
+  //         this.initialBuffer.set(value, id, key);
+
+  //       }
+
+  //       this.initialBuffer.set(["0"], id, "trash"); // -> to be removed!
+
+  //     }
+
+  //     return results;
+
+  //   });
+
+  // }
 
 
 	// deprecated ?
@@ -448,7 +537,47 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
     return promise;
   }
 
-  async getInitial(...path) {
+
+  queryRelations(relation, ids) {
+
+    const idString = ids.join(",");
+
+		let promise = this.cache.get("relations", relation, idString);
+
+    if (!promise) {
+      
+      promise = KarmaFieldsAlpha.Gateway.get(`relations/${this.resource.driver}/${relation}?ids=${idString}`).then(relations => {
+
+        const data = {};
+
+        for (let relation of relations) {
+
+          const id = relation.id.toString();
+          const key = relation.key.toString();
+
+          data[id] ||= {};
+          data[id][key] ||= [];
+          data[id][key].push(relation.value);
+
+        }
+
+        this.initialBuffer.merge(data);
+
+        return relations;
+      });
+      
+      this.cache.set(promise, "relations", relation, idString);
+
+      // this.queryBuffer.set(promise, id, "relations", relation);
+
+    }
+
+    return promise;
+  }
+
+  
+
+  async getInitialBKP(...path) {
 
 		const key = this.getKey();
 
@@ -457,8 +586,6 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 			path = [key, ...path];
 
 		}
-
-		// const [id] = path;
 
     let value = this.initialBuffer.get(...path);
 
@@ -513,4 +640,233 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
   }
 
 
+
+
+  // async getInitial2(id, key) {
+
+  //   let value = this.initialBuffer.get(id, key);
+  //   const idAlias = this.getAlias("id");
+
+  //   let params = {page: 1, ppp: 100, ...this.resource.params};
+
+  //   let results = await this.query(params);
+
+  //   while(results.length && !results.some(item => item[idAlias] === id)) {
+
+  //     params.page++;
+
+  //     results = await this.query(paramString);
+
+  //   }
+
+  //   value = this.initialBuffer.get(...path);
+
+  //   if (!value && results.length && this.resource.joins) {
+
+  //     const ids = results.map(item => item[idAlias]);
+
+  //     for (let relation of this.resource.relations) {
+
+  //       await this.queryRelations(relation, ids);
+
+  //       value = this.initialBuffer.get(...path);
+
+  //       if (value) break;
+
+  //     }
+
+  //   }
+
+	// 	if (!value) {
+
+	// 		value = this.trashBuffer.get(...path); // -> ?
+
+	// 	}
+
+  //   return value;
+  // }
+
+
+
+  // async getInitial(id, key) {
+
+	// 	let value = this.initialBuffer.get(id, key);
+
+  //   if (value) {
+
+  //     return value;
+
+  //   }
+
+  //   const results = await this.query({id: id});
+
+  //   if (results.length) {
+
+  //     value = this.initialBuffer.get(id, key);
+
+  //     if (value) {
+
+  //       return value;
+  
+  //     }
+
+  //     if (this.resource.relations) {
+
+  //       for (let relation of this.resource.relations) {
+  
+  //         await this.queryRelations(relation, [id]);
+  
+  //         value = this.initialBuffer.get(id, key);
+  
+  //         if (value) {
+  
+  //           return value;
+      
+  //         }
+  
+  //       }
+  
+  //     }
+
+  //   }
+
+  //   return [];
+
+	// 	// if (!value) {
+
+	// 	// 	value = this.trashBuffer.get(...path);
+
+	// 	// }
+
+  //   // return value;
+  // }
+
+
+
+
+  // async getInitial(id, key) {
+
+  //   if (!this.initialBuffer.has(id)) {
+
+  //     await this.query({id: id});
+
+  //   }
+
+	// 	let value = this.initialBuffer.get(id, key);
+
+  //   if (value) {
+
+  //     return value;
+
+  //   } else if (this.initialBuffer.has(id) && this.resource.relations) {
+
+  //     for (let relation of this.resource.relations) {
+  
+  //       await this.queryRelations(relation, [id]);
+
+  //       value = this.initialBuffer.get(id, key);
+
+  //       if (value) {
+
+  //         return value;
+    
+  //       }
+
+  //     }
+
+  //   }
+
+  //   return [];
+
+  // }
+
+  async getInitial(id, key) {
+
+    let value = this.initialBuffer.get(id, key);
+
+    if (value) {
+
+      return value;
+
+    }
+
+    if (!this.initialBuffer.has(id)) {
+
+      const query = await this.query({id: id});
+      
+      value = this.initialBuffer.get(id, key);
+
+      if (value) {
+
+        return value;
+
+      } else if (this.resource.relations) {
+
+        for (let relation of this.resource.relations) {
+    
+          const relationquery = await this.queryRelations(relation, [id]);
+
+          console.log(relationquery);
+
+          value = this.initialBuffer.get(id, key);
+
+          if (value) {
+
+            return value;
+      
+          }
+
+        }
+
+      }
+
+    }
+
+		
+
+    return [];
+
+  }
+
+
+  async getInitial(id, key) {
+
+    let value = this.initialBuffer.get(id, key);
+
+    if (value) {
+
+      return value;
+
+    }
+
+    if (!this.initialBuffer.has(id)) {
+
+      const query = await this.query({id: id});
+      
+       if (this.resource.relations) {
+
+        for (let relation of this.resource.relations) {
+    
+          await this.queryRelations(relation, [id]);
+
+        }
+
+      }
+
+      value = this.initialBuffer.get(id, key);
+
+      if (value) {
+
+        return value;
+
+      }
+
+    }
+
+		
+
+    return [];
+
+  }
+  
 };

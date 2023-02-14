@@ -118,6 +118,25 @@ KarmaFieldsAlpha.field = class {
     return child;
   }
 
+  getDescendants() {
+
+    let descendants = [];
+
+    if (this.resource.children) {
+
+      for (let resource of this.resource.children) {
+
+        const child = this.createChild(resource);
+
+        descendants = [...descendants, child, ...child.getDescendants()];
+
+      }
+
+    }
+
+    return descendants;
+  }
+
   //
   // getDescendants() {
   //   const gen = function * (field) {
@@ -382,6 +401,11 @@ KarmaFieldsAlpha.field = class {
 	// 	return this.createChild(resource).follow(...resPath);
   //
 	// }
+
+
+  getAlias(key) {
+    return this.resource.alias && this.resource.alias[key] || key;
+  }
 
 
 };

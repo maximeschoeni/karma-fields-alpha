@@ -2,13 +2,13 @@
 KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
 
+  static sorters = [];
 
 
   init() {
 
     let index;
     let row;
-
 
     if (this.selection) {
 
@@ -17,7 +17,10 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
     }
 
-    if (row && KarmaFieldsAlpha.Segment.contains(this.selection, row)) {
+    if (row >= 0 && KarmaFieldsAlpha.Segment.contain(this.selection, row)) {
+
+      this.originX = this.tracker.x;
+      this.originY = this.tracker.y;
 
       this.currentRect = this.getBox(row);
       this.offsetX = this.tracker.x - this.currentRect.x;
@@ -43,45 +46,95 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
     if (this.dragging) {
 
-      let current = this.getBox(this.selection.index + this.indexOffset);
+      // let currentBox = this.getBox(this.selection.index + this.indexOffset);
 
-      const movingBox = {
-        x: this.x - this.offsetX,
-        y: this.y - this.offsetY,
-        width: current.width,
-        height: current.height
-      };
+      let travelX = this.tracker.x - this.originX;
+      let travelY = this.tracker.y - this.originY;
 
-      if (this.checkBefore(movingBox)) {
+      const firstBox = this.getBox(this.selection.index);
+      const lastBox = this.getBox(this.selection.index + this.selection.length - 1);
 
-        this.swap(this.selection.index, this.selection.length, this.selection.index - 1);
+      if (this.tracker.deltaY < 0) {
 
-        // this.segment.index--;
-        this.selection = KarmaFieldsAlpha.Segment.offset(this.selection, -1); // this.selection is immutable
+        if (this.selection.index > 0) {
 
-        current = this.getBox(this.selection.index + this.indexOffset);
+          const elements = this.sliceElements(this.selection.index - 1, 1);
+          const box = this.getElementsBox(...elements);
 
-      } else if (this.checkAfter(movingBox)) {
+          if (firstBox.y + travelY < box.y + box.height/2) {
 
-        this.swap(this.selection.index, this.selection.length, this.selection.index + 1);
+            this.swapToSame(-1);
 
-        // this.segment.index++;
-        this.selection = KarmaFieldsAlpha.Segment.offset(this.selection, 1); // this.selection is immutable
+          }
 
-        current = this.getBox(this.selection.index + this.indexOffset);
+        }
+
+      }
+      
+      if (this.tracker.deltaY > 0) {
+
+        const last = this.getHeight();
+
+        if (this.selection.index + this.selection.length < last) {
+
+          const elements = this.sliceElements(this.selection.index + this.selection.length, 1);
+          const box = this.getElementsBox(...elements);
+
+          if (lastBox.y + lastBox.height + travelY > box.y + box.height/2) {
+
+            this.swapToSame(1);
+
+          }
+
+           
+        }
 
       }
 
-      let offsetX = this.x - this.offsetX - current.x;
-      let offsetY = this.y - this.offsetY - current.y;
+      travelX = this.tracker.x - this.originX;
+      travelY = this.tracker.y - this.originY;
 
-      this.sliceSegment(this.selection).forEach(element => element.style.transform = `translate(${offsetX}px, ${offsetY}px)`);
+      this.sliceSegment(this.selection).forEach(element => element.style.transform = `translate(${travelX}px, ${travelY}px)`);
 
     } else {
 
       super.update();
 
     }
+
+  }
+
+  swapToSame(offset) {
+
+    const elements = this.sliceSegment(this.selection);
+
+    if (offset > 0) {
+
+      const nextBox = this.getBox(this.selection.index + this.selection.length);
+
+      this.insertElementsAt(this.container, elements, this.selection.index + this.selection.length + 1);
+
+      this.originY += nextBox.height;
+
+    } else {
+
+      const prevBox = this.getBox(this.selection.index - 1);
+
+      this.insertElementsAt(this.container, elements, this.selection.index - 1);
+
+      // this.originX -= destBox.x;
+      this.originY -= prevBox.height;
+
+    }
+    this.selection = {index: this.selection.index + offset, length: this.selection.length};
+
+    
+
+    
+
+    
+
+    
 
   }
 
@@ -98,9 +151,9 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       this.container.classList.remove("dragging");
       this.container.style.height = "auto";
 
-      if (this.onSort && this.selection && this.selection.index !== this.index) {
+      if (this.onsort) {
 
-        this.onSort(this.index, this.selection.length, this.selection.index);
+        this.onsort();
 
       }
 
@@ -114,125 +167,30 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
   }
 
-  //
-  //
-  // select(event, col, row) {
-  //
-  //   if (this.selection && KarmaFieldsAlpha.Segment.contains(this.selection, row)) {
-  //
-  //     event.preventDefault();
-  //
-  //     this.mouseX = event.clientX;
-  //     this.mouseY = event.clientY;
-  //
-  //     this.currentRect = this.getBox(row);
-  //     this.offsetX = this.mouseX - this.box.left - this.currentRect.x;
-  //     this.offsetY = this.mouseY - this.box.top - this.currentRect.y;
-  //     this.index = this.selection.index;
-  //     this.indexOffset = row - this.index;
-  //
-  //     this.sliceSegment(this.selection).forEach(element => element.classList.add("drag"));
-  //
-  //     this.container.classList.add("dragging");
-  //     this.container.style.height = `${this.container.clientHeight}px`;
-  //
-  //     const mousemove = event => {
-  //       this.mouseX = event.clientX;
-  //       this.mouseY = event.clientY;
-  //       this.updateOrder();
-  //     }
-  //
-  //     const scroll = event => {
-  //       if (event.target.contains(this.container)) {
-  //         this.box = this.container.getBoundingClientRect();
-  //         this.updateOrder();
-  //       }
-  //     }
-  //
-  //     const mouseup = event => {
-  //
-  //       window.removeEventListener("mousemove", mousemove);
-  //       window.removeEventListener("mouseup", mouseup);
-  //       window.removeEventListener("scroll", scroll, true);
-  //
-  //       this.sliceSegment(this.selection).forEach(element => {
-  //         element.classList.remove("drag");
-  //         element.style.transform = "none";
-  //       });
-  //
-  //       this.container.classList.remove("dragging");
-  //       this.container.style.height = "auto";
-  //
-  //       if (this.onSort && this.selection && this.selection.index !== this.index) {
-  //         this.onSort(this.index, this.selection.length, this.selection.index);
-  //       }
-  //
-  //     }
-  //
-  //     window.addEventListener("mousemove", mousemove);
-  //     window.addEventListener("mouseup", mouseup);
-  //     window.addEventListener("scroll", scroll, true);
-  //
-  //   } else {
-  //
-  //     super.select(event, col, row);
-  //
-  //   }
-  //
-  // }
+  insertElementsAt(container, elements, index) {
 
-  swap(index, length, target) {
+    const target = container.children[index];
 
-    const elements = this.children.splice((this.colHeader + index)*this.width, length*this.width);
-    this.children.splice((this.colHeader + target)*this.width, 0, ...elements);
+    if (target) {
 
-    this.container.replaceChildren(...this.children);
+      for (let element of elements) {
 
-  }
+        container.insertBefore(element, target);
 
-  checkBefore(movingBox) {
+      }
 
-    const beforeBox = this.getBox(this.selection.index - 1);
+    } else {
 
-    if (beforeBox) {
+      for (let element of elements) {
 
-      const prevBox = this.getBox(this.selection.index + this.indexOffset - 1);
+        container.appendChild(element);
 
-      return KarmaFieldsAlpha.Rect.isBefore(movingBox, {
-        x: prevBox.x + prevBox.width - beforeBox.width,
-        y: prevBox.y + prevBox.height - beforeBox.height,
-        width: beforeBox.width,
-        height: beforeBox.height
-      });
-
+      }
+      
     }
 
-    return false;
-
   }
 
-  checkAfter(movingBox) {
-
-    const afterBox = this.getBox(this.selection.index + this.selection.length);
-
-    if (afterBox) {
-
-      const nextBox = this.getBox(this.selection.index + this.indexOffset + 1);
-
-      return KarmaFieldsAlpha.Rect.isAfter(movingBox, {
-        x: nextBox.x,
-        y: nextBox.y,
-        width: afterBox.width,
-        height: afterBox.height
-      });
-
-    }
-
-    return false;
-
-  }
-
-
-
+ 
 
 }

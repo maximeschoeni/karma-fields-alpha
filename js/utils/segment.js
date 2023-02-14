@@ -51,11 +51,13 @@ KarmaFieldsAlpha.Segment = class {
 	}
 
 	static compare(s1, s2) {
-		return s1 && s2 && s1.index === s2.index && s1.length === s2.length;
+		// return s1 && s2 && s1.index === s2.index && s1.length === s2.length;
+		return s1 && s2 && s1.index === s2.index && s1.length === s2.length || !s1 && !s2;
+		
 	}
 
 	static contain(segment, index) {
-		if (segment) {
+		if (segment && segment.length) {
 			return index >= segment.index && index < segment.index + segment.length;
 		}
 		return false;

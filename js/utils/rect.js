@@ -37,7 +37,15 @@ KarmaFieldsAlpha.Rect = class {
 	}
 
 	static intersects(r1, r2) {
-		return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x && r1.y < r2.y + r2.height && r1.y + r1.height > r2.y;
+		return this.intersect(r1, r2);
+	}
+
+	// static intersect(r1, r2) {
+	// 	return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x && r1.y < r2.y + r2.height && r1.y + r1.height > r2.y;
+	// }
+
+	static intersect(r1, r2, oX = 0, oY = 0) {
+		return r1.x - oX < r2.x + r2.width + oX && r1.x + r1.width + oX > r2.x -oX && r1.y - oY < r2.y + r2.height + oY && r1.y + r1.height + oY > r2.y - oY;
 	}
 
 	static isBefore(r1, r2) {

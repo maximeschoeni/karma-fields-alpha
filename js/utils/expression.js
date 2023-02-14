@@ -92,6 +92,32 @@ KarmaFieldsAlpha.Expression = class {
     return values;
   }
 
+  static async resolveObject(field, object) {
+
+    const output = {};
+
+    for (let param in object) {
+
+      output[param] = await this.resolve(field, object[param]);
+
+    }
+
+    return output;
+  }
+
+  static async resolveParams(field, params) {
+
+    if (typeof params === "object") {
+
+      return this.resolveObject(field, params);
+
+    } else {
+
+      return this.resolve(field, params);
+
+    }
+  }
+
   static async replace(field, string, wildcard, ...replacements) {
 
     for (let i = 0; i < replacements.length; i++) {
@@ -218,6 +244,7 @@ KarmaFieldsAlpha.Expression = class {
   // }
 
   static async js(field, value, fn, ...params) {
+    value = await this.resolve(field, value);    
     params = await this.resolveAll(field, params);
     return value[fn](...params);
   }
@@ -283,7 +310,7 @@ KarmaFieldsAlpha.Expression = class {
 
     path = await this.resolveAll(field, path);
 
-    const response = await field.request("get", {}, ...path);
+    const response = await field.parent.request("get", {}, ...path);
 
     return KarmaFieldsAlpha.Type.convert(response, type);
 
@@ -354,6 +381,37 @@ KarmaFieldsAlpha.Expression = class {
       path = await this.resolveAll(field, path);
       const value = await form.getInitial(...path);
       return KarmaFieldsAlpha.Type.convert(value, type);
+    }
+
+    return results;
+  }
+
+  static async table(field, table, type = "array", ...path) {
+
+    table = await this.resolveObject(field, table);
+   
+    const form = new KarmaFieldsAlpha.field.form(table);
+    const params = await this.resolveParams(field, table.params);    
+    const results = await form.query(params);
+
+    if (path.length) {
+
+      path = await this.resolveAll(field, path);
+      const value = await form.getInitial(...path);
+      return KarmaFieldsAlpha.Type.convert(value, type);
+
+    } else {
+
+      const idAlias = form.getAlias("id");
+      const nameAlias = form.getAlias("name");
+
+      return results.map(item => {
+        return {
+          id: item[idAlias],
+          name: item[nameAlias]
+        };
+      });
+
     }
 
     return results;
@@ -583,6 +641,34 @@ KarmaFieldsAlpha.Expression = class {
 
     return output;
   }
+
+
+  // static async mapIds(field, array, driver, paramString, joins, relKey = 'name') {
+
+  //   array = await this.resolve(field, array);
+
+  //   // driver = await this.resolve(field, driver);
+  //   // paramString = await this.resolve(field, paramString);
+
+  //   if (typeof paramString === "object") {
+  //     KarmaFieldsAlpha.Params.stringify(paramString);
+  //   }
+
+  //   const form = new KarmaFieldsAlpha.field.form({
+  //     driver: driver,
+  //     joins: joins
+  //   });
+
+  //   const output = [];
+
+  //   for (let id of array) {
+
+  //     output.push(await form.query(id, relKey));
+
+  //   }
+
+  //   return output;
+  // }
 
 
 

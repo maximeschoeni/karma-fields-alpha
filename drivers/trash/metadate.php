@@ -7,7 +7,7 @@ Class Karma_Fields_Driver_Metadate extends Karma_Fields_Driver_Postmeta {
 	/**
 	 * parse
 	 */
-  public function parse($value, &$args) {
+  public function parse($value, $key, &$args) {
 
     if ($value === 'future') {
       $args['meta_query'] = array(
@@ -57,7 +57,7 @@ Class Karma_Fields_Driver_Metadate extends Karma_Fields_Driver_Postmeta {
       "SELECT COUNT(pm.meta_value) FROM $wpdb->posts AS p
       JOIN $wpdb->postmeta AS pm ON (pm.post_id = p.ID AND pm.meta_key = %s)
       WHERE pm.meta_value > %s",
-      $this->key
+      $this->key,
       date('Y-m-d')
     )));
 

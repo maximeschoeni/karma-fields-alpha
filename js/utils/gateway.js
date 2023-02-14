@@ -5,7 +5,7 @@ KarmaFieldsAlpha.Gateway = class {
 		if (typeof params !== "string") {
 			params = KarmaFieldsAlpha.Nav.toString(params);
 		}
-
+    
 		if (params) {
 			params = "?"+params;
 		}

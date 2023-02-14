@@ -584,7 +584,7 @@ Class Karma_Fields_Alpha_Driver_Files {
       $excerpt = '';
 
       if (strpos($type, 'image/') === 0) {
-        $image_meta = wp_read_image_metadata( $file );
+        $image_meta = wp_read_image_metadata( $file_name );
 
         if ($image_meta) {
           if (trim($image_meta['title']) && !is_numeric(sanitize_title($image_meta['title']))) {

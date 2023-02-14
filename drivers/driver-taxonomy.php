@@ -89,7 +89,7 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
 
 
-  /**
+  /** DEPRECATED
 	 * join
 	 */
   public function join($params) {
@@ -362,7 +362,7 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
 
 
-  /**
+  /** DEPRECATED
 	 * fetch
 	 */
   public function fetch($params) {
@@ -402,6 +402,41 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
       }
 
       return $results;
+    }
+
+
+  }
+
+
+  /**
+	 * meta relations
+	 */
+  public function meta($params) {
+    global $wpdb;
+
+    $ids = explode(',', $params['ids']);
+    $ids = array_filter($ids);
+
+    if ($ids) {
+
+      $ids = array_map('intval', $ids);
+      $ids = implode(',', $ids);
+
+      $sql = "SELECT
+        tm.meta_value AS 'value',
+        tm.meta_key AS 'key',
+        tm.term_id AS 'id'
+        FROM $wpdb->termmeta AS tm
+        WHERE tm.term_id IN ($ids)";
+
+			$results = $wpdb->get_results($sql);
+
+      return $results;
+
+    } else {
+
+      return array();
+
     }
 
 

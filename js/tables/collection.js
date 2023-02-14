@@ -23,8 +23,14 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
   async load() {
     const ids = this.idsBuffer.get() || [];
     const params = this.getParams();
-    // const newIds = await this.parent.request("query", params);
-    const results = await this.query(params);
+
+    const promise = this.query(params);
+
+    this.cache.set(promise, "query", "current");
+
+    // const results = await this.query(params);
+    const results = await promise;
+
     const newIds = results.map(item => item.id);
 
     this.idsBuffer.change(newIds, ids);
@@ -48,6 +54,175 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
   unload() {
     this.idsBuffer.change(null);
   }
+
+  // /**
+  //  * extends form::getInitial()
+  //  */
+  // async getInitial(id, key) {
+
+	// 	let value = this.initialBuffer.get(id, key);
+
+  //   const idAlias = this.getAlias("id");
+
+  //   if (value) {
+
+  //     return value;
+
+  //   } else {
+
+  //     if (this.promise) {
+
+  //       const results = await this.promise;
+
+  //       if (results && results.some(item => item[idAlias] === id)) {
+
+  //         value = this.initialBuffer.get(id, key);
+
+  //         if (value) {
+            
+  //           return value;
+
+  //         } else if (this.resource.joins) {
+
+  //           const ids = results.map(item => item[idAlias]);
+      
+  //           for (let relation of this.resource.relations) {
+      
+  //             await this.queryRelations(relation, ids);
+      
+  //             value = this.initialBuffer.get(...path);
+      
+  //             if (value) {
+
+  //               return value;
+
+  //             }
+      
+  //           }
+
+  //           return [];
+      
+  //         }
+
+  //       } else { // -> query single
+
+  //         return super.getInitial(id, key);
+
+  //       }
+        
+  //     }
+      
+  //     return super.getInitial(id, key);
+
+  //   }
+    
+  // }
+
+  // /**
+  //  * extends form::getInitial()
+  //  */
+  // async getInitial(id, key) {
+
+	// 	let value = this.initialBuffer.get(id, key);
+
+  //   const idAlias = this.getAlias("id");
+
+  //   if (value) {
+
+  //     return value;
+
+  //   }
+
+  //   const promise = this.cache.get("query", "current");
+    
+  //   if (promise) {
+
+  //     const results = await promise;
+
+  //     if (results.some(item => item[idAlias] === id)) {
+
+  //       value = this.initialBuffer.get(id, key);
+
+  //       if (value) {
+          
+  //         return value;
+
+  //       }
+
+  //       if (this.resource.relations) {
+
+  //         const ids = results.map(item => item[idAlias]);
+    
+  //         for (let relation of this.resource.relations) {
+    
+  //           await this.queryRelations(relation, ids);
+    
+  //           value = this.initialBuffer.get(id, key);
+    
+  //           if (value) {
+
+  //             return value;
+
+  //           }
+    
+  //         }
+
+  //       }
+
+  //       return [];
+
+  //     }
+      
+  //   }
+    
+  //   return super.getInitial(id, key);
+    
+  // }
+
+  async getInitial(id, key) {
+
+    let value = this.initialBuffer.get(id, key);
+  
+    if (value) {
+
+      return value;
+
+    }
+
+    const ids = this.getIds();
+
+    if (ids.includes(id)) {
+
+      if (this.resource.relations) {
+    
+        for (let relation of this.resource.relations) {
+  
+          await this.queryRelations(relation, ids);
+  
+          value = this.initialBuffer.get(id, key);
+  
+          if (value) {
+
+            return value;
+
+          }
+  
+        }
+
+      }
+
+      return [];
+
+    } else {
+
+      return super.getInitial(id, key);
+
+    }
+
+  }
+
+
+
 
   getParams() {
 
@@ -548,11 +723,13 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
       //   return this.parent.request("render-controls");
 
       case "selectedIds": {
-        const selection = this.selectionBuffer.get();
-        if (selection) {
-          return this.getIds().slice(selection.index, selection.index + selection.length);
-        }
-        return [];
+        // const selection = this.selectionBuffer.get();
+        // if (selection) {
+        //   return this.getIds().slice(selection.index, selection.index + selection.length);
+        // }
+        // return [];
+
+        return this.getSelectedIds();
       }
 
       case "selection": {
@@ -595,6 +772,86 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
       // case "import-cells":
       //   await this.importCells(content.data, content.rectangle);
       //   break;
+
+      case "clearcachefiles": {
+
+        console.log("clearcachefiles");
+
+        this.cache.remove("relations", "attachments")
+        break;
+
+      }
+
+      case "cachefiles": {
+
+        let promise = this.cache.get("relations", "attachments");
+
+        if (!promise) {
+
+          promise = new Promise(async resolve => {
+
+            const row = this.createChild({
+              children: this.resource.children,
+              type: "row"
+            });
+
+            const modal = this.createChild({
+              ...this.resource.modal,
+              type: "row"
+            });
+
+            const fields = [...row.getDescendants(), ...modal.getDescendants()];
+            const galleries = fields.filter(field => field instanceof KarmaFieldsAlpha.field.gallery);
+            const ids = this.getIds();
+            const set = new Set();
+
+            for (let id of ids) {
+
+              for (let gallery of galleries) {
+
+                const mediaIds = await this.getInitial(id, gallery.resource.key) || [];
+
+                for (let mediaId of mediaIds) {
+
+                  if (mediaId && mediaId !== "0") {
+
+                    set.add(mediaId);
+  
+                  }
+
+                }
+
+              }
+
+            }
+
+            const mediaTable = this.createChild({
+              type: "form",
+              driver: "posts"
+            });
+
+            const mediaIds = [...set];
+
+            if (mediaIds.length) {
+
+              await mediaTable.query(`ids=${mediaIds.join(",")}`);
+              await mediaTable.queryRelations("meta", mediaIds);
+              await mediaTable.queryRelations("filemeta", mediaIds);
+
+            }
+            
+            resolve();
+
+          });
+
+          this.cache.set(promise, "relations", "attachments");
+
+        }
+
+
+        return promise;
+      }
+
 
       default:
         return super.request(subject, content, ...path);
@@ -682,7 +939,7 @@ KarmaFieldsAlpha.field.layout.collection = class extends KarmaFieldsAlpha.field.
   build() {
 
     return {
-      class: "karma-field-table-grid-container karma-field-frame karma-field-group final",
+      class: "karma-field-table-grid-container karma-field-frame karma-field-group final scroll-container",
       init: body => {
         body.element.tabIndex = -1;
       },
