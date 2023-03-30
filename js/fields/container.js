@@ -1,23 +1,23 @@
 KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
-	getKeys() {
+	// getKeys() {
 
-		let keys = new Set();
+	// 	let keys = new Set();
 
-		if (this.resource.children) {
+	// 	if (this.resource.children) {
 
-		  for (let resource of this.resource.children) {
+	// 	  for (let resource of this.resource.children) {
 
-				keys = new Set([...keys, ...this.createChild(resource).getKeys()]);
+	// 			keys = new Set([...keys, ...this.createChild(resource).getKeys()]);
 
-			}
+	// 		}
 
-		}
+	// 	}
 
-		return keys;
-	}
+	// 	return keys;
+	// }
 
-	async getDefault() {
+	getDefault() {
 
 		let defaults = {};
 
@@ -27,7 +27,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 			defaults = {
 				...defaults,
-				...await child.getDefault()
+				...child.getDefault()
 			};
 
 		}
@@ -35,7 +35,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		return defaults;
 	}
 
-	async export(keys = []) {
+	export() {
 
 		let object = {};
 
@@ -47,7 +47,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 				object = {
 					...object,
-					...await child.export(keys)
+					...child.export()
 				};
 
 			}
@@ -57,7 +57,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		return object;
 	}
 
-	async import(object) {
+	import(object) {
 
 		if (this.resource.children) {
 
@@ -65,13 +65,101 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 				const child = this.createChild(resource);
 
-				await child.import(object);
+				child.import(object);
 
 			}
 
 		}
 
 	}
+
+  // expect(action, object) {
+
+  //   switch (action) {
+
+  //     case "export": {
+        
+  //       let object = {};
+
+  //       if (this.resource.children) {
+
+  //         for (let resource of this.resource.children) {
+
+  //           const child = this.createChild(resource);
+
+  //           object = {
+  //             ...object,
+  //             ...child.expect(action)
+  //           };
+
+  //         }
+
+  //       }
+
+  //       return object;
+  //     }
+
+  //     case "import": {
+        
+  //       if (this.resource.children) {
+
+  //         for (let resource of this.resource.children) {
+    
+  //           const child = this.createChild(resource);
+    
+  //           child.expect(action, object);
+    
+  //         }
+    
+  //       }
+
+  //       break;
+  //     }
+
+  //     // case "gather": {
+
+  //     //   let set = new Set();
+
+  //     //   if (this.resource.children) {
+
+  //     //     for (let resource of this.resource.children) {
+    
+  //     //       const child = this.createChild(resource);
+
+  //     //       const values = await child.expect(action, object);
+
+  //     //       if (values) {
+
+  //     //         set = new Set([...set, ...values]);
+
+  //     //       }
+
+  //     //     }
+          
+  //     //   }
+
+  //     //   return set;
+  //     // }
+
+  //     default: {
+
+  //       if (this.resource.children) {
+
+  //         for (let resource of this.resource.children) {
+    
+  //           const child = this.createChild(resource);
+
+  //           child.expect(action, object);
+
+  //         }
+          
+  //       }
+
+  //     }
+
+  //   }
+
+  // }
 
 	getChildren() {
 		return this.resource.children || [];
@@ -136,10 +224,24 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 						update: async (container) => {
 							container.children = [];
 
-							const hidden = field.resource.hidden && await this.parse(field.resource.hidden)
-								|| field.resource.visible && !await this.parse(field.resource.visible);
+							// const hidden = field.resource.hidden && await this.parse(field.resource.hidden)
+							// 	|| field.resource.visible && !await this.parse(field.resource.visible);
 
-							container.element.classList.toggle("hidden", Boolean(hidden));
+              let hidden = false;
+
+              if (field.resource.hidden) {
+
+                hidden = KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.hidden));
+                // container.element.classList.toggle("hidden", KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.hidden)));
+              }
+
+              if (field.resource.visible) {
+
+                hidden = !KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.visible))
+                // container.element.classList.toggle("hidden", !KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.visible)));
+              }
+
+							container.element.classList.toggle("hidden", hidden);
 
 							if (!hidden) {
 

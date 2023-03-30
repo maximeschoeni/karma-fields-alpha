@@ -132,23 +132,23 @@ Class Karma_Fields_Alpha_Media_Library {
 	 */
 	public function karma_fields_init($karma_fields) {
 
-		$karma_fields->register_driver(
-			'medias',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-medias.php',
-			'Karma_Fields_Alpha_Driver_Medias'
-		);
+		// $karma_fields->register_driver(
+		// 	'medias',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-medias.php',
+		// 	'Karma_Fields_Alpha_Driver_Medias'
+		// );
 
-		$karma_fields->register_driver(
-			'files',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-files.php',
-			'Karma_Fields_Alpha_Driver_Files'
-		);
+		// $karma_fields->register_driver(
+		// 	'files',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-files.php',
+		// 	'Karma_Fields_Alpha_Driver_Files'
+		// );
 
-		$karma_fields->register_driver(
-			'files-sources',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-files-sources.php',
-			'Karma_Fields_Alpha_Driver_Files_Sources'
-		);
+		// $karma_fields->register_driver(
+		// 	'files-sources',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-files-sources.php',
+		// 	'Karma_Fields_Alpha_Driver_Files_Sources'
+		// );
 
 		// -> moved in karma-editor-theme
 		// $karma_fields->register_menu_item('karma=medias', 'upload.php');

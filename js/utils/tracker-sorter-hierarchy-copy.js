@@ -1,12 +1,73 @@
 
-KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
+KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
+
+  static sorters = [];
+
+
+  init() {
+
+    let index;
+    let row;
+
+    if (this.selection) {
+
+      index = this.findIndex(this.tracker.x, this.tracker.y);
+      row = this.getRow(index);
+
+    }
+
+    if (row >= 0 && KarmaFieldsAlpha.Segment.contain(this.selection, row)) {
+
+
+      // this.root = this.getRoot();
+      // this.root.container.style.height = `${this.root.container.clientHeight}px`;
+      // this.root.container.style.overflow = "hidden";
+
+      // this.selectionBox = this.getBox(this.selection.index, this.selection.length);
+
+      this.originX = this.tracker.x;
+      this.originY = this.tracker.y;
+
+      this.currentRect = this.getBox(row);
+      this.offsetX = this.tracker.x - this.currentRect.x;
+      this.offsetY = this.tracker.y - this.currentRect.y;
+      this.index = this.selection.index;
+      this.indexOffset = row - this.index;
+      this.dragging = true;
+
+
+
+      // this.originPath = this.path.slice();
+      // this.destPath = this.path.slice();
+
+      this.sliceSegment(this.selection).forEach(element => element.classList.add("drag"));
+
+      this.container.classList.add("dragging");
+      this.container.style.height = `${this.container.clientHeight}px`;
+
+    } else {
+
+      super.init();
+
+    }
+
+  }
 
   update() {
 
     if (this.dragging) {
 
-      // let currentBox = this.getBox(this.selection.index + this.indexOffset);
+      let currentBox = this.getBox(this.selection.index + this.indexOffset);
+
+      // console.log(current, this.selection.index, this.indexOffset);
+
+      // const movingBox = {
+      //   x: this.tracker.x - this.offsetX,
+      //   y: this.tracker.y - this.offsetY,
+      //   width: current.width,
+      //   height: current.height
+      // };
 
       let travelX = this.tracker.x - this.originX;
       let travelY = this.tracker.y - this.originY;
@@ -14,34 +75,34 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
       const firstBox = this.getBox(this.selection.index);
       const lastBox = this.getBox(this.selection.index + this.selection.length - 1);
 
-      // const movingBox = {
-      //   x: currentBox.x + this.tracker.x - this.originX,
-      //   y: currentBox.y + this.tracker.y - this.originY,
-      //   width: currentBox.width,
-      //   height: currentBox.height
-      // };
+      const movingBox = {
+        x: currentBox.x + this.tracker.x - this.originX,
+        y: currentBox.y + this.tracker.y - this.originY,
+        width: currentBox.width,
+        height: currentBox.height
+      };
 
-      // const mFirstBox = {
-      //   x: firstBox.x + travelX,
-      //   y: firstBox.y + travelY,
-      //   width: firstBox.width,
-      //   height: firstBox.height
-      // };
+      const mFirstBox = {
+        x: firstBox.x + travelX,
+        y: firstBox.y + travelY,
+        width: firstBox.width,
+        height: firstBox.height
+      };
 
-      // const mlastBox = {
-      //   x: lastBox.x + travelX,
-      //   y: lastBox.y + travelY,
-      //   width: lastBox.width,
-      //   height: lastBox.height
-      // };
+      const mlastBox = {
+        x: lastBox.x + travelX,
+        y: lastBox.y + travelY,
+        width: lastBox.width,
+        height: lastBox.height
+      };
 
       
 
 
-      // const center = {
-      //   x: movingBox.x + movingBox.width/2,
-      //   y: movingBox.y + movingBox.height/2
-      // };
+      const center = {
+        x: movingBox.x + movingBox.width/2,
+        y: movingBox.y + movingBox.height/2
+      };
 
       if (this.tracker.deltaY < 0) {
 
@@ -64,16 +125,10 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
           } else {
 
-            // if (center.y < box.y + box.height) {
-            //   console.log("swapToSame");
-            //   this.swapToSame(-1);
-
-            // }
-
-            if (firstBox.y + travelY < box.y + box.height/2) {
-
+            if (center.y < box.y + box.height) {
+              console.log("swapToSame");
               this.swapToSame(-1);
-  
+
             }
 
           }
@@ -125,16 +180,10 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
           } else {
 
-            // if (center.y > box.y) {
-
-            //   this.swapToSame(1);
-
-            // }
-
-            if (lastBox.y + lastBox.height + travelY > box.y + box.height/2) {
+            if (center.y > box.y) {
 
               this.swapToSame(1);
-  
+
             }
 
           }
@@ -170,6 +219,9 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
       this.sliceSegment(this.selection).forEach(element => element.style.transform = `translate(${travelX}px, ${travelY}px)`);
 
+      
+
+
     } else {
 
       super.update();
@@ -178,15 +230,15 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
   }
 
-  // swapToSame(offset) {
+  swapToSame(offset) {
 
-  //   console.log("swapToSame");
-  //   return;
+    console.log("swapToSame");
+    return;
 
-  //   this.swap(this.selection.index, this.selection.length, this.selection.index + offset);
-  //   this.selection = KarmaFieldsAlpha.Segment.offset(this.selection, offset); // this.selection is immutable
+    this.swap(this.selection.index, this.selection.length, this.selection.index + offset);
+    this.selection = KarmaFieldsAlpha.Segment.offset(this.selection, offset); // this.selection is immutable
 
-  // }
+  }
 
   swapToParent(closest, offset) {
 
@@ -270,55 +322,55 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
   }
 
 
-  // complete() {
+  complete() {
 
-  //   if (this.dragging) {
+    if (this.dragging) {
 
-  //     this.sliceSegment(this.selection).forEach(element => {
-  //       element.classList.remove("drag");
-  //       element.style.transform = "none";
-  //     });
+      this.sliceSegment(this.selection).forEach(element => {
+        element.classList.remove("drag");
+        element.style.transform = "none";
+      });
 
-  //     this.container.classList.remove("dragging");
-  //     this.container.style.height = "auto";
+      this.container.classList.remove("dragging");
+      this.container.style.height = "auto";
 
-  //     // this.root.container.style.height = "auto";
-  //     // this.root.container.style.overflow = "hidden";
+      // this.root.container.style.height = "auto";
+      // this.root.container.style.overflow = "hidden";
 
 
-  //     // if (this.onsort && this.selection && this.selection.index !== this.index) {
+      // if (this.onsort && this.selection && this.selection.index !== this.index) {
 
-  //     //   this.onsort(this.index, this.selection.length, this.selection.index);
+      //   this.onsort(this.index, this.selection.length, this.selection.index);
 
-  //     // }
+      // }
 
-  //     if (this.onsort) {
+      if (this.onsort) {
 
-  //       this.onsort();
+        this.onsort();
 
-  //     }
+      }
 
-  //     this.dragging = false;
+      this.dragging = false;
 
-  //   } else {
+    } else {
 
-  //     super.complete();
+      super.complete();
 
-  //   }
+    }
 
-  // }
+  }
 
-  // swap(index, length, target) {
+  swap(index, length, target) {
 
-  //   const children = this.getChildren(); // [...this.container.children];
-  //   const width = this.getWidth();
+    const children = this.getChildren(); // [...this.container.children];
+    const width = this.getWidth();
 
-  //   const elements = children.splice((this.colHeader + index)*width, length*width);
-  //   children.splice((this.colHeader + target)*width, 0, ...elements);
+    const elements = children.splice((this.colHeader + index)*width, length*width);
+    children.splice((this.colHeader + target)*width, 0, ...elements);
 
-  //   this.container.replaceChildren(...children);
+    this.container.replaceChildren(...children);
 
-  // }
+  }
 
 
 
@@ -338,37 +390,37 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
   }
 
-  // insertElementsAt(container, elements, index) {
+  insertElementsAt(container, elements, index) {
 
-  //   // this.tracker.scrollLock = true;
+    // this.tracker.scrollLock = true;
 
 
-  //   const target = container.children[index];
+    const target = container.children[index];
 
-  //   if (target) {
+    if (target) {
 
-  //     for (let element of elements) {
+      for (let element of elements) {
 
-  //       container.insertBefore(element, target);
+        container.insertBefore(element, target);
 
-  //     }
+      }
 
-  //   } else {
+    } else {
 
-  //     for (let element of elements) {
+      for (let element of elements) {
 
-  //       container.appendChild(element);
+        container.appendChild(element);
 
-  //     }
+      }
       
-  //   }
+    }
 
 
-  //   // setTimeout(() => {
-  //   //   this.tracker.scrollLock = false;
-  //   // }, 200);
+    // setTimeout(() => {
+    //   this.tracker.scrollLock = false;
+    // }, 200);
     
-  // }
+  }
 
   getContainerBox() {
 
@@ -395,30 +447,30 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
   }
 
 
-  // getParent() {
+  getParent() {
 
-  //   const closest = this.container.parentNode.closest(".dropzone");
+    const closest = this.container.parentNode.closest(".dropzone");
 
-  //   if (closest) {
+    if (closest) {
 
-  //     return new KarmaFieldsAlpha.Sorter(closest);
+      return new KarmaFieldsAlpha.Sorter(closest);
 
-  //   }
+    }
     
-  // }
+  }
 
 
-  // getRoot() {
+  getRoot() {
     
-  //   const parent = this.getParent();
+    const parent = this.getParent();
 
-  //   if (parent) {
+    if (parent) {
 
-  //     return parent.getRoot();
-  //   }
+      return parent.getRoot();
+    }
 
-  //   return this;
-  // }
+    return this;
+  }
 
 
 }

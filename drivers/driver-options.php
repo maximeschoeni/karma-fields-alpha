@@ -62,22 +62,26 @@ Class Karma_Fields_Alpha_Driver_Options {
    */
   public function query($params) {
 
+    $output = array();
+
     if (isset($params['id'])) {
 
-      $name = $params['id'];
-      $option = get_option($name);
+      $id = $params['id'];
+      $option = get_option($id);
 
-      return array(array_merge(
-        array('id' => $name),
+      $option = apply_filters('karma_fields_query_options', $option, $id, $params);
+
+      $output = array(array_merge(
+        array('id' => $id),
         $option
-      ));
+      ));      
 
     }
 
-    return array();
+    return $output;
   }
 
-    /**
+  /**
 	 * update
 	 */
   public function update($item, $id) {
@@ -92,7 +96,7 @@ Class Karma_Fields_Alpha_Driver_Options {
 
     update_option($id, array_merge(
       $option,
-      $item
+      apply_filters('karma_fields_update_options', $item, $id)
     ));
 
     return true;

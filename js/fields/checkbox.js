@@ -13,13 +13,13 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 		return this.resource.false || "";
 	}
 
-	async getDefault() {
+	getDefault() {
 
 		const object = {};
 
 		if (this.resource.key && this.resource.default !== null) {
 
-			const value = await this.parse(this.resource.default || "") ? this.true() : this.false();
+			const value = this.parse(this.resource.default || "") ? this.true() : this.false();
 
 			object[this.resource.key] = value;
 
@@ -28,35 +28,35 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 		return object;
 	}
 
-	async exportValue() {
+	exportValue() {
 		const key = this.getKey();
-		const response = await this.parent.request("get", {}, key);
-		return KarmaFieldsAlpha.Type.toString(response);
+		const values = this.parent.request("get", {}, key);
+		return KarmaFieldsAlpha.Type.toString(values);
 	}
 
-	async importValue(value) {
+	importValue(value) {
 		const key = this.getKey();
-		await this.parent.request("set", {data: value}, key);
+		this.parent.request("set", value, key);
 	}
 
 
-	async export() {
+	export() {
 		const key = this.getKey();
-		const response = await this.parent.request("get", {}, key);
-		const value = KarmaFieldsAlpha.Type.toString(response);
+		const values = this.parent.request("get", {}, key);
+		const value = KarmaFieldsAlpha.Type.toString(values);
     return {[key]: value};
 	}
 
-	async import(object) {
+	import(object) {
 		const key = this.getKey();
     const value = KarmaFieldsAlpha.Type.toBoolean(object[key]);
 		if (object[key] !== undefined) {
-			await this.parent.request("set", {data: object[key]}, key);
+			this.parent.request("set", object[key], key);
 		}
 
 	}
 
-	async setMultipleFields(checked, fields) {
+	setMultipleFields(checked, fields) {
 
 		KarmaFieldsAlpha.History.save();
 
@@ -64,25 +64,21 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
 			const value = checked ? field.true() : field.false();
 
-			// await field.dispatch({
-			// 	action: "set",
-			// 	// backup: "pack",
-			// 	data: value,
-			// 	autosave: this.resource.autosave
-			// 	// default: field.getDefault
-			// });
+      if (this.resource.autosave) {
 
-			// console.log(checked, value);
+        field.parent.request("autosave", value, field.getKey());
 
+      } else {
 
-			await field.parent.request("set", {
-				data: value,
-				autosave: this.resource.autosave
-			}, field.getKey());
+        field.parent.request("set", value, field.getKey());
+
+      }
+
+			
 
 		}
 
-		await this.parent.request("edit");
+		this.parent.request("edit");
 
 	}
 
@@ -91,7 +87,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 		return {
 			tag: this.resource.tag || "div",
 			class: "checkbox-container",
-			update: async container => {
+			update: container => {
 				this.render = container.render;
 
 				container.children = [
@@ -103,26 +99,26 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 						},
 						update: async checkbox => {
 
-							this.edit = async editing => {
+							this.edit = editing => {
 								checkbox.element.blur();
 								container.element.parentNode.classList.toggle("editing", editing);
 							}
 
-							container.element.onmousemove = async event => {
+							container.element.onmousemove = event => {
 								if (this.constructor.mousedown && !this.constructor.selected.includes(this)) {
 									checkbox.element.checked = this.constructor.state;
 									this.constructor.selected.push(this);
 								}
 							}
 
-							container.element.onmouseup = async event => {
+							container.element.onmouseup = event => {
 								event.preventDefault();
 							}
-							container.element.onclick = async event => {
+							container.element.onclick = event => {
 								event.preventDefault();
 							}
 
-							container.element.onmousedown = async event => {
+							container.element.onmousedown = event => {
 
 								checkbox.element.checked = !checkbox.element.checked;
 
@@ -130,7 +126,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 								this.constructor.state = checkbox.element.checked ? true : false;
 								this.constructor.selected = [this];
 
-								let mouseup = async event => {
+								let mouseup = event => {
 
 									window.removeEventListener("mouseup", mouseup);
 
@@ -146,13 +142,16 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 								window.addEventListener("mouseup", mouseup);
 							}
 
-							// checkbox.element.checked = await this.dispatch({
-							// 	action: "get",
-							// 	type: "boolean"
-							// }).then(request => KarmaFieldsAlpha.Type.toBoolean(request.data));
+							const [value] = this.parent.request("get", {}, this.getKey()) || [];
+							checkbox.element.checked = value === this.true();
 
-							const response = await this.parent.request("get", {}, this.getKey());
-							checkbox.element.checked = KarmaFieldsAlpha.Type.toString(response) === this.true();
+              if (this.resource.disabled) {
+                checkbox.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));
+              }
+
+              if (this.resource.enabled) {
+                checkbox.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
+              }
 
 						}
 					},

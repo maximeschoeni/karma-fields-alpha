@@ -93,78 +93,36 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
   }
 
-  // getIds() {
-  //   const table = this.getTable();
-  //   if (table) {
-  //     return table.getIds();
-  //   }
-  // }
-  //
-  // getSelectedIds() {
-  //   const table = this.getTable();
-  //   if (table) {
-  //     return table.getSelectedIds();
-  //   }
-  // }
-  //
-  // getSelection() {
-  //   const table = this.getTable();
-  //   if (table) {
-  //     return table.getSelection();
-  //   }
-  // }
-  //
-  // getCount() {
-  //   const table = this.getTable();
-  //   if (table) {
-  //     return table.getCount();
-  //   }
-  // }
-  //
-  // getCount() {
-  //   const table = this.getTable();
-  //   if (table) {
-  //     return table.getCount();
-  //   }
-  // }
+  async save() {
+
+    const data = this.dataBuffer.get();
+    KarmaFieldsAlpha.saving = true;
+
+    this.initialBuffer.merge(data); // -> needed for autosave
+
+    
 
 
 
+    for (let driver in data) {
 
-  //
-  // requestCount() {
-  //   const table = this.getTable();
-  //
-  //   if (table && table.getCount) {
-  //     return table.getCount();
-  //   }
-  // }
-  //
-  // requestNextPage() {
-  //
-  //   const table = this.getTable();
-  //
-  //   if (table && table.getPage && table.getNumPage) {
-  //
-  //     const page = table.getPage();
-  //     const numpage = await table.getNumPage();
-  //
-  //     if (page < numpage) {
-  //
-  //       KarmaFieldsAlpha.History.save();
-  //       KarmaFieldsAlpha.Nav.change(page+1, page, "page");
-  //
-  //       table.unselect();
-  //
-  //       await table.load();
-  //       await this.render();
-  //
-  //     }
-  //
-  //   }
-  //
-  // }
+      for (let id in data[driver]) {
 
+        await this.render();
+
+        await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data[driver][id]);
+
+      }
+
+    }
+
+    KarmaFieldsAlpha.saving = false;
+
+    this.dataBuffer.remove();
+
+    await this.render();
+
+  }
 
 
   async request(subject, content = {}, ...path) {
@@ -173,20 +131,20 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
       // single
 
-      case "state": {
-        const [key] = path;
-        return {value: KarmaFieldsAlpha.Nav.get(key) || ""};
-      }
+      // case "state": {
+      //   const [key] = path;
+      //   return {value: KarmaFieldsAlpha.Nav.get(key) || ""};
+      // }
 
       case "get": {
         const [key] = path;
-        return KarmaFieldsAlpha.Nav.get(key) || "";
+        return KarmaFieldsAlpha.Type.toArray(KarmaFieldsAlpha.Nav.get(key) || "");
       }
 
       case "set": {
         const [key] = path;
 
-        const value = KarmaFieldsAlpha.Type.toString(content.data) || "";
+        const value = KarmaFieldsAlpha.Type.toString(content) || "";
         const current = KarmaFieldsAlpha.Nav.get(key) || "";
 
         if (value !== current) {
@@ -212,10 +170,12 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
     		if (delta) {
 
-  			  return KarmaFieldsAlpha.DeepObject.differ(delta, {
-            ...await this.trashBuffer.get(),
-            ...await this.initialBuffer.get()
-          });
+  			  // return KarmaFieldsAlpha.DeepObject.differ(delta, {
+          //   ...await this.trashBuffer.get(),
+          //   ...await this.initialBuffer.get()
+          // });
+
+          return KarmaFieldsAlpha.DeepObject.differ(delta, KarmaFieldsAlpha.Query.vars);
 
 
     		}
@@ -238,28 +198,30 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
       case "load": {
         const table = this.getTable();
 
-        if (table && table.load) {
+        // if (table && table.load) {
 
-          await table.load();
+        //   await table.load();
 
-        }
+        // }
 
         break;
       }
 
       // -> like get_post()
       // -> for media breadcrumb (ancestors)
+      // DEPRECATED
       case "queryid": {
 
         const table = this.getTable();
 
+
         if (table && table.query) {
 
-          const [result] = await table.query({
-            ids: [content.id]
-          });
+          // const [result] = await table.query({
+          //   ids: [content.id]
+          // });
 
-          return result;
+          // return result;
 
         }
 
@@ -278,10 +240,14 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
           }
 
-          table.cache.empty(); // buffer need to stay for history
+          // table.cache.empty(); // buffer need to stay for history
 
-          await table.load();
-          await this.render();
+          // await table.load();
+
+
+          KarmaFieldsAlpha.Query.reset();
+
+          this.render();
 
         }
 
@@ -302,11 +268,14 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
         if (table) {
 
-          table.initialBuffer.empty();
-          table.cache.empty();
+          // table.initialBuffer.empty();
+          // table.cache.empty();
 
-          await table.load();
-          await this.render();
+          // await table.load();
+
+          KarmaFieldsAlpha.Query.empty();
+
+          this.render();
 
         }
 
@@ -343,7 +312,7 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
             table.import(data, index, length);
 
-            await this.render();
+            this.render();
 
           }
 
@@ -354,23 +323,25 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
       case "save": {
 
-        const data = this.dataBuffer.get();
+        // const data = this.dataBuffer.get();
 
-    		this.initialBuffer.merge(data); // -> needed for autosave
+    		// this.initialBuffer.merge(data); // -> needed for autosave
 
-        for (let driver in data) {
+        // for (let driver in data) {
 
-      		for (let id in data[driver]) {
+      	// 	for (let id in data[driver]) {
 
-      			await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data[driver][id]);
+      	// 		await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data[driver][id]);
 
-      		}
+      	// 	}
 
-        }
+        // }
 
-    		this.dataBuffer.remove();
+    		// this.dataBuffer.remove();
 
-        await this.render();
+        this.save();
+
+        // this.render();
 
 
 
@@ -402,11 +373,11 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
         if (table) {
 
-          if (table.cache) {
+          // if (table.cache) {
 
-            table.cache.empty(); // buffer need to stay for history
+          //   table.cache.empty(); // buffer need to stay for history
 
-          }
+          // }
 
           KarmaFieldsAlpha.History.save();
 
@@ -416,12 +387,14 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
           }
 
-          await table.unload();
+          // await table.unload();
 
           KarmaFieldsAlpha.Nav.remove();
           KarmaFieldsAlpha.History.buffer.remove("history"); // ?
 
-          await this.render();
+          KarmaFieldsAlpha.Query.empty();
+
+          this.render();
 
         }
 
@@ -472,11 +445,18 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
         const table = this.getTable();
 
-        if (table && table.getCount) {
+        // if (table && table.getCount) {
 
-          return table.getCount();
+        //   return table.getCount();
+
+        // }
+
+        if (table && table.getCountParams) {
+
+          return KarmaFieldsAlpha.Query.getCount(table.resource.driver, table.getCountParams()) || 0;
 
         }
+        
 
         return 1;
       }
@@ -515,7 +495,7 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
         if (table && table.getPage && table.getNumPage) {
 
-          return table.getPage() === await table.getNumPage();
+          return table.getPage() === table.getNumPage();
 
         }
 
@@ -544,7 +524,7 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
           const page = table.getPage();
 
-          await table.changePage(page+1);
+          table.changePage(page+1);
 
           // const numpage = await table.getNumPage();
           //
@@ -580,8 +560,9 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
             table.selectionBuffer.remove();
 
-            await table.load();
-            await this.render();
+            // await table.load();
+            KarmaFieldsAlpha.Query.reset();
+            this.render();
 
           }
 
@@ -605,8 +586,9 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
             table.selectionBuffer.remove();
 
-            await table.load();
-            await this.render();
+            // await table.load();
+            KarmaFieldsAlpha.Query.reset();
+            this.render();
 
           }
 
@@ -622,7 +604,7 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
         if (table && table.getPage && table.getNumPage) {
 
           const page = table.getPage();
-          const numpage = await table.getNumPage();
+          const numpage = table.getNumPage();
 
           if (page > 1) {
 
@@ -631,8 +613,9 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
 
             table.selectionBuffer.remove();
 
-            await table.load();
-            await this.render();
+            // await table.load();
+            KarmaFieldsAlpha.Query.reset();
+            this.render();
 
           }
 

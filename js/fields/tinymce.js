@@ -2,7 +2,7 @@
 
 // /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
 
-KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
+KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	constructor(resource) {
 		super(resource);
@@ -23,11 +23,25 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 		// });
 
 
-		this.buffer = new KarmaFieldsAlpha.Buffer("tinymce");
+		// this.buffer = new KarmaFieldsAlpha.Buffer("tinymce");
 
 	}
 
-	async createEditor(element, ...path) {
+  getEditor() {
+
+    const key = this.getKey();
+
+    return this.parent.request("get-option", {}, key, "editor");
+  }
+
+  setEditor(editor) {
+
+    const key = this.getKey();
+
+    this.parent.request("set-option", editor, key, "editor");
+  }
+
+	async createEditor(element) {
 		// if (this.editor) {
 		// 	this.editor.destroy();
 		// 	this.editor = null;
@@ -35,7 +49,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 		// -> check if editor.element match
 
-		let editor = this.buffer.get(...path);
+		// let editor = this.buffer.get(...path);
+    let editor = this.getEditor();
 
 		if (editor && editor.bodyElement !== element) {
 			editor.destroy();
@@ -61,6 +76,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 				plugins: "link lists paste",
 				convert_urls: false,
 
+        entity_encoding : "raw", // -> don't encode diacritics
+
 				// entity_encoding: "named",
 				// image_caption: true,
 
@@ -84,6 +101,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 				// 	o.node = unwrap(o.node);
 				// 	o.node.innerHTML = o.node.innerHTML.normalize();
 			  // }
+
+        // height : "480",
+        ...this.resource.mceinit
 			});
 
 			if (!editors.length) {
@@ -114,11 +134,13 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 			// -> input event does not seem to capture line break (single or double) or delete line break !
 			editor.on("keyup", event => {
-				if (event.key === "Backspace" || event.key === "Enter") {
-					this.saveContent();
+				if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
+          const [current] = this.parent.request("get", {}, this.getKey()) || [];
+          if (current !== editor.getContent()) {
+            this.saveContent();
+          }					
 				}
 			});
-
 
 			editor.on("NodeChange", event => {
 				if (event.selectionChange) {
@@ -128,7 +150,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 						this.renderPopover();
 					}
 				}
-				this.renderToolbar();
+				if (this.renderToolbar) {
+          this.renderToolbar();
+        }
 			});
 
 			editor.on("focusout", event => {
@@ -137,7 +161,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 					this.activeModal = null;
 					this.renderPopover();
 				}
-				this.renderToolbar();
+        if (this.renderToolbar) {
+          this.renderToolbar();
+        }
 			});
 
 			editor.on("click", event => {
@@ -168,11 +194,12 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 			editor.on("ObjectResized", async event => {
 				// await this.trigger("resizemedia");
-				await this.request("resizemedia");
-				await this.renderPopover();
+				this.request("resizemedia");
+				this.renderPopover();
 			});
 
-			this.buffer.set(editor, ...path);
+			// this.buffer.set(editor, ...path);
+      this.setEditor(editor);
 
 		}
 
@@ -180,7 +207,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 	}
 
 
-	async request(subject, content, ...path) {
+	request(subject, content, ...path) {
 
 
 		switch (subject) {
@@ -270,6 +297,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 					case "format":
 						this.editor && this.editor.execCommand("FormatBlock", false, content.data);
+            this.saveContent();
 						break;
 
 					case "unlink":
@@ -284,14 +312,16 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 					case "JustifyFull":
 					case "JustifyNone":
 						this.editor && this.editor.execCommand(key);
+            this.saveContent();
 						break;
 
 					case "link-form": {
 						this.setLink(content);
-						await this.saveContent();
+						this.saveContent();
 						this.activeNode = null;
 						this.activeModal = null;
-						await this.renderPopover();
+						this.renderPopover();
+            break;
 					}
 
 					case "ul":
@@ -302,7 +332,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 						} else {
 							this.editor.execCommand("RemoveList");
 						}
-						await this.saveContent();
+						this.saveContent();
 						break;
 
 					case "ol":
@@ -313,121 +343,134 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 						} else {
 							this.editor.execCommand("RemoveList");
 						}
-						await this.saveContent();
+						this.saveContent();
 						break;
+
+          case "mode": {
+            this.parent.request("set-option", content.data, "mode");
+            if (this.render) {
+              this.render();
+            }
+            break;
+          }
+            
 
 				}
 				break;
 			}
+
+      
 
 			case "edit": {
-				await this.saveContent();
+				this.saveContent();
 				break;
 			}
 
 
-			case "command": {
+			// case "command": {
 
-				switch (content.command) {
+        
 
-					// case "unlink":
-					// case "bold":
-					// case "italic":
-					// case "strikethrough":
-					// case "superscript":
-					// case "subscript":
-					// case "JustifyLeft":
-					// case "JustifyCenter":
-					// case "JustifyRight":
-					// case "JustifyFull":
-					// case "JustifyNone":
-					// 	this.editor.execCommand(content.command);
-					// 	await this.saveContent();
-					// 	break;
+			// 	switch (content.command) {
 
-					// case "ul":
-					// 	if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
-					// 		this.editor.execCommand('InsertUnorderedList', false, {
-					// 		  'list-style-type': 'disc'
-					// 		});
-					// 	} else {
-					// 		this.editor.execCommand("RemoveList");
-					// 	}
-					// 	await this.saveContent();
-					// 	break;
-					//
-					// case "ol":
-					// 	if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
-					// 		this.editor.execCommand('InsertOrderedList', false, {
-					// 			'list-style-type': 'decimal'
-					// 		});
-					// 	} else {
-					// 		this.editor.execCommand("RemoveList");
-					// 	}
-					// 	await this.saveContent();
-					// 	break;
+			// 		// case "unlink":
+			// 		// case "bold":
+			// 		// case "italic":
+			// 		// case "strikethrough":
+			// 		// case "superscript":
+			// 		// case "subscript":
+			// 		// case "JustifyLeft":
+			// 		// case "JustifyCenter":
+			// 		// case "JustifyRight":
+			// 		// case "JustifyFull":
+			// 		// case "JustifyNone":
+			// 		// 	this.editor.execCommand(content.command);
+			// 		// 	await this.saveContent();
+			// 		// 	break;
 
-					case "table":
-						this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
-						// this.editor.execCommand('mceTableInsertColAfter', false);
-						await this.saveContent();
-						break;
+			// 		// case "ul":
+			// 		// 	if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+			// 		// 		this.editor.execCommand('InsertUnorderedList', false, {
+			// 		// 		  'list-style-type': 'disc'
+			// 		// 		});
+			// 		// 	} else {
+			// 		// 		this.editor.execCommand("RemoveList");
+			// 		// 	}
+			// 		// 	await this.saveContent();
+			// 		// 	break;
+			// 		//
+			// 		// case "ol":
+			// 		// 	if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+			// 		// 		this.editor.execCommand('InsertOrderedList', false, {
+			// 		// 			'list-style-type': 'decimal'
+			// 		// 		});
+			// 		// 	} else {
+			// 		// 		this.editor.execCommand("RemoveList");
+			// 		// 	}
+			// 		// 	await this.saveContent();
+			// 		// 	break;
 
-
-
-					case "attachfile":
-						// -> open media
-						// this.file.uploader.open(this.activeNode && this.activeNode.getAttribute("data-attachment-id"));
-						break;
-
-					case "addmedia":
-						// -> open media
-						// this.image.uploader.open(this.activeNode && this.activeNode.getAttribute("data-id"));
-						break;
-
-					case "editmedia":
-						// this.activeModal = this.createChild(this.parseResource("media")).getModal();
-						this.activeModal = "media";
-						await this.renderPopover();
-						break;
-
-					case "resizemedia": {
-						var node = this.editor.selection.getNode();
-						var width = this.editor.selection.getNode().getAttribute("width");
-						node.sizes = `(min-width: ${width}px) ${width}px, 100vw`;
-						await this.saveContent();
-						break;
-					}
-
-					case "alignnone":
-					case "alignleft":
-					case "alignright":
-					case "aligncenter": {
-						if (this.activeNode && this.editor) {
-							this.activeNode.classList.remove("alignright");
-							this.activeNode.classList.remove("alignleft");
-							this.activeNode.classList.remove("aligncenter");
-							if (content.command !== "alignnone") {
-								this.activeNode.classList.add(content.command);
-							}
-							this.editor.nodeChanged();
-							await this.renderPopover();
-							await this.saveContent();
-						}
-
-						break;
-					}
+			// 		case "table":
+			// 			this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
+			// 			// this.editor.execCommand('mceTableInsertColAfter', false);
+			// 			await this.saveContent();
+			// 			break;
 
 
-				}
 
-			}
+			// 		case "attachfile":
+			// 			// -> open media
+			// 			// this.file.uploader.open(this.activeNode && this.activeNode.getAttribute("data-attachment-id"));
+			// 			break;
+
+			// 		case "addmedia":
+			// 			// -> open media
+			// 			// this.image.uploader.open(this.activeNode && this.activeNode.getAttribute("data-id"));
+			// 			break;
+
+			// 		case "editmedia":
+			// 			// this.activeModal = this.createChild(this.parseResource("media")).getModal();
+			// 			this.activeModal = "media";
+			// 			await this.renderPopover();
+			// 			break;
+
+			// 		case "resizemedia": {
+			// 			var node = this.editor.selection.getNode();
+			// 			var width = this.editor.selection.getNode().getAttribute("width");
+			// 			node.sizes = `(min-width: ${width}px) ${width}px, 100vw`;
+			// 			await this.saveContent();
+			// 			break;
+			// 		}
+
+			// 		case "alignnone":
+			// 		case "alignleft":
+			// 		case "alignright":
+			// 		case "aligncenter": {
+			// 			if (this.activeNode && this.editor) {
+			// 				this.activeNode.classList.remove("alignright");
+			// 				this.activeNode.classList.remove("alignleft");
+			// 				this.activeNode.classList.remove("aligncenter");
+			// 				if (content.command !== "alignnone") {
+			// 					this.activeNode.classList.add(content.command);
+			// 				}
+			// 				this.editor.nodeChanged();
+			// 				await this.renderPopover();
+			// 				await this.saveContent();
+			// 			}
+
+			// 			break;
+			// 		}
+
+
+			// 	}
+
+			// }
 
 			case "link":
 				// -> open popup
 				// this.activeModal = this.createChild(this.parseResource("link")).getModal();
 				this.activeModal = "linkForm";
-				await this.renderPopover();
+				this.renderPopover();
 				break;
 
 
@@ -489,7 +532,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 			case "close":
 				this.activeNode = null;
 				this.activeModal = null;
-				await this.renderPopover();
+				this.renderPopover();
 				break;
 
 
@@ -497,40 +540,40 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 			case "setFormat": {
 				this.setFormat(content);
-				await this.saveContent();
+				this.saveContent();
 				break;
 			}
 
 			case "setImage": {
 				// const images = await this.image.fetchIds(value, {sources: 1});
 				// this.setImages(images);
-				await this.saveContent();
+				this.saveContent();
 				// this.activeModal = this.createChild(this.parseResource("media")).getModal();
 				this.activeModal = "media";
-				await this.renderPopover();
+				this.renderPopover();
 				break;
 			}
 
 			case "setFile": {
 				// this.activeModal = this.createChild(this.parseResource("link")).getModal();
 				this.activeModal = "link";
-				await this.renderPopover();
+				this.renderPopover();
 				// const files = await this.file.fetchIds(value);
 				// for (let file of files) {
 				// 	await this.activeModal.buffer.set([file.original_src], "href");
 				// 	await this.activeModal.buffer.set(value, "attachment_id");
 				// 	break;
 				// }
-				await this.activeModal.render();
+				this.activeModal.render();
 				break;
 			}
 
 			case "setLink": {
 				this.setLink(content);
-				await this.saveContent();
+				this.saveContent();
 				this.activeNode = null;
 				this.activeModal = null;
-				await this.renderPopover();
+				this.renderPopover();
 				break;
 			}
 
@@ -711,7 +754,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 	}
 
 
-	async saveContent() {
+	saveContent() {
 
 		// const key = this.getKey();
 		// const value = this.editor.getContent();
@@ -733,15 +776,17 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 
 			value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
 
-			const current = await this.parent.request("get", {}, key);
+			const current = this.parent.request("get", {}, key);
 
-			if (value !== KarmaFieldsAlpha.Type.toString(current)) {
+      if (current && value !== KarmaFieldsAlpha.Type.toString(current)) {
 
-				KarmaFieldsAlpha.History.save();
-				await this.parent.request("set", {data: value}, key);
-				await this.parent.request("edit");
+        KarmaFieldsAlpha.History.save();
+        this.parent.request("set", value, key);
+        this.parent.request("edit");
+  
+      }
 
-			}
+			
 
 		}, 500);
 
@@ -766,14 +811,14 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 	// }
 
 	// -> like input
-	async getDefault() {
+	getDefault() {
 		const defaults = {};
 
 		const key = this.getKey();
 
 		if (key && this.resource.default !== null) {
 
-			defaults[key] = await this.parse(this.resource.default || "");
+			defaults[key] = this.parse(this.resource.default || "");
 
 		}
 
@@ -802,141 +847,160 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 					editor.element.classList.add("theme-"+this.resource.theme);
 				}
 			},
-			children: [
-				{
-					class: "editor-header",
-					children: [
-						{
-							class: "toolbar",
-							update: toolbar => {
-								this.renderToolbar = toolbar.render;
-							},
-							// child: this.createChild({
-							// 	type: "group",
-							// 	id: "editor-buttons",
-							// 	display: "flex",
-							// 	children: (this.resource.buttons || ["format", "bold", "italic", "link", "ul", "ol"]).map(child => this.parseResource(child))
-							// }).build()
-							child: this.createChild({
-								type: "buttons",
-								...this.resource.buttons
-							}).build()
-						}
-					]
-				},
-				{
-					class: "tinymce editor-body",
-					update: async node => {
-						node.element.editable = true;
-						const key = this.getKey();
-						const state = await this.parent.request("state", {}, key);
+      update: async container => {
+        this.render = container.render;
+        const mode = this.parent.request("get-option", {}, "mode") || this.resource.mode || "edit";
+        container.children = [
+          {
+            class: "mode mode-code",
+            update: node => {
+              node.element.classList.toggle("hidden", mode !== "code");
+              if (mode === "code") {
+                node.children = [
+                  {
+                    class: "editor-header",
+                    children: [
+                      {
+                        class: "toolbar",
+                        child: this.createChild({
+                          type: "buttons",
+                          children: ["separator", "edit"],
+                          ...this.resource.textarea_buttons
+                        }).build()
+                      }
+                    ]
+                  },
+                  {
+                    class: "textarea editor-body",
+                    update: node => {
+                      node.element.classList.toggle("hidden", mode !== "code");
+                      if (mode === "code") {
+                        node.child = {
+                          tag: "textarea",
+                          update: async textarea => {
+                            const key = this.getKey();
+                            const values = this.parent.request("get", {}, key);
+                            
+                            if (values) {
+                              textarea.element.value = values[0] || "";
+                              textarea.element.style.height = 0;
+                              textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
+                              textarea.element.oninput = event => {
+                                textarea.element.style.height = 0;
+                                textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
+                                this.throttle(() => this.set(textarea.element.value.normalize()));
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ];
+              }
+            }
+          },
+          {
+            class: "mode mode-edit",
+            update: node => {
+              node.element.classList.toggle("hidden", mode !== "edit");
+              if (mode === "edit") {
+                node.children = [
+                  {
+                    class: "editor-header",
+                    children: [
+                      {
+                        class: "toolbar",
+                        update: toolbar => {
+                          this.renderToolbar = toolbar.render;
+                        },
+                        child: this.createChild({
+                          type: "buttons",
+                          ...this.resource.buttons
+                        }).build()
+                      }
+                    ]
+                  },
+                  {
+                    class: "tinymce editor-body",
+                    update: async node => {
+                      node.element.classList.toggle("hidden", mode === "code");
+                      if (mode !== "code") {
+        
+                        node.element.editable = true;
+                        const key = this.getKey();
+                        const values = this.parent.request("get", {}, key);
 
-						if (!state.multi) {
-							const state = await this.parent.request("state", {}, key);
-							const value = KarmaFieldsAlpha.Type.toString(state.value);
-							const path = await this.parent.request("path", {}, key);
-							node.element.id = path.join("-");
-							this.editor = await this.createEditor(node.element, ...path);
-							this.editor.setContent(value);
-						}
+                        if (values) {
 
+                          const value = KarmaFieldsAlpha.Type.toString(values);
+                          // const path = await this.parent.request("path", {}, key);
+                          // node.element.id = path.join("-");
+                          // this.editor = await this.createEditor(node.element, ...path);
+                          this.editor = await this.createEditor(node.element);
+            
+                          if (value !== this.editor.getContent()) {
+            
+                            this.editor.setContent(value);
+            
+                          }
 
-
-
-						// 	this.editor.setContent(value);
-					}
-					// update: async node => {
-					// 	// const event = this.createEvent();
-					// 	// event.action = "get";
-					// 	// event.type = "string";
-					// 	// event.default = this.getDefault(); // -> no care if promise
-					// 	// await this.dispatch(event);
-					// 	// this.editor.setContent(event.getString());
-					// 	// debugger;
-					// 	const value = await this.getValue();
-					// 	this.editor.setContent(value);
-					// }
-				},
-				{
-					class: "karma-popover-container",
-					update: container => {
-						this.renderPopover = container.render;
-						this.popoverContainer = container.element;
-					// },
-					// update: container => {
-						container.element.onfocusout = event => {
-							if (this.activeModal && (!event.relatedTarget || !container.element.contains(event.relatedTarget) && !this.editor.getBody().contains(event.relatedTarget))) {
-								// this.activePopover = null;
-								this.activeNode = null;
-								this.activeModal = null;
-								container.render();
-							}
-						};
-
-						container.children = ["linkForm"].map(child => {
-							return {
-								class: "karma-tinymce-popover",
-								init: popover => {
-									popover.element.tabIndex = -1;
-								},
-								update: async popover => {
-									popover.element.classList.toggle("hidden", this.activeModal !== child);
-									popover.element.classList.toggle("active", this.activeModal === child);
-									if (this.activeModal === child) {
-										popover.children = [this.createChild({
-											type: child,
-											...this.resource.linkForm
-										}).build()];
-										if (this.editor) {
-											const containerBox = container.element.parentNode.getBoundingClientRect();
-											const nodeBox = this.activeNode ? this.activeNode.getBoundingClientRect() : this.editor.selection.getRng().getBoundingClientRect();
-											popover.element.style.left = (nodeBox.left - containerBox.x).toFixed()+"px";
-											popover.element.style.top = (nodeBox.bottom - containerBox.y + 5).toFixed()+"px";
-										}
-									}
-								}
-							};
-						});
-
-
-
-						// container.children = this.children.filter(child => child.resource.modal).map(child => {
-						// 	return {
-						// 		class: "karma-tinymce-popover",
-						// 		init: popover => {
-						// 			popover.element.tabIndex = -1;
-						// 		},
-						// 		update: async popover => {
-						// 			const modal = child.getModal();
-						//
-						// 			popover.element.classList.toggle("active", this.activeModal === modal);
-						// 			if (this.editor && this.activeModal === modal) {
-						//
-						// 				const containerBox = container.element.parentNode.getBoundingClientRect();
-						// 				let nodeBox;
-						//
-						// 				if (this.activeNode) {
-						// 					nodeBox = this.activeNode.getBoundingClientRect();
-						// 				} else {
-						// 					nodeBox = this.editor.selection.getRng().getBoundingClientRect()
-						// 				}
-						//
-						// 				popover.element.style.left = (nodeBox.left - containerBox.x).toFixed()+"px";
-						// 				popover.element.style.top = (nodeBox.bottom - containerBox.y + 5).toFixed()+"px";
-						//
-						// 				if (modal.buffer) {
-						// 					modal.buffer.empty();
-						// 				}
-						//
-						// 				popover.children = [modal.build()];
-						// 			}
-						//
-						// 		}
-						// 	};
-						// });
-					}
-				}
-			]
+                        }
+            
+                        
+        
+                      }
+          
+                    }
+                  },
+                  {
+                    class: "karma-popover-container",
+                    update: container => {
+                      this.renderPopover = container.render;
+                      this.popoverContainer = container.element;
+                    // },
+                    // update: container => {
+                      container.element.onfocusout = event => {
+                        if (this.activeModal && (!event.relatedTarget || !container.element.contains(event.relatedTarget) && !this.editor.getBody().contains(event.relatedTarget))) {
+                          // this.activePopover = null;
+                          this.activeNode = null;
+                          this.activeModal = null;
+                          container.render();
+                        }
+                      };
+          
+                      container.children = ["linkForm"].map(child => {
+                        return {
+                          class: "karma-tinymce-popover",
+                          init: popover => {
+                            popover.element.tabIndex = -1;
+                          },
+                          update: async popover => {
+                            popover.element.classList.toggle("hidden", this.activeModal !== child);
+                            popover.element.classList.toggle("active", this.activeModal === child);
+                            if (this.activeModal === child) {
+                              popover.children = [this.createChild({
+                                type: child,
+                                ...this.resource.linkForm
+                              }).build()];
+                              if (this.editor) {
+                                const containerBox = container.element.parentNode.getBoundingClientRect();
+                                const nodeBox = this.activeNode ? this.activeNode.getBoundingClientRect() : this.editor.selection.getRng().getBoundingClientRect();
+                                popover.element.style.left = (nodeBox.left - containerBox.x).toFixed()+"px";
+                                popover.element.style.top = (nodeBox.bottom - containerBox.y + 5).toFixed()+"px";
+                              }
+                            }
+                          }
+                        };
+                      });
+                    }
+                  }
+                ];
+              }
+            }
+          }
+        ]
+      }
 		}
 	}
 
@@ -1046,6 +1110,32 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 			}
 		}
 
+    static code = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "html",
+					title: "Code",
+					action: "set",
+					path: ["mode"],
+          value: {data: "code"},
+					...resource
+				});
+			}
+		}
+
+    static edit = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "edit",
+					title: "Code",
+					action: "set",
+					path: ["mode"],
+          value: {data: "edit"},
+					...resource
+				});
+			}
+		}
+
 	}
 
 	static form = class extends KarmaFieldsAlpha.field.container {
@@ -1055,40 +1145,40 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field {
 			this.buffer = null;
 		}
 
-		async request(subject, content, ...path) {
+		request(subject, content, ...path) {
 
 			switch (subject) {
 
-				case "state": {
-					const value = KarmaFieldsAlpha.DeepObject.get(this.buffer || {}, ...path) || await this.parent.request("get", {}, this.resource.key, ...path);
-					return {
-						value: value
-					};
-				}
+				// case "state": {
+				// 	const value = KarmaFieldsAlpha.DeepObject.get(this.buffer || {}, ...path) || await this.parent.request("get", {}, this.resource.key, ...path);
+				// 	return {
+				// 		value: value
+				// 	};
+				// }
 
 				case "get":
-					return KarmaFieldsAlpha.DeepObject.get(this.buffer || {}, ...path) || await this.parent.request("get", {}, this.resource.key, ...path);
+					return KarmaFieldsAlpha.DeepObject.get(this.buffer || {}, ...path) || this.parent.request("get", {}, this.resource.key, ...path);
 
 				case "set":
 					this.buffer ||= {};
-					KarmaFieldsAlpha.DeepObject.assign(this.buffer, [content.data], ...path);
+					KarmaFieldsAlpha.DeepObject.assign(this.buffer, content, ...path);
 					break;
 
 				case "modified":
 					return Boolean(this.buffer);
 
 				case "submit":
-					await this.parent.request("set", this.buffer, this.resource.key);
+					this.parent.request("set", this.buffer, this.resource.key);
 					this.buffer = null;
 					break;
 
 				case "edit":
-					await this.render();
+					this.render();
 					break;
 
 				case "unlink":
-					await this.parent.request("set", {}, "unlink");
-					await this.parent.request("edit");
+					this.parent.request("set", {}, "unlink");
+					this.parent.request("edit");
 					break;
 
 			}

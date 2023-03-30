@@ -9,7 +9,7 @@
   --active-color: white;
   --disabled-color: #c3c4c7;
   --primary-color: #484848;
-  --frame-border-color: black;
+  --frame-border-color: #000;
   --link-active-color: #484848;
   --link-hover-color: #484848;
 
@@ -957,7 +957,7 @@ button.karma-button.editing span {
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: flex-start;
-  outline: 1px solid #3f3f3f;
+  outline: 1px solid var(--disabled-color);
   min-height: 9em;
   min-width: 9em;
   position: relative;
@@ -967,15 +967,19 @@ button.karma-button.editing span {
   background-color: white;
 }
 .karma-gallery .gallery .frame {
-  display: flex;
-  flex-direction: column;
+  /* display: flex;
+  flex-direction: column; */
   width: 9em;
   height: 9em;
-  outline: 1px solid var(--disabled-color)
+  outline: 1px solid var(--disabled-color);
+  position: relative;
 }
 .karma-gallery .gallery .frame .filename {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
   padding: 0.4em 0.4em;
-  /* background-color: white; */
+  background-color: rgb(255, 255, 255, 0.9);
   /* border-top: 1px solid var(--disabled-color); */
   line-height: 1.08em;
   /* height: 4em; */
@@ -984,6 +988,7 @@ button.karma-button.editing span {
   text-align: center;
   color: var(--selected-color);
   word-break: break-all;
+  user-select: none;
 }
 .karma-gallery .gallery .frame.selected .filename,
 .karma-gallery .gallery .frame.selecting .filename {
@@ -1030,12 +1035,13 @@ button.karma-button.editing span {
 
   width: 100%;
   height: 100%;
+  padding: 0.5em 0 0;
   overflow: hidden;
 
   flex-grow: 1;
 
   display: flex;
-  align-items: center;
+  /* align-items: flex-start; */
   justify-content: center;
 }
 .karma-gallery .gallery .frame figure.dashicons::before {
@@ -1056,6 +1062,10 @@ button.karma-button.editing span {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: white;
 }
 .karma-gallery .gallery .frame.selecting,
 .karma-gallery .gallery .frame.selected {
@@ -1355,7 +1365,10 @@ ul.tag-links li:not(:last-child)::after {
   line-height: 1.08em;
   user-select: none;
 }
-
+.karma-field .checkbox-container input:disabled + label {
+  color: var(--disabled-color);
+  pointer-events: none;
+}
 
 .karma-field-table .table input[type=checkbox] {
   width: 100%;
@@ -1662,33 +1675,48 @@ textarea.clipboard {
   width: 100%;
   height: calc(100% + 1px);
 }
+.karma-tinymce .mode {
+  display: flex;
+  flex-direction: column;
+}
 .karma-tinymce .editor-body {
-  padding: 2.6em var(--gap-width) 0;
+  position: relative;
+  padding: var(--gap-width) var(--gap-width) 0;
   border: 1px solid var(--frame-border-color);
-  border-top: none;
+  /* border-top: none; */
   min-height: 8em;
   border-radius: 0;
+  margin: 1.25em 0 0;
 }
 .karma-tinymce .editor-body:focus {
   background-color: white;
+}
+.karma-tinymce .editor-body textarea {
+  width: 100%;
+  border: none;
+  padding: var(--gap-width) 0 0;
 }
 
 /* TOOLBAR */
 .karma-tinymce .editor-header .toolbar {
   position: sticky;
   top: calc(-1 * var(--gap-width));
-  background-color: var(--background-color);
+  /* background-color: var(--background-color); */
   z-index: 1;
-  /* padding: var(--gap-width); */
   padding: 0;
-  border: 1px solid var(--frame-border-color);
+  /* border: 1px solid var(--frame-border-color); */
+  margin: 0 var(--gap-width);
 }
 .karma-tinymce .editor-header .toolbar .karma-field-container {
   gap: 1px;
 }
 .karma-tinymce .editor-header .toolbar .karma-field-frame {
-  border-right: 1px solid #0c0c0c;
+  /* border-right: 1px solid var(--frame-border-color); */
+  outline: 1px solid var(--frame-border-color);
   overflow: hidden;
+}
+.karma-tinymce .editor-header .toolbar .karma-field-frame.karma-field-separator {
+  outline: none;
 }
 .karma-tinymce .editor-header .toolbar button,
 .karma-tinymce .editor-header .toolbar select {

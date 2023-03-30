@@ -18,87 +18,77 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 					input.element.style.height = this.resource.height;
 				}
 			},
-			update: async input => {
-				input.element.classList.add("loading");
+			update: input => {
+				
 
 				const key = this.getKey();
 
-				const state = await this.parent.request("state", {}, key);
+				const values = this.parent.request("get", {}, key);
 
-				input.element.classList.toggle("multi", Boolean(state.multi));
-				input.element.readOnly = Boolean(state.multi);
+        input.element.classList.toggle("loading", !values);
 
-				const value = state.multi && "[Multiple Values]" || KarmaFieldsAlpha.Type.toString(state.value);
+        if (values) {
 
-				input.element.oninput = async event => {
-					this.throttle(async () => {
-						await this.set(input.element.value.normalize());
-					});
-				};
+          input.element.classList.toggle("multi", values.length > 1);
+          input.element.readOnly = Boolean(this.resource.readonly || values.length > 1);
 
-				// const response = await this.parent.request("get", {}, key);
-				//
-				// if (Array.isArray(response) && response.multivalue) {
-				//
-				// 	input.element.placeholder =  "— No Change —" || this.resource.placeholder || "";
-				// 	input.element.value = "";
-				//
-				// } else {
-				//
-				// 	input.element.value = KarmaFieldsAlpha.Type.toString(response);
-				//
-				// }
+          const [value = ""] = values;
 
-				if (document.activeElement !== input.element) { // -> prevent changing value while editing (e.g search field)
-					// const value = KarmaFieldsAlpha.Type.toString(state.value);
-					if (value !== input.element.value) {
-						input.element.value = value;
-					}
-					input.element.parentNode.classList.toggle("modified", Boolean(state.modified));
-					input.element.placeholder = await this.getPlaceholder();
-				}
+          input.element.oninput = async event => {
+            this.throttle(async () => {
+              this.set(input.element.value.normalize());
+            });
+          };
 
-				input.element.oncopy = event => {
-					if (state.multi) {
-						event.preventDefault();
-						const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
-						const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-						event.clipboardData.setData("text/plain", string.normalize());
-					}
-				};
+          if (document.activeElement !== input.element) { // -> prevent changing value while editing (e.g search field)
+            // const value = KarmaFieldsAlpha.Type.toString(state.value);
+            if (value !== input.element.value) {
+              input.element.value = value;
+            }
+            const modified = this.parent.request("modified", {}, key);
+            input.element.parentNode.classList.toggle("modified", Boolean(modified));
+            input.element.placeholder = this.getPlaceholder();
+          }
 
-				input.element.onpaste = async event => {
-					if (state.multi) {
-						event.preventDefault();
-						const string = event.clipboardData.getData("text").normalize()
-						const dataArray = KarmaFieldsAlpha.Clipboard.parse(string);
-						const jsonData = dataArray.map(value => KarmaFieldsAlpha.Type.toString(value));
+          input.element.oncopy = event => {
+            if (values.length > 1) {
+              event.preventDefault();
+              const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
+              const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+              event.clipboardData.setData("text/plain", string.normalize());
+            }
+          };
 
-						KarmaFieldsAlpha.History.save();
+          input.element.onpaste = async event => {
+            if (values.length > 1) {
+              event.preventDefault();
+              const string = event.clipboardData.getData("text").normalize()
+              const dataArray = KarmaFieldsAlpha.Clipboard.parse(string);
+              const jsonData = dataArray.map(value => KarmaFieldsAlpha.Type.toString(value));
 
-						await this.parent.request("set", {multi: true, values: jsonData}, key);
-						await this.parent.request("render");
-					}
-				};
+              KarmaFieldsAlpha.History.save();
 
-				input.element.oncut = async event => {
-					if (state.multi) {
-						event.preventDefault();
-						const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
-						const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-						event.clipboardData.setData("text/plain", string.normalize());
+              this.parent.request("set", jsonData, key);
+              this.parent.request("render");
+            }
+          };
 
-						KarmaFieldsAlpha.History.save();
+          input.element.oncut = async event => {
+            if (values.length > 1) {
+              event.preventDefault();
+              const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
+              const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+              event.clipboardData.setData("text/plain", string.normalize());
 
-						await this.parent.request("set", {multi: true, values: [""]}, key);
-						await this.parent.request("render");
-					}
-				};
+              KarmaFieldsAlpha.History.save();
 
-				// const modified = await this.isModified();
+              this.parent.request("set", "", key);
+              this.parent.request("render");
+            }
+          };
 
-				// input.element.parentNode.classList.toggle("modified", modified);
-				input.element.classList.remove("loading");
+        }
+
 			}
 		};
 	}

@@ -27,13 +27,13 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 				button.element.onclick = async event => {
 					event.preventDefault(); // -> prevent submitting form in post-edit
 
-					if (!button.element.classList.contains("editing")) {
-						button.element.classList.add("editing");
+					// if (!button.element.classList.contains("editing")) {
+						// button.element.classList.add("editing");
 
 						// const [action = this.resource.action, value = this.resource.value, ...path] = this.resource.request
 
 
-						setTimeout(async () => {
+						// setTimeout(async () => {
 							// if (this.resource.request) {
 							// 	await this.parent.request(...this.resource.request);
 							// } else {
@@ -43,27 +43,37 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 							// const action = await this.parse(this.resource.action || this.resource.state || "submit");
 							// const value = await this.parse(this.resource.value || {});
 
-							await this.parent.request(this.resource.action, this.resource.value, ...(this.resource.path || []));
+							this.parent.request(this.resource.action, this.resource.value, ...(this.resource.path || []));
 
-							button.element.classList.remove("editing");
+							// button.element.classList.remove("editing");
 							button.element.blur();
-						}, 50);
+						// }, 50);
 
 					}
 
-				}
+				// }
 
 				if (this.resource.disabled) {
-					button.element.disabled = Boolean(await this.parse(this.resource.disabled));
+					button.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));
+				}
+
+        if (this.resource.enabled) {
+					button.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
 				}
 
 				if (this.resource.active) {
-					const active = await this.parse(this.resource.active);
-					button.element.classList.toggle("active", Boolean(active));
+					const active = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
+					button.element.classList.toggle("active", active);
+				}
+
+        if (this.resource.loading) {
+					const loading = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.loading));
+					button.element.classList.toggle("editing", loading);
+          button.element.classList.toggle("loading", loading);
 				}
 
 				if (this.resource.test) {
-					console.log(await this.parse(this.resource.test));
+					console.log(this.parse(this.resource.test));
 				}
 
 			}

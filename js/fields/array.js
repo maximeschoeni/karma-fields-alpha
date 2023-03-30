@@ -28,29 +28,29 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   // async getDefault() {
   // }
 
-  getKeys() {
+  // getKeys() {
 
-    // let keys = new Set();
-    //
-    // for (let resource of this.resource.children) {
-    //
-    //   keys = new Set(...keys, ...this.createChild(resource).getKeys());
-    //
-    // }
-    //
-    // return keys;
+  //   // let keys = new Set();
+  //   //
+  //   // for (let resource of this.resource.children) {
+  //   //
+  //   //   keys = new Set(...keys, ...this.createChild(resource).getKeys());
+  //   //
+  //   // }
+  //   //
+  //   // return keys;
 
-    return this.createChild({
-      type: "arrayRow",
-      children: this.resource.children
-    }).getKeys();
+  //   return this.createChild({
+  //     type: "arrayRow",
+  //     children: this.resource.children
+  //   }).getKeys();
 
-  }
+  // }
 
-  async exportRows(index = 0, length = 9999) {
+  exportRows(index = 0, length = 9999) {
 
     const object = {};
-		const values = await this.getValue();
+		const values = this.getValue();
 
     const array = [];
 
@@ -62,7 +62,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
         children: this.resource.children
       });
 
-      const row = await rowField.export();
+      const row = rowField.export();
 
       array.push(row);
 
@@ -72,15 +72,15 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async importRows(array = [], index = 0, length = 99999) {
+  importRows(array = [], index = 0, length = 99999) {
 
     let key = this.getKey();
-    const values = await this.getValue();
+    const values = this.getValue();
     const clone = values.slice();
 
     clone.splice(index, Math.min(length, values.length - index), ...array.map(row => {}));
 
-    await this.setValue(clone);
+    this.setValue(clone);
 
     if (array.length) {
 
@@ -94,7 +94,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
           children: this.resource.children
         });
 
-        await rowField.import(row);
+        rowField.import(row);
 
       }
 
@@ -106,7 +106,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
 
 
-  async export(keys = []) {
+  export(keys = []) {
 
     const object = {};
 		// const values = await this.getValue();
@@ -127,7 +127,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
     //
     // }
 
-    const array = await this.exportRows();
+    const array = this.exportRows();
 
     let key = this.getKey();
 
@@ -151,7 +151,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
     return object;
 	}
 
-  async import(object, index = 0, length = 0) {
+  import(object, index = 0, length = 0) {
 
     let key = this.getKey();
     let array;
@@ -183,7 +183,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     }
 
-    await this.importRows(array);
+    this.importRows(array);
 
     // if (array && array.length) {
     //
@@ -324,7 +324,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   getColumns(rows) {
 
-    const keys = this.getKeys();
+    const keys = new Set();
+    this.getKeys(keys);
+    
     const columns = {};
 
     for (let key of keys) {
@@ -347,11 +349,13 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     for (let key in columns) {
 
-      for (let i = 0; i < columns[key].length; i++) {
+      const column = columns[key] || [];
+
+      for (let i = 0; i < column.length; i++) {
         if (!rows[i]) {
           rows[i] = {};
         }
-        rows[i][key] = columns[key][i];
+        rows[i][key] = column[i];
       }
 
     }
@@ -372,47 +376,26 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   //
   // }
 
-  async getValue(...path) {
+  getValue() {
 
     let key = this.getKey();
 
     if (key) {
 
-      const response = await this.parent.request("get", {}, key);
+      return this.parent.request("get", {}, key);
 
-      return KarmaFieldsAlpha.Type.toArray(response);
+      // return KarmaFieldsAlpha.Type.toArray(response);
 
     } else {
 
-      // const defaults = await this.getEmptyRow();
-      //
-      //
-      // const array = [];
-      //
-      // for (let key in defaults) {
-      //
-      //   const response = await this.parent.request("get", null, key);
-      //   const column = KarmaFieldsAlpha.Type.toArray(response);
-      //
-      //   column.forEach((value, index) => {
-      //     if (!array[index]) {
-      //       array[index] = {};
-      //     }
-      //     array[index][key] = value;
-      //   });
-      //
-      // }
-      //
-      // return array;
+      const keys = new Set();
+      this.getKeys(keys);
 
-
-      const keys = this.getKeys();
       const columns = {};
 
       for (key of keys) {
 
-        const response = await this.parent.request("get", null, key);
-        columns[key] = KarmaFieldsAlpha.Type.toArray(response);
+        columns[key] = this.parent.request("get", {}, key);
 
       }
 
@@ -420,47 +403,52 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     }
 
+    // let key = this.getKey();
+
+    // if (key) {
+
+    //   const response = await this.parent.request("get", {}, key);
+
+    //   return KarmaFieldsAlpha.Type.toArray(response);
+
+    // } else {
+
+    //   const keys = this.getKeys();
+    //   const columns = {};
+
+    //   for (key of keys) {
+
+    //     const response = await this.parent.request("get", null, key);
+    //     columns[key] = KarmaFieldsAlpha.Type.toArray(response);
+
+    //   }
+
+    //   return this.getRows(columns);
+
+    // }
+
   }
 
-  async setValue(value) {
+  setValue(value) {
 
     let key = this.getKey();
 
     if (key) {
 
-      await this.parent.request("set", {
-        data: value
-      }, key);
+      this.parent.request("set", value, key);
 
     } else {
 
-      // const keys = {};
-      //
-      // for (let i = 0; i < value.length; i++) {
-      //   for (let key in value[i]) {
-      //     if (!keys[key]) {
-      //       keys[key] = [];
-      //     }
-      //     keys[key][i] = value[i][key];
-      //   }
-      // }
-      //
-      // for (let key in keys) {
-      //
-      //   await this.parent.request("set", {data: keys[key]}, key);
-      //
-      // }
-
       const columns = this.getColumns(value);
-      // const keys = this.getKeys();
 
       for (key in columns) {
 
-        await this.parent.request("set", {data: columns[key]}, key);
+        this.parent.request("set", columns[key], key);
 
       }
 
     }
+
   }
 
   // async getColumn(key) {
@@ -626,65 +614,65 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   //   return event;
   // }
 
-  async request(subject, content = {}, ...path) {
+  request(subject, content = {}, ...path) {
 
 
     switch (subject) {
 
-      case "state": {
-        const [index, subkey] = path;
-        const key = this.getKey();
+      // case "state": {
+      //   const [index, subkey] = path;
+      //   const key = this.getKey();
 
-        if (key) {
+      //   if (key) {
 
-          const state = await this.parent.request("state", {}, key);
+      //     const state = await this.parent.request("state", {}, key);
 
-          if (state.multi) {
+      //     if (state.multi) {
 
-            return {
-              ...state,
-              values: state.values.map(value => value && value[index] && value[index][subkey])
-            };
+      //       return {
+      //         ...state,
+      //         values: state.values.map(value => value && value[index] && value[index][subkey])
+      //       };
 
-          } else if (state.value && state.value[index]) {
+      //     } else if (state.value && state.value[index]) {
 
-            return {
-              ...state,
-              value: state.value[index][subkey]
-            };
+      //       return {
+      //         ...state,
+      //         value: state.value[index][subkey]
+      //       };
 
-          }
+      //     }
 
-        } else {
+      //   } else {
 
-          // const response = await this.parent.request("get", undefined, subkey);
-          // const column = KarmaFieldsAlpha.Type.toArray(response);
-          //
-          // return column[index];
+      //     // const response = await this.parent.request("get", undefined, subkey);
+      //     // const column = KarmaFieldsAlpha.Type.toArray(response);
+      //     //
+      //     // return column[index];
 
 
-          const state = await this.parent.request("state", {}, subkey);
+      //     const state = await this.parent.request("state", {}, subkey);
 
-          if (state.multi) {
+      //     if (state.multi) {
 
-            return {
-              ...state,
-              values: state.values.map(value => KarmaFieldsAlpha.Type.toArray(value)[index])
-            };
+      //       return {
+      //         ...state,
+      //         values: state.values.map(value => KarmaFieldsAlpha.Type.toArray(value)[index])
+      //       };
 
-          } else {
+      //     } else {
 
-            return {
-              ...state,
-              value: KarmaFieldsAlpha.Type.toArray(state.value)[index]
-            };
+      //       return {
+      //         ...state,
+      //         value: KarmaFieldsAlpha.Type.toArray(state.value)[index]
+      //       };
 
-          }
+      //     }
 
-        }
+      //   }
 
-        break;
-      }
+      //   break;
+      // }
 
 
 
@@ -694,37 +682,36 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
         if (key) {
 
-          if (subkey === "..") {
-            return this.parent.request(subject, content, ...path.slice(2));
-          }
+          // if (subkey === "..") {
+          //   return this.parent.request(subject, content, ...path.slice(2));
+          // }
 
           // const array = await super.dispatch({
           //   action: "get",
           //   type: "array"
           // }).then(request => KarmaFieldsAlpha.Type.toArray(request.data));
 
-          const response = await this.parent.request("get", undefined, key);
-          const array = KarmaFieldsAlpha.Type.toArray(response);
+          const values = this.parent.request("get", null, key);
+          
 
-          if (array[index]) {
-            return array[index][subkey];
+          if (values) {
+
+            return KarmaFieldsAlpha.Type.toArray(values[index] && values[index][subkey] || null);
+
           }
 
         } else {
 
-          // let column = await this.getColumn(key);
+          const values = this.parent.request("get", {}, subkey);
 
-          // const column = await super.dispatch({
-          //   action: "get",
-          //   type: "array",
-          //   path: [key]
-          // }).then(request => KarmaFieldsAlpha.Type.toArray(request.data));
+          if (values) {
 
-          const response = await this.parent.request("get", undefined, subkey);
-          const column = KarmaFieldsAlpha.Type.toArray(response);
+            return KarmaFieldsAlpha.Type.toArray(values[index]);
 
-          return column[index];
+          }
+          
         }
+
         break;
       }
 
@@ -736,64 +723,49 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
         if (key) {
 
-          // const array = await super.dispatch({
-          //   action: "get",
-          //   type: "array"
-          // }).then(request => KarmaFieldsAlpha.Type.toArray(request.data));
+          const values = this.parent.request("get", {}, key);
 
-          const response = await this.parent.request("get", undefined, key);
-          const array = KarmaFieldsAlpha.Type.toArray(response);
+          if (values) {
 
-          const clone = KarmaFieldsAlpha.DeepObject.clone(array);
+            const clone = KarmaFieldsAlpha.DeepObject.clone(values);
 
-          if (!clone[index]) {
-            clone[index] = {};
+            if (!clone[index]) {
+
+              clone[index] = {};
+
+            }
+
+            clone[index][subkey] = content;
+
+            this.parent.request("set", clone, key);
           }
-
-          clone[index][subkey] = content.data;
-
-          // await this.setValue(clone);
-          // await super.dispatch({
-          //   action: "set",
-          //   data: clone
-          // });
-
-          await this.parent.request("set", {data: clone}, key);
 
         } else {
 
-          // let column = await this.getColumn(key);
-          // const column = await super.dispatch({
-          //   action: "get",
-          //   type: "array",
-          //   path: [key]
-          // }).then(request => KarmaFieldsAlpha.Type.toArray(request.data));
+          const values = this.parent.request("get", {}, subkey);
 
-          const response = await this.parent.request("get", null, subkey);
-          const column = KarmaFieldsAlpha.Type.toArray(response);
+          if (values) {
 
-          const clone = KarmaFieldsAlpha.DeepObject.clone(column);
-          //
-          // const value = KarmaFieldsAlpha.Type.convert(event.data, event.type || "object");
+            const clone = KarmaFieldsAlpha.DeepObject.clone(values);
 
-          // if (Array.isArray(event.data)) {
-          //   console.error("impossible!");
-          // }
+            clone[index] = KarmaFieldsAlpha.Type.toObject(content);
+
+            this.parent.request("set", clone, subkey);
+
+          }
 
 
-          // const value = KarmaFieldsAlpha.Type.toObject(content.data); // -> compat:
 
-          const value = content.data;
+          // const response = this.parent.request("get", {}, subkey);
+          // const column = KarmaFieldsAlpha.Type.toArray(response);
 
-          clone[index] = value;
+          // const clone = KarmaFieldsAlpha.DeepObject.clone(column);
+          
+          // const value = content.data;
 
-          // await super.dispatch({
-          //   action: "set",
-          //   path: [key],
-          //   data: clone
-          // });
+          // clone[index] = value;
 
-          await this.parent.request("set", {data: clone}, subkey);
+          // await this.parent.request("set", {data: clone}, subkey);
 
         }
 
@@ -804,17 +776,15 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       case "add":
         KarmaFieldsAlpha.History.save();
 
-        await this.add();
-        // await this.render();
-        await this.parent.request("render");
+        this.add();
+        this.parent.request("render");
         break;
 
       case "delete":
 
         KarmaFieldsAlpha.History.save();
-        await this.delete(path[0]);
-        // await this.render();
-        await this.parent.request("render");
+        this.delete(path[0]);
+        this.parent.request("render");
         break;
 
       // case "edit":
@@ -830,6 +800,41 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       //   return this.parent.request(subject, content, subkey, index, ...subpath);
       // }
 
+      case "sort-up": {
+        const [index] = path
+        this.swap(index, 1, index-1);
+        this.render();
+        break;
+      }
+      case "sort-down": {
+        const [index] = path
+        this.swap(index, 1, index+1);
+        this.render();
+        break;
+      }
+
+      case "length": {
+        const values = this.getValue();
+        return values.length;
+      }
+
+      case "path": {
+        const key = this.getKey();
+        if (key) {
+          path = [key, ...path];
+        }
+        return this.parent.request(subject, content, ...path);
+      }
+
+      case "get-option":
+      case "set-option": {
+        const key = this.getKey();
+        if (key) {
+          path = [key, ...path];
+        }
+        return this.parent.request(subject, content, ...path);
+      }
+
       case "modified":
       default: {
         const [index, subkey] = path;
@@ -839,6 +844,68 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     }
 
+
+  }
+
+  expect(action, object) {
+
+    switch (action) {
+
+      case "export": {
+        // todo...
+        break;
+      }
+
+      case "import": {
+        // todo...
+        break;
+      }
+
+      // case "gather": {
+
+      //   let set = new Set();
+
+      //   // const values = await this.request("get");
+      //   const values = await this.getValue();
+
+      //   for (let i = 0; i < values.length; i++) {
+
+      //     const row = this.createChild({type: "arrayRow", key: i.toString(), children: this.resource.children});
+
+      //     const values = await row.expect(action, object);
+
+      //     if (values) {
+
+      //       set = new Set([...set, ...values]);
+
+      //     }
+
+      //   }
+          
+      //   return set;
+      // }
+
+      case "keyup": {
+
+        // console.log(await this.parent.request("path"));
+
+      }
+
+      default: {
+
+        const values = this.getValue();
+
+        for (let i = 0; i < values.length; i++) {
+
+          const row = this.createChild({type: "arrayRow", key: i.toString(), children: this.resource.children});
+
+          row.expect(action, object);
+
+        }
+          
+      }
+
+    }
 
   }
 
@@ -878,63 +945,42 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   // }
 
 
-  async swap(index, length, target) {
-    // await this.backup();
-    // await this.save("array-swap");
-    let values = await this.getValue();
+  swap(index, length, target) {
+    let values = this.getValue();
     values = KarmaFieldsAlpha.DeepObject.clone(values || []);
     values.splice(target, 0, ...values.splice(index, length));
-
-		await this.setValue(values);
-    // await this.edit();
+		this.setValue(values);
   }
 
-  async add() {
+  add() {
 
-    const array = await this.getValue();
-    // const clone = KarmaFieldsAlpha.DeepObject.clone(array);
+    const array = this.getValue();
     const clone = array.slice();
 
-    const defaults = await this.createChild({
+    const defaults = this.createChild({
       ...this.resource,
       type: "arrayRow"
     }).getDefault();
 
     clone.push(defaults);
 
-    await this.setValue(clone);
-
-    // await super.dispatch({
-    //   action: "set",
-    //   data: clone
-    // });
+    this.setValue(clone);
   }
 
-  async delete(index) {
-    const values = await this.getValue();
+  delete(index) {
+    const values = this.getValue();
     const clone = KarmaFieldsAlpha.DeepObject.clone(values);
     clone.splice(index, 1);
-
-    await this.setValue(clone);
-
-    // await super.dispatch({
-    //   action: "set",
-    //   data: clone
-    // });
+    this.setValue(clone);
   }
 
-  async insert(data, index, length) {
-    const values = await this.getValue();
+  insert(data, index, length) {
+    const values = this.getValue();
     const clone = KarmaFieldsAlpha.DeepObject.clone(values);
 
     clone.splice(index, length, ...data);
 
-    await this.setValue(clone);
-
-    // await super.dispatch({
-    //   action: "set",
-    //   data: clone
-    // });
+    this.setValue(clone);
 
   }
 
@@ -942,249 +988,198 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   build() {
     return {
       class: "array",
-      children: [
-        this.clipboard.build(),
-        {
-          class: "array-body",
-          init: table => {
-
-
-          },
-          update: async table => {
-
-            const values = await this.getValue() || [];
-
-            const hasHeader = this.resource.children.some(column => column.header || column.label); // header is deprecated
-
-            this.render = table.render;
-
-            this.clipboard.onBlur = event => {
-
-              if (this.selection) {
-
-                const sortManager = new KarmaFieldsAlpha.SortManager(table.element);
-
-                sortManager.selection = this.selection;
-                sortManager.clear();
-
-                this.selection = null;
-
-              }
-
-            }
-
-            this.clipboard.onInput = async value => {
-
-              // const dataArray = KarmaFieldsAlpha.Clipboard.parse(value);
-              // const array = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
-              //
-              // if (this.selection) {
-              //
-              //   KarmaFieldsAlpha.History.save();
-              //   // await this.insert(array, this.selection.index, this.selection.length);
-              //   await this.import(array[0]);
-              //   this.selection = null;
-              //   await this.parent.request("render");
-              //
-              // }
-
-
-
-              // const dataArray = KarmaFieldsAlpha.Clipboard.parse(value);
-              // const jsonData = KarmaFieldsAlpha.Clipboard.toJson(dataArray);
-              // const object = jsonData[0] || {};
-
-              const array = JSON.parse(value || "[]");
-
-              if (this.selection) {
-
-                KarmaFieldsAlpha.History.save();
-                await this.importRows(array, this.selection.index, this.selection.length);
-                this.selection = null;
-                await this.parent.request("render");
-
-              }
-
-            }
-
-            table.element.classList.toggle("empty", values.length === 0);
-
-            table.element.colCount = this.resource.children.length;
-            table.element.rowCount = values.length;
-            table.element.colHeader = hasHeader ? 1 : 0;
-
-            table.children = [
-              ...this.resource.children.filter(column => values.length && hasHeader).map(column => {
-                return {
-                  class: "th",
-                  init: th => {
-                    th.element.textContent = column.header || column.label || "";
+      update: array => {
+        array.children = [
+          this.clipboard.build(),
+          {
+            class: "array-body",
+            init: table => {
+  
+  
+            },
+            update: table => {
+  
+              this.render = table.render;
+  
+              const values = this.getValue();
+  
+              table.element.classList.toggle("loading", !values);
+  
+              if (values) {
+  
+                table.element.classList.toggle("empty", values.length === 0);
+  
+                const hasHeader = this.resource.children.some(column => column.header || column.label); // header is deprecated
+  
+                this.clipboard.onBlur = event => {
+  
+                  if (this.selection) {
+  
+                    const sortManager = new KarmaFieldsAlpha.SortManager(table.element);
+  
+                    sortManager.selection = this.selection;
+                    sortManager.clear();
+  
+                    this.selection = null;
+  
                   }
-                };
-              }),
-              ...values.reduce((array, item, index) => {
-
-                const row = this.createChild({
-                  ...this.resource,
-                  key: index,
-                  type: "arrayRow"
-                }, index.toString());
-
-                row.index = index;
-
-                return [
-                  ...array,
-                  ...this.resource.children.map((column, colIndex) => {
-
-                    const field = row.createChild(column, colIndex.toString());
-
+  
+                }
+  
+                this.clipboard.onInput = value => {
+  
+                  const array = JSON.parse(value || "[]");
+  
+                  if (this.selection) {
+  
+                    KarmaFieldsAlpha.History.save();
+                    
+                    this.importRows(array, this.selection.index, this.selection.length);
+                    this.selection = null;
+                    this.parent.request("render");
+  
+                  }
+  
+                }
+  
+                
+  
+                table.element.colCount = this.resource.children.length;
+                table.element.rowCount = values.length;
+                table.element.colHeader = hasHeader ? 1 : 0;
+  
+                table.children = [
+                  ...this.resource.children.filter(column => values.length && hasHeader).map(column => {
                     return {
-                      class: "td array-cell karma-field-frame",
-                      init: td => {
-                        // const field = row.createChild(column, colIndex);
-                        if (field.resource.style) {
-                          td.element.style = field.resource.style;
-                        }
-                        if (field.resource.class) {
-                          td.element.classList.add(field.resource.class);
-                        }
-                      },
-                      update: td => {
-
-                        this.selection = null;
-                        td.element.classList.remove("selected");
-                        td.element.onmousedown = async event => {
-
-                          if (event.target !== td.element) {
-                             return;
-                          }
-
-                          if (event.buttons === 1) {
-
-                            const sortManager = new KarmaFieldsAlpha.SortManager(table.element);
-
-                            sortManager.selection = this.selection;
-
-                            sortManager.onSelect = async segment => {
-
-                              this.selection = segment;
-
-                              const array = await this.exportRows(segment.index, segment.length);
-                              const value = JSON.stringify(array);
-
-                              this.clipboard.output(value);
-                              this.clipboard.focus();
-
-                              await this.onRenderControls();
-
-                            }
-
-                            sortManager.onSort = async (index, length, target) => {
-
-                              await this.swap(index, length, target);
-
-                              sortManager.clear();
-
-                              await this.parent.request("render");
-
-                            }
-
-                            // if (this.selection && KarmaFieldsAlpha.Segment.contains(this.selection, index)) {
-
-                            sortManager.select(event, colIndex, index);
-
-
-
-                            // } else {
-                            //
-                            //   await sortManager.select(event, colIndex, index);
-                            //
-                            // }
-
-                            // if (this.selection && KarmaFieldsAlpha.Segment.contains(this.selection, index)) {
-                            //
-                            //   const headerElements = hasHeader ? [...table.element.children].slice(0, this.resource.children.length) : [];
-                            //
-                            //   const sorter = new KarmaFieldsAlpha.Sorter(event, this.selection, index, headerElements);
-                            //
-                            //   await sorter.sort();
-                            //
-                            //   if (sorter.selection.index !== sorter.index) {
-                            //
-                            //     KarmaFieldsAlpha.History.save();
-                            //
-                            //     await this.swap(sorter.index, this.selection.length, this.selection.index);
-                            //
-                            //     sorter.selection.kill();
-                            //
-                            //     // await this.dispatch({action: "render"});
-                            //     await this.parent.request("render");
-                            //
-                            //   }
-                            //
-                            // } else {
-                            //
-                            //   const elements = [...table.element.children].slice(hasHeader ? this.resource.children.length : 0);
-                            //
-                            //   this.selection = new KarmaFieldsAlpha.Selection(event, table.element, elements, this.resource.children.length, values.length, colIndex, index, this.selection);
-                            //
-                            //   await this.selection.select();
-                            //
-                            //   const selecteditems = values.slice(this.selection.index, this.selection.index + this.selection.length);
-                            //
-                            //   this.clipboard.setJson(selecteditems);
-                            //
-                            //   if (this.renderControls) {
-                            //     await this.renderControls();
-                            //   }
-                            //
-                            // }
-
-                          }
-
-                        };
-
-                        td.child = field.build();
+                      class: "th",
+                      init: th => {
+                        th.element.textContent = column.header || column.label || "";
                       }
                     };
-                  })
+                  }),
+                  ...values.reduce((array, item, index) => {
+  
+                    const row = this.createChild({
+                      ...this.resource,
+                      key: index,
+                      type: "arrayRow"
+                    });
+  
+                    row.index = index;
+  
+                    return [
+                      ...array,
+                      ...this.resource.children.map((column, colIndex) => {
+  
+                        const field = row.createChild(column);
+  
+                        return {
+                          class: "td array-cell karma-field-frame",
+                          init: td => {
+                            if (field.resource.style) {
+                              td.element.style = field.resource.style;
+                            }
+                            if (field.resource.class) {
+                              td.element.classList.add(field.resource.class);
+                            }
+                          },
+                          update: td => {
+  
+                            this.selection = null;
+                            td.element.classList.remove("selected");
+                            td.element.onmousedown = event => {
+  
+                              if (event.target !== td.element) {
+                                return;
+                              }
+  
+                              if (event.buttons === 1) {
+  
+                                const sortManager = new KarmaFieldsAlpha.SortManager(table.element);
+  
+                                sortManager.selection = this.selection;
+  
+                                sortManager.onSelect = segment => {
+  
+                                  this.selection = segment;
+  
+                                  // debugger;
+                                  // console.log(await row.request("path"));
+  
+  
+                                  const array = this.exportRows(segment.index, segment.length);
+                                  const value = JSON.stringify(array);
+  
+                                  this.clipboard.output(value);
+                                  this.clipboard.focus();
+  
+                                  this.onRenderControls();
+  
+                                }
+  
+                                sortManager.onSort = (index, length, target) => {
+  
+                                  this.swap(index, length, target);
+  
+                                  sortManager.clear();
+  
+                                  this.parent.request("render");
+  
+                                }
+  
+                                sortManager.select(event, colIndex, index);
+  
+                              }
+  
+                            };
+  
+                            td.child = field.build();
+                          }
+                        };
+                      })
+                    ];
+                  }, [])
+  
                 ];
-              }, [])
-
-            ];
-
-            // table.element.style.gridTemplateColumns = [
-            //   this.resource.index && this.resource.index.width || "5em",
-            //   ...this.resource.children.map(column => column.width || "1fr")
-            //   this.resource.delete && this.resource.delete.width || "auto"
-            // ].join(" ");
-
-            const row = this.createField({type: "arrayRow"});
-
-            table.element.style.gridTemplateColumns = this.resource.children.map(column => row.createField(column).resource.width || "1fr").join(" ");
-
-          }
-        },
-        {
-          class: "array-footer",
-          child: {
-            class: "array-footer-content",
-            init: footer => {
-              footer.element.onmousedown = event => {
-                event.preventDefault(); // -> prevent losing focus on selected items
+  
+                // table.element.style.gridTemplateColumns = [
+                //   this.resource.index && this.resource.index.width || "5em",
+                //   ...this.resource.children.map(column => column.width || "1fr")
+                //   this.resource.delete && this.resource.delete.width || "auto"
+                // ].join(" ");
+  
+                const row = this.createField({type: "arrayRow"});
+  
+                table.element.style.gridTemplateColumns = this.resource.children.map(column => row.createField(column).resource.width || "1fr").join(" ");
+  
+  
+  
               }
-            },
-            update: footer => {
-              if (this.resource.footer !== false) {
-                footer.child = this.createChild({
-                  type: "footer",
-                  ...this.resource.footer
-                }, "footer").build();
+  
+              
+            }
+          },
+          {
+            class: "array-footer",
+            child: {
+              class: "array-footer-content",
+              init: footer => {
+                footer.element.onmousedown = event => {
+                  event.preventDefault(); // -> prevent losing focus on selected items
+                }
+              },
+              update: footer => {
+                if (this.resource.footer !== false) {
+                  footer.child = this.createChild({
+                    type: "footer",
+                    ...this.resource.footer
+                  }, "footer").build();
+                }
               }
             }
           }
-        }
-      ]
+        ];
+      }
     };
   }
 
@@ -1217,25 +1212,18 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   static arrayRow = class extends KarmaFieldsAlpha.field {
 
-    // async dispatch(event) {
-    //
-    //   switch (event.action) {
-    //
-    //     case "index":
-    //       event.data = this.index;
-    //       break;
-    //
-    //     default:
-    //       await super.dispatch(event);
-    //       break;
-    //   }
-    //
-    //   return event;
-    // }
-
-    async request(subject, content, ...path) {
+    request(subject, content, ...path) {
 
       switch (subject) {
+
+        case "get": {
+          if (path.length === 1 && path[0] === "index") {
+            return this.index;
+          } else if (path.length === 1 && path[0] === "length") {
+            return this.parent.request("length");
+          }
+          return this.parent.request(subject, content, this.getKey(), ...path);
+        }
 
         case "index":
           return this.index;
@@ -1247,21 +1235,33 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     }
 
-    getKeys() {
+    // getKeys() {
 
-  		let keys = new Set();
+  	// 	let keys = new Set();
+
+    //   for (let resource of this.resource.children) {
+
+    //     const child = this.createChild(resource);
+    //     keys = new Set([...keys, ...child.getKeys()]);
+
+    //   }
+
+  	// 	return keys;
+  	// }
+
+    getKeys(set) {
+
+      // -> do not consider as keyed
 
       for (let resource of this.resource.children) {
-
-        const child = this.createChild(resource);
-        keys = new Set([...keys, ...child.getKeys()]);
-
+      
+        this.createChild(resource).getKeys(set);
+    
       }
+  
+    }
 
-  		return keys;
-  	}
-
-    async getDefault() {
+    getDefault() {
 
   		let defaults = {};
 
@@ -1271,7 +1271,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   			defaults = {
   				...defaults,
-  				...await child.getDefault()
+  				...child.getDefault()
   			};
 
   		}
@@ -1279,7 +1279,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   		return defaults;
   	}
 
-    async export(keys = []) {
+    export(keys = []) {
 
       let object = {};
 
@@ -1289,7 +1289,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
         object = {
           ...object,
-          ...await child.export(keys)
+          ...child.export(keys)
         };
 
       }
@@ -1297,17 +1297,86 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       return object;
     }
 
-    async import(object) {
+    import(object) {
 
       for (let resource of this.resource.children) {
 
         const child = this.createChild(resource);
 
-        await child.import(object);
+        child.import(object);
 
       }
 
     }
+
+    expect(action, object) {
+
+      console.error("deprecated");
+
+      switch (action) {
+  
+        case "export": {
+          // todo...
+          break;
+        }
+  
+        case "import": {
+          // todo...
+          break;
+        }
+
+        // case "keyup": {
+
+        //   console.log(this);
+
+        // }
+  
+        // case "gather": {
+  
+        //   let set = new Set();
+  
+        //   if (this.resource.children) {
+  
+        //     for (let resource of this.resource.children) {
+        
+        //       const child = this.createChild(resource);
+
+        //       const values = await child.expect(action, object);
+
+        //       if (values) {
+
+        //         set = new Set([...set, ...values]);
+
+        //       }
+
+        //     }
+          
+        //   }
+  
+        //   return set;
+        // }
+
+        default: {
+    
+          if (this.resource.children) {
+  
+            for (let resource of this.resource.children) {
+        
+              const child = this.createChild(resource);
+
+              child.expect(action, object);
+
+            }
+          
+          }
+  
+        }
+  
+      }
+  
+    }
+
+    
 
     // async export(keys = []) {
     //
@@ -1344,19 +1413,19 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
           ...resource
         });
       }
-
+  
       build() {
         return {
           tag: "span",
           update: async td => {
             // td.element.textContent = this.parent.index+1;
             // td.element.textContent = await this.dispatch({action: "index"}).then(request => request.data+1);
-            const index = await this.request("index");
+            const index = this.request("index");
             td.element.textContent = index+1;
           }
         };
       }
-
+  
     }
 
     static delete = {
@@ -1368,6 +1437,63 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       width: "auto"
     }
 
+    static sortArrows = {
+      type: "group",
+      visible: [">", ["get", "number", "length"], "1"],
+      children: [
+        {
+          action: "sort-up",
+          type: "button",
+          title: "Move Up",
+          disabled: ["<", ["get", "number", "index"], 1],
+          dashicon: "arrow-up-alt2",
+          class: "array-sort-up",
+          width: "auto"
+        },
+        {
+          action: "sort-down",
+          type: "button",
+          title: "Move Down",
+          disabled: [">=", ["+", ["get", "number", "index"], 1], ["get", "number", "length"]],
+          dashicon: "arrow-down-alt2",
+          class: "array-sort-up",
+          width: "auto"
+        }
+      ]
+    }
+
   }
+
+  // -> moved from arrayRow because of getDescendants (needed for gallery fields)
+  // static index = class extends KarmaFieldsAlpha.field {
+
+  //   constructor(resource) {
+  //     super({
+  //       width: "5em",
+  //       class: "array-index",
+  //       ...resource
+  //     });
+  //   }
+
+  //   build() {
+  //     return {
+  //       tag: "span",
+  //       update: async td => {
+  //         const index = await this.request("index");
+  //         td.element.textContent = index+1;
+  //       }
+  //     };
+  //   }
+
+  // }
+
+  // static delete = {
+  //   type: "button",
+  //   action: "delete",
+  //   title: "Delete",
+  //   dashicon: "no-alt",
+  //   class: "array-delete",
+  //   width: "auto"
+  // }
 
 }

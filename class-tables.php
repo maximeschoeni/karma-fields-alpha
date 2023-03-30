@@ -4,7 +4,7 @@
 
 Class Karma_Fields_Alpha {
 
-	public $version = '47';
+	public $version = '52';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -144,9 +144,11 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-tags', $plugin_url . '/js/fields/tags.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-tag-links', $plugin_url . '/js/fields/tag-links.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-gallery', $plugin_url . '/js/fields/gallery.js', array('karma-fields-alpha-field'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-files', $plugin_url . '/js/fields/files.js', array('karma-fields-alpha-field'), $this->version, true);
 
 				// beta
 				wp_enqueue_script('karma-fields-alpha-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-alpha-input'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-editor', $plugin_url . '/js/fields/editor.js', array('karma-fields-alpha-input'), $this->version, true);
 
 				// table
 				wp_enqueue_script('karma-fields-alpha-layout', $plugin_url . '/js/tables/layout.js', array('karma-fields-alpha-field'), $this->version, true);
@@ -188,9 +190,12 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-tracker', $plugin_url . '/js/utils/tracker.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-tracker-selector', $plugin_url . '/js/utils/tracker-selector.js', array('karma-fields-alpha-tracker'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-tracker-sorter', $plugin_url . '/js/utils/tracker-sorter.js', array('karma-fields-alpha-tracker-selector'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-tracker-hierarchy', $plugin_url . '/js/utils/tracker-sorter-hierarchy.js', array('karma-fields-alpha-tracker-sorter'), $this->version, true);
 
 				wp_enqueue_script('karma-fields-utils-selection', $plugin_url . '/js/utils/selection.js', array('karma-fields-utils-segment', 'karma-fields-utils-buffer'), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-tree', $plugin_url . '/js/utils/tree.js', array(), $this->version, true);
+
+        wp_enqueue_script('karma-fields-utils-query', $plugin_url . '/js/utils/query.js', array(), $this->version, true);
 
 
 				// external dependancies
@@ -228,8 +233,20 @@ Class Karma_Fields_Alpha {
 				// 'queryTermsURL' => rest_url().'karma-fields/v1/taxonomy',
 				// 'user_edit' => home_url('wp-content/karma-fields/users/'.get_current_user_id().'.json'),
 				'nonce' => wp_create_nonce( 'wp_rest' ),
-				'locale' => str_replace('_', '-', get_locale())
+				'locale' => str_replace('_', '-', get_locale()),
+
 			);
+
+
+      foreach ($this->drivers as $name => $options) {
+
+        $karma_fields['drivers'][$name] = array(
+          'relations' => $options['relations'],
+          'alias' => $options['alias']
+        );
+
+      }
+
 
 
 			// if (isset($karma_cache)) {
@@ -251,43 +268,59 @@ Class Karma_Fields_Alpha {
 	 */
 	public function init() {
 
-		do_action('karma_fields_init', $this);
+		
 
 		$this->register_driver(
 			'posts',
 			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-posts.php',
-			'Karma_Fields_Alpha_Driver_Posts'
+			'Karma_Fields_Alpha_Driver_Posts',
+      array('meta', 'taxonomy'),
+      array(
+        'id' => 'ID',
+        'name' => 'post_title'
+      )
 		);
 
-		$this->register_driver(
-			'postmeta',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postmeta.php',
-			'Karma_Fields_Alpha_Driver_Postmeta'
+    $this->register_driver(
+			'medias',
+			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-medias.php',
+			'Karma_Fields_Alpha_Driver_Medias',
+      array('meta', 'filemeta', 'taxonomy')
 		);
 
-		$this->register_driver(
-			'postdate',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postdate.php',
-			'Karma_Fields_Alpha_Driver_Postdate'
-		);
+		// $this->register_driver(
+		// 	'postmeta',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postmeta.php',
+		// 	'Karma_Fields_Alpha_Driver_Postmeta'
+		// );
 
-		$this->register_driver(
-			'postcontent',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postcontent.php',
-			'Karma_Fields_Alpha_Driver_Postcontent'
-		);
+		// $this->register_driver(
+		// 	'postdate',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postdate.php',
+		// 	'Karma_Fields_Alpha_Driver_Postdate'
+		// );
+
+		// $this->register_driver(
+		// 	'postcontent',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postcontent.php',
+		// 	'Karma_Fields_Alpha_Driver_Postcontent'
+		// );
 
 		$this->register_driver(
 			'taxonomy',
 			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-taxonomy.php',
-			'Karma_Fields_Alpha_Driver_Taxonomy'
+			'Karma_Fields_Alpha_Driver_Taxonomy',
+      array('meta'),
+      array(
+        'id' => 'term_id'
+      )
 		);
 
-		$this->register_driver(
-			'termmeta',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-termmeta.php',
-			'Karma_Fields_Alpha_Driver_Termmeta'
-		);
+		// $this->register_driver(
+		// 	'termmeta',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-termmeta.php',
+		// 	'Karma_Fields_Alpha_Driver_Termmeta'
+		// );
 
 		// $this->register_driver(
 		// 	'attachment',
@@ -327,7 +360,7 @@ Class Karma_Fields_Alpha {
 		// 	'Karma_Fields_Driver_Taxonomy'
 		// );
 
-
+    do_action('karma_fields_init', $this);
 
 	}
 
@@ -794,7 +827,7 @@ Class Karma_Fields_Alpha {
 
 		$driver = $this->get_driver($driver_name);
 
-		if (method_exists($driver, $relation_name)) {
+		if (in_array($relation_name, $driver->relations) && method_exists($driver, $relation_name)) {
 
       $params = $request->get_params();
 
@@ -834,11 +867,13 @@ Class Karma_Fields_Alpha {
 	/**
 	 *	register_driver
 	 */
-	public function register_driver($name, $path, $class) {
+	public function register_driver($name, $path, $class, $relations = array(), $alias = array()) {
 
 		$this->drivers[$name] = array(
 			'path' => $path,
-			'class' => $class
+			'class' => $class,
+      'relations' => $relations,
+      'alias' => (object) $alias
 		);
 
 	}
@@ -854,6 +889,7 @@ Class Karma_Fields_Alpha {
 
 			$driver = new $this->drivers[$driver_name]['class'];
 			$driver->name = $driver_name;
+      $driver->relations = $this->drivers[$driver_name]['relations'];
 
 			return $driver;
 

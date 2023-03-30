@@ -335,7 +335,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
             case 'post_name':
               $args['orderby'] = array('name' => $params['order'], 'date' => 'DESC');
               break;
-
+            
             case 'post_title':
               $args['orderby'] = array('title' => $params['order'], 'date' => 'DESC');
               break;
@@ -346,6 +346,10 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
             case 'post_author':
               $args['orderby'] = array('author' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
+              break;
+
+            case 'meta_value':
+              $args['orderby'] = array('meta_value' => $params['order']);
               break;
 
             // case 'post_type': // -> for medias
@@ -407,6 +411,10 @@ Class Karma_Fields_Alpha_Driver_Posts {
           break;
 
         case 'post_name':
+          break;
+
+        case 'meta_key': 
+          $args['meta_key'] = $value;
           break;
 
         default:
@@ -1095,6 +1103,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
 			$results = $wpdb->get_results($sql);
 
+      
       foreach ($results as $result) {
 
         $meta = maybe_unserialize($result->value);

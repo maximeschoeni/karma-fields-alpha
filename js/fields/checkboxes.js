@@ -1,12 +1,12 @@
 
 KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
-	async getDefault() {
+	getDefault() {
 
 		if (this.resource.default) {
 
 			const key = this.getKey();
-			const value = await this.parse(this.resource.default);
+			const defaultValue = this.parse(this.resource.default);
 			const values = KarmaFieldsAlpha.Type.toArray(defaultValue);
 
 			return {
@@ -82,70 +82,122 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 	// 	return event;
 	// }
 
-	async request(subject, content = {}, ...path) {
+  getOptions(driver, params) {
 
-		switch (subject) {
+    if (!KarmaFieldsAlpha.drivers[driver]) {
 
-			case "get": {
+      console.error("Driver not found", driver);
 
-				const [childKey] = path;
+    }
 
-				const response = await this.parent.request("get", {}, this.getKey());
-				const array = KarmaFieldsAlpha.Type.toArray(response);
 
-				return array.includes(childKey) ? "1" : "";
-			}
+    const results = KarmaFieldsAlpha.Query.getResults(driver, params) || [{id: "", name: "..."}];
 
-			case "set": {
+    const options = [];
+    const alias = KarmaFieldsAlpha.drivers[driver].alias;
+    const idAlias = alias.id || "id";
+    const nameAlias = alias.name || "name";
 
-				const [childKey] = path;
-				const response = await this.parent.request("get", {}, this.getKey());
-				const array = KarmaFieldsAlpha.Type.toArray(response);
-				const set = new Set([...array]);
+    for (let item of results) {
 
-				if (content.data && !set.has(childKey)) {
-					set.add(childKey);
-				} else if (!content.data && set.has(childKey)) {
-					set.delete(childKey);
-				}
+      options.push({
+        id: item[idAlias],
+        name: item[nameAlias] || KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
+      });
 
-				await this.parent.request("set", {data: [...set]}, this.getKey());
+    }
+  
+    return options;
 
-				break;
-			}
+  }
 
-			default: {
-				await this.parent.request(subject, content, this.getKey());
-			}
+	request(subject, content = {}, ...path) {
 
-		}
+    const key = this.getKey();
+
+    if (key) {
+
+      switch (subject) {
+
+        case "get": {
+          
+          const [childKey] = path;
+  
+          const values = this.parent.request("get", {}, key);
+  
+          if (values) {
+  
+            return KarmaFieldsAlpha.Type.toArray(values.includes(childKey) ? "1" : "");
+  
+          }
+          
+        }
+  
+        case "set": {
+  
+          const [childKey] = path;
+          const values = this.parent.request("get", {}, key);
+          // const array = KarmaFieldsAlpha.Type.toArray(response);
+  
+          if (values) {
+            const set = new Set([...values]);
+  
+            if (content && !set.has(childKey)) {
+  
+              set.add(childKey);
+  
+            } else if (!content && set.has(childKey)) {
+  
+              set.delete(childKey);
+  
+            }
+  
+            this.parent.request("set", [...set], key);
+          }
+  
+          break;
+        }
+  
+        default: {
+
+          this.parent.request(subject, content, key);
+          break;
+        }
+  
+      }
+
+    } else {
+
+      return super.request(subject, content, ...path);
+
+    }
+
+		
 
 	}
 
 
-	async export(keys = []) {
+	export() {
 
 		const key = this.getKey();
 		const defaults = {};
+    const values = this.parent.request("get", {}, key);
 
-		if (keys.length === 0 || keys.includes(key)) {
+		if (values) {
 
-			const response = await this.parent.request("get", {}, this.getKey());
-			const array = KarmaFieldsAlpha.Type.toArray(response);
-			defaults[key] = array.join(",");
+			defaults[key] = KarmaFieldsAlpha.Type.toArray(response);
 
 		}
 
 		return defaults;
 	}
 
-	async import(object) {
+	import(object) {
 
 		const key = this.getKey();
-    const string = KarmaFieldsAlpha.Type.toString(object[key]);
-    const array = string.split(",").map(item => item.trim());
+    const array = KarmaFieldsAlpha.Type.toArray(object[key]);
 
-		await this.parent.request("set", {data: value}, this.getKey());
+		this.parent.request("set", array, key);
 	}
 
 	build() {
@@ -154,12 +206,20 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 			update: async dropdown => {
 				dropdown.element.classList.add("loading");
 
-				const options = await this.parse(this.resource.options);
+        let options = [];
 
-				if (!Array.isArray(options)) {
-					console.error("options is not an array");
-				}
+        if (this.resource.options) {
 
+          options = KarmaFieldsAlpha.Type.toArray(this.parse(this.resource.options))
+
+        }
+
+        if (this.resource.driver) {
+
+          options = [...options, ...this.getOptions(this.resource.driver, this.resource.params || {})];
+
+        }
+        
 				dropdown.child = {
 					tag: "ul",
 					update: ul => {

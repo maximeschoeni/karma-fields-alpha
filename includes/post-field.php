@@ -19,10 +19,16 @@
   .karma-field-group {
     min-width: 0;
   }
- </style>
+
+  .karma-field-tinymce .tinymce {
+    /* max-height: 66.66vh;
+    overflow: auto; */
+  }
+</style>
 <script>
 	document.addEventListener("karmaFieldsAlpha", function() {
 
+    const metaboxIndex = "<?php echo $index; ?>";
 		let container = document.getElementById("karma-fields-post-<?php echo $post_id; ?>-field-<?php echo $index; ?>-container");
 		let input = document.getElementById("karma-fields-post-<?php echo $post_id; ?>-input-<?php echo $index; ?>");
 
@@ -35,12 +41,131 @@
 
         static row = class extends KarmaFieldsAlpha.field {
 
-          async request(subject, content, ...path) {
+          // async expect(action, object) {
+
+          //   switch (action) {
+
+          //     // case "gather": {
+
+          //     //   if (this.resource.children) {
+
+          //     //     for (let resource of this.resource.children) {
+
+          //     //       const child = this.createChild(resource);
+
+          //     //       return child.expect(action, object);
+
+          //     //     }
+
+          //     //   }
+
+          //     // }
+
+          //     default: {
+
+          //       if (this.resource.children) {
+
+          //         for (let resource of this.resource.children) {
+
+          //           const child = this.createChild(resource);
+
+          //           await child.expect(action, object);
+
+          //         }
+
+          //       }
+
+          //     }
+
+          //   }
+
+          // }
+
+          request(subject, content, ...path) {
 
             switch (subject) {
 
               case "index":
                 return this.index;
+
+
+                // case "cachefiles": {
+
+                //   const cache = new KarmaFieldsAlpha.Buffer("cache", "metabox", metaboxIndex, "attachments");
+
+                //   let promise = cache.get();
+
+                //   if (!promise) {
+
+                //     promise = new Promise(async resolve => {
+
+                //       // debugger;
+
+                //       const idSet = new Set();
+
+                //       await this.expect("gather", {type: "medias", set: idSet});
+
+                //       // console.log(idSet);
+
+                //       // console.log("idSet", idSet);
+
+                //       // const galleries = this.getDescendants().filter(field => field instanceof KarmaFieldsAlpha.field.gallery);
+
+                //       // console.log("galleries", galleries);
+
+
+                //       // // console.log(galleries);
+
+                //       // const id = this.getKey();
+                //       // const set = new Set();
+
+                //       const mediaTable = this.createChild({
+                //         type: "form",
+                //         driver: "posts"
+                //       });
+
+                //       // for (let gallery of galleries) {
+
+                        
+
+                //       //   const mediaIds = await mediaTable.getInitial(id, gallery.resource.key) || [];
+
+                //       //   // console.log("mediaIds", gallery.resource.key, mediaIds);
+
+                //       //   for (let mediaId of mediaIds) {
+
+                //       //     if (mediaId && mediaId !== "0") {
+
+                //       //       set.add(mediaId);
+
+                //       //     }
+
+                //       //   }
+
+                //       // }
+
+                //       const mediaIds = [...idSet];
+
+                //       if (mediaIds.length) {
+
+                //         await mediaTable.query(`ids=${mediaIds.join(",")}`);
+                //         await mediaTable.queryRelations("meta", mediaIds);
+                //         await mediaTable.queryRelations("filemeta", mediaIds);
+
+                //       }
+                      
+                //       resolve();
+
+                //     });
+
+                //     cache.set(promise);
+
+                //   }
+
+                //   return promise;
+                // }
+
+
 
               default:
                 return this.parent.request(subject, content, this.getKey(), ...path);
@@ -64,7 +189,7 @@
 				constructor() {
 					super({
 						driver: "posts",
-						joins: ["postmeta", "taxonomy"],
+						// joins: ["postmeta", "taxonomy"],
             relations: ["meta", "taxonomy"],
 						params: {
 							ids: id
@@ -92,6 +217,21 @@
 						input.value = JSON.stringify(delta.data.posts[id]);
 					}
 
+
+          this.delta.getObject = function() {
+						return {
+							data: {
+								posts: {
+									[id]: JSON.parse(input.value || "{}")
+								}
+							}
+						};
+					};
+
+					this.delta.setObject = function(delta) {
+						input.value = JSON.stringify(delta.data.posts[id]);
+					}
+
 				}
 
 				// async request(subject, object, ...path) {
@@ -106,23 +246,59 @@
 
 			}
 
-			async request(subject, object, ...path) {
+			request(subject, object, ...path) {
 				switch (subject) {
 					case "render":
 					case "edit":
-						await this.render();
+						this.render();
 						break;
+
 				}
 			}
 
 			build() {
 				return {
 					init: async div => {
-						this.render = div.render;
-						const form = this.createChild("form");
+						
+
+            // addEventListener("keyup", event => {
+            //   form.expect("keyup", {key: event.key});
+            // });
+
+            // await form.request("query");
+            
+
+
 						// await form.query(form.resource.params);
-						div.child = form.build()
-					}
+						
+
+					},
+          update: div => {
+            this.render = div.render;
+            div.child = this.createChild("form").build();
+          },
+          complete: async div => {
+            // const form = this.createChild("form");
+            // const ready = await form.loadMore();
+
+            const process = await KarmaFieldsAlpha.Query.process();
+
+
+            console.log("complete", process);
+
+
+            this.count ||= 0;
+
+            if (process && this.count < 100) {
+
+              div.render();
+
+            }
+
+            this.count++
+
+            // 
+          }
 				}
 			}
 

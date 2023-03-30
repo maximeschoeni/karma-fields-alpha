@@ -6,7 +6,7 @@
 
 // https://make.wordpress.org/core/2017/05/20/editor-api-changes-in-4-8/
 
-KarmaFieldsAlpha.fields.editor = class extends KarmaFieldsAlpha.fields.field {
+KarmaFieldsAlpha.field.editor = class extends KarmaFieldsAlpha.field {
 
 	build() {
 

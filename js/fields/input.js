@@ -1,6 +1,23 @@
 KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
-	async getDefault() {
+  // expect(action, object) {
+    
+  //   switch(action) {
+
+  //     case "keys": {
+  //       const key = this.getKey();
+  //       if (key) {
+  //         object.add(key);
+  //       }
+  //     }
+        
+
+
+  //   }
+
+  // }
+
+	getDefault() {
 
 		const defaults = {};
 
@@ -8,41 +25,44 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		if (key && this.resource.default !== null) {
 
-			defaults[key] = await this.parse(this.resource.default || "");
+			defaults[key] = this.parse(this.resource.default || "");
 
 		}
 
 		return defaults;
 	}
 
-	async exportValue() {
+	exportValue() {
 		const key = this.getKey();
-		return this.get("string");
+    return this.parent.request("get", {}, key);
 	}
 
-	async importValue(value) {
+	importValue(value) {
 		const key = this.getKey();
-		await this.parent.request("set", {data: value}, key);
+		this.parent.request("set", value, key);
 	}
 
-	async export(keys = []) {
+	export(keys = []) {
 		const key = this.getKey();
 		const defaults = {};
 		if (keys.length === 0 || keys.includes(key)) {
 			// defaults[key] = await this.get("string");
-			defaults[key] = await this.parent.request("get", {}, key).then(response => KarmaFieldsAlpha.Type.toString(response));
+      const values = this.parent.request("get", {}, key);
+      if (values) {
+        defaults[key] = KarmaFieldsAlpha.Type.toString(values);
+      }
 		}
 		return defaults;
 	}
 
-	async import(object) {
+	import(object) {
 		const key = this.getKey();
 		if (object[key] !== undefined) {
-			await this.parent.request("set", {data: object[key]}, key);
+			this.parent.request("set", object[key], key);
 		}
 	}
 
-	async set(value) {
+	set(value) {
 
 		if (!this.isBusy()) {
 			KarmaFieldsAlpha.History.save();
@@ -50,12 +70,17 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		const key = this.getKey();
 
-		await this.parent.request("set", {
-			autosave: this.resource.autosave,
-			data: value
-		}, key);
+    if (this.resource.autosave) {
 
-		await this.parent.request("edit");
+      this.parent.request("autosave", value, key);
+
+    } else {
+
+      this.parent.request("set", value, key);
+
+    }
+
+		this.parent.request("edit");
 
 	}
 
@@ -70,18 +95,18 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		return true;
 	}
 
-	async enqueue(callback) {
-		this.queueNext = callback;
-		if (this.queue) {
-			await this.queue;
-		}
-		if (this.queueNext === callback) {
-			this.queue = this.queueNext();
-			await this.queue;
-			return true;
-		}
-		return false;
-	}
+	// async enqueue(callback) {
+	// 	this.queueNext = callback;
+	// 	if (this.queue) {
+	// 		await this.queue;
+	// 	}
+	// 	if (this.queueNext === callback) {
+	// 		this.queue = this.queueNext();
+	// 		await this.queue;
+	// 		return true;
+	// 	}
+	// 	return false;
+	// }
 
 	throttle(callback, interval = 200) {
 		if (this.throttleTimer) {
@@ -106,11 +131,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 				if (this.resource.input) {
 					Object.assign(input.element, this.resource.input);
 				}
-				if (this.resource.readonly) {
-					input.element.readOnly = true;
-				}
 				if (this.resource.options) {
-					// input.element.list = "list-"+this.getId()
 					input.element.setAttribute("list", "list-"+this.getId());
 				}
 
@@ -118,129 +139,114 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 			},
 			update: async input => {
 
-				input.element.classList.add("loading");
+				
 
 				const key = this.getKey();
 
-				// const response = await this.parent.request("get", {}, key);
-				// const array = KarmaFieldsAlpha.Type.toArray(response);
+				// const state = await this.parent.request("state", {}, key);
 
-				const state = await this.parent.request("state", {}, key);
+        const values = this.parent.request("get", {}, key);
 
+        input.element.classList.toggle("loading", !values);
 
+        if (values) {
 
-				input.element.classList.toggle("multi", Boolean(state.multi));
-				input.element.readOnly = Boolean(state.multi);
+          input.element.classList.toggle("multi", values.length > 1);
+          input.element.readOnly = Boolean(this.resource.readonly || values.length > 1);
 
-				const value = state.multi && "[Multiple Values]" || KarmaFieldsAlpha.Type.toString(state.value);
+          const [value = ""] = values;
 
-				// if (state.multi && !state.alike) {
-				// 	state.value = "-- Multiple Values --";
-				// }
+          if (document.activeElement !== input.element) { // -> prevent changing value while editing (e.g search field)
 
-				// if (state.multi) {
-				// 	if (state.alike) {
-				// 		state.value = `[${state.value}]`;
-				// 	} else {
-				// 		state.value = "[Multiple Values]";
-				// 	}
-				// }
+            if (value !== input.element.value) {
 
-				// if (state.multi) {
-				// 	state.value = "[Multiple Values]";
-				// }
+              input.element.value = value;
 
+            }
 
-				if (document.activeElement !== input.element) { // -> prevent changing value while editing (e.g search field)
+            const modified = this.parent.request("modified", {}, key);
 
-					if (value !== input.element.value) {
+            input.element.parentNode.classList.toggle("modified", modified);
 
-						input.element.value = value;
+            input.element.placeholder = this.getPlaceholder();
 
-					}
+          }
 
-					// const isModified = await this.isModified();
+          input.element.onkeyup = async event => {
+            if (event.key === "Enter") {
+              this.parent.request("submit");
+            }
+          }
 
-					input.element.parentNode.classList.toggle("modified", Boolean(state.modified));
+          input.element.oninput = async event => {
 
-					input.element.placeholder = await this.getPlaceholder();
+            // if (this.resource.throttle) {
 
-				}
+            // 	this.throttle(async () => {
+            //     const value = input.element.value.normalize();
+            // 		this.set(value);
+            // 	}, this.resource.throttle);
 
+            // } else {
 
-				input.element.classList.remove("loading");
+            // 	input.element.classList.add("editing");
+            // 	await this.set(input.element.value.normalize());
+            // 	input.element.classList.remove("editing");
 
-				input.element.onkeyup = async event => {
-					if (event.key === "Enter") {
-						await this.parent.request("submit");
-					}
-				}
+            // }
 
-				input.element.oninput = async event => {
+            this.throttle(async () => {
+              const value = input.element.value.normalize();
+              this.set(value);
+            }, this.resource.throttle);
 
-					if (this.resource.throttle) {
+          }
 
-						this.throttle(async () => {
-							input.element.classList.add("editing");
-							await this.set(input.element.value.normalize());
-							input.element.classList.remove("editing");
-						}, this.resource.throttle);
+          input.element.oncopy = event => {
+            if (values.length > 1) {
+              event.preventDefault();
+              const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
+              const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+              event.clipboardData.setData("text/plain", string.normalize());
+            }
+          };
 
-					} else {
+          input.element.onpaste = async event => {
+            if (values.length > 1) {
+              event.preventDefault();
+              const string = event.clipboardData.getData("text").normalize()
+              const dataArray = KarmaFieldsAlpha.Clipboard.parse(string);
+              const jsonData = dataArray.map(value => KarmaFieldsAlpha.Type.toString(value));
 
-						input.element.classList.add("editing");
-						await this.set(input.element.value.normalize());
-						input.element.classList.remove("editing");
+              KarmaFieldsAlpha.History.save();
 
-					}
+              this.parent.request("set", jsonData, key);
+              this.parent.request("render");
+            }
+          };
 
-				}
+          input.element.oncut = async event => {
+            if (values.length > 1) {
+              event.preventDefault();
+              const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
+              const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
+              event.clipboardData.setData("text/plain", string.normalize());
 
-				input.element.oncopy = event => {
-					if (state.multi) {
-						event.preventDefault();
-						const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
-						const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-						event.clipboardData.setData("text/plain", string.normalize());
-					}
-				};
+              KarmaFieldsAlpha.History.save();
 
-				input.element.onpaste = async event => {
-					if (state.multi) {
-						event.preventDefault();
-						const string = event.clipboardData.getData("text").normalize()
-						const dataArray = KarmaFieldsAlpha.Clipboard.parse(string);
-						const jsonData = dataArray.map(value => KarmaFieldsAlpha.Type.toString(value));
+              this.parent.request("set", "", key);
+              this.parent.request("render");
+            }
+          };
 
-						KarmaFieldsAlpha.History.save();
-
-						await this.parent.request("set", {multi: true, values: jsonData}, key);
-						await this.parent.request("render");
-					}
-				};
-
-				input.element.oncut = async event => {
-					if (state.multi) {
-						event.preventDefault();
-						const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
-						const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-						event.clipboardData.setData("text/plain", string.normalize());
-
-						KarmaFieldsAlpha.History.save();
-
-						await this.parent.request("set", {multi: true, values: [""]}, key);
-						await this.parent.request("render");
-					}
-				};
+        }
 
 				if (this.resource.disabled) {
-					const disabled = await this.parent.parse(this.resource.disabled);
-					input.element.disabled = Boolean(disabled);
+					input.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));
 				}
 
-				if (this.resource.active) {
-					const active = await this.parent.parse(this.resource.active);
-					input.element.classList.toggle("active", Boolean(active));
+				if (this.resource.enabled) {
+					input.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
 				}
 
 			}
@@ -268,19 +274,17 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					// 	});
 					// }
 					update: async datalist => {
-						const options = await this.parse(this.resource.options);
-						// options.forEach(option => {
-						// 	datalist.element.appendChild(new Option(option.name, option.name));
-						// });
-						console.log(options);
-						datalist.children = options.map(option => {
-							return {
-								tag: "option",
-								init: node => {
-									node.element.value = option.name;
-								}
-							};
-						});
+						const options = this.parse(this.resource.options);
+						if (options !== KarmaFieldsAlpha.loading) {
+              datalist.children = options.map(option => {
+                return {
+                  tag: "option",
+                  init: node => {
+                    node.element.value = option.name;
+                  }
+                };
+              });
+            }
 					}
 				}
 			]

@@ -15,10 +15,10 @@
 // 	}
 // 	while (child) {
 // 		let next = child && child.nextElementSibling;
-//
+
 // 		const event = new Event("remove");
 // 		element.dispatchEvent(event);
-//
+
 // 		element.removeChild(child);
 // 		child = next;
 // 	}

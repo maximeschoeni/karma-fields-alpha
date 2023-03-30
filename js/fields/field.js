@@ -1,17 +1,19 @@
 
+KarmaFieldsAlpha.loading = Symbol("loading");
+
 KarmaFieldsAlpha.field = class {
 
   static fieldId = 0;
   static uniqueId = 1;
 
   constructor(resource = {}) {
-		this.children = [];
-    this.childMap = {};
+		// this.children = [];
+    // this.childMap = {};
 		this.resource = resource || {};
 
 		this.fieldId = KarmaFieldsAlpha.field.fieldId++;
 
-    this.expressionCache = new KarmaFieldsAlpha.Buffer("expressions");
+    // this.expressionCache = new KarmaFieldsAlpha.Buffer("expressions");
 
   }
 
@@ -36,13 +38,13 @@ KarmaFieldsAlpha.field = class {
     return KarmaFieldsAlpha.field.uniqueId++;
   }
 
-  addChild(child, id) {
-    this.children.push(child);
+  // addChild(child, id) {
+  //   this.children.push(child);
 
-    this.childMap[id || child.resource.id || child.resource.type] = child;
+  //   this.childMap[id || child.resource.id || child.resource.type] = child;
 
-    child.parent = this;
-  }
+  //   child.parent = this;
+  // }
 
   createField(resource) {
 
@@ -62,12 +64,13 @@ KarmaFieldsAlpha.field = class {
     //   return new KarmaFieldsAlpha.field[type](resource);
     // }
 
+    
 
     if (this.constructor[type] && typeof this.constructor[type] === "function") {
       return new this.constructor[type](resource);
     }
 
-    if (this.constructor[type] && typeof this.constructor[type] === "object" && this.constructor[type].type !== type) {
+    if (this.constructor[type] && typeof this.constructor[type] === "object" && this.constructor[type].type !== type) {      
       return this.createField({...this.constructor[type], ...resource, type: this.constructor[type].type});
     }
 
@@ -77,7 +80,7 @@ KarmaFieldsAlpha.field = class {
 
 
 
-    console.error("Field type does not exist", resource);
+    console.error("Field type does not exist", resource, this);
 
   }
 
@@ -118,24 +121,24 @@ KarmaFieldsAlpha.field = class {
     return child;
   }
 
-  getDescendants() {
+  // getDescendants() {
 
-    let descendants = [];
+  //   let descendants = [];
 
-    if (this.resource.children) {
+  //   if (this.resource.children) {
 
-      for (let resource of this.resource.children) {
+  //     for (let resource of this.resource.children) {
 
-        const child = this.createChild(resource);
+  //       const child = this.createChild(resource);
 
-        descendants = [...descendants, child, ...child.getDescendants()];
+  //       descendants = [...descendants, child, ...child.getDescendants()];
 
-      }
+  //     }
 
-    }
+  //   }
 
-    return descendants;
-  }
+  //   return descendants;
+  // }
 
   //
   // getDescendants() {
@@ -198,16 +201,16 @@ KarmaFieldsAlpha.field = class {
   //
   // }
 
-  getChild(id, ...path) {
-    let child = this.childMap[id];
+  // getChild(id, ...path) {
+  //   let child = this.childMap[id];
 
-    // if (path.length) {
-    //   child = child || [...this.getDescendants()].find(child => child.resource.id === id);
-    //   child = child && child.getChild(...path);
-    // }
+  //   // if (path.length) {
+  //   //   child = child || [...this.getDescendants()].find(child => child.resource.id === id);
+  //   //   child = child && child.getChild(...path);
+  //   // }
 
-    return child;
-  }
+  //   return child;
+  // }
 
   // getRelativeParent() {
   //   if (this.resource.key !==  undefined || !this.parent) {
@@ -236,12 +239,12 @@ KarmaFieldsAlpha.field = class {
   }
 
 
-  async isModified() {
+  // async isModified() {
 
-    const key = this.getKey();
-    return this.parent.request("modified", {}, key);
+  //   const key = this.getKey();
+  //   return this.parent.request("modified", {}, key);
 
-  }
+  // }
 
 
   // async dispatch2(request, ...path) {
@@ -309,50 +312,73 @@ KarmaFieldsAlpha.field = class {
     }
   }
 
+  expect(action, object, ...path) {
+    
+    if (this.resource.children) {
 
-  async parse(expression) {
+      // if (!path.length || this.getKey() === path.shift()) {
 
-    // const expressionKey = JSON.stringify(expression);
-    //
-    // let promise = this.cache.get(expressionKey);
-    //
-    // if (!promise) {
-    //
-    //   promise = KarmaFieldsAlpha.Expression.resolve(this, expression);
-    //
-    //   this.cache.set(promise, expressionKey);
-    //
-    // }
-    //
-    // return promise;
+        for (let resource of this.resource.children) {
 
-    return KarmaFieldsAlpha.Expression.resolve(this, expression);
-  }
+          const child = this.createChild(resource);
 
-  async get(type, ...path) {
-    const key = this.getKey();
-    if (key) {
-      path = [key, ...path];
+          child.expect(action, object, ...path);
+
+        }
+
+      // }
+
     }
-    const response = await this.request("get", {}, ...path);
-    return KarmaFieldsAlpha.Type.convert(response, type);
+
   }
 
-  async getString(...path) {
-    return this.get("string", ...path);
-  }
 
-  async getNumber(...path) {
-    return this.get("number", ...path);
-  }
 
-  async getArray(...path) {
-    return this.get("array", ...path);
-  }
 
-  async getObject(...path) {
-    return this.get("object", ...path);
-  }
+
+  // async parse(expression) {
+
+  //   // const expressionKey = JSON.stringify(expression);
+  //   //
+  //   // let promise = this.cache.get(expressionKey);
+  //   //
+  //   // if (!promise) {
+  //   //
+  //   //   promise = KarmaFieldsAlpha.Expression.resolve(this, expression);
+  //   //
+  //   //   this.cache.set(promise, expressionKey);
+  //   //
+  //   // }
+  //   //
+  //   // return promise;
+
+  //   return KarmaFieldsAlpha.Expression.resolve(this, expression);
+  // }
+
+  // async get(type, ...path) {
+  //   const key = this.getKey();
+  //   if (key) {
+  //     path = [key, ...path];
+  //   }
+  //   const response = await this.request("get", {}, ...path);
+  //   return KarmaFieldsAlpha.Type.convert(response, type);
+  // }
+
+  // async getString(...path) {
+  //   return this.get("string", ...path);
+  // }
+
+  // async getNumber(...path) {
+  //   return this.get("number", ...path);
+  // }
+
+  // async getArray(...path) {
+  //   return this.get("array", ...path);
+  // }
+
+  // async getObject(...path) {
+  //   return this.get("object", ...path);
+  // }
 
   // used for export cells
   async exportValue() {
@@ -372,28 +398,24 @@ KarmaFieldsAlpha.field = class {
     // noop
 	}
 
-  getKeys() {
+  getKeys(set) {
 
     const key = this.getKey();
-		let keys = new Set();
 
     if (key) {
 
-      keys.add(key);
+      set.add(key);
 
+    } else if (this.resource.children) {
+    
+      for (let resource of this.resource.children) {
+    
+  			this.createChild(resource).getKeys(set);
+    
+  		}
+    
     }
 
-    // else if (this.resource.children) {
-    //
-    //   for (let resource of this.resource.children) {
-    //
-  	// 		keys = new Set(...keys, ...this.createChild(resource).getKeys());
-    //
-  	// 	}
-    //
-    // }
-
-		return keys;
   }
 
   // follow(resource, ...resPath) {
@@ -403,8 +425,99 @@ KarmaFieldsAlpha.field = class {
 	// }
 
 
-  getAlias(key) {
-    return this.resource.alias && this.resource.alias[key] || key;
+  // getAlias(key) {
+  //   return this.resource.alias && this.resource.alias[key] || key;
+  // }
+
+
+
+
+  parse(expression) {
+
+    if (Array.isArray(expression)) {
+
+      const [operation, ...expressions] = expression;
+
+      if (operation === "esc") {
+
+        return expressions[0];
+
+      }
+
+      const values = expressions.map(expression => this.parse(expression));
+
+      if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+
+        return KarmaFieldsAlpha.loading;
+
+      }
+
+      switch (operation) {
+        case "=":
+        case "==": return KarmaFieldsAlpha.Type.toObject(values[0]) == KarmaFieldsAlpha.Type.toObject(values[1]);
+        case "===": return KarmaFieldsAlpha.Type.toObject(values[0]) === KarmaFieldsAlpha.Type.toObject(values[1]);
+        case "!=": return KarmaFieldsAlpha.Type.toObject(values[0]) != KarmaFieldsAlpha.Type.toObject(values[1]);
+        case "!==": return KarmaFieldsAlpha.Type.toObject(values[0]) !== KarmaFieldsAlpha.Type.toObject(values[1]);
+        case ">": return KarmaFieldsAlpha.Type.toObject(values[0]) > KarmaFieldsAlpha.Type.toObject(values[1]);
+        case "<": return KarmaFieldsAlpha.Type.toObject(values[0]) < KarmaFieldsAlpha.Type.toObject(values[1]);
+        case ">=": return KarmaFieldsAlpha.Type.toObject(values[0]) >= KarmaFieldsAlpha.Type.toObject(values[1]);
+        case "<=": return KarmaFieldsAlpha.Type.toObject(values[0]) <= KarmaFieldsAlpha.Type.toObject(values[1]);
+        case "+": return KarmaFieldsAlpha.Type.toNumber(values[0]) + KarmaFieldsAlpha.Type.toNumber(values[1]);
+        case "-": return KarmaFieldsAlpha.Type.toNumber(values[0]) - KarmaFieldsAlpha.Type.toNumber(values[1]);
+        case "*": return KarmaFieldsAlpha.Type.toNumber(values[0]) * KarmaFieldsAlpha.Type.toNumber(values[1]);
+        case "/": return KarmaFieldsAlpha.Type.toNumber(values[0]) / KarmaFieldsAlpha.Type.toNumber(values[1]);
+        case "%": return KarmaFieldsAlpha.Type.toNumber(values[0]) % KarmaFieldsAlpha.Type.toNumber(values[1]);;
+        case "&&": return KarmaFieldsAlpha.Type.toObject(values[0]) && KarmaFieldsAlpha.Type.toObject(values[1]);
+        case "||": return KarmaFieldsAlpha.Type.toObject(values[0]) || KarmaFieldsAlpha.Type.toObject(values[1]);
+        case "in": return KarmaFieldsAlpha.Type.toArray(values[1]).includes(KarmaFieldsAlpha.Type.toObject(values[0]));
+        case "!": return !KarmaFieldsAlpha.Type.toBoolean(values[0]);
+        case "?": return KarmaFieldsAlpha.Type.toBoolean(values[0]) ? values[1] : values[2];
+        case "concat":
+        case "...": return [].concat(...values.map(value => KarmaFieldsAlpha.Type.toArray(value)));
+        case "max": return Math.max(...values.map(value => KarmaFieldsAlpha.Type.toNumber(value)));
+        case "min": return Math.min(...values.map(value => KarmaFieldsAlpha.Type.toNumber(value)));
+        case "replace": {
+          const [string, wildcard, ...replacements] = values.map(value => KarmaFieldsAlpha.Type.toObject(value));
+          return replacements.reduce((string, replacement) => string.replace(wildcard, replacement), KarmaFieldsAlpha.Type.toString(string));
+        }
+        case "date": {
+          const [date, option, locale] = values.map(value => KarmaFieldsAlpha.Type.toObject(value));
+          return new Intl.DateTimeFormat(locale || KarmaFieldsAlpha.locale, option).format(new Date(date));
+        }
+        case "getvalue":
+        case ".": return this.parent.request("get", {}, ...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
+        case "value": return KarmaFieldsAlpha.Query.getValue(...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
+        case "query": return KarmaFieldsAlpha.Query.getQuery(...values.map(value => KarmaFieldsAlpha.Type.toObject(value))) || KarmaFieldsAlpha.loading;
+        case "id": return this.parent.request("get", {}, "id");
+        case "modified": return this.parent.request("modified", {}, ...values.map(value => KarmaFieldsAlpha.Type.toString(value)));
+        case "map": {
+          let [array, replacement] = values; // ! replacement is already parsed !
+          replacement = expression[2];
+          this.loopItem = null;
+          return KarmaFieldsAlpha.Type.toArray(array).map(value => {
+            this.loopItem = value;
+            return this.parse(replacement);
+          });
+        }
+        case "item": return KarmaFieldsAlpha.DeepObject.get(this.loopItem, ...values.map(value => KarmaFieldsAlpha.Type.toString(value)));
+        case "join": return KarmaFieldsAlpha.Type.toArray(values[0]).join(KarmaFieldsAlpha.Type.toString(values[1]));
+        case "count": return KarmaFieldsAlpha.Type.toArray(values[0]).length;
+        // case "count": return KarmaFieldsAlpha.Query.getCount(...values.map(value => KarmaFieldsAlpha.Type.toObject(value))) || KarmaFieldsAlpha.loading;
+
+        case "get": { // -> compat
+          const [type, ...path] = values;
+          let value = this.parent.request("get", {}, ...path.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
+          if (value !== KarmaFieldsAlpha.loading) {
+            value = KarmaFieldsAlpha.Type.convert(value, KarmaFieldsAlpha.Type.toString(type));
+          }
+          return value;
+        }
+
+      }
+
+    }
+    
+    return expression;
   }
 
 

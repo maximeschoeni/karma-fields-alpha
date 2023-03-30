@@ -1,10 +1,6 @@
 
 KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
-
-  static sorters = [];
-
-
   init() {
 
     let index;

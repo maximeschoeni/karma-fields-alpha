@@ -129,7 +129,7 @@ KarmaFieldsAlpha.field.layout.arrangement = class extends KarmaFieldsAlpha.field
 
       if ((parent || "0") !== item.parent) {
 
-        console.log(parent, item.parent);
+        // console.log(parent, item.parent);
 
         await this.setValue(item.parent, item.id, parentParam);
 
@@ -137,7 +137,7 @@ KarmaFieldsAlpha.field.layout.arrangement = class extends KarmaFieldsAlpha.field
 
       if (parseInt(order) !== i) {
 
-        console.log(order, i);
+        // console.log(order, i);
 
         await this.setValue(i.toString(), item.id, orderParam);
 
@@ -618,7 +618,7 @@ KarmaFieldsAlpha.field.layout.branch = class extends KarmaFieldsAlpha.field {
       update: ul => {
         ul.element.style.height = "auto";
         const path = this.resource.path || [];
-        const sorter = new KarmaFieldsAlpha.Sorter(ul.element);
+        const sorter = new KarmaFieldsAlpha.HSorter(ul.element);
         const selection = KarmaFieldsAlpha.Selection.get(...path);
         sorter.colCount = 1;
         sorter.rowCount = this.resource.children.length;
@@ -626,7 +626,7 @@ KarmaFieldsAlpha.field.layout.branch = class extends KarmaFieldsAlpha.field {
         sorter.selection = selection;
         sorter.path = [...path];
 
-        KarmaFieldsAlpha.Sorter.sorters.push(sorter);
+        // KarmaFieldsAlpha.Sorter.sorters.push(sorter);
 
 
         sorter.onselect = async newSelection => {

@@ -12,7 +12,7 @@ KarmaFieldsAlpha.Type = class {
   }
 
   static toArray(value) {
-    if (value === undefined || value === null) {
+    if (value === undefined || value === null || value === KarmaFieldsAlpha.loading) {
       value = [];
     } else if (!Array.isArray(value)) {
       value = [value];
@@ -20,12 +20,11 @@ KarmaFieldsAlpha.Type = class {
     return value;
   }
 
-
   static toString(value) {
     if (Array.isArray(value)) {
       value = value[0];
     }
-    if (value === undefined || value === null) {
+    if (value === undefined || value === null || value === KarmaFieldsAlpha.loading) {
       value = "";
     }
     return value.toString();
@@ -35,7 +34,7 @@ KarmaFieldsAlpha.Type = class {
     if (Array.isArray(value)) {
       value = value[0];
     }
-    if (isNaN(value)) {
+    if (value === KarmaFieldsAlpha.loading || isNaN(value)) {
       value = 0;
     }
     return Number(value);
@@ -45,14 +44,14 @@ KarmaFieldsAlpha.Type = class {
     if (Array.isArray(value)) {
       value = value[0];
     }
-    return Boolean(value);
+    return Boolean(value) && value !== KarmaFieldsAlpha.loading;
   }
 
   static toObject(value) {
     if (Array.isArray(value)) {
       value = value[0];
     }
-    return value || {};
+    return value;
   }
 
 
