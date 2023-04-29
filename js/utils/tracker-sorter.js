@@ -13,7 +13,8 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
     }
 
-    if (row >= 0 && KarmaFieldsAlpha.Segment.contain(this.selection, row)) {
+    // if (row >= 0 && KarmaFieldsAlpha.Segment.contain(this.selection, row)) {
+    if (row >= 0 && this.selection.contains(row)) {
 
       this.originX = this.tracker.x;
       this.originY = this.tracker.y;
@@ -38,51 +39,102 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
   }
 
+  // update() {
+
+  //   if (this.dragging) {
+
+  //     // let currentBox = this.getBox(this.selection.index + this.indexOffset);
+
+  //     let travelX = this.tracker.x - this.originX;
+  //     let travelY = this.tracker.y - this.originY;
+
+  //     const firstBox = this.getBox(this.selection.index);
+  //     const lastBox = this.getBox(this.selection.index + this.selection.length - 1);
+
+  //     if (this.tracker.deltaY < 0) {
+
+  //       if (this.selection.index > 0) {
+
+  //         const elements = this.sliceElements(this.selection.index - 1, 1);
+  //         const box = this.getElementsBox(...elements);
+
+  //         if (firstBox.y + travelY < box.y + box.height/2) {
+
+  //           this.swapToSame(-1);
+
+  //         }
+
+  //       }
+
+  //     }
+
+  //     if (this.tracker.deltaY > 0) {
+
+  //       const last = this.getHeight();
+
+  //       if (this.selection.index + this.selection.length < last) {
+
+  //         const elements = this.sliceElements(this.selection.index + this.selection.length, 1);
+  //         const box = this.getElementsBox(...elements);
+
+  //         if (lastBox.y + lastBox.height + travelY > box.y + box.height/2) {
+
+  //           this.swapToSame(1);
+
+  //         }
+
+
+  //       }
+
+  //     }
+
+  //     travelX = this.tracker.x - this.originX;
+  //     travelY = this.tracker.y - this.originY;
+
+  //     this.sliceSegment(this.selection).forEach(element => element.style.transform = `translate(${travelX}px, ${travelY}px)`);
+
+  //   } else {
+
+  //     super.update();
+
+  //   }
+
+  // }
+
   update() {
 
     if (this.dragging) {
 
-      // let currentBox = this.getBox(this.selection.index + this.indexOffset);
-
       let travelX = this.tracker.x - this.originX;
       let travelY = this.tracker.y - this.originY;
 
-      const firstBox = this.getBox(this.selection.index);
-      const lastBox = this.getBox(this.selection.index + this.selection.length - 1);
+      // const containerRectangle = this.getElementsRectangle(this.container);
+      const containerRectangle = new KarmaFieldsAlpha.Rect(0, 0, this.container.clientWidth, this.container.clientHeight);
 
-      if (this.tracker.deltaY < 0) {
+      const selectedRectangle = this.getRectangle(this.selection.index, this.selection.length);
 
-        if (this.selection.index > 0) {
+      const draggingRectangle = selectedRectangle.offset(travelX, travelY).constrain(containerRectangle);
 
-          const elements = this.sliceElements(this.selection.index - 1, 1);
-          const box = this.getElementsBox(...elements);
+      // console.log(containerRectangle, selectedRectangle, draggingRectangle);
 
-          if (firstBox.y + travelY < box.y + box.height/2) {
+      if ((this.tracker.deltaX < 0 || this.tracker.deltaY < 0) && this.selection.index > 0) {
 
-            this.swapToSame(-1);
+        const beforeRectangle = this.getRectangle(this.selection.index - 1, 1);
 
-          }
+        if (draggingRectangle.isBefore(beforeRectangle)) {
+
+          this.swapToSame(-1);
 
         }
 
-      }
-      
-      if (this.tracker.deltaY > 0) {
+      } else if ((this.tracker.deltaX > 0 || this.tracker.deltaY > 0) && this.selection.index + this.selection.length < this.getNumRow()) {
 
-        const last = this.getHeight();
+        const afterRectangle = this.getRectangle(this.selection.index + this.selection.length, 1);
 
-        if (this.selection.index + this.selection.length < last) {
+        if (draggingRectangle.isAfter(afterRectangle)) {
 
-          const elements = this.sliceElements(this.selection.index + this.selection.length, 1);
-          const box = this.getElementsBox(...elements);
+          this.swapToSame(1);
 
-          if (lastBox.y + lastBox.height + travelY > box.y + box.height/2) {
-
-            this.swapToSame(1);
-
-          }
-
-           
         }
 
       }
@@ -106,31 +158,32 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
     if (offset > 0) {
 
-      const nextBox = this.getBox(this.selection.index + this.selection.length);
+      const lastRectangle = this.getRectangle(this.selection.index + this.selection.length - 1);
+      const afterRectangle = this.getRectangle(this.selection.index + this.selection.length);
+
+      this.originX += afterRectangle.x - lastRectangle.x;
+      this.originY += afterRectangle.y - lastRectangle.y;
 
       this.insertElementsAt(this.container, elements, this.selection.index + this.selection.length + 1);
 
-      this.originY += nextBox.height;
+      this.selection = new KarmaFieldsAlpha.Selection(this.selection.index + 1, this.selection.length);
 
     } else {
 
-      const prevBox = this.getBox(this.selection.index - 1);
+      const firstRectangle = this.getRectangle(this.selection.index);
+      const beforeRectangle = this.getRectangle(this.selection.index - 1);
+
+      this.originX += beforeRectangle.x - firstRectangle.x;
+      this.originY += beforeRectangle.y - firstRectangle.y;
 
       this.insertElementsAt(this.container, elements, this.selection.index - 1);
 
-      // this.originX -= destBox.x;
-      this.originY -= prevBox.height;
+      this.selection = new KarmaFieldsAlpha.Selection(this.selection.index - 1, this.selection.length);
 
     }
-    this.selection = {index: this.selection.index + offset, length: this.selection.length};
 
-    
+    // this.selection = {index: this.selection.index + offset, length: this.selection.length};
 
-    
-
-    
-
-    
 
   }
 
@@ -163,7 +216,9 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
   }
 
-  insertElementsAt(container, elements, index) {
+  insertElementsAt(container, elements, row) {
+
+    const index = this.getIndex(0, row);
 
     const target = container.children[index];
 
@@ -182,11 +237,11 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
         container.appendChild(element);
 
       }
-      
+
     }
 
   }
 
- 
+
 
 }

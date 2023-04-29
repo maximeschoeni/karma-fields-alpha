@@ -29,6 +29,27 @@
   top: 0; /*-1000px;*/
 }
 
+/* WP Admin Bar: clipboard textarea
+--------------------------------------*/
+
+#karma-fields-alpha-clipboard {
+  width: 1px;
+  height: 1px;
+  display: block;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border: none;
+  box-sizing: border-box;
+}
+.show-content + #karma-fields-alpha-clipboard {
+  width: 100%;
+  height: calc(100% - 32px);
+  top: 32px;
+  position: fixed;
+  z-index: 999999999999;
+  padding: 0.75em;
+}
 
 /* WP Layout
 --------------------------------------*/
@@ -819,6 +840,9 @@ button.karma-button {
   position: relative;
   border: 1px solid var(--frame-border-color);
   cursor: pointer;
+}
+button.karma-button * {
+  pointer-events: none;
 }
 button.karma-button .text {
   padding: 0 var(--gap-width);
@@ -1681,12 +1705,12 @@ textarea.clipboard {
 }
 .karma-tinymce .editor-body {
   position: relative;
-  padding: var(--gap-width) var(--gap-width) 0;
+  padding: 0 var(--gap-width) 0;
   border: 1px solid var(--frame-border-color);
   /* border-top: none; */
   min-height: 8em;
   border-radius: 0;
-  margin: 1.25em 0 0;
+  margin: 2.5em 0 0;
 }
 .karma-tinymce .editor-body:focus {
   background-color: white;
@@ -1724,8 +1748,11 @@ textarea.clipboard {
   outline: none !important;
   border-radius: 0;
 }
-.karma-tinymce .editor-header .toolbar select:hover {
+.karma-tinymce .editor-header .toolbar select {
   background-color: white;
+}
+.karma-tinymce .editor-header .toolbar button[disabled] {
+  border: none !important;
 }
 
 /* .selected .karma-tinymce .editor-header .toolbar {

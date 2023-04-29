@@ -1,74 +1,174 @@
 KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
-	request(subject, content, ...path) {
+  // getSelection(subKey) {
 
-		const key = this.getKey();
+  //   const key = this.getKey();
 
-		if (key) {
+	// 	if (key) {
 
-			// path = [key, ...path];
+  //     const selection = this.parent.getSelection(key);
 
-			switch (subject) {
+  //     if (selection) {
 
-				case "get": {
-					// const response = await this.parent.request("get", {}, key);
-					// const value = KarmaFieldsAlpha.Type.toObject(response);
-					// return KarmaFieldsAlpha.DeepObject.get(value, ...path);
+  //       return selection[subKey];
 
-          const values = this.parent.request("get", {}, key);
+  //     }
 
-          if (values) {
+  //   } else {
 
-					  return KarmaFieldsAlpha.Type.toArray(KarmaFieldsAlpha.DeepObject.get(values[0], ...path));
+  //     return this.parent.getSelection(subKey);
 
-          }
+  //   }
+    
+  // }
+
+  // setSelection(values, subKey) {
+
+  //   const key = this.getKey();
+
+	// 	if (key) {
+
+  //     this.parent.setSelection({[subKey]: values}, key);
+
+  //   } else {
+
+  //     this.parent.setSelection(values, subKey);
+
+  //   }
+    
+  // }
+
+  getValue(...path) {
+    // return this.parent.getValue();
+
+    const key = this.getKey();
+
+    if (key) {
+
+      const values = this.parent.getValue(key);
+
+      const [subkey] = path;
+
+      if (values && subkey) {
+
+        const object = values[0];
+        
+        if (object) {
+        
+          return KarmaFieldsAlpha.Type.toArray(object[subkey]);
+
+        }
+
+        return [];
+        
+      }
+
+      return values;
+
+    } else {
+
+      return this.parent.getValue(...path);
+
+    }
+    
+  }
+
+  setValue(value, subkey) {
+    // return this.parent.getValue();
+
+    const key = this.getKey();
+
+    if (key) {
+
+      const values = this.parent.getValue(key);
+
+      if (values) {
+
+        const object = {...values[0], [subkey]: value};
+
+        this.parent.setValue(object, key);
+
+      }
+
+    } else {
+
+      this.parent.setValue(value, subkey);
+
+    }
+    
+  }
+
+
+
+	// request(subject, content, ...path) {
+
+	// 	const key = this.getKey();
+
+	// 	if (key) {
+
+	// 		// path = [key, ...path];
+
+	// 		switch (subject) {
+
+	// 			case "get": {
+	// 				// const response = await this.parent.request("get", {}, key);
+	// 				// const value = KarmaFieldsAlpha.Type.toObject(response);
+	// 				// return KarmaFieldsAlpha.DeepObject.get(value, ...path);
+
+  //         const values = this.parent.request("get", {}, key);
+
+  //         if (values) {
+
+	// 				  return KarmaFieldsAlpha.Type.toArray(KarmaFieldsAlpha.DeepObject.get(values[0], ...path));
+
+  //         }
           
-				}
+	// 			}
 
-				// case "state": {
-				// 	const state = await this.parent.request("state", {}, key);
-				// 	const value = KarmaFieldsAlpha.Type.toObject(state.value);
-				// 	return {
-				// 		...state,
-				// 		value: KarmaFieldsAlpha.DeepObject.get(value, ...path)
-				// 	};
-				// }
+	// 			// case "state": {
+	// 			// 	const state = await this.parent.request("state", {}, key);
+	// 			// 	const value = KarmaFieldsAlpha.Type.toObject(state.value);
+	// 			// 	return {
+	// 			// 		...state,
+	// 			// 		value: KarmaFieldsAlpha.DeepObject.get(value, ...path)
+	// 			// 	};
+	// 			// }
 
-				case "set": {
-					const values = this.parent.request("get", {}, key);
+	// 			case "set": {
+	// 				const values = this.parent.request("get", {}, key);
 
-          if (values) {
+  //         if (values) {
 
-            const value = KarmaFieldsAlpha.Type.toObject(values[0]);
-            const clone = KarmaFieldsAlpha.DeepObject.clone(value);
-            KarmaFieldsAlpha.DeepObject.assign(clone, content, ...path);
-            this.parent.request("set", clone, key);
+  //           const value = KarmaFieldsAlpha.Type.toObject(values[0]);
+  //           const clone = KarmaFieldsAlpha.DeepObject.clone(value);
+  //           KarmaFieldsAlpha.DeepObject.assign(clone, content, ...path);
+  //           this.parent.request("set", clone, key);
             
-          }
-					// const value = KarmaFieldsAlpha.Type.toObject(response);
-					// const clone = KarmaFieldsAlpha.DeepObject.clone(value);
-					// KarmaFieldsAlpha.DeepObject.assign(clone, content.data, ...path);
-					// await this.parent.request("set", {data: clone}, key);
-					break;
-				}
+  //         }
+	// 				// const value = KarmaFieldsAlpha.Type.toObject(response);
+	// 				// const clone = KarmaFieldsAlpha.DeepObject.clone(value);
+	// 				// KarmaFieldsAlpha.DeepObject.assign(clone, content.data, ...path);
+	// 				// await this.parent.request("set", {data: clone}, key);
+	// 				break;
+	// 			}
 
-				// case "fetch": {
-				// 	return this.parent.request(subject, content, key, ...path); // for transfer record value
-				// }
+	// 			// case "fetch": {
+	// 			// 	return this.parent.request(subject, content, key, ...path); // for transfer record value
+	// 			// }
 
 
-				default:
-					return this.parent.request(subject, content, key);
+	// 			default:
+	// 				return this.parent.request(subject, content, key);
 
-			}
+	// 		}
 
-		} else {
+	// 	} else {
 
-			return this.parent.request(subject, content, ...path);
+	// 		return this.parent.request(subject, content, ...path);
 
-		}
+	// 	}
 
-	}
+	// }
 
 	// getKeys() {
 
@@ -86,58 +186,47 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
 	// }
 
-	getDefault() {
+	getDefault(defaults = {}) {
 
-		const defaults = super.getDefault();
 		const key = this.getKey();
 
 		if (key) {
 
-			return {[key]: defaults};
+      defaults[key] = super.getDefault();
 
-		}
+		} else {
+
+      super.getDefault(defaults);
+
+    }
 
 		return defaults;
 	}
 
-	export() {
+	export(object = {}) {
 
 		const key = this.getKey();
 
 		if (key) {
 
-			const object = {};
-			const values = this.parent.request("get", {}, key);
-
-      if (values) {
-
-        // const value = KarmaFieldsAlpha.Type.toObject(response);
-        // object[key] = JSON.stringify(value || {});
-
-        object[key] = KarmaFieldsAlpha.Type.toObject(response);
-
-      }
-			
-
-			return object;
+			object[key] = this.parent.request("get", {}, key);
 
 		} else {
 
-			return super.export(keys);
+			super.export(object);
 
 		}
 
+    return object;
 	}
 
-	import(object) {
+	import(object = {}) {
 
 		const key = this.getKey();
 
 		if (key) {
 
 			if (object[key] !== undefined) {
-
-				// const value = JSON.parse(object[key] || "{}");
 
 				this.parent.request("set", object[key], key);
 

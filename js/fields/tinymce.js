@@ -29,16 +29,26 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
   getEditor() {
 
-    const key = this.getKey();
+    // const key = this.getKey();
 
-    return this.parent.request("get-option", {}, key, "editor");
+    // return this.parent.request("get-option", {}, key, "editor");
+
+    const data = this.getData() || {};
+
+    return data.editor;
   }
 
   setEditor(editor) {
 
-    const key = this.getKey();
+    // const key = this.getKey();
 
-    this.parent.request("set-option", editor, key, "editor");
+    // this.parent.request("set-option", editor, key, "editor");
+
+    const data = this.getData() || {};
+
+    data.editor = editor;
+
+    this.setData(data);
   }
 
 	async createEditor(element) {
@@ -51,6 +61,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 		// let editor = this.buffer.get(...path);
     let editor = this.getEditor();
+
+
 
 		if (editor && editor.bodyElement !== element) {
 			editor.destroy();
@@ -67,42 +79,18 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				toolbar: false,
 				skin: false,
 				// theme_url: "tinymce/themes/modern/theme.js",
-
 		    // paste_as_text: true,
-
 				paste_word_valid_elements: 'b,strong,i,em,ul,ol',
-
 				// plugins: "link lists table paste",
 				plugins: "link lists paste",
 				convert_urls: false,
-
         entity_encoding : "raw", // -> don't encode diacritics
-
+        // placeholder: "hjhlo",
 				// entity_encoding: "named",
 				// image_caption: true,
-
 				// paste_preprocess: (plugin, args) => {
 			  //   console.log(args.content);
 			  // }
-
-
-				// paste_postprocess: (pl, o) => {
-				// 	function unwrap(node) {
-				// 		let container = document.createElement("div");
-				// 		for (let child of node.childNodes) {
-				// 			if (child.nodeType === Node.ELEMENT_NODE && child.matches("div,span")) {
-				// 				container.append(...unwrap(child).childNodes);
-				// 			} else {
-				// 				container.append(child);
-				// 			}
-				// 		}
-				// 		return container;
-				// 	}
-				// 	o.node = unwrap(o.node);
-				// 	o.node.innerHTML = o.node.innerHTML.normalize();
-			  // }
-
-        // height : "480",
         ...this.resource.mceinit
 			});
 
@@ -135,18 +123,20 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// -> input event does not seem to capture line break (single or double) or delete line break !
 			editor.on("keyup", event => {
 				if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
-          const [current] = this.parent.request("get", {}, this.getKey()) || [];
+          const [current] = this.getValue() || [];
           if (current !== editor.getContent()) {
             this.saveContent();
-          }					
+          }
 				}
 			});
 
 			editor.on("NodeChange", event => {
 				if (event.selectionChange) {
-					if (this.activeModal && event.element !== this.activeNode) {
-						this.activeNode = null;
-						this.activeModal = null;
+          const data = this.getData() || {};
+					if (data.activeModal && event.element !== data.activeNode) {
+            data.activeNode = null;
+            data.activeModal = null;
+            this.setData(data);
 						this.renderPopover();
 					}
 				}
@@ -156,9 +146,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			});
 
 			editor.on("focusout", event => {
-				if (this.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
-					this.activeNode = null;
-					this.activeModal = null;
+        const data = this.getData() || {};
+				if (data.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
+					data.activeNode = null;
+					data.activeModal = null;
+          this.setData(data);
 					this.renderPopover();
 				}
         if (this.renderToolbar) {
@@ -169,17 +161,18 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			editor.on("click", event => {
 
 				const node = editor.selection.getNode();
+        const data = this.getData() || {};
 
 				if (node.matches("a")) {
-					this.activeNode = node;
-					// this.request("link");
-					this.activeModal = "linkForm";
+					data.activeNode = node;
+					data.activeModal = "linkForm";
+          this.setData(data);
 					this.renderPopover();
 				}
 
 				if (node.matches("img")) {
-					this.activeNode = node;
-					// this.trigger("editmedia");
+					data.activeNode = node;
+          this.setData(data);
 					this.request("editmedia");
 				}
 
@@ -193,12 +186,10 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			});
 
 			editor.on("ObjectResized", async event => {
-				// await this.trigger("resizemedia");
 				this.request("resizemedia");
 				this.renderPopover();
 			});
 
-			// this.buffer.set(editor, ...path);
       this.setEditor(editor);
 
 		}
@@ -206,383 +197,820 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 		return editor;
 	}
 
+  queryCommand(key) {
 
-	request(subject, content, ...path) {
+    const editor = this.getEditor();
+
+    if (editor) {
+
+      return editor.queryCommandState(key);
+
+    }
+
+  }
+
+  execCommand(key) {
+
+    const editor = this.getEditor();
+
+    if (editor) {
+
+      editor.execCommand(key);
+      this.saveContent();
+
+    }
+
+  }
+
+  queryUL() {
+
+    const editor = this.getEditor();
+
+    if (editor) {
+
+      return editor.queryCommandValue("InsertUnorderedList") === "true";
+
+    }
+
+    return false;
+  }
+
+  queryOL() {
+
+    const editor = this.getEditor();
+
+    if (editor) {
+
+      return editor.queryCommandValue("InsertOrderedList") === "true";
+
+    }
+
+    return false;
+  }
 
 
-		switch (subject) {
+  execUL() {
 
-			case "state": {
-				const [key] = path;
+    const editor = this.getEditor();
 
-				switch (key) {
+    if (editor) {
 
-					case "format": {
-						const matches = this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
-						return {value: matches && matches[0] || ""};
-					}
+      if (editor.queryCommandValue("InsertUnorderedList") !== "true") {
 
-					case "bold":
-					case "italic":
-					case "strikethrough":
-					case "superscript":
-					case "subscript":
-					case "JustifyLeft":
-					case "JustifyCenter":
-					case "JustifyRight":
-					case "JustifyFull":
-					case "JustifyNone":
-						return {value: this.editor && this.editor.queryCommandState(key)};
+        editor.execCommand('InsertUnorderedList', false, {
+          'list-style-type': 'disc'
+        });
 
-					case "link":
-						return {value: this.activeNode && this.activeNode.matches("a")};
+      } else {
 
-					case "ul":
-						return {value: this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true"};
+        editor.execCommand("RemoveList");
 
-					case "ol":
-						return {value: this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true"};
+      }
 
-				}
+      this.saveContent();
 
-				break;
-			}
+    }
 
-			case "get": {
-				const [key, ...subpath] = path;
+  }
 
-				switch (key) {
+  execOL() {
 
-					case "format": {
-						const matches = this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
-						return matches && matches[0] || "";
-					}
+    const editor = this.getEditor();
 
-					case "bold":
-					case "italic":
-					case "strikethrough":
-					case "superscript":
-					case "subscript":
-					case "JustifyLeft":
-					case "JustifyCenter":
-					case "JustifyRight":
-					case "JustifyFull":
-					case "JustifyNone":
-						return this.editor && this.editor.queryCommandState(key);
+    if (editor) {
 
-					case "link-form": {
-						const linkObject = this.getLink() || {};
-						return KarmaFieldsAlpha.DeepObject.get(linkObject, ...subpath);
-					}
+      if (editor.queryCommandValue("InsertOrderedList") !== "true") {
 
-					case "link":
-						return this.activeNode && this.activeNode.matches("a");
+        editor.execCommand('InsertOrderedList', false, {
+          'list-style-type': 'decimal'
+        });
 
-					case "ul":
-						return this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true";
+      } else {
 
-					case "ol":
-						return this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true";
+        editor.execCommand("RemoveList");
 
-				}
+      }
 
-				break;
-			}
+      this.saveContent();
 
-			case "set": {
+    }
 
-				const [key] = path;
+  }
 
-				switch (key) {
+  getFormat() {
+    const editor = this.getEditor();
 
-					case "format":
-						this.editor && this.editor.execCommand("FormatBlock", false, content.data);
-            this.saveContent();
-						break;
+    if (editor) {
 
-					case "unlink":
-					case "bold":
-					case "italic":
-					case "strikethrough":
-					case "superscript":
-					case "subscript":
-					case "JustifyLeft":
-					case "JustifyCenter":
-					case "JustifyRight":
-					case "JustifyFull":
-					case "JustifyNone":
-						this.editor && this.editor.execCommand(key);
-            this.saveContent();
-						break;
+      const matches = editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
 
-					case "link-form": {
-						this.setLink(content);
-						this.saveContent();
-						this.activeNode = null;
-						this.activeModal = null;
-						this.renderPopover();
-            break;
-					}
+      if (matches && matches[0]) {
 
-					case "ul":
-						if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
-							this.editor.execCommand('InsertUnorderedList', false, {
-							  'list-style-type': 'disc'
-							});
-						} else {
-							this.editor.execCommand("RemoveList");
-						}
-						this.saveContent();
-						break;
+        return [matches[0]];
 
-					case "ol":
-						if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
-							this.editor.execCommand('InsertOrderedList', false, {
-								'list-style-type': 'decimal'
-							});
-						} else {
-							this.editor.execCommand("RemoveList");
-						}
-						this.saveContent();
-						break;
+      }
 
-          case "mode": {
-            this.parent.request("set-option", content.data, "mode");
-            if (this.render) {
-              this.render();
-            }
-            break;
+    }
+
+    return [""];
+  }
+
+  setFormat(value) {
+
+    const editor = this.getEditor();
+
+    if (editor) {
+
+      editor.execCommand("FormatBlock", false, value);
+
+      this.saveContent();
+
+    }
+
+  }
+
+  queryLink() {
+
+    const data = this.getData();
+
+    if (data && data.activeNode) {
+
+      return data.activeNode.matches("a");
+
+    }
+
+    return false;
+  }
+
+  // queryLinkHref() {
+
+  //   if (editor) {
+
+  //     const node = editor.selection.getNode();
+
+  //     if (node) {
+
+  //       return [node.getAttribute("href") || ""];
+
+  //     }
+
+  //   }
+
+  //   return [""];
+  // }
+
+  // queryLinkTarget() {
+
+  //   if (editor) {
+
+  //     const node = editor.selection.getNode();
+
+  //     if (node) {
+
+  //       return [node.getAttribute("target") || ""];
+
+  //     }
+
+  //   }
+
+  //   return [""];
+  // }
+
+  // execLinkHref() {
+
+  //   const editor = this.getEditor();
+
+  //   if (editor) {
+
+  //     editor.execCommand("mceInsertLink", false, {
+	// 			"href": link.href[0],
+	// 			"target": link.target[0] ? "_blank" : null,
+	// 			"data-attachment-id": link.attachment_id && link.attachment_id[0] || null
+	// 		});
+
+  //   }
+
+  // }
+
+
+  getLinkForm() {
+
+    const editor = this.getEditor();
+
+    if (editor) {
+
+      const node = editor.selection.getNode();
+
+      if (node) {
+
+        return [
+          {
+            href: node.getAttribute("href") || "",
+            target: node.getAttribute("target") || ""
           }
-            
+        ];
 
-				}
-				break;
-			}
+      }
 
-      
+    }
 
-			case "edit": {
-				this.saveContent();
-				break;
-			}
+    return [];
 
+  }
 
-			// case "command": {
+  setLinkForm(value) {
 
-        
+    const editor = this.getEditor();
 
-			// 	switch (content.command) {
+    if (editor) {
 
-			// 		// case "unlink":
-			// 		// case "bold":
-			// 		// case "italic":
-			// 		// case "strikethrough":
-			// 		// case "superscript":
-			// 		// case "subscript":
-			// 		// case "JustifyLeft":
-			// 		// case "JustifyCenter":
-			// 		// case "JustifyRight":
-			// 		// case "JustifyFull":
-			// 		// case "JustifyNone":
-			// 		// 	this.editor.execCommand(content.command);
-			// 		// 	await this.saveContent();
-			// 		// 	break;
+      if (value.href) {
 
-			// 		// case "ul":
-			// 		// 	if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
-			// 		// 		this.editor.execCommand('InsertUnorderedList', false, {
-			// 		// 		  'list-style-type': 'disc'
-			// 		// 		});
-			// 		// 	} else {
-			// 		// 		this.editor.execCommand("RemoveList");
-			// 		// 	}
-			// 		// 	await this.saveContent();
-			// 		// 	break;
-			// 		//
-			// 		// case "ol":
-			// 		// 	if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
-			// 		// 		this.editor.execCommand('InsertOrderedList', false, {
-			// 		// 			'list-style-type': 'decimal'
-			// 		// 		});
-			// 		// 	} else {
-			// 		// 		this.editor.execCommand("RemoveList");
-			// 		// 	}
-			// 		// 	await this.saveContent();
-			// 		// 	break;
+        editor.execCommand("mceInsertLink", false, {
+          "href": value.href,
+          "target": value.target ? "_blank" : null
+        });
 
-			// 		case "table":
-			// 			this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
-			// 			// this.editor.execCommand('mceTableInsertColAfter', false);
-			// 			await this.saveContent();
-			// 			break;
+      } else {
+
+        this.editor.execCommand("Unlink");
+
+      }
+
+    }
+
+    this.saveContent();
+
+  }
+
+  openLink() {
+    const data = this.getData() || {};
+    data.activeModal = "linkForm";
+    this.setData(data);
+    this.render();
+  }
 
 
+  closelink() {
 
-			// 		case "attachfile":
-			// 			// -> open media
-			// 			// this.file.uploader.open(this.activeNode && this.activeNode.getAttribute("data-attachment-id"));
-			// 			break;
+    const data = this.getData() || {};
 
-			// 		case "addmedia":
-			// 			// -> open media
-			// 			// this.image.uploader.open(this.activeNode && this.activeNode.getAttribute("data-id"));
-			// 			break;
+    data.activeNode = null;
+    data.activeModal = null;
 
-			// 		case "editmedia":
-			// 			// this.activeModal = this.createChild(this.parseResource("media")).getModal();
-			// 			this.activeModal = "media";
-			// 			await this.renderPopover();
-			// 			break;
+    this.setData(data);
 
-			// 		case "resizemedia": {
-			// 			var node = this.editor.selection.getNode();
-			// 			var width = this.editor.selection.getNode().getAttribute("width");
-			// 			node.sizes = `(min-width: ${width}px) ${width}px, 100vw`;
-			// 			await this.saveContent();
-			// 			break;
-			// 		}
+    this.render();
 
-			// 		case "alignnone":
-			// 		case "alignleft":
-			// 		case "alignright":
-			// 		case "aligncenter": {
-			// 			if (this.activeNode && this.editor) {
-			// 				this.activeNode.classList.remove("alignright");
-			// 				this.activeNode.classList.remove("alignleft");
-			// 				this.activeNode.classList.remove("aligncenter");
-			// 				if (content.command !== "alignnone") {
-			// 					this.activeNode.classList.add(content.command);
-			// 				}
-			// 				this.editor.nodeChanged();
-			// 				await this.renderPopover();
-			// 				await this.saveContent();
-			// 			}
-
-			// 			break;
-			// 		}
+  }
 
 
-			// 	}
+  queryMode() {
 
-			// }
+    const data = this.getData();
 
-			case "link":
-				// -> open popup
-				// this.activeModal = this.createChild(this.parseResource("link")).getModal();
-				this.activeModal = "linkForm";
-				this.renderPopover();
-				break;
+    if (data && data.mode) {
+
+      return data.mode;
+
+    }
+
+    return "edit";
+  }
+
+  execMode(value) {
+
+    const data = this.getData();
+
+    if (!data) {
+
+      data = {};
+
+    }
+
+    data.mode = value;
+
+    this.setData(data);
+  }
 
 
 
 
-			// case "format":
-			// 	return this.getFormat();
+  getValue(key) {
 
-			// case "link":
-			// 	return KarmaFieldsAlpha.DeepObject.get(this.getLink(), ...path);
+    switch (key) {
 
-			case "align": {
-				if (this.activeNode) {
-					if (this.activeNode.classList.contains("alignleft")) {
-						return "left";
-					} else if (this.activeNode.classList.contains("aligncenter")) {
-						return "center";
-					} else if (this.activeNode.classList.contains("alignright")) {
-						return "right";
-					}
-				}
-				return "none";
-			}
+      case "format":
+        return this.getFormat();
 
-			case "alignleft":
-			case "aligncenter":
-			case "alignright":
-				return this.activeNode && this.activeNode.classList.contains(subject);
+      case "bold":
+      case "italic":
+      case "strikethrough":
+      case "superscript":
+      case "subscript":
+      case "JustifyLeft":
+      case "JustifyCenter":
+      case "JustifyRight":
+      case "JustifyFull":
+      case "JustifyNone":
+        return this.queryCommand(key);
 
-			case "alignnone":
-				return this.activeNode
-					&& !this.activeNode.classList.contains("alignleft")
-					&& !this.activeNode.classList.contains("aligncenter")
-					&& !this.activeNode.classList.contains("alignright");
+      // case "linkhref":
+      //   return this.queryLinkHref();
 
 
+      // case "linktarget":
+      //   return this.queryLinkTarget();
 
-			// case "ul":
-			// 	return this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true";
-			//
-			// case "ol":
-			// 	return this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true";
+      case "ul":
+        return this.queryUL();
 
-			// case "bold":
-			// case "italic":
-			// case "strikethrough":
-			// case "superscript":
-			// case "subscript":
-			// case "JustifyLeft":
-			// case "JustifyCenter":
-			// case "JustifyRight":
-			// case "JustifyFull":
-			// case "JustifyNone":
-			// 	return this.editor && this.editor.queryCommandState(subject);
+      case "ol":
+        return this.queryOL();
 
-			case "selected":
-				return this.editor && this.editor.selection.getContent().length > 0;
+      case "linkform":
+        return this.getLinkForm();
 
-			case "close":
-				this.activeNode = null;
-				this.activeModal = null;
-				this.renderPopover();
+      default:
+        return super.getValue();
+
+    }
+
+  }
+
+  setValue(value, key) {
+
+    switch (key) {
+
+      case "format":
+        this.setFormat(value);
 				break;
 
+      case "unlink":
+      case "bold":
+      case "italic":
+      case "strikethrough":
+      case "superscript":
+      case "subscript":
+      case "JustifyLeft":
+      case "JustifyCenter":
+      case "JustifyRight":
+      case "JustifyFull":
+      case "JustifyNone":
+        this.execCommand(key);
+        break;
 
-			// set
+      case "linkform": {
+        this.setLinkForm(value);
+        break;
+      }
 
-			case "setFormat": {
-				this.setFormat(content);
-				this.saveContent();
-				break;
-			}
+      case "ul":
+        // if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+        // 	this.editor.execCommand('InsertUnorderedList', false, {
+        // 	  'list-style-type': 'disc'
+        // 	});
+        // } else {
+        // 	this.editor.execCommand("RemoveList");
+        // }
+        // this.saveContent();
+        this.execUL();
+        break;
 
-			case "setImage": {
-				// const images = await this.image.fetchIds(value, {sources: 1});
-				// this.setImages(images);
-				this.saveContent();
-				// this.activeModal = this.createChild(this.parseResource("media")).getModal();
-				this.activeModal = "media";
-				this.renderPopover();
-				break;
-			}
+      case "ol":
+        // if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+        // 	this.editor.execCommand('InsertOrderedList', false, {
+        // 		'list-style-type': 'decimal'
+        // 	});
+        // } else {
+        // 	this.editor.execCommand("RemoveList");
+        // }
+        // this.saveContent();
+        this.execOL();
+        break;
 
-			case "setFile": {
-				// this.activeModal = this.createChild(this.parseResource("link")).getModal();
-				this.activeModal = "link";
-				this.renderPopover();
-				// const files = await this.file.fetchIds(value);
-				// for (let file of files) {
-				// 	await this.activeModal.buffer.set([file.original_src], "href");
-				// 	await this.activeModal.buffer.set(value, "attachment_id");
-				// 	break;
-				// }
-				this.activeModal.render();
-				break;
-			}
+      case "mode": {
+        this.parent.request("set-option", content.data, "mode");
+        if (this.render) {
+          this.render();
+        }
+        break;
+      }
 
-			case "setLink": {
-				this.setLink(content);
-				this.saveContent();
-				this.activeNode = null;
-				this.activeModal = null;
-				this.renderPopover();
-				break;
-			}
+      default:
+        super.setValue(value);
+        break;
 
-			default:
-				return this.parent.request(subject, content, ...path);
 
-		}
 
-	}
+
+    }
+  }
+
+  hasSelection() {
+
+    const editor = this.getEditor();
+
+    if (editor) {
+
+      return editor.selection.getContent().length > 0;
+
+    }
+
+    return false;
+  }
+
+
+	// request(subject, content, ...path) {
+
+
+	// 	switch (subject) {
+
+	// 		case "state": {
+	// 			const [key] = path;
+
+	// 			switch (key) {
+
+	// 				case "format": {
+	// 					const matches = this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
+	// 					return {value: matches && matches[0] || ""};
+	// 				}
+
+	// 				case "bold":
+	// 				case "italic":
+	// 				case "strikethrough":
+	// 				case "superscript":
+	// 				case "subscript":
+	// 				case "JustifyLeft":
+	// 				case "JustifyCenter":
+	// 				case "JustifyRight":
+	// 				case "JustifyFull":
+	// 				case "JustifyNone":
+	// 					return {value: this.editor && this.editor.queryCommandState(key)};
+
+	// 				case "link":
+	// 					return {value: this.activeNode && this.activeNode.matches("a")};
+
+	// 				case "ul":
+	// 					return {value: this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true"};
+
+	// 				case "ol":
+	// 					return {value: this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true"};
+
+	// 			}
+
+	// 			break;
+	// 		}
+
+	// 		case "get": {
+	// 			const [key, ...subpath] = path;
+
+	// 			switch (key) {
+
+	// 				case "format": {
+	// 					const matches = this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
+	// 					return matches && matches[0] || "";
+	// 				}
+
+	// 				case "bold":
+	// 				case "italic":
+	// 				case "strikethrough":
+	// 				case "superscript":
+	// 				case "subscript":
+	// 				case "JustifyLeft":
+	// 				case "JustifyCenter":
+	// 				case "JustifyRight":
+	// 				case "JustifyFull":
+	// 				case "JustifyNone":
+	// 					return this.editor && this.editor.queryCommandState(key);
+
+	// 				case "link-form": {
+	// 					const linkObject = this.getLink() || {};
+	// 					return KarmaFieldsAlpha.DeepObject.get(linkObject, ...subpath);
+	// 				}
+
+	// 				case "link":
+	// 					return this.activeNode && this.activeNode.matches("a");
+
+	// 				case "ul":
+	// 					return this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true";
+
+	// 				case "ol":
+	// 					return this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true";
+
+	// 			}
+
+	// 			break;
+	// 		}
+
+	// 		case "set": {
+
+	// 			const [key] = path;
+
+	// 			switch (key) {
+
+	// 				case "format":
+	// 					this.editor && this.editor.execCommand("FormatBlock", false, content.data);
+  //           this.saveContent();
+	// 					break;
+
+	// 				case "unlink":
+	// 				case "bold":
+	// 				case "italic":
+	// 				case "strikethrough":
+	// 				case "superscript":
+	// 				case "subscript":
+	// 				case "JustifyLeft":
+	// 				case "JustifyCenter":
+	// 				case "JustifyRight":
+	// 				case "JustifyFull":
+	// 				case "JustifyNone":
+	// 					this.editor && this.editor.execCommand(key);
+  //           this.saveContent();
+	// 					break;
+
+	// 				case "link-form": {
+	// 					this.setLink(content);
+	// 					this.saveContent();
+	// 					this.activeNode = null;
+	// 					this.activeModal = null;
+	// 					this.renderPopover();
+  //           break;
+	// 				}
+
+	// 				case "ul":
+	// 					if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+	// 						this.editor.execCommand('InsertUnorderedList', false, {
+	// 						  'list-style-type': 'disc'
+	// 						});
+	// 					} else {
+	// 						this.editor.execCommand("RemoveList");
+	// 					}
+	// 					this.saveContent();
+	// 					break;
+
+	// 				case "ol":
+	// 					if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+	// 						this.editor.execCommand('InsertOrderedList', false, {
+	// 							'list-style-type': 'decimal'
+	// 						});
+	// 					} else {
+	// 						this.editor.execCommand("RemoveList");
+	// 					}
+	// 					this.saveContent();
+	// 					break;
+
+  //         case "mode": {
+  //           this.parent.request("set-option", content.data, "mode");
+  //           if (this.render) {
+  //             this.render();
+  //           }
+  //           break;
+  //         }
+
+
+	// 			}
+	// 			break;
+	// 		}
+
+
+
+	// 		case "edit": {
+	// 			this.saveContent();
+	// 			break;
+	// 		}
+
+
+	// 		// case "command": {
+
+
+
+	// 		// 	switch (content.command) {
+
+	// 		// 		// case "unlink":
+	// 		// 		// case "bold":
+	// 		// 		// case "italic":
+	// 		// 		// case "strikethrough":
+	// 		// 		// case "superscript":
+	// 		// 		// case "subscript":
+	// 		// 		// case "JustifyLeft":
+	// 		// 		// case "JustifyCenter":
+	// 		// 		// case "JustifyRight":
+	// 		// 		// case "JustifyFull":
+	// 		// 		// case "JustifyNone":
+	// 		// 		// 	this.editor.execCommand(content.command);
+	// 		// 		// 	await this.saveContent();
+	// 		// 		// 	break;
+
+	// 		// 		// case "ul":
+	// 		// 		// 	if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+	// 		// 		// 		this.editor.execCommand('InsertUnorderedList', false, {
+	// 		// 		// 		  'list-style-type': 'disc'
+	// 		// 		// 		});
+	// 		// 		// 	} else {
+	// 		// 		// 		this.editor.execCommand("RemoveList");
+	// 		// 		// 	}
+	// 		// 		// 	await this.saveContent();
+	// 		// 		// 	break;
+	// 		// 		//
+	// 		// 		// case "ol":
+	// 		// 		// 	if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+	// 		// 		// 		this.editor.execCommand('InsertOrderedList', false, {
+	// 		// 		// 			'list-style-type': 'decimal'
+	// 		// 		// 		});
+	// 		// 		// 	} else {
+	// 		// 		// 		this.editor.execCommand("RemoveList");
+	// 		// 		// 	}
+	// 		// 		// 	await this.saveContent();
+	// 		// 		// 	break;
+
+	// 		// 		case "table":
+	// 		// 			this.editor.execCommand('mceInsertTable', false, { rows: 2, columns: 2 });
+	// 		// 			// this.editor.execCommand('mceTableInsertColAfter', false);
+	// 		// 			await this.saveContent();
+	// 		// 			break;
+
+
+
+	// 		// 		case "attachfile":
+	// 		// 			// -> open media
+	// 		// 			// this.file.uploader.open(this.activeNode && this.activeNode.getAttribute("data-attachment-id"));
+	// 		// 			break;
+
+	// 		// 		case "addmedia":
+	// 		// 			// -> open media
+	// 		// 			// this.image.uploader.open(this.activeNode && this.activeNode.getAttribute("data-id"));
+	// 		// 			break;
+
+	// 		// 		case "editmedia":
+	// 		// 			// this.activeModal = this.createChild(this.parseResource("media")).getModal();
+	// 		// 			this.activeModal = "media";
+	// 		// 			await this.renderPopover();
+	// 		// 			break;
+
+	// 		// 		case "resizemedia": {
+	// 		// 			var node = this.editor.selection.getNode();
+	// 		// 			var width = this.editor.selection.getNode().getAttribute("width");
+	// 		// 			node.sizes = `(min-width: ${width}px) ${width}px, 100vw`;
+	// 		// 			await this.saveContent();
+	// 		// 			break;
+	// 		// 		}
+
+	// 		// 		case "alignnone":
+	// 		// 		case "alignleft":
+	// 		// 		case "alignright":
+	// 		// 		case "aligncenter": {
+	// 		// 			if (this.activeNode && this.editor) {
+	// 		// 				this.activeNode.classList.remove("alignright");
+	// 		// 				this.activeNode.classList.remove("alignleft");
+	// 		// 				this.activeNode.classList.remove("aligncenter");
+	// 		// 				if (content.command !== "alignnone") {
+	// 		// 					this.activeNode.classList.add(content.command);
+	// 		// 				}
+	// 		// 				this.editor.nodeChanged();
+	// 		// 				await this.renderPopover();
+	// 		// 				await this.saveContent();
+	// 		// 			}
+
+	// 		// 			break;
+	// 		// 		}
+
+
+	// 		// 	}
+
+	// 		// }
+
+	// 		case "link":
+	// 			// -> open popup
+	// 			// this.activeModal = this.createChild(this.parseResource("link")).getModal();
+	// 			this.activeModal = "linkForm";
+	// 			this.renderPopover();
+	// 			break;
+
+
+
+
+	// 		// case "format":
+	// 		// 	return this.getFormat();
+
+	// 		// case "link":
+	// 		// 	return KarmaFieldsAlpha.DeepObject.get(this.getLink(), ...path);
+
+	// 		case "align": {
+	// 			if (this.activeNode) {
+	// 				if (this.activeNode.classList.contains("alignleft")) {
+	// 					return "left";
+	// 				} else if (this.activeNode.classList.contains("aligncenter")) {
+	// 					return "center";
+	// 				} else if (this.activeNode.classList.contains("alignright")) {
+	// 					return "right";
+	// 				}
+	// 			}
+	// 			return "none";
+	// 		}
+
+	// 		case "alignleft":
+	// 		case "aligncenter":
+	// 		case "alignright":
+	// 			return this.activeNode && this.activeNode.classList.contains(subject);
+
+	// 		case "alignnone":
+	// 			return this.activeNode
+	// 				&& !this.activeNode.classList.contains("alignleft")
+	// 				&& !this.activeNode.classList.contains("aligncenter")
+	// 				&& !this.activeNode.classList.contains("alignright");
+
+
+
+	// 		// case "ul":
+	// 		// 	return this.editor && this.editor.queryCommandValue("InsertUnorderedList") === "true";
+	// 		//
+	// 		// case "ol":
+	// 		// 	return this.editor && this.editor.queryCommandValue("InsertOrderedList") === "true";
+
+	// 		// case "bold":
+	// 		// case "italic":
+	// 		// case "strikethrough":
+	// 		// case "superscript":
+	// 		// case "subscript":
+	// 		// case "JustifyLeft":
+	// 		// case "JustifyCenter":
+	// 		// case "JustifyRight":
+	// 		// case "JustifyFull":
+	// 		// case "JustifyNone":
+	// 		// 	return this.editor && this.editor.queryCommandState(subject);
+
+	// 		case "selected":
+	// 			return this.editor && this.editor.selection.getContent().length > 0;
+
+	// 		case "close":
+	// 			this.activeNode = null;
+	// 			this.activeModal = null;
+	// 			this.renderPopover();
+	// 			break;
+
+
+	// 		// set
+
+	// 		case "setFormat": {
+	// 			this.setFormat(content);
+	// 			this.saveContent();
+	// 			break;
+	// 		}
+
+	// 		case "setImage": {
+	// 			// const images = await this.image.fetchIds(value, {sources: 1});
+	// 			// this.setImages(images);
+	// 			this.saveContent();
+	// 			// this.activeModal = this.createChild(this.parseResource("media")).getModal();
+	// 			this.activeModal = "media";
+	// 			this.renderPopover();
+	// 			break;
+	// 		}
+
+	// 		case "setFile": {
+	// 			// this.activeModal = this.createChild(this.parseResource("link")).getModal();
+	// 			this.activeModal = "link";
+	// 			this.renderPopover();
+	// 			// const files = await this.file.fetchIds(value);
+	// 			// for (let file of files) {
+	// 			// 	await this.activeModal.buffer.set([file.original_src], "href");
+	// 			// 	await this.activeModal.buffer.set(value, "attachment_id");
+	// 			// 	break;
+	// 			// }
+	// 			this.activeModal.render();
+	// 			break;
+	// 		}
+
+	// 		case "setLink": {
+	// 			this.setLink(content);
+	// 			this.saveContent();
+	// 			this.activeNode = null;
+	// 			this.activeModal = null;
+	// 			this.renderPopover();
+	// 			break;
+	// 		}
+
+	// 		default:
+	// 			return this.parent.request(subject, content, ...path);
+
+	// 	}
+
+	// }
+
+  setImage() {
+    // this.saveContent();
+    // // this.activeModal = this.createChild(this.parseResource("media")).getModal();
+    // this.activeModal = "media";
+    // this.renderPopover();
+
+    const data = this.getData() || {};
+    data.activeModal = "media";
+    this.setData(data);
+    this.render();
+
+  }
+
 
 
 	// async trigger(action) {
@@ -683,22 +1111,45 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 	// }
 
 
-	getFormat() {
-		const matches = this.editor && this.editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
-		return matches && matches[0] || "";
-	}
+	// setImages(images) {
 
-	setFormat(value) {
-		if (this.editor) {
-			this.editor.execCommand("FormatBlock", false, value);
-		}
-	}
 
-	setImages(images) {
+
+	// 	for (let image of images) {
+
+	// 		const node = this.editor.selection.getNode();
+
+	// 		let width = image.sources[0].width;
+	// 		let height = image.sources[0].height;
+
+	// 		if (node && node.matches("img")) {
+	// 			width = node.getAttribute("width") || width;
+	// 			height = node.getAttribute("height") || height;
+	// 		}
+
+	// 		this.editor.execCommand(
+	// 			'mceInsertContent',
+	// 			false,
+	// 			`<img
+	// 				src="${image.sources[0].src}"
+	// 				width="${width}"
+	// 				height="${height}"
+	// 				data-id="${image.id}"
+	// 				srcset="${image.sources.map(source => source.src+" "+source.width+"w").join(", ")}"
+	// 				sizes="(min-width: ${width}px) ${width}px, 100vw"
+	// 			>`
+	// 		);
+
+	// 	}
+	// }
+
+  setImages(images) {
+
+    const editor = this.getEditor();
 
 		for (let image of images) {
 
-			const node = this.editor.selection.getNode();
+			const node = editor.selection.getNode();
 
 			let width = image.sources[0].width;
 			let height = image.sources[0].height;
@@ -724,34 +1175,34 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 		}
 	}
 
-	getLink() {
-		const node = this.editor && this.editor.selection.getNode();
-		const value = {};
+	// getLink() {
+	// 	const node = this.editor && this.editor.selection.getNode();
+	// 	const value = {};
 
-		if (node) {
-			value.href = node.getAttribute("href") || "";
-			value.target = node.target === "_blank" ? "1" : "";
-			if (node.hasAttribute("data-attachment-id")) {
-				value.attachment_id = [node.getAttribute("data-attachment-id")];
-			}
-		}
+	// 	if (node) {
+	// 		value.href = node.getAttribute("href") || "";
+	// 		value.target = node.target === "_blank" ? "1" : "";
+	// 		if (node.hasAttribute("data-attachment-id")) {
+	// 			value.attachment_id = [node.getAttribute("data-attachment-id")];
+	// 		}
+	// 	}
 
-		return value;
-	}
+	// 	return value;
+	// }
 
-	setLink(value) {
-		let link = this.getLink();
-		KarmaFieldsAlpha.DeepObject.merge(link, value);
-		if (link.href) {
-			this.editor.execCommand("mceInsertLink", false, {
-				"href": link.href[0],
-				"target": link.target[0] ? "_blank" : null,
-				"data-attachment-id": link.attachment_id && link.attachment_id[0] || null
-			});
-		} else {
-			this.editor.execCommand("Unlink");
-		}
-	}
+	// setLink(value) {
+	// 	let link = this.getLink();
+	// 	KarmaFieldsAlpha.DeepObject.merge(link, value);
+	// 	if (link.href) {
+	// 		this.editor.execCommand("mceInsertLink", false, {
+	// 			"href": link.href[0],
+	// 			"target": link.target[0] ? "_blank" : null,
+	// 			"data-attachment-id": link.attachment_id && link.attachment_id[0] || null
+	// 		});
+	// 	} else {
+	// 		this.editor.execCommand("Unlink");
+	// 	}
+	// }
 
 
 	saveContent() {
@@ -769,27 +1220,58 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 		// }
 
 
-		this.throttle(async () => {
+		// this.throttle(async () => {
 
-			const key = this.getKey();
-			let value = this.editor.getContent();
+		// 	const key = this.getKey();
+		// 	let value = this.editor.getContent();
 
-			value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
+		// 	value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
 
-			const current = this.parent.request("get", {}, key);
+		// 	const current = this.parent.request("get", {}, key);
 
-      if (current && value !== KarmaFieldsAlpha.Type.toString(current)) {
+    //   if (current && value !== KarmaFieldsAlpha.Type.toString(current)) {
 
-        KarmaFieldsAlpha.History.save();
-        this.parent.request("set", value, key);
-        this.parent.request("edit");
-  
+    //     KarmaFieldsAlpha.History.save();
+    //     this.parent.request("set", value, key);
+    //     this.parent.request("edit");
+
+    //   }
+
+
+
+		// }, 500);
+
+
+
+
+    // this.debounce("typing", async () => {
+
+      const editor = this.getEditor();
+
+      if (editor) {
+
+        let value = editor.getContent().normalize();
+
+        value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
+
+        const [currentValue] = this.getValue() || [];
+
+        if (value !== currentValue) {
+
+          this.setValue(value);
+
+          this.parent.request("save");
+          this.parent.request("render");
+
+        }
+
       }
 
-			
+      // this.unlock();
 
-		}, 500);
+    // }, 1000);
 
+    // this.lock();
 
 	}
 
@@ -811,45 +1293,48 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 	// }
 
 	// -> like input
-	getDefault() {
-		const defaults = {};
+	// getDefault() {
+	// 	const defaults = {};
 
-		const key = this.getKey();
+	// 	const key = this.getKey();
 
-		if (key && this.resource.default !== null) {
+	// 	if (key && this.resource.default !== null) {
 
-			defaults[key] = this.parse(this.resource.default || "");
+	// 		defaults[key] = this.parse(this.resource.default || "");
 
-		}
+	// 	}
 
-		return defaults;
-	}
+	// 	return defaults;
+	// }
 
 	// -> like input
-	throttle(callback, interval = 500, delay = 3000) {
-		// if (!this.throttleDelayTimer) {
-			if (this.throttleTimer) {
-				clearTimeout(this.throttleTimer);
-			}
-			this.throttleTimer = setTimeout(callback, interval);
-			// this.throttleDelayTimer = setTimeout(() => {
-			// 	clearTimeout(this.throttleDelayTimer);
-			// }, delay);
-		// }
+	// throttle(callback, interval = 500, delay = 3000) {
+	// 	// if (!this.throttleDelayTimer) {
+	// 		if (this.throttleTimer) {
+	// 			clearTimeout(this.throttleTimer);
+	// 		}
+	// 		this.throttleTimer = setTimeout(callback, interval);
+	// 		// this.throttleDelayTimer = setTimeout(() => {
+	// 		// 	clearTimeout(this.throttleDelayTimer);
+	// 		// }, delay);
+	// 	// }
 
-	}
+	// }
 
 	build() {
 		return {
 			class: "editor karma-tinymce",
-			init: editor => {
-				if (this.resource.theme) {
-					editor.element.classList.add("theme-"+this.resource.theme);
-				}
-			},
+			// init: editor => {
+			// 	if (this.resource.theme) {
+			// 		editor.element.classList.add("theme-"+this.resource.theme);
+			// 	}
+			// },
       update: async container => {
-        this.render = container.render;
-        const mode = this.parent.request("get-option", {}, "mode") || this.resource.mode || "edit";
+        // this.render = container.render;
+        // const mode = this.parent.request("get-option", {}, "mode") || this.resource.mode || "edit";
+        let action = this.getData() || {};
+        const mode = action.mode || this.resource.mode || "edit";
+
         container.children = [
           {
             class: "mode mode-code",
@@ -878,17 +1363,31 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                         node.child = {
                           tag: "textarea",
                           update: async textarea => {
-                            const key = this.getKey();
-                            const values = this.parent.request("get", {}, key);
-                            
+                            const values = this.getValue();
+
                             if (values) {
-                              textarea.element.value = values[0] || "";
-                              textarea.element.style.height = 0;
-                              textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
-                              textarea.element.oninput = event => {
+                              if (!this.isLocked()) {
+                                textarea.element.value = values[0] || "";
                                 textarea.element.style.height = 0;
                                 textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
-                                this.throttle(() => this.set(textarea.element.value.normalize()));
+                              }
+                              textarea.element.oninput = () => {
+                                textarea.element.style.height = 0;
+                                textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
+                                // this.throttle(() => this.set(textarea.element.value.normalize()));
+                                this.debounce("typing", async () => {
+                                  const value = input.element.value.normalize();
+                                  const [currentValue] = this.getValue() || [];
+
+                                  if (value !== currentValue) {
+                                    this.setValue(value);
+                                    this.parent.request("save");
+                                    await this.parent.render();
+                                  }
+                                  this.unlock();
+                                }, this.resource.debounce || 1000);
+                                this.lock();
+
                               }
                             }
                           }
@@ -926,31 +1425,21 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                     update: async node => {
                       node.element.classList.toggle("hidden", mode === "code");
                       if (mode !== "code") {
-        
                         node.element.editable = true;
-                        const key = this.getKey();
-                        const values = this.parent.request("get", {}, key);
+                        const editor = await this.createEditor(node.element);
 
-                        if (values) {
+                        if (!this.isLocked()) {
 
-                          const value = KarmaFieldsAlpha.Type.toString(values);
-                          // const path = await this.parent.request("path", {}, key);
-                          // node.element.id = path.join("-");
-                          // this.editor = await this.createEditor(node.element, ...path);
-                          this.editor = await this.createEditor(node.element);
-            
-                          if (value !== this.editor.getContent()) {
-            
-                            this.editor.setContent(value);
-            
+                          const values = this.getValue();
+                          if (values) {
+                            const value = KarmaFieldsAlpha.Type.toString(values);
+
+                            if (value !== editor.getContent()) {
+                              editor.setContent(value);
+                            }
                           }
-
                         }
-            
-                        
-        
                       }
-          
                     }
                   },
                   {
@@ -961,31 +1450,40 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                     // },
                     // update: container => {
                       container.element.onfocusout = event => {
-                        if (this.activeModal && (!event.relatedTarget || !container.element.contains(event.relatedTarget) && !this.editor.getBody().contains(event.relatedTarget))) {
-                          // this.activePopover = null;
-                          this.activeNode = null;
-                          this.activeModal = null;
+                        const editor = this.getEditor();
+                        const data = this.getData() || {};
+                        if (data.activeModal && (!event.relatedTarget || !container.element.contains(event.relatedTarget) && !editor.getBody().contains(event.relatedTarget))) {
+                          // this.activeNode = null;
+                          // this.activeModal = null;
+
+                          data.activeNode = null;
+                          data.activeModal = null;
+                          this.setData(data);
+
                           container.render();
                         }
                       };
-          
-                      container.children = ["linkForm"].map(child => {
+
+                      container.children = ["linkForm"].map((child, index) => {
                         return {
                           class: "karma-tinymce-popover",
                           init: popover => {
                             popover.element.tabIndex = -1;
                           },
                           update: async popover => {
-                            popover.element.classList.toggle("hidden", this.activeModal !== child);
-                            popover.element.classList.toggle("active", this.activeModal === child);
-                            if (this.activeModal === child) {
+                            const data = this.getData() || {};
+                            popover.element.classList.toggle("hidden", data.activeModal !== child);
+                            popover.element.classList.toggle("active", data.activeModal === child);
+                            if (data.activeModal === child) {
                               popover.children = [this.createChild({
                                 type: child,
-                                ...this.resource.linkForm
+                                ...this.resource.linkForm,
+                                index: index
                               }).build()];
-                              if (this.editor) {
+                              const editor = this.getEditor();
+                              if (editor) {
                                 const containerBox = container.element.parentNode.getBoundingClientRect();
-                                const nodeBox = this.activeNode ? this.activeNode.getBoundingClientRect() : this.editor.selection.getRng().getBoundingClientRect();
+                                const nodeBox = data.activeNode ? data.activeNode.getBoundingClientRect() : editor.selection.getRng().getBoundingClientRect();
                                 popover.element.style.left = (nodeBox.left - containerBox.x).toFixed()+"px";
                                 popover.element.style.top = (nodeBox.bottom - containerBox.y + 5).toFixed()+"px";
                               }
@@ -1049,9 +1547,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				super({
 					dashicon: "editor-bold",
 					title: "Bold",
-					action: "set",
-					path: ["bold"],
-					active: ["get", "boolean", "bold"],
+					action: "execCommand",
+          value: "bold",
+					active: ["request", "queryCommand", "bold"],
 					...resource
 				});
 			}
@@ -1062,9 +1560,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				super({
 					dashicon: "editor-italic",
 					title: "Italic",
-					action: "set",
-					path: ["italic"],
-					active: ["get", "boolean", "italic"],
+					action: "execCommand",
+					value: "italic",
+					active: ["request", "queryCommand", "italic"],
 					...resource
 				});
 			}
@@ -1075,10 +1573,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				super({
 					dashicon: "admin-links",
 					title: "Link",
-					action: "link",
-					// path: ["link"],
-					active: ["get", "boolean", "link"],
-					disabled: ["!", ["selected"]],
+					action: "openLink",
+					active: ["request", "queryLink"],
+					disabled: ["!", ["request", "hasSelection"]],
 					...resource
 				});
 			}
@@ -1089,9 +1586,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				super({
 					dashicon: "editor-ul",
 					title: "Unordered list",
-					action: "set",
-					path: ["ul"],
-					active: ["get", "boolean", "ul"],
+					action: "execUL",
+					active: ["request", "queryUL"],
 					...resource
 				});
 			}
@@ -1102,9 +1598,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				super({
 					dashicon: "editor-ol",
 					title: "Ordered list",
-					action: "set",
-					path: ["ol"],
-					active: ["get", "boolean", "ol"],
+					action: "execOL",
+					active: ["request", "queryOL"],
 					...resource
 				});
 			}
@@ -1115,9 +1610,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				super({
 					dashicon: "html",
 					title: "Code",
-					action: "set",
-					path: ["mode"],
-          value: {data: "code"},
+					action: "execMode",
+          value: "code",
 					...resource
 				});
 			}
@@ -1128,9 +1622,113 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				super({
 					dashicon: "edit",
 					title: "Code",
-					action: "set",
-					path: ["mode"],
-          value: {data: "edit"},
+					action: "execMode",
+          value: "edit",
+					...resource
+				});
+			}
+		}
+
+
+    static strikethrough = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "editor-strikethrough",
+					title: "Strikethrough",
+					action: "execCommand",
+					value: "strikethrough",
+					active: ["request", "queryCommand", "strikethrough"],
+					...resource
+				});
+			}
+		}
+
+    static superscript = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					// dashicon: "editor-strikethrough",
+					title: "Superscript",
+					action: "execCommand",
+					value: "superscript",
+					active: ["request", "queryCommand", "superscript"],
+					...resource
+				});
+			}
+		}
+
+    static superscript = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					// dashicon: "editor-strikethrough",
+					title: "Subscript",
+					action: "execCommand",
+					value: "subscript",
+					active: ["request", "queryCommand", "subscript"],
+					...resource
+				});
+			}
+		}
+
+    static justifyLeft = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "editor-alignleft",
+					title: "JustifyLeft",
+					action: "execCommand",
+					value: "JustifyLeft",
+					active: ["request", "queryCommand", "JustifyLeft"],
+					...resource
+				});
+			}
+		}
+
+    static justifyCenter = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "editor-aligncenter",
+					title: "JustifyCenter",
+					action: "execCommand",
+					value: "JustifyCenter",
+					active: ["request", "queryCommand", "JustifyCenter"],
+					...resource
+				});
+			}
+		}
+
+    static justifyRight = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "editor-alignright",
+					title: "JustifyRight",
+					action: "execCommand",
+					value: "JustifyRight",
+					active: ["request", "queryCommand", "JustifyRight"],
+					...resource
+				});
+			}
+		}
+
+    static justifyFull = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "editor-justify",
+					title: "JustifyFull",
+					action: "execCommand",
+					value: "JustifyFull",
+					active: ["request", "queryCommand", "JustifyFull"],
+					...resource
+				});
+			}
+		}
+
+    static justifyNone = class extends KarmaFieldsAlpha.field.button {
+			constructor(resource) {
+				super({
+					dashicon: "editor-alignleft",
+					title: "JustifyNone",
+					action: "execCommand",
+					value: "JustifyNone",
+					active: ["request", "queryCommand", "JustifyNone"],
 					...resource
 				});
 			}
@@ -1138,59 +1736,180 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	}
 
-	static form = class extends KarmaFieldsAlpha.field.container {
+	static form = class extends KarmaFieldsAlpha.field.group {
 
-		constructor(resource) {
-			super(resource);
-			this.buffer = null;
-		}
+    getValue(key) {
 
-		request(subject, content, ...path) {
+      const data = this.getData();
 
-			switch (subject) {
+      if (data && data.buffer && data.buffer[key] !== undefined) {
 
-				// case "state": {
-				// 	const value = KarmaFieldsAlpha.DeepObject.get(this.buffer || {}, ...path) || await this.parent.request("get", {}, this.resource.key, ...path);
-				// 	return {
-				// 		value: value
-				// 	};
-				// }
+        return KarmaFieldsAlpha.Type.toString(data.buffer[key]);
 
-				case "get":
-					return KarmaFieldsAlpha.DeepObject.get(this.buffer || {}, ...path) || this.parent.request("get", {}, this.resource.key, ...path);
+      } else {
 
-				case "set":
-					this.buffer ||= {};
-					KarmaFieldsAlpha.DeepObject.assign(this.buffer, content, ...path);
-					break;
+        return super.getValue(key);
 
-				case "modified":
-					return Boolean(this.buffer);
+      }
 
-				case "submit":
-					this.parent.request("set", this.buffer, this.resource.key);
-					this.buffer = null;
-					break;
+    }
 
-				case "edit":
-					this.render();
-					break;
+    setValue(value, subkey) {
 
-				case "unlink":
-					this.parent.request("set", {}, "unlink");
-					this.parent.request("edit");
-					break;
 
-			}
+      // const currentValues = this.getValue(subkey);
 
-		}
+      // value = KarmaFieldsAlpha.Type.toArray(value);
+
+      // if (KarmaFieldsAlpha.DeepObject.differ(value, currentValues)) {
+
+      debugger;
+
+        const data = this.getData() || {};
+
+        if (!data.buffer) {
+
+          const [buffer] = this.parent.getValue(this.getKey()) || [];
+          // const [value] = super.getValue() || [];
+
+          data.buffer = buffer || {};
+
+        }
+
+        data.buffer[subkey] = value;
+
+        this.setData(data);
+
+      // }
+
+    }
+
+    modified(key) {
+
+      const data = this.getData();
+
+      if (!data || !data.buffer || data.buffer[key] === super.getValue(key)) {
+
+        return false;
+
+      }
+
+      return true;
+
+    }
+
+    submit() {
+
+      const data = this.getData();
+
+      let key = this.getKey();
+
+      if (data && data.buffer) {
+
+        if (key) {
+
+          // super.setValue(data.buffer, key);
+
+          this.parent.setValue(data.buffer, key);
+
+        } else {
+
+          for (key in data.buffer) {
+
+            this.parent.setValue(data.buffer[key], key);
+
+          }
+
+        }
+
+        // for (let key in data.buffer) {
+
+        //   super.setValue(data.buffer[key], key);
+
+        // }
+
+      }
+
+      // this.request("closelink");
+
+      this.close();
+
+    }
+
+    close() {
+
+      const data = this.getData() || {};
+
+      if (data.buffer) {
+
+        delete data.buffer;
+
+        this.setData(data);
+
+      }
+
+      this.parent.request("closelink");
+
+    }
+
+    save() {
+      // noop
+    }
+
+    render() {
+      // noop
+    }
+
+
+
+		// request(subject, content, ...path) {
+
+		// 	switch (subject) {
+
+		// 		// case "state": {
+		// 		// 	const value = KarmaFieldsAlpha.DeepObject.get(this.buffer || {}, ...path) || await this.parent.request("get", {}, this.resource.key, ...path);
+		// 		// 	return {
+		// 		// 		value: value
+		// 		// 	};
+		// 		// }
+
+		// 		case "get": {
+
+    //     }
+		// 			return KarmaFieldsAlpha.DeepObject.get(this.buffer || {}, ...path) || this.parent.request("get", {}, this.resource.key, ...path);
+
+		// 		case "set":
+		// 			this.buffer ||= {};
+		// 			KarmaFieldsAlpha.DeepObject.assign(this.buffer, content, ...path);
+		// 			break;
+
+		// 		case "modified":
+		// 			return Boolean(this.buffer);
+
+		// 		case "submit":
+		// 			this.parent.request("set", this.buffer, this.resource.key);
+		// 			this.buffer = null;
+		// 			break;
+
+		// 		case "edit":
+		// 			this.render();
+		// 			break;
+
+		// 		case "unlink":
+		// 			this.parent.request("set", {}, "unlink");
+		// 			this.parent.request("edit");
+		// 			break;
+
+		// 	}
+
+		// }
 
 	}
 
 	static linkForm = class extends this.form {
 		constructor(resource) {
 			super({
-				key: "link-form",
+				key: "linkform",
 				children: [
 					{
 						type: "group",
@@ -1229,14 +1948,15 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 										type: "button",
 										title: "Unlink",
 										action: "unlink",
-										disabled: ["!", ["get", "boolean", "href"]]
+										disabled: ["!", ["getValue", "href"]]
 									},
 									{
 										type: "separator"
 									},
 									{
-										type: "submit",
-										title: "Apply"
+										type: "button",
+										title: "Apply",
+                    action: "submit"
 									}
 								]
 							}
@@ -1246,250 +1966,256 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				...resource
 			});
 		}
+
+    attachfile() {
+
+      // ...
+
+    }
 	}
 
 }
 
-KarmaFieldsAlpha.field.tinymce.defaults = {
-	format: {
-		id: "format",
-		type: "dropdown",
-		key: "format",
-		options: [
-			{key: "", name: "Format"},
-			{key: "h1", name: "H1"},
-			{key: "h2", name: "H2"},
-			{key: "h3", name: "H3"},
-			{key: "h4", name: "H4"},
-			{key: "h5", name: "H5"},
-			{key: "h6", name: "H6"},
-			{key: "p", name: "P"}
-		]
-	},
-	italic: {
-		id: "italic",
-		type: "button",
-		dashicon: "editor-italic",
-		title: "italic",
-		action: "italic",
-		active: "italic"
-	},
-	bold: {
-		id: "bold",
-		type: "button",
-		dashicon: "editor-bold",
-		title: "bold",
-		action: "bold",
-		active: "bold"
-	},
-	link: {
-		id: "link",
-		type: "button",
-		dashicon: "admin-links",
-		title: "link",
-		// key: "createlink",
-		action: "link",
-		active: "islink",
-		disabled: "!selected",
-		modal: {
-			type: "form",
-			key: "link",
-			id: "popover",
-			children: [
-				{
-					type: "group",
-					// id: "link-popover",
-					children: [
-						{
-							type: "group",
-							display: "flex",
-							children: [
-								{
-									type: "input",
-									key: "href",
-									style: "flex-grow:1"
-								},
-								{
-									type: "button",
-									dashicon: "paperclip",
-									action: "attachfile"
-								}
-							]
-						},
-						{
-							type: "checkbox",
-							key: "target",
-							text: "Open in new tab"
-						},
-						{
-							type: "group",
-							display: "flex",
-							// container: {style: "justify-content: space-between"},
-							children: [
-								{
-									type: "group",
-									display: "flex",
-									children: [
-										{
-											type: "button",
-											title: "Cancel",
-											action: "close"
-										},
-										{
-											type: "button",
-											title: "Unlink",
-											// dashicon: "editor-unlink"
-											action: "unlink",
-											disabled: "!href"
-										}
-									]
-								},
-								{
-									type: "submit",
-									title: "Apply"
-								}
-							]
-						}
-					]
-				}
-			]
-		}
-	},
-	ul: {
-		id: "ul",
-		type: "button",
-		dashicon: "editor-ul",
-		title: "Unordered list",
-		action: "ul",
-		active: "ul"
-	},
-	ol: {
-		id: "ol",
-		type: "button",
-		dashicon: "editor-ol",
-		title: "Ordered list",
-		action: "ol",
-		active: "ol"
-	},
-	table: {
-		id: "table",
-		type: "button",
-		dashicon: "editor-table",
-		title: "Table",
-		action: "table"
-	},
-	justifyleft: {
-		id: "justifyleft",
-		type: "button",
-		dashicon: "editor-alignleft",
-		title: "Justify Left",
-		action: "JustifyLeft",
-		active: "JustifyLeft"
-	},
-	justifycenter: {
-		id: "justifycenter",
-		type: "button",
-		dashicon: "editor-aligncenter",
-		title: "Justify Center",
-		action: "JustifyCenter",
-		active: "JustifyCenter"
-	},
-	justifyright: {
-		id: "justifyright",
-		type: "button",
-		dashicon: "editor-alignright",
-		title: "Justify Right",
-		action: "JustifyRight",
-		active: "JustifyRight"
-	},
-	justifyfull: {
-		id: "justifyfull",
-		type: "button",
-		dashicon: "editor-justify",
-		title: "Justify Full",
-		action: "JustifyFull",
-		active: "JustifyFull"
-	},
-	media: {
-		id: "media",
-		type: "button",
-		dashicon: "format-image",
-		title: "Media",
-		action: "addmedia",
-		modal: {
-			type: "form",
-			id: "media",
-			display:"flex",
-			children: [
-				{
-					type: "button",
-					dashicon: "align-none",
-					action: "alignnone",
-					active: "alignnone"
-				},
-				{
-					type: "button",
-					dashicon: "align-left",
-					action: "alignleft",
-					active: "alignleft"
-				},
-				{
-					type: "button",
-					dashicon: "align-center",
-					action: "aligncenter",
-					active: "aligncenter"
-				},
-				{
-					type: "button",
-					dashicon: "align-right",
-					action: "alignright",
-					active: "alignright"
-				},
-				{
-					type: "button",
-					dashicon: "edit",
-					title: "Replace Image",
-					action: "addmedia"
-				}
-			]
-			// children: [
-			// 	{
-			// 		type: "group",
-			// 		display:"flex",
-			// 		children: [
-			// 			{
-			// 				type: "button",
-			// 				dashicon: "align-none",
-			// 				state: "alignnone",
-			// 				active: "alignnone"
-			// 			},
-			// 			{
-			// 				type: "button",
-			// 				dashicon: "align-left",
-			// 				state: "alignleft",
-			// 				active: "alignleft"
-			// 			},
-			// 			{
-			// 				type: "button",
-			// 				dashicon: "align-center",
-			// 				state: "aligncenter",
-			// 				active: "aligncenter"
-			// 			},
-			// 			{
-			// 				type: "button",
-			// 				dashicon: "align-right",
-			// 				state: "alignright",
-			// 				active: "alignright"
-			// 			},
-			// 			{
-			// 				type: "button",
-			// 				dashicon: "edit",
-			// 				title: "Replace Image",
-			// 				state: "addmedia"
-			// 			}
-			// 		]
-			// 	}
-			// ]
-		}
-	}
-}
+// KarmaFieldsAlpha.field.tinymce.defaults = {
+// 	format: {
+// 		id: "format",
+// 		type: "dropdown",
+// 		key: "format",
+// 		options: [
+// 			{key: "", name: "Format"},
+// 			{key: "h1", name: "H1"},
+// 			{key: "h2", name: "H2"},
+// 			{key: "h3", name: "H3"},
+// 			{key: "h4", name: "H4"},
+// 			{key: "h5", name: "H5"},
+// 			{key: "h6", name: "H6"},
+// 			{key: "p", name: "P"}
+// 		]
+// 	},
+// 	italic: {
+// 		id: "italic",
+// 		type: "button",
+// 		dashicon: "editor-italic",
+// 		title: "italic",
+// 		action: "italic",
+// 		active: "italic"
+// 	},
+// 	bold: {
+// 		id: "bold",
+// 		type: "button",
+// 		dashicon: "editor-bold",
+// 		title: "bold",
+// 		action: "bold",
+// 		active: "bold"
+// 	},
+// 	link: {
+// 		id: "link",
+// 		type: "button",
+// 		dashicon: "admin-links",
+// 		title: "link",
+// 		// key: "createlink",
+// 		action: "link",
+// 		active: "islink",
+// 		disabled: "!selected",
+// 		modal: {
+// 			type: "form",
+// 			key: "link",
+// 			id: "popover",
+// 			children: [
+// 				{
+// 					type: "group",
+// 					// id: "link-popover",
+// 					children: [
+// 						{
+// 							type: "group",
+// 							display: "flex",
+// 							children: [
+// 								{
+// 									type: "input",
+// 									key: "href",
+// 									style: "flex-grow:1"
+// 								},
+// 								{
+// 									type: "button",
+// 									dashicon: "paperclip",
+// 									action: "attachfile"
+// 								}
+// 							]
+// 						},
+// 						{
+// 							type: "checkbox",
+// 							key: "target",
+// 							text: "Open in new tab"
+// 						},
+// 						{
+// 							type: "group",
+// 							display: "flex",
+// 							// container: {style: "justify-content: space-between"},
+// 							children: [
+// 								{
+// 									type: "group",
+// 									display: "flex",
+// 									children: [
+// 										{
+// 											type: "button",
+// 											title: "Cancel",
+// 											action: "close"
+// 										},
+// 										{
+// 											type: "button",
+// 											title: "Unlink",
+// 											// dashicon: "editor-unlink"
+// 											action: "unlink",
+// 											disabled: "!href"
+// 										}
+// 									]
+// 								},
+// 								{
+// 									type: "submit",
+// 									title: "Apply"
+// 								}
+// 							]
+// 						}
+// 					]
+// 				}
+// 			]
+// 		}
+// 	},
+// 	ul: {
+// 		id: "ul",
+// 		type: "button",
+// 		dashicon: "editor-ul",
+// 		title: "Unordered list",
+// 		action: "ul",
+// 		active: "ul"
+// 	},
+// 	ol: {
+// 		id: "ol",
+// 		type: "button",
+// 		dashicon: "editor-ol",
+// 		title: "Ordered list",
+// 		action: "ol",
+// 		active: "ol"
+// 	},
+// 	table: {
+// 		id: "table",
+// 		type: "button",
+// 		dashicon: "editor-table",
+// 		title: "Table",
+// 		action: "table"
+// 	},
+// 	justifyleft: {
+// 		id: "justifyleft",
+// 		type: "button",
+// 		dashicon: "editor-alignleft",
+// 		title: "Justify Left",
+// 		action: "JustifyLeft",
+// 		active: "JustifyLeft"
+// 	},
+// 	justifycenter: {
+// 		id: "justifycenter",
+// 		type: "button",
+// 		dashicon: "editor-aligncenter",
+// 		title: "Justify Center",
+// 		action: "JustifyCenter",
+// 		active: "JustifyCenter"
+// 	},
+// 	justifyright: {
+// 		id: "justifyright",
+// 		type: "button",
+// 		dashicon: "editor-alignright",
+// 		title: "Justify Right",
+// 		action: "JustifyRight",
+// 		active: "JustifyRight"
+// 	},
+// 	justifyfull: {
+// 		id: "justifyfull",
+// 		type: "button",
+// 		dashicon: "editor-justify",
+// 		title: "Justify Full",
+// 		action: "JustifyFull",
+// 		active: "JustifyFull"
+// 	},
+// 	media: {
+// 		id: "media",
+// 		type: "button",
+// 		dashicon: "format-image",
+// 		title: "Media",
+// 		action: "addmedia",
+// 		modal: {
+// 			type: "form",
+// 			id: "media",
+// 			display:"flex",
+// 			children: [
+// 				{
+// 					type: "button",
+// 					dashicon: "align-none",
+// 					action: "alignnone",
+// 					active: "alignnone"
+// 				},
+// 				{
+// 					type: "button",
+// 					dashicon: "align-left",
+// 					action: "alignleft",
+// 					active: "alignleft"
+// 				},
+// 				{
+// 					type: "button",
+// 					dashicon: "align-center",
+// 					action: "aligncenter",
+// 					active: "aligncenter"
+// 				},
+// 				{
+// 					type: "button",
+// 					dashicon: "align-right",
+// 					action: "alignright",
+// 					active: "alignright"
+// 				},
+// 				{
+// 					type: "button",
+// 					dashicon: "edit",
+// 					title: "Replace Image",
+// 					action: "addmedia"
+// 				}
+// 			]
+// 			// children: [
+// 			// 	{
+// 			// 		type: "group",
+// 			// 		display:"flex",
+// 			// 		children: [
+// 			// 			{
+// 			// 				type: "button",
+// 			// 				dashicon: "align-none",
+// 			// 				state: "alignnone",
+// 			// 				active: "alignnone"
+// 			// 			},
+// 			// 			{
+// 			// 				type: "button",
+// 			// 				dashicon: "align-left",
+// 			// 				state: "alignleft",
+// 			// 				active: "alignleft"
+// 			// 			},
+// 			// 			{
+// 			// 				type: "button",
+// 			// 				dashicon: "align-center",
+// 			// 				state: "aligncenter",
+// 			// 				active: "aligncenter"
+// 			// 			},
+// 			// 			{
+// 			// 				type: "button",
+// 			// 				dashicon: "align-right",
+// 			// 				state: "alignright",
+// 			// 				active: "alignright"
+// 			// 			},
+// 			// 			{
+// 			// 				type: "button",
+// 			// 				dashicon: "edit",
+// 			// 				title: "Replace Image",
+// 			// 				state: "addmedia"
+// 			// 			}
+// 			// 		]
+// 			// 	}
+// 			// ]
+// 		}
+// 	}
+// }

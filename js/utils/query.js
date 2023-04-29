@@ -114,6 +114,7 @@ KarmaFieldsAlpha.Query = class {
   static vars = {};
   static queries = {};
   static counts = {};
+  static uploads = [];
 
   static getValue(driver, id, key) {
 
@@ -335,6 +336,44 @@ KarmaFieldsAlpha.Query = class {
 
     return false;
   }
+
+  // static requestUpload(files) {
+  //   this.uploads = [...this.uploads, ...files];
+  // }
+
+  // static async uploadFile(file) {
+
+  //   // let id = await KarmaFieldsAlpha.Gateway.upload(file);
+
+  //   const fileName = file.name.normalize();
+
+  //   const formData = new FormData();
+  //   formData.append("async-upload", file);
+  //   formData.append("name", fileName);
+  //   formData.append("action", wp.Uploader.defaults.multipart_params.action);
+  //   formData.append("_wpnonce", wp.Uploader.defaults.multipart_params._wpnonce);
+
+  //   fetch(KarmaFieldsAlpha.adminURL+"async-upload.php", {
+  //     method: "post",
+  //     body: formData,
+  //     mode: "cors"
+  //   }).then(response => response.json()).then(function(result) {
+  //     console.log(result);
+  //   });
+
+  // }
+
+  // static async processUpload() {
+  //   if (this.uploads.length) {
+
+  //     const file = this.uploads.shift();
+  //     await this.uploadFile(file);
+
+  //     return true;
+  //   }
+    
+  //   return false;
+  // }
 
 
 

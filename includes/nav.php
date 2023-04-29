@@ -7,10 +7,10 @@
 		var resource = <?php echo json_encode($this->resource) ?>;
 		var field = new KarmaFieldsAlpha.field.layout(resource);
 
-		KarmaFieldsAlpha.resource = resource;
+		// KarmaFieldsAlpha.resource = resource;
 		KarmaFieldsAlpha.build(field.build(), container);
-		KarmaFieldsAlpha.tables = field;
+		// KarmaFieldsAlpha.tables = field;
 
-		document.dispatchEvent(new CustomEvent('karmaFieldsAlpha'));
+		// document.dispatchEvent(new CustomEvent('karmaFieldsAlpha'));
 	});
 </script>

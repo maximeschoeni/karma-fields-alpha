@@ -22,19 +22,19 @@ KarmaFieldsAlpha.Selector = class {
 
       this.init();
 
-      this.tracker.event.preventDefault();
+      // this.tracker.event.preventDefault();
       this.tracker.event.stopPropagation();
 
     }
 
     this.tracker.onupdate = () => {
-      
+
       this.update();
 
     }
 
     this.tracker.oncomplete = () => {
-      
+
       this.complete();
 
     }
@@ -50,7 +50,7 @@ KarmaFieldsAlpha.Selector = class {
   }
 
   getChildren() {
-    
+
     // if (!this.children) {
 
     //   this.children = [...this.container.children];
@@ -66,17 +66,32 @@ KarmaFieldsAlpha.Selector = class {
 
     const index = this.findIndex(this.tracker.x, this.tracker.y);
 
-    this.tie = {
-      index: this.getRow(index),
-      length: 1
-    };
+    this.firstIndex = index;
 
-    
+    // this.tie = {
+    //   index: this.getRow(index),
+    //   length: 1
+    // };
+
+    const row = this.getRow(index);
+
+    this.tie = new KarmaFieldsAlpha.Selection(row, 1);
+
+
 
 
     Object.freeze(this.tie);
 
     if (this.selection) { // this.selection should be frozen
+
+      if (!this.selection instanceof KarmaFieldsAlpha.Selection) {
+
+        console.warning("this.selection is not instance of Selection!");
+
+        this.selection = new KarmaFieldsAlpha.Selection(this.selection.index, this.selection.length);
+
+      }
+
       if (this.tracker.event.shiftKey) {
         this.tie = this.selection;
       } else {
@@ -93,19 +108,34 @@ KarmaFieldsAlpha.Selector = class {
 
     const index = this.findIndex(this.tracker.x, this.tracker.y);
 
-    if (index > -1) {
+    if (this.tracker.firstTarget.tabIndex < 0 || index !== this.firstIndex) {
 
-      this.growSelection({
-        index: this.getRow(index),
-        length: 1
-      });
+      // console.log(this.tracker.firstTarget.tabIndex < 0 || this.tracker.firstTarget !== this.tracker.event.target);
+
+      if (index > -1) {
+
+        // this.growSelection({
+        //   index: this.getRow(index),
+        //   length: 1
+        // });
+
+        const row = this.getRow(index);
+
+        const selection = new KarmaFieldsAlpha.Selection(row, 1);
+
+        this.growSelection(selection);
+
+      }
 
     }
+
+
 
   }
 
   complete() {
 
+    const index = this.findIndex(this.tracker.x, this.tracker.y);
 
     if (this.selection) {
 
@@ -114,6 +144,16 @@ KarmaFieldsAlpha.Selector = class {
       if (this.onselect) {
 
         this.onselect(this.selection, true); // compat
+
+      }
+
+    // } else if (this.getElementsRectangle(this.container).contains(this.tracker.x, this.tracker.y)) {
+    } else if (index === undefined && (new KarmaFieldsAlpha.Rect(0, 0, this.container.clientWidth, this.container.clientHeight)).contains(this.tracker.x, this.tracker.y)) {
+
+
+      if (this.onbackground) {
+
+        this.onbackground();
 
       }
 
@@ -133,6 +173,12 @@ KarmaFieldsAlpha.Selector = class {
     // return this.colHeader + this.rowCount + this.colFooter;
 
     return this.getChildren().length/this.getWidth();
+
+  }
+
+  getNumRow() {
+
+    return this.getChildren().length/this.getWidth() - this.colHeader - this.colFooter;
 
   }
 
@@ -294,6 +340,31 @@ KarmaFieldsAlpha.Selector = class {
 
   }
 
+  getRectangle(rowIndex, rowLength = 1) {
+
+    const elementIndex = this.getIndex(0, rowIndex);
+    const lastElementIndex = this.getIndex(0, rowIndex + rowLength) - 1;
+
+    const children = this.getChildren();
+
+    const first = children[elementIndex];
+    const last = children[lastElementIndex];
+
+    // console.log(rowIndex, rowLength, elementIndex, lastElementIndex, first, last);
+
+    if (first && last) {
+
+      return new KarmaFieldsAlpha.Rect(
+        first.offsetLeft,
+        first.offsetTop,
+        last.offsetLeft + last.clientWidth - first.offsetLeft,
+        last.offsetTop + last.clientHeight - first.offsetTop
+      );
+
+    }
+
+  }
+
   getElementsBox(...elements) {
 
     const first = elements[0];
@@ -312,11 +383,33 @@ KarmaFieldsAlpha.Selector = class {
 
   }
 
-  growSelection(segment) {
+  getElementsRectangle(...elements) {
 
-    const union = KarmaFieldsAlpha.Segment.union(this.tie, segment);
+    const first = elements[0];
+    const last = elements[elements.length-1];
 
-    if (!this.selection || !KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
+    if (first && last) {
+
+      return new KarmaFieldsAlpha.Rect(
+        first.offsetLeft,
+        first.offsetTop,
+        last.offsetLeft + last.clientWidth - first.offsetLeft,
+        last.offsetTop + last.clientHeight - first.offsetTop
+      );
+
+    }
+
+  }
+
+  growSelection(selection) {
+
+    // const union = KarmaFieldsAlpha.Segment.union(this.tie, segment);
+
+    const union = selection.union(this.tie);
+
+    // if (!this.selection || !KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
+
+    if (!this.selection || !union.equals(this.selection)) {
 
       if (this.selection) {
 

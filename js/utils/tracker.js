@@ -34,7 +34,7 @@ KarmaFieldsAlpha.Tracker = class {
 		this.element = element;
 		this.threshold = threshold;
 
-		this.scrollContainer = element.closest(".scroll-container") || document;
+		this.scrollContainer = element.closest(".scroll-container");
 
 		this.trackMouse();
 
@@ -131,6 +131,18 @@ KarmaFieldsAlpha.Tracker = class {
 		// }
 
 	}
+
+  getScrollLeft() {
+
+    return (this.scrollContainer || document.documentElement).scrollLeft;
+
+  }
+
+  getScrollTop() {
+
+    return (this.scrollContainer || document.documentElement).scrollTop;
+
+  }
 	
 	trackMouse() {
 
@@ -154,10 +166,12 @@ KarmaFieldsAlpha.Tracker = class {
 
 		const onmouseup = event => {
 			this.event = event;
+      this.lastTarget = event.target;
 			this.complete();
 			document.removeEventListener("mousemove", onmousemove);
 			document.removeEventListener("mouseup", onmouseup);
-			this.scrollContainer.removeEventListener("scroll", onscroll);
+			(this.scrollContainer || document).removeEventListener("scroll", onscroll);
+
 		}
 
 		this.element.onmousedown = event => {
@@ -165,11 +179,12 @@ KarmaFieldsAlpha.Tracker = class {
 				this.clientX = event.clientX;
 				this.clientY = event.clientY;
 				this.event = event;
+        this.firstTarget = event.target;
 				this.init();
-	
+
 				document.addEventListener("mousemove", onmousemove);
 				document.addEventListener("mouseup", onmouseup);				
-				this.scrollContainer.addEventListener("scroll", onscroll);
+				(this.scrollContainer || document).addEventListener("scroll", onscroll);
 			}
 		}
 
@@ -211,8 +226,9 @@ KarmaFieldsAlpha.Tracker = class {
 
 		// this.scrollX = 0;
 		// this.scrollY = 0;
-		this.scrollOriginX = this.scrollContainer.scrollLeft; // -> wont work if scrollContainer is document
-		this.scrollOriginY = this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
+
+		this.scrollOriginX = this.getScrollLeft(); //this.scrollContainer.scrollLeft; // -> wont work if scrollContainer is document
+		this.scrollOriginY = this.getScrollTop(); //this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
 
 		this.originX = this.clientX;
 		this.originY = this.clientY;
@@ -251,8 +267,8 @@ KarmaFieldsAlpha.Tracker = class {
 
 	update() {
 
-		const scrollX = this.scrollContainer.scrollLeft; // -> wont work if scrollContainer is document
-		const scrollY = this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
+		const scrollX = this.getScrollLeft(); //this.scrollContainer.scrollLeft; // -> wont work if scrollContainer is document
+		const scrollY = this.getScrollTop(); //this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
 
 		const diffScrollX = scrollX - this.scrollOriginX;
 		const diffScrollY = scrollY - this.scrollOriginY;

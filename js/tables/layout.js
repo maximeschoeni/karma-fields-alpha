@@ -1047,17 +1047,31 @@ KarmaFieldsAlpha.field.layout = class extends KarmaFieldsAlpha.field {
           if (event.key === "s" && event.metaKey) {
             event.preventDefault();
             this.request("save");
-          } else if (event.key === "z" && event.metaKey) {
+          } else if (event.key === "z" && event.metaKey && !event.shiftKey) {
             event.preventDefault();
-            this.request("undo");
+            // this.request("undo");
+            // container.render();
+            
+            KarmaFieldsAlpha.History.undo();
+            window.dispatchEvent(new CustomEvent("karmaFieldsAlpha-render"));
           } else if (event.key === "z" && event.metaKey && event.shiftKey) {
             event.preventDefault();
-            this.request("redo");
+            // this.request("redo");
+            // container.render();
+
+            
+            KarmaFieldsAlpha.History.redo();
+            window.dispatchEvent(new CustomEvent("karmaFieldsAlpha-render"));
           }
         });
 
 
         window.addEventListener("popstate", async event => {
+
+          KarmaFieldsAlpha.History.update();
+          window.dispatchEvent(new CustomEvent("karmaFieldsAlpha-render"));
+
+          return;
 
           const params = KarmaFieldsAlpha.Nav.get() || {};
           const hash = KarmaFieldsAlpha.Params.stringify(params);

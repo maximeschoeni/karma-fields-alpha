@@ -598,6 +598,38 @@ KarmaFieldsAlpha.DeepObject = class {
 		}
 	}
 
+  // static include(object1, object2) {
+  	
+  //   if (Array.isArray(object1) && Array.isArray(object2) && object1.length === object2.length) {
+  //     return object1.every((item, index) => this.equal(item, object2[index]));
+	// 	} else if (object1 && object1.constructor === Object) {
+  //     for (let key in object1) {
+  //       if (!object2 || object2.constructor !== Object || !this.include(object1[key], object2[key])) {
+  //         return false;
+  //       }
+  //     }
+  //     return true;
+	// 	} else {
+	// 		return object1 == object2;
+	// 	}
+	// }
+
+  // static compare(object1, object2) {
+  	
+  //   if (Array.isArray(object1) && Array.isArray(object2) && object1.length === object2.length) {
+  //     return object1.every((item, index) => this.equal(item, object2[index]));
+	// 	} else if (object1 && object1.constructor === Object) {
+  //     for (let key in object1) {
+  //       if (!object2 || object2.constructor !== Object || !this.include(object1[key], object2[key])) {
+  //         return false;
+  //       }
+  //     }
+  //     return true;
+	// 	} else {
+	// 		return object1 == object2;
+	// 	}
+	// }
+
 
   // deprec
   static sanitize(array) {

@@ -1,5 +1,9 @@
-<div id="karma-fields-post-<?php echo $post_id; ?>-field-<?php echo $index; ?>-container" class="karma-fields karma-fields-post"></div>
-<input type="hidden" name="karma-fields-items[]" id="karma-fields-post-<?php echo $post_id; ?>-input-<?php echo $index; ?>">
+<?php /*
+<!-- <div id="karma-fields-post-<?php echo $post_id; ?>-field-<?php echo $index; ?>-container" class="karma-fields karma-fields-post"></div> -->
+<!-- <input type="hidden" name="karma-fields-items[]" id="karma-fields-post-<?php echo $post_id; ?>-input-<?php echo $index; ?>"> -->
+*/ ?>
+
+<div id="karma-fields-container-<?php echo $index; ?>" class="karma-fields karma-fields-post"></div>
 
 <?php
 	$action = "karma_field-action";
@@ -24,288 +28,255 @@
     /* max-height: 66.66vh;
     overflow: auto; */
   }
+  .karma-tinymce .editor-header .toolbar {
+    top: 3em;
+  }
 </style>
 <script>
-	document.addEventListener("karmaFieldsAlpha", function() {
+  
+	// document.addEventListener("karmaFieldsAlpha", function() {
 
-    const metaboxIndex = "<?php echo $index; ?>";
-		let container = document.getElementById("karma-fields-post-<?php echo $post_id; ?>-field-<?php echo $index; ?>-container");
-		let input = document.getElementById("karma-fields-post-<?php echo $post_id; ?>-input-<?php echo $index; ?>");
+  addEventListener("DOMContentLoaded", () => {
+    const index = <?php echo $index; ?>;
+		// let container = document.getElementById("karma-fields-post-<?php //echo $post_id; ?>-field-<?php //echo $index; ?>-container");
+		// let input = document.getElementById("karma-fields-post-<?php //echo $post_id; ?>-input-<?php //echo $index; ?>");
+
+    let container = document.getElementById("karma-fields-container-<?php echo $index; ?>");
+
 
 		let resource = <?php echo json_encode($args); ?>;
 		let id = "<?php echo $post_id; ?>";
+    let driver = "posts";
 
-		class MetaField extends KarmaFieldsAlpha.field {
+		// class MetaField extends KarmaFieldsAlpha.field {
 
-			static form = class extends KarmaFieldsAlpha.field.form {
+		// 	static form = class extends KarmaFieldsAlpha.field.form {
 
-        static row = class extends KarmaFieldsAlpha.field {
+    //     static row = class extends KarmaFieldsAlpha.field {
 
-          // async expect(action, object) {
+    //       getValue(key) {
 
-          //   switch (action) {
+    //         return this.parent.getValue(this.resource.id, key);
 
-          //     // case "gather": {
+    //       }
 
-          //     //   if (this.resource.children) {
+    //       setValue(value, key) {
 
-          //     //     for (let resource of this.resource.children) {
+    //         this.parent.setValue(value, this.resource.id, key);
 
-          //     //       const child = this.createChild(resource);
+    //       }
 
-          //     //       return child.expect(action, object);
+    //       modified(...path) {
 
-          //     //     }
+    //         return this.parent.modified(this.resource.id, ...path);
 
-          //     //   }
+    //       }
 
-          //     // }
+    //       getIndex() {
 
-          //     default: {
+    //         return this.resource.index;
 
-          //       if (this.resource.children) {
+    //       }
 
-          //         for (let resource of this.resource.children) {
+    //       getId() {
+    //         return this.resource.id;
+    //       }
 
-          //           const child = this.createChild(resource);
+    //       // request(subject, content, ...path) {
 
-          //           await child.expect(action, object);
+    //       //   switch (subject) {
 
-          //         }
+    //       //     case "index":
+    //       //       return this.index;
 
-          //       }
 
-          //     }
+    //       //     default:
+    //       //       return this.parent.request(subject, content, this.getKey(), ...path);
+    //       //       break;
+    //       //   }
 
-          //   }
+    //       // }
 
-          // }
+    //       build() {
 
-          request(subject, content, ...path) {
+    //         return {
+    //           children: this.resource.children.map((resource, index) => {
+    //             return this.createChild({
+    //               id: index,
+    //               ...resource,
+    //               uid: `${this.resource.uid}-${index}`,
+    //               index: index
+    //             }).build();
+    //           })
+    //         }
 
-            switch (subject) {
+    //       }
 
-              case "index":
-                return this.index;
+    //     }
 
+		// 		constructor() {
+		// 			super({
+		// 				driver: "posts",
+		// 				// joins: ["postmeta", "taxonomy"],
+    //         relations: ["meta", "taxonomy"],
+		// 				params: {
+		// 					ids: id
+		// 				},
+		// 				children: [
+    //           {
+    //             type: "row",
+    //             id: id,
+    //             index: 0,
+    //             key: id,
+    //             children: [resource]
+    //           }
+    //         ]
+		// 			});
 
-                // case "cachefiles": {
+		// 			this.buffer.getObject = function() {
+		// 				return {
+		// 					data: {
+		// 						posts: {
+		// 							[id]: JSON.parse(input.value || "{}")
+		// 						}
+		// 					}
+		// 				};
+		// 			};
 
-                //   const cache = new KarmaFieldsAlpha.Buffer("cache", "metabox", metaboxIndex, "attachments");
+		// 			this.buffer.setObject = function(delta) {
+		// 				input.value = JSON.stringify(delta.data.posts[id]);
+		// 			}
 
-                //   let promise = cache.get();
 
-                //   if (!promise) {
-
-                //     promise = new Promise(async resolve => {
-
-                //       // debugger;
-
-                //       const idSet = new Set();
-
-                //       await this.expect("gather", {type: "medias", set: idSet});
-
-                //       // console.log(idSet);
-
-                //       // console.log("idSet", idSet);
-
-                //       // const galleries = this.getDescendants().filter(field => field instanceof KarmaFieldsAlpha.field.gallery);
-
-                //       // console.log("galleries", galleries);
-
-
-                //       // // console.log(galleries);
-
-                //       // const id = this.getKey();
-                //       // const set = new Set();
-
-                //       const mediaTable = this.createChild({
-                //         type: "form",
-                //         driver: "posts"
-                //       });
-
-                //       // for (let gallery of galleries) {
-
-                        
-
-                //       //   const mediaIds = await mediaTable.getInitial(id, gallery.resource.key) || [];
-
-                //       //   // console.log("mediaIds", gallery.resource.key, mediaIds);
-
-                //       //   for (let mediaId of mediaIds) {
-
-                //       //     if (mediaId && mediaId !== "0") {
-
-                //       //       set.add(mediaId);
-
-                //       //     }
-
-                //       //   }
-
-                //       // }
-
-                //       const mediaIds = [...idSet];
-
-                //       if (mediaIds.length) {
-
-                //         await mediaTable.query(`ids=${mediaIds.join(",")}`);
-                //         await mediaTable.queryRelations("meta", mediaIds);
-                //         await mediaTable.queryRelations("filemeta", mediaIds);
-
-                //       }
-                      
-                //       resolve();
-
-                //     });
-
-                //     cache.set(promise);
-
-                //   }
-
-                //   return promise;
-                // }
-
-
-
-              default:
-                return this.parent.request(subject, content, this.getKey(), ...path);
-                break;
-            }
-
-          }
-
-          build() {
-
-            return {
-              children: this.resource.children.map(resource => {
-                return this.createChild(resource).build();
-              })
-            }
-
-          }
-
-        }
-
-				constructor() {
-					super({
-						driver: "posts",
-						// joins: ["postmeta", "taxonomy"],
-            relations: ["meta", "taxonomy"],
-						params: {
-							ids: id
-						},
-						children: [
-              {
-                type: "row",
-                key: id,
-                children: [resource]
-              }
-            ]
-					});
-
-					this.buffer.getObject = function() {
-						return {
-							data: {
-								posts: {
-									[id]: JSON.parse(input.value || "{}")
-								}
-							}
-						};
-					};
-
-					this.buffer.setObject = function(delta) {
-						input.value = JSON.stringify(delta.data.posts[id]);
-					}
-
-
-          this.delta.getObject = function() {
-						return {
-							data: {
-								posts: {
-									[id]: JSON.parse(input.value || "{}")
-								}
-							}
-						};
-					};
-
-					this.delta.setObject = function(delta) {
-						input.value = JSON.stringify(delta.data.posts[id]);
-					}
-
-				}
-
-				// async request(subject, object, ...path) {
-
-
-        //   console.log(subject, object, ...path);
-
-				// 	// return super.request(subject, object, id, ...path);
-        //   return super.request(subject, object, ...path);
-
-				// }
-
-			}
-
-			request(subject, object, ...path) {
-				switch (subject) {
-					case "render":
-					case "edit":
-						this.render();
-						break;
-
-				}
-			}
-
-			build() {
-				return {
-					init: async div => {
+    //       this.delta.getObject = function() {
+		// 				return {
+		// 					data: {
+		// 						posts: {
+		// 							[id]: JSON.parse(input.value || "{}")
+		// 						}
+		// 					}
+		// 				};
+		// 			};
+
+		// 			this.delta.setObject = function(delta) {
+		// 				input.value = JSON.stringify(delta.data.posts[id]);
+		// 			}
+
+		// 		}
+
+		// 	}
+
+    //   edit() {
+    //     this.render();
+    //   }
+
+		// 	// request(subject, object, ...path) {
+		// 	// 	switch (subject) {
+		// 	// 		case "render":
+		// 	// 		case "edit":
+		// 	// 			this.render();
+		// 	// 			break;
+
+		// 	// 	}
+		// 	// }
+
+		// 	build() {
+		// 		return {
+		// 			init: async div => {
 						
+    //         const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
 
-            // addEventListener("keyup", event => {
-            //   form.expect("keyup", {key: event.key});
-            // });
+    //         clipboard.onblur = event => {
+    //           this.createChild("form").clearSelection();
+    //           div.render();
+    //         }
+    //         // clipboard.oninput = event => {
+    //         //   debugger;
+    //         //   const json = KarmaFieldsAlpha.Clipboard.read();
+    //         //   this.createChild("form").paste(json);
+    //         //   div.render();
+    //         // }
+            
 
-            // await form.request("query");
+    //         clipboard.onpaste = event => {
+    //           event.preventDefault();
+    //           const string = event.clipboardData.getData("text/plain").normalize();
+    //           clipboard.value = string;
+    //           this.createChild("form").paste(string);
+    //           div.render();
+    //         }
+
+    //         clipboard.oncut = event => {
+    //           event.preventDefault();
+    //           event.clipboardData.setData("text/plain", clipboard.value);
+    //           clipboard.value = "";
+    //           this.createChild("form").paste("");
+    //           div.render();
+    //         }
+
+    //         clipboard.onkeyup = event => {
+    //           if (event.key === "Delete" || event.key === "Backspace") {
+    //             clipboard.value = "";
+    //             this.createChild("form").paste("");
+    //             div.render();
+    //           }
+    //         }
+
+    //         // addEventListener("keyup", event => {
+    //         //   form.expect("keyup", {key: event.key});
+    //         // });
+
+    //         // await form.request("query");
             
 
 
-						// await form.query(form.resource.params);
+		// 				// await form.query(form.resource.params);
 						
 
-					},
-          update: div => {
-            this.render = div.render;
-            div.child = this.createChild("form").build();
-          },
-          complete: async div => {
-            // const form = this.createChild("form");
-            // const ready = await form.loadMore();
+		// 			},
+    //       update: div => {
+    //         this.render = div.render;
+    //         div.child = this.createChild("form").build();
+    //       },
+    //       complete: async div => {
+    //         // const form = this.createChild("form");
+    //         // const ready = await form.loadMore();
 
-            const process = await KarmaFieldsAlpha.Query.process();
-
-
-            console.log("complete", process);
+    //         const process = await KarmaFieldsAlpha.Query.process();
 
 
-            this.count ||= 0;
+    //         console.log("complete", process);
 
-            if (process && this.count < 100) {
 
-              div.render();
+    //         this.count ||= 0;
 
-            }
+    //         if (process && this.count < 100) {
 
-            this.count++
+    //           div.render();
 
-            // 
-          }
-				}
-			}
+    //         }
 
-		}
+    //         this.count++
 
-		const metaField = new MetaField();
+    //         // 
+    //       }
+		// 		}
+		// 	}
 
-		KarmaFieldsAlpha.build(metaField.build(), container);
+		// }
+
+		// const metaField = new MetaField();
+
+		// KarmaFieldsAlpha.build(metaField.build(), container);
+
+    const postform = new KarmaFieldsAlpha.field.postform({
+      driver: driver,
+      id: id,
+      ...resource,
+      index: index,
+      type: "postform"
+    });
+
+		KarmaFieldsAlpha.build(postform.build(), container);
 	});
 </script>

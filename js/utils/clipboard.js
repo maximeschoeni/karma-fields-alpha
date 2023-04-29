@@ -2,77 +2,65 @@
 
 KarmaFieldsAlpha.Clipboard = class {
 
-  // constructor() {
-  //
-  //   this.ta = document.createElement("textarea");
-  //
-  //   // document.body.appendChild(this.ta);
-  //   this.constructor.container.appendChild(this.ta);
-  //   // this.ta.className = "karma-fields-ta";
-  //   // this.ta.style = "position:fixed;bottom:0;left:200px;z-index:999999999";
-  //
-  //   this.ta.oninput = async event => {
-  //
-  //     switch (event.inputType) {
-  //
-  //       case "deleteByCut":
-  //       case "deleteContentBackward":
-  //       case "deleteContentForward":
-  //       case "deleteContent":
-  //       case "insertFromPaste": {
-  //
-  //         if (this.onInput) {
-  //           const dataArray = this.prepare(this.ta.value);
-  //           this.onInput(dataArray)
-  //         }
-  //
-  //         break;
-  //       }
-  //
-  //       default: {
-  //         break;
-  //       }
-  //
-  //     }
-  //
-  //   }
-  //
-  // }
-  //
-  // setData(dataArray) {
-  //   const value = this.constructor.unparse(dataArray);
-  //   this.set(value);
-  // }
-  //
-  // setJson(data) {
-  //   const dataArray = this.constructor.toDataArray(data);
-  //   this.setData(dataArray);
-  // }
-  //
-  // set(value) {
-  //   this.ta.value = value;
-  //   this.ta.focus();
-  //   this.ta.select();
-  // }
-  //
-  // focus(value) {
-  //   this.ta.focus();
-  //   this.ta.select();
-  // }
-  //
-  // prepare(string) {
-  //   return this.constructor.parse(string);
-  // }
-  //
-  //
-  // static build() {
-  //
-  //   this.container = document.createElement("div");
-  //   document.body.appendChild(this.container);
-  //   this.container.className = "karma-fields-clipboard";
-  //   // this.container.style = "position:fixed;bottom:100%;left:0;z-index:999999999";
-  //   this.container.style = "position:fixed;top:0;left:0;z-index:999999999";
-  // }
+  static getElement() {
+
+    return document.getElementById("karma-fields-alpha-clipboard");
+
+  }
+
+  static clear() {
+    
+    const clipboard = this.getElement();
+
+    clipboard.value = "";
+
+  }
+
+  static write(string) {
+    
+    const clipboard = this.getElement();
+
+    if (clipboard) {
+
+      clipboard.value = string;
+      clipboard.focus({preventScroll: true});
+      clipboard.select();
+      clipboard.setSelectionRange(0, 999999);
+
+    }
+
+  }
+
+  static read() {
+    
+    const clipboard = this.getElement();
+
+    if (clipboard) {
+
+      return clipboard.value;
+
+    }
+
+    return "";
+  }
+
+  static focus() {
+    
+    const clipboard = this.getElement();
+
+    if (clipboard) {
+
+      clipboard.focus({preventScroll: true});
+      clipboard.select();
+      clipboard.setSelectionRange(0, 999999);
+
+    }
+
+  }
+  
+
+
+
 
   static parse(string) {
     return Papa.parse(string, {
@@ -109,6 +97,182 @@ KarmaFieldsAlpha.Clipboard = class {
     return [];
   }
 
+  static decode(string) {
+
+    const data = this.parse(string);
+
+    return this.toJson(data);
+
+  }
+
+  static encode(json) {
+
+    const data = this.toDataArray(json);
+
+    return this.unparse(data);
+
+  }
+
 }
 
-// KarmaFieldsAlpha.Clipboard.build();
+KarmaFieldsAlpha.Grid = class {
+
+  constructor(string) {
+    // this.cols = 0;
+		// this.array = [];
+
+    // this.parse(string);
+
+    if (string) {
+
+      if (typeof string !== "string") {
+
+        console.error("A string is expected!", string);
+
+      }
+
+      this.array = Papa.parse(string, {
+        delimiter: '\t'
+      }).data;
+
+      this.cols = this.array[0].length;
+
+    } else {
+
+      this.array = [];
+
+      this.cols = 0;
+
+    }
+
+	}
+
+  // addValue(value) {
+
+  //   if (!this.array[0]) {
+
+  //     this.array[0] = [];
+
+  //   }
+
+  //   this.array[0][this.cols] = value;
+
+  //   this.cols++;
+  // }
+
+  shiftColumn() {
+
+    const column = [];
+
+    for (let i = 0; i < this.array.length; i++) {
+
+      if (this.array[i]) {
+
+        column[i] = this.array[i].shift();
+
+      }
+
+    }
+
+    this.cols--;
+
+    return column;
+  }
+
+  addColumn(...columns) {
+
+    for (let column of columns) {
+
+      for (let i = 0; i < column.length; i++) {
+
+        if (!this.array[i]) {
+  
+          this.array[i] = [];
+  
+        }
+  
+        this.array[i][this.cols] = column[i];
+  
+      }
+  
+      this.cols++;
+
+    }
+
+  }
+
+  getColumn(index) {
+
+    const column = [];
+
+    for (let i = 0; i < this.array.length; i++) {
+
+      column.push(this.array[i][index]);
+
+    }
+
+    return column;
+  }
+
+  addRow(...rows) {
+
+    for (let row of rows) {
+
+      this.cols = Math.min(this.cols, row.length);
+
+      this.array.push(row);
+
+    }
+
+  }
+
+  getRow(index) {
+
+    return this.array[index];
+
+  }
+
+  sliceRows(index, length = 1) {
+
+    const grid = new this.constructor();
+
+    grid.addRow(...this.array.slice(index, index + length));
+
+    return grid;
+  }
+
+  toString() {
+
+    return Papa.unparse(this.array, {
+      delimiter: "\t",
+      newline: "\n"
+    });
+
+  }
+
+  // parse(string) {
+
+  //   if (string) {
+
+  //     this.array = Papa.parse(string, {
+  //       delimiter: '\t'
+  //     }).data;
+
+  //     this.cols = this.array[0].length;
+
+  //   } else {
+
+  //     this.array = [];
+
+  //     this.cols = 0;
+
+  //   }
+    
+  // }
+
+
+
+	
+}
+
+

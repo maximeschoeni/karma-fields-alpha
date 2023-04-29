@@ -17,62 +17,54 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 	// 	return keys;
 	// }
 
-	getDefault() {
+  // getSelection() {
 
-		let defaults = {};
+  //   const selection = this.parent.getSelection();
 
-		for (let index in this.resource.children) {
+  //   if (selection) {
 
-			const child = this.createChild(this.resource.children[index]);
+  //     return selection[this.resource.id];
 
-			defaults = {
-				...defaults,
-				...child.getDefault()
-			};
+  //   }
+    
+  // }
 
-		}
+  // setSelection(values) {
 
-		return defaults;
-	}
+  //   this.parent.setSelection({[this.resource.id]: values});
+    
+  // }
 
-	export() {
+  // paste(selection) {
 
-		let object = {};
+  //   if (selection && this.resource.children) {
 
-		if (this.resource.children) {
+  //     for (let i = 0; i < this.resource.children.length; i++) {
 
-			for (let resource of this.resource.children) {
+  //       const child = this.createChild({
+  //         id: i,
+  //         ...this.resource.children[i]
+  //       });
 
-				const child = this.createChild(resource);
+  //       if (selection[child.id]) {
 
-				object = {
-					...object,
-					...child.export()
-				};
+  //         child.paste(selection[child.id]);
 
-			}
+  //         break;
 
-		}
+  //       }
 
-		return object;
-	}
+  //     }
 
-	import(object) {
+  //   }
 
-		if (this.resource.children) {
+  // }
 
-			for (let resource of this.resource.children) {
+	
 
-				const child = this.createChild(resource);
+	
 
-				child.import(object);
-
-			}
-
-		}
-
-	}
-
+  
   // expect(action, object) {
 
   //   switch (action) {
@@ -203,10 +195,26 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 				}
 			},
 			update: async group => {
-				this.render = group.render;
-				group.children = this.getChildren().map((child, index) => {
+				// this.render = group.render;
+				group.children = this.getChildren().map((resource, index) => {
 
-					const field = this.createChild(child);
+          if (typeof resource === "string") {
+
+            resource = {type: resource};
+      
+          }
+
+          const data = resource.data || {};
+          const selection = resource.selection || {};
+
+					const field = this.createChild({
+            id: index, 
+            ...resource, 
+            index: index, 
+            data: data[index],
+            selection: selection[index],
+            uid: `${this.resource.uid}-${index}`
+          }); // -> id is for retrieving selection (for unkeyed array)
 
 					return {
 						class: "karma-field-frame karma-field-"+field.resource.type,

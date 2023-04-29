@@ -64,6 +64,15 @@ KarmaFieldsAlpha.Rect = class {
 		return new this(r.x + x, r.y + y, r.width, r.height);
 	}
 
+  static constrain(r1, r2) {
+    return new this(
+      Math.min(Math.max(r1.x, r2.x), r2.x + r2.width - r1.width),
+      Math.min(Math.max(r1.y, r2.y), r2.y + r2.height - r1.height),
+      r1.width,
+      r1.height
+    );
+  }
+
 	// static getIndexes(r) {
 	// 	const indexes = [];
 	// 	for (let i = 0; i < r.height; i++) {
@@ -87,7 +96,7 @@ KarmaFieldsAlpha.Rect = class {
 		return this.constructor.isAfter(this, r);
 	}
 
-	contains(x, y) {
+  contains(x, y) {
 		return this.constructor.contains(this, x, y);
 	}
 
@@ -110,5 +119,9 @@ KarmaFieldsAlpha.Rect = class {
 	includes(r) {
 		return this.constructor.includes(r, this);
 	}
+
+  constrain(r) {
+    return this.constructor.constrain(this, r);
+  }
 
 }
