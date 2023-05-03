@@ -9,25 +9,25 @@ KarmaFieldsAlpha.Delta = class {
   }
 
   static get(...path) {
-    
+
     return KarmaFieldsAlpha.DeepObject.get(this.object, ...path);
 
   }
 
   static set(value, ...path) {
-    
+
     KarmaFieldsAlpha.DeepObject.assign(this.object, value, ...path);
 
   }
 
   static remove(...path) {
-    
+
     KarmaFieldsAlpha.DeepObject.remove(this.object, ...path);
 
   }
 
   static has(...path) {
-    
+
     return KarmaFieldsAlpha.DeepObject.has(this.object, ...path);
   }
 
@@ -60,7 +60,7 @@ KarmaFieldsAlpha.Delta = class {
   //       await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, this.object[driver][id]);
 
   //       yield;
-  
+
   //     }
 
   //   }
@@ -82,7 +82,7 @@ KarmaFieldsAlpha.Delta = class {
       for (let id in data[driver]) {
 
         this.updateTasks.push(() => KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data[driver][id]));
-  
+
       }
 
     }
@@ -93,7 +93,7 @@ KarmaFieldsAlpha.Delta = class {
 
   }
 
-  
+
   static async processUpdate() {
 
     if (this.updateTasks && this.updateTasks.length) {

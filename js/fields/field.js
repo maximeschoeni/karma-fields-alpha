@@ -76,13 +76,13 @@ KarmaFieldsAlpha.field = class {
     //   return new KarmaFieldsAlpha.field[type](resource);
     // }
 
-    
+
 
     if (this.constructor[type] && typeof this.constructor[type] === "function") {
       return new this.constructor[type](resource);
     }
 
-    if (this.constructor[type] && typeof this.constructor[type] === "object" && this.constructor[type].type !== type) {      
+    if (this.constructor[type] && typeof this.constructor[type] === "object" && this.constructor[type].type !== type) {
       return this.createField({...this.constructor[type], ...resource, type: this.constructor[type].type});
     }
 
@@ -260,6 +260,10 @@ KarmaFieldsAlpha.field = class {
     await this.parent.render();
   }
 
+  save() {
+    this.parent.save();
+  }
+
 
   // async isModified() {
 
@@ -343,7 +347,7 @@ KarmaFieldsAlpha.field = class {
     if (this[action]) {
 
       return this[action](...values);
-      
+
     } else if (this.parent) {
 
       return this.parent.request(action, ...values);
@@ -353,7 +357,7 @@ KarmaFieldsAlpha.field = class {
   }
 
   // expect(action, object, ...path) {
-    
+
   //   if (this.resource.children) {
 
   //     // if (!path.length || this.getKey() === path.shift()) {
@@ -441,7 +445,7 @@ KarmaFieldsAlpha.field = class {
   getValue(...path) {
 
     return this.parent.getValue(...path);
-    
+
   }
 
   setValue(value, ...path) {
@@ -472,7 +476,9 @@ KarmaFieldsAlpha.field = class {
 
   }
 
-  getId() {
+
+  // !
+  getIdXXX() {
     return this.parent.getId();
   }
 
@@ -489,13 +495,13 @@ KarmaFieldsAlpha.field = class {
   //     set.add(key);
 
   //   } else if (this.resource.children) {
-    
+
   //     for (let resource of this.resource.children) {
-    
+
   // 			this.createChild(resource).getKeys(set);
-    
+
   // 		}
-    
+
   //   }
 
   //   return set;
@@ -504,7 +510,7 @@ KarmaFieldsAlpha.field = class {
   getKeys(set = new Set()) {
 
     if (this.resource.children) {
-    
+
       for (let resource of this.resource.children) {
 
         const child = this.createChild(resource);
@@ -521,7 +527,7 @@ KarmaFieldsAlpha.field = class {
         }
 
   		}
-    
+
     }
 
     return set;
@@ -572,7 +578,7 @@ KarmaFieldsAlpha.field = class {
 			for (let resource of this.resource.children) {
 
 				const child = this.createChild(resource);
-        
+
         child.export(items);
 
 			}
@@ -589,7 +595,7 @@ KarmaFieldsAlpha.field = class {
 			for (let resource of this.resource.children) {
 
 				const child = this.createChild(resource);
-        
+
         child.import(items);
 
 			}
@@ -625,49 +631,59 @@ KarmaFieldsAlpha.field = class {
   //   return this.resource.alias && this.resource.alias[key] || key;
   // }
 
-  
+
 
 
 
   getSelection() {
 
-    const selection = this.parent.getSelection(); 
+    const selection = this.parent.getSelection();
 
     if (selection) {
 
       return selection[this.resource.index];
 
     }
-    
+
   }
 
   setSelection(selection) {
 
     this.parent.setSelection({[this.resource.index]: selection});
-    
+
   }
 
   getData() {
 
     const data = this.parent.getData();
 
-    if (data) {
+    if (!data[this.resource.index]) {
 
-      return data[this.resource.index];
+      data[this.resource.index] = {};
 
     }
+
+    return data[this.resource.index];
+
+    // if (data) {
+    //
+    //   return data[this.resource.index];
+    //
+    // }
 
   }
 
   setData(value) {
 
     this.parent.setData({...this.parent.getData(), [this.resource.index]: value});
-    
+
   }
 
   debounce(name, callback, interval = 500) {
 
-    const data = this.getData() || {};
+    // const data = this.getData() || {};
+
+    const data = this.getData();
 
     if (data[name]) {
 
@@ -677,7 +693,7 @@ KarmaFieldsAlpha.field = class {
 
     data[name] = setTimeout(callback, interval);
 
-    this.setData(data);
+    // this.setData(data);
 
   }
 
@@ -743,10 +759,9 @@ KarmaFieldsAlpha.field = class {
         case "request": {
           return this.parent.request(...values);
         }
-        case "getValue":
-        case ".": return this.parent.getValue(...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
-        case "value": return KarmaFieldsAlpha.Query.getValue(...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
-        case "query": return KarmaFieldsAlpha.Query.getQuery(...values.map(value => KarmaFieldsAlpha.Type.toObject(value))) || KarmaFieldsAlpha.loading;
+        case "getValue": return this.parent.getValue(...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
+        case "queryValue": return KarmaFieldsAlpha.Query.getValue(...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
+        case "query": return KarmaFieldsAlpha.Query.getResults(...values.map(value => KarmaFieldsAlpha.Type.toObject(value))) || KarmaFieldsAlpha.loading;
         case "id": return this.parent.getId();
         case "modified": return this.modified(...values.map(value => KarmaFieldsAlpha.Type.toString(value)));
         case "map": {
@@ -782,7 +797,7 @@ KarmaFieldsAlpha.field = class {
       }
 
     }
-    
+
     return expression;
   }
 

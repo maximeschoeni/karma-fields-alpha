@@ -29,14 +29,38 @@
 
 KarmaFieldsAlpha.Tracker = class {
 
-	constructor(element, threshold = 5) {
+	constructor(element, event = null) {
 
 		this.element = element;
-		this.threshold = threshold;
 
 		this.scrollContainer = element.closest(".scroll-container");
 
-		this.trackMouse();
+		// this.trackMouse();
+
+		if (event && event.type === "mousedown" && !this.isTouch) {
+
+			this.trackMouse(event);
+
+		} else if (event && event.type === "touchstart") {
+
+			this.isTouch = true;
+
+			this.trackTouch(event);
+
+		} else {
+
+			this.element.onmousedown = event => {
+				if (event.button === 0 && !this.isTouch) {
+					this.trackMouse(event);
+				}
+			}
+
+			this.element.ontouchstart = event => {
+				this.isTouch = true;
+				this.trackTouch(event);
+			}
+
+		}
 
 
 
@@ -143,10 +167,8 @@ KarmaFieldsAlpha.Tracker = class {
     return (this.scrollContainer || document.documentElement).scrollTop;
 
   }
-	
-	trackMouse() {
 
-		
+	trackMouse(event) {
 
 		const onmousemove = event => {
 			this.clientX = event.clientX;
@@ -157,9 +179,6 @@ KarmaFieldsAlpha.Tracker = class {
 
 		const onscroll = event => {
 			if (!this.scrollLock && event.target.contains(this.element)) {
-				// this.box = this.element.getBoundingClientRect();
-				// this.scrollX = this.scrollContainer.scrollLeft;
-				// this.scrollY = this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
 				this.update();
 			}
 		}
@@ -174,23 +193,65 @@ KarmaFieldsAlpha.Tracker = class {
 
 		}
 
-		this.element.onmousedown = event => {
-			if (event.button === 0) {
-				this.clientX = event.clientX;
-				this.clientY = event.clientY;
-				this.event = event;
-        this.firstTarget = event.target;
-				this.init();
+		this.clientX = event.clientX;
+		this.clientY = event.clientY;
+		this.event = event;
+    this.firstTarget = event.target;
+		this.init();
 
-				document.addEventListener("mousemove", onmousemove);
-				document.addEventListener("mouseup", onmouseup);				
-				(this.scrollContainer || document).addEventListener("scroll", onscroll);
-			}
-		}
+		document.addEventListener("mousemove", onmousemove);
+		document.addEventListener("mouseup", onmouseup);
+		(this.scrollContainer || document).addEventListener("scroll", onscroll);
 
 	}
 
-	trackTouch() {
+	// trackMouse() {
+	//
+	//
+	//
+	// 	const onmousemove = event => {
+	// 		this.clientX = event.clientX;
+	// 		this.clientY = event.clientY;
+	// 		this.event = event;
+	// 		this.update();
+	// 	}
+	//
+	// 	const onscroll = event => {
+	// 		if (!this.scrollLock && event.target.contains(this.element)) {
+	// 			// this.box = this.element.getBoundingClientRect();
+	// 			// this.scrollX = this.scrollContainer.scrollLeft;
+	// 			// this.scrollY = this.scrollContainer.scrollTop; // -> wont work if scrollContainer is document
+	// 			this.update();
+	// 		}
+	// 	}
+	//
+	// 	const onmouseup = event => {
+	// 		this.event = event;
+  //     this.lastTarget = event.target;
+	// 		this.complete();
+	// 		document.removeEventListener("mousemove", onmousemove);
+	// 		document.removeEventListener("mouseup", onmouseup);
+	// 		(this.scrollContainer || document).removeEventListener("scroll", onscroll);
+	//
+	// 	}
+	//
+	// 	this.element.onmousedown = event => {
+	// 		if (event.button === 0) {
+	// 			this.clientX = event.clientX;
+	// 			this.clientY = event.clientY;
+	// 			this.event = event;
+  //       this.firstTarget = event.target;
+	// 			this.init();
+	//
+	// 			document.addEventListener("mousemove", onmousemove);
+	// 			document.addEventListener("mouseup", onmouseup);
+	// 			(this.scrollContainer || document).addEventListener("scroll", onscroll);
+	// 		}
+	// 	}
+	//
+	// }
+
+	trackTouch(event) {
 
 		const ontouchmove = event => {
 			this.clientX = event.touches[0].clientX;
@@ -198,25 +259,25 @@ KarmaFieldsAlpha.Tracker = class {
 			this.event = event;
 			this.update();
 		}
-		
+
 		const ontouchend = event => {
 			this.event = event;
 			this.complete();
 			document.removeEventListener("touchmove", ontouchmove);
 			document.removeEventListener("touchend", ontouchend);
 		}
-		
-		this.element.ontouchstart = event => {
-			
+
+		// this.element.ontouchstart = event => {
+
 			this.clientX = event.touches[0].clientX;
 			this.clientY = event.touches[0].clientY;
 			this.event = event;
 			this.init();
-			
+
 			document.addEventListener("touchmove", ontouchmove);
 			document.addEventListener("touchend", ontouchend);
 
-		}
+		// }
 
 	}
 

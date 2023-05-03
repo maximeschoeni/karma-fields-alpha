@@ -61,9 +61,13 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	export(items = []) {
 
+		const grid = new KarmaFieldsAlpha.Grid();
 		const values = this.getValue() || ["..."];
 
-    const value = KarmaFieldsAlpha.Type.toString(values);
+		grid.addColumn(values);
+
+    // const value = KarmaFieldsAlpha.Type.toString(values);
+		const value = grid.toString();
 
     items.push(value);
 
@@ -72,7 +76,17 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
   import(items) {
 
-    const value = items.shift() || "";
+    let value = items.shift() || "";
+
+		const grid = new KarmaFieldsAlpha.Grid(value); // warning -> text with line breaks will split in multiple values !
+
+		value = grid.getColumn(0);
+
+		if (value.length === 1) {
+
+			value = value[0];
+
+		}
 
     this.setValue(value);
 
@@ -435,6 +449,13 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
           //   console.log("blur", input.element.value === values[0]);
 
           // };
+
+					input.element.onmousedown = event => {
+
+						event.stopPropagation();
+						this.parent.request("mousedown", event);
+
+					}
 
           input.element.oncopy = event => {
 

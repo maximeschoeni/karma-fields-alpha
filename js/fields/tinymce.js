@@ -33,7 +33,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     // return this.parent.request("get-option", {}, key, "editor");
 
-    const data = this.getData() || {};
+    const data = this.getData();
 
     return data.editor;
   }
@@ -44,11 +44,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     // this.parent.request("set-option", editor, key, "editor");
 
-    const data = this.getData() || {};
+    const data = this.getData();
 
     data.editor = editor;
 
-    this.setData(data);
+    // this.setData(data);
   }
 
 	async createEditor(element) {
@@ -132,11 +132,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 			editor.on("NodeChange", event => {
 				if (event.selectionChange) {
-          const data = this.getData() || {};
+          const data = this.getData();
 					if (data.activeModal && event.element !== data.activeNode) {
             data.activeNode = null;
             data.activeModal = null;
-            this.setData(data);
+            // this.setData(data);
 						this.renderPopover();
 					}
 				}
@@ -146,11 +146,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			});
 
 			editor.on("focusout", event => {
-        const data = this.getData() || {};
+        const data = this.getData();
 				if (data.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
 					data.activeNode = null;
 					data.activeModal = null;
-          this.setData(data);
+          // this.setData(data);
 					this.renderPopover();
 				}
         if (this.renderToolbar) {
@@ -161,18 +161,18 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			editor.on("click", event => {
 
 				const node = editor.selection.getNode();
-        const data = this.getData() || {};
+        const data = this.getData();
 
 				if (node.matches("a")) {
 					data.activeNode = node;
 					data.activeModal = "linkForm";
-          this.setData(data);
+          // this.setData(data);
 					this.renderPopover();
 				}
 
 				if (node.matches("img")) {
 					data.activeNode = node;
-          this.setData(data);
+          // this.setData(data);
 					this.request("editmedia");
 				}
 
@@ -333,7 +333,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const data = this.getData();
 
-    if (data && data.activeNode) {
+    if (data.activeNode) {
 
       return data.activeNode.matches("a");
 
@@ -341,6 +341,19 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     return false;
   }
+
+	unlink() {
+
+		const editor = this.getEditor();
+
+    if (editor) {
+
+      editor.execCommand("Unlink");
+
+    }
+
+    this.saveContent();
+	}
 
   // queryLinkHref() {
 
@@ -433,7 +446,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
       } else {
 
-        this.editor.execCommand("Unlink");
+        editor.execCommand("Unlink");
 
       }
 
@@ -444,10 +457,10 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
   }
 
   openLink() {
-    const data = this.getData() || {};
+    const data = this.getData();
     data.activeModal = "linkForm";
-    this.setData(data);
-    this.render();
+    // this.setData(data);
+    this.renderPopover();
   }
 
 
@@ -458,9 +471,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
     data.activeNode = null;
     data.activeModal = null;
 
-    this.setData(data);
+    // this.setData(data);
 
-    this.render();
+    this.renderPopover();
 
   }
 
@@ -469,28 +482,28 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const data = this.getData();
 
-    if (data && data.mode) {
+    // if (data && data.mode) {
+		//
+    //   return data.mode;
+		//
+    // }
 
-      return data.mode;
-
-    }
-
-    return "edit";
+    return data.mode || "edit";
   }
 
   execMode(value) {
 
     const data = this.getData();
 
-    if (!data) {
-
-      data = {};
-
-    }
+    // if (!data) {
+		//
+    //   data = {};
+		//
+    // }
 
     data.mode = value;
 
-    this.setData(data);
+    // this.setData(data);
   }
 
 
@@ -1246,26 +1259,26 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     // this.debounce("typing", async () => {
 
-      const editor = this.getEditor();
-
-      if (editor) {
-
-        let value = editor.getContent().normalize();
-
-        value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
-
-        const [currentValue] = this.getValue() || [];
-
-        if (value !== currentValue) {
-
-          this.setValue(value);
-
-          this.parent.request("save");
-          this.parent.request("render");
-
-        }
-
-      }
+      // const editor = this.getEditor();
+			//
+      // if (editor) {
+			//
+      //   let value = editor.getContent().normalize();
+			//
+      //   value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
+			//
+      //   const [currentValue] = this.getValue() || [];
+			//
+      //   if (value !== currentValue) {
+			//
+      //     this.setValue(value);
+			//
+      //     this.parent.request("save");
+      //     this.parent.request("render");
+			//
+      //   }
+			//
+      // }
 
       // this.unlock();
 
@@ -1381,12 +1394,12 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
                                   if (value !== currentValue) {
                                     this.setValue(value);
-                                    this.parent.request("save");
-                                    await this.parent.render();
+                                    // this.parent.request("save");
+                                    // await this.parent.render();
                                   }
-                                  this.unlock();
+                                  // this.unlock();
                                 }, this.resource.debounce || 1000);
-                                this.lock();
+                                // this.lock();
 
                               }
                             }
@@ -1428,7 +1441,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                         node.element.editable = true;
                         const editor = await this.createEditor(node.element);
 
-                        if (!this.isLocked()) {
+                        // if (!this.isLocked()) {
 
                           const values = this.getValue();
                           if (values) {
@@ -1438,7 +1451,34 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                               editor.setContent(value);
                             }
                           }
-                        }
+                        // }
+
+
+												this.saveContent = () => {
+
+													this.debounce("typing", () => {
+
+														let value = editor.getContent().normalize();
+
+										        // value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
+
+										        const [currentValue] = this.getValue() || [];
+
+										        if (value !== currentValue) {
+
+										          this.setValue(value);
+
+										        }
+
+													}, 750);
+
+
+
+												}
+
+
+
+
                       }
                     }
                   },
@@ -1451,14 +1491,14 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                     // update: container => {
                       container.element.onfocusout = event => {
                         const editor = this.getEditor();
-                        const data = this.getData() || {};
+                        const data = this.getData();
                         if (data.activeModal && (!event.relatedTarget || !container.element.contains(event.relatedTarget) && !editor.getBody().contains(event.relatedTarget))) {
                           // this.activeNode = null;
                           // this.activeModal = null;
 
                           data.activeNode = null;
                           data.activeModal = null;
-                          this.setData(data);
+                          // this.setData(data);
 
                           container.render();
                         }
@@ -1763,7 +1803,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
       // if (KarmaFieldsAlpha.DeepObject.differ(value, currentValues)) {
 
-      debugger;
+      // debugger;
 
         const data = this.getData() || {};
 
@@ -1778,7 +1818,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
         data.buffer[subkey] = value;
 
-        this.setData(data);
+        // this.setData(data);
 
       // }
 
@@ -1838,13 +1878,13 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     close() {
 
-      const data = this.getData() || {};
+      const data = this.getData();
 
       if (data.buffer) {
 
         delete data.buffer;
 
-        this.setData(data);
+        // this.setData(data);
 
       }
 

@@ -19,8 +19,6 @@ KarmaFieldsAlpha.field.layout.controls = class extends KarmaFieldsAlpha.field.co
 
   }
 
-
-
   static save = {
     id: "save",
 		type: "button",

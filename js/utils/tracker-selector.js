@@ -74,8 +74,9 @@ KarmaFieldsAlpha.Selector = class {
     // };
 
     const row = this.getRow(index);
+    const col = this.getCol(index);
 
-    this.tie = new KarmaFieldsAlpha.Selection(row, 1);
+    this.tie = new KarmaFieldsAlpha.Selection(row, 1, col, 1);
 
 
 
@@ -96,6 +97,7 @@ KarmaFieldsAlpha.Selector = class {
         this.tie = this.selection;
       } else {
         this.sliceSegment(this.selection).forEach(element => element.classList.remove("selected"));
+        this.sliceSelection(this.selection).forEach(element => element.classList.remove("selected-cell"));
         this.selection = null;
       }
     }
@@ -120,8 +122,9 @@ KarmaFieldsAlpha.Selector = class {
         // });
 
         const row = this.getRow(index);
+        const col = this.getCol(index);
 
-        const selection = new KarmaFieldsAlpha.Selection(row, 1);
+        const selection = new KarmaFieldsAlpha.Selection(row, 1, col, 1);
 
         this.growSelection(selection);
 
@@ -140,6 +143,7 @@ KarmaFieldsAlpha.Selector = class {
     if (this.selection) {
 
       this.sliceSegment(this.selection).forEach(element => element.classList.replace("selecting", "selected"));
+      this.sliceSelection(this.selection).forEach(element => element.classList.replace("selecting-cell", "selected-cell"));
 
       if (this.onselect) {
 
@@ -230,6 +234,12 @@ KarmaFieldsAlpha.Selector = class {
   sliceRect(box) {
 
     return this.slice(box.x, box.y, box.width, box.height);
+
+  }
+
+  sliceSelection(selection) {
+
+    return this.slice(selection.colIndex, selection.index, selection.colLength, selection.length);
 
   }
 
@@ -414,6 +424,7 @@ KarmaFieldsAlpha.Selector = class {
       if (this.selection) {
 
         this.sliceSegment(this.selection).forEach(element => element.classList.remove("selecting"));
+        this.sliceSelection(this.selection).forEach(element => element.classList.remove("selecting-cell"));
 
       }
 
@@ -422,6 +433,7 @@ KarmaFieldsAlpha.Selector = class {
       Object.freeze(this.selection);
 
       this.sliceSegment(this.selection).forEach(element => element.classList.add("selecting"));
+      this.sliceSelection(this.selection).forEach(element => element.classList.add("selecting-cell"));
 
     }
 
@@ -432,6 +444,7 @@ KarmaFieldsAlpha.Selector = class {
     if (segment) {
 
       this.sliceSegment(segment).forEach(element => element.classList.remove("selected"));
+      this.sliceSelection(segment).forEach(element => element.classList.remove("selecting-cell"));
 
     }
 

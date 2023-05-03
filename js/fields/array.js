@@ -240,24 +240,29 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   export(items = [], index = 0, length = 999999, colIndex = 0, colLength = 999999) {
 
     const values = this.getValue();
-    const grid = new KarmaFieldsAlpha.Grid();
-    const columns = this.resource.children.slice(colIndex, colIndex + colLength);
 
-    for (let i = 0; i < Math.min(values.length - index, length); i++) {
+    if (values) {
 
-      const rowField = this.createChild({
-        type: "arrayRow",
-        index: i + index,
-        children: columns
-      });
+      const grid = new KarmaFieldsAlpha.Grid();
+      const columns = this.resource.children.slice(colIndex, colIndex + colLength);
 
-      const rowItems = rowField.export();
+      for (let i = 0; i < Math.min(values.length - index, length); i++) {
 
-      grid.addRow(rowItems);
+        const rowField = this.createChild({
+          type: "row",
+          index: i + index,
+          children: columns
+        });
+
+        const rowItems = rowField.export();
+
+        grid.addRow(rowItems);
+
+      }
+
+      items.push(grid.toString());
 
     }
-
-    items.push(grid.toString());
 
     return items;
 
@@ -281,7 +286,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       const child = this.createChild({
         children: columns,
-        type: "arrayRow",
+        type: "row",
         index: i + index
       });
 
@@ -456,7 +461,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
         const child = this.createChild({
           id: i,
           index: i,
-          type: "arrayRow",
+          type: "row",
           children: this.resource.children
         });
 
@@ -659,7 +664,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      const keys = this.getKeys();
+      const row = this.createChild({
+        type: "row",
+        children: this.resource.children
+      });
+
+      const keys = row.getKeys();
 
       const columns = {};
 
@@ -1458,7 +1468,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                       data: this.resource.data && this.resource.data[index],
                       selection: this.resource.selection && this.resource.selection[index],
                       uid: `${this.resource.uid}-${index}`,
-                      type: "arrayRow"
+                      type: "row"
                     });
 
                     return [
@@ -1548,9 +1558,10 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                 //   this.resource.delete && this.resource.delete.width || "auto"
                 // ].join(" ");
 
-                const row = this.createField({type: "arrayRow"});
+                // const row = this.createField({type: "row"});
 
-                table.element.style.gridTemplateColumns = this.resource.children.map(column => row.createField(column).resource.width || "1fr").join(" ");
+                table.element.style.gridTemplateColumns = this.resource.children.map(resource => resource.width || "1fr").join(" ");
+                // table.element.style.gridTemplateColumns = this.resource.children.map(column => row.createField(column).resource.width || "1fr").join(" ");
 
 
 
@@ -1585,370 +1596,119 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
     };
   }
 
-  static footer = class extends KarmaFieldsAlpha.field.group {
+}
 
-    constructor(resource) {
+KarmaFieldsAlpha.field.array.footer = class extends KarmaFieldsAlpha.field.container {
 
-      super({
-        ...{
-          display: "flex",
-          children: [
-            "add"
-          ]
-        },
-        ...resource
-      });
+  constructor(resource) {
 
-    }
-
-    static add = {
-      type: "button",
-      id: "add",
-      action: "add",
-      // title: "Add Row"
-      title: "+"
-    }
-
-  }
-
-
-  static arrayRow = class extends KarmaFieldsAlpha.field {
-
-    // request(subject, content, key, ...path) {
-
-    //   switch (subject) {
-
-    //     case "get": {
-
-    //       if (path.length === 1 && path[0] === "index") {
-
-    //         return this.resource.index;
-
-    //       } else if (path.length === 1 && path[0] === "length") {
-
-    //         return this.parent.request("length");
-
-    //       }
-
-    //       return getValue(key);
-    //     }
-
-    //     case "set": {
-
-    //       this.setValue(content, key);
-
-    //     }
-
-    //     case "index":
-    //       return this.index;
-
-    //     default:
-    //       return this.parent.request(subject, content, this.getKey(), ...path);
-    //       break;
-    //   }
-
-    // }
-
-    getValue(key) {
-
-      const values = this.parent.getValue(key);
-
-      if (values) {
-
-        const object = values[this.resource.index];
-
-        if (object) {
-
-          return KarmaFieldsAlpha.Type.toArray(object[key]);
-
-        }
-
-        return [];
-
-      }
-
-    }
-
-    setValue(value, key) {
-
-      const array = this.parent.getValue(key);
-
-      if (array) {
-
-        const clone = array.slice();
-
-        clone[this.resource.index] = {...clone[this.resource.index], [key]: value};
-
-        this.parent.setValue(clone);
-
-      }
-
-    }
-
-    getIndex() {
-
-      return this.resource.index;
-
-    }
-
-    // getKeys() {
-
-  	// 	let keys = new Set();
-
-    //   for (let resource of this.resource.children) {
-
-    //     const child = this.createChild(resource);
-    //     keys = new Set([...keys, ...child.getKeys()]);
-
-    //   }
-
-  	// 	return keys;
-  	// }
-
-    // getKeys(set) {
-
-    //   // -> do not consider as keyed
-
-    //   for (let resource of this.resource.children) {
-
-    //     this.createChild(resource).getKeys(set);
-
-    //   }
-
-    // }
-
-    // getDefault(defaults = {}) {
-
-    //   let key = this.getKey();
-
-    //   if (key) {
-
-    //     defaults[key] = this.resource.default || [];
-
-    //   } else {
-
-    //     super.getDefault(defaults);
-
-    //   }
-
-  	// 	return defaults;
-  	// }
-
-    // export(object = {}) {
-
-    //   if (this.resource.children) {
-
-    //     for (let resource of this.resource.children) {
-
-    //       this.createChild(resource).export(object);
-
-    //     }
-
-    //   }
-
-    //   return object;
-    // }
-
-    // import(object) {
-
-    //   if (this.resource.children) {
-
-    //     for (let resource of this.resource.children) {
-
-    //       this.createChild(resource).import(object);
-
-    //     }
-
-    //   }
-
-    // }
-
-    // expect(action, object) {
-
-    //   console.error("deprecated");
-
-    //   switch (action) {
-
-    //     case "export": {
-    //       // todo...
-    //       break;
-    //     }
-
-    //     case "import": {
-    //       // todo...
-    //       break;
-    //     }
-
-    //     // case "keyup": {
-
-    //     //   console.log(this);
-
-    //     // }
-
-    //     // case "gather": {
-
-    //     //   let set = new Set();
-
-    //     //   if (this.resource.children) {
-
-    //     //     for (let resource of this.resource.children) {
-
-    //     //       const child = this.createChild(resource);
-
-    //     //       const values = await child.expect(action, object);
-
-    //     //       if (values) {
-
-    //     //         set = new Set([...set, ...values]);
-
-    //     //       }
-
-    //     //     }
-
-    //     //   }
-
-    //     //   return set;
-    //     // }
-
-    //     default: {
-
-    //       if (this.resource.children) {
-
-    //         for (let resource of this.resource.children) {
-
-    //           const child = this.createChild(resource);
-
-    //           child.expect(action, object);
-
-    //         }
-
-    //       }
-
-    //     }
-
-    //   }
-
-    // }
-
-
-
-    // async export(keys = []) {
-    //
-    //   let row = {};
-    //
-    //   for (let index in this.resource.children) {
-    //
-    //     const field = this.createChild(this.resource.children[index]);
-    //     const values = await field.export(keys);
-    //     row = {...row, ...values};
-    //
-    //   }
-    //
-    //   return row;
-    // }
-    //
-    // async import(object) {
-    //
-    //   for (let index in this.resource.children) {
-    //
-    //     const field = this.createChild(this.resource.children[index]);
-    //     await field.import(object);
-    //
-    //   }
-    //
-    // }
-
-    static index = class extends KarmaFieldsAlpha.field {
-
-      constructor(resource) {
-        super({
-          width: "5em",
-          class: "array-index",
-          ...resource
-        });
-      }
-
-      build() {
-        return {
-          tag: "span",
-          update: td => {
-            const index = this.parent.getIndex();
-            td.element.textContent = index+1;
-          }
-        };
-      }
-
-    }
-
-    static delete = {
-      type: "button",
-      action: "delete",
-      value: ["index"],
-      title: "Delete",
-      dashicon: "no-alt",
-      class: "array-delete",
-      width: "auto"
-    }
-
-    static sortArrows = {
-      type: "group",
-      visible: [">", ["length", ["getValue"]], "1"],
+    super({
+      display: "flex",
       children: [
-        {
-          action: "sortUp",
-          value: ["index"],
-          type: "button",
-          title: "Move Up",
-          disabled: ["<", ["length", ["getValue"]], 1],
-          dashicon: "arrow-up-alt2",
-          class: "array-sort-up",
-          width: "auto"
-        },
-        {
-          action: "sortDown",
-          value: ["index"],
-          type: "button",
-          title: "Move Down",
-          disabled: [">=", ["+", ["get", "number", "index"], 1], ["length", ["getValue"]]],
-          dashicon: "arrow-down-alt2",
-          class: "array-sort-up",
-          width: "auto"
-        }
-      ]
-    }
+        "add"
+      ],
+      ...resource
+    });
 
   }
-
-  // -> moved from arrayRow because of getDescendants (needed for gallery fields)
-  // static index = class extends KarmaFieldsAlpha.field {
-
-  //   constructor(resource) {
-  //     super({
-  //       width: "5em",
-  //       class: "array-index",
-  //       ...resource
-  //     });
-  //   }
-
-  //   build() {
-  //     return {
-  //       tag: "span",
-  //       update: async td => {
-  //         const index = await this.request("index");
-  //         td.element.textContent = index+1;
-  //       }
-  //     };
-  //   }
-
-  // }
-
-  // static delete = {
-  //   type: "button",
-  //   action: "delete",
-  //   title: "Delete",
-  //   dashicon: "no-alt",
-  //   class: "array-delete",
-  //   width: "auto"
-  // }
 
 }
+
+KarmaFieldsAlpha.field.array.footer.add = {
+  type: "button",
+  id: "add",
+  action: "add",
+  title: "+"
+};
+
+
+KarmaFieldsAlpha.field.array.row = class extends KarmaFieldsAlpha.field {
+
+  getValue(key) {
+
+    const values = this.parent.getValue(key);
+
+    if (values) {
+
+      const object = values[this.resource.index];
+
+      if (object) {
+
+        return KarmaFieldsAlpha.Type.toArray(object[key]);
+
+      }
+
+      return [];
+
+    }
+
+  }
+
+  setValue(value, key) {
+
+    const array = this.parent.getValue(key);
+
+    if (array) {
+
+      const clone = array.slice();
+
+      clone[this.resource.index] = {...clone[this.resource.index], [key]: value};
+
+      this.parent.setValue(clone);
+
+    }
+
+  }
+
+  getIndex() {
+
+    return this.resource.index;
+
+  }
+
+}
+
+
+
+KarmaFieldsAlpha.field.array.row.delete = {
+  type: "button",
+  action: "delete",
+  value: ["index"],
+  title: "Delete",
+  dashicon: "no-alt",
+  class: "array-delete",
+  width: "auto"
+};
+
+KarmaFieldsAlpha.field.array.row.sortArrows = {
+  type: "group",
+  visible: [">", ["length", ["getValue"]], "1"],
+  children: [
+    {
+      action: "sortUp",
+      value: ["index"],
+      type: "button",
+      title: "Move Up",
+      disabled: ["<", ["length", ["getValue"]], 1],
+      dashicon: "arrow-up-alt2",
+      class: "array-sort-up",
+      width: "auto"
+    },
+    {
+      action: "sortDown",
+      value: ["index"],
+      type: "button",
+      title: "Move Down",
+      disabled: [">=", ["+", ["get", "number", "index"], 1], ["length", ["getValue"]]],
+      dashicon: "arrow-down-alt2",
+      class: "array-sort-up",
+      width: "auto"
+    }
+  ]
+};
+
+KarmaFieldsAlpha.field.array.row.index = {
+  type: "text",
+  value: ["+", ["request", "getIndex"], 1],
+  style: "width: 40px"
+};

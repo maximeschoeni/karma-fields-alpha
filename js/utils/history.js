@@ -69,6 +69,16 @@ KarmaFieldsAlpha.History = class {
 
 	}
 
+  static remove(...path) {
+
+    const state = this.getState();
+
+		KarmaFieldsAlpha.DeepObject.remove(state, ...path);
+
+    this.setState(state);
+
+	}
+
 
   // static debounce(callback, interval = 2000) {
 
@@ -175,7 +185,7 @@ KarmaFieldsAlpha.History = class {
         // KarmaFieldsAlpha.DeepObject.assign(state, currentValue, "delta", ...path);
 
         this.set(currentValue, ...path);
-        
+
 
         // history.replaceState({...state}, "");
         // this.setState(state);
@@ -191,38 +201,51 @@ KarmaFieldsAlpha.History = class {
    */
   static update() {
 
-    if (history.state) {
+    const state = this.getState();
 
-      if (history.state.delta) {
+    if (state) {
 
-        KarmaFieldsAlpha.Delta.merge(history.state.delta);
-  
+      if (state.table !== undefined) {
+
+        KarmaFieldsAlpha.Query.table = state.table;
+
       }
 
-      if (history.state.selection) {
+      if (state.delta) {
 
-        KarmaFieldsAlpha.Selection.object = history.state.selection;
-  
+        KarmaFieldsAlpha.Delta.merge(state.delta);
+
       }
 
-      if (history.state.nav) {
+      if (state.selection !== undefined) {
 
-        // KarmaFieldsAlpha.Params.object = history.state.nav;
-        KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Params.object, history.state.nav);
-  
+        KarmaFieldsAlpha.Selection.object = state.selection;
+
       }
 
-      if (history.state.ids) {
+      if (state.nav) {
 
-        // KarmaFieldsAlpha.field.table = history.state.ids;
-  
+        // KarmaFieldsAlpha.Params.object = state.nav;
+        // KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Params.object, state.nav);
+        KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Query.params, state.nav);
+
       }
 
-      if (history.state.fieldData) {
+      if (state.ids !== undefined) {
 
-        KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.field.data, history.state.fieldData);
-  
+        KarmaFieldsAlpha.Query.ids = state.ids;
+
       }
+
+      // if (state.fieldData) {
+      //
+      //   KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.field.data, state.fieldData);
+      //
+      // }
+
+    } else {
+
+      KarmaFieldsAlpha.Query.table = null;
 
     }
 
@@ -265,7 +288,7 @@ KarmaFieldsAlpha.History = class {
 		// 	// this.buffer.merge(state, "state");
 
 
-      
+
 
 		// }
 

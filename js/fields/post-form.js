@@ -84,8 +84,10 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
     // this.update();
 
-    this.deferSave();
-    this.deferRender();
+    this.save();
+    // this.deferRender();
+
+    this.render();
 
 	}
 
@@ -103,43 +105,15 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
   getSelection() {
 
-    return KarmaFieldsAlpha.Selection.get();
+    return KarmaFieldsAlpha.Selection.get(this.resource.index);
 
   }
 
   setSelection(value) {
 
-    KarmaFieldsAlpha.Selection.set(value);
+    KarmaFieldsAlpha.Selection.set(value, this.resource.index);
 
-    // console.trace();
-
-    // KarmaFieldsAlpha.Utils.debounce("render", () => {
-    //
-    //
-    //   KarmaFieldsAlpha.History.save();
-    //
-    //   this.renderForm();
-    //
-    //
-    // }, 50);
-
-    // const data = this.getData() || {};
-    //
-    // if (data.saving) {
-    //
-    //   clearTimeout(data.saving);
-    //
-    // }
-    //
-    // data.saving = setTimeout(() => KarmaFieldsAlpha.History.save(), interval);
-    //
-    // await data.rendering;
-    //
-    // data.rendering = this.renderForm();
-    //
-    // this.setData(data);
-
-    this.deferRender();
+    this.render();
 
   }
 
@@ -151,13 +125,27 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
   getData() {
 
-    return KarmaFieldsAlpha.field.getData();
+    if (!KarmaFieldsAlpha.field.data) {
+
+      KarmaFieldsAlpha.field.data = {};
+
+    }
+
+    if (!KarmaFieldsAlpha.field.data[this.resource.index]) {
+
+      KarmaFieldsAlpha.field.data[this.resource.index] = {};
+
+    }
+
+    return KarmaFieldsAlpha.field.data[this.resource.index];
+
+    // return KarmaFieldsAlpha.field.getData();
 
   }
 
   setData(value) {
 
-    KarmaFieldsAlpha.field.setData(value);
+    // KarmaFieldsAlpha.field.setData(value);
 
   }
 
@@ -165,50 +153,70 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
     // KarmaFieldsAlpha.History.debounceSave(2000);
 
+    // const data = this.getData();
+    //
+    // if (data.saving) {
+    //
+    //   clearTimeout(data.saving);
+    //
+    // }
+    //
+    // data.saving = setTimeout(() => KarmaFieldsAlpha.History.save(), 1000);
+
+    this.debounce("saving", () => KarmaFieldsAlpha.History.save(), 1000);
+
   }
 
   render() {
 
-  }
-
-  deferSave() {
-
-    const data = this.getData() || {};
-
-    if (data.saving) {
-
-      clearTimeout(data.saving);
-
-    }
-
-    data.saving = setTimeout(() => KarmaFieldsAlpha.History.save(), 1000);
-
-    this.setData(data);
+    // const data = this.getData();
+    //
+    // if (data.renderFlag === false) {
+    //
+    //
+    //
+    // }
 
   }
 
-  deferRender() {
+  // deferSave() {
+  //
+  //   const data = this.getData();
+  //
+  //   if (data.saving) {
+  //
+  //     clearTimeout(data.saving);
+  //
+  //   }
+  //
+  //   data.saving = setTimeout(() => KarmaFieldsAlpha.History.save(), 1000);
+  //
+  //   // this.setData(data);
+  //
+  // }
 
-    const data = this.getData() || {};
-
-    if (data.rendering) {
-
-      clearTimeout(data.rendering);
-
-    }
-
-    data.rendering = setTimeout(async () => {
-
-      await data.renderPromise;
-      data.renderPromise = this.renderForm();
-
-      this.setData(data);
-
-    }, 50);
-
-    this.setData(data);
-
-  }
+  // deferRender() {
+  //
+  //   const data = this.getData() || {};
+  //
+  //   if (data.rendering) {
+  //
+  //     clearTimeout(data.rendering);
+  //
+  //   }
+  //
+  //   data.rendering = setTimeout(async () => {
+  //
+  //     await data.renderPromise;
+  //     data.renderPromise = this.renderForm();
+  //
+  //     this.setData(data);
+  //
+  //   }, 50);
+  //
+  //   this.setData(data);
+  //
+  // }
 
   build() {
 
@@ -256,23 +264,48 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
         }
 
         addEventListener("karmaFieldsAlpha-render", () => {
-          form.render();
+          // form.render();
+          this.render();
         });
 
 
       },
       update: form => {
-        this.renderForm = form.render;
+        // this.renderForm = form.render;
+
+        // this.render = () => {
+        //   this.getData().onrender = true;
+        // };
+
+        // console.log("render");
+
       },
       complete: async form => {
 
+        // let renderFlag;
+
         const process = await KarmaFieldsAlpha.Terminal.process();
 
-        if (process) {
+        if (process) { //  || renderFlag
+
+          // renderFlag = false;
+
+          // this.render = () => renderFlag = true;
 
           form.render();
 
+        } else {
+
+          this.render = () => {
+
+            this.render = () => {};
+            form.render();
+
+          };
+
         }
+
+
 
       },
       children: [

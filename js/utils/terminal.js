@@ -9,14 +9,21 @@ KarmaFieldsAlpha.Terminal = class {
 
 	static modified(...path) {
 
-    return !KarmaFieldsAlpha.DeepObject.equal(KarmaFieldsAlpha.Delta.get(...path), KarmaFieldsAlpha.Query.getValue(...path));
+    if (path.length) {
+
+      return !KarmaFieldsAlpha.DeepObject.equal(KarmaFieldsAlpha.Delta.get(...path), KarmaFieldsAlpha.Query.getValue(...path));
+
+    } else {
+
+      return KarmaFieldsAlpha.DeepObject.isIncluded(KarmaFieldsAlpha.Delta.object, KarmaFieldsAlpha.Query.vars);
+    }
 
 	}
 
 	static getValue(...path) {
 
     return KarmaFieldsAlpha.Delta.get(...path) || KarmaFieldsAlpha.Query.getValue(...path);
-    
+
 	}
 
 	static setValue(value, ...path) {
@@ -33,5 +40,5 @@ KarmaFieldsAlpha.Terminal = class {
 		}
 
 	}
-  
+
 };

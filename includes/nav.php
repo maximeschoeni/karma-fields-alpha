@@ -5,7 +5,12 @@
 	document.addEventListener("DOMContentLoaded", function() {
 		var container = document.getElementById("karma-fields-field-nav");
 		var resource = <?php echo json_encode($this->resource) ?>;
-		var field = new KarmaFieldsAlpha.field.layout(resource);
+		var index = <?php echo $this->index; ?>;
+		var field = new KarmaFieldsAlpha.field.saucer({
+			...resource,
+			index: index
+		});
+
 
 		// KarmaFieldsAlpha.resource = resource;
 		KarmaFieldsAlpha.build(field.build(), container);

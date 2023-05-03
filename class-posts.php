@@ -42,7 +42,7 @@ Class Karma_Fields_Alpha_Posts {
 
 
 
-		$karma_fields->register_table(array(
+		$karma_fields->register_table('posts', array(
 			// 'driver' => 'posts?post_type=post',
 			'id' => 'posts',
 			// 'type' => 'layout',

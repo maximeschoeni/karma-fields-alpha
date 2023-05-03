@@ -1,14 +1,19 @@
 KarmaFieldsAlpha.Selection = class {
 
-  constructor(index, length) {
+  constructor(index, length, colIndex = 0, colLength = 999999) {
 		this.index = index || 0;
 		this.length = length || 0;
+    this.colIndex = colIndex;
+    this.colLength = colLength;
 	}
 
 	union(selection) {
 		const index = Math.min(this.index, selection.index);
 		const length = Math.max(this.index + this.length, selection.index + selection.length) - index;
-		return new this.constructor(index, length);
+
+    const colIndex = Math.min(this.colIndex, selection.colIndex);
+		const colLength = Math.max(this.colIndex + this.colLength, selection.colIndex + selection.colLength) - colIndex;
+		return new this.constructor(index, length, colIndex, colLength);
 	}
 
   differs(selection) {
@@ -16,25 +21,42 @@ KarmaFieldsAlpha.Selection = class {
 	}
 
 	equals(selection) {
-		return selection && selection instanceof this.constructor && this.index === selection.index && this.length === selection.length;
+		return selection && selection instanceof this.constructor && this.index === selection.index && this.length === selection.length && this.colIndex === selection.colIndex && this.colLength === selection.colLength;
 	}
 
 	contains(index) {
 		return index >= this.index && index < this.index + this.length;
 	}
 
+  containsRow(index) {
+		return index >= this.index && index < this.index + this.length;
+	}
 
-  static get() {
+  containsCell(index, col) {
+		return index >= this.index && index < this.index + this.length && col >= this.colIndex && col < this.colIndex + this.colLength;
+	}
 
-    return this.object;
+
+  static get(index) {
+
+    // return this.object;
+
+    if (this.object) {
+
+      return this.object[index];
+
+    }
 
   }
 
-  static set(value) {
+  static set(value, index) {
 
-    KarmaFieldsAlpha.History.backup(value, this.object, "selection");
+    const currentSelection = this.get(index);
+    const newSelection = {[index]: value};
 
-    this.object = value;
+    KarmaFieldsAlpha.History.backup(newSelection, currentSelection, "selection");
+
+    this.object = newSelection;
 
   }
 

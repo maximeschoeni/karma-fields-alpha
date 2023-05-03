@@ -1,83 +1,42 @@
-<div id="karma-fields-term-<?php echo $term_id; ?>-field-<?php echo $index; ?>-container" class="karma-fields karma-fields-term"></div>
-<input type="hidden" name="karma-fields-items[]" id="karma-fields-term-<?php echo $term_id; ?>-input-<?php echo $index; ?>">
+<div id="karma-fields-term-<?php echo $term_id; ?>-field-<?php echo $this->index; ?>-container" class="karma-fields karma-fields-term"></div>
 
 <?php
 	$action = "karma_field-action";
 	$nonce = "karma_field-nonce";
 
 	wp_nonce_field($action, $nonce, false, true);
- ?>
+?>
+<style>
+   .karma-fields .array .td.selected,
+   .karma-fields .array .td.selecting,
+   .karma-fields .array .td.selected .td,
+   .karma-fields .array .td.selecting .td,
+   .karma-fields .array .td.selected .th,
+   .karma-fields .array .td.selecting .th {
+     background-color: #f0f0f1;
+   }
+   .karma-field-group {
+     min-width: 0;
+   }
+   .karma-tinymce .editor-header .toolbar {
+     top: 3em;
+   }
+</style>
 <script>
-	document.addEventListener("karmaFieldsAlpha", function() {
+ 	document.addEventListener("DOMContentLoaded", function() {
+ 		const container = document.getElementById("karma-fields-term-<?php echo $term_id; ?>-field-<?php echo $this->index; ?>-container");
+ 		const resource = <?php echo json_encode($args); ?>;
+ 		const index = <?php echo $this->index; ?>;
+		const id = "<?php echo $term_id; ?>";
 
-		let container = document.getElementById("karma-fields-term-<?php echo $term_id; ?>-field-<?php echo $index; ?>-container");
-		let input = document.getElementById("karma-fields-term-<?php echo $term_id; ?>-input-<?php echo $index; ?>");
+    const postform = new KarmaFieldsAlpha.field.postform({
+			driver: "taxonomy",
+			id: id,
+			...resource,
+			index: index,
+			type: "postform"
+    });
 
-		let resource = <?php echo json_encode($args); ?>;
-		let id = "<?php echo $term_id; ?>";
-
-		class MetaField extends KarmaFieldsAlpha.field {
-
-			static form = class extends KarmaFieldsAlpha.field.form {
-
-				constructor() {
-					super({
-						driver: "taxonomy",
-						joins: ["termmeta"],
-						params: {
-							ids: id
-						},
-						children: [resource]
-					});
-
-					this.buffer.getObject = function() {
-						return {
-							data: {
-								taxonomy: {
-									[id]: JSON.parse(input.value || "{}")
-								}
-							}
-						};
-					};
-
-					this.buffer.setObject = function(delta) {
-						input.value = JSON.stringify(delta.data.taxonomy[id]);
-					}
-
-				}
-
-				async request(subject, object, ...path) {
-
-					return super.request(subject, object, id, ...path);
-
-				}
-
-			}
-
-			async request(subject, object, ...path) {
-				switch (subject) {
-					case "render":
-					case "edit":
-						await this.render();
-						break;
-				}
-			}
-
-			build() {
-				return {
-					init: async div => {
-						this.render = div.render;
-						const form = this.createChild("form");
-						await form.query(form.resource.params);
-						div.child = form.build()
-					}
-				}
-			}
-
-		}
-
-		const metaField = new MetaField();
-
-		KarmaFieldsAlpha.build(metaField.build(), container);
-	});
+ 		KarmaFieldsAlpha.build(postform.build(), container);
+ 	});
 </script>

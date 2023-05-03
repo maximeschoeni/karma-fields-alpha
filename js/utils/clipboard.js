@@ -9,7 +9,7 @@ KarmaFieldsAlpha.Clipboard = class {
   }
 
   static clear() {
-    
+
     const clipboard = this.getElement();
 
     clipboard.value = "";
@@ -17,7 +17,7 @@ KarmaFieldsAlpha.Clipboard = class {
   }
 
   static write(string) {
-    
+
     const clipboard = this.getElement();
 
     if (clipboard) {
@@ -32,7 +32,7 @@ KarmaFieldsAlpha.Clipboard = class {
   }
 
   static read() {
-    
+
     const clipboard = this.getElement();
 
     if (clipboard) {
@@ -45,7 +45,7 @@ KarmaFieldsAlpha.Clipboard = class {
   }
 
   static focus() {
-    
+
     const clipboard = this.getElement();
 
     if (clipboard) {
@@ -57,7 +57,7 @@ KarmaFieldsAlpha.Clipboard = class {
     }
 
   }
-  
+
 
 
 
@@ -186,22 +186,22 @@ KarmaFieldsAlpha.Grid = class {
       for (let i = 0; i < column.length; i++) {
 
         if (!this.array[i]) {
-  
+
           this.array[i] = [];
-  
+
         }
-  
+
         this.array[i][this.cols] = column[i];
-  
+
       }
-  
+
       this.cols++;
 
     }
 
   }
 
-  getColumn(index) {
+  getColumn(index = 0) {
 
     const column = [];
 
@@ -226,7 +226,7 @@ KarmaFieldsAlpha.Grid = class {
 
   }
 
-  getRow(index) {
+  getRow(index = 0) {
 
     return this.array[index];
 
@@ -267,12 +267,10 @@ KarmaFieldsAlpha.Grid = class {
   //     this.cols = 0;
 
   //   }
-    
+
   // }
 
 
 
-	
+
 }
-
-

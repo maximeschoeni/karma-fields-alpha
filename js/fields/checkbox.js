@@ -25,7 +25,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 	}
 
   getValue() {
-    
+
     const key = this.getKey();
 
     return this.parent.getValue(key);
@@ -33,7 +33,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
   }
 
   setValue(value) {
-    
+
     const key = this.getKey();
 
     this.parent.setValue(value, key);
@@ -71,9 +71,9 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
   export(items = []) {
 
 		const values = this.getValue() || [""];
-    
+
     items.push(values[0]);
-    
+
     return items;
 	}
 
@@ -105,7 +105,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
       }
 
-			
+
 
 		}
 
@@ -216,7 +216,8 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 						tag: "input",
 						init: checkbox => {
 							checkbox.element.type = "checkbox";
-							checkbox.element.id = this.getId();
+							const id = this.getId();
+							checkbox.element.id = id;
 						},
 						update: async checkbox => {
 
@@ -249,7 +250,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
                 }
 
               }
-              
+
               if (this.resource.disabled) {
 
                 checkbox.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));

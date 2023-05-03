@@ -40,15 +40,14 @@ KarmaFieldsAlpha.field.layout.header = class extends KarmaFieldsAlpha.field.cont
     id: "count",
     type: "text",
     style: "justify-content:center;white-space: nowrap;",
-    value: ["replace", "# elements", "#", ["request", "count", "string"]],
-    dynamic: true
+    value: ["replace", "# elements", "#", ["request", "count"]]
   }
 
   static options = {
     id: "options",
     type: "button",
     title: "Options",
-    action: "toggle-options"
+    action: "toggleOptions"
   }
 
   static close = {
@@ -68,7 +67,7 @@ KarmaFieldsAlpha.field.layout.header = class extends KarmaFieldsAlpha.field.cont
         type: "group",
         display: "flex",
         style: "flex: 0 1 auto;min-width:0",
-        hidden: ["==", ["request", "numpage", "number"], 1],
+        hidden: ["==", ["request", "getNumPage"], 1],
         children: [
           "firstpage",
           "prevpage",
@@ -87,46 +86,45 @@ KarmaFieldsAlpha.field.layout.header = class extends KarmaFieldsAlpha.field.cont
     static firstpage = {
       id: "firstpage",
   		type: "button",
-      action: "firstpage",
+      action: "firstPage",
       title: "First Page",
       text: "«",
-      disabled: ["==", ["request", "page", "number"], 1]
+      disabled: ["==", ["request", "getPage"], 1]
     }
 
     static prevpage = {
       id: "prevpage",
   		type: "button",
-      action: "prevpage",
+      action: "prevPage",
       title: "Previous Page",
       text: "‹",
-      disabled: ["==", ["request", "page", "number"], 1]
+      disabled: ["==", ["request", "getPage"], 1]
     }
 
     static currentpage = {
       id: "currentpage",
   		type: "text",
       style: "min-width: 4em;text-align: right;",
-      value: ["replace", "# / #", "#", ["request", "page", "string"], ["request", "numpage", "string"]]
+      value: ["replace", "# / #", "#", ["request", "getPage"], ["request", "getNumPage"]]
     }
 
   	static nextpage = {
       id: "nextpage",
   		type: "button",
-      action: "nextpage",
+      action: "nextPage",
       title: "Next Page",
       text: "›",
-      // disabled: ["request", "lastpage", "boolean"]
-      disabled: ["==", ["request", "page", "number"], ["request", "numpage", "number"]]
+      disabled: ["==", ["request", "getPage"], ["request", "getNumPage"]]
     }
 
   	static lastpage = {
       id: "lastpage",
   		type: "button",
-      action: "lastpage",
+      action: "lastPage",
       title: "Last Page",
       text: "»",
       // disabled: ["request", "lastpage", "boolean"]
-      disabled: ["==", ["request", "page", "number"], ["request", "numpage", "number"]]
+      disabled: ["==", ["request", "getPage"], ["request", "getNumPage"]]
     }
 
   }

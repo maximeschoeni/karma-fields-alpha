@@ -153,7 +153,7 @@ Class Karma_Fields_Alpha_Media_Library {
 		// -> moved in karma-editor-theme
 		// $karma_fields->register_menu_item('karma=medias', 'upload.php');
 
-		$karma_fields->register_table(array(
+		$karma_fields->register_table('medias', array(
 
 			// 'driver' => 'posts?post_type=attachment,karma-folder&post_status=inherit&orderby=post_type',
 
