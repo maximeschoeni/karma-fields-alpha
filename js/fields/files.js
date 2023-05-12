@@ -281,7 +281,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
     items.push(grid.toString());
 
     return items;
-    
+
 	}
 
 
@@ -301,7 +301,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
     // this.setValue(value);
 
     // const key = this.getKey();
-   
+
     // if (object[key] !== undefined) {
 
     //   let ids = object[key];
@@ -315,7 +315,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 	// import(object = {}) {
 
   //   const key = this.getKey();
-   
+
   //   if (object[key] !== undefined) {
 
   //     let ids = object[key];
@@ -482,7 +482,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
         const clone = [...ids];
         clone.splice(target, 0, ...clone.splice(index, length));
-  
+
         this.setValue(clone);
 
       }
@@ -491,7 +491,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
   }
 
- 
+
 
   // async dispatch(event) {
   //
@@ -717,12 +717,12 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
   //   switch (action) {
 
   //     case "export": {
-        
+
   //       // return this.export();
   //     }
 
   //     case "import": {
-        
+
   //       // await this.import(object);
 
   //       // break;
@@ -747,7 +747,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
   //       //   // return new Set(ids.map(id => id.toString()));
 
   //       // }
-        
+
   //     }
 
   //   }
@@ -801,7 +801,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
   delete() {
 
     const selection = this.getSelection();
-    
+
     if (selection) {
 
       this.insert([], selection.index, selection.length);
@@ -953,7 +953,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
 
 			},
-      update: async container => {
+      update: container => {
 
         container.element.classList.toggle("single", this.isSingle());
 
@@ -963,7 +963,9 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
         const ids = this.getIds();
 
-        const data = this.getData() || {};
+
+
+        const data = this.getData();
 
         container.element.classList.toggle("loading", !ids);
 
@@ -975,10 +977,10 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
         container.element.ondrop = async event => {
           event.preventDefault();
 
-          
+
 
           data.uploads = event.dataTransfer.files.length;
-          this.setData(data);
+          // this.setData(data);
 
           await this.render();
 
@@ -994,7 +996,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
             }
 
             data.uploads--;
-            this.setData(data);
+            // this.setData(data);
             await this.render();
 
           }
@@ -1013,7 +1015,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
           // const files = event.dataTransfer.files;
           // if (event.dataTransfer.files.length && (this.resource.uploader || this.resource.library) !== "wp") {
-            
+
           //   let table = this.createChild({
           //     type: "form",
           //     driver: "posts"
@@ -1042,27 +1044,32 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
           // }
         }
 
-        
+
 
         // const filteredIds = ids.filter(id => id !== "0");
 
 
         if (ids) {
 
-          
+
 
           container.children = [
             // this.clipboard.build(),
             {
               class: "gallery",
-              init: async gallery => {
-                gallery.element.tabIndex = -1;
+              init: gallery => {
+                // gallery.element.tabIndex = -1;
               },
-              update: async gallery => {
+              update: gallery => {
 
                 let selection = this.getSelection();
 
                 gallery.element.classList.toggle("has-selection", Boolean(selection));
+
+                // gallery.element.onfocus = event => {
+                //
+                //   this.setSelection(selection);
+                // }
 
                 // gallery.element.onfocus = event => {
 
@@ -1070,7 +1077,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                 //   console.log(selection);
 
-                  
+
                 //   this.setSelection(selection);
                 //   KarmaFieldsAlpha.Clipboard.write("");
                 //   this.request("render");
@@ -1093,12 +1100,12 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
 
                 // this.clipboard.onBlur = event => {
-                  
+
                 //   if (selection) {
 
                 //     const sortManager = new KarmaFieldsAlpha.SortManager(gallery.element);
                 //     sortManager.clear(selection);
-                    
+
                 //     selection = null;
                 //     this.setSelection(selection);
 
@@ -1111,7 +1118,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                 // this.clipboard.onInput = async value => {
 
-                  
+
 
                 //   const array = [];
                 //   const arrayData = KarmaFieldsAlpha.Clipboard.parse(value);
@@ -1129,7 +1136,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                 //     KarmaFieldsAlpha.History.save();
                 //     this.insert(array, selection.index, selection.length);
-                    
+
                 //     selection = null;
 
                 //     this.setSelection(selection);
@@ -1159,7 +1166,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                     // KarmaFieldsAlpha.History.save();
 
-                    this.setSelection(newSelection);
+
 
                     // const selectedIds = ids.slice(selection.index, selection.index + selection.length);
                     // const string = this.encodeIds(selectedIds);
@@ -1170,17 +1177,22 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                     // this.request("render");
 
-                    this.render();
-                    
+                    this.setSelection(newSelection);
+
                   }
 
+                }
+
+                sorter.onSelectionChange = newSelection => {
+
+                  this.setSelection(newSelection);
                 }
 
                 sorter.onsort = () => {
 
                   if (!KarmaFieldsAlpha.Segment.equals(sorter.selection, selection)) {
 
-                    
+
                     this.swap(selection.index, selection.length, sorter.selection.index);
 
                     this.setSelection(sorter.selection);
@@ -1194,12 +1206,12 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                     // KarmaFieldsAlpha.History.save();
 
-                    this.parent.request("save");
-
-                    this.render();
+                    // this.parent.request("save");
+                    //
+                    // this.render();
 
                   }
-        
+
                 }
 
                 sorter.onbackground = () => {
@@ -1207,23 +1219,22 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                   selection = new KarmaFieldsAlpha.Selection(ids.length, 0);
                   this.setSelection(selection);
                   KarmaFieldsAlpha.Clipboard.write("");
-                  this.render();
+                  this.setSelection(selection);
 
                 }
-
 
 
                 gallery.children = ids.map((id, rowIndex) => {
                   return {
                     class: "frame",
-                    init: async frame => {
-                      frame.element.tabIndex = -1;
-                    },
+                    // init: async frame => {
+                    //   frame.element.tabIndex = -1;
+                    // },
                     update: async frame => {
 
                       frame.element.classList.toggle("selected", KarmaFieldsAlpha.Segment.contain(selection, rowIndex));
 
-                      
+
 
 
 
@@ -1302,10 +1313,10 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                         //   }
 
-                        // } else 
+                        // } else
 
                         // const mimetype = mimetypes[0];
-                        
+
                         if (!mimetype) {
 
                           icon = "notfound";
@@ -1365,10 +1376,10 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                           tag: "figure",
                           update: async figure => {
 
-                            
+
 
                             if (icon === "image") {
-    
+
                               // const sizes = (mimetype === "image/jpeg" || mimetype === "image/png") && await this.parent.request("get-value", {
                               //   driver: this.resource.driver || "posts",
                               //   id: id,
@@ -1376,7 +1387,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                               // });
 
                               const sizes = (mimetype === "image/jpeg" || mimetype === "image/png") && KarmaFieldsAlpha.Query.getValue(this.driver, id, "sizes");
-    
+
                               if (sizes) {
 
                                 const thumb = sizes.find(size => size.name === 'thumbnail');
@@ -1397,7 +1408,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                                   icon = "notfound";
 
                                 }
-    
+
                               } else if (file) {
 
                                 if (file !== KarmaFieldsAlpha.loading) {
@@ -1409,7 +1420,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                                     }
                                   }];
 
-                                } 
+                                }
 
                               } else {
 
@@ -1420,7 +1431,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                             } else {
 
                               figure.children = [];
-                              
+
                             }
 
                             figure.element.classList.toggle("dashicons", icon !== "thumb");
@@ -1521,7 +1532,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                   }
 
                 }
-               
+
               }
             },
             {
@@ -1545,7 +1556,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
         }
 
-        
+
 
 
 

@@ -5,6 +5,8 @@ KarmaFieldsAlpha.Selection = class {
 		this.length = length || 0;
     this.colIndex = colIndex;
     this.colLength = colLength;
+
+    this.final = true;
 	}
 
 	union(selection) {

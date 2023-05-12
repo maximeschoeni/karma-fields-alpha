@@ -15,10 +15,10 @@
 // 	}
 // 	while (child) {
 // 		let next = child && child.nextElementSibling;
-
+//
 // 		const event = new Event("remove");
 // 		element.dispatchEvent(event);
-
+//
 // 		element.removeChild(child);
 // 		child = next;
 // 	}
@@ -46,19 +46,20 @@ KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
 
 
 KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
-	// args.render = (clean) => this.build(args, parent, args.element, clean);
-	args.render = async (clean) => {
-		if (args.queue) {
-			await args.queue;
-		}
-		args.queue = this.build(args, parent, args.element, clean);
-		return args.queue;
-	}
+	args.render = (clean) => this.build(args, parent, args.element, clean);
+	// args.render = async (clean) => {
+	// 	if (args.queue) {
+	// 		await args.queue;
+	// 	}
+	// 	args.queue = this.build(args, parent, args.element, clean);
+	// 	return args.queue;
+	// }
 	if (!element || clean) {
 		args.element = document.createElement(args.tag || "div");
 		if (args.class) {
 			args.element.className = args.class;
 		}
+
 		if (element) {
 			parent.replaceChild(args.element, element);
 		} else {

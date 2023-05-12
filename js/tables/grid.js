@@ -576,7 +576,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   paste(string, selection) {
 
-    if (selection && selection instanceof KarmaFieldsAlpha.Selection) {
+    if (selection && selection.final) {
 
       const [current] = this.export([], selection.index, selection.length);
 
@@ -938,6 +938,26 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     return [];
   }
 
+  clearSelection(selection) {
+
+    if (selection && !selection.final && selection.modal) {
+
+      const modal = this.createChild({
+        ...this.resource.modal,
+        type: "modal",
+        index: "modal"
+      });
+
+      modal.clearSelection(selection.modal);
+
+    } else {
+
+      this.setSelection();
+
+    }
+
+  }
+
 
 
 
@@ -962,14 +982,35 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   select(index, length) {
 
-    const currentSelection = this.getSelection();
-    const newSelection = new KarmaFieldsAlpha.Selection(index, length);
+    // const currentSelection = this.getSelection();
+    // const newSelection = new KarmaFieldsAlpha.Selection(index, length);
+    // newSelection.final = true;
+    //
+    // if (!currentSelection || !newSelection.equals(currentSelection)) {
+    //
+    //   this.parent.setSelection(selection);
+    //
+    // }
 
-    if (!currentSelection || !newSelection.equals(currentSelection)) {
 
-      this.parent.setSelection(selection);
+    const [string] = this.export([], index, length);
 
-    }
+    KarmaFieldsAlpha.Clipboard.write(string);
+
+    const selection = new KarmaFieldsAlpha.Selection(index, length);
+
+    this.setSelection(selection);
+
+    // KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
+    //
+    //   const selection = this.getSelection();
+    //   console.log("grid row focusout", event.relatedTarget);
+    //   this.setSelection();
+    //   this.render();
+    // }
+
+
+    this.parent.render();
 
   }
 
@@ -1252,20 +1293,37 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     return {
       class: "karma-field-table-grid-container karma-field-frame karma-field-group final scroll-container",
       init: body => {
-        body.element.tabIndex = -1;
+        // body.element.tabIndex = -1;
       },
       update: body => {
 
-        body.element.onfocus = async event => {
-          // const selection = this.selectionBuffer.get();
-          if (this.hasSelection()) {
-            // KarmaFieldsAlpha.History.save();
-            // this.selectionBuffer.change(null);
-            // await this.parent.request("render");
-            this.parent.setSelection();
-          }
-          KarmaFieldsAlpha.Clipboard.write("");
-        }
+        // body.element.onfocus = async event => {
+        //   // const selection = this.selectionBuffer.get();
+        //   if (this.hasSelection()) {
+        //     // KarmaFieldsAlpha.History.save();
+        //     // this.selectionBuffer.change(null);
+        //     // await this.parent.request("render");
+        //     this.parent.setSelection();
+        //   }
+        //   KarmaFieldsAlpha.Clipboard.write("");
+        // }
+
+        // body.element.focusout = async event => {
+        //
+        //
+        //   // const selection = this.selectionBuffer.get();
+        //   if (this.hasSelection()) {
+        //     // KarmaFieldsAlpha.History.save();
+        //     // this.selectionBuffer.change(null);
+        //     // await this.parent.request("render");
+        //
+        //
+        //
+        //     this.parent.setSelection(null);
+        //   }
+        //   KarmaFieldsAlpha.Clipboard.write("");
+        // }
+
         body.children = [
           // this.cellClipboard.build(),
           // this.clipboard.build(),
@@ -1280,6 +1338,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
               const ids = this.getIds();
 
+              const data = this.getData();
 
               grid.element.classList.toggle("loading", !ids);
 
@@ -1308,14 +1367,54 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
                     selection = newSelection;
 
-                    const [string] = this.export([], selection.index, selection.length);
+                    data.selection = selection;
 
-                    KarmaFieldsAlpha.Clipboard.write(string);
+                    this.select(selection.index, selection.length);
 
-                    this.setSelection(selection);
+                    // const [string] = this.export([], selection.index, selection.length);
+                    //
+                    //
+                    //
+                    // KarmaFieldsAlpha.Clipboard.write(string);
+                    //
+                    // this.setSelection(selection);
+                    //
+                    // KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
+                    //
+                    //   const selection = this.getSelection();
+                    //   console.log("grid row focusout", selection);
+                    //   this.setSelection();
+                    //   this.render();
+                    // }
+                    //
+                    //
+                    // this.parent.render();
 
                   }
 
+                }
+
+                selector.onSelectionChange = newSelection => {
+
+                  this.setSelection(newSelection);
+
+                  // data.selection = newSelection;
+                }
+
+                selector.onPaintRow = elements => {
+                  elements.forEach(element => element.classList.add("selected"))
+                }
+
+                selector.onUnpaintRow = elements => {
+                  elements.forEach(element => element.classList.remove("selected"))
+                }
+
+                selector.onPaintCell = elements => {
+                  elements.forEach(element => element.classList.add("selected-cell"))
+                }
+
+                selector.onUnpaintCell = elements => {
+                  elements.forEach(element => element.classList.remove("selected-cell"))
                 }
 
                 if (ids.length) {
@@ -1401,7 +1500,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
                               td.element.tabIndex = -1;
                             },
                             update: td => {
-                              const isCellSelected = selection && selection.containsCell(rowIndex, colIndex);
+                              const isCellSelected = selection && selection instanceof KarmaFieldsAlpha.Selection && selection.containsCell(rowIndex, colIndex);
                               td.element.classList.toggle("selected", Boolean(isRowSelected));
                               td.element.classList.toggle("selected-cell", Boolean(isCellSelected));
 
@@ -2030,6 +2129,29 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field {
 
   }
 
+  setSelection(selection) {
+
+    if (selection) {
+
+      const parentSelection = new KarmaFieldsAlpha.Selection(this.resource.index, 1);
+
+      parentSelection[this.resource.index] = selection;
+
+      this.parent.setSelection(parentSelection);
+
+    } else {
+
+      super.setSelection(selection);
+
+    }
+
+
+
+    // console.log("modal setSelection", selection, parentSelection);
+
+
+  }
+
 
   static index = {
     type: "text",
@@ -2077,60 +2199,202 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field {
 
 
 
-KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.container {
-
-  getValue(key) {
-
-    let array;
-
-    for (let id of this.resource.ids) {
-
-      const values = this.parent.getValue(id, key);
-
-      if (!array) {
-
-        array = values;
-
-      } else if (KarmaFieldsAlpha.DeepObject.differ(array, values)) {
-
-        array = [];
-        break;
-
-      }
-
-    }
-
-    return array;
-
-  }
-
-  setValue(value, key) {
-
-    if (this.resource.ids) {
-
-      if (this.resource.ids.length === 1) {
-
-        this.parent.setValue(value, this.resource.ids[0], key); // -> one item / multiple or single value
-
-      } else if (!Array.isArray(value) || value.length === 1) {
-
-        this.resource.ids.forEach(id => void this.parent.setValue(value[0], id, key)); // -> multiple items / single value
-
-      } else if (Array.isArray(value) && value.length === this.resource.ids.length) {
-
-        this.resource.ids.forEach((id, index) => void this.parent.setValue(value[index], id, key)); // -> multiple items / multiple values
-
-      } else {
-
-        console.error("values count does not match items count");
-
-      }
-
-    }
-
-  }
-
-}
+// KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.container {
+//
+//   // constructor(resource) {
+//   //
+//   //   super(resource);
+//   //
+//   //   const data = this.getData();
+//   //
+//   //   data.index = resource.selection.index;
+//   //   data.length = resource.selection.length;
+//   //
+//   // }
+//
+//   getValue(key) {
+//
+//     let array;
+//
+//     const ids = this.parent.getSelectedIds();
+//
+//     for (let id of ids) {
+//
+//       const values = this.parent.getValue(id, key);
+//
+//       if (!array) {
+//
+//         array = values;
+//
+//       } else if (KarmaFieldsAlpha.DeepObject.differ(array, values)) {
+//
+//         array = [];
+//         break;
+//
+//       }
+//
+//     }
+//
+//     return array;
+//
+//   }
+//
+//   setValue(value, key) {
+//
+//     const ids = this.parent.getSelectedIds();
+//
+//     if (ids) {
+//
+//       if (ids.length === 1) {
+//
+//         this.parent.setValue(value, ids[0], key); // -> one item / multiple or single value
+//
+//       } else if (!Array.isArray(value) || value.length === 1) {
+//
+//         ids.forEach(id => void this.parent.setValue(value[0], id, key)); // -> multiple items / single value
+//
+//       } else if (Array.isArray(value) && value.length === ids.length) {
+//
+//         ids.forEach((id, index) => void this.parent.setValue(value[index], id, key)); // -> multiple items / multiple values
+//
+//       } else {
+//
+//         console.error("values count does not match items count");
+//
+//       }
+//
+//     }
+//
+//   }
+//
+//   setSelection(selection) {
+//
+//     // console.log("modal", selection);
+//
+//     if (selection) {
+//
+//       const parentSelection = new KarmaFieldsAlpha.Selection();
+//       const parentData = this.parent.getData().selection;
+//       parentSelection.index = parentData.index || 0;
+//       parentSelection.length = parentData.length || 0;
+//       parentSelection[this.resource.index] = selection;
+//
+//       this.parent.setSelection(parentSelection);
+//
+//     } else {
+//
+//       super.setSelection(selection);
+//
+//     }
+//
+//
+//
+//     // console.log("modal setSelection", selection, parentSelection);
+//
+//
+//   }
+//
+//   build() {
+//
+//     return {
+//       class: "modal-field",
+//       init: modal => {
+//         modal.element.tabIndex = -1;
+//       },
+//       update: modal => {
+//         // modal.element.onfocusin = event => {
+//         //
+//         //   const parentSelection = new KarmaFieldsAlpha.Selection();
+//         //   const parentData = this.parent.getData().selection;
+//         //   parentSelection.index = parentData.index || 0;
+//         //   parentSelection.length = parentData.length || 0;
+//         //   // parentSelection[this.resource.index] = selection;
+//         //
+//         //   const [string] = this.parent.export([], parentSelection.index, parentSelection.length);
+//         //
+//         //   KarmaFieldsAlpha.Clipboard.write(string);
+//         //
+//         //   this.parent.setSelection(parentSelection);
+//         //
+//         //
+//         // }
+//
+//         modal.element.onfocusin = event => {
+//
+//           // const parentSelection = this.parent.getSelection();
+//
+//           // console.log(parentSelection);
+//
+//           // KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
+//           //   // event.preventDefault();
+//           //   // event.stopPropagation();
+//           //
+//           //   const selection = new KarmaFieldsAlpha.Selection();
+//           //   this.setSelection(selection);
+//           //
+//           // }
+//
+//           // console.log("modal focusin", document.activeElement);
+//
+//           // const selection = this.getSelection();
+//
+//           // console.log(document.activeElement, document.activeElement === modal.element);
+//
+//           if (document.activeElement === modal.element) {
+//
+//             const parentSelection = new KarmaFieldsAlpha.Selection();
+//             const parentData = this.parent.getData().selection;
+//             parentSelection.index = parentData.index || 0;
+//             parentSelection.length = parentData.length || 0;
+//             // parentSelection[this.resource.index] = selection;
+//
+//             const [string] = this.parent.export([], parentSelection.index, parentSelection.length);
+//
+//             KarmaFieldsAlpha.Clipboard.write(string);
+//
+//             this.parent.setSelection(parentSelection);
+//
+//             KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
+//
+//               console.log("clipboard onfocusout", document.activeElement);
+//
+//               const selection = this.getSelection();
+//               this.setSelection(selection);
+//               this.render();
+//             }
+//
+//           }
+//
+//
+//
+//
+//         }
+//
+//         // modal.element.onfocusout = event => {
+//         //
+//         //   // console.log("module onfocusout", document.activeElement, modal.element);
+//         //
+//         //   this.setSelection();
+//         //   this.parent.render();
+//         // }
+//
+//         // modal.element.onfocusin = event => {
+//         //
+//         //   console.log("focusin");
+//         //   const selection = new KarmaFieldsAlpha.Selection();
+//         //   this.setSelection(selection);
+//         // }
+//         // modal.element.onfocusout = event => {
+//         //   this.setSelection();
+//         // }
+//       },
+//       child: super.build()
+//     }
+//
+//
+//   }
+//
+// }
 
 
 // KarmaFieldsAlpha.field.grid.index = class extends KarmaFieldsAlpha.field.text {

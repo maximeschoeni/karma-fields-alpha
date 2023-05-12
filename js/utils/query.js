@@ -37,35 +37,35 @@ KarmaFieldsAlpha.Query = class {
       this.done = true;
       this.queried = false;
       this.step = 0;
-  
+
     }
-  
+
     has(id) {
-  
+
       return this.ids.has(id);
-  
+
     }
-  
+
     isQueried(id) {
-  
+
       return this.queriedIds.has(id);
-  
+
     }
-  
+
     add(id) {
-  
+
       // if (!this.queriedIds.has(id) && !this.ids.has(id)) {
-  
+
       //   this.ids.add(id);
-        
+
       //   this.done = false;
       //   this.queried = false;
       //   this.step = 0;
-  
+
       // }
 
       if (!this.queriedIds.has(id)) {
-        
+
         if (!this.ids.has(id)) {
 
           this.ids.add(id);
@@ -75,41 +75,41 @@ KarmaFieldsAlpha.Query = class {
         }
 
         this.done = false;
-  
+
       }
-    
+
     }
-  
+
     async fulfill() {
-  
+
       if (!this.queried) {
-  
+
         await KarmaFieldsAlpha.Query.query(this.driver, `ids=${[...this.ids].join(",")}`);
-  
+
         this.queried = true;
-  
+
       } else if (this.step < this.relations.length) {
-        
+
         await KarmaFieldsAlpha.Query.queryRelations(this.driver, this.relations[this.step], [...this.ids]);
-        
+
         this.step++;
-  
+
       }
-  
+
       if (this.step >= this.relations.length) {
-  
+
         this.queriedIds = new Set([...this.queriedIds, ...this.ids]);
-  
+
         this.ids = new Set();
-  
+
       }
 
       this.done = true;
-  
+
     }
 
   }
-  
+
   static requirements = {};
   static vars = {};
   static queries = {};
@@ -125,10 +125,10 @@ KarmaFieldsAlpha.Query = class {
 
     const value = KarmaFieldsAlpha.DeepObject.get(this.vars, driver, id, key);
 
-    
-    
+
+
     if (!value) {
-      
+
       let requirement = KarmaFieldsAlpha.DeepObject.get(this.requirements, "vars", driver);
 
       if (!requirement) {
@@ -371,7 +371,7 @@ KarmaFieldsAlpha.Query = class {
 
   //     return true;
   //   }
-    
+
   //   return false;
   // }
 
@@ -396,5 +396,3 @@ KarmaFieldsAlpha.Query = class {
   }
 
 }
-
-

@@ -120,6 +120,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				this.saveContent();
 			});
 
+
+
 			// -> input event does not seem to capture line break (single or double) or delete line break !
 			editor.on("keyup", event => {
 				if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
@@ -156,6 +158,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
         if (this.renderToolbar) {
           this.renderToolbar();
         }
+
+				this.setSelection();
 			});
 
 			editor.on("click", event => {
@@ -1342,7 +1346,20 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// 		editor.element.classList.add("theme-"+this.resource.theme);
 			// 	}
 			// },
+			init: container => {
+        container.element.tabIndex = -1;
+      },
       update: async container => {
+
+				container.element.onfocusin = event => {
+					this.setSelection(new KarmaFieldsAlpha.Selection());
+        }
+				container.element.onfocusout = event => {
+          this.setSelection();
+        }
+
+
+
         // this.render = container.render;
         // const mode = this.parent.request("get-option", {}, "mode") || this.resource.mode || "edit";
         let action = this.getData() || {};

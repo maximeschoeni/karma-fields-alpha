@@ -439,7 +439,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   paste(string, selection) {
 
-    if (selection && selection instanceof KarmaFieldsAlpha.Selection) {
+    if (selection && selection.final && selection instanceof KarmaFieldsAlpha.Selection) {
 
       const [current] = this.export([], selection.index, selection.length);
 
@@ -1214,7 +1214,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     const child = this.createChild({
       ...this.resource,
-      type: "arrayRow"
+      type: "row"
     });
 
     const defaults = child.getDefault();
@@ -1307,8 +1307,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
     return {
       class: "array",
       update: array => {
+
         array.children = [
-          // this.clipboard.build(),
           {
             class: "array-body",
             init: table => {
@@ -1331,48 +1331,11 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 let selection = this.getSelection();
 
-                if (!(selection instanceof KarmaFieldsAlpha.Selection)) {
+                if (!(selection instanceof KarmaFieldsAlpha.Selection) || !selection.final) {
 
                   selection = null; // -> selection target a deeper field
 
                 }
-
-                // this.clipboard.onBlur = event => {
-
-                //   if (this.selection) {
-
-                //     const sortManager = new KarmaFieldsAlpha.SortManager(table.element);
-
-                //     sortManager.selection = this.selection;
-                //     sortManager.clear();
-
-                //     this.selection = null;
-
-                //   }
-
-                // }
-
-                // this.clipboard.onInput = value => {
-
-                //   const array = JSON.parse(value || "[]");
-
-                //   if (this.selection) {
-
-                //     KarmaFieldsAlpha.History.save();
-
-                //     this.importRows(array, this.selection.index, this.selection.length);
-                //     this.selection = null;
-                //     this.parent.request("render");
-
-                //   }
-
-                // }
-
-
-
-                // table.element.colCount = this.resource.children.length;
-                // table.element.rowCount = values.length;
-                // table.element.colHeader = hasHeader ? 1 : 0;
 
 
                 const sorter = new KarmaFieldsAlpha.Sorter(table.element);
@@ -1385,8 +1348,17 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                   sorter.colHeader = 1;
                 }
 
+                // this.mousedown = event => {
+                //
+                //   sorter.tracker.trigger(event);
+                //
+                //   // this.parent.request("mousedown", event);
+                //
+                // }
+
                 sorter.onselect = newSelection => {
 
+                  // newSelection.final = true;
 
                   // if (!selection && sorter.firstIndex === sorter.lastIndex) {
 
@@ -1400,7 +1372,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                     selection = newSelection;
 
-                    this.setSelection(newSelection);
+
 
                     // const slice = values.slice(selection.index, selection.index + selection.length);
                     // const string = this.encode(slice);
@@ -1411,12 +1383,36 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                     KarmaFieldsAlpha.Clipboard.write(string);
 
+                    this.setSelection(newSelection);
+
+                    this.render();
+
                     // KarmaFieldsAlpha.History.save();
 
-                    this.parent.render();
+                    // this.parent.render();
 
                   }
 
+                }
+
+                sorter.onSelectionChange = newSelection => {
+                  this.setSelection(newSelection);
+                }
+
+                sorter.onPaintRow = elements => {
+                  elements.forEach(element => element.classList.add("selected"))
+                }
+
+                sorter.onUnpaintRow = elements => {
+                  elements.forEach(element => element.classList.remove("selected"))
+                }
+
+                sorter.onPaintCell = elements => {
+                  elements.forEach(element => element.classList.add("selected-cell"))
+                }
+
+                sorter.onUnpaintCell = elements => {
+                  elements.forEach(element => element.classList.remove("selected-cell"))
                 }
 
                 sorter.onsort = () => {
@@ -1427,15 +1423,17 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                     this.swap(selection.index, selection.length, sorter.selection.index);
 
-                    KarmaFieldsAlpha.History.save();
+                    // KarmaFieldsAlpha.History.save();
 
-                    this.setSelection(sorter.selection);
+
 
                     selection = sorter.selection;
 
                     KarmaFieldsAlpha.Clipboard.focus();
 
-                    this.parent.render();
+                    // this.parent.render();
+
+                    this.setSelection(sorter.selection);
 
                   }
 
@@ -1444,9 +1442,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                 sorter.onbackground = () => {
 
                   selection = new KarmaFieldsAlpha.Selection(values.length, 0);
-                  this.setSelection(selection);
+                  // selection.final = true;
+
                   KarmaFieldsAlpha.Clipboard.write("");
-                  this.parent.render();
+
+                  this.setSelection(selection);
+                  // this.parent.render();
 
                 }
 
@@ -1491,56 +1492,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                             td.element.classList.toggle("selected", Boolean(selection && selection.contains(index)));
 
-
-
-
-
-                            // this.selection = null;
-                            // td.element.classList.remove("selected");
                             // td.element.onmousedown = event => {
-
-                            //   if (event.target !== td.element) {
-                            //     return;
-                            //   }
-
-                            //   if (event.buttons === 1) {
-
-                            //     const sortManager = new KarmaFieldsAlpha.SortManager(table.element);
-
-                            //     sortManager.selection = this.selection;
-
-                            //     sortManager.onSelect = segment => {
-
-                            //       this.selection = segment;
-
-                            //       // debugger;
-                            //       // console.log(await row.request("path"));
-
-
-                            //       const array = this.exportRows(segment.index, segment.length);
-                            //       const value = JSON.stringify(array);
-
-                            //       this.clipboard.output(value);
-                            //       this.clipboard.focus();
-
-                            //       this.onRenderControls();
-
-                            //     }
-
-                            //     sortManager.onSort = (index, length, target) => {
-
-                            //       this.swap(index, length, target);
-
-                            //       sortManager.clear();
-
-                            //       this.parent.request("render");
-
-                            //     }
-
-                            //     sortManager.select(event, colIndex, index);
-
-                            //   }
-
+                            //   event.stopPropagation();
+                            //   this.request("mousedown", event);
                             // };
 
                             td.child = field.build();

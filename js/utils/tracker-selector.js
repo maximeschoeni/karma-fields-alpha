@@ -110,16 +110,12 @@ KarmaFieldsAlpha.Selector = class {
 
     const index = this.findIndex(this.tracker.x, this.tracker.y);
 
-    if (this.tracker.firstTarget.tabIndex < 0 || index !== this.firstIndex) {
 
-      // console.log(this.tracker.firstTarget.tabIndex < 0 || this.tracker.firstTarget !== this.tracker.event.target);
+    if (this.tracker.firstTarget.tabIndex < 0 || index !== this.firstIndex) { // why??
+
+    // if (true) {
 
       if (index > -1) {
-
-        // this.growSelection({
-        //   index: this.getRow(index),
-        //   length: 1
-        // });
 
         const row = this.getRow(index);
         const col = this.getCol(index);
@@ -142,8 +138,8 @@ KarmaFieldsAlpha.Selector = class {
 
     if (this.selection) {
 
-      this.sliceSegment(this.selection).forEach(element => element.classList.replace("selecting", "selected"));
-      this.sliceSelection(this.selection).forEach(element => element.classList.replace("selecting-cell", "selected-cell"));
+      // this.sliceSegment(this.selection).forEach(element => element.classList.replace("selecting", "selected"));
+      // this.sliceSelection(this.selection).forEach(element => element.classList.replace("selecting-cell", "selected-cell"));
 
       if (this.onselect) {
 
@@ -413,18 +409,30 @@ KarmaFieldsAlpha.Selector = class {
 
   growSelection(selection) {
 
-    // const union = KarmaFieldsAlpha.Segment.union(this.tie, segment);
+
+
 
     const union = selection.union(this.tie);
 
-    // if (!this.selection || !KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
 
     if (!this.selection || !union.equals(this.selection)) {
 
       if (this.selection) {
 
-        this.sliceSegment(this.selection).forEach(element => element.classList.remove("selecting"));
-        this.sliceSelection(this.selection).forEach(element => element.classList.remove("selecting-cell"));
+        if (this.onUnpaintRow) {
+
+          this.onUnpaintRow(this.sliceSegment(this.selection));
+
+        }
+
+        if (this.onUnpaintCell) {
+
+          this.onUnpaintCell(this.sliceSelection(this.selection));
+
+        }
+
+        // this.sliceSegment(this.selection).forEach(element => element.classList.remove("selected"));
+        // this.sliceSelection(this.selection).forEach(element => element.classList.remove("selected-cell"));
 
       }
 
@@ -432,8 +440,27 @@ KarmaFieldsAlpha.Selector = class {
 
       Object.freeze(this.selection);
 
-      this.sliceSegment(this.selection).forEach(element => element.classList.add("selecting"));
-      this.sliceSelection(this.selection).forEach(element => element.classList.add("selecting-cell"));
+      // this.sliceSegment(this.selection).forEach(element => element.classList.add("selected"));
+      // this.sliceSelection(this.selection).forEach(element => element.classList.add("selected-cell"));
+
+      if (this.onPaintRow) {
+
+        this.onPaintRow(this.sliceSegment(this.selection));
+
+      }
+
+      if (this.onPaintCell) {
+
+        this.onPaintCell(this.sliceSelection(this.selection));
+
+      }
+
+
+      if (this.onSelectionChange) {
+
+        this.onSelectionChange(this.selection);
+
+      }
 
     }
 
@@ -444,7 +471,7 @@ KarmaFieldsAlpha.Selector = class {
     if (segment) {
 
       this.sliceSegment(segment).forEach(element => element.classList.remove("selected"));
-      this.sliceSelection(segment).forEach(element => element.classList.remove("selecting-cell"));
+      this.sliceSelection(segment).forEach(element => element.classList.remove("selected-cell"));
 
     }
 

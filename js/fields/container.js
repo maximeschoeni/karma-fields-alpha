@@ -26,13 +26,13 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
   //     return selection[this.resource.id];
 
   //   }
-    
+
   // }
 
   // setSelection(values) {
 
   //   this.parent.setSelection({[this.resource.id]: values});
-    
+
   // }
 
   // paste(selection) {
@@ -60,17 +60,17 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
   // }
 
-	
 
-	
 
-  
+
+
+
   // expect(action, object) {
 
   //   switch (action) {
 
   //     case "export": {
-        
+
   //       let object = {};
 
   //       if (this.resource.children) {
@@ -92,17 +92,17 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
   //     }
 
   //     case "import": {
-        
+
   //       if (this.resource.children) {
 
   //         for (let resource of this.resource.children) {
-    
+
   //           const child = this.createChild(resource);
-    
+
   //           child.expect(action, object);
-    
+
   //         }
-    
+
   //       }
 
   //       break;
@@ -115,7 +115,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
   //     //   if (this.resource.children) {
 
   //     //     for (let resource of this.resource.children) {
-    
+
   //     //       const child = this.createChild(resource);
 
   //     //       const values = await child.expect(action, object);
@@ -127,7 +127,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
   //     //       }
 
   //     //     }
-          
+
   //     //   }
 
   //     //   return set;
@@ -138,13 +138,13 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
   //       if (this.resource.children) {
 
   //         for (let resource of this.resource.children) {
-    
+
   //           const child = this.createChild(resource);
 
   //           child.expect(action, object);
 
   //         }
-          
+
   //       }
 
   //     }
@@ -196,21 +196,26 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 			},
 			update: async group => {
 				// this.render = group.render;
+
+
+
 				group.children = this.getChildren().map((resource, index) => {
 
           if (typeof resource === "string") {
 
             resource = {type: resource};
-      
+
           }
+
+
 
           const data = resource.data || {};
           const selection = resource.selection || {};
 
 					const field = this.createChild({
-            id: index, 
-            ...resource, 
-            index: index, 
+            id: index,
+            ...resource,
+            index: index,
             data: data[index],
             selection: selection[index],
             uid: `${this.resource.uid}-${index}`

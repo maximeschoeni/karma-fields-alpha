@@ -325,6 +325,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 				// const state = await this.parent.request("state", {}, key);
 
 
+
         const values = this.getValue();
 
         input.element.classList.toggle("loading", !values);
@@ -452,8 +453,40 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					input.element.onmousedown = event => {
 
-						event.stopPropagation();
-						this.parent.request("mousedown", event);
+						// console.log("input mousedown");
+
+						// event.stopPropagation();
+						// event.preventDefault();
+						// this.parent.request("mousedown", event);
+						// this.setSelection(new KarmaFieldsAlpha.Selection());
+
+					}
+
+					input.element.onfocusin = event => {
+
+						console.log("input onfocusin");
+
+						// debugger;
+
+						this.setSelection(new KarmaFieldsAlpha.Selection());
+
+						// console.log("input focusin");
+
+						// event.preventDefault();
+						// event.stopPropagation();
+
+
+					}
+
+					input.element.onfocusout = event => {
+
+						// console.log("input focus");
+
+						// debugger;
+
+						this.setSelection();
+
+						// this.parent.render();
 
 					}
 

@@ -37,30 +37,30 @@ KarmaFieldsAlpha.Tracker = class {
 
 		// this.trackMouse();
 
-		if (event && event.type === "mousedown" && !this.isTouch) {
+		// if (event && event.type === "mousedown" && !this.isTouch) {
+		//
+		// 	this.trackMouse(event);
+		//
+		// } else if (event && event.type === "touchstart") {
+		//
+		// 	this.isTouch = true;
+		//
+		// 	this.trackTouch(event);
+		//
+		// } else {
 
-			this.trackMouse(event);
-
-		} else if (event && event.type === "touchstart") {
-
-			this.isTouch = true;
-
-			this.trackTouch(event);
-
-		} else {
-
-			this.element.onmousedown = event => {
+			element.onmousedown = event => {
 				if (event.button === 0 && !this.isTouch) {
 					this.trackMouse(event);
 				}
 			}
 
-			this.element.ontouchstart = event => {
+			element.ontouchstart = event => {
 				this.isTouch = true;
 				this.trackTouch(event);
 			}
 
-		}
+		// }
 
 
 
@@ -153,6 +153,22 @@ KarmaFieldsAlpha.Tracker = class {
 		// 	document.addEventListener("pointerup", onpointerup);
 		//
 		// }
+
+	}
+
+	trigger(event) {
+
+		if (event.type === "mousedown" && !this.isTouch) {
+
+			this.trackMouse(event);
+
+		} else if (event.type === "touchstart") {
+
+			this.isTouch = true;
+
+			this.trackTouch(event);
+
+		}
 
 	}
 

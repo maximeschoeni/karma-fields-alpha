@@ -23,7 +23,7 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 				if (this.resource.classes) {
 					node.element.classList.add(...this.resource.classes);
 				}
-				node.element.tabIndex = -1;
+				// node.element.tabIndex = -1;
 			},
 			update: async node => {
 				// node.element.classList.add("loading");
@@ -37,7 +37,7 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
           node.element.classList.toggle("loading", content === KarmaFieldsAlpha.loading);
 
           node.element.innerHTML = KarmaFieldsAlpha.Type.toString(content);
-          
+
         }
 
 				// if (this.resource.highlight) {

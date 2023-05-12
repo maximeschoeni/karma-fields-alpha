@@ -257,7 +257,17 @@ KarmaFieldsAlpha.field = class {
 	}
 
   async render() {
-    await this.parent.render();
+
+    if (this.onrender) {
+
+      await this.onrender();
+
+    } else {
+
+      await this.parent.render();
+
+    }
+
   }
 
   save() {
@@ -649,9 +659,41 @@ KarmaFieldsAlpha.field = class {
 
   setSelection(selection) {
 
-    this.parent.setSelection({[this.resource.index]: selection});
+    this.parent.setSelection(selection && {[this.resource.index]: selection});
 
   }
+
+  clearSelection(selection) {
+
+    if (!selection || selection.final) {
+
+      this.setSelection();
+
+    } else if (this.resource.children) {
+
+      for (let index in this.resource.children) {
+
+        if (selection[index]) {
+
+          const child = this.createChild({
+            ...this.resource.children[index],
+            index: index
+          });
+
+          child.clearSelection(selection[index]);
+
+        }
+
+      }
+
+    }
+
+  }
+
+
+
+
+
 
   getData() {
 

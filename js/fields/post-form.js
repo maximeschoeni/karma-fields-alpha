@@ -179,6 +179,18 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
   }
 
+  // mousedown() {
+  //
+  //   this.setSelection(null);
+  //
+  // }
+
+  // request(...path) {
+  //
+  //   console.error("Ungranted request", ...path);
+  //
+  // }
+
   // deferSave() {
   //
   //   const data = this.getData();
@@ -226,8 +238,11 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
         const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
 
         clipboard.onblur = event => {
-          this.clearSelection();
-          form.render();
+          // this.clearSelection();
+          // form.render();
+          console.log("clipboard blur");
+
+          this.setSelection(null);
         }
 
         clipboard.onpaste = event => {
@@ -262,6 +277,12 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
           }
 
         }
+
+        // window.onmousedown = event => {
+        //
+        //   this.setSelection(null);
+        //
+        // }
 
         addEventListener("karmaFieldsAlpha-render", () => {
           // form.render();

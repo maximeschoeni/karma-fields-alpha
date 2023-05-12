@@ -310,9 +310,40 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   setSelection(value) {
 
+
     KarmaFieldsAlpha.Selection.set(value, this.resource.index);
 
-    this.render();
+    // this.render();
+
+  }
+
+  clearSelection() {
+
+    const selection = this.getSelection();
+
+    if (selection) {
+
+      for (let tableId in this.resource.tables) {
+
+        if (selection[tableId]) {
+
+          const table = this.createChild({
+            type: "table",
+            ...this.resource.tables[tableId],
+            index: tableId
+          });
+
+          table.clearSelection(selection[tableId]);
+
+        }
+
+      }
+
+    } else {
+
+      this.setSelection();
+
+    }
 
   }
 
@@ -484,6 +515,15 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
       this.render();
 
     }
+
+  }
+
+
+
+  render() {
+
+    // this.debounce("rendering", () => void popup.render(), 500);
+
 
   }
 
@@ -1439,6 +1479,20 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
         });
 
+        // window.addEventListener("mousedown", event => {
+        //   console.log("saucer mousedown");
+        // });
+
+        // const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
+        //
+        // clipboard.onblur = event => {
+        //   console.log("clipboard blur");
+        //
+        //   // this.setSelection(null);
+        //
+        //   this.clearSelection();
+        // }
+
       },
       update: popup => {
         const currentTableId = this.getParam("table");
@@ -1456,7 +1510,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
                     navigation.child = this.createChild({
                       ...this.resource.navigation,
                       type: "navigation",
-                      index: 999999
+                      index: "navigation"
                     }).build();
                   }
                 }
@@ -1482,7 +1536,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
                           container.child = this.createChild({
                             type: "table",
                             ...this.resource.tables[tableId],
-                            index: index
+                            // index: index
+                            index: tableId
                           }).build();
 
                         }
@@ -1501,15 +1556,27 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
         if (process) {
 
-          popup.render();
+          this.debounce("rendering", () => void popup.render(), 10);
+
+            this.render = () => {};
 
         } else {
+
+          // console.log("process complete");
+
+          // this.render = () => {
+          //
+          //   // this.render = () => {};
+          //
+          //   this.debounce("rendering", () => void popup.render(), 50);
+          //
+          // };
 
           this.render = () => {
 
             this.render = () => {};
 
-            this.debounce("rendering", () => void popup.render(), 50);
+            this.debounce("rendering", () => void popup.render(), 10);
 
           };
 
@@ -1523,6 +1590,23 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
 KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
+
+  clearSelection(selection) {
+
+    if (selection && selection.body) {
+
+      const grid = this.createChild({
+        type: "grid",
+        ...this.resource.body,
+        index: "body"
+      });
+
+      grid.clearSelection(selection.body);
+
+    }
+
+  }
+
 
   build() {
     return {
@@ -1579,7 +1663,8 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                   const grid = this.createChild({
                     type: "grid",
                     ...this.resource.body,
-                    index: index++
+                    // index: index++
+                    index: "body"
                   });
                   div.children = [
                     {
@@ -1591,6 +1676,11 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                       update: container => {
                         // const selection = grid.getSelection();
                         // const hasSelection = Boolean(selection && selection instanceof KarmaFieldsAlpha.Selection);
+
+                        // container.element.onmousedown = event => {
+                        //   console.log("modal mousedown");
+                        //   event.stopPropagation();
+                        // }
 
 
                         container.element.style.width = this.resource.modal && this.resource.modal.width || grid.resource.modal && grid.hasSelection() && (grid.resource.modal.width || "30em") || "0";
@@ -1606,7 +1696,9 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                                   div.child = this.createChild({
                                     type: "group",
                                     ...this.resource.modal,
-                                    index: index++
+                                    // index: index++
+                                    // index: 999999
+                                    index: "modal"
                                   }).build()
                                 }
                               }
@@ -1618,9 +1710,10 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                                 div.element.classList.toggle("hidden", !hasSelection);
                                 if (hasSelection) {
                                   div.child = grid.createChild({
-                                    type: "group",
+                                    type: "modal",
                                     ...grid.resource.modal,
-                                    index: 999999
+                                    selection: grid.getSelection(),
+                                    index: "modal"
                                   }).build()
                                 }
                               }

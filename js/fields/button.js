@@ -4,6 +4,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 		return {
 			tag: "button",
 			class: "karma-button karma-field",
+
 			child: {
 				tag: "span",
 				update: span => {
@@ -23,7 +24,13 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 					button.element.classList.add("primary");
 				}
 
+				button.element.onmousedown = event => {
+					event.preventDefault();
+					console.log("mousedown");
+				}
+
 				button.element.onclick = async event => {
+					console.log("click");
 					event.preventDefault(); // -> prevent submitting form in post-edit
           if (this.resource.values) {
             this.parent.request(this.resource.action, ...this.resource.values);
@@ -32,7 +39,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
           } else {
             this.parent.request(this.resource.action);
           }
-          button.element.blur();
+          // button.element.blur();
         }
 
 				if (this.resource.disabled) {
