@@ -1737,7 +1737,7 @@ textarea.clipboard {
 .karma-tinymce .editor-header .toolbar .karma-field-frame {
   /* border-right: 1px solid var(--frame-border-color); */
   outline: 1px solid var(--frame-border-color);
-  overflow: hidden;
+  /* overflow: hidden; -> why? disabled because it was messing outline */
 }
 .karma-tinymce .editor-header .toolbar .karma-field-frame.karma-field-separator {
   outline: none;

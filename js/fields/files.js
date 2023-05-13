@@ -780,6 +780,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
   append(ids) {
     const values = this.getIds();
+
     ids = [...values, ...ids];
     this.setIds(ids);
   }
@@ -898,11 +899,17 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
         this.append(attachmentIds);
       }
 
+      // const endIndex = (selection && selection.index + selection.length || 0);
+      // this.setSelection(new KarmaFieldsAlpha.Selection(endIndex, endIndex + attachmentIds.length)); // -> select added items, also keep modal open
+
+
+      this.setSelection(new KarmaFieldsAlpha.Selection()); // -> keep modal open
+
       // KarmaFieldsAlpha.History.save();
 
-      this.parent.request("save");
+      // this.parent.request("save");
 
-      this.parent.request("render");
+      // this.parent.request("render");
     });
     frame.on("open", () => {
       let mediaSelection = frame.state().get("selection");
@@ -1188,6 +1195,14 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                   this.setSelection(newSelection);
                 }
 
+                sorter.onPaintRow = elements => {
+                  elements.forEach(element => element.classList.add("selected"))
+                }
+
+                sorter.onUnpaintRow = elements => {
+                  elements.forEach(element => element.classList.remove("selected"))
+                }
+
                 sorter.onsort = () => {
 
                   if (!KarmaFieldsAlpha.Segment.equals(sorter.selection, selection)) {
@@ -1222,6 +1237,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
                   this.setSelection(selection);
 
                 }
+
 
 
                 gallery.children = ids.map((id, rowIndex) => {

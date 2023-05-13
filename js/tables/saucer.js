@@ -310,6 +310,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   setSelection(value) {
 
+    // console.log("saucer setSelection", value);
+    // console.trace();
+
 
     KarmaFieldsAlpha.Selection.set(value, this.resource.index);
 
@@ -317,35 +320,57 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  clearSelection() {
+  paste(value, selection) {
 
-    const selection = this.getSelection();
+    if (selection && this.resource.tables) {
 
-    if (selection) {
+      for (let i in this.resource.tables) {
 
-      for (let tableId in this.resource.tables) {
+        if (selection[i]) {
 
-        if (selection[tableId]) {
+          const child = this.createChild({type: "table", ...this.resource.tables[i], index: i});
 
-          const table = this.createChild({
-            type: "table",
-            ...this.resource.tables[tableId],
-            index: tableId
-          });
+          child.paste(value, selection[i]);
 
-          table.clearSelection(selection[tableId]);
+          break;
 
         }
 
       }
 
-    } else {
-
-      this.setSelection();
-
     }
 
   }
+
+  // clearSelection() {
+  //
+  //   const selection = this.getSelection();
+  //
+  //   if (selection) {
+  //
+  //     for (let tableId in this.resource.tables) {
+  //
+  //       if (selection[tableId]) {
+  //
+  //         const table = this.createChild({
+  //           type: "table",
+  //           ...this.resource.tables[tableId],
+  //           index: tableId
+  //         });
+  //
+  //         table.clearSelection(selection[tableId]);
+  //
+  //       }
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     this.setSelection();
+  //
+  //   }
+  //
+  // }
 
   send() {
 
@@ -372,7 +397,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
     KarmaFieldsAlpha.History.backup(null, KarmaFieldsAlpha.Query.table, "table");
+    KarmaFieldsAlpha.History.backup(null, KarmaFieldsAlpha.Query.ids, "ids");
     KarmaFieldsAlpha.Query.table = null;
+    KarmaFieldsAlpha.Query.ids = null;
+
+    // console.log("saucer close");
 
 
     this.save();
@@ -1475,13 +1504,64 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
           KarmaFieldsAlpha.History.update();
           window.dispatchEvent(new CustomEvent("karmaFieldsAlpha-render"));
 
-          container.render();
+          this.render();
 
         });
 
-        // window.addEventListener("mousedown", event => {
-        //   console.log("saucer mousedown");
-        // });
+        window.addEventListener("mousedown", event => {
+          // console.log("saucer mousedown", window.activeElement, KarmaFieldsAlpha.Clipboard.getElement());
+
+
+
+          // if (window.activeElement === KarmaFieldsAlpha.Clipboard.getElement()) {
+
+            this.setSelection();
+            this.render();
+
+          // }
+
+
+        });
+
+
+        const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
+
+        clipboard.addEventListener("keyup", event => {
+          if (event.key === "Delete" || event.key === "Backspace") {
+            const selection = this.getSelection();
+            if (selection) {
+              clipboard.value = "";
+              this.paste("", selection);
+              this.render();
+            }
+          }
+        });
+
+        clipboard.addEventListener("paste", event => {
+          event.preventDefault();
+          const selection = this.getSelection();
+          if (selection) {
+            const string = event.clipboardData.getData("text/plain").normalize();
+            clipboard.value = string;
+            this.paste(string, selection);
+            this.render();
+          }
+        });
+
+        clipboard.addEventListener("cut", event => {
+          event.preventDefault();
+          const selection = this.getSelection();
+          if (selection) {
+            event.clipboardData.setData("text/plain", clipboard.value);
+            clipboard.value = "";
+            this.paste(string, selection);
+            this.render();
+          }
+        });
+
+
+
+
 
         // const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
         //
@@ -1496,9 +1576,10 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
       },
       update: popup => {
         const currentTableId = this.getParam("table");
+        // console.log("saucer popup update", currentTableId);
         popup.element.classList.toggle("hidden", !currentTableId && !this.resource.navigation);
 
-        if (currentTableId) {
+        // if (currentTableId) {
           popup.child = {
             class: "popup-content",
             children: [
@@ -1520,6 +1601,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
                 update: container => {
                   // const currentTableId = this.getParam("table");
 
+
+                  // console.log("tables update", currentTableId);
+
                   document.body.classList.toggle("karma-table-open", !currentTableId);
 
                   // const tableId = KarmaFieldsAlpha.Nav.get("table");
@@ -1529,16 +1613,26 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
                     return {
                       class: "table-container",
                       update: async container => {
+
+
+
+
                         container.element.classList.toggle("hidden", tableId !== currentTableId);
+
+                        // console.log("table-container update", tableId, currentTableId);
 
                         if (tableId === currentTableId) {
 
-                          container.child = this.createChild({
+                          container.children = [this.createChild({
                             type: "table",
                             ...this.resource.tables[tableId],
                             // index: index
                             index: tableId
-                          }).build();
+                          }).build()];
+
+                        } else {
+
+                          container.children = [];
 
                         }
                       }
@@ -1548,7 +1642,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
               }
             ]
           };
-        }
+        // } else {
+        //   // popup.children = [];
+        // }
       },
       complete: async popup => {
 
@@ -1591,17 +1687,30 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
 
-  clearSelection(selection) {
+  // clearSelection(selection) {
+  //
+  //   if (selection && selection.body) {
+  //
+  //     const grid = this.createChild({
+  //       type: "grid",
+  //       ...this.resource.body,
+  //       index: "body"
+  //     });
+  //
+  //     grid.clearSelection(selection.body);
+  //
+  //   }
+  //
+  // }
 
-    if (selection && selection.body) {
 
-      const grid = this.createChild({
-        type: "grid",
-        ...this.resource.body,
-        index: "body"
-      });
+  paste(value, selection) {
 
-      grid.clearSelection(selection.body);
+    if (selection && selection.body && this.resource.body) {
+
+      const child = this.createChild({...this.resource.body, index: "body"});
+
+      child.paste(value, selection.body);
 
     }
 
@@ -1675,12 +1784,17 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                       class: "table-body-column table-modal",
                       update: container => {
                         // const selection = grid.getSelection();
+                        //
                         // const hasSelection = Boolean(selection && selection instanceof KarmaFieldsAlpha.Selection);
+
+                        // console.log("update table-body-column", container.element, selection, hasSelection);
 
                         // container.element.onmousedown = event => {
                         //   console.log("modal mousedown");
                         //   event.stopPropagation();
                         // }
+
+
 
 
                         container.element.style.width = this.resource.modal && this.resource.modal.width || grid.resource.modal && grid.hasSelection() && (grid.resource.modal.width || "30em") || "0";

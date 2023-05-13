@@ -11,9 +11,27 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
   //
   // }
 
+  // export(items = []) {
+  //
+  //   if (this.resource.children) {
+  //
+	// 		for (let resource of this.resource.children) {
+  //
+	// 			const child = this.createChild(resource);
+  //
+  //       child.export(items);
+  //
+	// 		}
+  //
+	// 	}
+  //
+	// 	return items;
+  // }
+
+
   getValue(key) {
 
-    let array;
+    let array = [];
 
     const ids = this.parent.getSelectedIds();
 
@@ -21,16 +39,24 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
       const values = this.parent.getValue(id, key);
 
-      if (!array) {
+      if (!values) {
 
-        array = values;
-
-      } else if (KarmaFieldsAlpha.DeepObject.differ(array, values)) {
-
-        array = [];
-        break;
+        return;
 
       }
+
+      array = [...array, ...values];
+
+      // if (!array) {
+      //
+      //   array = values;
+      //
+      // } else if (KarmaFieldsAlpha.DeepObject.differ(array, values)) {
+      //
+      //   array = [];
+      //   break;
+      //
+      // }
 
     }
 
@@ -66,40 +92,40 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
   }
 
-  setSelection(selection) {
-
-    // console.log("modal", selection);
-
-
-    if (selection) {
-
-      const parentSelection = new KarmaFieldsAlpha.Selection();
-      const parentData = this.parent.getData().selection;
-      parentSelection.index = parentData.index || 0;
-      parentSelection.length = parentData.length || 0;
-
-
-
-      parentSelection[this.resource.index] = selection;
-
-
-
-      this.parent.setSelection(parentSelection);
-
-    }
-
-
-    // console.log("modal setSelection", selection, parentSelection);
-
-
-  }
+  // setSelection(selection) {
+  //
+  //   // console.log("modal", selection);
+  //
+  //
+  //   if (selection) {
+  //
+  //     const parentSelection = new KarmaFieldsAlpha.Selection();
+  //     const parentData = this.parent.getData().selection;
+  //     parentSelection.index = parentData.index || 0;
+  //     parentSelection.length = parentData.length || 0;
+  //
+  //
+  //
+  //
+  //     parentSelection[this.resource.index] = selection;
+  //
+  //
+  //
+  //     this.parent.setSelection(parentSelection);
+  //
+  //   }
+  //
+  //   // console.log("modal setSelection", selection, parentSelection);
+  //
+  //
+  // }
 
   build() {
 
     return {
       class: "modal-field",
       init: modal => {
-        modal.element.tabIndex = -1;
+        // modal.element.tabIndex = -1;
       },
       update: modal => {
         // modal.element.onfocusin = event => {
@@ -119,45 +145,51 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
         //
         // }
 
-        // modal.element.onmousedown = event => {
-        //
-        //   console.log("mousedown -> remove clipboard + modal focusout");
-        //
-        //   const [string] = this.export([]);
-        //
-        //   KarmaFieldsAlpha.Clipboard.write(string);
-        //
-        //
-        //
-        //   KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
-        //
-        //
-        //     this.setSelection(new KarmaFieldsAlpha.Selection());
-        //
-        //
-        //
-        //     this.render();
-        //
-        //   };
-        //
-        //   modal.element.onfocusout = null;
-        //
-        // }
+        modal.element.onmousedown = event => {
 
-        KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
+          event.stopPropagation(); // -> prevent re-rendering
 
-          console.log("clipboard onfocusout", event.relatedTarget, event.currentTarget);
+          this.setSelection(new KarmaFieldsAlpha.Selection());
 
-          if (!modal.element.contains(event.relatedTarget)) {
+          this.render();
 
-            console.log("clipboard lose focus -> clear selection");
-
-            this.parent.setSelection();
-            this.render();
-
-          }
+          // console.log("mousedown -> remove clipboard + modal focusout");
+          //
+          // const [string] = this.export([]);
+          //
+          // KarmaFieldsAlpha.Clipboard.write(string);
+          //
+          //
+          //
+          // KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
+          //
+          //
+          //   this.setSelection(new KarmaFieldsAlpha.Selection());
+          //
+          //
+          //
+          //   this.render();
+          //
+          // };
+          //
+          // modal.element.onfocusout = null;
 
         }
+
+        // KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
+        //
+        //   console.log("clipboard onfocusout", event.relatedTarget, event.currentTarget);
+        //
+        //   if (!modal.element.contains(event.relatedTarget)) {
+        //
+        //     console.log("clipboard lose focus -> clear selection");
+        //
+        //     this.parent.setSelection();
+        //     this.render();
+        //
+        //   }
+        //
+        // }
 
 
 
@@ -180,112 +212,46 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
         //
         // }
 
-        modal.element.onfocusout = event => {
-
-          console.log("modal onfocusout", event.relatedTarget);
-
-          if (!modal.element.contains(event.relatedTarget) && event.relatedTarget !== KarmaFieldsAlpha.Clipboard.getElement()) {
-
-
-            this.parent.setSelection();
-
-            console.log("modal lose focus -> clear selection", KarmaFieldsAlpha.Selection.object);
-
-            this.render();
-
-          }
-
-        }
-
-        modal.element.onfocusin = event => {
-
-          const selection = this.getSelection();
-
-          console.log("modal onfocusin", event.relatedTarget, selection);
-
-
-          if (!selection || selection.final) {
-
-            console.log("modal transfer focus");
-
-            const [string] = this.export([]);
-
-            KarmaFieldsAlpha.Clipboard.write(string);
-
-          }
-
-
-
-          // const parentSelection = this.parent.getSelection();
-
-          // console.log(parentSelection);
-
-          // KarmaFieldsAlpha.Clipboard.getElement().onfocusout = event => {
-          //   // event.preventDefault();
-          //   // event.stopPropagation();
-          //
-          //   const selection = new KarmaFieldsAlpha.Selection();
-          //   this.setSelection(selection);
-          //
-          // }
-
-          // console.log("modal focusin", document.activeElement);
-
-          // const selection = this.getSelection();
-
-          // console.log(document.activeElement, document.activeElement === modal.element);
-
-          // if (document.activeElement === modal.element) {
-          //
-          //   const parentSelection = new KarmaFieldsAlpha.Selection();
-          //   const parentData = this.parent.getData().selection;
-          //   parentSelection.index = parentData.index || 0;
-          //   parentSelection.length = parentData.length || 0;
-          //
-          //   const [string] = this.parent.export([], parentSelection.index, parentSelection.length);
-          //
-          //   KarmaFieldsAlpha.Clipboard.write(string);
-          //
-          //   this.parent.setSelection(parentSelection);
-          //
-          //
-          // }
-
-          // console.log("modal onfocusin -> add modal onfocusout");
-          //
-          // modal.element.onfocusout = event => {
-          //
-          //   console.log("modal onfocusout");
-          //
-          //   // const selection = this.getSelection();
-          //   this.setSelection();
-          //   this.render();
-          // }
-
-
-
-
-
-
-        }
-
         // modal.element.onfocusout = event => {
         //
-        //   // console.log("module onfocusout", document.activeElement, modal.element);
+        //   console.log("modal onfocusout", event.relatedTarget);
         //
-        //   this.setSelection();
-        //   this.parent.render();
+        //   if (!modal.element.contains(event.relatedTarget) && event.relatedTarget !== KarmaFieldsAlpha.Clipboard.getElement()) {
+        //
+        //
+        //     this.parent.setSelection();
+        //
+        //     console.log("modal lose focus -> clear selection", KarmaFieldsAlpha.Selection.object);
+        //
+        //     this.render();
+        //
+        //   }
+        //
         // }
 
         // modal.element.onfocusin = event => {
         //
-        //   console.log("focusin");
-        //   const selection = new KarmaFieldsAlpha.Selection();
-        //   this.setSelection(selection);
+        //   const selection = this.getSelection();
+        //
+        //   console.log("modal onfocusin", event.relatedTarget, selection);
+        //
+        //
+        //   if (!selection || selection.final) {
+        //
+        //     console.log("modal transfer focus");
+        //
+        //     const [string] = this.export([]);
+        //
+        //     KarmaFieldsAlpha.Clipboard.write(string);
+        //
+        //   }
+        //
+        //
+        //
+        //
+        //
         // }
-        // modal.element.onfocusout = event => {
-        //   this.setSelection();
-        // }
+
       },
       child: super.build()
     }

@@ -38,6 +38,10 @@ KarmaFieldsAlpha.Selection = class {
 		return index >= this.index && index < this.index + this.length && col >= this.colIndex && col < this.colIndex + this.colLength;
 	}
 
+  assign(object) {
+    Object.assign(this, object);
+  }
+
 
   static get(index) {
 

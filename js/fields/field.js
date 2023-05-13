@@ -435,14 +435,14 @@ KarmaFieldsAlpha.field = class {
   // }
 
   // used for export cells
-  async exportValue() {
-    return "";
-	}
-
-  // used for import cells
-	async importValue(value) {
-    // noop
-	}
+  // async exportValue() {
+  //   return "";
+	// }
+  //
+  // // used for import cells
+	// async importValue(value) {
+  //   // noop
+	// }
 
   // async export() {
   //   // noop
@@ -549,9 +549,9 @@ KarmaFieldsAlpha.field = class {
 
       for (let i = 0; i < this.resource.children.length; i++) {
 
-        const child = this.createChild({...this.resource.children[i], index: i});
+        if (selection[i]) {
 
-        if (selection[child.resource.index]) {
+          const child = this.createChild({...this.resource.children[i], index: i});
 
           child.paste(value, selection[child.resource.index]);
 

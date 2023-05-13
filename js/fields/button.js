@@ -4,7 +4,9 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 		return {
 			tag: "button",
 			class: "karma-button karma-field",
-
+			init: button => {
+				button.element.tabIndex = -1;
+			},
 			child: {
 				tag: "span",
 				update: span => {
@@ -25,12 +27,11 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 				}
 
 				button.element.onmousedown = event => {
-					event.preventDefault();
-					console.log("mousedown");
+					event.preventDefault(); // -> keep focus to current active element
+					event.stopPropagation(); // -> e.g. prevent selecting parent array
 				}
 
 				button.element.onclick = async event => {
-					console.log("click");
 					event.preventDefault(); // -> prevent submitting form in post-edit
           if (this.resource.values) {
             this.parent.request(this.resource.action, ...this.resource.values);

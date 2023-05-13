@@ -193,6 +193,12 @@ KarmaFieldsAlpha.Query = class {
 
     }
 
+    const requirement = new this.VarsRequirement(driver);
+    requirement.ids = new Set(results.map(item => item.id));
+    requirement.queried = true;
+
+    KarmaFieldsAlpha.DeepObject.assign(this.requirements, requirement, "vars", driver);
+
     return results;
   }
 

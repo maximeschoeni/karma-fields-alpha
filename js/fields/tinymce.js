@@ -159,7 +159,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
           this.renderToolbar();
         }
 
-				this.setSelection();
+				// this.setSelection();
 			});
 
 			editor.on("click", event => {
@@ -1347,17 +1347,19 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// 	}
 			// },
 			init: container => {
-        container.element.tabIndex = -1;
+        // container.element.tabIndex = -1;
       },
       update: async container => {
 
-				container.element.onfocusin = event => {
-					this.setSelection(new KarmaFieldsAlpha.Selection());
-        }
-				container.element.onfocusout = event => {
-          this.setSelection();
-        }
-
+				// container.element.onfocusin = event => {
+				// 	this.setSelection(new KarmaFieldsAlpha.Selection());
+        // }
+				// container.element.onfocusout = event => {
+        //   this.setSelection();
+        // }
+				container.element.onmousedown = event => {
+				  event.stopPropagation(); // -> prevent re-rendering
+				}
 
 
         // this.render = container.render;

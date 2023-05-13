@@ -462,13 +462,13 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					}
 
-					input.element.onfocusin = event => {
+					input.element.onfocus = event => {
 
-						console.log("input onfocusin");
+						// console.log("input onfocusin");
 
 						// debugger;
 
-						this.setSelection(new KarmaFieldsAlpha.Selection());
+						this.setSelection(new KarmaFieldsAlpha.Selection()); // -> prevent field from losing focus on render
 
 						// console.log("input focusin");
 
@@ -484,7 +484,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 						// debugger;
 
-						this.setSelection();
+						// this.setSelection();
 
 						// this.parent.render();
 

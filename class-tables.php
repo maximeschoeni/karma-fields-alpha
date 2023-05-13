@@ -205,6 +205,8 @@ Class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-type', $plugin_url . '/js/utils/type.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-history', $plugin_url . '/js/utils/history.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-clipboard', $plugin_url . '/js/utils/clipboard.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-grid', $plugin_url . '/js/utils/grid.js', array(), $this->version, true);
+
 				wp_enqueue_script('karma-fields-utils-selection-manager', $plugin_url . '/js/utils/manager-selection.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-sorter-manager', $plugin_url . '/js/utils/manager-selection-sorter.js', array('karma-fields-utils-selection-manager'), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-cells-manager', $plugin_url . '/js/utils/manager-selection-cells.js', array('karma-fields-utils-selection-manager'), $this->version, true);
@@ -310,10 +312,12 @@ Class Karma_Fields_Alpha {
 			'posts',
 			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-posts.php',
 			'Karma_Fields_Alpha_Driver_Posts',
-      array('meta', 'taxonomy'),
+      array('meta', 'taxonomy', 'content'),
       array(
         'id' => 'ID',
-        'name' => 'post_title'
+        'name' => 'post_title',
+				'position' => 'menu_order',
+				'parent' => 'post_parent'
       )
 		);
 
@@ -323,24 +327,6 @@ Class Karma_Fields_Alpha {
 			'Karma_Fields_Alpha_Driver_Medias',
       array('meta', 'filemeta', 'taxonomy')
 		);
-
-		// $this->register_driver(
-		// 	'postmeta',
-		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postmeta.php',
-		// 	'Karma_Fields_Alpha_Driver_Postmeta'
-		// );
-
-		// $this->register_driver(
-		// 	'postdate',
-		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postdate.php',
-		// 	'Karma_Fields_Alpha_Driver_Postdate'
-		// );
-
-		// $this->register_driver(
-		// 	'postcontent',
-		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postcontent.php',
-		// 	'Karma_Fields_Alpha_Driver_Postcontent'
-		// );
 
 		$this->register_driver(
 			'taxonomy',

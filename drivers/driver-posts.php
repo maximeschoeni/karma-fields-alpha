@@ -9,17 +9,17 @@ Class Karma_Fields_Alpha_Driver_Posts {
   //   add_filter('karma_fields_posts_driver_join_meta', function($value, $key, $id) {
 
   //     if ($key === '_wp_attachment_metadata') {
-    
+
   //       $dir = dirname($value['file']);
-    
+
   //       foreach ($value['sizes'] as $key => $size) {
-    
+
   //         $value['sizes'][$key]['file'] = "$dir/{$value['sizes'][$key]['file']}";
-    
+
   //       }
-    
+
   //     }
-    
+
   //   }, 10, 3);
 
   //   return $value;
@@ -335,7 +335,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
             case 'post_name':
               $args['orderby'] = array('name' => $params['order'], 'date' => 'DESC');
               break;
-            
+
             case 'post_title':
               $args['orderby'] = array('title' => $params['order'], 'date' => 'DESC');
               break;
@@ -413,7 +413,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
         case 'post_name':
           break;
 
-        case 'meta_key': 
+        case 'meta_key':
           $args['meta_key'] = $value;
           break;
 
@@ -790,7 +790,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
   // }
 
 
-  /**
+  /** DEPRECATED
 	 * relations
 	 */
   public function relations($params) {
@@ -821,7 +821,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
   }
 
 
-  /**
+  /** DEPRECATED
 	 * relations
 	 */
   public function relations2($params) {
@@ -1103,7 +1103,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
 			$results = $wpdb->get_results($sql);
 
-      
+
       foreach ($results as $result) {
 
         $meta = maybe_unserialize($result->value);
@@ -1124,7 +1124,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
               'height' => $size['height']
             )
           );
-        
+
         }
 
         $output[] = array(
@@ -1162,6 +1162,51 @@ Class Karma_Fields_Alpha_Driver_Posts {
     }
 
     return $output;
+
+  }
+
+
+
+  /**
+	 * content relations
+	 */
+  public function content($params) {
+    global $wpdb;
+
+    $ids = explode(',', $params['ids']);
+    $ids = array_filter($ids);
+
+    if ($ids) {
+
+      $ids = array_map('intval', $ids);
+      $ids = implode(',', $ids);
+
+      $sql = "SELECT
+        post_content AS 'value',
+        'post_content' AS 'key',
+        ID AS 'id'
+        FROM $wpdb->posts
+        WHERE ID IN ($ids)";
+
+			$results = $wpdb->get_results($sql);
+
+      foreach ($results as $result) {
+
+        // -> parse blocks
+
+        $result->value = apply_filters('karma_fields_posts_driver_join_content', $result->value, $result->key, $result->id);
+
+      }
+
+      $results = apply_filters('karma_fields_posts_driver_meta_results', $results, $ids);
+
+      return $results;
+
+    } else {
+
+      return array();
+
+    }
 
   }
 

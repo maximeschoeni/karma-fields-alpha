@@ -1407,13 +1407,6 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                   elements.forEach(element => element.classList.remove("selected"))
                 }
 
-                sorter.onPaintCell = elements => {
-                  elements.forEach(element => element.classList.add("selected-cell"))
-                }
-
-                sorter.onUnpaintCell = elements => {
-                  elements.forEach(element => element.classList.remove("selected-cell"))
-                }
 
                 sorter.onsort = () => {
 
