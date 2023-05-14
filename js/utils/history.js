@@ -61,6 +61,8 @@ KarmaFieldsAlpha.History = class {
 
 	static set(value, ...path) {
 
+    // console.log("history set", value, ...path);
+
     const state = this.getState();
 
 		KarmaFieldsAlpha.DeepObject.assign(state, value, ...path);
@@ -116,6 +118,8 @@ KarmaFieldsAlpha.History = class {
     // }, "");
 
     // state.redo = true;
+
+    console.log("history saving");
 
     this.set(true, "redo");
 

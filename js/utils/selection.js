@@ -60,9 +60,11 @@ KarmaFieldsAlpha.Selection = class {
     const currentSelection = this.get(index);
     const newSelection = {[index]: value};
 
-    KarmaFieldsAlpha.History.backup(newSelection, currentSelection, "selection");
+    KarmaFieldsAlpha.History.backup(newSelection, currentSelection || null, "selection");
 
     this.object = newSelection;
+
+    // this.object = {[index]: value};
 
   }
 

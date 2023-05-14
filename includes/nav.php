@@ -14,7 +14,7 @@
 
 		// KarmaFieldsAlpha.resource = resource;
 		KarmaFieldsAlpha.build(field.build(), container);
-		// KarmaFieldsAlpha.tables = field;
+		KarmaFieldsAlpha.saucer = field;
 
 		// document.dispatchEvent(new CustomEvent('karmaFieldsAlpha'));
 	});

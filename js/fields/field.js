@@ -825,6 +825,8 @@ KarmaFieldsAlpha.field = class {
         case "key": return this.getKey();
         case "index": return this.parent.getIndex();
 
+        case "getParam": return KarmaFieldsAlpha.Type.toString(this.parent.request("getParam", ...values));
+
         case "debugger": return values[0];
 
         case "get": { // -> compat

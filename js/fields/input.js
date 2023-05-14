@@ -396,6 +396,8 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
           input.element.oninput = async event => {
 
+
+
             // this.throttle(async () => {
             //   const value = input.element.value.normalize();
             //   this.set(value);
@@ -421,6 +423,8 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
                 this.setValue(value);
 
+
+
                 // this.debounce("saving", () => {
 
 
@@ -429,9 +433,9 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
                 // }, 1000);
 
-                this.request("save");
-
-                this.render();
+                // this.request("save");
+								//
+                // this.render();
 
               }
 
@@ -469,6 +473,13 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 						// debugger;
 
 						this.setSelection(new KarmaFieldsAlpha.Selection()); // -> prevent field from losing focus on render
+
+						// const x = KarmaFieldsAlpha.Selection.object
+						// console.log("input onfocus", JSON.parse(JSON.stringify(x)));
+						//
+						// setTimeout(() => {
+						// 	console.log("input onfocus 10ms", JSON.parse(JSON.stringify(x)));
+						// }, 10);
 
 						// console.log("input focusin");
 

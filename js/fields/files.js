@@ -345,48 +345,48 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
     return [];
   }
 
-  encodeIds(ids) {
-    // const array = ids.map(id => {
-    //   const object = {};
+  // encodeIds(ids) {
+  //   // const array = ids.map(id => {
+  //   //   const object = {};
+  //
+  //   //   let files = KarmaFieldsAlpha.Query.getValue(this.driver, id, "_wp_attached_file");
+  //
+  //   //   if (files) {
+  //
+  //   //     object.url = files[0] || "";
+  //
+  //   //   }
+  //
+  //   //   object.id = id;
+  //
+  //   //   return object;
+  //   // });
+  //
+  //   // const data = KarmaFieldsAlpha.Clipboard.toDataArray(array);
+  //
+  //   // return KarmaFieldsAlpha.Clipboard.unparse(data);
+  //
+  //
+  //   const grid = new KarmaFieldsAlpha.Grid();
+  //
+  //   grid.addColumn(ids);
+  //
+  //   return grid.toString();
+  //
+  // }
 
-    //   let files = KarmaFieldsAlpha.Query.getValue(this.driver, id, "_wp_attached_file");
-
-    //   if (files) {
-
-    //     object.url = files[0] || "";
-
-    //   }
-
-    //   object.id = id;
-
-    //   return object;
-    // });
-
-    // const data = KarmaFieldsAlpha.Clipboard.toDataArray(array);
-
-    // return KarmaFieldsAlpha.Clipboard.unparse(data);
-
-
-    const grid = new KarmaFieldsAlpha.Grid();
-
-    grid.addColumn(ids);
-
-    return grid.toString();
-
-  }
-
-  decodeIds(string) {
-
-    // const data = KarmaFieldsAlpha.Clipboard.parse(string);
-    // const json = KarmaFieldsAlpha.Clipboard.toJson(data);
-
-    // return json.map(object => object.id);
-
-    const grid = new KarmaFieldsAlpha.Grid(string);
-
-    return grid.getColumn(0);
-
-  }
+  // decodeIds(string) {
+  //
+  //   // const data = KarmaFieldsAlpha.Clipboard.parse(string);
+  //   // const json = KarmaFieldsAlpha.Clipboard.toJson(data);
+  //
+  //   // return json.map(object => object.id);
+  //
+  //   const grid = new KarmaFieldsAlpha.Grid(string);
+  //
+  //   return grid.getColumn(0);
+  //
+  // }
 
   paste(value, selection) {
 

@@ -6,8 +6,12 @@
 				links[i].addEventListener("click", function(event) {
 					event.preventDefault();
 					// location.hash = key; //"karma="+key;
-					history.pushState({table: key}, "");
-					window.dispatchEvent(new PopStateEvent("popstate"));
+					// history.replaceState({table: null}, "");
+					// history.pushState({table: key}, "");
+					// window.dispatchEvent(new PopStateEvent("popstate"));
+
+
+					KarmaFieldsAlpha.saucer.setParam(key, "table");
 
 				});
 			}

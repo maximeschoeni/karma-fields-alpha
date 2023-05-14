@@ -200,14 +200,20 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 		if (value !== currentValue) {
 
+      if (!KarmaFieldsAlpha.Query.params) {
+
+        KarmaFieldsAlpha.Query.params = {};
+
+      }
+
       if (key === "table") {
 
-        KarmaFieldsAlpha.History.backup(value, currentValue, "table");
+        KarmaFieldsAlpha.History.backup(value || null, currentValue || null, "table");
         KarmaFieldsAlpha.Query.table = value;
 
       } else {
 
-        KarmaFieldsAlpha.History.backup(value, currentValue, "nav", key);
+        KarmaFieldsAlpha.History.backup(value || null, currentValue || null, "nav", key);
         KarmaFieldsAlpha.Query.params[key] = value;
 
       }
@@ -290,7 +296,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   save() {
 
-    this.debounce("saving", () => KarmaFieldsAlpha.History.save(), 1000);
+    KarmaFieldsAlpha.History.saveFlag = true;
+
+    // this.debounce("saving", () => KarmaFieldsAlpha.History.save(), 1000);
 
   }
 
@@ -310,11 +318,22 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   setSelection(value) {
 
-    // console.log("saucer setSelection", value);
+
     // console.trace();
 
 
+    // KarmaFieldsAlpha.Selection.set(value, this.resource.index);
+
+    // const currentSelection = KarmaFieldsAlpha.Selection.get(this.resource.index);
+    //
+    // KarmaFieldsAlpha.History.backup(value || null, currentSelection, "selection", this.resource.index);
+
     KarmaFieldsAlpha.Selection.set(value, this.resource.index);
+
+
+
+
+
 
     // this.render();
 
@@ -553,6 +572,52 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     // this.debounce("rendering", () => void popup.render(), 500);
 
+    if (!this.rendering && this.onRender) {
+
+      this.rendering = true;
+
+      this.onRender();
+
+    }
+
+
+  }
+
+  fetch(tableId) {
+
+    // if (tableId !== KarmaFieldsAlpha.Query.table) {
+
+
+    if (this.resource.tables && this.resource.tables[tableId] && this.resource.tables[tableId].body) {
+
+      KarmaFieldsAlpha.History.backup(tableId, KarmaFieldsAlpha.Query.table, "table");
+      KarmaFieldsAlpha.Query.table = tableId;
+
+      const params = this.resource.tables[tableId].body.params || {};
+      const currentParams = KarmaFieldsAlpha.Query.params || {};
+
+      KarmaFieldsAlpha.Query.params = {};
+
+      for (let i in {...params, ...currentParams}) {
+
+        KarmaFieldsAlpha.History.backup(params[i] || null, currentParams[i] || null, "nav", i);
+        KarmaFieldsAlpha.Query.params[i] = params[i];
+
+      }
+
+    }
+
+    if (KarmaFieldsAlpha.Query.ids) {
+
+      KarmaFieldsAlpha.History.backup(null, KarmaFieldsAlpha.Query.ids, "ids");
+      delete KarmaFieldsAlpha.Query.ids;
+
+    }
+
+    this.setSelection();
+
+    this.save();
+    this.render();
 
   }
 
@@ -1509,18 +1574,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
         });
 
         window.addEventListener("mousedown", event => {
-          // console.log("saucer mousedown", window.activeElement, KarmaFieldsAlpha.Clipboard.getElement());
-
-
-
-          // if (window.activeElement === KarmaFieldsAlpha.Clipboard.getElement()) {
-
+          const selection = this.getSelection();
+          if (selection) {
             this.setSelection();
             this.render();
-
-          // }
-
-
+          }
         });
 
 
@@ -1561,7 +1619,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
 
-
+        KarmaFieldsAlpha.History.update();
 
         // const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
         //
@@ -1575,6 +1633,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       },
       update: popup => {
+        // this.onRender = popup.render;
+
+
         const currentTableId = this.getParam("table");
         // console.log("saucer popup update", currentTableId);
         popup.element.classList.toggle("hidden", !currentTableId && !this.resource.navigation);
@@ -1652,29 +1713,32 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
         if (process) {
 
-          this.debounce("rendering", () => void popup.render(), 10);
+          await popup.render();
 
-            this.render = () => {};
+          // this.debounce("rendering", () => void popup.render(), 10);
+          //
+          // this.render = () => {};
 
         } else {
 
-          // console.log("process complete");
+          if (KarmaFieldsAlpha.History.saveFlag) {
+
+            KarmaFieldsAlpha.History.saveFlag = false;
+            KarmaFieldsAlpha.History.save();
+
+          }
+
+          this.rendering = false;
+          this.onRender = popup.render;
+
 
           // this.render = () => {
           //
-          //   // this.render = () => {};
+          //   this.render = () => {};
           //
-          //   this.debounce("rendering", () => void popup.render(), 50);
+          //   this.debounce("rendering", () => void popup.render(), 10);
           //
           // };
-
-          this.render = () => {
-
-            this.render = () => {};
-
-            this.debounce("rendering", () => void popup.render(), 10);
-
-          };
 
         }
 
@@ -1797,7 +1861,7 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
 
 
 
-                        container.element.style.width = this.resource.modal && this.resource.modal.width || grid.resource.modal && grid.hasSelection() && (grid.resource.modal.width || "30em") || "0";
+                        container.element.style.width = this.resource.modal && this.resource.modal.width || grid.resource.modal && grid.getSelection() && (grid.resource.modal.width || "30em") || "0";
 
                         container.child = {
                           class: "karma-modal", // -> handle overflow:auto
@@ -1820,9 +1884,10 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                             {
                               class: "grid-modal-content",
                               update: div => {
-                                const hasSelection = grid.hasSelection();
-                                div.element.classList.toggle("hidden", !hasSelection);
-                                if (hasSelection) {
+                                // const hasSelection = grid.hasSelection();
+                                const selection = grid.getSelection();
+                                div.element.classList.toggle("hidden", !selection);
+                                if (selection) {
                                   div.child = grid.createChild({
                                     type: "modal",
                                     ...grid.resource.modal,
