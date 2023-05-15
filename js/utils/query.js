@@ -115,6 +115,7 @@ KarmaFieldsAlpha.Query = class {
   static queries = {};
   static counts = {};
   static uploads = [];
+  static tasks = [];
 
   static getValue(driver, id, key) {
 
@@ -285,7 +286,40 @@ KarmaFieldsAlpha.Query = class {
     return false;
   }
 
-  getCount(driver, params) {
+  // static addTask(name, callback) {
+  //
+  //   if (!this.tasks) {
+  //
+  //     this.tasks = [];
+  //
+  //   }
+  //
+  //   this.tasks.push({
+  //     name: name,
+  //     callback: callback
+  //   });
+  //
+  // }
+  //
+  // static hasTask(name) {
+  //
+  //   return this.tasks && this.tasks.some(task => !name || task.name === name);
+  //
+  // }
+  //
+  // static execTasks() {
+  //
+  //   while (this.tasks && this.tasks.length) {
+  //
+  //     const task = this.tasks.pop();
+  //
+  //     task.callback();
+  //
+  //   }
+  //
+  // }
+
+  static getCount(driver, params) {
 
     if (!KarmaFieldsAlpha.drivers[driver]) {
 
@@ -387,7 +421,31 @@ KarmaFieldsAlpha.Query = class {
 
   static async process() {
 
+
     return (await this.processQueries() || await this.processCounts() || await this.processVars());
+
+    // this.execTasks();
+    //
+    //
+    // if (await this.processQueries()) {
+    //
+    //   return true;
+    //
+    // }
+    //
+    // if (await this.processCounts()) {
+    //
+    //   return true;
+    //
+    // }
+    //
+    // if (await this.processVars()) {
+    //
+    //   return true;
+    //
+    // }
+    //
+    // return false;
 
   }
 
@@ -399,6 +457,7 @@ KarmaFieldsAlpha.Query = class {
     this.requirements = {};
     this.vars = {};
     this.queries = {};
+    this.tasks = [];
   }
 
 }

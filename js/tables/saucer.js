@@ -6,7 +6,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   constructor(resources) {
     super(resources);
 
-    this.pile = [];
+    // this.pile = [];
 
     // KarmaFieldsAlpha.tables = this; // -> debug
     //
@@ -80,13 +80,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   //   return resource;
   // }
 
-  getTable(tableId) {
+  getGrid(tableId) {
 
     if (!tableId) {
 
-      tableId = this.getParam("table");
-
-      // tableId = KarmaFieldsAlpha.Query.table;
+      tableId = this.getTable();
 
     }
 
@@ -166,15 +164,18 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     if (key === "table") {
 
-      return KarmaFieldsAlpha.Query.table;
+      // return KarmaFieldsAlpha.Query.table;
+      return KarmaFieldsAlpha.Store.get("table");
 
     }
 
-    if (KarmaFieldsAlpha.Query.params) {
+    // if (KarmaFieldsAlpha.Query.params) {
+    //
+    //   return KarmaFieldsAlpha.Query.params[key];
+    //
+    // }
 
-      return KarmaFieldsAlpha.Query.params[key];
-
-    }
+    return KarmaFieldsAlpha.Store.get("params", key);
 
   }
 
@@ -200,47 +201,43 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 		if (value !== currentValue) {
 
-      if (!KarmaFieldsAlpha.Query.params) {
-
-        KarmaFieldsAlpha.Query.params = {};
-
-      }
+      // if (!KarmaFieldsAlpha.Query.params) {
+      //
+      //   KarmaFieldsAlpha.Query.params = {};
+      //
+      // }
 
       if (key === "table") {
 
         KarmaFieldsAlpha.History.backup(value || null, currentValue || null, "table");
-        KarmaFieldsAlpha.Query.table = value;
+        // KarmaFieldsAlpha.Query.table = value;
+        KarmaFieldsAlpha.Store.set(value, "table");
 
       } else {
 
         KarmaFieldsAlpha.History.backup(value || null, currentValue || null, "nav", key);
-        KarmaFieldsAlpha.Query.params[key] = value;
+        // KarmaFieldsAlpha.Query.params[key] = value;
+        KarmaFieldsAlpha.Store.set(value, "params", key);
 
       }
 
+      const page = KarmaFieldsAlpha.Store.get("params", "page") || 1;
 
+      if (page !== 1) {
 
-
-      if (KarmaFieldsAlpha.Query.params.page && KarmaFieldsAlpha.Query.params.page !== 1) {
-
-        KarmaFieldsAlpha.History.backup(1, KarmaFieldsAlpha.Query.params.page, "nav", "page");
-        KarmaFieldsAlpha.Query.params.page = 1;
-
-      }
-
-      // state.ids = this.getTable().getIds();
-
-      if (KarmaFieldsAlpha.Query.ids) {
-
-        // state.ids = KarmaFieldsAlpha.Query.ids;
-
-        // KarmaFieldsAlpha.History.set(KarmaFieldsAlpha.Query.ids, "ids");
-        KarmaFieldsAlpha.History.backup(null, KarmaFieldsAlpha.Query.ids, "ids");
-
-        delete KarmaFieldsAlpha.Query.ids;
+        KarmaFieldsAlpha.History.backup(null, page, "nav", "page");
+        KarmaFieldsAlpha.Store.remove("params", "page");
 
       }
 
+      const ids = KarmaFieldsAlpha.Store.get("ids");
+
+      if (ids) {
+
+        KarmaFieldsAlpha.History.backup(null, ids, "ids");
+        KarmaFieldsAlpha.Store.remove("ids");
+
+      }
 
       // KarmaFieldsAlpha.History.setState(state);
 
@@ -312,32 +309,80 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   getSelection() {
 
-    return KarmaFieldsAlpha.Selection.get(this.resource.index);
+    // return KarmaFieldsAlpha.Selection.get(this.resource.index);
+
+
+    return KarmaFieldsAlpha.Store.get("selection", this.resource.index);
 
   }
 
   setSelection(value) {
 
-
-    // console.trace();
-
-
     // KarmaFieldsAlpha.Selection.set(value, this.resource.index);
 
-    // const currentSelection = KarmaFieldsAlpha.Selection.get(this.resource.index);
-    //
-    // KarmaFieldsAlpha.History.backup(value || null, currentSelection, "selection", this.resource.index);
+    const currentSelection = KarmaFieldsAlpha.Store.get("selection");
+    const newSelection = {[this.resource.index]: value};
 
-    KarmaFieldsAlpha.Selection.set(value, this.resource.index);
+    KarmaFieldsAlpha.History.backup(newSelection, currentSelection || null, "selection");
 
-
-
-
-
-
-    // this.render();
+    KarmaFieldsAlpha.Store.set(newSelection, "selection");
 
   }
+
+  hasSelection() {
+
+    const selection = KarmaFieldsAlpha.Store.get("selection", this.resource.index);
+
+    return Boolean(selection);
+
+  }
+
+  follow(selection, callback) {
+
+    if (selection.final) {
+
+      return callback(this, selection);
+
+    } else if (this.resource.tables) {
+
+      for (let i in this.resource.tables) {
+
+        if (selection[i]) {
+
+          const child = this.createChild({type: "table", ...this.resource.tables[i], index: i});
+
+          return child.follow(selection[i], callback);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  pasteBETA(string) {
+
+    const selection = this.getSelection();
+
+    if (selection) {
+
+      this.follow(selection, (field, selection) => {
+
+        const [current] = field.export([], selection.index, selection.length);
+
+        if (string !== current) {
+
+          field.import([string], selection.index, selection.length);
+
+        }
+
+      });
+
+    }
+
+  }
+
 
   paste(value, selection) {
 
@@ -406,22 +451,34 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   close() {
 
-    // const state = KarmaFieldsAlpha.History.getState();
-    // const currentNav = state.nav;
+    // const currentTable = KarmaFieldsAlpha.Store.get("table");
+    // const ids = KarmaFieldsAlpha.Store.get("ids");
+    // const selection = KarmaFieldsAlpha.Store.get("selection");
     //
-    // state.nav = {};
+    // KarmaFieldsAlpha.History.backup(null, currentTable, "table");
+    // KarmaFieldsAlpha.History.backup(null, ids, "ids");
+    // KarmaFieldsAlpha.History.backup(null, ids, "ids");
     //
-    // KarmaFieldsAlpha.History.backup(state.nav, currentNav, "nav");
-    // KarmaFieldsAlpha.History.setState(state);
+    // KarmaFieldsAlpha.Store.remove("table");
+    // KarmaFieldsAlpha.Store.remove("ids");
 
+    const transfer = this.getTransfer();
 
-    KarmaFieldsAlpha.History.backup(null, KarmaFieldsAlpha.Query.table, "table");
-    KarmaFieldsAlpha.History.backup(null, KarmaFieldsAlpha.Query.ids, "ids");
-    KarmaFieldsAlpha.Query.table = null;
-    KarmaFieldsAlpha.Query.ids = null;
+    if (transfer) {
 
-    // console.log("saucer close");
+      this.setTable(transfer.table);
+      this.setParams(transfer.params);
+      this.setSelection(transfer.selection);
+      this.setIds(transfer.ids);
 
+    } else {
+
+      this.setTable();
+      this.setSelection();
+      this.setParams({});
+      this.setIds();
+
+    }
 
     this.save();
     this.render();
@@ -433,12 +490,12 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
   count() {
-    const table = this.getTable();
+    const grid = this.getGrid();
 
-    if (table) {
+    if (grid) {
 
-      const driver = table.resource.driver;
-      const params = table.getCountParams();
+      const driver = grid.resource.driver;
+      const params = grid.getCountParams();
 
       return KarmaFieldsAlpha.Query.getCount(driver, params);
 
@@ -449,11 +506,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   ppp() {
 
-    const table = this.getTable();
+    const grid = this.getGrid();
 
-    if (table) {
+    if (grid) {
 
-      const params = table.getParams();
+      const params = grid.getParams();
 
       return params.ppp || 100;
 
@@ -538,11 +595,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   add() {
 
-    const table = this.getTable();
+    const grid = this.getGrid();
 
-    if (table && table.add) {
+    if (grid && grid.add) {
 
-      table.add();
+      grid.add();
 
       this.save();
       this.render();
@@ -553,11 +610,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   delete() {
 
-    const table = this.getTable();
+    const grid = this.getGrid();
 
-    if (table && table.remove) {
+    if (grid && grid.delete) {
 
-      table.delete();
+      grid.delete();
 
       this.save();
       this.render();
@@ -576,50 +633,166 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       this.rendering = true;
 
-      this.onRender();
+      this.renderPromise = this.onRender();
 
     }
 
+    return this.renderPromise;
+  }
+
+  getTable() {
+
+    return KarmaFieldsAlpha.Store.get("table");
+
+  }
+
+
+  setTable(table) {
+
+    const currentTable = KarmaFieldsAlpha.Store.get("table");
+
+    KarmaFieldsAlpha.History.backup(table || null, currentTable, "table");
+    KarmaFieldsAlpha.Store.set(table, "table");
+
+  }
+
+  getParams() {
+
+    return KarmaFieldsAlpha.Store.get("params") || {};
+
+  }
+
+  setParams(params = {}) {
+
+    const currentParams = KarmaFieldsAlpha.Store.get("params") || {};
+
+    for (let i in {...params, ...currentParams}) {
+
+      KarmaFieldsAlpha.History.backup(params[i] || null, currentParams[i] || null, "nav", i);
+      KarmaFieldsAlpha.Store.set(params[i], "params", i);
+
+    }
+
+  }
+
+  getIds() {
+
+    return KarmaFieldsAlpha.Store.get("ids");
+
+  }
+
+  setIds(ids) {
+
+    const currentIds =  KarmaFieldsAlpha.Store.get("ids");
+
+    KarmaFieldsAlpha.History.backup(ids || null, currentIds, "ids");
+    KarmaFieldsAlpha.Store.set(ids, "ids");
+
+  }
+
+  removeIds() {
+
+    this.setIds();
 
   }
 
   fetch(tableId) {
 
-    // if (tableId !== KarmaFieldsAlpha.Query.table) {
-
-
     if (this.resource.tables && this.resource.tables[tableId] && this.resource.tables[tableId].body) {
 
-      KarmaFieldsAlpha.History.backup(tableId, KarmaFieldsAlpha.Query.table, "table");
-      KarmaFieldsAlpha.Query.table = tableId;
+      this.setTransfer({
+        selection: this.getSelection(),
+        table: this.getTable(),
+        params: this.getParams(),
+        ids: this.getIds()
+      });
+
+      this.setTable(tableId);
 
       const params = this.resource.tables[tableId].body.params || {};
-      const currentParams = KarmaFieldsAlpha.Query.params || {};
 
-      KarmaFieldsAlpha.Query.params = {};
+      this.setParams(params);
 
-      for (let i in {...params, ...currentParams}) {
+      this.removeIds();
 
-        KarmaFieldsAlpha.History.backup(params[i] || null, currentParams[i] || null, "nav", i);
-        KarmaFieldsAlpha.Query.params[i] = params[i];
+      this.setSelection();
+
+      this.save();
+      this.render();
+
+    }
+
+
+
+  }
+
+  setTransfer(transfer) {
+
+    const transfers = KarmaFieldsAlpha.Store.get("transfers") || [];
+
+    const newTransfers = [transfer, ...transfers];
+
+    KarmaFieldsAlpha.History.backup(newTransfers, transfers, "transfers");
+    KarmaFieldsAlpha.Store.set(newTransfers, "transfers");
+
+  }
+
+  getTransfer() {
+
+    const transfers = KarmaFieldsAlpha.Store.get("transfers") || [];
+
+    if (transfers.length) {
+
+      const [transfer, ...newTransfers] = transfers;
+
+      KarmaFieldsAlpha.History.backup(newTransfers, transfers, "transfers");
+      KarmaFieldsAlpha.Store.set(newTransfers, "transfers");
+
+      return transfer;
+
+    }
+
+  }
+
+  hasTransfer() {
+
+    const transfers = KarmaFieldsAlpha.Store.get("transfers") || [];
+
+    return transfers.length > 0;
+
+  }
+
+
+
+  async insert() {
+
+    const transfer = this.getTransfer();
+
+    if (transfer) {
+
+      const currentSelection = this.getSelection();
+
+      const ids = this.follow(currentSelection, field => field.getSelectedIds && field.getSelectedIds());
+
+      if (ids && ids.length) {
+
+        this.setTable(transfer.table);
+        this.setParams(transfer.params);
+        this.setSelection(transfer.selection);
+        this.setIds(transfer.ids);
+
+        await this.render();
+
+        this.follow(transfer.selection, (field, selection) => field.insert && field.insert(ids, selection.index, selection.length));
 
       }
 
     }
 
-    if (KarmaFieldsAlpha.Query.ids) {
-
-      KarmaFieldsAlpha.History.backup(null, KarmaFieldsAlpha.Query.ids, "ids");
-      delete KarmaFieldsAlpha.Query.ids;
-
-    }
-
-    this.setSelection();
-
-    this.save();
-    this.render();
-
   }
+
+
+
 
 
 
@@ -1709,6 +1882,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
       },
       complete: async popup => {
 
+        console.log("saucer complete");
+
         const process = await KarmaFieldsAlpha.Terminal.process();
 
         if (process) {
@@ -1766,6 +1941,22 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
   //   }
   //
   // }
+
+  follow(selection, callback) {
+
+    if (selection.final) {
+
+      return callback(this, selection);
+
+    } else if (selection.body && this.resource.body) {
+
+      const child = this.createChild({type: "grid", ...this.resource.body, index: "body"});
+
+      return child.follow(selection.body, callback);
+
+    }
+
+  }
 
 
   paste(value, selection) {
@@ -1939,6 +2130,7 @@ KarmaFieldsAlpha.field.saucer.controls = class extends KarmaFieldsAlpha.field.co
         "add",
         "delete",
         "separator",
+        "insert",
         "undo",
         "redo"
       ],
@@ -1959,14 +2151,12 @@ KarmaFieldsAlpha.field.saucer.save = {
 }
 
 KarmaFieldsAlpha.field.saucer.add = {
-  id: "add",
   type: "button",
   action: "add",
   title: "Add"
 }
 
 KarmaFieldsAlpha.field.saucer.delete = {
-  id: "delete",
   type: "button",
   action: "delete",
   title: "Delete",
@@ -1975,7 +2165,6 @@ KarmaFieldsAlpha.field.saucer.delete = {
 }
 
 KarmaFieldsAlpha.field.saucer.undo = {
-  id: "undo",
   type: "button",
   action: "undo",
   dashicon: "undo",
@@ -1983,7 +2172,6 @@ KarmaFieldsAlpha.field.saucer.undo = {
 }
 
 KarmaFieldsAlpha.field.saucer.redo = {
-  id: "redo",
   type: "button",
   action: "redo",
   dashicon: "redo",
@@ -1991,20 +2179,18 @@ KarmaFieldsAlpha.field.saucer.redo = {
 }
 
 KarmaFieldsAlpha.field.saucer.reload = {
-  id: "reload",
   type: "button",
   action: "reload",
   title: "Reload"
 }
 
 KarmaFieldsAlpha.field.saucer.insert = {
-  id: "insert",
   type: "button",
   action: "insert",
   primary: true,
   title: "Insert",
-  disabled: ["!", ["request", "getSelection"]],
-  hidden: ["empty", ["request", "pile"]]
+  enabled: ["request", "hasSelection"],
+  visible: ["request", "hasTransfer"]
 }
 
 KarmaFieldsAlpha.field.saucer.createFolder = {

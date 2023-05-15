@@ -92,6 +92,21 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
   }
 
+  setSelection(selection) {
+
+    const parentSelection = this.parent.getSelection();
+
+    this.parent.setSelection(selection && parentSelection && {
+      [this.resource.index]: selection,
+      index: parentSelection.index,
+      length: parentSelection.length,
+      colIndex: parentSelection.colIndex,
+      colLength: parentSelection.colLength,
+      final: false
+    });
+
+  }
+
   // setSelection(selection) {
   //
   //   // console.log("modal", selection);

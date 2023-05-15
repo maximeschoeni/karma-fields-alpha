@@ -105,23 +105,32 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
   getSelection() {
 
-    return KarmaFieldsAlpha.Selection.get(this.resource.index);
+    return KarmaFieldsAlpha.Store.get("selection", this.resource.index);
+
+    // return KarmaFieldsAlpha.Selection.get(this.resource.index);
 
   }
 
   setSelection(value) {
 
-    KarmaFieldsAlpha.Selection.set(value, this.resource.index);
+    // KarmaFieldsAlpha.Selection.set(value, this.resource.index);
 
-    this.render();
+    // this.render();
+
+    const currentSelection = KarmaFieldsAlpha.Store.get("selection");
+    const newSelection = {[this.resource.index]: value};
+
+    KarmaFieldsAlpha.History.backup(newSelection, currentSelection || null, "selection");
+
+    KarmaFieldsAlpha.Store.set(newSelection, "selection");
 
   }
 
-  clearSelection() {
-
-    KarmaFieldsAlpha.Selection.clear();
-
-  }
+  // clearSelection() {
+  //
+  //   KarmaFieldsAlpha.Selection.clear();
+  //
+  // }
 
   getData() {
 
@@ -342,9 +351,13 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
           init: input => {
             input.element.type = "hidden";
             input.element.name = "karma-fields-items[]";
+            input.element.form.addEventListener("submit", event => {
+              KarmaFieldsAlpha.Store.remove("delta");
+              KarmaFieldsAlpha.Store.remove("selection");
+            });
           },
           update: input => {
-            const delta = KarmaFieldsAlpha.Delta.get(this.resource.driver, this.resource.id);
+            const delta = KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id);
             if (delta) {
               input.element.value = JSON.stringify(delta);
             }

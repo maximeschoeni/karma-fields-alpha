@@ -1167,7 +1167,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                 sorter.onselect = newSelection => {
 
-                  if (!KarmaFieldsAlpha.Segment.equals(newSelection, selection)) {
+                  if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
 
                     selection = newSelection;
 
@@ -1205,7 +1205,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field {
 
                 sorter.onsort = () => {
 
-                  if (!KarmaFieldsAlpha.Segment.equals(sorter.selection, selection)) {
+                  if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
 
 
                     this.swap(selection.index, selection.length, sorter.selection.index);

@@ -116,6 +116,14 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
     return [];
   }
 
+  // follow(selection, callback, set) {
+  //
+  //   callback(this, selection, set);
+  //
+  //   return set;
+  // }
+
+
   paste(value, selection) {
 
     if (selection) {
@@ -187,13 +195,18 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
   insert(ids, index, length) {
 
     const values = this.getValue();
-    const clones = [...values];
 
-    clones.splice(index, length || 0, ...ids);
+    if (values) {
 
-    const slice = clones.slice(0, this.getMax());
+      const clones = [...values];
 
-    this.setValue(slice);
+      clones.splice(index, length || 0, ...ids);
+
+      const slice = clones.slice(0, this.getMax());
+
+      this.setValue(slice);
+
+    }
 
   }
 
@@ -233,7 +246,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
         container.element.classList.toggle("single", this.isSingle());
 
-        const key = this.getKey();
+        // const key = this.getKey();
         const ids = this.getValue();
 
         container.element.classList.toggle("loading", !ids);
@@ -254,9 +267,12 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                 sorter.rowCount = ids.length;
                 sorter.selection = selection;
 
+
+
                 sorter.onselect = newSelection => {
 
-                  if (!newSelection.equals(selection)) {
+                  // if (!newSelection.equals(selection)) {
+                  if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
 
                     const [string] = this.export([], newSelection.index, newSelection.length);
 
@@ -284,7 +300,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
                 sorter.onsort = () => {
 
-                  if (!sorter.selection.equals(selection)) {
+                  // if (!sorter.selection.equals(selection)) {
+                  if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
 
                     this.swap(selection.index, selection.length, sorter.selection.index);
 
@@ -302,7 +319,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                   return {
                     tag: "li",
                     update: async frame => {
-                      frame.element.classList.toggle("selected", selection && selection.containsRow(rowIndex) || false);
+                      // frame.element.classList.toggle("selected", selection && selection.containsRow(rowIndex) || false);
+                      frame.element.classList.toggle("selected", selection && KarmaFieldsAlpha.Selection.containRow(selection, rowIndex) || false);
 
                       const [name] = KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, "name") || ["..."];
 
@@ -322,7 +340,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                           update: close => {
                             close.element.onclick = async event => {
                               this.remove(rowIndex);
-                              this.setSelection(new Selection(rowIndex, 0));
+                              this.setSelection({index: rowIndex, length: 0, final: true});
                             }
                           }
                         }

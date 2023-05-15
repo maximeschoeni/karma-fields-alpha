@@ -1,20 +1,20 @@
 
 
-KarmaFieldsAlpha.log = () => {
-  console.log({
-    history: {
-      state: history.state,
-      buffer: KarmaFieldsAlpha.History.buffer
-    },
-    selection: KarmaFieldsAlpha.Selection.object,
-    delta: KarmaFieldsAlpha.Delta.object,
-    data: {
-      vars: KarmaFieldsAlpha.Query.vars,
-      queries: KarmaFieldsAlpha.Query.queries
-    },
-    params: KarmaFieldsAlpha.Params.object
-  });
-}
+// KarmaFieldsAlpha.log = () => {
+//   console.log({
+//     history: {
+//       state: history.state,
+//       buffer: KarmaFieldsAlpha.History.buffer
+//     },
+//     selection: KarmaFieldsAlpha.Selection.object,
+//     delta: KarmaFieldsAlpha.Delta.object,
+//     data: {
+//       vars: KarmaFieldsAlpha.Query.vars,
+//       queries: KarmaFieldsAlpha.Query.queries
+//     },
+//     params: KarmaFieldsAlpha.Params.object
+//   });
+// }
 
 KarmaFieldsAlpha.History = class {
 
@@ -129,22 +129,22 @@ KarmaFieldsAlpha.History = class {
 
 	}
 
-  static debounceSave(interval = 500) {
-
-    if (this.debounceTimer) {
-
-      clearTimeout(this.debounceTimer);
-
-    }
-
-    this.debouncing = true;
-
-    this.debounceTimer = setTimeout(() => {
-      this.save();
-      this.debouncing = false;
-    }, interval);
-
-  }
+  // static debounceSave(interval = 500) {
+  //
+  //   if (this.debounceTimer) {
+  //
+  //     clearTimeout(this.debounceTimer);
+  //
+  //   }
+  //
+  //   this.debouncing = true;
+  //
+  //   this.debounceTimer = setTimeout(() => {
+  //     this.save();
+  //     this.debouncing = false;
+  //   }, interval);
+  //
+  // }
 
 
 	// static remove(...path) {
@@ -211,19 +211,27 @@ KarmaFieldsAlpha.History = class {
 
       if (state.table !== undefined) {
 
-        KarmaFieldsAlpha.Query.table = state.table;
+        // KarmaFieldsAlpha.Query.table = state.table;
+
+
+        KarmaFieldsAlpha.Store.set(state.table, "table");
 
       }
 
       if (state.delta) {
 
-        KarmaFieldsAlpha.Delta.merge(state.delta);
+        // KarmaFieldsAlpha.Delta.merge(state.delta);
+
+        KarmaFieldsAlpha.Store.mergeIn(state.delta, "delta");
 
       }
 
       if (state.selection !== undefined) {
 
-        KarmaFieldsAlpha.Selection.object = state.selection;
+        // KarmaFieldsAlpha.Selection.object = state.selection;
+
+        KarmaFieldsAlpha.Store.set(state.selection, "selection");
+
 
       }
 
@@ -231,13 +239,25 @@ KarmaFieldsAlpha.History = class {
 
         // KarmaFieldsAlpha.Params.object = state.nav;
         // KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Params.object, state.nav);
-        KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Query.params, state.nav);
+        // KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Query.params, state.nav);
+
+        KarmaFieldsAlpha.Store.mergeIn(state.nav, "params");
 
       }
 
       if (state.ids !== undefined) {
 
-        KarmaFieldsAlpha.Query.ids = state.ids;
+        // KarmaFieldsAlpha.Query.ids = state.ids;
+
+        KarmaFieldsAlpha.Store.set(state.ids, "ids");
+
+      }
+
+      if (state.transfers !== undefined) {
+
+        // KarmaFieldsAlpha.Query.ids = state.ids;
+
+        KarmaFieldsAlpha.Store.set(state.transfers, "transfers");
 
       }
 
@@ -249,7 +269,9 @@ KarmaFieldsAlpha.History = class {
 
     } else {
 
-      KarmaFieldsAlpha.Query.table = null;
+      // KarmaFieldsAlpha.Query.table = null;
+
+      KarmaFieldsAlpha.Store.remove("table");
 
     }
 

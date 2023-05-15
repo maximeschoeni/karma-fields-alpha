@@ -85,13 +85,13 @@ KarmaFieldsAlpha.Selector = class {
 
     if (this.selection) { // this.selection should be frozen
 
-      if (!this.selection instanceof KarmaFieldsAlpha.Selection) {
-
-        console.warning("this.selection is not instance of Selection!");
-
-        this.selection = new KarmaFieldsAlpha.Selection(this.selection.index, this.selection.length);
-
-      }
+      // if (!this.selection instanceof KarmaFieldsAlpha.Selection) {
+      //
+      //   // console.warning("this.selection is not instance of Selection!");
+      //
+      //   // this.selection = (new KarmaFieldsAlpha.Selection()).assign(this.selection);
+      //
+      // }
 
       if (this.tracker.event.shiftKey) {
         this.tie = this.selection;
@@ -410,12 +410,12 @@ KarmaFieldsAlpha.Selector = class {
   growSelection(selection) {
 
 
+    // const union = selection.union(this.tie);
+    const union = KarmaFieldsAlpha.Selection.union(selection, this.tie);
 
 
-    const union = selection.union(this.tie);
-
-
-    if (!this.selection || !union.equals(this.selection)) {
+    // if (!this.selection || !union.equals(this.selection)) {
+    if (!this.selection || !KarmaFieldsAlpha.Selection.compare(union, this.selection)) {
 
       if (this.selection) {
 
@@ -437,6 +437,7 @@ KarmaFieldsAlpha.Selector = class {
       }
 
       this.selection = union;
+      this.selection.final = true;
 
       Object.freeze(this.selection);
 

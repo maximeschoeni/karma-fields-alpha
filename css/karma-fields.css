@@ -1144,6 +1144,9 @@ button.karma-button.editing span {
 .karma-tags ul li a.close {
   cursor: pointer;
 }
+.karma-tags ul li.selected a.close {
+  color: white;
+}
 .karma-tags ul li:not(.selecting,.selected) a.close {
   display: none;
 }

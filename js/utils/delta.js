@@ -3,48 +3,48 @@
 KarmaFieldsAlpha.Delta = class {
 
   static empty() {
-
+    console.error("deprecated method");
     this.object = {};
 
   }
 
   static get(...path) {
-
+console.error("deprecated method");
     return KarmaFieldsAlpha.DeepObject.get(this.object, ...path);
 
   }
 
   static set(value, ...path) {
-
+console.error("deprecated method");
     KarmaFieldsAlpha.DeepObject.assign(this.object, value, ...path);
 
   }
 
   static remove(...path) {
-
+console.error("deprecated method");
     KarmaFieldsAlpha.DeepObject.remove(this.object, ...path);
 
   }
 
   static has(...path) {
-
+console.error("deprecated method");
     return KarmaFieldsAlpha.DeepObject.has(this.object, ...path);
   }
 
   static merge(value) {
-
+console.error("deprecated method");
     KarmaFieldsAlpha.DeepObject.merge(this.object, value);
 
   }
 
   static compare(...path) {
-
+console.error("deprecated method");
     return KarmaFieldsAlpha.DeepObject.equal(this.get(...path), KarmaFieldsAlpha.Query.getValue(...path));
 
   }
 
   static isModified(...path) {
-
+console.error("deprecated method");
     return !this.compare(...path);
 
   }

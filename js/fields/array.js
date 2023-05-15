@@ -419,22 +419,54 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   }
 
 
-  encode(jsonArray) {
-    return JSON.stringify(jsonArray);
+  // encode(jsonArray) {
+  //   return JSON.stringify(jsonArray);
+  //
+  //   // const data = KarmaFieldsAlpha.Clipboard.toDataArray(jsonArray);
+  //
+  //   // return KarmaFieldsAlpha.Clipboard.unparse(data);
+  // }
+  //
+  // decode(string) {
+  //   return string && JSON.parse(string) || [];
+  //
+  //   // const data = KarmaFieldsAlpha.Clipboard.parse(string);
+  //   // const json = KarmaFieldsAlpha.Clipboard.toJson(data);
+  //
+  //   // return json;
+  //
+  // }
 
-    // const data = KarmaFieldsAlpha.Clipboard.toDataArray(jsonArray);
+  follow(selection, callback) {
 
-    // return KarmaFieldsAlpha.Clipboard.unparse(data);
-  }
+    if (selection.final) {
 
-  decode(string) {
-    return string && JSON.parse(string) || [];
+      return callback(this, selection);
 
-    // const data = KarmaFieldsAlpha.Clipboard.parse(string);
-    // const json = KarmaFieldsAlpha.Clipboard.toJson(data);
+    } else {
 
-    // return json;
+      const values = this.getValue();
 
+      for (let i in values) {
+
+        const child = this.createChild({
+          id: i,
+          index: i,
+          type: "row",
+          children: this.resource.children
+        });
+
+        if (selection[child.resource.index]) {
+
+          return child.follow(selection[child.resource.index], callback);
+
+        }
+
+      }
+
+    }
+
+    return set;
   }
 
   paste(string, selection) {
@@ -1222,9 +1254,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
     this.setValue([...array, defaults]);
 
     // KarmaFieldsAlpha.History.save();
-    this.parent.request("save");
-
-    this.parent.render();
+    // this.parent.request("save");
+    //
+    // this.parent.render();
   }
 
   delete(index) {
@@ -1236,9 +1268,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
     this.setValue(clone);
 
     // KarmaFieldsAlpha.History.save();
-    this.parent.request("save");
-
-    this.parent.render();
+    // this.parent.request("save");
+    //
+    // this.parent.render();
   }
 
   // insertBlank(num, index, length) {
@@ -1274,13 +1306,13 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       this.swap(index, 1, index-1);
 
-      this.debounce("editing", () => {
-
-        KarmaFieldsAlpha.History.save();
-
-      }, 1000);
-
-      this.render();
+      // this.debounce("editing", () => {
+      //
+      //   KarmaFieldsAlpha.History.save();
+      //
+      // }, 1000);
+      //
+      // this.render();
     }
 
   }
@@ -1291,13 +1323,13 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       this.swap(index, 1, index+1);
 
-      this.debounce("editing", () => {
-
-        KarmaFieldsAlpha.History.save();
-
-      }, 1000);
-
-      this.render();
+      // this.debounce("editing", () => {
+      //
+      //   KarmaFieldsAlpha.History.save();
+      //
+      // }, 1000);
+      //
+      // this.render();
     }
 
   }
@@ -1331,9 +1363,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 let selection = this.getSelection();
 
-                if (!(selection instanceof KarmaFieldsAlpha.Selection) || !selection.final) {
+                if (selection && !selection.final) {
 
-                  selection = null; // -> selection target a deeper field
+                  selection = undefined; // -> selection target a deeper field
 
                 }
 
@@ -1368,7 +1400,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
 
 
-                  if (!newSelection.equals(selection)) {
+                  // if (!newSelection.equals(selection)) {
+                  if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
 
                     selection = newSelection;
 
@@ -1410,7 +1443,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 sorter.onsort = () => {
 
-                  if (!sorter.selection.equals(selection)) {
+                  // if (!sorter.selection.equals(selection)) {
+                  if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
 
 
 
@@ -1432,17 +1466,17 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 }
 
-                sorter.onbackground = () => {
-
-                  selection = new KarmaFieldsAlpha.Selection(values.length, 0);
-                  // selection.final = true;
-
-                  KarmaFieldsAlpha.Clipboard.write("");
-
-                  this.setSelection(selection);
-                  // this.parent.render();
-
-                }
+                // sorter.onbackground = () => {
+                //
+                //   selection = new KarmaFieldsAlpha.Selection(values.length, 0);
+                //   // selection.final = true;
+                //
+                //   KarmaFieldsAlpha.Clipboard.write("");
+                //
+                //   this.setSelection(selection);
+                //   // this.parent.render();
+                //
+                // }
 
                 table.children = [
                   ...this.resource.children.filter(column => values.length && hasHeader).map(column => {
@@ -1459,9 +1493,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                       ...this.resource,
                       index: index,
                       id: index,
-                      data: this.resource.data && this.resource.data[index],
-                      selection: this.resource.selection && this.resource.selection[index],
-                      uid: `${this.resource.uid}-${index}`,
+                      // data: this.resource.data && this.resource.data[index],
+                      // selection: this.resource.selection && this.resource.selection[index],
+                      // uid: `${this.resource.uid}-${index}`,
                       type: "row"
                     });
 
@@ -1483,12 +1517,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                           },
                           update: td => {
 
-                            td.element.classList.toggle("selected", Boolean(selection && selection.contains(index)));
+                            // td.element.classList.toggle("selected", Boolean(selection && selection.contains(index)));
+                            td.element.classList.toggle("selected", Boolean(selection && KarmaFieldsAlpha.Selection.containRow(selection, index)));
 
-                            // td.element.onmousedown = event => {
-                            //   event.stopPropagation();
-                            //   this.request("mousedown", event);
-                            // };
 
                             td.child = field.build();
                           }

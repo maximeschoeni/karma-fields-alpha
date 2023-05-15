@@ -43,8 +43,52 @@ KarmaFieldsAlpha.Selection = class {
   }
 
 
-  static get(index) {
 
+
+  static create(index, length, colIndex = 0, colLength = 999999, final = true) {
+    return {index: index, length: length, colIndex: colIndex, colLength: colLength, final: final};
+  }
+
+  static union(selection1, selection2) {
+		const index = Math.min(selection1.index, selection2.index);
+		const length = Math.max(selection1.index + selection1.length, selection2.index + selection2.length) - index;
+
+    const colIndex = Math.min(selection1.colIndex, selection2.colIndex);
+		const colLength = Math.max(selection1.colIndex + selection1.colLength, selection2.colIndex + selection2.colLength) - colIndex;
+		// return new selection1.constructor(index, length, colIndex, colLength);
+    return {index: index, length: length, colIndex: colIndex, colLength: colLength};
+	}
+
+  static differ(selection1, selection2) {
+		return !selection1.compare(selection2);
+	}
+
+	static equal(selection1, selection2) {
+		return selection1.compare(selection2);
+	}
+
+  static compare(selection1, selection2) {
+		return selection2 && selection2 instanceof selection1.constructor && selection1.index === selection2.index && selection1.length === selection2.length && selection1.colIndex === selection2.colIndex && selection1.colLength === selection2.colLength;
+	}
+
+	static contain(selection1, index) {
+		return index >= selection1.index && index < selection1.index + selection1.length;
+	}
+
+  static containRow(selection1, index) {
+		return index >= selection1.index && index < selection1.index + selection1.length;
+	}
+
+  static containCell(selection1, index, col) {
+		return index >= selection1.index && index < selection1.index + selection1.length && col >= selection1.colIndex && col < selection1.colIndex + selection1.colLength;
+	}
+
+
+
+
+
+  static get(index) {
+    console.error("deprecated");
     // return this.object;
 
     if (this.object) {
@@ -56,7 +100,7 @@ KarmaFieldsAlpha.Selection = class {
   }
 
   static set(value, index) {
-
+console.error("deprecated");
     const currentSelection = this.get(index);
     const newSelection = {[index]: value};
 
@@ -69,7 +113,7 @@ KarmaFieldsAlpha.Selection = class {
   }
 
   static clear() {
-
+console.error("deprecated");
     KarmaFieldsAlpha.History.backup(null, this.object, "selection");
 
     delete this.object;

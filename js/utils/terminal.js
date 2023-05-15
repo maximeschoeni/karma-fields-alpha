@@ -11,18 +11,20 @@ KarmaFieldsAlpha.Terminal = class {
 
     if (path.length) {
 
-      return !KarmaFieldsAlpha.DeepObject.equal(KarmaFieldsAlpha.Delta.get(...path), KarmaFieldsAlpha.Query.getValue(...path));
+      // return !KarmaFieldsAlpha.DeepObject.equal(KarmaFieldsAlpha.Delta.get(...path), KarmaFieldsAlpha.Query.getValue(...path));
+      return !KarmaFieldsAlpha.DeepObject.equal(KarmaFieldsAlpha.Store.get("delta", ...path), KarmaFieldsAlpha.Query.getValue(...path));
 
     } else {
 
-      return KarmaFieldsAlpha.DeepObject.isIncluded(KarmaFieldsAlpha.Delta.object, KarmaFieldsAlpha.Query.vars);
+      // return KarmaFieldsAlpha.DeepObject.isIncluded(KarmaFieldsAlpha.Delta.object, KarmaFieldsAlpha.Query.vars);
+      return KarmaFieldsAlpha.DeepObject.isIncluded(KarmaFieldsAlpha.Store.get("delta"), KarmaFieldsAlpha.Query.vars);
     }
 
 	}
 
 	static getValue(...path) {
 
-    return KarmaFieldsAlpha.Delta.get(...path) || KarmaFieldsAlpha.Query.getValue(...path);
+    return KarmaFieldsAlpha.Store.get("delta", ...path) || KarmaFieldsAlpha.Query.getValue(...path);
 
 	}
 
@@ -35,7 +37,8 @@ KarmaFieldsAlpha.Terminal = class {
 		if (KarmaFieldsAlpha.DeepObject.differ(newValue, currentValue)) {
 
       KarmaFieldsAlpha.History.backup(newValue, currentValue, "delta", ...path);
-      KarmaFieldsAlpha.Delta.set(newValue, ...path);
+      // KarmaFieldsAlpha.Delta.set(newValue, ...path);
+      KarmaFieldsAlpha.Store.set(newValue, "delta", ...path);
 
 		}
 

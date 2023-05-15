@@ -543,6 +543,31 @@ KarmaFieldsAlpha.field = class {
     return set;
   }
 
+  follow(selection, callback) {
+
+    if (selection.final) {
+
+      return callback(this, selection);
+
+    } else if (selection && this.resource.children) {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        if (selection[i]) {
+
+          const child = this.createChild({...this.resource.children[i], index: i});
+
+          return child.follow(selection[child.resource.index], callback);
+
+        }
+
+      }
+
+    }
+
+  }
+
+
   paste(value, selection) {
 
     if (selection && this.resource.children) {

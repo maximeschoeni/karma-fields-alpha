@@ -14,7 +14,8 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
     }
 
     // if (row >= 0 && KarmaFieldsAlpha.Segment.contain(this.selection, row)) {
-    if (row >= 0 && this.selection.contains(row)) {
+    // if (row >= 0 && this.selection.contains(row)) {
+    if (row >= 0 && KarmaFieldsAlpha.Selection.containRow(this.selection, row)) {
 
       this.originX = this.tracker.x;
       this.originY = this.tracker.y;

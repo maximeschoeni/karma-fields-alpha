@@ -13,8 +13,10 @@
 
 
 		// KarmaFieldsAlpha.resource = resource;
-		KarmaFieldsAlpha.build(field.build(), container);
+		field.renderPromise = KarmaFieldsAlpha.build(field.build(), container);
 		KarmaFieldsAlpha.saucer = field;
+
+
 
 		// document.dispatchEvent(new CustomEvent('karmaFieldsAlpha'));
 	});
