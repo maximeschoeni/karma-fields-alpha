@@ -164,7 +164,7 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
           event.stopPropagation(); // -> prevent re-rendering
 
-          this.setSelection(new KarmaFieldsAlpha.Selection());
+          this.setSelection({final: true});
 
           this.render();
 

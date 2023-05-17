@@ -68,48 +68,83 @@ console.error("deprecated method");
   // }
 
   static send() {
-
+console.error("deprecated")
     if (!this.updateTasks) {
 
       this.updateTasks = [];
 
     }
 
-    const data = this.object;
+    this.sending = true;
 
-    for (let driver in data) {
-
-      for (let id in data[driver]) {
-
-        this.updateTasks.push(() => KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data[driver][id]));
-
-      }
-
-    }
-
-    KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Query.vars, this.object); // -> needed for autosave
-
-    this.object = {};
+    // const data = this.object;
+    // const data = KarmaFieldsAlpha.Store.get("delta");
+    //
+    // for (let driver in data) {
+    //
+    //   for (let id in data[driver]) {
+    //
+    //     this.updateTasks.push(() => KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data[driver][id]));
+    //
+    //   }
+    //
+    // }
+    //
+    // // KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Query.vars, this.object); // -> needed for autosave
+    //
+    // this.object = {};
 
   }
 
 
+  // static async processUpdate() {
+  //
+  //   if (this.updateTasks && this.updateTasks.length) {
+  //
+  //     const task = this.updateTasks.pop();
+  //
+  //     await task();
+  //
+  //     return true;
+  //
+  //   }
+  //
+  //   return false;
+  // }
+
+
   static async processUpdate() {
+console.error("deprecated")
+    if (this.sending) {
 
-    if (this.updateTasks && this.updateTasks.length) {
+      const data = KarmaFieldsAlpha.Store.get("delta");
 
-      const task = this.updateTasks.pop();
+      for (let driver in data) {
 
-      await task();
+        for (let id in data[driver]) {
 
-      return true;
+          await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data[driver][id]);
+
+          KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Query.vars, data[driver][id], driver, id);
+          // or
+          // KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.Query.vars, driver, id);
+
+          KarmaFieldsAlpha.Store.remove("delta", driver, id);
+
+          return true;
+
+        }
+
+      }
+
 
     }
+
+    this.sending = false;
 
     return false;
   }
 
-
 }
 
-KarmaFieldsAlpha.Delta.object = {};
+// KarmaFieldsAlpha.Delta.object = {};

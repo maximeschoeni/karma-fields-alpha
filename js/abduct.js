@@ -1,7 +1,54 @@
-/**
- * build (V7.6)
- */
+async function abduct(implants, parent, element, clean) {
 
+	implants.regenerate = (clean) => abduct(implants, parent, implants.element, clean);
+
+	if (!element || clean) {
+		implants.element = document.createElement(implants.tag || "div");
+		if (implants.class) {
+			implants.element.className = implants.class;
+		}
+
+		if (element) {
+			parent.replaceChild(implants.element, element);
+		} else {
+			parent.appendChild(implants.element);
+		}
+
+		if (implants.init) {
+			await implants.init(implants);
+		}
+	} else {
+		implants.element = element;
+		delete implants.ready;
+	}
+	if (implants.update) {
+		await implants.update(implants);
+	}
+	if (implants.children || implants.child) {
+		const children = implants.children || [implants.child];
+		let i = 0;
+		let child = implants.element.firstElementChild;
+
+		while (i < children.length) {
+			await abduct(children[i], implants.element, child, implants.clean);
+			i++;
+			child = child && child.nextElementSibling;
+		}
+		while (child) {
+			let next = child && child.nextElementSibling;
+			implants.element.removeChild(child);
+			child = next;
+		}
+	}
+	if (implants.ready) {
+		await implants.ready(implants);
+	}
+	if (implants.complete) {
+		await implants.complete(implants);
+	}
+
+
+}
 
 
 
@@ -27,8 +74,6 @@
 // 	}
 // 	return Promise.all(promises);
 // }
-
-
 
 
 // -> serial

@@ -231,7 +231,12 @@ KarmaFieldsAlpha.DeepObject = class {
     return object && object.constructor === Object && !Object.isFrozen(object);
   }
 
-  static merge(object1, object2) {
+  static merge(object1, object2, ...path) {
+
+    if (path.length) {
+      object2 = this.create(object2, ...path);
+    }
+
   	for (let i in object2) {
       if (object2[i] === null) {
         delete object1[i];
@@ -242,6 +247,25 @@ KarmaFieldsAlpha.DeepObject = class {
   		}
   	}
   }
+
+  static mergeTo(object, value, key, ...path) { // -> should be assign
+
+    if (key !== undefined) {
+      if (path.length > 0) {
+        if (!object[key]) {
+          object[key] = {};
+        }
+        this.mergeTo(object[key], value, ...path);
+      } else {
+        Object.assign(object[key], value);
+      }
+    }
+
+  }
+
+
+
+
 
   // static clone(...objects) {
   //   const result = {};
@@ -586,9 +610,9 @@ KarmaFieldsAlpha.DeepObject = class {
 
     if (Array.isArray(object1) && Array.isArray(object2) && object1.length === object2.length) {
       return object1.every((item, index) => this.equal(item, object2[index]));
-		} else if (object1 && object1.constructor === Object) {
+		} else if (object1 && object2 && object1.constructor === Object && object2.constructor === Object && Object.keys(object1).length === Object.keys(object2).length) {
       for (let key in object1) {
-        if (!object2 || object2.constructor !== Object || !this.equal(object1[key], object2[key])) {
+        if (!this.equal(object1[key], object2[key])) {
           return false;
         }
       }
@@ -598,21 +622,64 @@ KarmaFieldsAlpha.DeepObject = class {
 		}
 	}
 
-  static isIncluded(object1, object2) {
+  // static include(object1, object2) {
+  //
+  //   if (object2 === undefined) {
+  //     return true;
+  //   } else if (Array.isArray(object1) && Array.isArray(object2) && object1.length === object2.length) {
+  //     return object1.every((item, index) => this.include(item, object2[index]));
+	// 	} else if (object1 && object1.constructor === Object && object2 && object2.constructor === Object) {
+  //     for (let key in object2) {
+  //       if (!this.include(object1[key], object2[key])) {
+  //         return false;
+  //       }
+  //     }
+  //     return true;
+	// 	} else {
+	// 		return object1 === object2;
+	// 	}
+	// }
 
-    if (Array.isArray(object1) && Array.isArray(object2) && object1.length === object2.length) {
-      return object1.every((item, index) => this.equal(item, object2[index]));
-		} else if (object1 && object1.constructor === Object) {
-      for (let key in object1) {
-        if (!object2 || object2.constructor !== Object || !this.isInclude(object1[key], object2[key])) {
-          return false;
-        }
-      }
+
+  static include(object, value, ...path) {
+
+    if (path.length) {
+
+      object = this.get(object, ...path);
+
+    }
+
+    if (value === undefined) {
+
       return true;
+
+    } else if (Array.isArray(object) && Array.isArray(value) && object.length === value.length) {
+      
+      return object.every((item, index) => this.include(item, value[index]));
+
+		} else if (object && object.constructor === Object && value && value.constructor === Object) {
+
+      for (let key in value) {
+
+        if (!this.include(object[key], value[key])) {
+
+          return false;
+
+        }
+
+      }
+
+      return true;
+
 		} else {
-			return object1 === undefined || object1 === object2;
+
+			return object === value;
+
 		}
+
 	}
+
+
 
   // static compare(object1, object2) {
 

@@ -1,56 +1,15 @@
 KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
-
-
-  async openLibrary() {
-
-    // let selectedIds = await this.getSelectedIds();
-    //
-    // // const {index: index, length: length} = this.selection || {index: this.resource.insertAt || 99999, length: 0};
-    //
-    // const {index, length} = this.selection || {index: 9999999, length: 0};
-    //
-    // const key = this.getKey();
-    //
-    // await this.parent.request("fetch", {
-    //   // params: {
-    //   //   table: this.resource.table,
-    //   //   selection: selectedIds.join(","),
-    //   //   ...this.resource.fetchParams
-    //   // },
-    //   // callback: async inputIds => {
-    //   //   await this.insert(inputIds, index, length);
-    //   // }
-    //
-    //   // table: this.resource.table,
-    //   // // selection: selectedIds.join(","),
-    //   // ...this.resource.fetchParams
-    //
-    //
-    //
-    //   params: {
-    //     table: this.resource.table,
-    //     ...this.resource.params,
-    //     ...this.resource.fetchParams // deprec
-    //   },
-    //   ids: selectedIds,
-    //   callback: async inputIds => {
-    //     await this.insert(inputIds, index, length);
-    //   }
-    // }, key);
-
-
-  }
-
   fetch() {
 
     this.parent.request("fetch", this.resource.table);
+
   }
 
 
   open() {
     const ids = this.getValue() || [];
-    this.setSelection(new KarmaFieldsAlpha.Selection(ids.length, 0));
+    this.setSelection({index: ids.length, length: 0, final: true});
     this.fetch();
   }
 

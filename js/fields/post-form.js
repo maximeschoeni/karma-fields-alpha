@@ -47,16 +47,34 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
   }
 
+  // -> same as grid
   getValue(...path) {
 
-    return KarmaFieldsAlpha.Terminal.getValue(this.resource.driver, this.resource.id, ...path);
+    return KarmaFieldsAlpha.Query.getValue(this.resource.driver, this.resource.id, ...path);
 
 	}
 
+  // -> same as grid
 	setValue(value, ...path) {
 
 
-    KarmaFieldsAlpha.Terminal.setValue(value, this.resource.driver, this.resource.id, ...path);
+    // KarmaFieldsAlpha.Query.setValue(value, this.resource.driver, this.resource.id, ...path);
+
+    value = KarmaFieldsAlpha.Type.toArray(value);
+
+		let currentValue = this.getValue(...path);
+
+		if (!KarmaFieldsAlpha.DeepObject.equal(value, currentValue)) {
+
+      KarmaFieldsAlpha.History.backup(value, currentValue, "delta", this.resource.driver, ...path);
+
+      KarmaFieldsAlpha.Store.set(value, "delta", this.resource.driver, ...path);
+
+      this.save();
+
+      this.render();
+
+		}
 
 
 
@@ -84,16 +102,19 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
     // this.update();
 
-    this.save();
-    // this.deferRender();
-
-    this.render();
+    // this.save();
+    // // this.deferRender();
+    //
+    // this.render();
 
 	}
 
+  // -> same as grid
   modified(...path) {
 
-    return KarmaFieldsAlpha.Terminal.modified(this.resource.driver, this.resource.id, ...path);
+    // return KarmaFieldsAlpha.Terminal.modified(this.resource.driver, this.resource.id, ...path);
+
+    return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta", this.resource.driver, ...path), this.resource.driver, ...path);
 
   }
 
@@ -172,21 +193,37 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
     //
     // data.saving = setTimeout(() => KarmaFieldsAlpha.History.save(), 1000);
 
-    this.debounce("saving", () => KarmaFieldsAlpha.History.save(), 1000);
+    // this.debounce("saving", () => KarmaFieldsAlpha.History.save(), 1000);
+
+    KarmaFieldsAlpha.History.saveFlag = true;
 
   }
 
-  render() {
+  // render() {
+  //
+  //   // const data = this.getData();
+  //   //
+  //   // if (data.renderFlag === false) {
+  //   //
+  //   //
+  //   //
+  //   // }
+  //
+  // }
 
-    // const data = this.getData();
-    //
-    // if (data.renderFlag === false) {
-    //
-    //
-    //
-    // }
+  async render() {
 
+    await this.renderPromise;
+
+    if (this.onRender) {
+
+      this.renderPromise = this.onRender();
+
+    }
+
+    return this.renderPromise;
   }
+
 
   // mousedown() {
   //
@@ -312,26 +349,42 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
       },
       complete: async form => {
 
-        // let renderFlag;
+        // const process = await KarmaFieldsAlpha.Terminal.process();
+        //
+        // if (process) { //  || renderFlag
+        //
+        //   form.render();
+        //
+        // } else {
+        //
+        //   this.render = () => {
+        //
+        //     this.render = () => {};
+        //     form.render();
+        //
+        //   };
+        //
+        // }
 
-        const process = await KarmaFieldsAlpha.Terminal.process();
+        const task = KarmaFieldsAlpha.Query.tasks.shift();
 
-        if (process) { //  || renderFlag
+        if (task) {
 
-          // renderFlag = false;
+          await KarmaFieldsAlpha.Query.run(task);
 
-          // this.render = () => renderFlag = true;
-
-          form.render();
+          await popup.render();
 
         } else {
 
-          this.render = () => {
+          if (KarmaFieldsAlpha.History.saveFlag) {
 
-            this.render = () => {};
-            form.render();
+            KarmaFieldsAlpha.History.saveFlag = false;
+            KarmaFieldsAlpha.History.save();
 
-          };
+          }
+
+          // this.rendering = false;
+          this.onRender = popup.render;
 
         }
 

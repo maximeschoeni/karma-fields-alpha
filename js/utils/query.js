@@ -1,188 +1,147 @@
 
-// KarmaFieldsAlpha.Loading = class {
-
-//   toString() {
-//     return "...";
-//   }
-
-//   // [Symbol.iterator]() {
-//   //   return {
-//   //     next: () => ({ value: "...", done: true })
-//   //   };
-//   // }
-
-//   *[Symbol.iterator]() {
-//     yield this;
-//   }
-
-// };
-
 KarmaFieldsAlpha.Query = class {
 
+  static getAttempt(driver, id) {
 
-  static VarsRequirement = class {
+    if (KarmaFieldsAlpha.drivers[driver]) {
 
-    constructor(driver) {
+      if (!KarmaFieldsAlpha.DeepObject.get(this.attempts, driver, id, "query")) {
 
-      if (!KarmaFieldsAlpha.drivers[driver]) {
-
-        console.error("Driver not found", driver);
+        return "query";
 
       }
 
-      this.driver = driver;
-      this.relations = KarmaFieldsAlpha.drivers[driver].relations || [];
-      this.ids = new Set();
-      this.queriedIds = new Set();
-      this.done = true;
-      this.queried = false;
-      this.step = 0;
+      if (KarmaFieldsAlpha.drivers[driver].relations) {
 
-    }
+        for (let relation of KarmaFieldsAlpha.drivers[driver].relations) {
 
-    has(id) {
+          if (!KarmaFieldsAlpha.DeepObject.get(this.attempts, driver, id, relation)) {
 
-      return this.ids.has(id);
+            return relation;
 
-    }
-
-    isQueried(id) {
-
-      return this.queriedIds.has(id);
-
-    }
-
-    add(id) {
-
-      // if (!this.queriedIds.has(id) && !this.ids.has(id)) {
-
-      //   this.ids.add(id);
-
-      //   this.done = false;
-      //   this.queried = false;
-      //   this.step = 0;
-
-      // }
-
-      if (!this.queriedIds.has(id)) {
-
-        if (!this.ids.has(id)) {
-
-          this.ids.add(id);
-          this.queried = false;
-          this.step = 0;
+          }
 
         }
 
-        this.done = false;
-
       }
 
-    }
+    } else {
 
-    async fulfill() {
-
-      if (!this.queried) {
-
-        await KarmaFieldsAlpha.Query.query(this.driver, `ids=${[...this.ids].join(",")}`);
-
-        this.queried = true;
-
-      } else if (this.step < this.relations.length) {
-
-        await KarmaFieldsAlpha.Query.queryRelations(this.driver, this.relations[this.step], [...this.ids]);
-
-        this.step++;
-
-      }
-
-      if (this.step >= this.relations.length) {
-
-        this.queriedIds = new Set([...this.queriedIds, ...this.ids]);
-
-        this.ids = new Set();
-
-      }
-
-      this.done = true;
+      console.error("driver does not exist", driver);
 
     }
 
   }
-
-  static requirements = {};
-  static vars = {};
-  static queries = {};
-  static counts = {};
-  static uploads = [];
-  static tasks = [];
 
   static getValue(driver, id, key) {
 
-    if (!KarmaFieldsAlpha.drivers[driver]) {
-
-      console.error("Driver not found", driver);
-    }
-
-    const value = KarmaFieldsAlpha.DeepObject.get(this.vars, driver, id, key);
-
-
+    let value = KarmaFieldsAlpha.Store.get("delta", driver, id, key);
 
     if (!value) {
 
-      let requirement = KarmaFieldsAlpha.DeepObject.get(this.requirements, "vars", driver);
+      value = KarmaFieldsAlpha.DeepObject.get(this.vars, driver, id, key);
 
-      if (!requirement) {
+    }
 
-        requirement = new this.VarsRequirement(driver);
+    if (value === undefined) { // -> create a task to fetch it
 
-        KarmaFieldsAlpha.DeepObject.assign(this.requirements, requirement, "vars", driver);
+      const attempt = this.getAttempt(driver, id);
 
-      }
+      if (attempt) {
 
-      if (requirement.isQueried(id)) {
+        let task = this.tasks.find(task => task.type === "vars" && task.driver === driver && task.attempt === attempt);
 
-        return [];
+        if (!task) {
 
-      } else {
+          task = {
+            type: "vars",
+            driver: driver,
+            ids: new Set(),
+            attempt: attempt
+          };
 
-        requirement.add(id);
+          this.tasks.push(task);
+
+        }
+
+        task.ids.add(id);
+
+      } else { // -> no value found
+
+        value = [];
+
+        KarmaFieldsAlpha.DeepObject.assign(this.vars, value, driver, id, key);
 
       }
 
     }
 
-    return value;
+    return value; // return array | undefined (not ready)
   }
 
-  static async processVars() {
+  // static async queryVars(driver, attempt, ids) {
+  //
+  //   if (attempt === "query") {
+  //
+  //     await this.query(driver, `ids=${ids.join(",")}`);
+  //
+  //   } else {
+  //
+  //     await this.queryRelations(driver, attempt, ids);
+  //
+  //   }
+  //
+  // }
 
-    const requirements = KarmaFieldsAlpha.DeepObject.get(this.requirements, "vars");
+  static async run(task) {
 
-    if (requirements) {
+    switch(task.type) {
 
-      const driver = Object.keys(requirements).find(driver => !requirements[driver].done);
+      case "vars":
 
-      if (driver) {
+        if (task.attempt === "query") {
 
-        await requirements[driver].fulfill();
+          await this.query(task.driver, `ids=${[...task.ids].join(",")}`);
 
-        return true;
+        } else {
 
-      }
+          await this.queryRelations(task.driver, task.attempt, [...task.ids]);
+
+        }
+        break;
+
+      case "query":
+        await this.query(task.driver, task.paramstring);
+        break;
+
+      case "count":
+        await this.queryCount(task.driver, task.paramstring);
+        break;
+
+      case "update":
+        await this.update(task.driver, task.id, task.data);
+        break;
 
     }
 
-    return false;
   }
 
   static async query(driver, paramstring = "") {
 
-    const results = await KarmaFieldsAlpha.Gateway.get(`query/${driver}${paramstring && "?"}${paramstring}`);
+    if (!KarmaFieldsAlpha.drivers[driver]) {
+
+      console.error("Driver not found", driver);
+
+    }
+
+    const results = await KarmaFieldsAlpha.Gateway.get(`query/${driver}${paramstring?"?":""}${paramstring}`);
+
+    const alias = KarmaFieldsAlpha.drivers[driver].alias || {};
+    const idAlias = alias.id || "id";
 
     for (let item of results) {
 
-      const id = item.id.toString(); // -> alias!
+      const id = item[idAlias].toString();
 
       for (let key in item) {
 
@@ -192,20 +151,27 @@ KarmaFieldsAlpha.Query = class {
 
       }
 
+      KarmaFieldsAlpha.DeepObject.assign(this.attempts, true, driver, id, "query");
+
     }
 
-    const requirement = new this.VarsRequirement(driver);
-    requirement.ids = new Set(results.map(item => item.id));
-    requirement.queried = true;
-
-    KarmaFieldsAlpha.DeepObject.assign(this.requirements, requirement, "vars", driver);
+    KarmaFieldsAlpha.DeepObject.assign(this.queries, results, driver, paramstring);
 
     return results;
   }
 
   static async queryRelations(driver, relation, ids) {
 
+    if (!KarmaFieldsAlpha.drivers[driver]) {
+
+      console.error("Driver not found", driver);
+
+    }
+
     const relations = await KarmaFieldsAlpha.Gateway.get(`relations/${driver}/${relation}?ids=${ids.join(",")}`);
+
+    // const alias = KarmaFieldsAlpha.drivers[driver].alias || {};
+    // const idAlias = alias.id || "id";
 
     for (let relation of relations) {
 
@@ -213,6 +179,12 @@ KarmaFieldsAlpha.Query = class {
       const key = relation.key.toString();
 
       let value = KarmaFieldsAlpha.DeepObject.get(this.vars, driver, id, key);
+
+      // if (!Array.isArray(value)) {
+      //
+      //   value = KarmaFieldsAlpha.Type.toArray(value);
+      //
+      // }
 
       if (!value) {
 
@@ -226,15 +198,18 @@ KarmaFieldsAlpha.Query = class {
 
     }
 
+    for (let id of ids) {
+
+      KarmaFieldsAlpha.DeepObject.assign(this.attempts, true, driver, id, relation);
+
+    }
+
     return relations;
   }
 
+
+
   static getResults(driver, params) {
-
-    if (!KarmaFieldsAlpha.drivers[driver]) {
-
-      console.error("Driver not found", driver);
-    }
 
     const paramstring = KarmaFieldsAlpha.Params.stringify(params);
 
@@ -242,222 +217,107 @@ KarmaFieldsAlpha.Query = class {
 
     if (!query) {
 
-      let set = KarmaFieldsAlpha.DeepObject.get(this.requirements, "queries", driver);
+      let task = this.tasks.find(task => task.type === "query" && task.driver === driver && task.paramstring === paramstring);
 
-      if (!set) {
+      if (!task) {
 
-        set = new Set();
+        task = {
+          type: "query",
+          driver: driver,
+          paramstring: paramstring
+        };
 
-        KarmaFieldsAlpha.DeepObject.assign(this.requirements, set, "queries", driver);
+        this.tasks.push(task);
+
       }
-
-      set.add(paramstring);
 
     }
 
     return query;
   }
 
-  static async processQueries() {
 
-    const requirements = KarmaFieldsAlpha.DeepObject.get(this.requirements, "queries");
-
-    if (requirements) {
-
-      const driver = Object.keys(requirements).find(driver => requirements[driver].size);
-
-      if (driver) {
-
-        const set = requirements[driver];
-        const paramstring = [...set][0];
-
-        const results = await this.query(driver, paramstring);
-
-        KarmaFieldsAlpha.DeepObject.assign(this.queries, results, driver, paramstring);
-
-        set.delete(paramstring);
-
-        return true;
-
-      }
-
-    }
-
-    return false;
-  }
-
-  // static addTask(name, callback) {
-  //
-  //   if (!this.tasks) {
-  //
-  //     this.tasks = [];
-  //
-  //   }
-  //
-  //   this.tasks.push({
-  //     name: name,
-  //     callback: callback
-  //   });
-  //
-  // }
-  //
-  // static hasTask(name) {
-  //
-  //   return this.tasks && this.tasks.some(task => !name || task.name === name);
-  //
-  // }
-  //
-  // static execTasks() {
-  //
-  //   while (this.tasks && this.tasks.length) {
-  //
-  //     const task = this.tasks.pop();
-  //
-  //     task.callback();
-  //
-  //   }
-  //
-  // }
 
   static getCount(driver, params) {
 
-    if (!KarmaFieldsAlpha.drivers[driver]) {
+    const paramstring = KarmaFieldsAlpha.Params.stringify(params);
 
-      console.error("Driver not found", driver);
-    }
+    let query = KarmaFieldsAlpha.DeepObject.get(this.counts, driver, paramstring);
 
-    const paramString = KarmaFieldsAlpha.Params.stringify(params);
+    if (!query) {
 
-    let count = KarmaFieldsAlpha.DeepObject.get(this.counts, driver, paramString);
+      let task = this.tasks.find(task => task.type === "count" && task.driver === driver && task.paramstring === paramstring);
 
-    if (count === undefined) {
+      if (!task) {
 
-      let set = KarmaFieldsAlpha.DeepObject.get(this.requirements, "counts", driver);
+        task = {
+          type: "count",
+          driver: driver,
+          paramstring: paramstring
+        };
 
-      if (!set) {
-
-        set = new Set();
-
-        KarmaFieldsAlpha.DeepObject.assign(this.requirements, set, "counts", driver);
-      }
-
-      set.add(paramString);
-
-    }
-
-    return count;
-
-  }
-
-  static async processCounts() {
-
-    const requirements = KarmaFieldsAlpha.DeepObject.get(this.requirements, "counts");
-
-    if (requirements) {
-
-      const driver = Object.keys(requirements).find(driver => requirements[driver].size);
-
-      if (driver) {
-
-        const set = requirements[driver];
-        const paramstring = [...set][0];
-
-        const count = await KarmaFieldsAlpha.Gateway.get(`count/${driver}${paramstring && "?"}${paramstring}`);
-
-        KarmaFieldsAlpha.DeepObject.assign(this.counts, count, driver, paramstring);
-
-        set.delete(paramstring);
-
-        return true;
+        this.tasks.push(task);
 
       }
 
     }
 
-    return false;
   }
 
-  // static requestUpload(files) {
-  //   this.uploads = [...this.uploads, ...files];
-  // }
 
-  // static async uploadFile(file) {
+  static async queryCount(driver, paramstring) {
 
-  //   // let id = await KarmaFieldsAlpha.Gateway.upload(file);
+    const count = await KarmaFieldsAlpha.Gateway.get(`count/${driver}${paramstring?"?":""}${paramstring}`);
 
-  //   const fileName = file.name.normalize();
-
-  //   const formData = new FormData();
-  //   formData.append("async-upload", file);
-  //   formData.append("name", fileName);
-  //   formData.append("action", wp.Uploader.defaults.multipart_params.action);
-  //   formData.append("_wpnonce", wp.Uploader.defaults.multipart_params._wpnonce);
-
-  //   fetch(KarmaFieldsAlpha.adminURL+"async-upload.php", {
-  //     method: "post",
-  //     body: formData,
-  //     mode: "cors"
-  //   }).then(response => response.json()).then(function(result) {
-  //     console.log(result);
-  //   });
-
-  // }
-
-  // static async processUpload() {
-  //   if (this.uploads.length) {
-
-  //     const file = this.uploads.shift();
-  //     await this.uploadFile(file);
-
-  //     return true;
-  //   }
-
-  //   return false;
-  // }
-
-
-
-
-
-  static async process() {
-
-
-    return (await this.processQueries() || await this.processCounts() || await this.processVars());
-
-    // this.execTasks();
-    //
-    //
-    // if (await this.processQueries()) {
-    //
-    //   return true;
-    //
-    // }
-    //
-    // if (await this.processCounts()) {
-    //
-    //   return true;
-    //
-    // }
-    //
-    // if (await this.processVars()) {
-    //
-    //   return true;
-    //
-    // }
-    //
-    // return false;
+    KarmaFieldsAlpha.DeepObject.assign(this.counts, count, driver, paramstring);
 
   }
 
-  static reset() {
-    this.requirements = {};
+
+
+  static send() {
+
+    const data = KarmaFieldsAlpha.Store.get("delta");
+
+    for (let driver in data) {
+
+      for (let id in data[driver]) {
+
+        this.tasks.push({
+          type: "update",
+          driver: driver,
+          id: id,
+          data: data[driver][id]
+        });
+
+      }
+
+    }
+
   }
+
+  static async update(driver, id, data) {
+
+    await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data);
+
+    KarmaFieldsAlpha.DeepObject.mergeTo(KarmaFieldsAlpha.Query.vars, data, driver, id);
+
+    KarmaFieldsAlpha.Store.remove("delta", driver, id);
+
+  }
+
 
   static empty() {
-    this.requirements = {};
     this.vars = {};
     this.queries = {};
-    this.tasks = [];
+    this.counts = {};
+    this.attempts = {};
   }
 
 }
+
+KarmaFieldsAlpha.Query.tasks = [];
+KarmaFieldsAlpha.Query.vars = {};
+KarmaFieldsAlpha.Query.queries = {};
+KarmaFieldsAlpha.Query.counts = {};
+KarmaFieldsAlpha.Query.attempts = {};

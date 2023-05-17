@@ -1466,6 +1466,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 }
 
+                table.element.onfocusin = event => {
+
+                  console.log("array onfocusin ");
+                  this.render(); // unselect last field when input gains focus inside array
+                }
+
                 // sorter.onbackground = () => {
                 //
                 //   selection = new KarmaFieldsAlpha.Selection(values.length, 0);
@@ -1552,18 +1558,17 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
             class: "array-footer",
             child: {
               class: "array-footer-content",
-              init: footer => {
-                footer.element.onmousedown = event => {
-                  event.preventDefault(); // -> prevent losing focus on selected items
-                }
-              },
+              // init: footer => {
+              //   footer.element.onmousedown = event => {
+              //     event.preventDefault(); // -> prevent losing focus on selected items
+              //   }
+              // },
               update: footer => {
                 if (this.resource.footer !== false) {
                   footer.child = this.createChild({
                     type: "footer",
-                    id: "footer",
-                    uid: `${this.resource.uid}-footer`,
-                    ...this.resource.footer
+                    ...this.resource.footer,
+                    index: "footer"
                   }).build();
                 }
               }

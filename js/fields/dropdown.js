@@ -34,7 +34,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 			}
 
 		}
-    
+
     return items;
 	}
 
@@ -73,7 +73,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
     if (name === undefined) {
 
-      name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Terminal.getValue(driver, item[idAlias], nameAlias) || ["..."])
+      name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
 
     }
 
@@ -85,7 +85,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
       });
 
     }
-  
+
     return options;
 
   }
@@ -105,7 +105,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
       } else {
 
         options = [{id: "", name: "..."}];
-        
+
       }
 
 		}
@@ -138,7 +138,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 			class: "dropdown karma-field",
 			update: dropdown => {
 				const key = this.getKey();
-				
+
         const values = this.parent.getValue(key);
 
         dropdown.element.classList.toggle("loading", !values);
@@ -169,7 +169,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
             KarmaFieldsAlpha.History.save();
 
             this.parent.render();
-            
+
           }
 
           if (this.resource.disabled) {
@@ -181,7 +181,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
           if (this.resource.enabled) {
 
             dropdown.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parent.parse(this.resource.enabled) || []);
-            
+
           }
 
           const modified = this.modified();

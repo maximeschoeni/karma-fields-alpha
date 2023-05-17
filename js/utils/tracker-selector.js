@@ -136,6 +136,7 @@ KarmaFieldsAlpha.Selector = class {
 
     const index = this.findIndex(this.tracker.x, this.tracker.y);
 
+
     if (this.selection) {
 
       // this.sliceSegment(this.selection).forEach(element => element.classList.replace("selecting", "selected"));
@@ -148,7 +149,7 @@ KarmaFieldsAlpha.Selector = class {
       }
 
     // } else if (this.getElementsRectangle(this.container).contains(this.tracker.x, this.tracker.y)) {
-    } else if (index === undefined && (new KarmaFieldsAlpha.Rect(0, 0, this.container.clientWidth, this.container.clientHeight)).contains(this.tracker.x, this.tracker.y)) {
+    } else if (index === -1 && (new KarmaFieldsAlpha.Rect(0, 0, this.container.clientWidth, this.container.clientHeight)).contains(this.tracker.x, this.tracker.y)) {
 
 
       if (this.onbackground) {

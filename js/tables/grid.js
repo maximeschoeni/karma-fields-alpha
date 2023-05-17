@@ -224,17 +224,39 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   getValue(...path) {
 
-    return KarmaFieldsAlpha.Terminal.getValue(this.resource.driver, ...path);
+    // return KarmaFieldsAlpha.Terminal.getValue(this.resource.driver, ...path);
+
+    return KarmaFieldsAlpha.Store.get("delta", this.resource.driver, ...path) || KarmaFieldsAlpha.Query.getValue(this.resource.driver, ...path);
 
   }
 
   setValue(value, ...path) {
 
-    KarmaFieldsAlpha.Terminal.setValue(value, this.resource.driver, ...path);
+    // KarmaFieldsAlpha.Terminal.setValue(value, this.resource.driver, ...path);
 
-    this.save();
 
-    this.render();
+
+    value = KarmaFieldsAlpha.Type.toArray(value);
+
+		let currentValue = this.getValue(...path);
+
+		if (!KarmaFieldsAlpha.DeepObject.equal(value, currentValue)) {
+
+      KarmaFieldsAlpha.History.backup(value, currentValue, "delta", this.resource.driver, ...path);
+
+      KarmaFieldsAlpha.Store.set(value, "delta", this.resource.driver, ...path);
+
+      this.save();
+
+      this.render();
+
+		}
+
+  }
+
+  modified(...path) {
+
+    return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta", this.resource.driver, ...path), this.resource.driver, ...path);
 
   }
 
@@ -784,7 +806,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     id = KarmaFieldsAlpha.Type.toString(id);
 
-    KarmaFieldsAlpha.Terminal.setValue(["0"], this.resource.driver, id, "trash");
+    // KarmaFieldsAlpha.Terminal.setValue(["0"], this.resource.driver, id, "trash");
+
+    this.setValue(["0"], id, "trash");
 
     // this.buffer.change(["0"], null, id, "trash");
 

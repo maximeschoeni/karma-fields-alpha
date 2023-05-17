@@ -4,26 +4,13 @@
 
 Class Karma_Fields_Alpha_Driver_Posts {
 
-  // public function __construct() {
+  public function __construct() {
 
-  //   add_filter('karma_fields_posts_driver_join_meta', function($value, $key, $id) {
+    add_filter('karma_fields_posts_meta_format', 'maybe_unserialize');
 
-  //     if ($key === '_wp_attachment_metadata') {
+    do_action('karma_fields_posts_init', $this);
 
-  //       $dir = dirname($value['file']);
-
-  //       foreach ($value['sizes'] as $key => $size) {
-
-  //         $value['sizes'][$key]['file'] = "$dir/{$value['sizes'][$key]['file']}";
-
-  //       }
-
-  //     }
-
-  //   }, 10, 3);
-
-  //   return $value;
-  // }
+  }
 
 
 
@@ -982,22 +969,26 @@ Class Karma_Fields_Alpha_Driver_Posts {
     if ($ids) {
 
       $ids = array_map('intval', $ids);
-      $ids = implode(',', $ids);
+      $ids_string = implode(',', $ids);
 
       $sql = "SELECT
         meta_value AS 'value',
         meta_key AS 'key',
         post_id AS 'id'
         FROM $wpdb->postmeta
-        WHERE post_id IN ($ids) AND meta_key != '_wp_attachment_metadata'";
+        WHERE post_id IN ($ids_string) AND meta_key NOT LIKE '_%'";
+
+      $sql = apply_filters('karma_fields_posts_meta_sql', $sql, $ids, $ids_string);
 
 			$results = $wpdb->get_results($sql);
 
       foreach ($results as $result) {
 
-        $result->value = maybe_unserialize($result->value);
+        // $result->value = maybe_unserialize($result->value);
+        $result->value = apply_filters('karma_fields_posts_meta_format', $result->value, $result->key, $result->id);
 
-        $result->value = apply_filters('karma_fields_posts_driver_join_meta', $result->value, $result->key, $result->id);
+        $result->value = apply_filters('karma_fields_posts_driver_join_meta', $result->value, $result->key, $result->id); // deprecated
+
 
       }
 
