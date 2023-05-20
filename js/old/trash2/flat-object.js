@@ -3,10 +3,10 @@ KarmaFieldsAlpha.DeepObject = class {};
 KarmaFieldsAlpha.FlatObject = class {};
 
 /**
- * KarmaFieldsAlpha.DeepObject.assignFromPath({"a": 2}, ["b", "c"], 3); // -> {"a": 2, "b": {"c":3}}
+ * KarmaFieldsAlpha.DeepObject.setFromPath({"a": 2}, ["b", "c"], 3); // -> {"a": 2, "b": {"c":3}}
  */
-KarmaFieldsAlpha.DeepObject.assign = function(object, pathKeys, value) {
-  console.log("Deprecated KarmaFieldsAlpha.DeepObject.assign");
+KarmaFieldsAlpha.DeepObject.set = function(object, pathKeys, value) {
+  console.log("Deprecated KarmaFieldsAlpha.DeepObject.set");
   let key = pathKeys.shift();
   if (!object[key] || typeof object[key] !== "object") {
     object[key] = {};
@@ -18,7 +18,7 @@ KarmaFieldsAlpha.DeepObject.assign = function(object, pathKeys, value) {
   }
 }
 
-KarmaFieldsAlpha.DeepObject.assign = function(object, value, ...path) {
+KarmaFieldsAlpha.DeepObject.set = function(object, value, ...path) {
   // console.log(object, value, path);
   const key = path.shift();
   if (key) {
@@ -39,7 +39,7 @@ KarmaFieldsAlpha.DeepObject.assign = function(object, value, ...path) {
   return object;
 }
 
-KarmaFieldsAlpha.DeepObject.assign4 = function(object, value, key, ...path) {
+KarmaFieldsAlpha.DeepObject.set4 = function(object, value, key, ...path) {
   if (key) {
     if (path.length) {
       if (!object[key]) {
@@ -299,7 +299,7 @@ KarmaFieldsAlpha.FlatObject.toObject = function(flatObject) {
 		if (!deepObject) {
 			deepObject = {};
 		}
-		KarmaFieldsAlpha.DeepObject.assign(deepObject, path.split("/"), flatObject[path]);
+		KarmaFieldsAlpha.DeepObject.set(deepObject, path.split("/"), flatObject[path]);
 	}
 	return deepObject;
 }
@@ -317,7 +317,7 @@ KarmaFieldsAlpha.FlatObject.toDeep = function(flatObject, dirPath) {
 		if (!deepObject) {
 			deepObject = {};
 		}
-		KarmaFieldsAlpha.DeepObject.assign(deepObject, path.split("/"), flatObject[path]);
+		KarmaFieldsAlpha.DeepObject.set(deepObject, path.split("/"), flatObject[path]);
 	}
 	return deepObject;
 }

@@ -392,6 +392,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         // KarmaFieldsAlpha.History.set(KarmaFieldsAlpha.Query.ids, "ids");
         KarmaFieldsAlpha.History.backup(ids, null, "ids");
 
+        KarmaFieldsAlpha.Store.set("ids", ids);
+
       }
 
     }
@@ -573,68 +575,75 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   import(items, index = 0, length = 999999, colIndex = 0, colLength = 999999) {
 
     const string = items.shift();
-    const grid = new KarmaFieldsAlpha.Grid(string);
-    const ids = this.getIds();
 
-    if (items.length < length) {
+    const [current] = field.export([], index, length, colIndex, colLength);
 
-      this.remove(index + items.length, length);
+    if (string !== current) {
 
-    } else if (items.length > length) {
+      const grid = new KarmaFieldsAlpha.Grid(string);
+      const ids = this.getIds();
 
-      for (let i = 0; i < items.length - length; i++) {
+      if (items.length < length) {
 
-        this.add(index + length + i);
+        this.remove(index + items.length, length);
 
-      }
+      } else if (items.length > length) {
 
-    }
+        for (let i = 0; i < items.length - length; i++) {
 
-    if (this.resource.modal) {
+          this.add(index + length + i);
 
-
-
-      // const modal = this.createChild({
-      //   ...this.resource.modal,
-      //   ids: this.getIds(),
-      //   type: "modal"
-      // });
-      //
-      // modal.import(items, index, length);
-
-      for (let i = 0; i < grid.array.length; i++) {
-
-        const child = this.createChild({
-          children: this.resource.modal.children || [],
-          type: "row",
-          index: i + index,
-          id: ids[i + index]
-        });
-
-        const rowItems = grid.getRow(i);
-
-        child.import(rowItems);
+        }
 
       }
 
-    } else {
+      if (this.resource.modal) {
 
 
-      const columns = this.resource.children.slice(colIndex, colIndex + colLength);
+
+        // const modal = this.createChild({
+        //   ...this.resource.modal,
+        //   ids: this.getIds(),
+        //   type: "modal"
+        // });
+        //
+        // modal.import(items, index, length);
+
+        for (let i = 0; i < grid.array.length; i++) {
+
+          const child = this.createChild({
+            children: this.resource.modal.children || [],
+            type: "row",
+            index: i + index,
+            id: ids[i + index]
+          });
+
+          const rowItems = grid.getRow(i);
+
+          child.import(rowItems);
+
+        }
+
+      } else {
 
 
-      for (let i = 0; i < grid.array.length; i++) {
+        const columns = this.resource.children.slice(colIndex, colIndex + colLength);
 
-        const child = this.createChild({
-          children: columns,
-          type: "row",
-          index: i + index,
-          id: ids[i + index]
-        });
 
-        const rowItems = grid.getRow(i);
+        for (let i = 0; i < grid.array.length; i++) {
 
-        child.import(rowItems);
+          const child = this.createChild({
+            children: columns,
+            type: "row",
+            index: i + index,
+            id: ids[i + index]
+          });
+
+          const rowItems = grid.getRow(i);
+
+          child.import(rowItems);
+
+        }
 
       }
 
@@ -800,61 +809,63 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   //   return ids;
   // }
 
-  async add(index = 0, params = {}) {
+  async add(index = 0) {
 
-    let id = await KarmaFieldsAlpha.Gateway.post("add/"+this.resource.driver, params);
+    KarmaFieldsAlpha.Query.add(this.resource.driver, index);
 
-    id = KarmaFieldsAlpha.Type.toString(id);
-
-    // KarmaFieldsAlpha.Terminal.setValue(["0"], this.resource.driver, id, "trash");
-
-    this.setValue(["0"], id, "trash");
-
-    // this.buffer.change(["0"], null, id, "trash");
-
-    const rowField = this.createChild({
-      children: this.resource.children,
-      type: "row"
-    });
-
-    const defaults = params;
-
-    rowField.getDefault(defaults);
-
-    if (this.resource.modal) {
-
-      const modal = this.createChild({
-        ...this.resource.modal,
-        type: "modal"
-      });
-
-      modal.getDefault(defaults);
-
-    }
-
-    for (let key in params) {
-
-      const value = params[key];
-
-      if (value !== undefined && value !== null) {
-
-        this.setValue(value, id, key);
-
-      }
-
-    }
-
-    const ids = this.getIds();
-    const clones = [...this.ids];
-
-    clones.splice(index, 0, id);
-
-    KarmaFieldsAlpha.History.backup(clones, ids, "ids");
-
-    // KarmaFieldsAlpha.Query.ids = clones;
-    KarmaFieldsAlpha.Store.set(clones, "ids");
-
-    return id;
+    // let id = await KarmaFieldsAlpha.Gateway.post("add/"+this.resource.driver, params);
+    //
+    // id = KarmaFieldsAlpha.Type.toString(id);
+    //
+    // // KarmaFieldsAlpha.Terminal.setValue(["0"], this.resource.driver, id, "trash");
+    //
+    // this.setValue(["0"], id, "trash");
+    //
+    // // this.buffer.change(["0"], null, id, "trash");
+    //
+    // const rowField = this.createChild({
+    //   children: this.resource.children,
+    //   type: "row"
+    // });
+    //
+    // const defaults = params;
+    //
+    // rowField.getDefault(defaults);
+    //
+    // if (this.resource.modal) {
+    //
+    //   const modal = this.createChild({
+    //     ...this.resource.modal,
+    //     type: "modal"
+    //   });
+    //
+    //   modal.getDefault(defaults);
+    //
+    // }
+    //
+    // for (let key in params) {
+    //
+    //   const value = params[key];
+    //
+    //   if (value !== undefined && value !== null) {
+    //
+    //     this.setValue(value, id, key);
+    //
+    //   }
+    //
+    // }
+    //
+    // const ids = this.getIds();
+    // const clones = [...this.ids];
+    //
+    // clones.splice(index, 0, id);
+    //
+    // KarmaFieldsAlpha.History.backup(clones, ids, "ids");
+    //
+    // // KarmaFieldsAlpha.Query.ids = clones;
+    // KarmaFieldsAlpha.Store.set(clones, "ids");
+    //
+    // return id;
   }
 
   // async add(params = {}, index = 0) {
@@ -935,6 +946,10 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     KarmaFieldsAlpha.Store.set(clones, "ids");
 
   }
+
+
+
+
 
 
   // async remove(index, length) {
@@ -2312,19 +2327,31 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field {
 
   getValue(key) {
 
-    return this.parent.getValue(this.resource.id, key);
+    if  (this.resource.id !== null) { // -> id is null while being added
+
+      return this.parent.getValue(this.resource.id, key);
+
+    }
 
   }
 
   setValue(value, key) {
 
-    this.parent.setValue(value, this.resource.id, key);
+    if (this.resource.id !== null) { // -> id is null while being added. Should never happen.
+
+      this.parent.setValue(value, this.resource.id, key);
+
+    }
 
   }
 
   modified(key) {
 
-    this.parent.modified(this.resource.id, key);
+    if (this.resource.id !== null) { // -> id is null while being added. Should never happen.
+
+      return this.parent.modified(this.resource.id, key);
+
+    }
 
   }
 

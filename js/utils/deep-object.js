@@ -1,134 +1,261 @@
-//
-// var deepObject = {
-//   gateway: [
-//     {
-//       spectacles: [
-//         {
-//           id: [
-//               "49028x2022-12-16 17:13:00"
-//           ],
-//           spectacle_id: [
-//               "49028"
-//           ],
-//           title: [
-//               "Teresa Vittucci (AT/CH)"
-//           ],
-//           spectacle_date: [
-//               "2022-12-16 17:13:00"
-//           ],
-//           date: [
-//               "2022-12-16"
-//           ],
-//           hour: [
-//               "17:13"
-//           ],
-//           count: [
-//               "3/50"
-//           ],
-//           trash: [
-//               "0"
-//           ]
-//         }
-//       ]
-//     }
-//   ]
-// }
-//
-// var deepObject = {
-//   a: [
-//     {
-//       b: [
-//         {
-//           c: ["x"]
-//         }
-//       ],
-//       d: ["f"]
-//     }
-//   ]
-// };
-//
-
 
 KarmaFieldsAlpha.DeepObject = class {
 
-
-  // static getNEW(object, key, ...path) {
-  //   if (key !== undefined) {
-  // 		if (object) {
-  // 			return object && this.getNEW(object[key], ...path);
-  // 		}
-  // 	} else {
-  // 		return object;
-  // 	}
-  // };
-
   static get(object, key, ...path) {
-    if (key !== undefined) {
-  		if (object) {
-  			return object && this.get(object[key], ...path);
-  		}
+
+    if (key === undefined) {
+
+      return object;
+
   	} else {
-  		return object;
+
+      if (object) {
+
+  			return this.get(object[key], ...path);
+
+  		}
+
   	}
+
   };
 
-  // static assignNEW(object, value, key, ...path) {
-  //   if (object && key !== undefined) {
-  //     if (!object[key]) {
-  //       object[key] = Array.isArray(object) ? {} : [];
-  //     }
-  //     if (path.length > 0) {
-  //       this.assignNEW(object[key], value, ...path);
-  //     } else {
-  //       object[key] = value;
-  //     }
-  //   }
-  // }
+  static set(object, value, key, ...path) {
 
-
-  static assign(object, value, key, ...path) {
     if (key !== undefined) {
+
       if (path.length > 0) {
+
         if (!object[key]) {
-          // object[key] = {}; // (typeof path[0] === "number") ? [] : {};
-          // object[key] = Array.isArray(object) ? {} : [];
-          // object[key] = typeof path[0] === "number" ? [] : {};
+
           object[key] = {};
+
         }
-        this.assign(object[key], value, ...path);
+
+        this.set(object[key], value, ...path);
+
       } else {
+
         object[key] = value;
+
       }
+
     }
-    // else {
-    //   Object.assign(object, value);
-    // }
+
   }
 
   static remove(object, key, ...path) {
+
     if (key !== undefined && object) {
+
       if (path.length > 0) {
+
         this.remove(object[key], ...path);
+
       } else {
+
         if (Array.isArray(object)) {
+
           object.splice(key, 1);
+
         } else if (object) {
+
           delete object[key];
+
         }
+
       }
+
     }
+
   }
 
   static has(object, key, ...path) {
-    if (key !== undefined) {
-      if (path.length > 0 && object[key]) {
-        return this.has(object[key], ...path);
-      } else {
-        return object[key] !== undefined;
-      }
+
+    if (object) {
+
+      if (key === undefined) {
+
+        return true;
+
+    	} else {
+
+    		return this.has(object[key], ...path);
+
+    	}
+
     }
+
     return false;
+
   };
+
+  static assign(object, value, key, ...path) {
+
+    if (key === undefined) {
+
+      Object.assign(object, value);
+
+    } else {
+
+      if (!object[key]) {
+
+        object[key] = {};
+
+      }
+
+      this.assign(object[key], value, ...path);
+
+    }
+
+  }
+
+  static clone(object) {
+
+    if (Array.isArray(object)) {
+
+      return object.map((object, index) => this.clone(object));
+
+    } else if (object && object.constructor === Object) {
+
+      let clone = {};
+
+      for (let key in object) {
+
+        clone[key] = this.clone(object[key]);
+
+      }
+
+      return clone;
+
+    } else {
+
+      return object;
+
+    }
+
+  }
+
+  static isObject(object) {
+    return object && object.constructor === Object && !Object.isFrozen(object);
+  }
+
+
+  static merge(object, value, ...path) {
+
+    if (path.length) {
+
+      const clone = {};
+
+      this.set(clone, value, ...path);
+
+      value = clone;
+
+    }
+
+  	for (let i in value) {
+
+      if (value[i] === null) {
+
+        delete object[i];
+
+      } else if (this.isObject(value[i])) {
+
+        if (!this.isObject(object[i])) {
+
+          object[i] = {};
+
+        }
+
+				this.merge(object[i], value[i]);
+
+      } else if (value[i] !== undefined) {
+
+  			object[i] = value[i];
+
+  		}
+
+  	}
+
+  }
+
+
+  static differ(object, value) {
+
+    return !this.equal(object, value);
+
+	}
+
+  static compare(object, value) {
+
+    return this.equal(object, value);
+
+	}
+
+  static equal(object, value) {
+
+    if (Array.isArray(object) && Array.isArray(value) && object.length === value.length) {
+
+      return object.every((item, index) => this.equal(item, value[index]));
+
+		} else if (object && value && object.constructor === Object && value.constructor === Object && Object.keys(object).length === Object.keys(value).length) {
+
+      for (let key in object) {
+
+        if (!this.equal(object[key], value[key])) {
+
+          return false;
+
+        }
+
+      }
+
+      return true;
+
+		} else {
+
+			return object === value;
+
+		}
+
+	}
+
+  static include(object, value, ...path) {
+
+    if (path.length) {
+
+      object = this.get(object, ...path);
+
+    }
+
+    if (value === undefined) {
+
+      return true;
+
+    } else if (Array.isArray(object) && Array.isArray(value) && object.length === value.length) {
+
+      return object.every((item, index) => this.include(item, value[index]));
+
+		} else if (object && object.constructor === Object && value && value.constructor === Object) {
+
+      for (let key in value) {
+
+        if (!this.include(object[key], value[key])) {
+
+          return false;
+
+        }
+
+      }
+
+      return true;
+
+		} else {
+
+			return object === value;
+
+		}
+
+	}
 
   // static merge(object1, object2) {
   // 	for (var i in object2) {
@@ -227,41 +354,84 @@ KarmaFieldsAlpha.DeepObject = class {
   // 	}
   // }
 
-  static isDeep(object) {
-    return object && object.constructor === Object && !Object.isFrozen(object);
+
+
+
+
+  // static merge(object, value, key, ...path) {
+  //
+  //   if (key !== undefined) {
+  //
+  //     if (!object[key]) {
+  //
+  //       object[key] = {};
+  //
+  //     }
+  //
+  //     if (path.length) {
+  //
+  //       this.merge(object[key], value, ...path);
+  //
+  //     } else {
+  //
+  //
+  //     }
+  //
+  //
+  //
+  //
+  //     this.merge(object[key], value, ...path);
+  //
+  //   } else if (value && value.constructor === Object) {
+  //
+  //     for (let i in value) {
+  //
+  //       if (value[i] === null) {
+  //
+  //         delete object[i];
+  //
+  //       // } else if (this.isDeep(object1[i]) && this.isDeep(object2[i])) {
+  //
+  //       } else if (value[i] && value[i].constructor === Object) {
+  //
+  // 				this.merge(object[i], value[i]);
+  //
+  //       } else if (object2[i] !== undefined) {
+  //   			object1[i] = object2[i];
+  //   		}
+  //   	}
+  //
+  //   }
+  //
+  //
+  //
+  //
+  //   if (path.length) {
+  //
+  //     object2 = this.create(object2, ...path);
+  //
+  //   }
+  //
+  // 	for (let i in object2) {
+  //
+  //     if (object2[i] === null) {
+  //
+  //       delete object1[i];
+  //
+  //     } else if (this.isDeep(object1[i]) && this.isDeep(object2[i])) {
+	// 			this.merge(object1[i], object2[i]);
+  //     } else if (object2[i] !== undefined) {
+  // 			object1[i] = object2[i];
+  // 		}
+  // 	}
+  // }
+
+
+
+  static mergeTo(object, value, key, ...path) {
+    console.error("deprecated mergeTo. Use assign");
   }
 
-  static merge(object1, object2, ...path) {
-
-    if (path.length) {
-      object2 = this.create(object2, ...path);
-    }
-
-  	for (let i in object2) {
-      if (object2[i] === null) {
-        delete object1[i];
-      } else if (this.isDeep(object1[i]) && this.isDeep(object2[i])) {
-				this.merge(object1[i], object2[i]);
-      } else if (object2[i] !== undefined) {
-  			object1[i] = object2[i];
-  		}
-  	}
-  }
-
-  static mergeTo(object, value, key, ...path) { // -> should be assign
-
-    if (key !== undefined) {
-      if (path.length > 0) {
-        if (!object[key]) {
-          object[key] = {};
-        }
-        this.mergeTo(object[key], value, ...path);
-      } else {
-        Object.assign(object[key], value);
-      }
-    }
-
-  }
 
 
 
@@ -283,9 +453,7 @@ KarmaFieldsAlpha.DeepObject = class {
   //   return result;
   // }
 
-  static clone(object) {
-    return this.map(object, object => object);
-  }
+
 
   // static isDifferent(object1, object2) {
   //   this.some(object1, (sub1, ...path) => {
@@ -328,6 +496,7 @@ KarmaFieldsAlpha.DeepObject = class {
   // }
 
   static forEach(object, callback, ...path) {
+console.error("deprecated");
     if (Array.isArray(object)) {
       object.forEach((object, index) => {
         this.forEach(object, callback, ...path, index)
@@ -368,6 +537,7 @@ KarmaFieldsAlpha.DeepObject = class {
   // }
 
   static map(object, callback, ...path) {
+console.error("deprecated");
     if (Array.isArray(object)) {
       return object.map((object, index) => this.map(object, callback, ...path, index));
     } else if (object && typeof object === "object") {
@@ -411,6 +581,7 @@ KarmaFieldsAlpha.DeepObject = class {
   // }
 
   static some(object, callback, ...path) {
+console.error("deprecated");
     if (Array.isArray(object)) {
       return object.some((object, index) => this.some(object, callback, ...path, index));
     } else if (object && typeof object === "object") {
@@ -479,6 +650,7 @@ KarmaFieldsAlpha.DeepObject = class {
   // }
 
   static every(object, callback, ...path) {
+console.error("deprecated");
     if (Array.isArray(object)) {
       return object.every((object, index) => this.every(object, callback, ...path, index));
     } else if (object && object.constructor === Object) {
@@ -534,6 +706,7 @@ KarmaFieldsAlpha.DeepObject = class {
   // });
 
   static filter(object, callback) {
+console.error("deprecated");
     if (Array.isArray(object)) {
       return object.filter(object => this.filter(object, callback) !== undefined);
     } else if (object && typeof object === "object") {
@@ -654,7 +827,7 @@ KarmaFieldsAlpha.DeepObject = class {
       return true;
 
     } else if (Array.isArray(object) && Array.isArray(value) && object.length === value.length) {
-      
+
       return object.every((item, index) => this.include(item, value[index]));
 
 		} else if (object && object.constructor === Object && value && value.constructor === Object) {
@@ -700,6 +873,7 @@ KarmaFieldsAlpha.DeepObject = class {
 
   // deprec
   static sanitize(array) {
+console.error("deprecated");
     array.forEach((object, index) => {
       if (object && typeof object === "object") {
         for (let key in object) {
@@ -716,7 +890,7 @@ KarmaFieldsAlpha.DeepObject = class {
   static create(value, ...path) {
     if (path.length) {
       const object = {};
-      KarmaFieldsAlpha.DeepObject.assign(object, value, ...path);
+      KarmaFieldsAlpha.DeepObject.set(object, value, ...path);
       return object;
 		}
     return value;
@@ -752,6 +926,7 @@ KarmaFieldsAlpha.DeepObject = class {
 
   // no more used
   static mask(delta, object) {
+console.error("deprecated");
     if (delta.constructor === Object) {
       const mask = {};
       for (let key in delta) {
@@ -796,19 +971,23 @@ KarmaFieldsAlpha.DeepObject = class {
 
 
   getObject() {
+console.error("deprecated");
     return this.object || {};
   }
 
   setObject(object) {
+console.error("deprecated");
     this.object = object;
   }
 
   empty() { //
+console.error("deprecated");
     // this.object = {};
     this.remove();
   }
 
   get(...path) {
+console.error("deprecated");
     if (path.length) {
       return this.getObject();
     } else {
@@ -817,6 +996,7 @@ KarmaFieldsAlpha.DeepObject = class {
   }
 
   set(value, ...path) {
+console.error("deprecated");
     let object;
     if (path.length) {
       object = this.getObject();
@@ -828,6 +1008,7 @@ KarmaFieldsAlpha.DeepObject = class {
   }
 
   remove(...path) {
+console.error("deprecated");
     // const object = this.getObject();
     // this.constructor.remove(object, ...path);
     // this.setObject(object);
@@ -842,6 +1023,7 @@ KarmaFieldsAlpha.DeepObject = class {
   }
 
   has(...path) {
+console.error("deprecated");
     return this.constructor.has(this.getObject(), ...path);
   }
 
@@ -852,6 +1034,7 @@ KarmaFieldsAlpha.DeepObject = class {
   // }
 
   merge(value, ...path) {
+console.error("deprecated");
     const object = this.get(...path) || {};
     this.constructor.merge(object, value);
     this.set(object, ...path);
@@ -872,6 +1055,7 @@ KarmaFieldsAlpha.DeepObject = class {
 
 
   some(callback, ...path) {
+console.error("deprecated");
     return this.constructor.some(this.getObject(), callback, ...path);
   }
 
@@ -880,22 +1064,27 @@ KarmaFieldsAlpha.DeepObject = class {
   // }
 
   forEach(callback, ...path) {
+console.error("deprecated");
     this.constructor.forEach(this.getObject(), callback, ...path);
   }
 
   map(callback, ...path) {
+console.error("deprecated");
     return this.constructor.map(this.getObject(), callback, ...path);
   }
 
   filter(callback, ...path) {
+console.error("deprecated");
     return this.constructor.filter(this.getObject(), callback, ...path);
   }
 
   clone() {
+console.error("deprecated");
     return this.constructor.clone(this.getObject());
   }
 
   equal(value, ...path) {
+console.error("deprecated");
     return this.constructor.equal(this.get(...path), value);
   }
 

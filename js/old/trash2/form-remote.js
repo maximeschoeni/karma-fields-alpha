@@ -112,7 +112,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.formHistory
 		const driver = this.resource.driver || this.resource.key;
 		let delta = {};
 
-		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+		KarmaFieldsAlpha.DeepObject.set(delta, value, ...path);
 
 
 		this.buffer.set(value, ...path);
@@ -138,7 +138,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.formHistory
 			const path = field.getPath();
 			// const value = await super.fetchValue(null, ...path);
 			const value = this.delta.get(...path);
-			KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+			KarmaFieldsAlpha.DeepObject.set(delta, value, ...path);
 			// this.removeDeltaValue(...path);
 			this.delta.remove(...path);
 			this.buffer.set(value, ...path);

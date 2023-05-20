@@ -37,11 +37,17 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
     for (let id of ids) {
 
+      if (id === null) {
+
+        return; // being added
+
+      }
+
       const values = this.parent.getValue(id, key);
 
       if (!values) {
 
-        return;
+        return; // being loaded
 
       }
 

@@ -16,7 +16,7 @@ console.error("deprecated method");
 
   static set(value, ...path) {
 console.error("deprecated method");
-    KarmaFieldsAlpha.DeepObject.assign(this.object, value, ...path);
+    KarmaFieldsAlpha.DeepObject.set(this.object, value, ...path);
 
   }
 

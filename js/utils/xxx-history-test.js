@@ -18,7 +18,7 @@ KarmaFieldsAlpha.History = class {
 	static set(value, ...path) {
 		const state = {...history.state};
 		if (value) {
-			KarmaFieldsAlpha.DeepObject.assign(state, value, ...path);
+			KarmaFieldsAlpha.DeepObject.set(state, value, ...path);
 		} else {
 			KarmaFieldsAlpha.DeepObject.remove(state, ...path);
 		}

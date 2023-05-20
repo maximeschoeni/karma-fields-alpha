@@ -30,7 +30,7 @@ KarmaFieldsAlpha.fields.array = class extends KarmaFieldsAlpha.fields.field {
       let array = await super.fetchValue("array") || [];
 
 
-      KarmaFieldsAlpha.DeepObject.assign(array, value, ...path);
+      KarmaFieldsAlpha.DeepObject.set(array, value, ...path);
   		return super.setValue(array);
 		}
     return super.setValue(value);

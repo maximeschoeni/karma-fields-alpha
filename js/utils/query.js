@@ -70,7 +70,7 @@ KarmaFieldsAlpha.Query = class {
 
         value = [];
 
-        KarmaFieldsAlpha.DeepObject.assign(this.vars, value, driver, id, key);
+        KarmaFieldsAlpha.DeepObject.set(this.vars, value, driver, id, key);
 
       }
 
@@ -101,7 +101,8 @@ KarmaFieldsAlpha.Query = class {
 
         if (task.attempt === "query") {
 
-          await this.query(task.driver, `ids=${[...task.ids].join(",")}`);
+          // await this.query(task.driver, `ids=${[...task.ids].join(",")}`);
+          await this.queryIds(task.driver, [...task.ids])
 
         } else {
 
@@ -120,6 +121,10 @@ KarmaFieldsAlpha.Query = class {
 
       case "update":
         await this.update(task.driver, task.id, task.data);
+        break;
+
+      case "add":
+        await this.insert(task.driver);
         break;
 
     }
@@ -147,17 +152,60 @@ KarmaFieldsAlpha.Query = class {
 
         const value = KarmaFieldsAlpha.Type.toArray(item[key]);
 
-        KarmaFieldsAlpha.DeepObject.assign(this.vars, value, driver, id, key);
+        KarmaFieldsAlpha.DeepObject.set(this.vars, value, driver, id, key);
 
       }
 
-      KarmaFieldsAlpha.DeepObject.assign(this.attempts, true, driver, id, "query");
+      KarmaFieldsAlpha.DeepObject.set(this.attempts, true, driver, id, "query");
 
     }
 
-    KarmaFieldsAlpha.DeepObject.assign(this.queries, results, driver, paramstring);
+    KarmaFieldsAlpha.DeepObject.set(this.queries, results, driver, paramstring);
 
     return results;
+  }
+
+  static async queryIds(driver, ids) {
+
+    if (!KarmaFieldsAlpha.drivers[driver]) {
+
+      console.error("Driver not found", driver);
+
+    }
+
+    if (ids.length) {
+
+      const paramstring = `ids=${ids.join(",")}`;
+
+      const results = await KarmaFieldsAlpha.Gateway.get(`query/${driver}?${paramstring}`);
+
+      const alias = KarmaFieldsAlpha.drivers[driver].alias || {};
+      const idAlias = alias.id || "id";
+
+      for (let item of results) {
+
+        const id = item[idAlias].toString();
+
+        for (let key in item) {
+
+          const value = KarmaFieldsAlpha.Type.toArray(item[key]);
+
+          KarmaFieldsAlpha.DeepObject.set(this.vars, value, driver, id, key);
+
+        }
+
+      }
+
+      for (let id of ids) {
+
+        KarmaFieldsAlpha.DeepObject.set(this.attempts, true, driver, id, "query");
+
+      }
+
+      KarmaFieldsAlpha.DeepObject.set(this.queries, results, driver, paramstring);
+
+    }
+
   }
 
   static async queryRelations(driver, relation, ids) {
@@ -190,7 +238,7 @@ KarmaFieldsAlpha.Query = class {
 
         value = [];
 
-        KarmaFieldsAlpha.DeepObject.assign(this.vars, value, driver, id, key);
+        KarmaFieldsAlpha.DeepObject.set(this.vars, value, driver, id, key);
 
       }
 
@@ -200,7 +248,7 @@ KarmaFieldsAlpha.Query = class {
 
     for (let id of ids) {
 
-      KarmaFieldsAlpha.DeepObject.assign(this.attempts, true, driver, id, relation);
+      KarmaFieldsAlpha.DeepObject.set(this.attempts, true, driver, id, relation);
 
     }
 
@@ -242,9 +290,9 @@ KarmaFieldsAlpha.Query = class {
 
     const paramstring = KarmaFieldsAlpha.Params.stringify(params);
 
-    let query = KarmaFieldsAlpha.DeepObject.get(this.counts, driver, paramstring);
+    let count = KarmaFieldsAlpha.DeepObject.get(this.counts, driver, paramstring);
 
-    if (!query) {
+    if (count === undefined) {
 
       let task = this.tasks.find(task => task.type === "count" && task.driver === driver && task.paramstring === paramstring);
 
@@ -262,6 +310,7 @@ KarmaFieldsAlpha.Query = class {
 
     }
 
+    return count;
   }
 
 
@@ -269,7 +318,7 @@ KarmaFieldsAlpha.Query = class {
 
     const count = await KarmaFieldsAlpha.Gateway.get(`count/${driver}${paramstring?"?":""}${paramstring}`);
 
-    KarmaFieldsAlpha.DeepObject.assign(this.counts, count, driver, paramstring);
+    KarmaFieldsAlpha.DeepObject.set(this.counts, count, driver, paramstring);
 
   }
 
@@ -300,11 +349,51 @@ KarmaFieldsAlpha.Query = class {
 
     await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data);
 
-    KarmaFieldsAlpha.DeepObject.mergeTo(KarmaFieldsAlpha.Query.vars, data, driver, id);
+    KarmaFieldsAlpha.DeepObject.assign(KarmaFieldsAlpha.Query.vars, data, driver, id);
 
     KarmaFieldsAlpha.Store.remove("delta", driver, id);
 
   }
+
+  static add(driver, index) {
+
+    this.tasks.push({
+      type: "add",
+      driver: driver
+    });
+
+    const ids = [...KarmaFieldsAlpha.Store.get("ids")];
+
+    ids.splice(index, 0, null);
+
+    KarmaFieldsAlpha.Store.set("ids", ids);
+
+  }
+
+  static async insert(driver) {
+
+    const currentIds = KarmaFieldsAlpha.Store.get("ids") || [];
+    const index = currentIds.findIndex(id => id === null);
+
+    if (index > -1) {
+
+      const id = await KarmaFieldsAlpha.Gateway.post(`add/${driver}`);
+      const newIds = [...currentIds];
+
+      currentIds.splice(index, 1);
+      newIds[index] = id;
+
+      KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
+      KarmaFieldsAlpha.Store.set("ids", newIds);
+
+      KarmaFieldsAlpha.History.backup(["0"], ["1"], "delta", driver, id, "trash");
+      KarmaFieldsAlpha.Store.set(["0"], "delta", driver, id, "trash");
+
+    }
+
+  }
+
+
 
 
   static empty() {
@@ -321,3 +410,6 @@ KarmaFieldsAlpha.Query.vars = {};
 KarmaFieldsAlpha.Query.queries = {};
 KarmaFieldsAlpha.Query.counts = {};
 KarmaFieldsAlpha.Query.attempts = {};
+
+KarmaFieldsAlpha.token = Symbol("token");
+KarmaFieldsAlpha.loading = Symbol("loading");

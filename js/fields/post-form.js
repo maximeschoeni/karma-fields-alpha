@@ -47,14 +47,16 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
   }
 
-  // -> same as grid
+  // -> same as grid !
   getValue(...path) {
 
-    return KarmaFieldsAlpha.Query.getValue(this.resource.driver, this.resource.id, ...path);
+    return KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id, ...path) || KarmaFieldsAlpha.Query.getValue(this.resource.driver, this.resource.id, ...path);
+
+    // return KarmaFieldsAlpha.Query.getValue(this.resource.driver, this.resource.id, ...path);
 
 	}
 
-  // -> same as grid
+  // -> same as grid !
 	setValue(value, ...path) {
 
 
@@ -66,9 +68,9 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
 		if (!KarmaFieldsAlpha.DeepObject.equal(value, currentValue)) {
 
-      KarmaFieldsAlpha.History.backup(value, currentValue, "delta", this.resource.driver, ...path);
+      KarmaFieldsAlpha.History.backup(value, currentValue, "delta", this.resource.driver, this.resource.id, ...path);
 
-      KarmaFieldsAlpha.Store.set(value, "delta", this.resource.driver, ...path);
+      KarmaFieldsAlpha.Store.set(value, "delta", this.resource.driver, this.resource.id, ...path);
 
       this.save();
 
@@ -114,7 +116,7 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
     // return KarmaFieldsAlpha.Terminal.modified(this.resource.driver, this.resource.id, ...path);
 
-    return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta", this.resource.driver, ...path), this.resource.driver, ...path);
+    return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id, ...path), this.resource.driver, this.resource.id, ...path);
 
   }
 
@@ -140,6 +142,8 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
     const currentSelection = KarmaFieldsAlpha.Store.get("selection");
     const newSelection = {[this.resource.index]: value};
+
+    Object.freeze(newSelection);
 
     KarmaFieldsAlpha.History.backup(newSelection, currentSelection || null, "selection");
 
@@ -181,35 +185,18 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
   save() {
 
-    // KarmaFieldsAlpha.History.debounceSave(2000);
-
-    // const data = this.getData();
-    //
-    // if (data.saving) {
-    //
-    //   clearTimeout(data.saving);
-    //
-    // }
-    //
-    // data.saving = setTimeout(() => KarmaFieldsAlpha.History.save(), 1000);
-
-    // this.debounce("saving", () => KarmaFieldsAlpha.History.save(), 1000);
-
     KarmaFieldsAlpha.History.saveFlag = true;
 
   }
 
-  // render() {
-  //
-  //   // const data = this.getData();
-  //   //
-  //   // if (data.renderFlag === false) {
-  //   //
-  //   //
-  //   //
-  //   // }
-  //
-  // }
+  submit() {
+
+    KarmaFieldsAlpha.Query.send();
+
+    this.render();
+
+  }
+
 
   async render() {
 
@@ -281,6 +268,9 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
     return {
       class: "post-form",
       init: form => {
+        if (this.resource.style) {
+          form.element.style = this.resource.style;
+        }
         const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
 
         clipboard.onblur = event => {
@@ -336,6 +326,21 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
         });
 
 
+        // -> problem if multiple...
+        window.addEventListener("popstate", async event => {
+          KarmaFieldsAlpha.History.update();
+          this.render();
+        });
+
+        window.addEventListener("mousedown", event => {
+          const selection = this.getSelection();
+          if (selection) {
+            this.setSelection();
+            this.render();
+          }
+        });
+
+
       },
       update: form => {
         // this.renderForm = form.render;
@@ -368,11 +373,12 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
         const task = KarmaFieldsAlpha.Query.tasks.shift();
 
+
         if (task) {
 
           await KarmaFieldsAlpha.Query.run(task);
 
-          await popup.render();
+          await form.render();
 
         } else {
 
@@ -384,7 +390,7 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
           }
 
           // this.rendering = false;
-          this.onRender = popup.render;
+          this.onRender = form.render;
 
         }
 
@@ -404,10 +410,12 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
           init: input => {
             input.element.type = "hidden";
             input.element.name = "karma-fields-items[]";
-            input.element.form.addEventListener("submit", event => {
-              KarmaFieldsAlpha.Store.remove("delta");
-              KarmaFieldsAlpha.Store.remove("selection");
-            });
+            if (input.element.form) {
+              input.element.form.addEventListener("submit", event => {
+                KarmaFieldsAlpha.Store.remove("delta");
+                KarmaFieldsAlpha.Store.remove("selection");
+              });
+            }
           },
           update: input => {
             const delta = KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id);

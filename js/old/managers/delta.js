@@ -63,7 +63,7 @@ KarmaFieldsAlpha.Delta = class {
 
 		const delta = this.getObject();
 
-		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+		KarmaFieldsAlpha.DeepObject.set(delta, value, ...path);
 
 		this.setObject(delta);
 
@@ -73,7 +73,7 @@ KarmaFieldsAlpha.Delta = class {
 	//
 	// 	const delta = this.get();
 	//
-	// 	KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+	// 	KarmaFieldsAlpha.DeepObject.set(delta, value, ...path);
 	//
 	// 	delta = KarmaFieldsAlpha.DeepObject.filter(delta, value => value !== null && value !== undefined);
 	//

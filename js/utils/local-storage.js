@@ -25,7 +25,7 @@ KarmaFieldsAlpha.LocalStorage = class extends KarmaFieldsAlpha.Buffer {
 
 		// const json = localStorage.getItem(this.constructor.prefix);
 		// const object = json && JSON.parse(json) || {};
-		// KarmaFieldsAlpha.DeepObject.assign(object, delta, ...this.path);
+		// KarmaFieldsAlpha.DeepObject.set(object, delta, ...this.path);
 		// localStorage.setItem(this.constructor.prefix, JSON.stringify(object));
 
 		const string = JSON.stringify(object || {});

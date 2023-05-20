@@ -17,7 +17,7 @@ KarmaFieldsAlpha.Terminal = class {
   //
   //     const results = await this.query(driver, paramstring);
   //
-  //     KarmaFieldsAlpha.DeepObject.assign(KarmaFieldsAlpha.Query.queries, results, driver, paramstring);
+  //     KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.Query.queries, results, driver, paramstring);
   //
   //     yield true;
   //
@@ -34,7 +34,7 @@ KarmaFieldsAlpha.Terminal = class {
   //
   //       const results = await this.query(driver, paramstring);
   //
-  //       KarmaFieldsAlpha.DeepObject.assign(this.queries, results, driver, paramstring);
+  //       KarmaFieldsAlpha.DeepObject.set(this.queries, results, driver, paramstring);
   //
   //       set.delete(paramstring);
   //

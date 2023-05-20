@@ -15,10 +15,13 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
 
     $args = $this->get_query_args($params);
 
+    $args['post_type'] = 'attachment';
     $args['no_found_rows'] = true;
     $args['cache_results'] = false;
 
     $query = new WP_Query($args);
+
+    // var_dump($args, $query->posts); die();
 
     return array_map(function($post) {
       return array(
@@ -102,7 +105,7 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
 
 			$results = $wpdb->get_results($sql);
 
-      
+
       foreach ($results as $result) {
 
         $meta = maybe_unserialize($result->value);
@@ -123,7 +126,7 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
               'height' => $size['height']
             )
           );
-        
+
         }
 
         $output[] = array(

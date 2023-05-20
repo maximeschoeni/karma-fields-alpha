@@ -36,7 +36,7 @@ KarmaFieldsAlpha.SmartBuffer = class {
   }
 
   setObject(object) {
-    // return KarmaFieldsAlpha.DeepObject.assign(KarmaFieldsAlpha.buffer, object, ...this.path);
+    // return KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.buffer, object, ...this.path);
     KarmaFieldsAlpha.buffer = object;
   }
 
@@ -61,7 +61,7 @@ KarmaFieldsAlpha.SmartBuffer = class {
   set(value, ...path) {
     let object = this.getObject();
     if (this.path.length || path.length) {
-      KarmaFieldsAlpha.DeepObject.assign(object, value, ...this.path, ...path);
+      KarmaFieldsAlpha.DeepObject.set(object, value, ...this.path, ...path);
     } else {
       object = value;
     }

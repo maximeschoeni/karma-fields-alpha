@@ -1939,7 +1939,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 		// 		case "set":
 		// 			this.buffer ||= {};
-		// 			KarmaFieldsAlpha.DeepObject.assign(this.buffer, content, ...path);
+		// 			KarmaFieldsAlpha.DeepObject.set(this.buffer, content, ...path);
 		// 			break;
 
 		// 		case "modified":

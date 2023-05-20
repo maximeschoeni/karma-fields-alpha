@@ -19,7 +19,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
   //     return this.parent.getSelection(subKey);
 
   //   }
-    
+
   // }
 
   // setSelection(values, subKey) {
@@ -35,7 +35,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
   //     this.parent.setSelection(values, subKey);
 
   //   }
-    
+
   // }
 
   getValue(...path) {
@@ -52,15 +52,15 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
       if (values && subkey) {
 
         const object = values[0];
-        
+
         if (object) {
-        
+
           return KarmaFieldsAlpha.Type.toArray(object[subkey]);
 
         }
 
         return [];
-        
+
       }
 
       return values;
@@ -70,7 +70,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
       return this.parent.getValue(...path);
 
     }
-    
+
   }
 
   setValue(value, subkey) {
@@ -86,6 +86,8 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
         const object = {...values[0], [subkey]: value};
 
+        Object.freeze(object);
+
         this.parent.setValue(object, key);
 
       }
@@ -95,7 +97,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
       this.parent.setValue(value, subkey);
 
     }
-    
+
   }
 
 
@@ -122,7 +124,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 	// 				  return KarmaFieldsAlpha.Type.toArray(KarmaFieldsAlpha.DeepObject.get(values[0], ...path));
 
   //         }
-          
+
 	// 			}
 
 	// 			// case "state": {
@@ -141,13 +143,13 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
   //           const value = KarmaFieldsAlpha.Type.toObject(values[0]);
   //           const clone = KarmaFieldsAlpha.DeepObject.clone(value);
-  //           KarmaFieldsAlpha.DeepObject.assign(clone, content, ...path);
+  //           KarmaFieldsAlpha.DeepObject.set(clone, content, ...path);
   //           this.parent.request("set", clone, key);
-            
+
   //         }
 	// 				// const value = KarmaFieldsAlpha.Type.toObject(response);
 	// 				// const clone = KarmaFieldsAlpha.DeepObject.clone(value);
-	// 				// KarmaFieldsAlpha.DeepObject.assign(clone, content.data, ...path);
+	// 				// KarmaFieldsAlpha.DeepObject.set(clone, content.data, ...path);
 	// 				// await this.parent.request("set", {data: clone}, key);
 	// 				break;
 	// 			}

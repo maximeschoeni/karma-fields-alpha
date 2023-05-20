@@ -88,13 +88,13 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     }
 
-    const resource = this.resource[tableId];
+    if (tableId) {
 
-    if (resource) {
-
-      return this.createChild(resource.body);
+      return this.follow({[tableId]: {body: {final: true}}}, (field, selection) => field);
 
     }
+
+
 
   }
 
@@ -323,6 +323,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     const currentSelection = KarmaFieldsAlpha.Store.get("selection");
     const newSelection = {[this.resource.index]: value};
 
+    Object.freeze(newSelection);
+
     KarmaFieldsAlpha.History.backup(newSelection, currentSelection || null, "selection");
 
     KarmaFieldsAlpha.Store.set(newSelection, "selection");
@@ -361,7 +363,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  pasteBETA(string) {
+  paste(string) {
 
     const selection = this.getSelection();
 
@@ -369,13 +371,15 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       this.follow(selection, (field, selection) => {
 
-        const [current] = field.export([], selection.index, selection.length);
+        field.import([string], selection.index, selection.length, selection.colIndex, selection.colLength);
 
-        if (string !== current) {
-
-          field.import([string], selection.index, selection.length);
-
-        }
+        // const [current] = field.export([], selection.index, selection.length);
+        //
+        // if (string !== current) {
+        //
+        //   field.import([string], selection.index, selection.length);
+        //
+        // }
 
       });
 
@@ -384,27 +388,27 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
 
-  paste(value, selection) {
-
-    if (selection && this.resource.tables) {
-
-      for (let i in this.resource.tables) {
-
-        if (selection[i]) {
-
-          const child = this.createChild({type: "table", ...this.resource.tables[i], index: i});
-
-          child.paste(value, selection[i]);
-
-          break;
-
-        }
-
-      }
-
-    }
-
-  }
+  // paste(value, selection) {
+  //
+  //   if (selection && this.resource.tables) {
+  //
+  //     for (let i in this.resource.tables) {
+  //
+  //       if (selection[i]) {
+  //
+  //         const child = this.createChild({type: "table", ...this.resource.tables[i], index: i});
+  //
+  //         child.paste(value, selection[i]);
+  //
+  //         break;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
   // clearSelection() {
   //
@@ -490,6 +494,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
   count() {
+
     const grid = this.getGrid();
 
     if (grid) {
@@ -601,26 +606,34 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       grid.add();
 
-      this.save();
-      this.render();
-
     }
 
   }
 
   delete() {
 
-    const grid = this.getGrid();
+    const selection = this.getSelection();
 
-    if (grid && grid.delete) {
+    if (selection) {
 
-      grid.delete();
-
-      this.save();
-      this.render();
+      this.follow(selection, (grid, selection) => grid.remove(selection.index, selection.length));
 
     }
 
+
+  }
+
+  canDelete() {
+
+    const selection = this.getSelection();
+
+    if (selection) {
+
+      return Boolean(this.follow(selection, (field, selection) => selection.length && field.remove));
+
+    }
+
+    return false;
   }
 
 
@@ -1831,7 +1844,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
         const currentTableId = this.getParam("table");
-        // console.log("saucer popup update", currentTableId);
+        console.log("saucer popup update", currentTableId);
         popup.element.classList.toggle("hidden", !currentTableId && !this.resource.navigation);
 
         // if (currentTableId) {
@@ -2196,7 +2209,7 @@ KarmaFieldsAlpha.field.saucer.delete = {
   action: "delete",
   title: "Delete",
   // disabled: "!selection"
-  disabled: ["!", ["request", "getSelection"]]
+  enabled: ["request", "canDelete"]
 }
 
 KarmaFieldsAlpha.field.saucer.undo = {

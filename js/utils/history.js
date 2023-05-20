@@ -65,7 +65,7 @@ KarmaFieldsAlpha.History = class {
 
     const state = this.getState();
 
-		KarmaFieldsAlpha.DeepObject.assign(state, value, ...path);
+		KarmaFieldsAlpha.DeepObject.set(state, value, ...path);
 
     this.setState(state);
 
@@ -119,7 +119,7 @@ KarmaFieldsAlpha.History = class {
 
     // state.redo = true;
 
-    console.log("history saving");
+    // console.log("history saving");
 
     this.set(true, "redo");
 
@@ -168,7 +168,7 @@ KarmaFieldsAlpha.History = class {
 
 		// newValue = KarmaFieldsAlpha.DeepObject.clone(newValue);
 
-    KarmaFieldsAlpha.DeepObject.assign(this.buffer, newValue, ...path);
+    KarmaFieldsAlpha.DeepObject.set(this.buffer, newValue, ...path);
 
 		// this.set(newValue, index, ...path);
 
@@ -186,7 +186,7 @@ KarmaFieldsAlpha.History = class {
 
 				// this.set(currentValue, index-1, ...path);
 
-        // KarmaFieldsAlpha.DeepObject.assign(state, currentValue, "delta", ...path);
+        // KarmaFieldsAlpha.DeepObject.set(state, currentValue, "delta", ...path);
 
         this.set(currentValue, ...path);
 
@@ -209,63 +209,64 @@ KarmaFieldsAlpha.History = class {
 
     if (state) {
 
-      if (state.table !== undefined) {
-
-        // KarmaFieldsAlpha.Query.table = state.table;
+      KarmaFieldsAlpha.Store.merge(state);
 
 
-        KarmaFieldsAlpha.Store.set(state.table, "table");
-
-      }
-
-      if (state.delta) {
-
-        // KarmaFieldsAlpha.Delta.merge(state.delta);
-
-        KarmaFieldsAlpha.Store.mergeIn(state.delta, "delta");
-
-      }
-
-      if (state.selection !== undefined) {
-
-        // KarmaFieldsAlpha.Selection.object = state.selection;
-
-        KarmaFieldsAlpha.Store.set(state.selection, "selection");
-
-
-      }
-
-      if (state.nav) {
-
-        // KarmaFieldsAlpha.Params.object = state.nav;
-        // KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Params.object, state.nav);
-        // KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Query.params, state.nav);
-
-        KarmaFieldsAlpha.Store.mergeIn(state.nav, "params");
-
-      }
-
-      if (state.ids !== undefined) {
-
-        // KarmaFieldsAlpha.Query.ids = state.ids;
-
-        KarmaFieldsAlpha.Store.set(state.ids, "ids");
-
-      }
-
-      if (state.transfers !== undefined) {
-
-        // KarmaFieldsAlpha.Query.ids = state.ids;
-
-        KarmaFieldsAlpha.Store.set(state.transfers, "transfers");
-
-      }
-
-      // if (state.fieldData) {
+      // if (state.table !== undefined) {
       //
-      //   KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.field.data, state.fieldData);
+      //   // KarmaFieldsAlpha.Query.table = state.table;
+      //
+      //
+      //   KarmaFieldsAlpha.Store.set(state.table, "table");
       //
       // }
+      //
+      // if (state.delta) {
+      //
+      //   // KarmaFieldsAlpha.Delta.merge(state.delta);
+      //
+      //   // debugger;
+      //
+      //   KarmaFieldsAlpha.Store.assign(state.delta, "delta");
+      //
+      // }
+      //
+      // if (state.selection !== undefined) {
+      //
+      //   // KarmaFieldsAlpha.Selection.object = state.selection;
+      //
+      //   KarmaFieldsAlpha.Store.set(state.selection, "selection");
+      //
+      //
+      // }
+      //
+      // if (state.nav) {
+      //
+      //   // KarmaFieldsAlpha.Params.object = state.nav;
+      //   // KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Params.object, state.nav);
+      //   // KarmaFieldsAlpha.DeepObject.merge(KarmaFieldsAlpha.Query.params, state.nav);
+      //
+      //   KarmaFieldsAlpha.Store.assign(state.nav, "params");
+      //
+      // }
+      //
+      // if (state.ids !== undefined) {
+      //
+      //   // KarmaFieldsAlpha.Query.ids = state.ids;
+      //
+      //   KarmaFieldsAlpha.Store.set(state.ids, "ids");
+      //
+      // }
+      //
+      // if (state.transfers !== undefined) {
+      //
+      //   // KarmaFieldsAlpha.Query.ids = state.ids;
+      //
+      //   KarmaFieldsAlpha.Store.set(state.transfers, "transfers");
+      //
+      // }
+
+
 
     } else {
 

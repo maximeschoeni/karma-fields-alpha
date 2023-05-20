@@ -48,7 +48,7 @@ KarmaFieldsAlpha.Type = class {
 
 	static register(type, ...path) {
 		// this.types[path] = type;
-		KarmaFieldsAlpha.DeepObject.assign(this.types, type, ...path);
+		KarmaFieldsAlpha.DeepObject.set(this.types, type, ...path);
 	}
 
 	static get(...path) {

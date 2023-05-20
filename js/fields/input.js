@@ -17,6 +17,16 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
   // }
 
+	getDefaultValue() {
+
+		if (this.resource.default !== null) {
+
+			return this.parse(this.resource.default || "");
+
+		}
+
+	}
+
 	getDefault(defaults = {}) {
 
 		const key = this.getKey();
@@ -325,14 +335,28 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 				// const state = await this.parent.request("state", {}, key);
 
 
-
+// debugger;
         const values = this.getValue();
 
         input.element.classList.toggle("loading", !values);
 
         if (values) {
 
-          let value = values[0] || "";
+          let value = values[0];
+
+					if (value === undefined) {
+
+						value = this.getDefaultValue();
+
+						if (value !== undefined) {
+
+							this.setValue(value);
+
+						}
+
+					}
+
+
 
           if (values.length > 1 && (new Set(values)).size > 1) {
 
@@ -502,57 +526,30 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					}
 
           input.element.oncopy = event => {
-
             const grid = new KarmaFieldsAlpha.Grid();
             grid.addColumn(...values);
             event.clipboardData.setData("text/plain", grid.toString().normalize());
-
-            // if (values.length > 1) {
-            //   event.preventDefault();
-            //   const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
-            //   const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-            //   event.clipboardData.setData("text/plain", string.normalize());
-            // }
           };
 
           input.element.onpaste = async event => {
+						event.preventDefault();
             const string = event.clipboardData.getData("text").normalize();
             const grid = new KarmaFieldsAlpha.Grid(string);
             const column = grid.getColumn(0);
-            this.setValue(column);
-            this.parent.render();
-
-            // if (values.length > 1) {
-            //   event.preventDefault();
-            //   const string = event.clipboardData.getData("text").normalize();
-            //   // KarmaFieldsAlpha.Format.convertTo(string, this.resource.exportFormat)
-            //   const dataArray = KarmaFieldsAlpha.Clipboard.parse(string);
-            //   const jsonData = dataArray.map(value => KarmaFieldsAlpha.Type.toString(value));
-
-            //   KarmaFieldsAlpha.History.save();
-
-            //   this.parent.setValue(jsonData, key);
-            //   this.parent.request("render");
-            // }
+						if (column.length === 1) {
+							this.setValue(column[0]);
+						} else {
+							this.setValue(column);
+						}
           };
 
           input.element.oncut = async event => {
+						event.preventDefault();
             const grid = new KarmaFieldsAlpha.Grid();
+						const values = this.getValue() || "";
             grid.addColumn(...values);
             event.clipboardData.setData("text/plain", grid.toString().normalize());
             this.setValue("");
-            this.parent.render();
-            // if (values.length > 1) {
-            //   event.preventDefault();
-            //   const dataArray = state.values.map(value => KarmaFieldsAlpha.Type.toArray(value));
-            //   const string = KarmaFieldsAlpha.Clipboard.unparse(dataArray);
-            //   event.clipboardData.setData("text/plain", string.normalize());
-
-            //   KarmaFieldsAlpha.History.save();
-
-            //   this.parent.setValue("", key);
-            //   this.parent.request("render");
-            // }
           };
 
         }

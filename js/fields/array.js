@@ -1468,7 +1468,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 table.element.onfocusin = event => {
 
-                  console.log("array onfocusin ");
+                  // console.log("array onfocusin ");
                   this.render(); // unselect last field when input gains focus inside array
                 }
 

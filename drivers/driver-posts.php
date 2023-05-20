@@ -976,7 +976,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
         meta_key AS 'key',
         post_id AS 'id'
         FROM $wpdb->postmeta
-        WHERE post_id IN ($ids_string) AND meta_key NOT LIKE '_%'";
+        WHERE post_id IN ($ids_string) AND meta_key NOT LIKE '\_%'";
 
       $sql = apply_filters('karma_fields_posts_meta_sql', $sql, $ids, $ids_string);
 

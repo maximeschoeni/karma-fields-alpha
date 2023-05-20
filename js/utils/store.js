@@ -42,7 +42,7 @@ KarmaFieldsAlpha.Store = class {
 
 		const object = this.getObject();
 
-		KarmaFieldsAlpha.DeepObject.assign(object, value, ...path);
+		KarmaFieldsAlpha.DeepObject.set(object, value, ...path);
 
 		this.setObject(object);
 
@@ -57,13 +57,13 @@ KarmaFieldsAlpha.Store = class {
 		this.setObject(object);
 	}
 
-	static mergeIn(value, ...path) {
+	static assign(value, ...path) {
 
-		const object = this.get(...path);
+		const object = this.getObject();
 
-		KarmaFieldsAlpha.DeepObject.merge(object, value);
+		KarmaFieldsAlpha.DeepObject.assign(object, value, ...path);
 
-		this.set(object, ...path);
+		this.setObject(object);
 
 	}
 

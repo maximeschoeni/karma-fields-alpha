@@ -601,7 +601,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 	setDeltaValue(value, ...path) {
 		const delta = this.getDelta() || {};
-		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+		KarmaFieldsAlpha.DeepObject.set(delta, value, ...path);
 		this.setDelta(delta);
 	}
 

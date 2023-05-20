@@ -810,7 +810,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 
 
 		// const delta = this.getDelta() || {};
-		// KarmaFieldsAlpha.DeepObject.assign(delta, value, (this.resource.driver || this.resource.key), ...path);
+		// KarmaFieldsAlpha.DeepObject.set(delta, value, (this.resource.driver || this.resource.key), ...path);
 		// this.setDelta(delta);
 	}
 
@@ -935,7 +935,7 @@ KarmaFieldsAlpha.fields.form = class extends KarmaFieldsAlpha.fields.group {
 		const driver = this.resource.driver || this.resource.key;
 		const delta = {};
 
-		KarmaFieldsAlpha.DeepObject.assign(delta, value, ...path);
+		KarmaFieldsAlpha.DeepObject.set(delta, value, ...path);
 
 		this.buffer.set(value, ...path);
 

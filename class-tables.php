@@ -2,7 +2,7 @@
 
 
 
-Class Karma_Fields_Alpha {
+class Karma_Fields_Alpha {
 
 	public $version = '53';
 
@@ -1083,7 +1083,13 @@ Class Karma_Fields_Alpha {
 	public function print_nav() {
 
 		$this->index++;
-		include plugin_dir_path(__FILE__) . 'includes/nav.php';
+
+
+		if ($this->resource) {
+
+			include plugin_dir_path(__FILE__) . 'includes/nav.php';
+
+		}
 
 	}
 

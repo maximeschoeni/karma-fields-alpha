@@ -8,12 +8,9 @@
 ?>
 <style>
   .karma-fields .array .td.selected,
-  .karma-fields .array .td.selecting,
   .karma-fields .array .td.selected .td,
-  .karma-fields .array .td.selecting .td,
-  .karma-fields .array .td.selected .th,
-  .karma-fields .array .td.selecting .th {
-    background-color: #f0f0f1;
+  .karma-fields .array .td.selected .th {
+    background-color: #fff;
   }
   .karma-field-group {
     min-width: 0;
@@ -21,6 +18,9 @@
   .karma-tinymce .editor-header .toolbar {
     top: 3em;
   }
+	.karma-field-frame {
+    align-items: flex-start;
+	}
 </style>
 <script>
 	document.addEventListener("DOMContentLoaded", function() {
@@ -30,6 +30,7 @@
 
     const postform = new KarmaFieldsAlpha.field.postform({
     	driver: "options",
+			style: "margin-right: 1em",
       ...resource,
       index: index,
       type: "postform"
