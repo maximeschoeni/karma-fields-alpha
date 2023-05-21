@@ -125,7 +125,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// -> input event does not seem to capture line break (single or double) or delete line break !
 			editor.on("keyup", event => {
 				if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
-          const [current] = this.getValue() || [];
+          const current = this.getValue();
           if (current !== editor.getContent()) {
             this.saveContent();
           }
@@ -1382,7 +1382,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                         child: this.createChild({
                           type: "buttons",
                           children: ["separator", "edit"],
-                          ...this.resource.textarea_buttons
+                          ...this.resource.textarea_buttons,
+													index: "toolbar",
+													uid: `${this.resource.uid}-toolbar`
                         }).build()
                       }
                     ]
@@ -1390,40 +1392,46 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                   {
                     class: "textarea editor-body",
                     update: node => {
-                      node.element.classList.toggle("hidden", mode !== "code");
-                      if (mode === "code") {
-                        node.child = {
-                          tag: "textarea",
-                          update: async textarea => {
-                            const values = this.getValue();
-
-                            if (values) {
-                              if (!this.isLocked()) {
-                                textarea.element.value = values[0] || "";
-                                textarea.element.style.height = 0;
-                                textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
-                              }
-                              textarea.element.oninput = () => {
-                                textarea.element.style.height = 0;
-                                textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
-                                // this.throttle(() => this.set(textarea.element.value.normalize()));
-                                this.debounce("typing", async () => {
-                                  const value = input.element.value.normalize();
-                                  const [currentValue] = this.getValue() || [];
-
-                                  if (value !== currentValue) {
-                                    this.setValue(value);
-                                    // this.parent.request("save");
-                                    // await this.parent.render();
-                                  }
-                                  // this.unlock();
-                                }, this.resource.debounce || 1000);
-                                // this.lock();
-
-                              }
-                            }
-                          }
-                        }
+											const isCode = mode === "code" || this.getValue() === KarmaFieldsAlpha.field.input.multiple;
+                      node.element.classList.toggle("hidden", !isCode);
+                      if (isCode) {
+												node.child = this.createChild({
+													type: "textarea",
+													index: "textarea",
+													uid: `${this.resource.uid}-textarea` // -> how to connect with label ??
+												}).build()
+                        // node.child = {
+                        //   tag: "textarea",
+                        //   update: async textarea => {
+                        //     let value = this.getValue();
+												//
+                        //     if (values) {
+                        //       if (!this.isLocked()) {
+                        //         textarea.element.value = values[0] || "";
+                        //         textarea.element.style.height = 0;
+                        //         textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
+                        //       }
+                        //       textarea.element.oninput = () => {
+                        //         textarea.element.style.height = 0;
+                        //         textarea.element.style.height = textarea.element.scrollHeight + 3 + "px";
+                        //         // this.throttle(() => this.set(textarea.element.value.normalize()));
+                        //         this.debounce("typing", async () => {
+                        //           const value = input.element.value.normalize();
+                        //           const [currentValue] = this.getValue() || [];
+												//
+                        //           if (value !== currentValue) {
+                        //             this.setValue(value);
+                        //             // this.parent.request("save");
+                        //             // await this.parent.render();
+                        //           }
+                        //           // this.unlock();
+                        //         }, this.resource.debounce || 1000);
+                        //         // this.lock();
+												//
+                        //       }
+                        //     }
+                        //   }
+                        // }
                       }
                     }
                   }
@@ -1455,45 +1463,40 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                   {
                     class: "tinymce editor-body",
                     update: async node => {
-                      node.element.classList.toggle("hidden", mode === "code");
-                      if (mode !== "code") {
+											const value = this.getValue();
+											const isEditor = mode !== "code" && value !== KarmaFieldsAlpha.field.input.multiple;
+                      node.element.classList.toggle("hidden", !isEditor);
+                      if (isEditor) {
                         node.element.editable = true;
-                        const editor = await this.createEditor(node.element);
-
-                        // if (!this.isLocked()) {
-
-                          const values = this.getValue();
-                          if (values) {
-                            const value = KarmaFieldsAlpha.Type.toString(values);
-
-                            if (value !== editor.getContent()) {
-                              editor.setContent(value);
-                            }
-                          }
-                        // }
 
 
-												this.saveContent = () => {
+												if (value !== KarmaFieldsAlpha.field.input.loading) {
 
-													this.debounce("typing", () => {
+													const editor = await this.createEditor(node.element);
 
-														let value = editor.getContent().normalize();
+													if (value !== editor.getContent()) {
 
-										        // value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
+														editor.setContent(value);
 
-										        const [currentValue] = this.getValue() || [];
+													}
 
-										        if (value !== currentValue) {
+													this.saveContent = () => {
 
-										          this.setValue(value);
+														this.debounce("typing", () => {
 
-										        }
+															let value = editor.getContent().normalize();
 
-													}, 750);
+											        // value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
 
+															this.setValue(value); // -> lets check later if value is actually different
 
+														}, 1500);
+
+													}
 
 												}
+
+
 
 
 
@@ -1537,7 +1540,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                               popover.children = [this.createChild({
                                 type: child,
                                 ...this.resource.linkForm,
-                                index: index
+                                index: index,
+																uid: `${this.resource.uid}-${child}`
                               }).build()];
                               const editor = this.getEditor();
                               if (editor) {

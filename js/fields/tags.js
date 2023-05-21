@@ -124,15 +124,15 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getValue() {
-    const key = this.getKey();
-    return this.parent.getValue(key);
-  }
-
-  setValue(ids) {
-    const key = this.getKey();
-    this.parent.setValue(ids, key);
-  }
+  // getValue() {
+  //   const key = this.getKey();
+  //   return this.parent.getValue(key);
+  // }
+  //
+  // setValue(ids) {
+  //   const key = this.getKey();
+  //   this.parent.setValue(ids, key);
+  // }
 
   getIds() {
     // deprecated

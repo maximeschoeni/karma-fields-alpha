@@ -17,42 +17,31 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 			},
 			update: async input => {
 
-        const values = this.getValue();
+				let value = this.getValue();
 
-        input.element.classList.toggle("loading", !values);
+        input.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
 
-        if (values) {
+        if (value !== KarmaFieldsAlpha.field.input.loading) {
 
-          let value = values[0];
+					input.element.placeholder = this.getPlaceholder();
+					input.element.classList.toggle("multi", value === KarmaFieldsAlpha.field.input.multiple);
 
-          if (values.length > 1 && (new Set(values)).size > 1) {
+          if (value === KarmaFieldsAlpha.field.input.multiple) {
 
             input.element.value = "[multiple values]";
-            input.element.classList.add("multi");
             input.element.readOnly = true;
 
           } else {
 
-            input.element.classList.remove("multi");
             input.element.readOnly = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.readonly));
 
             const modified = this.modified();
 
             input.element.parentNode.classList.toggle("modified", Boolean(modified));
 
-            if (values[0] !== input.element.value && !this.isLocked()) {
+            if (value !== input.element.value) { // -> replacing same value will eject focus !
 
-              input.element.value = values[0] || "";
-
-            }
-
-          }
-
-          input.element.onkeyup = async event => {
-
-            if (event.key === "Enter") {
-
-              this.parent.request("submit");
+              input.element.value = value;
 
             }
 
@@ -60,50 +49,49 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
           input.element.oninput = async event => {
 
-            this.debounce("typing", async () => {
+						value = input.element.value.normalize();
 
-              const newValue = input.element.value.normalize();
-
-              if (newValue !== value) {
-
-                value = newValue;
-
-                this.setValue(value);
-
-                this.parent.request("save");
-
-                await this.parent.render();
-
-              }
-
-              this.unlock();
-
-            }, this.resource.debounce || 1000);
-
-            this.lock();
+						this.debounce("typing", () => this.setValue(value), 750);
 
           }
 
+					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
+
+						this.setSelection({final: true}); // -> prevent field from losing focus on render
+
+					}
+
           input.element.oncopy = event => {
-            const grid = new KarmaFieldsAlpha.Grid();
-            grid.addColumn(...values);
-            event.clipboardData.setData("text/plain", grid.toString().normalize());
+						if (value === KarmaFieldsAlpha.field.input.multiple) {
+							event.preventDefault();
+							const key = this.getKey();
+							const values = this.parent.getValue(key);
+							const grid = new KarmaFieldsAlpha.Grid();
+	            grid.addColumn(...values);
+	            event.clipboardData.setData("text/plain", grid.toString().normalize());
+						}
           };
 
           input.element.onpaste = async event => {
-            const string = event.clipboardData.getData("text").normalize();
-            const grid = new KarmaFieldsAlpha.Grid(string);
-            const column = grid.getColumn(0);
-            this.setValue(column);
-            this.parent.render();
+						if (value === KarmaFieldsAlpha.field.input.multiple) {
+							event.preventDefault();
+	            const string = event.clipboardData.getData("text").normalize();
+	            const grid = new KarmaFieldsAlpha.Grid(string);
+	            const column = grid.getColumn(0);
+							this.setValue(column);
+						}
           };
 
           input.element.oncut = async event => {
-            const grid = new KarmaFieldsAlpha.Grid();
-            grid.addColumn(...values);
-            event.clipboardData.setData("text/plain", grid.toString().normalize());
-            this.setValue("");
-            this.parent.render();
+						if (value === KarmaFieldsAlpha.field.input.multiple) {
+							event.preventDefault();
+							const key = this.getKey();
+							const values = this.parent.getValue(key);
+	            const grid = new KarmaFieldsAlpha.Grid();
+	            grid.addColumn(...values);
+	            event.clipboardData.setData("text/plain", grid.toString().normalize());
+	            this.setValue("");
+						}
           };
 
         }
@@ -202,7 +190,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 // 				}
 // 			},
 // 			update: input => {
-				
+
 
 // 				const key = this.getKey();
 

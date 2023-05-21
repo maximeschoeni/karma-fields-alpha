@@ -98,6 +98,13 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
   }
 
+  multiple() {
+
+    const ids = this.parent.getSelectedIds();
+
+    return ids && ids.length > 1;
+  }
+
   setSelection(selection) {
 
     const parentSelection = this.parent.getSelection();
@@ -168,7 +175,7 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
         modal.element.onmousedown = event => {
 
-          event.stopPropagation(); // -> prevent re-rendering
+          event.stopPropagation(); // -> prevent unselecting
 
           this.setSelection({final: true});
 

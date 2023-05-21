@@ -235,11 +235,11 @@ KarmaFieldsAlpha.DeepObject = class {
 
       return object.every((item, index) => this.include(item, value[index]));
 
-		} else if (object && object.constructor === Object && value && value.constructor === Object) {
+		} else if (value && value.constructor === Object) {
 
       for (let key in value) {
 
-        if (!this.include(object[key], value[key])) {
+        if (object && object.constructor === Object && !this.include(object[key], value[key])) {
 
           return false;
 
@@ -814,43 +814,43 @@ console.error("deprecated");
 	// }
 
 
-  static include(object, value, ...path) {
-
-    if (path.length) {
-
-      object = this.get(object, ...path);
-
-    }
-
-    if (value === undefined) {
-
-      return true;
-
-    } else if (Array.isArray(object) && Array.isArray(value) && object.length === value.length) {
-
-      return object.every((item, index) => this.include(item, value[index]));
-
-		} else if (object && object.constructor === Object && value && value.constructor === Object) {
-
-      for (let key in value) {
-
-        if (!this.include(object[key], value[key])) {
-
-          return false;
-
-        }
-
-      }
-
-      return true;
-
-		} else {
-
-			return object === value;
-
-		}
-
-	}
+  // static include(object, value, ...path) {
+  //
+  //   if (path.length) {
+  //
+  //     object = this.get(object, ...path);
+  //
+  //   }
+  //
+  //   if (value === undefined) {
+  //
+  //     return true;
+  //
+  //   } else if (Array.isArray(object) && Array.isArray(value) && object.length === value.length) {
+  //
+  //     return object.every((item, index) => this.include(item, value[index]));
+  //
+	// 	} else if (object && object.constructor === Object && value && value.constructor === Object) {
+  //
+  //     for (let key in value) {
+  //
+  //       if (!this.include(object[key], value[key])) {
+  //
+  //         return false;
+  //
+  //       }
+  //
+  //     }
+  //
+  //     return true;
+  //
+	// 	} else {
+  //
+	// 		return object === value;
+  //
+	// 	}
+  //
+	// }
 
 
 

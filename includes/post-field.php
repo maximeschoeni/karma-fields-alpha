@@ -40,7 +40,8 @@
       id: id,
       ...resource,
       index: index,
-      type: "postform"
+      type: "postform",
+			uid: index.toString()
     });
 
 		KarmaFieldsAlpha.build(postform.build(), container);

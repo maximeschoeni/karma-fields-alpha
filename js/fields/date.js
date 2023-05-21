@@ -13,6 +13,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 	}
 
   getDefault() {
+console.error("deprecated");
     let value = "";
     if (this.resource.default === "now") {
       value = moment().format(this.resource.output_format);
@@ -113,159 +114,163 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
     return rows;
   }
 
-  buildPopup(value) {
-    return {
-      class: "date-popup",
-      init: popup => {
-        // prevent input loosing focus
-        popup.element.onmousedown = event => {
-          event.preventDefault();
-        };
-      },
-      update: container => {
-        if (!this.date) {
-          this.date = new Date();
-        }
-        const days = this.getMonthDays(this.date);
-        let rows = [];
-        while(days.length) {
-          rows.push(days.splice(0, 7));
-        }
-        container.child = {
-          class: "calendar",
-          children: [
-            {
-              tag: "ul",
-              class: "calendar-nav",
-              children: [
-                {
-                  tag: "li",
-                  class: "prev-month calendar-arrow",
-                  child: {
-                    tag: "a",
-                    init: a => {
-                      a.element.innerHTML = "&lsaquo;";
-                      a.element.onclick = event => {
-                        this.date.setMonth(this.date.getMonth()-1);
-                        container.render();
-                      };
-                    }
-                  }
-                },
-                {
-                  tag: "li",
-                  class: "current-month",
-                  update: li => {
-                    li.element.textContent = moment(this.date).format("MMMM YYYY");
-                  }
-                },
-                {
-                  tag: "li",
-                  class: "next-month calendar-arrow",
-                  child: {
-                    tag: "a",
-                    init: a => {
-                      a.element.innerHTML = "&rsaquo;";
-                      a.element.onclick = event => {
-                        this.date.setMonth(this.date.getMonth()+1);
-                        container.render();
-                      };
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              tag: "ul",
-              class: "calendar-days-title",
-              children: rows[0].map(day => {
-                return {
-                  tag: "li",
-                  update: li => {
-                    // this.element.textContent = KarmaFieldsAlpha.Calendar.format(day.date, "%d2%");
-                    // this.element.textContent = wp.date.dateI18n(day.date, "D").slice(0, 2);
-                    li.element.textContent = day.moment.format("dd");
-                  }
-                };
-              })
-            },
-            {
-              class: "calendar-days",
-              children: rows.map(row => {
-                return {
-                  tag: "ul",
-                  class: "calendar-days-content",
-                  children: row.map(day => {
-                    return {
-                      tag: "li",
-                      children: [{
-                        tag: "a",
-                        update: a => {
-                          a.element.textContent = day.moment.format("D");
-                          a.element.onmouseup = event => {
-                            event.preventDefault();
-                            let sqlDate = day.moment.format(this.resource.output_format);
-                            this.date = null;
-                            const key = this.getKey();
+  // buildPopup(value) {
+  //   return {
+  //     class: "date-popup",
+  //     init: popup => {
+  //       // prevent input loosing focus
+  //       popup.element.onmousedown = event => {
+  //         event.preventDefault();
+  //       };
+  //     },
+  //     update: container => {
+  //       if (!this.date) {
+  //         this.date = new Date();
+  //       }
+  //       const days = this.getMonthDays(this.date);
+  //       let rows = [];
+  //       while(days.length) {
+  //         rows.push(days.splice(0, 7));
+  //       }
+  //       container.child = {
+  //         class: "calendar",
+  //         children: [
+  //           {
+  //             tag: "ul",
+  //             class: "calendar-nav",
+  //             children: [
+  //               {
+  //                 tag: "li",
+  //                 class: "prev-month calendar-arrow",
+  //                 child: {
+  //                   tag: "a",
+  //                   init: a => {
+  //                     a.element.innerHTML = "&lsaquo;";
+  //                     a.element.onclick = event => {
+  //                       this.date.setMonth(this.date.getMonth()-1);
+  //                       container.render();
+  //                     };
+  //                   }
+  //                 }
+  //               },
+  //               {
+  //                 tag: "li",
+  //                 class: "current-month",
+  //                 update: li => {
+  //                   li.element.textContent = moment(this.date).format("MMMM YYYY");
+  //                 }
+  //               },
+  //               {
+  //                 tag: "li",
+  //                 class: "next-month calendar-arrow",
+  //                 child: {
+  //                   tag: "a",
+  //                   init: a => {
+  //                     a.element.innerHTML = "&rsaquo;";
+  //                     a.element.onclick = event => {
+  //                       this.date.setMonth(this.date.getMonth()+1);
+  //                       container.render();
+  //                     };
+  //                   }
+  //                 }
+  //               }
+  //             ]
+  //           },
+  //           {
+  //             tag: "ul",
+  //             class: "calendar-days-title",
+  //             children: rows[0].map(day => {
+  //               return {
+  //                 tag: "li",
+  //                 update: li => {
+  //                   // this.element.textContent = KarmaFieldsAlpha.Calendar.format(day.date, "%d2%");
+  //                   // this.element.textContent = wp.date.dateI18n(day.date, "D").slice(0, 2);
+  //                   li.element.textContent = day.moment.format("dd");
+  //                 }
+  //               };
+  //             })
+  //           },
+  //           {
+  //             class: "calendar-days",
+  //             children: rows.map(row => {
+  //               return {
+  //                 tag: "ul",
+  //                 class: "calendar-days-content",
+  //                 children: row.map(day => {
+  //                   return {
+  //                     tag: "li",
+  //                     children: [{
+  //                       tag: "a",
+  //                       update: a => {
+  //                         a.element.textContent = day.moment.format("D");
+  //                         a.element.onmouseup = event => {
+  //                           event.preventDefault();
+  //                           let sqlDate = day.moment.format(this.resource.output_format);
+  //                           this.date = null;
+  //                           const key = this.getKey();
+  //
+  //                           this.parent.request("set", sqlDate, key);
+  //                           // this.render();
+  //                           this.parent.request("render");
+  //                         }
+  //                       }
+  //                     }],
+  //                     update: li => {
+  //                       let sqlDate = day.moment.format(this.resource.output_format);
+  //
+  //                       li.element.classList.toggle("active", value === sqlDate);
+  //                       li.element.classList.toggle("offset", day.isOffset);
+  //                       li.element.classList.toggle("today", day.isToday);
+  //                     }
+  //                   };
+  //                 })
+  //               };
+  //             })
+  //           }
+  //         ]
+  //       };
+  //     }
+  //   };
+  // }
 
-                            this.parent.request("set", sqlDate, key);
-                            // this.render();
-                            this.parent.request("render");
-                          }
-                        }
-                      }],
-                      update: li => {
-                        let sqlDate = day.moment.format(this.resource.output_format);
+  render() {
 
-                        li.element.classList.toggle("active", value === sqlDate);
-                        li.element.classList.toggle("offset", day.isOffset);
-                        li.element.classList.toggle("today", day.isToday);
-                      }
-                    };
-                  })
-                };
-              })
-            }
-          ]
-        };
-      }
-    };
+    if (this.onRender) {
+
+      this.onRender();
+
+    }
+
   }
 
-  buildDateContainer() {
+  build() {
     return {
       class: "karma-field karma-field-date",
       init: (container) => {
         container.element.setAttribute('tabindex', '-1');
       },
       update: (container) => {
-        this.render = container.render;
+        this.onRender = container.render;
 
-        const key = this.getKey();
-        const values = this.parent.request("get", {}, key);
+        let value = this.getValue();
 
-        container.element.classList.toggle("loading", !values);
+        // const key = this.getKey();
+        // const values = this.parent.request("get", {}, key);
 
-        if (values) {
+        container.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
 
-          let calendarDate = this.parent.request("get-option", {}, this.resource.key, "date");
+        if (value !== KarmaFieldsAlpha.field.input.loading) {
 
-          let [value] = values;
+          const data = this.getData();
 
-          // let mDate = moment(value);
-
-          // console.log(value, mDate, mDate.isValid());
+          let calendarDate = data.date;
 
           container.children = [
             {
               class: "date-popup-container open-down",
               update: popup => {
-                // popup.element.classList.toggle("open-left", popup.element.clientWidth - popup.element.offsetLeft < 280);
 
-       
-                // popup.children = this.date && !this.resource.readonly && [this.buildPopup(value)] || [];
-
-                if (calendarDate && !this.resource.readonly) {
+                if (data.date && !this.resource.readonly) {
 
                   popup.children = [
                     {
@@ -277,10 +282,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                         };
                       },
                       update: container => {
-                        // if (!this.date) {
-                        //   this.date = new Date();
-                        // }
-                        const days = this.getMonthDays(calendarDate);
+                        const days = this.getMonthDays(data.date);
                         let rows = [];
                         while(days.length) {
                           rows.push(days.splice(0, 7));
@@ -300,7 +302,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                                     update: a => {
                                       a.element.innerHTML = "&lsaquo;";
                                       a.element.onclick = event => {
-                                        calendarDate.setMonth(calendarDate.getMonth()-1);
+                                        data.date.setMonth(data.date.getMonth()-1);
                                         container.render();
                                       };
                                     }
@@ -310,8 +312,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                                   tag: "li",
                                   class: "current-month",
                                   update: li => {
-                                    // li.element.textContent = moment(calendarDate).format("MMMM YYYY");
-                                    li.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {month: "long", year: "numeric"}).format(calendarDate);
+                                    li.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {month: "long", year: "numeric"}).format(data.date);
                                   }
                                 },
                                 {
@@ -322,7 +323,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                                     update: a => {
                                       a.element.innerHTML = "&rsaquo;";
                                       a.element.onclick = event => {
-                                        calendarDate.setMonth(calendarDate.getMonth()+1);
+                                        data.date.setMonth(data.date.getMonth()+1);
                                         container.render();
                                       };
                                     }
@@ -337,10 +338,6 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                                 return {
                                   tag: "li",
                                   update: li => {
-                                    // this.element.textContent = KarmaFieldsAlpha.Calendar.format(day.date, "%d2%");
-                                    // this.element.textContent = wp.date.dateI18n(day.date, "D").slice(0, 2);
-                                    // li.element.textContent = day.moment.format("dd");
-                                    // console.log(day);
                                     li.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {weekday: "narrow"}).format(day.date);
 
                                   }
@@ -364,11 +361,11 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                                           a.element.onmouseup = event => {
                                             event.preventDefault();
                                             let sqlDate = day.moment.format(this.resource.output_format);
-                                            calendarDate = null;
-                                            this.parent.request("set-option", calendarDate, this.resource.key, "date");
+                                            data.date = null;
+                                            this.parent.request("set-option", data.date, this.resource.key, "date");
 
                                             const key = this.getKey();
-                
+
                                             this.parent.request("set", sqlDate, key);
                                             this.parent.request("render");
                                           }
@@ -376,7 +373,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                                       }],
                                       update: li => {
                                         let sqlDate = day.moment.format(this.resource.output_format);
-                
+
                                         li.element.classList.toggle("active", value === sqlDate);
                                         li.element.classList.toggle("offset", day.isOffset);
                                         li.element.classList.toggle("today", day.isToday);
@@ -418,55 +415,38 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                     let mDate = moment(input.element.value, this.resource.format);
 
                     if (input.element.value.length === 10 && mDate.isValid()) {
-                      calendarDate = mDate.toDate();
-                      this.parent.request("set-option", calendarDate, this.resource.key, "date");
-
+                      data.date = mDate.toDate();
                       var sqlDate = mDate.format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
-                      this.parent.request("set", sqlDate, key);
+                      this.setValue(sqlDate);
                       this.render();
                     }
 
                   };
                   input.element.onfocus = () => {
                     let mDate = moment(input.element.value, this.resource.format);
-                    calendarDate = mDate && mDate.isValid() && mDate.toDate() || new Date();
-                    this.parent.request("set-option", calendarDate, this.resource.key, "date");
+                    data.date = mDate && mDate.isValid() && mDate.toDate() || new Date();
                     this.render();
                   };
                   input.element.onfocusout = () => {
-                    calendarDate = null;
-                    this.parent.request("set-option", calendarDate, this.resource.key, "date");
-                    // console.log(input.element.value);
-                    // if (!moment(input.element.value, this.resource.format).isValid()) {
-                    //   this.parent.request("set", "", key);
-                    // }
+                    data.date = null;
                     this.render();
                   };
                 }
 
-
-                // container.element.classList.toggle("modified", this.modified);
-
-
-                // if (input.element !== document.activeElement) {
-
                 let displayDate = "";
 
-                if (value) {
+                let mDate = moment(value, this.resource.output_format);
 
-                  let mDate = moment(value, this.resource.output_format);
+                if (mDate.isValid()) {
 
-                  if (mDate.isValid()) {
+                  displayDate = mDate.format(this.resource.format);
 
-                    displayDate = mDate.format(this.resource.format);
-                    
-                  } else {
+                } else {
 
-                    displayDate = value || "";
-
-                  }
+                  displayDate = value || "";
 
                 }
+
 
                 if (input.element.value !== displayDate) {
 
@@ -474,23 +454,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
                 }
 
-                
-                  
-                  
-                  // if (value && mDate.isValid()) {
-                  //   input.element.value = mDate.format(this.resource.format);
-                  // } else {
-
-                  //   // console.log(value);
-                  //   input.element.value = value || "";
-                  // }
-
-
-                // }
-
-                
-
-                if (!calendarDate) {
+                if (!data.date) {
                   input.element.blur();
                 }
               }
@@ -498,7 +462,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
           ]
 
         }
-        
+
       }
     };
   }
@@ -572,16 +536,16 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
   // }
 
 
-  build() {
-    // const field = this;
-    // if (this.resource.readonly) {
-    //   return this.buildDateInput();
-    // } else {
-    //   return this.buildDateContainer();
-    // }
-
-    return this.buildDateContainer();
-
-  }
+  // build() {
+  //   // const field = this;
+  //   // if (this.resource.readonly) {
+  //   //   return this.buildDateInput();
+  //   // } else {
+  //   //   return this.buildDateContainer();
+  //   // }
+  //
+  //   return this.buildDateContainer();
+  //
+  // }
 
 }

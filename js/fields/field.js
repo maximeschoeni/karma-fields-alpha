@@ -43,7 +43,8 @@ KarmaFieldsAlpha.field = class {
   }
 
   getId() {
-    return "karma-fields-"+this.fieldId;
+    // return "karma-fields-"+this.fieldId;
+    return this.resource.uid;
   }
 
   getUniqueId() {
@@ -114,7 +115,7 @@ KarmaFieldsAlpha.field = class {
   //   return child;
   // }
 
-  createChild(resource, id) {
+  createChild(resource) {
 
     // let child = this.childMap[id || resource.id || resource.type || resource];
     //
@@ -242,7 +243,7 @@ KarmaFieldsAlpha.field = class {
 
 
   getDefault(defaults = {}) {
-
+console.error("deprecated");
     if (this.resource.children) {
 
       for (let resource of this.resource.children) {
@@ -258,20 +259,24 @@ KarmaFieldsAlpha.field = class {
 
   async render() {
 
-    if (this.onrender) {
+    // if (this.onrender) {
+    //
+    //   await this.onrender();
+    //
+    // } else {
+    //
+    //   await this.parent.render();
+    //
+    // }
 
-      await this.onrender();
-
-    } else {
-
-      await this.parent.render();
-
-    }
+    await this.parent.render();
 
   }
 
   save() {
+
     this.parent.save();
+
   }
 
 
@@ -452,15 +457,44 @@ KarmaFieldsAlpha.field = class {
   //   // noop
 	// }
 
+
   getValue(...path) {
+
+    const key = this.getKey();
+
+    if (key) {
+
+      return this.parent.getValue(key, ...path);
+
+    }
 
     return this.parent.getValue(...path);
 
   }
 
+  // getValue(...path) {
+  //
+  //   return this.parent.getValue(...path);
+  //
+  // }
+
   setValue(value, ...path) {
 
-    this.parent.setValue(value, ...path);
+    // this.parent.setValue(value, ...path);
+
+    const key = this.getKey();
+
+    if (key) {
+
+      this.parent.setValue(value, key, ...path);
+
+    } else {
+
+      this.parent.setValue(value, ...path);
+      
+    }
+
+
 
   }
 
@@ -555,7 +589,7 @@ KarmaFieldsAlpha.field = class {
 
         if (selection[i]) {
 
-          const child = this.createChild({...this.resource.children[i], index: i});
+          const child = this.createChild({...this.resource.children[i], index: i, uid: `${this.resource.uid}-${i}`});
 
           return child.follow(selection[child.resource.index], callback);
 
@@ -569,7 +603,7 @@ KarmaFieldsAlpha.field = class {
 
 
   paste(value, selection) {
-
+console.error("deprecated");
     if (selection && this.resource.children) {
 
       for (let i = 0; i < this.resource.children.length; i++) {
@@ -689,7 +723,7 @@ KarmaFieldsAlpha.field = class {
   }
 
   clearSelection(selection) {
-
+console.error("deprecated");
     if (!selection || selection.final) {
 
       this.setSelection();

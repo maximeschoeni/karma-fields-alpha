@@ -211,6 +211,12 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
     return this.renderPromise;
   }
 
+  multiple() {
+
+    return false;
+
+  }
+
 
   // mousedown() {
   //

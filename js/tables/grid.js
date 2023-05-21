@@ -692,58 +692,58 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   }
 
 
-  paste(string, selection) {
-
-    if (selection) {
-
-      if (selection.modal) {
-
-        const modal = this.createChild({
-          type: "modal",
-          ...this.resource.modal,
-          index: "modal"
-        });
-
-        modal.paste(string, selection.modal);
-
-      } else if (selection.final) {
-
-        const [current] = this.export([], selection.index, selection.length);
-
-        if (string !== current) {
-
-          this.import([string], selection.index, selection.length);
-
-        }
-
-      } else { // -> paste into selected things inside a row (like files field)
-
-        const ids = this.getIds();
-
-        for (let i in ids) {
-
-          if (selection[i]) {
-
-            const child = this.createChild({
-              id: i,
-              type: "row",
-              children: this.resource.children,
-              index: i
-            });
-
-            child.paste(string, selection[i]);
-
-            break;
-
-          }
-
-        }
-
-      }
-
-    }
-
-  }
+  // paste(string, selection) {
+  //
+  //   if (selection) {
+  //
+  //     if (selection.modal) {
+  //
+  //       const modal = this.createChild({
+  //         type: "modal",
+  //         ...this.resource.modal,
+  //         index: "modal"
+  //       });
+  //
+  //       modal.paste(string, selection.modal);
+  //
+  //     } else if (selection.final) {
+  //
+  //       const [current] = this.export([], selection.index, selection.length);
+  //
+  //       if (string !== current) {
+  //
+  //         this.import([string], selection.index, selection.length);
+  //
+  //       }
+  //
+  //     } else { // -> paste into selected things inside a row (like files field)
+  //
+  //       const ids = this.getIds();
+  //
+  //       for (let i in ids) {
+  //
+  //         if (selection[i]) {
+  //
+  //           const child = this.createChild({
+  //             id: i,
+  //             type: "row",
+  //             children: this.resource.children,
+  //             index: i
+  //           });
+  //
+  //           child.paste(string, selection[i]);
+  //
+  //           break;
+  //
+  //         }
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
   // async import(data, index = this.getIds().length, length = 0) { // expect json array
   //
@@ -1520,13 +1520,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
             },
             update: async grid => {
 
-              // if (this.parent.resource.index === "posts") debugger;
-
-              // console.log("grid update", KarmaFieldsAlpha.Query.table);
 
               const ids = this.getIds();
-
-              // console.log(ids, this.parent.resource.index);
 
               const data = this.getData();
 
@@ -1588,6 +1583,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
                     // data.selection = selection;
 
                     this.select(selection.index, selection.length);
+
+                    // this.save(); // -> ?
 
                     // const [string] = this.export([], selection.index, selection.length);
                     //
@@ -2358,6 +2355,12 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field {
   getIndex() {
 
     return this.resource.index;
+
+  }
+
+  multiple() {
+
+    return false;
 
   }
 

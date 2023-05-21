@@ -215,10 +215,10 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 					const field = this.createChild({
             id: index,
             ...resource,
-            index: index
+            index: index,
             // data: data[index],
             // selection: selection[index],
-            // uid: `${this.resource.uid}-${index}`
+            uid: `${this.resource.uid}-${index}`
           }); // -> id is for retrieving selection (for unkeyed array)
 
 					return {

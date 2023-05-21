@@ -33,7 +33,8 @@
 			style: "margin-right: 1em",
       ...resource,
       index: index,
-      type: "postform"
+      type: "postform",
+			uid: index.toString()
     });
 
 		KarmaFieldsAlpha.build(postform.build(), container);

@@ -364,9 +364,9 @@ KarmaFieldsAlpha.Query = class {
 
     const ids = [...KarmaFieldsAlpha.Store.get("ids")];
 
-    ids.splice(index, 0, null);
+    ids.splice(index, 0, null); // -> null means item is being added. Cannot use symbols in json
 
-    KarmaFieldsAlpha.Store.set("ids", ids);
+    KarmaFieldsAlpha.Store.set(ids, "ids");
 
   }
 
@@ -377,14 +377,15 @@ KarmaFieldsAlpha.Query = class {
 
     if (index > -1) {
 
-      const id = await KarmaFieldsAlpha.Gateway.post(`add/${driver}`);
+      let id = await KarmaFieldsAlpha.Gateway.post(`add/${driver}`);
+      id = id.toString();
       const newIds = [...currentIds];
 
       currentIds.splice(index, 1);
       newIds[index] = id;
 
       KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
-      KarmaFieldsAlpha.Store.set("ids", newIds);
+      KarmaFieldsAlpha.Store.set(newIds, "ids");
 
       KarmaFieldsAlpha.History.backup(["0"], ["1"], "delta", driver, id, "trash");
       KarmaFieldsAlpha.Store.set(["0"], "delta", driver, id, "trash");

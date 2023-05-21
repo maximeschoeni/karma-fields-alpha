@@ -1,22 +1,5 @@
 KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
-  // expect(action, object) {
-
-  //   switch(action) {
-
-  //     case "keys": {
-  //       const key = this.getKey();
-  //       if (key) {
-  //         object.add(key);
-  //       }
-  //     }
-
-
-
-  //   }
-
-  // }
-
 	getDefaultValue() {
 
 		if (this.resource.default !== null) {
@@ -27,270 +10,125 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	getDefault(defaults = {}) {
-
-		const key = this.getKey();
-
-		if (key && this.resource.default !== null) {
-
-			defaults[key] = this.parse(this.resource.default || "");
-
-		}
-
-		return defaults;
-	}
+	// getDefault(defaults = {}) {
+	//
+	// 	const key = this.getKey();
+	//
+	// 	if (key && this.resource.default !== null) {
+	//
+	// 		defaults[key] = this.parse(this.resource.default || "");
+	//
+	// 	}
+	//
+	// 	return defaults;
+	// }
 
   getValue() {
 
-    const key = this.getKey();
+    // const key = this.getKey();
 
-    return this.parent.getValue(key);
+    let array = super.getValue();
+
+		if (array) {
+
+			if (array.length === 0) {
+
+				let value = this.getDefaultValue();
+
+				if (value !== undefined) {
+
+					this.setValue(value);
+
+					return value;
+
+				}
+
+				return "";
+
+			} else if (array.length > 1) {
+
+				return KarmaFieldsAlpha.field.input.multiple;
+
+			}
+
+			return array[0] || "";
+
+		}
+
+		return KarmaFieldsAlpha.field.input.loading;
 
   }
 
-  setValue(value) {
-
-    const key = this.getKey();
-
-    this.parent.setValue(value, key);
-
-  }
-
-  // getDelta() {
-
-  //   const delta = this.parent.getDelta();
-
-  //   return delta && delta[this.getKey()];
-
-  // }
-
-  // isModified() {
-
-  //   const [value] = this.getValue();
+  // setValue(value) {
+	//
+  //   const key = this.getKey();
+	//
+	// 	this.parent.setValue(value, key);
+	//
   // }
 
 	export(items = []) {
 
-		const grid = new KarmaFieldsAlpha.Grid();
-		const values = this.getValue() || ["..."];
+		// const value = this.getValue();
+		//
+		// if (value === KarmaFieldsAlpha.field.input.multiple) { // -> do we really need that ?
+		//
+		// 	const grid = new KarmaFieldsAlpha.Grid();
+		// 	const key = this.getKey();
+		// 	const array = this.parent.getValue(key);
+		//
+		// 	grid.addColumn(array);
+		//
+		// 	const csv = grid.toString();
+		//
+		// 	items.push(csv);
+		//
+		// } else if (value !== KarmaFieldsAlpha.field.input.loading) {
+		//
+		// 	items.push(value);
+		//
+		// }
 
-		grid.addColumn(values);
+		const value = this.getValue();
 
-    // const value = KarmaFieldsAlpha.Type.toString(values);
-		const value = grid.toString();
+		if (value !== KarmaFieldsAlpha.field.input.loading) {
 
-    items.push(value);
+			items.push(value);
+
+		}
+
 
     return items;
 	}
 
   import(items) {
 
-    let value = items.shift() || "";
-
-		const grid = new KarmaFieldsAlpha.Grid(value); // warning -> text with line breaks will split in multiple values !
-
-		value = grid.getColumn(0);
-
-		if (value.length === 1) {
-
-			value = value[0];
-
-		}
-
-    this.setValue(value);
-
-  }
-
-	// importValue(value) {
-	// 	const key = this.getKey();
-	// 	this.parent.request("set", value, key);
-	// }
-
-	// export(object = {}) {
-
-	// 	const key = this.getKey();
-
-  //   const values = this.parent.getValue(key);
-
-  //   if (values) {
-
-  //     object[key] = KarmaFieldsAlpha.Type.toString(values);
-
-  //   }
-
-	// 	return object;
-	// }
-
-	// import(object) {
-
-	// 	const key = this.getKey();
-
-	// 	if (object[key] !== undefined) {
-
-	// 		this.parent.setValue(object[key], key);
-
-	// 	}
-
-	// }
-
-	// set(value) {
-
-	// 	if (!this.isBusy()) {
-	// 		KarmaFieldsAlpha.History.save();
-	// 	}
-
-	// 	const key = this.getKey();
-
-  //   if (this.resource.autosave) {
-
-  //     this.parent.request("autosave", value, key);
-
-  //   } else {
-
-  //     this.parent.setValue(value, key);
-
-  //   }
-
-	// 	this.parent.request("render");
-
-	// }
-
-	// isBusy(duration = 3000) {
-	// 	if (!this.busy) {
-	// 		setTimeout(() => {
-	// 			this.busy = false;
-	// 		}, duration);
-	// 		this.busy = true;
-	// 		return false;
-	// 	}
-	// 	return true;
-	// }
-
-	// async enqueue(callback) {
-	// 	this.queueNext = callback;
-	// 	if (this.queue) {
-	// 		await this.queue;
-	// 	}
-	// 	if (this.queueNext === callback) {
-	// 		this.queue = this.queueNext();
-	// 		await this.queue;
-	// 		return true;
-	// 	}
-	// 	return false;
-	// }
-
-	// throttle(callback, interval = 200) {
-	// 	if (this.throttleTimer) {
-	// 		clearTimeout(this.throttleTimer);
-	// 	}
-	// 	this.throttleTimer = setTimeout(callback, interval);
-	// }
-
-
-
-  // throttle(duration) {
-  //   const data = this.getData() || {};
-  //   const now = Date.now()
-
-  //   if (!data.throttle || data.throttle < now - duration) {
-
-  //     data.throttle = now;
-
-  //     this.setData(data);
-
-  //     return true;
-
-  //   }
-
-  //   return false;
-
-  // }
-
-  // unthrottle() {
-  //   const data = this.getData() || {};
-
-  //   if (data.throttle) {
-
-  //     delete data.throttle;
-
-  //     this.setData(data);
-
-  //   }
-
-  // }
-
-  // hasDebounce() {
-
-  //   const data = this.getData() || {};
-
-  //   return Boolean(data.debounce);
-  // }
-
-  // debounce(callback, interval = 500) {
-
-  //   const data = this.getData() || {};
-
-  //   if (data.debounce) {
-
-  //     clearTimeout(data.debounce);
-
-  //   }
-
-  //   if (callback) {
-
-  //     data.debounce = setTimeout(() => {
-  //       data.debounce = null;
-  //       this.setData(data);
-  //       callback();
-  //     }, interval);
-
-  //   }
-
-  //   this.setData(data);
-
-  // }
-
-
-
-  isLocked() {
-
-    const data = this.getData();
-
-    return Boolean(data && data.lock);
-
-  }
-
-  lock() {
-
-    const data = this.getData();
-
-    this.setData({...data, lock: true});
-
-  }
-
-  unlock() {
-
-    const data = this.getData();
-
-    this.setData({...data, lock: false});
+		// const value = items.shift() || "";
+		// const currentValue = this.getValue();
+		//
+		// if (currentValue === KarmaFieldsAlpha.field.input.multiple) {
+		//
+		// 	const grid = new KarmaFieldsAlpha.Grid(value); // warning -> text with line breaks will split in multiple values !
+		//
+		// 	const array = grid.getColumn(0);
+		//
+		// 	this.setValue(array);
+		//
+		// } else if (currentValue !== KarmaFieldsAlpha.field.input.loading) {
+		//
+		// 	this.setValue(value);
+		//
+		// }
+
+
+		const value = items.shift() || "";
+		this.setValue(value);
 
   }
 
 	getPlaceholder() {
+
 		return this.parse(this.resource.placeholder || "");
-	}
-
-
-	getDiff(string1, string2) {
-
-		if (string2.includes(string1) || string1.includes(string2)) {
-
-			return Math.abs(string1.length - string2.length);
-
-		}
-
-		return string1.length;
 
 	}
 
@@ -306,79 +144,32 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 				if (this.resource.input) {
 					Object.assign(input.element, this.resource.input);
 				}
-				// if (this.resource.options) {
-				// 	input.element.setAttribute("list", "list-"+this.getId());
-				// }
-
-
-
-        // input.element.onmousedown = event => {
-        //   //event.stopPropagation(); // -> prevent selectors to steal focus
-
-        //   console.log("onmousedown");
-        // }
-        // input.element.onmouseup = event => {
-        //   console.log("onmouseup");
-        // }
-        // input.element.onblur = event => {
-        //   console.log("onfocus");
-        // }
-
-
 			},
 			update: async input => {
 
+        let value = this.getValue();
 
+        input.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
 
-				// const key = this.getKey();
+        if (value !== KarmaFieldsAlpha.field.input.loading) {
 
-				// const state = await this.parent.request("state", {}, key);
+					input.element.placeholder = this.getPlaceholder();
+					input.element.classList.toggle("multi", value === KarmaFieldsAlpha.field.input.multiple);
 
-
-// debugger;
-        const values = this.getValue();
-
-        input.element.classList.toggle("loading", !values);
-
-        if (values) {
-
-          let value = values[0];
-
-					if (value === undefined) {
-
-						value = this.getDefaultValue();
-
-						if (value !== undefined) {
-
-							this.setValue(value);
-
-						}
-
-					}
-
-
-
-          if (values.length > 1 && (new Set(values)).size > 1) {
+          if (value === KarmaFieldsAlpha.field.input.multiple) {
 
             input.element.value = "[multiple values]";
-            input.element.classList.add("multi");
             input.element.readOnly = true;
 
           } else {
 
-            input.element.classList.remove("multi");
             input.element.readOnly = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.readonly));
 
             const modified = this.modified();
 
             input.element.parentNode.classList.toggle("modified", Boolean(modified));
 
-
-
-
-            if (value !== input.element.value && !this.isLocked()) {
-
-
+            if (value !== input.element.value) { // -> replacing same value will eject focus !
 
               input.element.value = value;
 
@@ -386,31 +177,9 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
           }
 
-          // const value = values[0] || "";
-
-          // if (!this.isLocked()) { // -> prevent changing value while editing (e.g search field)
-
-          //   if (value !== input.element.value) {
-
-          //     input.element.value = value;
-
-          //   }
-
-          //   const modified = this.modified();
-
-          //   input.element.parentNode.classList.toggle("modified", Boolean(modified));
-
-          //   const multi = values.length > 1 && (new Set(values)).size > 1;
-
-          //   input.element.classList.toggle("multi", multi);
-          //   input.element.readOnly = ;
-          //   input.element.placeholder = multi && "[multiple values]" || this.getPlaceholder() || "";
-
-          // }
-
           input.element.onkeyup = async event => {
 
-            if (event.key === "Enter") {
+            if (event.key === "Enter" && value !== KarmaFieldsAlpha.field.input.multiple) {
 
               this.parent.request("submit");
 
@@ -420,136 +189,47 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
           input.element.oninput = async event => {
 
+						value = input.element.value.normalize();
 
-
-            // this.throttle(async () => {
-            //   const value = input.element.value.normalize();
-            //   this.set(value);
-            // }, this.resource.throttle);
-
-            this.debounce("typing", () => {
-
-              // if (this.throttle(this.resource.throttle || 5000)) {
-
-              //   KarmaFieldsAlpha.History.save();
-
-              // }
-
-              const newValue = input.element.value.normalize();
-
-              if (newValue !== value) {
-
-								// const diff = this.getDiff(newValue, value);
-								//
-								// console.log(diff);
-
-                value = newValue;
-
-                this.setValue(value);
-
-
-
-                // this.debounce("saving", () => {
-
-
-
-                //   KarmaFieldsAlpha.History.save();
-
-                // }, 1000);
-
-                // this.request("save");
-								//
-                // this.render();
-
-              }
-
-
-
-            //   this.unlock();
-            //
-					}, this.resource.debounce || 750);
-            //
-            // this.lock();
+						this.debounce("typing", () => this.setValue(value), 750);
 
           }
 
-          // input.element.onblur = event => {
-
-          //   console.log("blur", input.element.value === values[0]);
-
-          // };
-
-					input.element.onmousedown = event => {
-
-						// console.log("input mousedown");
-
-						// event.stopPropagation();
-						// event.preventDefault();
-						// this.parent.request("mousedown", event);
-						// this.setSelection(new KarmaFieldsAlpha.Selection());
-
-					}
-
-					input.element.onfocusin = event => { // -> focusin trigger before focus
-
-						// console.log("input onfocus");
-
-						// debugger;
+					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
 
 						this.setSelection({final: true}); // -> prevent field from losing focus on render
-
-						// const x = KarmaFieldsAlpha.Selection.object
-						// console.log("input onfocus", JSON.parse(JSON.stringify(x)));
-						//
-						// setTimeout(() => {
-						// 	console.log("input onfocus 10ms", JSON.parse(JSON.stringify(x)));
-						// }, 10);
-
-						// console.log("input focusin");
-
-						// event.preventDefault();
-						// event.stopPropagation();
-
-
-					}
-
-					input.element.onfocusout = event => {
-
-						// console.log("input focus");
-
-						// debugger;
-
-						// this.setSelection();
-
-						// this.parent.render();
 
 					}
 
           input.element.oncopy = event => {
-            const grid = new KarmaFieldsAlpha.Grid();
-            grid.addColumn(...values);
-            event.clipboardData.setData("text/plain", grid.toString().normalize());
+						if (value === KarmaFieldsAlpha.field.input.multiple) {
+							event.preventDefault();
+							const values = super.getValue();
+							const grid = new KarmaFieldsAlpha.Grid();
+	            grid.addColumn(...values);
+	            event.clipboardData.setData("text/plain", grid.toString().normalize());
+						}
           };
 
           input.element.onpaste = async event => {
-						event.preventDefault();
-            const string = event.clipboardData.getData("text").normalize();
-            const grid = new KarmaFieldsAlpha.Grid(string);
-            const column = grid.getColumn(0);
-						if (column.length === 1) {
-							this.setValue(column[0]);
-						} else {
+						if (value === KarmaFieldsAlpha.field.input.multiple) {
+							event.preventDefault();
+	            const string = event.clipboardData.getData("text").normalize();
+	            const grid = new KarmaFieldsAlpha.Grid(string);
+	            const column = grid.getColumn(0);
 							this.setValue(column);
 						}
           };
 
           input.element.oncut = async event => {
-						event.preventDefault();
-            const grid = new KarmaFieldsAlpha.Grid();
-						const values = this.getValue() || "";
-            grid.addColumn(...values);
-            event.clipboardData.setData("text/plain", grid.toString().normalize());
-            this.setValue("");
+						if (value === KarmaFieldsAlpha.field.input.multiple) {
+							event.preventDefault();
+							const values = super.getValue();
+	            const grid = new KarmaFieldsAlpha.Grid();
+	            grid.addColumn(...values);
+	            event.clipboardData.setData("text/plain", grid.toString().normalize());
+	            this.setValue("");
+						}
           };
 
         }
@@ -605,22 +285,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	// }
 
-
-	// build() {
-
-	// 	if (this.resource.options) {
-
-	// 		return this.buildDataListInput();
-
-	// 	} else {
-
-	// 		return this.buildInput();
-
-	// 	}
-
-	// }
-
-
-
-
 }
+
+KarmaFieldsAlpha.field.input.loading = Symbol("loading");
+KarmaFieldsAlpha.field.input.multiple = Symbol("multiple");

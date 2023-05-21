@@ -3,7 +3,7 @@ KarmaFieldsAlpha.Store = class {
 
 	static getObject() {
 
-		if (!this.cache) {
+		if (!this.cache && KarmaFieldsAlpha.History.useNative) {
 
 			const string = localStorage.getItem(this.storageName);
 
@@ -26,9 +26,13 @@ KarmaFieldsAlpha.Store = class {
 
 		this.cache = object;
 
-		const string = JSON.stringify(this.cache);
+		if (KarmaFieldsAlpha.History.useNative) {
 
-		localStorage.setItem(this.storageName, string);
+			const string = JSON.stringify(this.cache);
+
+			localStorage.setItem(this.storageName, string);
+
+		}
 
 	}
 
@@ -79,4 +83,5 @@ KarmaFieldsAlpha.Store = class {
 
 }
 
+KarmaFieldsAlpha.Store.cache = {};
 KarmaFieldsAlpha.Store.storageName = "UF0";

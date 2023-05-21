@@ -1,7 +1,28 @@
 KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
-  getDefault(defaults = {}) {
+  getDefaultValue(defaults = {}) {
 
+		if (this.resource.default) {
+
+      return this.parse(this.resource.default);
+
+		} else {
+
+      const options = this.fetchOptions();
+
+      if (options && options.length > 0) {
+
+        return options[0].id;
+
+      }
+
+    }
+
+	}
+
+
+  getDefault(defaults = {}) {
+console.error("deprecated");
 		const key = this.getKey();
     const options = this.fetchOptions();
 
@@ -18,22 +39,43 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 		return defaults;
 	}
 
+
+  // getDefault(defaults = {}) {
+  //
+	// 	const key = this.getKey();
+  //   const options = this.fetchOptions();
+  //
+	// 	if (key && this.resource.default !== null) {
+  //
+	// 		defaults[key] = this.parse(this.resource.default || "");
+  //
+	// 	} else if (options.length > 0) {
+  //
+  //     defaults[key] = options[0].id;
+  //
+  //   }
+  //
+	// 	return defaults;
+	// }
+
   export(items = []) {
 
-		const values = this.getValue();
+		const value = this.getValue();
 
-    if (values) {
+		const options = this.fetchOptions();
 
-			const options = this.fetchOptions();
-			const option = options.find(option => option.id === values[0]);
+    if (options) {
 
-			if (option) {
+      const option = options.find(option => option.id === value);
 
-				items.push(option.name);
+      if (option) {
 
-			}
+        items.push(option.name);
 
-		}
+      }
+
+    }
+
 
     return items;
 	}
@@ -43,11 +85,16 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
     const value = items.shift() || "";
 
     const options = this.fetchOptions();
-		const option = options.find(option => option.name === value);
 
-    if (option) {
+    if (options) {
 
-      this.setValue(option.id);
+      const option = options.find(option => option.name === value);
+
+      if (option) {
+
+        this.setValue(option.id);
+
+      }
 
     }
 
@@ -62,31 +109,35 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
     }
 
 
-    const results = KarmaFieldsAlpha.Query.getResults(driver, params) || [{id: "", name: "..."}];
+    const results = KarmaFieldsAlpha.Query.getResults(driver, params);
 
-    const options = [];
-    const alias = KarmaFieldsAlpha.drivers[driver].alias;
-    const idAlias = alias.id || "id";
-    const nameAlias = alias.name || "name";
+    if (results) {
 
-    let name = item[nameAlias];
+      const options = [];
+      const alias = KarmaFieldsAlpha.drivers[driver].alias;
+      const idAlias = alias.id || "id";
+      const nameAlias = alias.name || "name";
 
-    if (name === undefined) {
+      let name = item[nameAlias];
 
-      name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
+      if (name === undefined) {
+
+        name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
+
+      }
+
+      for (let item of results) {
+
+        options.push({
+          id: item[idAlias],
+          name: name
+        });
+
+      }
+
+      return options;
 
     }
-
-    for (let item of results) {
-
-      options.push({
-        id: item[idAlias],
-        name: name
-      });
-
-    }
-
-    return options;
 
   }
 
@@ -104,27 +155,35 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
       } else {
 
-        options = [{id: "", name: "..."}];
+        return;
 
       }
 
 		}
 
+    let moreOptions;
+
 		if (this.resource.driver) {
 
-      options = [...options, ...this.getOptions(this.resource.driver, this.resource.params || {})];
+      moreOptions = this.getOptions(this.resource.driver, this.resource.params || {});
 
-		} else if (this.resource.query) { // -> compat
+		} else if (this.resource.table) {
 
-      options = [...options, ...this.getOptions(this.resource.query.driver, this.resource.query.params || {})];
+      const grid = this.request("getGrid", this.resource.table);
 
-		} else if (this.resource.table) { // -> compat
+      if (grid && grid.resource.table) {
 
-			const table = this.request("table", {id: this.resource.table});
+        moreOptions = this.getOptions(grid.resource.driver, grid.resource.params || {});
 
-      options = [...options, ...this.getOptions(table.resource.driver, table.resource.params || {})];
+      }
 
 		}
+
+    if (moreOptions) {
+
+      options = [...options, ...moreOptions];
+
+    }
 
 		return options;
 
@@ -137,18 +196,21 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 			tag: "select",
 			class: "dropdown karma-field",
 			update: dropdown => {
-				const key = this.getKey();
 
-        const values = this.parent.getValue(key);
+        let value = this.getValue();
+        const options = this.fetchOptions();
 
-        dropdown.element.classList.toggle("loading", !values);
+        dropdown.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
 
-        if (values) {
+        if (options && options.length > 0 && value !== KarmaFieldsAlpha.field.input.loading) {
 
-          const options = this.fetchOptions();
-          let [value] = values;
+          if (!options.some(option => option.id === value)) {
 
-          if (dropdown.element.childElementCount !== options.length) {
+            value = options[0].id;
+
+          }
+
+          if (dropdown.element.childElementCount !== options.length || dropdown.element.lastElementChild.value !== options[options.length-1].id) {
 
             dropdown.element.length = 0;
 
@@ -156,7 +218,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
               dropdown.element.add(new Option(option.name, option.id, value === option.id, value === option.id));
             });
 
-          } else {
+          } else if (value !== dropdown.element.value) {
 
             dropdown.element.value = value || "";
 
@@ -166,21 +228,17 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
             this.setValue(dropdown.element.value);
 
-            KarmaFieldsAlpha.History.save();
-
-            this.parent.render();
-
           }
 
           if (this.resource.disabled) {
 
-            dropdown.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parent.parse(this.resource.disabled) || []);
+            dropdown.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parent.parse(this.resource.disabled));
 
           }
 
           if (this.resource.enabled) {
 
-            dropdown.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parent.parse(this.resource.enabled) || []);
+            dropdown.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parent.parse(this.resource.enabled));
 
           }
 

@@ -1,22 +1,115 @@
 
 KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
-	getDefault() {
+	getDefaultValue() {
 
 		if (this.resource.default) {
 
-			const key = this.getKey();
-			const defaultValue = this.parse(this.resource.default);
-			const values = KarmaFieldsAlpha.Type.toArray(defaultValue);
+			return this.parse(this.resource.default);
 
-			return {
-				[key]: values
+		}
+
+	}
+
+	getValue(key) {
+
+		if (key) {
+
+			const array = this.getValue();
+
+			if (array) {
+
+				if (array.includes(key)) {
+
+					return "1";
+
+				} else {
+
+					return "";
+
+				}
+
+			}
+
+		} else {
+
+			let array = super.getValue();
+
+			if (array) {
+
+				if (array.length === 0) {
+
+					array = this.getDefaultValue();
+
+					if (array !== undefined) {
+
+						this.setValue(array);
+
+					}
+
+				}
+
+				return array;
+
 			}
 
 		}
 
-		return [];
+  }
+
+	setValue(value, key) {
+
+		if (key) {
+
+			const array = this.getValue();
+
+			if (array) {
+
+				if (value === "1") {
+
+					if (!array.includes(key)) {
+
+						this.setValue([...array, key]);
+
+					}
+
+				} else {
+
+					if (array.includes(key)) {
+
+						this.setValue(array.filter(item => item !== key));
+
+					}
+
+				}
+
+			}
+
+		} else {
+
+			super.setArray(value);
+
+		}
+
 	}
+
+
+	// getDefault() {
+	//
+	// 	if (this.resource.default) {
+	//
+	// 		const key = this.getKey();
+	// 		const defaultValue = this.parse(this.resource.default);
+	// 		const values = KarmaFieldsAlpha.Type.toArray(defaultValue);
+	//
+	// 		return {
+	// 			[key]: values
+	// 		}
+	//
+	// 	}
+	//
+	// 	return [];
+	// }
 
 	// async dispatch(event) {
 	//
@@ -82,163 +175,190 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 	// 	return event;
 	// }
 
-  getOptions(driver, params) {
+  // getOptions(driver, params) {
+	//
+  //   if (!KarmaFieldsAlpha.drivers[driver]) {
+	//
+  //     console.error("Driver not found", driver);
+	//
+  //   }
+	//
+	//
+  //   const results = KarmaFieldsAlpha.Query.getResults(driver, params) || [{id: "", name: "..."}];
+	//
+  //   const options = [];
+  //   const alias = KarmaFieldsAlpha.drivers[driver].alias;
+  //   const idAlias = alias.id || "id";
+  //   const nameAlias = alias.name || "name";
+	//
+  //   for (let item of results) {
+	//
+  //     options.push({
+  //       id: item[idAlias],
+  //       name: item[nameAlias] || KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
+  //     });
+	//
+  //   }
+	//
+  //   return options;
+	//
+  // }
 
-    if (!KarmaFieldsAlpha.drivers[driver]) {
+	// request(subject, content = {}, ...path) {
+	//
+  //   const key = this.getKey();
+	//
+  //   if (key) {
+	//
+  //     switch (subject) {
+	//
+  //       case "get": {
+	//
+  //         const [childKey] = path;
+	//
+  //         const values = this.parent.request("get", {}, key);
+	//
+  //         if (values) {
+	//
+  //           return KarmaFieldsAlpha.Type.toArray(values.includes(childKey) ? "1" : "");
+	//
+  //         }
+	//
+  //       }
+	//
+  //       case "set": {
+	//
+  //         const [childKey] = path;
+  //         const values = this.parent.request("get", {}, key);
+  //         // const array = KarmaFieldsAlpha.Type.toArray(response);
+	//
+  //         if (values) {
+  //           const set = new Set([...values]);
+	//
+  //           if (content && !set.has(childKey)) {
+	//
+  //             set.add(childKey);
+	//
+  //           } else if (!content && set.has(childKey)) {
+	//
+  //             set.delete(childKey);
+	//
+  //           }
+	//
+  //           this.parent.request("set", [...set], key);
+  //         }
+	//
+  //         break;
+  //       }
+	//
+  //       default: {
+	//
+  //         this.parent.request(subject, content, key);
+  //         break;
+  //       }
+	//
+  //     }
+	//
+  //   } else {
+	//
+  //     return super.request(subject, content, ...path);
+	//
+  //   }
+	//
+	//
+	//
+	// }
 
-      console.error("Driver not found", driver);
 
-    }
+	// export() {
+	//
+	// 	const key = this.getKey();
+	// 	const defaults = {};
+  //   const values = this.parent.request("get", {}, key);
+	//
+	// 	if (values) {
+	//
+	// 		defaults[key] = KarmaFieldsAlpha.Type.toArray(response);
+	//
+	// 	}
+	//
+	// 	return defaults;
+	// }
+	//
+	// import(object) {
+	//
+	// 	const key = this.getKey();
+  //   const array = KarmaFieldsAlpha.Type.toArray(object[key]);
+	//
+	// 	this.parent.request("set", array, key);
+	// }
+
+	fetchOptions() {
+
+		return KarmaFieldsAlpha.field.dropdown.prototype.fetchOptions.call(this);
+
+	}
 
 
-    const results = KarmaFieldsAlpha.Query.getResults(driver, params) || [{id: "", name: "..."}];
+	export(items = []) {
 
-    const options = [];
-    const alias = KarmaFieldsAlpha.drivers[driver].alias;
-    const idAlias = alias.id || "id";
-    const nameAlias = alias.name || "name";
+		const array = this.getValue();
+		const grid = new KarmaFieldsAlpha.Grid();
 
-    for (let item of results) {
+		grid.addColumn(array);
 
-      options.push({
-        id: item[idAlias],
-        name: item[nameAlias] || KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
-      });
+		const csv = grid.toString();
 
-    }
-  
-    return options;
+		items.push(csv);
+
+    return items;
+	}
+
+  import(items) {
+
+		const value = items.shift() || "";
+
+		const grid = new KarmaFieldsAlpha.Grid(value);
+
+		const array = grid.getColumn(0);
+
+		this.setValue(array);
+
 
   }
-
-	request(subject, content = {}, ...path) {
-
-    const key = this.getKey();
-
-    if (key) {
-
-      switch (subject) {
-
-        case "get": {
-          
-          const [childKey] = path;
-  
-          const values = this.parent.request("get", {}, key);
-  
-          if (values) {
-  
-            return KarmaFieldsAlpha.Type.toArray(values.includes(childKey) ? "1" : "");
-  
-          }
-          
-        }
-  
-        case "set": {
-  
-          const [childKey] = path;
-          const values = this.parent.request("get", {}, key);
-          // const array = KarmaFieldsAlpha.Type.toArray(response);
-  
-          if (values) {
-            const set = new Set([...values]);
-  
-            if (content && !set.has(childKey)) {
-  
-              set.add(childKey);
-  
-            } else if (!content && set.has(childKey)) {
-  
-              set.delete(childKey);
-  
-            }
-  
-            this.parent.request("set", [...set], key);
-          }
-  
-          break;
-        }
-  
-        default: {
-
-          this.parent.request(subject, content, key);
-          break;
-        }
-  
-      }
-
-    } else {
-
-      return super.request(subject, content, ...path);
-
-    }
-
-		
-
-	}
-
-
-	export() {
-
-		const key = this.getKey();
-		const defaults = {};
-    const values = this.parent.request("get", {}, key);
-
-		if (values) {
-
-			defaults[key] = KarmaFieldsAlpha.Type.toArray(response);
-
-		}
-
-		return defaults;
-	}
-
-	import(object) {
-
-		const key = this.getKey();
-    const array = KarmaFieldsAlpha.Type.toArray(object[key]);
-
-		this.parent.request("set", array, key);
-	}
 
 	build() {
 		return {
 			class: "karma-field checkboxes",
-			update: async dropdown => {
-				dropdown.element.classList.add("loading");
+			update: dropdown => {
 
-        let options = [];
+				const options = this.fetchOptions();
+				let array = this.getValue();
 
-        if (this.resource.options) {
+				dropdown.element.classList.toggle("loading", !array);
 
-          options = KarmaFieldsAlpha.Type.toArray(this.parse(this.resource.options))
+				if (array && options) {
 
-        }
-
-        if (this.resource.driver) {
-
-          options = [...options, ...this.getOptions(this.resource.driver, this.resource.params || {})];
-
-        }
-        
-				dropdown.child = {
-					tag: "ul",
-					update: ul => {
-						ul.children = options.map((option, index) => {
-
-							const checkboxField = this.createChild({
-								type: "checkbox",
-								key: option.id,
-								text: option.name,
-								tag: "li",
-								false: "",
-								true: "1",
-								id: option.id
+					dropdown.child = {
+						tag: "ul",
+						update: ul => {
+							ul.children = options.map((option, index) => {
+								return this.createChild({
+									type: "checkbox",
+									key: option.id,
+									text: option.name,
+									tag: "li",
+									false: "",
+									true: "1",
+									index: index,
+									uid: `${this.resource.uid}-${index}`
+								}).build();
 							});
-							return checkboxField.build();
-						});
-					}
-				};
-				dropdown.element.classList.remove("loading");
+						}
+					};
+
+				}
+
 			}
 		};
 	}

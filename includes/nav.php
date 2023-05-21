@@ -8,7 +8,8 @@
 		var index = <?php echo $this->index; ?>;
 		var field = new KarmaFieldsAlpha.field.saucer({
 			...resource,
-			index: index
+			index: index,
+			uid: index.toString()
 		});
 
 
