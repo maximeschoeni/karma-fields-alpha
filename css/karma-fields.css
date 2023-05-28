@@ -358,7 +358,8 @@ body.karma-table-open {
   display: flex;
   flex-direction: column;
   overflow: auto;
-  flex-grow: 1;
+  min-width: 0;
+  /* flex-grow: 1; */
   padding: var(--gap-width);
 }
 
@@ -413,7 +414,7 @@ body.karma-table-open {
 .karma-fields .table {
   display: grid;
   grid-gap: 1px;
-  margin: 2em 0;
+  margin: 1.45em 0;
   /* background-color: black; */
 
   /* width: max-content;

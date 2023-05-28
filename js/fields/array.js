@@ -1249,9 +1249,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       type: "row"
     });
 
-    const defaults = child.getDefault();
+    // const defaults = child.getDefault();
 
-    this.setValue([...array, defaults]);
+    this.setValue([...array, undefined]);
 
     // KarmaFieldsAlpha.History.save();
     // this.parent.request("save");
@@ -1653,14 +1653,28 @@ KarmaFieldsAlpha.field.array.row = class extends KarmaFieldsAlpha.field {
 
 
 
-KarmaFieldsAlpha.field.array.row.delete = {
-  type: "button",
-  action: "delete",
-  value: ["index"],
-  title: "Delete",
-  dashicon: "no-alt",
-  class: "array-delete",
-  width: "auto"
+// KarmaFieldsAlpha.field.array.row.delete = {
+//   type: "button",
+//   action: "delete",
+//   value: ["index"],
+//   title: "Delete",
+//   dashicon: "no-alt",
+//   class: "array-delete",
+//   width: "auto"
+// };
+
+KarmaFieldsAlpha.field.array.row.delete = class extends KarmaFieldsAlpha.field.button {
+  constructor(resource) {
+    super({
+      action: "delete",
+      value: ["index"],
+      title: "Delete",
+      dashicon: "no-alt",
+      class: "array-delete",
+      width: "auto",
+      ...resource
+    });
+  }
 };
 
 KarmaFieldsAlpha.field.array.row.sortArrows = {

@@ -124,7 +124,15 @@ KarmaFieldsAlpha.Query = class {
         break;
 
       case "add":
-        await this.insert(task.driver);
+        await this.insert(task.driver, task.params, task.index);
+        break;
+
+      case "upload":
+        await this.uploadFile(task.driver, task.file, task.params, task.index);
+        break;
+
+      case "regen":
+        await this.regenFile(task.driver, task.id);
         break;
 
     }
@@ -355,37 +363,147 @@ KarmaFieldsAlpha.Query = class {
 
   }
 
-  static add(driver, index) {
+  static add(driver, index = 0, params = {}) {
 
     this.tasks.push({
       type: "add",
-      driver: driver
+      driver: driver,
+      params: params,
+      index: index,
+      method: this.insert
     });
 
-    const ids = [...KarmaFieldsAlpha.Store.get("ids")];
+    const ids = KarmaFieldsAlpha.Store.get("ids") || [];
+    const newIds = [...ids];
 
-    ids.splice(index, 0, null); // -> null means item is being added. Cannot use symbols in json
+    newIds.splice(index, 0, null); // -> null means item is being added. Cannot use symbols in json
 
-    KarmaFieldsAlpha.Store.set(ids, "ids");
+    KarmaFieldsAlpha.History.backup(newIds, ids, "ids");
+    KarmaFieldsAlpha.Store.set(newIds, "ids");
 
   }
 
-  static async insert(driver) {
+  static async insert(driver, params = {}, index = 0) {
 
     const currentIds = KarmaFieldsAlpha.Store.get("ids") || [];
-    const index = currentIds.findIndex(id => id === null);
+    // const index = currentIds.findIndex(id => id === null);
 
-    if (index > -1) {
+    // if (index > -1) {
 
-      let id = await KarmaFieldsAlpha.Gateway.post(`add/${driver}`);
-      id = id.toString();
-      const newIds = [...currentIds];
+    let id = await KarmaFieldsAlpha.Gateway.post(`add/${driver}`).then(id => id.toString());
+    const newIds = [...currentIds];
 
-      currentIds.splice(index, 1);
-      newIds[index] = id;
+    // currentIds.splice(index, 1);
+    newIds[index] = id;
 
-      KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
-      KarmaFieldsAlpha.Store.set(newIds, "ids");
+    KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
+    KarmaFieldsAlpha.Store.set(newIds, "ids");
+
+    for (let key in params) {
+
+      const value = KarmaFieldsAlpha.Type.toArray(params[key]);
+
+      KarmaFieldsAlpha.History.backup(value, [], "delta", driver, id, key);
+      KarmaFieldsAlpha.Store.set(value, "delta", driver, id, key);
+
+    }
+
+    KarmaFieldsAlpha.History.backup(["0"], ["1"], "delta", driver, id, "trash");
+    KarmaFieldsAlpha.Store.set(["0"], "delta", driver, id, "trash");
+
+
+  }
+
+  // static upload(file, params, index = 0, length = 0) {
+  //
+  //
+  //
+  //   const ids = [...KarmaFieldsAlpha.Store.get("ids")];
+  //   const id = ids[index];
+  //   ids[index] = null;
+  //
+  //   this.tasks.push({
+  //     type: "upload",
+  //     driver: "medias",
+  //     file: file,
+  //     params: params || {},
+  //     index: index,
+  //     id: id,
+  //     method: this.uploadFile
+  //   });
+  //
+  //   // ids.splice(index, length, null); // -> null means item is being added.
+  //
+  //   KarmaFieldsAlpha.Store.set(ids, "ids");
+  //
+  // }
+
+  static upload(driver, files, params, index = 0, length = 0) {
+
+    length = Math.min(length, files.length); // -> will not delete files
+
+    const currentIds = KarmaFieldsAlpha.Store.get("ids");
+    const newIds = [...currentIds];
+    const ids = newIds.splice(index, length);
+    newIds.splice(index, length, ...[...files].map(file => null));
+
+    // for (let id of idsToAdd) {
+    for (let i = 0; i < files.length; i++) {
+
+      const task = {
+        type: "upload",
+        driver: driver,
+        file: files[i],
+        params: {...params},
+        index: index + i,
+        method: this.uploadFile
+      }
+
+      if (ids[i]) { // -> only replacements
+
+        task.params.id = ids[i];
+        this.empty(driver, ids[i]);
+
+      }
+
+      this.tasks.push(task);
+
+    }
+
+
+    // ids.splice(index, length, null); // -> null means item is being added.
+
+    KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
+    KarmaFieldsAlpha.Store.set(newIds, "ids");
+
+  }
+
+  static async uploadFile(driver, file, params = {}, index) {
+
+    const currentIds = KarmaFieldsAlpha.Store.get("ids") || [];
+    // const index = currentIds.findIndex(id => id === null);
+
+
+    let id = await KarmaFieldsAlpha.Gateway.upload(file, params);
+    id = id.toString();
+    const newIds = [...currentIds];
+
+    // currentIds.splice(index, 1);
+    newIds[index] = id;
+
+    KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
+    KarmaFieldsAlpha.Store.set(newIds, "ids");
+
+    for (let key in params) {
+
+      const value = KarmaFieldsAlpha.Type.toArray(params[key]);
+
+      KarmaFieldsAlpha.History.backup(value, [], "delta", driver, id, key);
+      KarmaFieldsAlpha.Store.set(value, "delta", driver, id, key);
+
+    }
+
+    if (!params.id) {
 
       KarmaFieldsAlpha.History.backup(["0"], ["1"], "delta", driver, id, "trash");
       KarmaFieldsAlpha.Store.set(["0"], "delta", driver, id, "trash");
@@ -394,14 +512,54 @@ KarmaFieldsAlpha.Query = class {
 
   }
 
+  static regen(driver, ids) {
+
+    for (let id of ids) {
+
+      this.tasks.push({
+        type: "regen",
+        driver: driver,
+        id: id
+      });
+
+    }
+
+  }
+
+  static async regenFile(driver, id) {
+
+    await KarmaFieldsAlpha.Gateway.post("regen/"+id);
+
+  }
 
 
+  static empty(driver, id) {
 
-  static empty() {
-    this.vars = {};
-    this.queries = {};
-    this.counts = {};
-    this.attempts = {};
+    if (driver) {
+
+      if (id) {
+
+        KarmaFieldsAlpha.DeepObject.remove(this.vars, driver, id);
+        KarmaFieldsAlpha.DeepObject.remove(this.attempts, driver, id);
+
+      } else {
+
+        KarmaFieldsAlpha.DeepObject.remove(this.vars, driver);
+        KarmaFieldsAlpha.DeepObject.remove(this.attempts, driver);
+        KarmaFieldsAlpha.DeepObject.remove(this.queries, driver);
+        KarmaFieldsAlpha.DeepObject.remove(this.counts, driver);
+
+      }
+
+    } else {
+
+      this.vars = {};
+      this.queries = {};
+      this.counts = {};
+      this.attempts = {};
+
+    }
+
   }
 
 }

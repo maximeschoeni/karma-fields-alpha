@@ -81,13 +81,25 @@ KarmaFieldsAlpha.History = class {
 
 	}
 
-	static save() {
+	static save(ref) {
 
-    this.set(true, "redo");
+    // if ((!id || id !== this.lastId) && (!value || value !== this.lastValue)) {
+    if (ref !== this.ref) {
 
-    this.addState(this.buffer, "");
+      console.log("history save", ref);
 
-    this.buffer = {};
+      this.set(true, "redo");
+
+      this.addState(this.buffer, "");
+
+      this.buffer = {};
+
+      this.ref = ref;
+
+    }
+
+    // this.lastId = id;
+    // this.lastValue = value;
 
 	}
 

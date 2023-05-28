@@ -108,6 +108,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// unactivate history
 			editor.on("BeforeAddUndo", event => {
 				event.preventDefault();
+
+
 			});
 
 			editor.on("input", event => {

@@ -179,28 +179,20 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getValue(key) {
-
-    const param = this.getParam(key) || "";
-
-    return KarmaFieldsAlpha.Type.toArray(param);
-
-  }
-
   setParam(value, key) {
 
     const currentValue = this.getParam(key) || "";
 
 		if (value !== currentValue) {
 
-      KarmaFieldsAlpha.History.backup(value || null, currentValue || null, "nav", key);
+      KarmaFieldsAlpha.History.backup(value || null, currentValue || null, "params", key);
       KarmaFieldsAlpha.Store.set(value, "params", key);
 
       const page = KarmaFieldsAlpha.Store.get("params", "page") || 1;
 
       if (key !== "page" && page !== 1) {
 
-        KarmaFieldsAlpha.History.backup(null, page, "nav", "page");
+        KarmaFieldsAlpha.History.backup(null, page, "params", "page");
         KarmaFieldsAlpha.Store.remove("params", "page");
 
       }
@@ -214,14 +206,30 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       }
 
+      const selection = this.getSelection();
+
+      if (selection) {
+
+        this.setSelection();
+
+      }
+
       // KarmaFieldsAlpha.History.setState(state);
 
-      this.save();
+      // this.save();
       this.render();
 
 		}
 
 
+
+  }
+
+  getValue(key) {
+
+    const param = this.getParam(key) || "";
+
+    return KarmaFieldsAlpha.Type.toArray(param);
 
   }
 
@@ -231,33 +239,73 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     this.setParam(value, key);
 
-    // const state = KarmaFieldsAlpha.History.getState();
-    // const currentNav = state.nav;
-    //
-    // state.nav = {page: 1, ppp: 100, ...state.nav, [key]: value};
-    //
-		// if (KarmaFieldsAlpha.DeepObject.differ(state.nav, currentNav)) {
-    //
-    //   KarmaFieldsAlpha.History.backup(state.nav, currentNav, "nav");
-    //
-    //   // state.ids = this.getTable().getIds();
-    //
-    //   if (KarmaFieldsAlpha.Query.ids) {
-    //
-    //     state.ids = KarmaFieldsAlpha.Query.ids;
-    //     delete KarmaFieldsAlpha.Query.ids;
-    //
-    //   }
-    //
-    //
-    //   KarmaFieldsAlpha.History.setState(state);
-    //
-		// }
-    //
-    // this.save();
-    // this.render();
 
   }
+
+  getTable() {
+
+    return KarmaFieldsAlpha.Store.get("table");
+
+  }
+
+  setTable(table) {
+
+    const currentTable = KarmaFieldsAlpha.Store.get("table");
+
+    if (table !== currentTable) {
+
+      KarmaFieldsAlpha.History.backup(table || null, currentTable || null, "table");
+      KarmaFieldsAlpha.Store.set(table, "table");
+
+      const ids = KarmaFieldsAlpha.Store.get("ids");
+
+      if (ids) {
+
+        KarmaFieldsAlpha.History.backup(null, ids, "ids");
+        KarmaFieldsAlpha.Store.remove("ids");
+
+      }
+
+      this.save();
+
+    }
+
+  }
+
+  getParams() {
+
+    return KarmaFieldsAlpha.Store.get("params") || {};
+
+  }
+
+  setParams(params = {}) {
+
+    const currentParams = KarmaFieldsAlpha.Store.get("params") || {};
+
+    for (let i in {...params, ...currentParams}) {
+
+      KarmaFieldsAlpha.History.backup(params[i] || null, currentParams[i] || null, "nav", i);
+      KarmaFieldsAlpha.Store.set(params[i], "params", i);
+
+    }
+
+  }
+
+  getIds() {
+
+    return KarmaFieldsAlpha.Store.get("ids");
+
+  }
+
+  setIds(ids) {
+
+    const currentIds =  KarmaFieldsAlpha.Store.get("ids");
+
+    KarmaFieldsAlpha.History.backup(ids || null, currentIds, "ids");
+    KarmaFieldsAlpha.Store.set(ids, "ids");
+
+  }
+
 
   modified(...path) {
 
@@ -268,9 +316,14 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
 
-  save() {
+  save(ref) {
 
-    this.saveFlag = true;
+    console.log("saucer save", ref);
+    // console.trace();
+
+    // KarmaFieldsAlpha.History.saveFlag = true;
+
+    KarmaFieldsAlpha.History.save(ref);
 
     // this.debounce("saving", () => KarmaFieldsAlpha.History.save(), 1000);
 
@@ -332,19 +385,29 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   follow(selection, callback) {
 
-    if (selection.final) {
+    if (!selection) {
 
-      return callback(this, selection);
+      selection = this.getSelection();
 
-    } else if (this.resource.tables) {
+    }
 
-      for (let i in this.resource.tables) {
+    if (selection) {
 
-        if (selection[i]) {
+      if (selection.final) {
 
-          const child = this.createChild({type: "table", ...this.resource.tables[i], index: i, uid: `${this.resource.uid}-${i}`});
+        return callback(this, selection);
 
-          return child.follow(selection[i], callback);
+      } else if (this.resource.tables) {
+
+        for (let i in this.resource.tables) {
+
+          if (selection[i]) {
+
+            const child = this.createChild({type: "table", ...this.resource.tables[i], index: i, uid: `${this.resource.uid}-${i}`});
+
+            return child.follow(selection[i], callback);
+
+          }
 
         }
 
@@ -375,6 +438,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
       });
 
     }
+
+    this.save(1);
 
   }
 
@@ -481,7 +546,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     }
 
-    this.save();
+    this.save(-1);
     this.render();
 
   }
@@ -595,13 +660,15 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
 
-  add() {
+  add(params = {}) {
 
     const grid = this.getGrid();
 
     if (grid && grid.add) {
 
-      grid.add();
+      const {index: index = 0} = grid.getSelection() || {};
+
+      grid.add(index, params);
 
       this.render();
 
@@ -665,68 +732,6 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     return this.renderPromise;
   }
 
-  getTable() {
-
-    return KarmaFieldsAlpha.Store.get("table");
-
-  }
-
-
-  setTable(table) {
-
-    const currentTable = KarmaFieldsAlpha.Store.get("table");
-
-    if (table !== currentTable) {
-
-      KarmaFieldsAlpha.History.backup(table || null, currentTable || null, "table");
-      KarmaFieldsAlpha.Store.set(table, "table");
-
-      const ids = KarmaFieldsAlpha.Store.get("ids");
-
-      if (ids) {
-
-        KarmaFieldsAlpha.History.backup(null, ids, "ids");
-        KarmaFieldsAlpha.Store.remove("ids");
-
-      }
-
-    }
-
-  }
-
-  getParams() {
-
-    return KarmaFieldsAlpha.Store.get("params") || {};
-
-  }
-
-  setParams(params = {}) {
-
-    const currentParams = KarmaFieldsAlpha.Store.get("params") || {};
-
-    for (let i in {...params, ...currentParams}) {
-
-      KarmaFieldsAlpha.History.backup(params[i] || null, currentParams[i] || null, "nav", i);
-      KarmaFieldsAlpha.Store.set(params[i], "params", i);
-
-    }
-
-  }
-
-  getIds() {
-
-    return KarmaFieldsAlpha.Store.get("ids");
-
-  }
-
-  setIds(ids) {
-
-    const currentIds =  KarmaFieldsAlpha.Store.get("ids");
-
-    KarmaFieldsAlpha.History.backup(ids || null, currentIds, "ids");
-    KarmaFieldsAlpha.Store.set(ids, "ids");
-
-  }
 
   removeIds() {
 
@@ -737,6 +742,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   fetch(tableId) {
 
     if (this.resource.tables && this.resource.tables[tableId] && this.resource.tables[tableId].body) {
+
+      this.save("fetch");
 
       this.setTransfer({
         selection: this.getSelection(),
@@ -755,7 +762,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       this.setSelection();
 
-      this.save();
+      // this.save();
       this.render();
 
     }
@@ -814,6 +821,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       if (ids && ids.length) {
 
+        this.save("insert");
+
         this.setTable(transfer.table);
         this.setParams(transfer.params);
         this.setSelection(transfer.selection);
@@ -822,6 +831,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
         await this.render();
 
         this.follow(transfer.selection, (field, selection) => field.insert && field.insert(ids, selection.index, selection.length));
+
+        // this.save();
 
       }
 
@@ -834,6 +845,39 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     return false;
 
   }
+
+  upload(files, index = 0, length = 0) {
+
+    const grid = this.getGrid();
+
+    if (grid && grid.upload) {
+
+      const {index: index = 0} = grid.getSelection() || {};
+
+      grid.upload(files, index, length);
+
+      this.render();
+
+    }
+
+    // this.follow(undefined, (field, selection) => field.upload && field.upload(field.resource.driver, files, index, length));
+
+    // this.follow()
+    //
+    // KarmaFieldsAlpha.Query.upload(files, {
+    //   parent: this.getParam("parent") || "0"
+    // }, index, length);
+    //
+    // this.render();
+  }
+
+  // async regen(ids) {
+  //
+  //   KarmaFieldsAlpha.Query.regen(ids);
+  //
+  // }
+
+
 
 
 
@@ -1846,13 +1890,17 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
         // const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
         //
-        // clipboard.onblur = event => {
-        //   console.log("clipboard blur");
-        //
-        //   // this.setSelection(null);
-        //
-        //   this.clearSelection();
-        // }
+
+        clipboard.onblur = event => {
+          // console.log("clipboard blur");
+          //
+          // // this.setSelection(null);
+          //
+          // this.clearSelection();
+
+          KarmaFieldsAlpha.History.save();
+
+        }
 
       },
       update: popup => {
@@ -1873,9 +1921,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
                   if (this.resource.navigation) {
                     navigation.child = this.createChild({
                       ...this.resource.navigation,
-                      type: "navigation",
-                      index: "navigation",
-                      uid: `${this.resource.uid}-navigation`
+                      type: "menu",
+                      index: "menu",
+                      uid: `${this.resource.uid}-menu`
                     }).build();
                   }
                 }
@@ -1971,12 +2019,13 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
         } else {
 
-          if (this.saveFlag) {
-
-            this.saveFlag = false;
-            KarmaFieldsAlpha.History.save();
-
-          }
+          // if (KarmaFieldsAlpha.History.saveFlag) {
+          //
+          //   // KarmaFieldsAlpha.History.saveFlag = false;
+          //   // KarmaFieldsAlpha.History.save();
+          //   // console.log("save");
+          //
+          // }
 
           // this.rendering = false;
           this.onRender = popup.render;
@@ -2043,6 +2092,7 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
 
 
   build() {
+
     return {
       class: "karma-field-table",
       update: async div => {
@@ -2105,10 +2155,51 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                   div.children = [
                     {
                       class: "table-body-column table-content",
-                      child: grid.build()
+                      // child: grid.build()
+                      child: {
+                        class: "table-body-columns",
+                        children: [
+                          {
+                            class: "karma-field-table-grid-container karma-field-frame karma-field-group final scroll-container table-body-column",
+                            child: grid.build()
+                          },
+                          // grid.buildModal()
+                          {
+                            class: "grid-modal table-body-column karma-modal scroll-container",
+                            update: div => {
+
+                              // const selection = grid.getSelection();
+                              div.element.classList.toggle("hidden", !grid.resource.modal);
+
+                              // if (grid.resource.modal && selection) {
+                              if (grid.resource.modal) {
+                                const modal = grid.createChild({
+                                  type: "modal",
+                                  ...grid.resource.modal,
+                                  index: "modal",
+                                  uid: `${grid.resource.uid}-modal`
+                                });
+                                div.element.style.width = grid.resource.modal.width || "30em";
+                                div.element.onmousedown = event => {
+                                  event.stopPropagation(); // -> prevent unselecting
+                                  modal.setSelection({final: true});
+                                  this.render();
+                                };
+                                const selection = grid.getSelection();
+                                if (selection) {
+                                  div.child = modal.build();
+                                } else {
+                                  div.children = [];
+                                }
+
+                              }
+                            }
+                          }
+                        ]
+                      }
                     },
                     {
-                      class: "table-body-column table-modal",
+                      class: "table-body-column table-modal karma-modal",
                       update: container => {
                         // const selection = grid.getSelection();
                         //
@@ -2124,44 +2215,49 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
 
 
 
-                        container.element.style.width = this.resource.modal && this.resource.modal.width || grid.resource.modal && grid.getSelection() && (grid.resource.modal.width || "30em") || "0";
+                        // container.element.style.width = this.resource.modal && this.resource.modal.width || grid.resource.modal && grid.getSelection() && (grid.resource.modal.width || "30em") || "0";
 
-                        container.child = {
-                          class: "karma-modal", // -> handle overflow:auto
-                          children: [
-                            {
-                              class: "table-modal-content",
-                              update: div => {
-                                div.element.classList.toggle("hidden", !this.resource.modal);
-                                if (this.resource.modal) {
-                                  div.child = this.createChild({
-                                    type: "group",
-                                    ...this.resource.modal,
-                                    index: "modal",
-                                    uid: `${this.resource.uid}-modal`
-                                  }).build()
-                                }
-                              }
-                            },
-                            {
-                              class: "grid-modal-content",
-                              update: div => {
-                                // const hasSelection = grid.hasSelection();
-                                const selection = grid.getSelection();
-                                div.element.classList.toggle("hidden", !selection);
-                                if (selection) {
-                                  div.child = grid.createChild({
-                                    type: "modal",
-                                    ...grid.resource.modal,
-                                    selection: grid.getSelection(),
-                                    index: "modal",
-                                    uid: `${grid.resource.uid}-modal`
-                                  }).build()
-                                }
-                              }
-                            }
-                          ]
-                        };
+                        container.element.classList.toggle("hidden", !this.resource.modal);
+
+                        if (this.resource.modal) {
+                          container.element.style.width = this.resource.modal.width || "30em";
+                          // container.child = {
+                            // class: "karma-modal", // -> handle overflow:auto
+                            // children: [
+                            //   {
+                                // class: "table-modal-content",
+                                // update: div => {
+                                  // div.element.classList.toggle("hidden", !this.resource.modal);
+                                  // if (this.resource.modal) {
+                                    container.child = this.createChild({
+                                      type: "group",
+                                      ...this.resource.modal,
+                                      index: "modal",
+                                      uid: `${this.resource.uid}-modal`
+                                    }).build();
+                                //   }
+                                // }
+                              // }
+                              // {
+                              //   class: "grid-modal-content",
+                              //   update: div => {
+                              //     // const hasSelection = grid.hasSelection();
+                              //     const selection = grid.getSelection();
+                              //     div.element.classList.toggle("hidden", !selection);
+                              //     if (selection) {
+                              //       div.child = grid.createChild({
+                              //         type: "modal",
+                              //         ...grid.resource.modal,
+                              //         selection: grid.getSelection(),
+                              //         index: "modal",
+                              //         uid: `${grid.resource.uid}-modal`
+                              //       }).build()
+                              //     }
+                              //   }
+                              // }
+                            // ]
+                          // };
+                        }
                       }
                     }
                   ]
@@ -2189,6 +2285,58 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
 
   }
 }
+
+
+
+KarmaFieldsAlpha.field.saucer.menu = class extends KarmaFieldsAlpha.field {
+
+  getItems() {
+    return this.resource.items || this.resource.children || [];
+  }
+
+  build() {
+    return {
+      tag: "ul",
+      children: this.getItems().map(item => {
+        return {
+          tag: "li",
+          children: [
+            {
+              tag: "a",
+              init: li => {
+                li.element.innerHTML = item.title;
+                li.element.href = "#"+(item.hash || "");
+                if (item.table) {
+                  li.element.onclick = event => {
+                    event.preventDefault();
+                    this.parent.request("setTable", item.table);
+                    this.render();
+                  }
+                }
+                if (item.action) {
+                  li.element.onclick = event => {
+                    event.preventDefault();
+                    this.parent.request(item.action, ...item.values);
+                  }
+                }
+              }
+            },
+            this.createChild({
+              items: item.items || item.children || [],
+              type: "menu"
+            }).build()
+          ],
+          update: li => {
+            const active = this.resource.table && this.resource.table === this.parent.request("getTable");
+            li.element.classList.toggle("active", Boolean(active));
+          }
+        };
+      })
+    }
+  }
+
+}
+
 
 
 KarmaFieldsAlpha.field.saucer.controls = class extends KarmaFieldsAlpha.field.container {
@@ -2268,12 +2416,12 @@ KarmaFieldsAlpha.field.saucer.insert = {
   visible: ["request", "hasTransfer"]
 }
 
-KarmaFieldsAlpha.field.saucer.createFolder = {
-  type: "button",
-  action: "createFolder",
-  title: "Create Folder"
-}
 
+// KarmaFieldsAlpha.field.saucer.upload = {
+//   type: "button",
+//   action: "upload",
+//   title: "Upload File"
+// }
 
 
 KarmaFieldsAlpha.field.saucer.header = class extends KarmaFieldsAlpha.field.container {

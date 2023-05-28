@@ -147,7 +147,10 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 			},
 			update: async input => {
 
+				const data = this.getData();
+
         let value = this.getValue();
+
 
         input.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
 
@@ -187,13 +190,64 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
           }
 
-          input.element.oninput = async event => {
+          input.element.oninput = event => {
 
-						value = input.element.value.normalize();
 
-						this.debounce("typing", () => this.setValue(value), 750);
+
+						const newValue = input.element.value.normalize();
+
+						// const diff = newValue.length - value.length;
+
+						if (newValue.length < value.length) {
+
+							KarmaFieldsAlpha.History.save("delete");
+
+						} else {
+
+							// KarmaFieldsAlpha.History.save("input");
+
+						}
+
+						// KarmaFieldsAlpha.History.save(newValue.length - value.length);
+
+						// console.log(diff);
+						//
+						// if (diff !== data.diff) {
+						//
+						// 	KarmaFieldsAlpha.History.save();
+						//
+						// 	data.diff = diff;
+						//
+						// }
+
+						value = newValue;
+
+
+						// this.debounce("typing", () => this.setValue(value), 750);
+
+						// KarmaFieldsAlpha.Timing.throttle(() => KarmaFieldsAlpha.History.save(), 1000);
+
+						this.setValue(value);
+
+
+
+
+
 
           }
+
+					input.element.onblur = event => {
+
+						// if (data.diff) {
+						//
+						// 	KarmaFieldsAlpha.History.save();
+						//
+						// };
+						//
+						// data.diff = undefined;
+
+						KarmaFieldsAlpha.History.save();
+					}
 
 					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
 

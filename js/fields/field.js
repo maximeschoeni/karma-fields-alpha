@@ -47,6 +47,10 @@ KarmaFieldsAlpha.field = class {
     return this.resource.uid;
   }
 
+  getUid() {
+    return this.resource.uid;
+  }
+
   getUniqueId() {
     return KarmaFieldsAlpha.field.uniqueId++;
   }
@@ -491,7 +495,7 @@ console.error("deprecated");
     } else {
 
       this.parent.setValue(value, ...path);
-      
+
     }
 
 

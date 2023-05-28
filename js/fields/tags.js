@@ -165,6 +165,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
       this.setValue(slice);
 
+      KarmaFieldsAlpha.History.save("insert");
+
     }
 
   }

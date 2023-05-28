@@ -88,6 +88,181 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   }
 
+  getIcon(id) {
+
+    if (id === null) {
+
+      return "upload";
+
+    } else if (id === KarmaFieldsAlpha.field.medias.exit) {
+
+      return "exit";
+
+     } else {
+
+      let mimetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype");
+      let filetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "filetype");
+
+      if (mimetype && filetype) {
+
+        mimetype = mimetype[0] || "";
+        filetype = filetype[0] || "";
+
+        if (filetype === "folder") {
+
+          return "folder";
+
+        } else if (mimetype.startsWith("image")) {
+
+          return "image";
+
+        } else if (mimetype.startsWith("video")) {
+
+          return "video";
+
+        } else if (mimetype.startsWith("audio")) {
+
+          return "audio";
+
+        } else if (mimetype.startsWith("text")) {
+
+          return "text";
+
+        } else if (mimetype === "application/pdf") {
+
+          return "document";
+
+        } else if (mimetype === "application/zip") {
+
+          return "zip";
+
+        } else {
+
+          return "default";
+
+        }
+
+      } else {
+
+        return "notfound";
+
+      }
+
+    }
+
+  }
+
+  getFile(id) {
+
+    let mimetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype");
+    let filename = KarmaFieldsAlpha.Query.getValue(this.driver, id, "filename");
+    let dir = KarmaFieldsAlpha.Query.getValue(this.driver, id, "dir");
+
+    if (filename && mimetype && dir) {
+
+      filename = filename[0] || "";
+      mimetype = mimetype[0] || "";
+      dir = dir[0] || "";
+
+      if (mimetype === "image/jpeg" || mimetype === "image/png") {
+
+        let sizes = KarmaFieldsAlpha.Query.getValue(this.driver, id, "sizes");
+
+        if (sizes) {
+
+          const thumb = sizes.find(size => size.name === "thumbnail");
+
+          if (thumb) {
+
+            return dir+"/"+thumb.filename;
+
+          }
+
+        }
+
+      }  else if (mimetype.startsWith("image")) {
+
+        return dir+"/"+filename;
+
+      }
+
+    }
+
+  }
+
+  getCaption(id) {
+
+    let file = KarmaFieldsAlpha.Query.getValue(this.driver, id, "basename");
+    let filetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "filetype");
+
+    if (filetype) {
+
+      if (filetype[0] === "folder") {
+
+        let title = KarmaFieldsAlpha.Query.getValue(this.driver, id, "post_title");
+
+        if (title) {
+
+          return title[0] || "";
+
+        } else {
+
+          return "loading...";
+
+        }
+
+      } else {
+
+        let mimetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype");
+
+        if (mimetype) {
+
+          mimetype = mimetype[0] || "";
+
+          if (mimetype !== KarmaFieldsAlpha.loading) {
+
+            if (file) {
+
+              file = file[0] || "";
+
+              if (file) {
+
+                return file.slice(file.lastIndexOf("/") + 1);
+
+              } else {
+
+                return "file not found";
+
+              }
+
+            } else {
+
+              return "loading file...";
+
+            }
+
+          } else {
+
+            return "attachment not found";
+
+          }
+
+        } else {
+
+          return "loading attachment...";
+
+        }
+
+      }
+
+    } else {
+
+      return "loading...";
+
+    }
+
+  }
+
 
   build() {
     return {
@@ -230,106 +405,109 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                       frame.element.classList.toggle("selected", KarmaFieldsAlpha.Segment.contain(selection, rowIndex));
 
-                      let [mimetype] = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype") || [KarmaFieldsAlpha.loading];
-
-                      let icon;
-
-                      frame.element.classList.toggle("loading", mimetype === KarmaFieldsAlpha.loading);
-
-                      if (!mimetype) {
-
-                        icon = "notfound";
-
-                      } else if (mimetype === KarmaFieldsAlpha.loading) {
-
-                        icon = "loading";
-
-                      } else if (mimetype.startsWith("image")) {
-
-                        icon = "image";
-
-                      } else if (mimetype.startsWith("video")) {
-
-                        icon = "video";
-
-                      } else if (mimetype.startsWith("audio")) {
-
-                        icon = "audio";
-
-                      } else if (mimetype.startsWith("text")) {
-
-                        icon = "text";
-
-                      } else if (mimetype === "application/pdf") {
-
-                        icon = "document";
-
-                      } else if (mimetype === "application/zip") {
-
-                        icon = "zip";
-
-                      } else {
-
-                        icon = "default";
-
-                      }
-
-                      let [file] = KarmaFieldsAlpha.Query.getValue(this.driver, id, "_wp_attached_file") || [KarmaFieldsAlpha.loading];
+                      // let [mimetype] = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype") || [KarmaFieldsAlpha.loading];
+                      //
+                      // let icon;
+                      //
+                      // frame.element.classList.toggle("loading", mimetype === KarmaFieldsAlpha.loading);
+                      //
+                      // if (!mimetype) {
+                      //
+                      //   icon = "notfound";
+                      //
+                      // } else if (mimetype === KarmaFieldsAlpha.loading) {
+                      //
+                      //   icon = "loading";
+                      //
+                      // } else if (mimetype.startsWith("image")) {
+                      //
+                      //   icon = "image";
+                      //
+                      // } else if (mimetype.startsWith("video")) {
+                      //
+                      //   icon = "video";
+                      //
+                      // } else if (mimetype.startsWith("audio")) {
+                      //
+                      //   icon = "audio";
+                      //
+                      // } else if (mimetype.startsWith("text")) {
+                      //
+                      //   icon = "text";
+                      //
+                      // } else if (mimetype === "application/pdf") {
+                      //
+                      //   icon = "document";
+                      //
+                      // } else if (mimetype === "application/zip") {
+                      //
+                      //   icon = "zip";
+                      //
+                      // } else {
+                      //
+                      //   icon = "default";
+                      //
+                      // }
+                      //
+                      // let [file] = KarmaFieldsAlpha.Query.getValue(this.driver, id, "_wp_attached_file") || [KarmaFieldsAlpha.loading];
 
                       frame.children = [
                         {
                           tag: "figure",
                           update: async figure => {
 
-                            if (icon === "image") {
+                            // if (icon === "image") {
+                            //
+                            //   const sizes = (mimetype === "image/jpeg" || mimetype === "image/png") && KarmaFieldsAlpha.Query.getValue(this.driver, id, "sizes");
+                            //
+                            //   if (sizes) {
+                            //
+                            //     const thumb = sizes.find(size => size.name === 'thumbnail');
+                            //
+                            //     if (thumb) {
+                            //
+                            //       figure.children = [{
+                            //         tag: "img",
+                            //         update: image => {
+                            //           image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.file;
+                            //           image.element.width = thumb.width;
+                            //           image.element.height = thumb.height;
+                            //         }
+                            //       }];
+                            //
+                            //     } else {
+                            //
+                            //       icon = "notfound";
+                            //
+                            //     }
+                            //
+                            //   } else if (file) {
+                            //
+                            //     if (file !== KarmaFieldsAlpha.loading) {
+                            //
+                            //       figure.children = [{
+                            //         tag: "img",
+                            //         update: image => {
+                            //           image.element.src = KarmaFieldsAlpha.uploadURL+"/"+file;
+                            //         }
+                            //       }];
+                            //
+                            //     }
+                            //
+                            //   } else {
+                            //
+                            //     icon = "notfound";
+                            //
+                            //   }
+                            //
+                            // } else {
+                            //
+                            //   figure.children = [];
+                            //
+                            // }
 
-                              const sizes = (mimetype === "image/jpeg" || mimetype === "image/png") && KarmaFieldsAlpha.Query.getValue(this.driver, id, "sizes");
-
-                              if (sizes) {
-
-                                const thumb = sizes.find(size => size.name === 'thumbnail');
-
-                                if (thumb) {
-
-                                  figure.children = [{
-                                    tag: "img",
-                                    update: image => {
-                                      image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.file;
-                                      image.element.width = thumb.width;
-                                      image.element.height = thumb.height;
-                                    }
-                                  }];
-
-                                } else {
-
-                                  icon = "notfound";
-
-                                }
-
-                              } else if (file) {
-
-                                if (file !== KarmaFieldsAlpha.loading) {
-
-                                  figure.children = [{
-                                    tag: "img",
-                                    update: image => {
-                                      image.element.src = KarmaFieldsAlpha.uploadURL+"/"+file;
-                                    }
-                                  }];
-
-                                }
-
-                              } else {
-
-                                icon = "notfound";
-
-                              }
-
-                            } else {
-
-                              figure.children = [];
-
-                            }
+                            const filename = this.getFile(id);
+                            const icon = !filename && this.getIcon(id);
 
                             figure.element.classList.toggle("dashicons", icon !== "thumb");
                             figure.element.classList.toggle("dashicons-upload", icon === "upload");
@@ -343,29 +521,43 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                             figure.element.classList.toggle("dashicons-hourglass", icon === "loading");
                             figure.element.classList.toggle("dashicons-warning", icon === "notfound");
 
+                            if (filename) {
+                              figure.children = [{
+                                tag: "img",
+                                update: image => {
+                                  if (!image.element.src.endsWith(filename)) {
+                                    image.element.src = KarmaFieldsAlpha.uploadURL+filename;
+                                  }
+                                }
+                              }];
+                            } else {
+                              figure.children = [];
+                            }
+
                           }
                         },
                         {
                           class: "filename",
-                          update: async caption => {
-                            if (mimetype) {
-                              if (mimetype !== KarmaFieldsAlpha.loading) {
-                                if (file) {
-                                  if (file !== KarmaFieldsAlpha.loading) {
-                                    const filename = file.slice(file.lastIndexOf("/") + 1);
-                                    caption.element.innerHTML = filename;
-                                  } else {
-                                    caption.element.innerHTML = "loading file...";
-                                  }
-                                } else {
-                                  caption.element.innerHTML = "file not found";
-                                }
-                              } else {
-                                caption.element.innerHTML = "loading attachment...";
-                              }
-                            } else {
-                              caption.element.innerHTML = "attachment not found";
-                            }
+                          update: caption => {
+                            caption.element.innerHTML = this.getCaption(id);
+                            // if (mimetype) {
+                            //   if (mimetype !== KarmaFieldsAlpha.loading) {
+                            //     if (file) {
+                            //       if (file !== KarmaFieldsAlpha.loading) {
+                            //         const filename = file.slice(file.lastIndexOf("/") + 1);
+                            //         caption.element.innerHTML = filename;
+                            //       } else {
+                            //         caption.element.innerHTML = "loading file...";
+                            //       }
+                            //     } else {
+                            //       caption.element.innerHTML = "file not found";
+                            //     }
+                            //   } else {
+                            //     caption.element.innerHTML = "loading attachment...";
+                            //   }
+                            // } else {
+                            //   caption.element.innerHTML = "attachment not found";
+                            // }
                           }
                         }
                       ];
@@ -373,42 +565,42 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                   };
                 });
 
-                if (data.uploads) {
-
-                  for (let i = 0; i < data.uploads; i++) {
-
-                    gallery.children.push({
-                      class: "frame",
-                      children: [
-                        {
-                          tag: "figure",
-                          children: [],
-                          update: async figure => {
-                            figure.element.classList.toggle("dashicons", true);
-                            figure.element.classList.toggle("dashicons-upload", true);
-                            figure.element.classList.toggle("dashicons-media-video", false);
-                            figure.element.classList.toggle("dashicons-media-audio", false);
-                            figure.element.classList.toggle("dashicons-media-text", false);
-                            figure.element.classList.toggle("dashicons-media-document", false);
-                            figure.element.classList.toggle("dashicons-media-default", false);
-                            figure.element.classList.toggle("dashicons-format-image", false);
-                            figure.element.classList.toggle("dashicons-media-archive", false);
-                            figure.element.classList.toggle("dashicons-hourglass", false);
-                            figure.element.classList.toggle("dashicons-warning", false);
-                          }
-                        },
-                        {
-                          class: "filename",
-                          update: async caption => {
-                            caption.element.innerHTML = "uploading file...";
-                          }
-                        }
-                      ]
-                    });
-
-                  }
-
-                }
+                // if (data.uploads) {
+                //
+                //   for (let i = 0; i < data.uploads; i++) {
+                //
+                //     gallery.children.push({
+                //       class: "frame",
+                //       children: [
+                //         {
+                //           tag: "figure",
+                //           children: [],
+                //           update: async figure => {
+                //             figure.element.classList.toggle("dashicons", true);
+                //             figure.element.classList.toggle("dashicons-upload", true);
+                //             figure.element.classList.toggle("dashicons-media-video", false);
+                //             figure.element.classList.toggle("dashicons-media-audio", false);
+                //             figure.element.classList.toggle("dashicons-media-text", false);
+                //             figure.element.classList.toggle("dashicons-media-document", false);
+                //             figure.element.classList.toggle("dashicons-media-default", false);
+                //             figure.element.classList.toggle("dashicons-format-image", false);
+                //             figure.element.classList.toggle("dashicons-media-archive", false);
+                //             figure.element.classList.toggle("dashicons-hourglass", false);
+                //             figure.element.classList.toggle("dashicons-warning", false);
+                //           }
+                //         },
+                //         {
+                //           class: "filename",
+                //           update: async caption => {
+                //             caption.element.innerHTML = "uploading file...";
+                //           }
+                //         }
+                //       ]
+                //     });
+                //
+                //   }
+                //
+                // }
 
               }
             },
@@ -416,13 +608,13 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
               class: "controls",
               child: {
                 class: "footer-content",
-                init: controls => {
-                  controls.element.onmousedown = event => {
-                    event.preventDefault(); // -> prevent losing focus on selected items
-                  }
-                },
+                // init: controls => {
+                //   controls.element.onmousedown = event => {
+                //     event.preventDefault(); // -> prevent losing focus on selected items
+                //   }
+                // },
                 update: controls => {
-                  this.onRenderControls = controls.render;
+                  // this.onRenderControls = controls.render;
                   if (this.resource.controls !== false) {
                     controls.child = this.createChild(this.resource.controls || "controls").build();
                   }

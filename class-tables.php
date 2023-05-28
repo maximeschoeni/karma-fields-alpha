@@ -172,12 +172,12 @@ class Karma_Fields_Alpha {
 				// wp_enqueue_script('karma-fields-alpha-table-modal', $plugin_url . '/js/tables/table-modal.js', array('karma-fields-alpha-table'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-collection', $plugin_url . '/js/tables/collection.js', array('karma-fields-alpha-table', 'karma-fields-alpha-table-row', 'karma-fields-alpha-table-modal'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-arrangement', $plugin_url . '/js/tables/arrangement.js', array('karma-fields-alpha-collection'), $this->version, true);
-				// wp_enqueue_script('karma-fields-alpha-medias', $plugin_url . '/js/tables/medias.js', array('karma-fields-alpha-collection'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-medias-description', $plugin_url . '/js/tables/medias-description.js', array('karma-fields-alpha-medias'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-medias-row', $plugin_url . '/js/tables/medias-row.js', array('karma-fields-alpha-medias', 'karma-fields-alpha-table-row'), $this->version, true);
 
 				wp_enqueue_script('karma-fields-alpha-grid', $plugin_url . '/js/tables/grid.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-grid-modal', $plugin_url . '/js/tables/modal.js', array('karma-fields-alpha-grid'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-medias', $plugin_url . '/js/tables/medias.js', array('karma-fields-alpha-grid'), $this->version, true);
 
 
 
@@ -224,6 +224,7 @@ class Karma_Fields_Alpha {
         wp_enqueue_script('karma-fields-utils-terminal', $plugin_url . '/js/utils/terminal.js', array(), $this->version, true);
         wp_enqueue_script('karma-fields-utils-utils', $plugin_url . '/js/utils/utils.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-store', $plugin_url . '/js/utils/store.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-timing', $plugin_url . '/js/utils/timing.js', array(), $this->version, true);
 
 
 				// external dependancies
@@ -326,7 +327,11 @@ class Karma_Fields_Alpha {
 			'medias',
 			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-medias.php',
 			'Karma_Fields_Alpha_Driver_Medias',
-      array('meta', 'filemeta', 'taxonomy')
+      array(
+				'filemeta1',
+				'filemeta2',
+				'meta',
+				'taxonomy')
 		);
 
 		$this->register_driver(

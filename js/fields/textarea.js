@@ -14,6 +14,9 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
         if (this.resource.readonly) {
 					input.element.readOnly = true;
 				}
+				if (this.resource.height) {
+					input.element.style.height = this.resource.height;
+				}
 			},
 			update: async input => {
 
