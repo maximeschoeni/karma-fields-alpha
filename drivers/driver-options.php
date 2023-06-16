@@ -74,7 +74,7 @@ Class Karma_Fields_Alpha_Driver_Options {
       $output = array(array_merge(
         array('id' => $id),
         $option
-      ));      
+      ));
 
     }
 
@@ -89,7 +89,7 @@ Class Karma_Fields_Alpha_Driver_Options {
     $option = get_option($id);
 
     if (!$option) {
-      
+
       $option = array();
 
     }

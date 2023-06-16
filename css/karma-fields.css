@@ -140,7 +140,7 @@ body.karma-table-open {
 .karma-modal,
 .table-modal-header,
 .karma-field-table-section {
-  box-shadow: 0 0 8px 0px #4848487a;
+  /* box-shadow: 0 0 8px 0px #4848487a; */
   outline: 1px solid var(--frame-border-color);
   position: relative;
 }
@@ -513,8 +513,9 @@ body.karma-table-open {
 
 /* Table Grid Arrangement
 --------------------------------------*/
-.karma-fields .table .td.drag {
+.karma-fields .table .drag {
   z-index: 10;
+  user-select: none;
 }
 .karma-fields .arrangement li.arrangement-item {
   outline: 1px solid black;
@@ -642,7 +643,7 @@ body.karma-table-open {
   padding: 2em 0;
   position: relative; /* needed for children offset calculation */
 
-  flex-grow: 1;
+  /* flex-grow: 1; */
   width: 100%;
   /* min-height: 100%; */  /* -> for droping files */
 }
@@ -729,8 +730,8 @@ body.karma-table-open {
   transition: transform 100ms;
 }
 .karma-field-table .media-table li.media-dropzone.drop-active:not(.drag) .frame figure::before {
-  background-color: white;
-  transform: scale(1.2);
+  /* background-color: white; */
+  transform: scale(1.02);
 }
 
 .karma-field-table .media-table .frame .file-caption {
@@ -1240,16 +1241,32 @@ ul.tag-links li:not(:last-child)::after {
 }
 .karma-field-container.display-flex {
   flex-direction: row;
+  align-items: flex-end;
 }
 .karma-field-container.display-block {
   flex-wrap: nowrap;
 }
-.karma-field-container.display-table>.karma-field-frame {
+.karma-field-container.display-table {
+  display: table;
+  table-layout: auto;
+}
+.karma-field-container.display-table>* {
+  display: table-row;
+}
+.karma-field-container.display-table>*>* {
+  display: table-cell;
+  padding: 0 0 0.75em;
+}
+.karma-field-container.display-table>*>label {
+  display: table-cell;
+  padding: 0 var(--gap-width) var(--gap-width) 0;
+}
+/* .karma-field-container.display-table>.karma-field-frame {
   flex-direction: row;
   gap: var(--gap-width);
   align-items: baseline;
   justify-content: flex-end;
-}
+} */
 
 .karma-field-group {
   min-width: 260px;
@@ -1576,7 +1593,9 @@ textarea.clipboard {
 
 /* bulk edit */
 .karma-fields input.multi:focus,
-.karma-fields textarea.multi:focus {
+.karma-fields textarea.multi:focus,
+.karma-fields input.selected,
+.karma-fields textarea.selected {
   background-color: var(--selected-color);
 }
 

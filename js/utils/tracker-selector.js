@@ -43,6 +43,18 @@ KarmaFieldsAlpha.Selector = class {
 
   }
 
+  includes(index) {
+
+    if (this.selection && this.selection.length && index >= this.colHeader) {
+
+      return KarmaFieldsAlpha.Selection.containRow(this.selection, index - this.colHeader);
+
+    }
+
+    return false;
+
+  }
+
   add(element) {
 
     this.children.push(element);
@@ -80,8 +92,7 @@ KarmaFieldsAlpha.Selector = class {
 
 
 
-
-    Object.freeze(this.tie);
+    // Object.freeze(this.tie);
 
     if (this.selection) { // this.selection should be frozen
 
@@ -111,7 +122,7 @@ KarmaFieldsAlpha.Selector = class {
     const index = this.findIndex(this.tracker.x, this.tracker.y);
 
 
-    if (this.tracker.firstTarget.tabIndex < 0 || index !== this.firstIndex) { // why??
+    // if (this.tracker.firstTarget.tabIndex < 0 || index !== this.firstIndex) { // why??
 
     // if (true) {
 
@@ -126,7 +137,7 @@ KarmaFieldsAlpha.Selector = class {
 
       }
 
-    }
+    // }
 
 
 
@@ -135,6 +146,8 @@ KarmaFieldsAlpha.Selector = class {
   complete() {
 
     const index = this.findIndex(this.tracker.x, this.tracker.y);
+
+
 
 
     if (this.selection) {
@@ -440,7 +453,7 @@ KarmaFieldsAlpha.Selector = class {
       this.selection = union;
       this.selection.final = true;
 
-      Object.freeze(this.selection);
+      // Object.freeze(this.selection);
 
       // this.sliceSegment(this.selection).forEach(element => element.classList.add("selected"));
       // this.sliceSelection(this.selection).forEach(element => element.classList.add("selected-cell"));

@@ -3,113 +3,88 @@ KarmaFieldsAlpha.buffer = {};
 
 KarmaFieldsAlpha.Buffer = class {
 
-  // static empty(...path) {
-  //   KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.buffer, ...path);
-  // }
-
-  constructor(...path) {
-    this.path = path;
-  }
-
-  getObject() {
-    // return KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.buffer, ...this.path) || {};
+  static getObject() {
     return KarmaFieldsAlpha.buffer || {};
   }
 
-  setObject(object) {
-    // return KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.buffer, object, ...this.path);
+  static setObject(object) {
     KarmaFieldsAlpha.buffer = object;
   }
 
-  empty() {
-
-    // this.setObject({});
-    this.remove();
-    // KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.buffer, ...this.path);
+  static get(...path) {
+    let object = this.getObject();
+    return KarmaFieldsAlpha.DeepObject.get(object, ...this.path, ...path);
   }
 
-  get(...path) {
+  static set(value, ...path) {
     let object = this.getObject();
-    if (this.path.length || path.length) {
-      return KarmaFieldsAlpha.DeepObject.get(object, ...this.path, ...path);
-    } else {
-      return object;
-    }
-
-    // return KarmaFieldsAlpha.DeepObject.get(this.getObject(), ...path);
-  }
-
-  set(value, ...path) {
-    let object = this.getObject();
-    if (this.path.length || path.length) {
-      KarmaFieldsAlpha.DeepObject.set(object, value, ...this.path, ...path);
-    } else {
-      object = value;
-    }
+    KarmaFieldsAlpha.DeepObject.set(object, value, ...this.path, ...path);
     this.setObject(object);
   }
 
-  remove(...path) {
-    // let object = this.getObject();
-    // KarmaFieldsAlpha.DeepObject.remove(object, ...path);
-    // this.setObject(object);
-
-    let object;
-    if (this.path.length || path.length) {
-      object = this.getObject();
-      KarmaFieldsAlpha.DeepObject.remove(object, ...this.path, ...path);
-    } else {
-      object = {};
-    }
+  static remove(...path) {
+    let object = this.getObject();
+    KarmaFieldsAlpha.DeepObject.remove(object, ...this.path, ...path);
     this.setObject(object);
   }
 
-  has(...path) {
-    let object = this.getObject();
-    if (this.path.length || path.length) {
-      return KarmaFieldsAlpha.DeepObject.has(object, ...this.path, ...path);
-    } else {
-      return true;
-    }
-  }
-
-  merge(value, ...path) {
+  static merge(value, ...path) {
     const object = this.get(...path) || {};
     KarmaFieldsAlpha.DeepObject.merge(object, value);
     this.set(object, ...path);
   }
 
-  clean(...path) {
-    let object = this.get(...path) || {};
-    object = KarmaFieldsAlpha.DeepObject.filter(object, item => item !== undefined && item !== null, ...path);
-    this.set(object, ...path);
+  static equal(value, ...path) {
+    const object = this.get(...path) || {};
+    return KarmaFieldsAlpha.DeepObject.equal(object, value);
   }
 
-  // setAndBackup(value, ...path) {
-  //   KarmaFieldsAlpha.History.backup(value, this.get(...path), false, ...this.path, ...path);
-  //   this.set(value, ...path);
+
+
+
+  // constructor(...path) {
+  //   this.path = path;
   // }
-
-  backup(value = null, ...path) {
-    KarmaFieldsAlpha.History.backup(value, this.get(...path), false, ...this.path, ...path);
-  }
-
-  change(value, prevValue, ...path) {
-
-    if (!prevValue) {
-
-      prevValue = this.get(...path);
-
-    }
-
-    KarmaFieldsAlpha.History.backup(value, prevValue, false, ...this.path, ...path);
-
-    if (value === null) {
-      this.remove(...path);
-    } else {
-      this.set(value, ...path);
-    }
-
-  }
+  //
+  // getObject() {
+  //   return KarmaFieldsAlpha.buffer || {};
+  // }
+  //
+  // setObject(object) {
+  //   KarmaFieldsAlpha.buffer = object;
+  // }
+  //
+  // empty() {
+  //   this.remove();
+  // }
+  //
+  // get(...path) {
+  //   let object = this.getObject();
+  //   return KarmaFieldsAlpha.DeepObject.get(object, ...this.path, ...path);
+  // }
+  //
+  // set(value, ...path) {
+  //   let object = this.getObject();
+  //   KarmaFieldsAlpha.DeepObject.set(object, value, ...this.path, ...path);
+  //   this.setObject(object);
+  // }
+  //
+  // remove(...path) {
+  //   let object = this.getObject();
+  //   KarmaFieldsAlpha.DeepObject.remove(object, ...this.path, ...path);
+  //   this.setObject(object);
+  // }
+  //
+  // merge(value, ...path) {
+  //   const object = this.get(...path) || {};
+  //   KarmaFieldsAlpha.DeepObject.merge(object, value);
+  //   this.set(object, ...path);
+  // }
+  //
+  // clean(...path) {
+  //   let object = this.get(...path) || {};
+  //   object = KarmaFieldsAlpha.DeepObject.filter(object, item => item !== undefined && item !== null, ...path);
+  //   this.set(object, ...path);
+  // }
 
 }

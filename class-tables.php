@@ -855,7 +855,7 @@ class Karma_Fields_Alpha {
 
 		$driver = $this->get_driver($driver_name);
 
-		if (in_array($relation_name, $driver->relations) && method_exists($driver, $relation_name)) {
+		if (method_exists($driver, $relation_name)) {
 
       $params = $request->get_params();
 
@@ -916,8 +916,8 @@ class Karma_Fields_Alpha {
 			require_once $this->drivers[$driver_name]['path'];
 
 			$driver = new $this->drivers[$driver_name]['class'];
-			$driver->name = $driver_name;
-      $driver->relations = $this->drivers[$driver_name]['relations'];
+			// $driver->name = $driver_name;
+      // $driver->relations = $this->drivers[$driver_name]['relations'];
 
 			return $driver;
 

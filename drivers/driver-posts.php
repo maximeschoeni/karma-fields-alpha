@@ -100,7 +100,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
             case 'post_excerpt':
             case 'post_date':
             case 'post_status':
-            case 'post_type':
+
               $args[$key] = $value[0];
               break;
 
@@ -111,51 +111,56 @@ Class Karma_Fields_Alpha_Driver_Posts {
               break;
 
             case 'post_mime_type':
+            case 'post_type':
               break;
 
-            case 'trash':
-              if (intval($value[0])) {
-                $post_type = get_post_type($id);
-                update_post_meta($id, 'trash-post_type', $post_type);
-                $args['post_type'] = 'karma-trash';
-                // $wpdb->update($wpdb->posts, array('post_type' => 'karma-trash'), array('ID' => $id), array('%s'), array('%d'));
-
-                // if ($post_type === 'attachment') {
-                //   $rel_path = get_post_meta($id, '_wp_attached_file', true);
-                //   $wp_upload_dir = wp_upload_dir();
-                //   $dir = $wp_upload_dir['basedir'];
-                //   $trash_dir = $dir.'/karma-trash';
-                //   $path = get_attached_file($id);
-                //   if (!file_exists($trash_dir)) {
-                //     mkdir($trash_dir);
-                //   }
-                //   rename($path, $trash_dir.'/'.$rel_path);
-                //   $meta = wp_get_attachment_metadata($id);
-                //   $backup_sizes = get_post_meta($id, '_wp_attachment_backup_sizes', true);
-                //   wp_delete_attachment_files($id, $meta, $backup_sizes, $path);
-                // }
-              } else {
-                $post_type = get_post_meta($id, 'trash-post_type', true);
-                if ($post_type) {
-                  $args['post_type'] = $post_type;
-                  // $wpdb->update($wpdb->posts, array('post_type' => $post_type), array('ID' => $id), array('%s'), array('%d'));
-                  delete_post_meta($id, 'trash-post_type');
-                  // if ($post_type === 'attachment') {
-                  //   $rel_path = get_post_meta($id, '_wp_attached_file', true);
-                  //   $wp_upload_dir = wp_upload_dir();
-                  //   $dir = $wp_upload_dir['basedir'];
-                  //   $trash_dir = $dir.'/karma-trash';
-                  //   rename($trash_dir.'/'.$rel_path, $dir.'/'.$rel_path);
-                  //   if (!function_exists('wp_generate_attachment_metadata')) {
-                  //     include ABSPATH . 'wp-admin/includes/image.php';
-                  //   }
-                  //   $path = $dir.'/'.$rel_path;
-                  //   $metadata = wp_generate_attachment_metadata($id, $path);
-                  //   wp_update_attachment_metadata($id,  $metadata);
-                  // }
-                }
-              }
-              break;
+            // case 'trash':
+            //   if (intval($value[0])) {
+            //     $post_type = get_post_type($id);
+            //     // update_post_meta($id, 'trash-post_type', $post_type);
+            //
+            //     if (strpos($post_type, 'trashed-') !== 0) {
+            //
+            //       $args['post_type'] = 'trashed-'.$post_type;
+            //
+            //     }
+            //
+            //
+            //     // $wpdb->update($wpdb->posts, array('post_type' => 'karma-trash'), array('ID' => $id), array('%s'), array('%d'));
+            //
+            //     // if ($post_type === 'attachment') {
+            //     //   $rel_path = get_post_meta($id, '_wp_attached_file', true);
+            //     //   $wp_upload_dir = wp_upload_dir();
+            //     //   $dir = $wp_upload_dir['basedir'];
+            //     //   $trash_dir = $dir.'/karma-trash';
+            //     //   $path = get_attached_file($id);
+            //     //   if (!file_exists($trash_dir)) {
+            //     //     mkdir($trash_dir);
+            //     //   }
+            //     //   rename($path, $trash_dir.'/'.$rel_path);
+            //     //   $meta = wp_get_attachment_metadata($id);
+            //     //   $backup_sizes = get_post_meta($id, '_wp_attachment_backup_sizes', true);
+            //     //   wp_delete_attachment_files($id, $meta, $backup_sizes, $path);
+            //     // }
+            //   } else {
+            //     // $post_type = get_post_meta($id, 'trash-post_type', true);
+            //     // if ($post_type) {
+            //     //   $args['post_type'] = $post_type;
+            //     //   delete_post_meta($id, 'trash-post_type');
+            //     // }
+            //     $post_type = get_post_type($id);
+            //
+            //     if (strpos($post_type, 'trashed-') === 0) {
+            //
+            //       $args['post_type'] = substr($post_type, strlen('trashed-'));
+            //
+            //     }
+            //
+            //
+            //
+            //
+            //   }
+            //   break;
 
             default:
 
@@ -202,6 +207,49 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       }
 
+      if (isset($data['post_type']) || isset($data['trash'])) {
+
+        $post_type = get_post_type($id);
+        $trash = false;
+
+        if (strpos($post_type, 'trashed-') !== 0) {
+
+          $trash = true;
+          $post_type = substr($post_type, strlen('trashed-'));
+
+        }
+
+        if (isset($data['post_type'][0])) {
+
+          $post_type = $data['post_type'][0];
+
+        }
+
+        if (isset($data['trash'])) {
+
+          if (isset($data['trash'][0]) && $data['trash'][0] === '1') {
+
+            $args['post_type'] = 'trashed-'.$post_type;
+
+          } else {
+
+            $args['post_type'] = $post_type;
+
+          }
+
+        } else if ($trash) {
+
+          $args['post_type'] = 'trashed-'.$post_type;
+
+        } else {
+
+          $args['post_type'] = $post_type;
+
+        }
+
+      }
+
+
       if ($args) {
       //
       //   $args['ID'] = $id;
@@ -236,10 +284,46 @@ Class Karma_Fields_Alpha_Driver_Posts {
 	 * add
 	 */
   public function add($data, $deprecatednum = 1) {
+    global $wpdb;
 
     add_filter('wp_insert_post_empty_content', '__return_false', 10, 2);
 
     $args = array();
+
+    // -> recycle?
+
+    // $post_id = $wpdb->get_var("SELECT * FROM $wpdb->posts WHERE post_type LIKE 'trashed-%' LIMIT 1");
+    //
+    // if ($post_id) {
+    //
+    //   $args = array_merge(array(
+    //     'ID' => $post_id,
+    //     'post_author' => 0,
+    //     'post_date' => '0000-01-01 00:00:00',
+    //     'post_date_gmt' => '0000-01-01 00:00:00',
+    //     'post_content' => '',
+    //     'post_title' => '',
+    //     'post_excerpt' => '',
+    //     'post_status' => '',
+    //     'comment_status' => '',
+    //     'ping_status' => '',
+    //     'post_password' => '',
+    //     'post_name' => '',
+    //     'to_ping' => '',
+    //     'pinged' => '',
+    //     'post_modified' => '0000-01-01 00:00:00',
+    //     'post_modified_gmt' => '0000-01-01 00:00:00',
+    //     'post_content_filtered' => '',
+    //     'post_parent' => 0,
+    //     'guid' => '',
+    //     'menu_order' => 0,
+    //     'post_type' => '',
+    //     'post_mime_type' => '',
+    //     'comment_count' => 0
+    //   ), $data);
+    //
+    // }
+
 
     foreach ($data as $key => $value) {
 
@@ -257,6 +341,14 @@ Class Karma_Fields_Alpha_Driver_Posts {
       }
 
     }
+
+    if (empty($args['post_type'])) {
+
+      $args['post_type'] = 'post';
+
+    }
+
+    $args['post_type'] = 'trashed-'.$args['post_type'];
 
 
     // var_dump($args, $data);
@@ -443,6 +535,17 @@ Class Karma_Fields_Alpha_Driver_Posts {
     $args = $this->get_query_args($params);
 
     $args['no_found_rows'] = true;
+
+// global $wpdb;
+//
+// die();
+
+// unset($args['post_type']);
+//
+//     add_filter('query', function($sql) {
+//       var_dump($sql);
+//       return $sql;
+//     });
 
     $query = new WP_Query($args);
 
@@ -1177,7 +1280,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
         'post_content' AS 'key',
         ID AS 'id'
         FROM $wpdb->posts
-        WHERE ID IN ($ids)";
+        WHERE ID IN ($ids) AND post_type NOT LIKE 'trashed-%'";
 
 			$results = $wpdb->get_results($sql);
 

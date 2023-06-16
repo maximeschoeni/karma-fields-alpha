@@ -10,8 +10,9 @@
 					// history.pushState({table: key}, "");
 					// window.dispatchEvent(new PopStateEvent("popstate"));
 
-					KarmaFieldsAlpha.saucer.setTable(key);
-					KarmaFieldsAlpha.saucer.render();
+					KarmaFieldsAlpha.saucer.open(key);
+					// KarmaFieldsAlpha.saucer.render();
+					// KarmaFieldsAlpha.saucer.save("nav");
 				});
 			}
 		}

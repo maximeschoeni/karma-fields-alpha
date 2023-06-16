@@ -1,6 +1,13 @@
 
 KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
+  // constructor(container) {
+  //
+  //   super(container);
+  //
+  //   this.maxDepth = 0;
+  //
+  // }
 
   update() {
 
@@ -35,7 +42,7 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
       //   height: lastBox.height
       // };
 
-      
+
 
 
       // const center = {
@@ -49,10 +56,11 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
           const elements = this.sliceElements(this.selection.index - 1, 1);
           const box = this.getElementsBox(...elements);
-          const child = this.findChild(elements);
+          const child = (this.maxDepth === undefined || this.path.length < this.maxDepth) && this.findChild(elements);
+
 
           if (child) {
-            
+
             // if (center.y < box.y + box.height + movingBox.height) {
             // if (movingBox.y + mFirstBox.height < box.y + box.height + movingBox.height) {
             // if (firstBox.y + firstBox.height/2 + travelY < box.y + box.height) {
@@ -73,7 +81,7 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
             if (firstBox.y + travelY < box.y + box.height/2) {
 
               this.swapToSame(-1);
-  
+
             }
 
           }
@@ -94,14 +102,14 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
             if (firstBox.y + travelY < -10) {
               this.swapToParent(closest, 0);
             }
-            
+
 
           }
-           
+
         }
 
       }
-      
+
       if (this.tracker.deltaY > 0) {
 
         const last = this.getHeight();
@@ -110,9 +118,9 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
           const elements = this.sliceElements(this.selection.index + this.selection.length, 1);
           const box = this.getElementsBox(...elements);
-          const child = this.findChild(elements);
+          const child = (this.maxDepth === undefined || this.path.length < this.maxDepth) && this.findChild(elements);
 
- 
+
           if (child) {
 
             // if (mlastBox.y > box.y - movingBox.height) {
@@ -134,7 +142,7 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
             if (lastBox.y + lastBox.height + travelY > box.y + box.height/2) {
 
               this.swapToSame(1);
-  
+
             }
 
           }
@@ -155,11 +163,11 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
             // if (lastBox.y + lastBox.height*0.75 + travelY > this.container.clientHeight) {
             if (lastBox.y + lastBox.height + travelY > this.container.clientHeight + 10) {
               this.swapToParent(closest, 1);
-  
+
             }
 
           }
-           
+
         }
 
       }
@@ -220,7 +228,7 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
   swapToChild(child, offset) {
 
     const box = this.getBox(this.selection.index);
-    
+
     this.container.style.height = "auto";
 
     const children = this.getChildren();
@@ -232,7 +240,7 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
     let index;
 
     if (offset > 0) {
-      
+
 
       this.path.push(this.selection.index);
 
@@ -249,7 +257,7 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
         this.originY += this.getBox(0, index).height;
 
       }
-      
+
     }
 
     this.selection = {...this.selection, index: index};
@@ -360,14 +368,14 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
   //       container.appendChild(element);
 
   //     }
-      
+
   //   }
 
 
   //   // setTimeout(() => {
   //   //   this.tracker.scrollLock = false;
   //   // }, 200);
-    
+
   // }
 
   getContainerBox() {
@@ -404,12 +412,12 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
   //     return new KarmaFieldsAlpha.Sorter(closest);
 
   //   }
-    
+
   // }
 
 
   // getRoot() {
-    
+
   //   const parent = this.getParent();
 
   //   if (parent) {

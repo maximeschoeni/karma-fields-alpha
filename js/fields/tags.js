@@ -165,7 +165,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
       this.setValue(slice);
 
-      KarmaFieldsAlpha.History.save("insert");
+      // KarmaFieldsAlpha.History.save("insert");
 
     }
 
@@ -179,6 +179,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
       this.insert([], selection.index, selection.length);
 
+      this.save(`${this.resource.uid}-delete`);
+
     }
 
   }
@@ -186,6 +188,12 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
   remove(index, length = 1) {
 
     this.insert([], index, length);
+
+
+
+    this.setSelection({index: this.getValue().length, length: 0, final: true});
+
+    this.save(`${this.resource.uid}-remove`);
 
   }
 
@@ -301,7 +309,6 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                           update: close => {
                             close.element.onclick = async event => {
                               this.remove(rowIndex);
-                              this.setSelection({index: rowIndex, length: 0, final: true});
                             }
                           }
                         }

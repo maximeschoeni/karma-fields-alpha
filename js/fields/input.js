@@ -39,17 +39,20 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					this.setValue(value);
 
+					// this.save();
+
 					return value;
 
 				}
 
 				return "";
 
-			} else if (array.length > 1) {
-
-				return KarmaFieldsAlpha.field.input.multiple;
-
 			}
+			// else if (array.length > 1) {
+			//
+			// 	return KarmaFieldsAlpha.field.input.multiple;
+			//
+			// }
 
 			return array[0] || "";
 
@@ -61,9 +64,23 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
   // setValue(value) {
 	//
-  //   const key = this.getKey();
+	// 	new KarmaFieldsAlpha.Type.String(value)
 	//
-	// 	this.parent.setValue(value, key);
+  //   const currentValue = this.getValue();
+	//
+	//
+	// 	super.setValue(newValue);
+	//
+	//
+	// 	if (newValue.length < value.length) {
+	//
+	// 		KarmaFieldsAlpha.History.save("delete");
+	//
+	// 	} else {
+	//
+	// 		KarmaFieldsAlpha.History.save("input");
+	//
+	// 	}
 	//
   // }
 
@@ -151,15 +168,19 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
         let value = this.getValue();
 
-
         input.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
 
         if (value !== KarmaFieldsAlpha.field.input.loading) {
 
-					input.element.placeholder = this.getPlaceholder();
-					input.element.classList.toggle("multi", value === KarmaFieldsAlpha.field.input.multiple);
+					const multiple = this.request("multiple");
 
-          if (value === KarmaFieldsAlpha.field.input.multiple) {
+					input.element.placeholder = this.getPlaceholder();
+					input.element.classList.toggle("multi", Boolean(multiple));
+
+					input.element.classList.toggle("selected", Boolean(multiple && (this.getSelection() || {}).final));
+
+
+          if (multiple) {
 
             input.element.value = "[multiple values]";
             input.element.readOnly = true;
@@ -192,51 +213,18 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
           input.element.oninput = event => {
 
-
-
 						const newValue = input.element.value.normalize();
 
-						// const diff = newValue.length - value.length;
+						this.setValue(newValue);
 
-						if (newValue.length < value.length) {
-
-							KarmaFieldsAlpha.History.save("delete");
-
-						} else {
-
-							// KarmaFieldsAlpha.History.save("input");
-
-						}
-
-						// KarmaFieldsAlpha.History.save(newValue.length - value.length);
-
-						// console.log(diff);
-						//
-						// if (diff !== data.diff) {
-						//
-						// 	KarmaFieldsAlpha.History.save();
-						//
-						// 	data.diff = diff;
-						//
-						// }
+						this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
 
 						value = newValue;
-
-
-						// this.debounce("typing", () => this.setValue(value), 750);
-
-						// KarmaFieldsAlpha.Timing.throttle(() => KarmaFieldsAlpha.History.save(), 1000);
-
-						this.setValue(value);
-
-
-
-
-
 
           }
 
 					input.element.onblur = event => {
+
 
 						// if (data.diff) {
 						//
@@ -246,45 +234,57 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 						//
 						// data.diff = undefined;
 
-						KarmaFieldsAlpha.History.save();
+						// KarmaFieldsAlpha.History.save();
 					}
 
-					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
+					input.element.onfocus = event => {
+
+						if (multiple) {
+
+							this.setSelection({final: true});
+							KarmaFieldsAlpha.Clipboard.focus();
+							this.render();
+
+						}
+
+					}
+
+					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus NOT ON READONLY
 
 						this.setSelection({final: true}); // -> prevent field from losing focus on render
 
 					}
 
-          input.element.oncopy = event => {
-						if (value === KarmaFieldsAlpha.field.input.multiple) {
-							event.preventDefault();
-							const values = super.getValue();
-							const grid = new KarmaFieldsAlpha.Grid();
-	            grid.addColumn(...values);
-	            event.clipboardData.setData("text/plain", grid.toString().normalize());
-						}
-          };
-
-          input.element.onpaste = async event => {
-						if (value === KarmaFieldsAlpha.field.input.multiple) {
-							event.preventDefault();
-	            const string = event.clipboardData.getData("text").normalize();
-	            const grid = new KarmaFieldsAlpha.Grid(string);
-	            const column = grid.getColumn(0);
-							this.setValue(column);
-						}
-          };
-
-          input.element.oncut = async event => {
-						if (value === KarmaFieldsAlpha.field.input.multiple) {
-							event.preventDefault();
-							const values = super.getValue();
-	            const grid = new KarmaFieldsAlpha.Grid();
-	            grid.addColumn(...values);
-	            event.clipboardData.setData("text/plain", grid.toString().normalize());
-	            this.setValue("");
-						}
-          };
+          // input.element.oncopy = event => {
+					// 	if (value === KarmaFieldsAlpha.field.input.multiple) {
+					// 		event.preventDefault();
+					// 		const values = super.getValue();
+					// 		const grid = new KarmaFieldsAlpha.Grid();
+	        //     grid.addColumn(...values);
+	        //     event.clipboardData.setData("text/plain", grid.toString().normalize());
+					// 	}
+          // };
+					//
+          // input.element.onpaste = async event => {
+					// 	if (value === KarmaFieldsAlpha.field.input.multiple) {
+					// 		event.preventDefault();
+	        //     const string = event.clipboardData.getData("text").normalize();
+	        //     const grid = new KarmaFieldsAlpha.Grid(string);
+	        //     const column = grid.getColumn(0);
+					// 		this.setValue(column);
+					// 	}
+          // };
+					//
+          // input.element.oncut = async event => {
+					// 	if (value === KarmaFieldsAlpha.field.input.multiple) {
+					// 		event.preventDefault();
+					// 		const values = super.getValue();
+	        //     const grid = new KarmaFieldsAlpha.Grid();
+	        //     grid.addColumn(...values);
+	        //     event.clipboardData.setData("text/plain", grid.toString().normalize());
+	        //     this.setValue("");
+					// 	}
+          // };
 
         }
 

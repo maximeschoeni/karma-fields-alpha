@@ -81,6 +81,14 @@ KarmaFieldsAlpha.field = class {
     //   return new KarmaFieldsAlpha.field[type](resource);
     // }
 
+    if (!resource.uid) {
+
+      resource.uid = `${this.resource.uid}-${resource.index || "0"}`;
+
+    }
+
+
+
 
 
     if (this.constructor[type] && typeof this.constructor[type] === "function") {
@@ -99,6 +107,20 @@ KarmaFieldsAlpha.field = class {
 
     console.error("Field type does not exist", resource, this);
 
+  }
+
+
+  getChild(resource, ...resources) {
+
+    const child = this.createChild(resource);
+
+    if (resources.length) {
+
+      return child.getChild(...resources);
+
+    }
+
+    return child;
   }
 
   // createChild(resource, id) {
@@ -277,9 +299,9 @@ console.error("deprecated");
 
   }
 
-  save() {
+  save(name) {
 
-    this.parent.save();
+    this.parent.save(`${this.resource.index}-${name}`);
 
   }
 
@@ -476,6 +498,19 @@ console.error("deprecated");
 
   }
 
+  getSingleValue(...path) {
+
+    const values = this.getValue(...path);
+
+    if (values) {
+
+      return values[0];
+
+    }
+
+    return KarmaFieldsAlpha.loading;
+  }
+
   // getValue(...path) {
   //
   //   return this.parent.getValue(...path);
@@ -601,6 +636,21 @@ console.error("deprecated");
 
       }
 
+
+      // if (selection.index) {
+      //
+      //   const child = this.createChild({
+      //     ...this.resource.children[selection.index],
+      //     index: selection.index,
+      //     uid: `${this.resource.uid}-${selection.index}`
+      //   });
+      //
+      //   return child.follow(selection[selection.index], callback);
+      //
+      // }
+
+
+
     }
 
   }
@@ -718,6 +768,7 @@ console.error("deprecated");
 
     }
 
+    return {};
   }
 
   setSelection(selection) {

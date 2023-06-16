@@ -1,125 +1,118 @@
 KarmaFieldsAlpha.Tree = class {
 
-    constructor(id, parent = "0", items = []) { // order: 0,
+  constructor(id, parent = "0", items = []) { // order: 0,
 
-        this.children = [];
-        this.parent = parent;
-        this.id = id;
+      this.children = [];
+      this.parent = parent;
+      this.id = id;
+
+  }
+
+  get(...path) {
+
+    if (path.length) {
+
+      const index = path.shift();
+
+      if (this.children[index]) {
+
+        return this.children[index].get(...path);
+
+      } else {
+
+        return new this.constructor();
+
+      }
 
     }
 
-    // static async create(table) {
+    return this;
+  }
 
-    //     const ids = table.getIds();
+  flatten() {
 
-    //     const map = {};
+    let items = [];
 
-    //     const root = new KarmaFieldsAlpha.Tree("0");
+    for  (let child of this.children) {
 
-    //     for (let id of ids) {
+        items = [...items, child, ...child.flatten()];
 
-    //         const alias = this.resource.alias || {};
-    //         const [parent] = await table.getValue(id, alias.parent || "parent") || [];
-    //         // const [order] = await table.getValue(id, alias.order || "order") || [];
-           
-    //         map[item.id] = new KarmaFieldsAlpha.Tree(id, parent); //, parseInt(order));
-    
-    //     }
-
-    //     for (let id in map) {
-
-    //         const tree = map[id];
-    //         const parent = map[tree.parent];
-
-    //         if (parent) {
-
-    //             parent.children.push(tree);
-
-    //         } else {
-
-    //             root.children.push(tree);
-
-    //         }
-
-    //     }
-
-    //     return root;
-
-    // }
-
-
-    get(...path) {
-
-        if (path.length) {
-    
-          const index = path.shift();
-
-          if (this.children[index]) {
-
-            return this.children[index].get(...path);
-
-          } else {
-
-            return new this.constructor();
-
-          }
-    
-        }
-    
-        return this;
     }
 
-    flatten() {
+    return items;
+  }
 
-        let items = [];
+  slice(selection) {
 
-        for  (let child of this.children) {
+    if (selection.final && selection.length) {
 
-            items = [...items, child, ...child.flatten()];
+      return this.children.slice(selection.index, selection.index + selection.length);
+
+    } else {
+
+      let items = [];
+
+      // for (let index in selection) {
+      //
+      //   if (this.children[index]) {
+      //
+      //     items = [...items, ...this.children[index].slice(selection[index])];
+      //
+      //   }
+      //
+      // }
+
+      for (let i = 0; i < this.children.length; i++) {
+
+        if (selection[i]) {
+
+          items = [...items, ...this.children[i].slice(selection[i])];
 
         }
 
-        return items;
+      }
+
+      return items;
     }
 
-    slice(selection) {
-       
-        if (selection.length) {
+  }
 
-            return this.children.slice(selection.index, selection.index + selection.length);
+  hasSelection(selection) {
 
-        } else {
+    if (selection.final && selection.length) {
 
-            let items = [];
+      return true;
 
-            for (let index in selection) {
+    } else {
 
-                if (this.children[index]) {
+      for (let i = 0; i < this.children.length; i++) {
 
-                    items = [...items, ...this.children[index].slice(selection[index])];
+        if (selection[i] && this.children[i].hasSelection(selection[i])) {
 
-                }
+          return true;
 
-            }
-
-            return items;
         }
-          
-    }
 
-    swap(path, newPath, length) {
-    
-        const originIndex = path.pop();
-        const originBranch = this.get(...path);
-        const transferItems = originBranch.children.splice(originIndex, length);
-        const destIndex = newPath.pop();
-        const destBranch = this.get(...newPath);
-
-        destBranch.children.splice(destIndex, 0, ...transferItems);
-        transferItems.forEach(item => item.parent = destBranch.id);
+      }
 
     }
 
-   
+    return false;
+  }
+
+  swap(path, newPath, length) {
+
+    const originIndex = path.pop();
+    const originBranch = this.get(...path);
+    const transferItems = originBranch.children.splice(originIndex, length);
+    const destIndex = newPath.pop();
+    const destBranch = this.get(...newPath);
+
+    destBranch.children.splice(destIndex, 0, ...transferItems);
+    transferItems.forEach(item => item.parent = destBranch.id);
+
+  }
+
+
 
 }

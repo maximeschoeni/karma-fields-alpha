@@ -31,42 +31,35 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
   getValue(key) {
 
-    let array = [];
-
     const ids = this.parent.getSelectedIds();
 
-    for (let id of ids) {
+    if (ids) {
 
-      if (id === null) {
+      let array;
 
-        return; // being added
+      for (let id of ids) {
+
+        if (id === null) {
+
+          return; // being added
+
+        }
+
+        const values = this.parent.getValue(id, key);
+
+        if (values) {
+
+          array = [...(array || []), ...values];
+
+        }
+
+        // -> /!\ Do not break if values is undefined because it would differ loading of next items
 
       }
 
-      const values = this.parent.getValue(id, key);
-
-      if (!values) {
-
-        return; // being loaded
-
-      }
-
-      array = [...array, ...values];
-
-      // if (!array) {
-      //
-      //   array = values;
-      //
-      // } else if (KarmaFieldsAlpha.DeepObject.differ(array, values)) {
-      //
-      //   array = [];
-      //   break;
-      //
-      // }
+      return array;
 
     }
-
-    return array;
 
   }
 

@@ -68,7 +68,7 @@ KarmaFieldsAlpha.Selection = class {
 	}
 
   static compare(selection1, selection2) {
-		return selection2 && selection2 instanceof selection1.constructor && selection1.index === selection2.index && selection1.length === selection2.length && selection1.colIndex === selection2.colIndex && selection1.colLength === selection2.colLength;
+		return selection1 && selection2 && selection1.index === selection2.index && selection1.length === selection2.length && selection1.colIndex === selection2.colIndex && selection1.colLength === selection2.colLength;
 	}
 
 	static contain(selection1, index) {

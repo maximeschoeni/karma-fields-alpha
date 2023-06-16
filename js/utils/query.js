@@ -1,9 +1,35 @@
 
 KarmaFieldsAlpha.Query = class {
 
+  // static getRelations(driver) {
+  //
+  //   if (KarmaFieldsAlpha.drivers[driver]) {
+  //
+  //     return KarmaFieldsAlpha.drivers[driver].relations;
+  //
+  //   }
+  //
+  // }
+  //
+  // static getAlias(driver) {
+  //
+  //   if (KarmaFieldsAlpha.drivers[driver]) {
+  //
+  //     return KarmaFieldsAlpha.drivers[driver].alias;
+  //
+  //   }
+  //
+  // }
+
+  static get(driver, ...path) {
+
+    KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver, ...path);
+
+  }
+
   static getAttempt(driver, id) {
 
-    if (KarmaFieldsAlpha.drivers[driver]) {
+    // if (KarmaFieldsAlpha.drivers[driver]) {
 
       if (!KarmaFieldsAlpha.DeepObject.get(this.attempts, driver, id, "query")) {
 
@@ -11,9 +37,11 @@ KarmaFieldsAlpha.Query = class {
 
       }
 
-      if (KarmaFieldsAlpha.drivers[driver].relations) {
+      const relations = this.get(driver, "relations");
 
-        for (let relation of KarmaFieldsAlpha.drivers[driver].relations) {
+      if (relations) {
+
+        for (let relation of relations) {
 
           if (!KarmaFieldsAlpha.DeepObject.get(this.attempts, driver, id, relation)) {
 
@@ -25,15 +53,17 @@ KarmaFieldsAlpha.Query = class {
 
       }
 
-    } else {
-
-      console.error("driver does not exist", driver);
-
-    }
+    // } else {
+    //
+    //   console.error("driver does not exist", driver);
+    //
+    // }
 
   }
 
   static getValue(driver, id, key) {
+
+    if (id === KarmaFieldsAlpha.exit) debugger;
 
     let value = KarmaFieldsAlpha.Store.get("delta", driver, id, key);
 
@@ -69,6 +99,8 @@ KarmaFieldsAlpha.Query = class {
       } else { // -> no value found
 
         value = [];
+
+        console.log("no value found", driver, id, key);
 
         KarmaFieldsAlpha.DeepObject.set(this.vars, value, driver, id, key);
 
@@ -141,16 +173,18 @@ KarmaFieldsAlpha.Query = class {
 
   static async query(driver, paramstring = "") {
 
-    if (!KarmaFieldsAlpha.drivers[driver]) {
-
-      console.error("Driver not found", driver);
-
-    }
+    // if (!KarmaFieldsAlpha.drivers[driver]) {
+    //
+    //   console.error("Driver not found", driver);
+    //
+    // }
 
     const results = await KarmaFieldsAlpha.Gateway.get(`query/${driver}${paramstring?"?":""}${paramstring}`);
 
-    const alias = KarmaFieldsAlpha.drivers[driver].alias || {};
-    const idAlias = alias.id || "id";
+    // const alias = this.getAlias() || {};
+    // const idAlias = alias.id || "id";
+
+    const idAlias = this.get(driver, "alias", "id") || "id";
 
     for (let item of results) {
 
@@ -166,6 +200,8 @@ KarmaFieldsAlpha.Query = class {
 
       KarmaFieldsAlpha.DeepObject.set(this.attempts, true, driver, id, "query");
 
+      KarmaFieldsAlpha.DeepObject.set(this.vars, ["0"], driver, id, "trash");
+
     }
 
     KarmaFieldsAlpha.DeepObject.set(this.queries, results, driver, paramstring);
@@ -175,20 +211,31 @@ KarmaFieldsAlpha.Query = class {
 
   static async queryIds(driver, ids) {
 
-    if (!KarmaFieldsAlpha.drivers[driver]) {
-
-      console.error("Driver not found", driver);
-
-    }
+    // if (!KarmaFieldsAlpha.drivers[driver]) {
+    //
+    //   console.error("Driver not found", driver);
+    //
+    // }
 
     if (ids.length) {
+
+      for (let id of ids) {
+
+        KarmaFieldsAlpha.DeepObject.set(this.attempts, true, driver, id, "query");
+
+        KarmaFieldsAlpha.DeepObject.set(this.vars, ["1"], driver, id, "trash");
+
+      }
 
       const paramstring = `ids=${ids.join(",")}`;
 
       const results = await KarmaFieldsAlpha.Gateway.get(`query/${driver}?${paramstring}`);
 
-      const alias = KarmaFieldsAlpha.drivers[driver].alias || {};
-      const idAlias = alias.id || "id";
+      // const alias = KarmaFieldsAlpha.drivers[driver].alias || {};
+      // const alias = this.getAlias() || {};
+      // const idAlias = alias.id || "id";
+
+      const idAlias = this.get(driver, "alias", "id") || "id";
 
       for (let item of results) {
 
@@ -202,13 +249,11 @@ KarmaFieldsAlpha.Query = class {
 
         }
 
-      }
-
-      for (let id of ids) {
-
-        KarmaFieldsAlpha.DeepObject.set(this.attempts, true, driver, id, "query");
+        KarmaFieldsAlpha.DeepObject.set(this.vars, ["0"], driver, id, "trash");
 
       }
+
+
 
       KarmaFieldsAlpha.DeepObject.set(this.queries, results, driver, paramstring);
 
@@ -218,11 +263,11 @@ KarmaFieldsAlpha.Query = class {
 
   static async queryRelations(driver, relation, ids) {
 
-    if (!KarmaFieldsAlpha.drivers[driver]) {
-
-      console.error("Driver not found", driver);
-
-    }
+    // if (!KarmaFieldsAlpha.drivers[driver]) {
+    //
+    //   console.error("Driver not found", driver);
+    //
+    // }
 
     const relations = await KarmaFieldsAlpha.Gateway.get(`relations/${driver}/${relation}?ids=${ids.join(",")}`);
 
@@ -330,7 +375,22 @@ KarmaFieldsAlpha.Query = class {
 
   }
 
+  static saveValue(value, driver, id, ...path) {
 
+    const data = {};
+
+    KarmaFieldsAlpha.DeepObject.set(data, value, driver, id, ...path);
+
+    KarmaFieldsAlpha.DeepObject.merge(this.vars, data);
+
+    this.tasks.push({
+      type: "update",
+      driver: driver,
+      id: id,
+      data: data[driver][id]
+    });
+
+  }
 
   static send() {
 
@@ -357,7 +417,7 @@ KarmaFieldsAlpha.Query = class {
 
     await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data);
 
-    KarmaFieldsAlpha.DeepObject.assign(KarmaFieldsAlpha.Query.vars, data, driver, id);
+    KarmaFieldsAlpha.DeepObject.assign(this.vars, data, driver, id);
 
     KarmaFieldsAlpha.Store.remove("delta", driver, id);
 
@@ -378,38 +438,40 @@ KarmaFieldsAlpha.Query = class {
 
     newIds.splice(index, 0, null); // -> null means item is being added. Cannot use symbols in json
 
-    KarmaFieldsAlpha.History.backup(newIds, ids, "ids");
-    KarmaFieldsAlpha.Store.set(newIds, "ids");
+    KarmaFieldsAlpha.Store.setIds(newIds);
+
+
+    KarmaFieldsAlpha.DeepObject.remove(this.queries, driver);
+    KarmaFieldsAlpha.DeepObject.remove(this.counts, driver);
 
   }
 
   static async insert(driver, params = {}, index = 0) {
 
     const currentIds = KarmaFieldsAlpha.Store.get("ids") || [];
-    // const index = currentIds.findIndex(id => id === null);
-
-    // if (index > -1) {
 
     let id = await KarmaFieldsAlpha.Gateway.post(`add/${driver}`).then(id => id.toString());
     const newIds = [...currentIds];
 
-    // currentIds.splice(index, 1);
     newIds[index] = id;
 
-    KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
-    KarmaFieldsAlpha.Store.set(newIds, "ids");
+    KarmaFieldsAlpha.Store.setIds(newIds);
 
     for (let key in params) {
 
       const value = KarmaFieldsAlpha.Type.toArray(params[key]);
-
-      KarmaFieldsAlpha.History.backup(value, [], "delta", driver, id, key);
-      KarmaFieldsAlpha.Store.set(value, "delta", driver, id, key);
+      KarmaFieldsAlpha.Store.setValue(value, driver, id, key);
 
     }
 
-    KarmaFieldsAlpha.History.backup(["0"], ["1"], "delta", driver, id, "trash");
-    KarmaFieldsAlpha.Store.set(["0"], "delta", driver, id, "trash");
+    KarmaFieldsAlpha.Query.saveValue(params, driver, id);
+
+
+    KarmaFieldsAlpha.Store.set(["1"], "delta", driver, id, "trash");
+    KarmaFieldsAlpha.Store.setValue([], driver, id, "trash");
+
+    KarmaFieldsAlpha.DeepObject.set(this.vars, [], driver, id, "trash");
+
 
 
   }
@@ -473,8 +535,23 @@ KarmaFieldsAlpha.Query = class {
 
     // ids.splice(index, length, null); // -> null means item is being added.
 
-    KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
-    KarmaFieldsAlpha.Store.set(newIds, "ids");
+    // KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
+
+    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "ids")) {
+    //
+    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, currentIds, "last", "ids");
+    //
+    // }
+    //
+    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, currentIds, "next", "ids");
+    //
+    // KarmaFieldsAlpha.Store.set(newIds, "ids");
+
+    KarmaFieldsAlpha.Store.setIds(newIds);
+
+
+    KarmaFieldsAlpha.DeepObject.remove(this.queries, driver);
+    KarmaFieldsAlpha.DeepObject.remove(this.counts, driver);
 
   }
 
@@ -491,22 +568,47 @@ KarmaFieldsAlpha.Query = class {
     // currentIds.splice(index, 1);
     newIds[index] = id;
 
-    KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
-    KarmaFieldsAlpha.Store.set(newIds, "ids");
+    // KarmaFieldsAlpha.History.backup(newIds, currentIds, "ids");
+    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "ids")) {
+    //
+    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, currentIds, "last", "ids");
+    //
+    // }
+    //
+    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, newIds, "next", "ids");
+    //
+    // KarmaFieldsAlpha.Store.set(newIds, "ids");
+    KarmaFieldsAlpha.Store.setIds(newIds);
 
     for (let key in params) {
 
       const value = KarmaFieldsAlpha.Type.toArray(params[key]);
 
-      KarmaFieldsAlpha.History.backup(value, [], "delta", driver, id, key);
-      KarmaFieldsAlpha.Store.set(value, "delta", driver, id, key);
+      // KarmaFieldsAlpha.History.backup(value, [], "delta", driver, id, key);
+      // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "delta", driver, id, key)) {
+      //
+      //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, [], "last", "delta", driver, id, key);
+      //
+      // }
+      //
+      // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, value, "next", "delta", driver, id, key);
+      //
+      // KarmaFieldsAlpha.Store.set(value, "delta", driver, id, key);
+
+      KarmaFieldsAlpha.Store.setValue(value, driver, id, key);
 
     }
 
     if (!params.id) {
 
-      KarmaFieldsAlpha.History.backup(["0"], ["1"], "delta", driver, id, "trash");
-      KarmaFieldsAlpha.Store.set(["0"], "delta", driver, id, "trash");
+      // KarmaFieldsAlpha.History.backup(["0"], ["1"], "delta", driver, id, "trash");
+      // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, ["1"], "last", "delta", driver, id, "trash");
+      // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, ["0"], "next", "delta", driver, id, "trash");
+      //
+      // KarmaFieldsAlpha.Store.set(["0"], "delta", driver, id, "trash");
+
+      KarmaFieldsAlpha.Store.set(["1"], "delta", driver, id, "trash");
+      KarmaFieldsAlpha.Store.setValue(["0"], driver, id, "trash");
 
     }
 
@@ -529,6 +631,24 @@ KarmaFieldsAlpha.Query = class {
   static async regenFile(driver, id) {
 
     await KarmaFieldsAlpha.Gateway.post("regen/"+id);
+
+  }
+
+
+  static removeIds(driver, ids) {
+
+    const currentIds = KarmaFieldsAlpha.Store.getIds();
+    const newIds = currentIds.filter(id => !ids.includes(id));
+
+    for (let id of ids) {
+
+      KarmaFieldsAlpha.Store.setValue(["1"], driver, id, "trash");
+
+      this.saveValue(["1"], driver, id, "trash");
+
+    }
+
+    KarmaFieldsAlpha.Store.setIds(newIds);
 
   }
 
@@ -561,6 +681,23 @@ KarmaFieldsAlpha.Query = class {
     }
 
   }
+
+  static emptyQueries(driver) {
+
+    if (driver) {
+
+      KarmaFieldsAlpha.DeepObject.remove(this.queries, driver);
+      KarmaFieldsAlpha.DeepObject.remove(this.counts, driver);
+
+    } else {
+
+      this.queries = {};
+      this.counts = {};
+
+    }
+
+  }
+
 
 }
 

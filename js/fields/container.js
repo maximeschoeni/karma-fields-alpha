@@ -194,7 +194,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 					group.element.classList.add(this.resource.class);
 				}
 			},
-			update: async group => {
+			update: group => {
 				// this.render = group.render;
 
 
@@ -234,7 +234,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 								container.element.style.flex = field.resource.flex;
 							}
 						},
-						update: async (container) => {
+						update: (container) => {
 							container.children = [];
 
 							// const hidden = field.resource.hidden && await this.parse(field.resource.hidden)

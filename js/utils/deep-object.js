@@ -178,6 +178,30 @@ KarmaFieldsAlpha.DeepObject = class {
 
   }
 
+  static mergeUnder(object, value) {
+
+  	for (let i in value) {
+
+      if (object[i] === undefined) {
+
+        object[i] = value[i];
+
+      } else if (this.isObject(value[i])) {
+
+        if (!this.isObject(object[i])) {
+
+          object[i] = {};
+
+        }
+
+				this.merge(object[i], value[i]);
+
+      }
+
+  	}
+
+  }
+
 
   static differ(object, value) {
 

@@ -471,6 +471,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   paste(string, selection) {
 
+    console.error("DEPRECATED");
+
     if (selection && selection.final && selection instanceof KarmaFieldsAlpha.Selection) {
 
       const [current] = this.export([], selection.index, selection.length);
@@ -1251,7 +1253,10 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     // const defaults = child.getDefault();
 
-    this.setValue([...array, undefined]);
+    this.setValue([...array, {}]);
+
+
+    this.save(`${this.resource.uid}-add`);
 
     // KarmaFieldsAlpha.History.save();
     // this.parent.request("save");
@@ -1265,7 +1270,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     values.splice(index, 1);
 
-    this.setValue(clone);
+    this.setValue(values);
+
+    this.save(`${this.resource.uid}-delete`);
 
     // KarmaFieldsAlpha.History.save();
     // this.parent.request("save");

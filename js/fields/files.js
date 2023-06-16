@@ -1,9 +1,15 @@
 KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
-  constructor(resource) {
-    super(resource);
+  // constructor(resource) {
+  //   super(resource);
+  //
+  //   this.driver = this.resource.driver || "medias";
+  //
+  // }
 
-    this.driver = this.resource.driver || "medias";
+  getDriver() {
+
+    return this.resource.driver || "medias";
 
   }
 
@@ -94,21 +100,25 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
       return "upload";
 
-    } else if (id === KarmaFieldsAlpha.field.medias.exit) {
+    } else if (id === KarmaFieldsAlpha.exit) {
 
       return "exit";
 
-     } else {
+    } else {
 
-      let mimetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype");
-      let filetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "filetype");
+      const driver = this.getDriver();
+      let [mimetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype") || [KarmaFieldsAlpha.loading];
+      let [filetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "filetype") || [KarmaFieldsAlpha.loading];
 
-      if (mimetype && filetype) {
+      // console.log(id, mimetype, filetype);
 
-        mimetype = mimetype[0] || "";
-        filetype = filetype[0] || "";
+      if (mimetype !== undefined && filetype !== undefined) {
 
-        if (filetype === "folder") {
+        if (mimetype === KarmaFieldsAlpha.loading || filetype === KarmaFieldsAlpha.loading) {
+
+          return "upload";
+
+        } else if (filetype === "folder") {
 
           return "folder";
 
@@ -154,35 +164,41 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   getFile(id) {
 
-    let mimetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype");
-    let filename = KarmaFieldsAlpha.Query.getValue(this.driver, id, "filename");
-    let dir = KarmaFieldsAlpha.Query.getValue(this.driver, id, "dir");
+    if (id && id !== KarmaFieldsAlpha.exit) {
 
-    if (filename && mimetype && dir) {
+      const driver = this.getDriver();
 
-      filename = filename[0] || "";
-      mimetype = mimetype[0] || "";
-      dir = dir[0] || "";
+      let [mimetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype") || [];
+      let [filename] = KarmaFieldsAlpha.Query.getValue(driver, id, "filename") || [];
+      let [dir] = KarmaFieldsAlpha.Query.getValue(driver, id, "dir") || [];
 
-      if (mimetype === "image/jpeg" || mimetype === "image/png") {
+      if (filename !== undefined && mimetype !== undefined && dir !== undefined) {
 
-        let sizes = KarmaFieldsAlpha.Query.getValue(this.driver, id, "sizes");
+        // filename = filename[0] || "";
+        // mimetype = mimetype[0] || "";
+        // dir = dir[0] || "";
 
-        if (sizes) {
+        if (mimetype === "image/jpeg" || mimetype === "image/png") {
 
-          const thumb = sizes.find(size => size.name === "thumbnail");
+          let sizes = KarmaFieldsAlpha.Query.getValue(driver, id, "sizes");
 
-          if (thumb) {
+          if (sizes) {
 
-            return dir+"/"+thumb.filename;
+            const thumb = sizes.find(size => size.name === "thumbnail");
+
+            if (thumb) {
+
+              return dir+"/"+thumb.filename;
+
+            }
 
           }
 
+        }  else if (mimetype.startsWith("image")) {
+
+          return dir+"/"+filename;
+
         }
-
-      }  else if (mimetype.startsWith("image")) {
-
-        return dir+"/"+filename;
 
       }
 
@@ -192,14 +208,28 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   getCaption(id) {
 
-    let file = KarmaFieldsAlpha.Query.getValue(this.driver, id, "basename");
-    let filetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "filetype");
+    if (id === KarmaFieldsAlpha.exit) {
+
+      return "../";
+      // return "←]";
+
+    }
+
+    if (!id) {
+
+      return "loading...";
+
+    }
+
+    const driver = this.getDriver();
+    let file = KarmaFieldsAlpha.Query.getValue(driver, id, "basename");
+    let filetype = KarmaFieldsAlpha.Query.getValue(driver, id, "filetype");
 
     if (filetype) {
 
       if (filetype[0] === "folder") {
 
-        let title = KarmaFieldsAlpha.Query.getValue(this.driver, id, "post_title");
+        let title = KarmaFieldsAlpha.Query.getValue(driver, id, "name");
 
         if (title) {
 
@@ -213,7 +243,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
       } else {
 
-        let mimetype = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype");
+        let mimetype = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype");
 
         if (mimetype) {
 
