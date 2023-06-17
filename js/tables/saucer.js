@@ -571,8 +571,6 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     // KarmaFieldsAlpha.Store.setSelection(selection && {[this.resource.index]: selection});
 
-
-
     selection = {[this.resource.index]: selection};
 
     Object.freeze(selection);
@@ -2211,6 +2209,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
             window.dispatchEvent(new CustomEvent("karmaFieldsAlpha-render"));
             this.render();
 
+          } else {
+
+
+
+            console.log(event.key, document.activeElement);
           }
         });
 
@@ -2274,8 +2277,12 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
           //   this.paste(string, selection);
           //   this.render();
           // }
+
           const string = event.clipboardData.getData("text/plain").normalize();
           clipboard.value = string;
+
+          // console.log("paste", string);
+
           this.paste(string);
         });
 
@@ -2288,8 +2295,10 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
           //   this.paste(string, selection);
           //   this.render();
           // }
-debugger;
-          event.clipboardData.setData("text/plain", clipboard.value);
+
+          const [value] = this.copy();
+          console.log("CUT", value);
+          event.clipboardData.setData("text/plain", value || "");
           clipboard.value = "";
           this.paste("");
         });
@@ -2297,6 +2306,7 @@ debugger;
         clipboard.addEventListener("copy", event => {
           event.preventDefault();
           const [value] = this.copy();
+          console.log("COPY", value);
           event.clipboardData.setData("text/plain", value || "");
         });
 
@@ -2317,8 +2327,14 @@ debugger;
         // const clipboard = KarmaFieldsAlpha.Clipboard.getElement();
         //
 
+        clipboard.onfocus = event => {
+
+          console.log("clipboard focus");
+
+        }
+
         clipboard.onblur = event => {
-          // console.log("clipboard blur");
+          console.log("clipboard blur");
           //
           // // this.setSelection(null);
           //
@@ -2547,6 +2563,8 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
             class: "table-body",
             update: container => {
               // container.element.classList.toggle("single-open", Boolean(modalOpen));
+
+
             },
             children: [
               {
@@ -2578,12 +2596,40 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
               {
                 class: "table-body-columns",
                 update: div => {
+
+
+
+
+
                   const grid = this.createChild({
                     type: "grid",
                     ...this.resource.body,
                     index: "body",
                     uid: `${this.resource.uid}-body`
                   });
+
+                  const selection = grid.getSelection();
+
+
+
+                  // -> set focus to clipboard
+                  div.element.onmousedown = event => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    grid.setSelection({final: true, index: 0, length: 0});
+
+                    KarmaFieldsAlpha.Clipboard.focus();
+                    this.render();
+
+                    // console.log("body mousedown");
+
+                    // if (this.hasSelection()) {
+                    //   this.setSelection();
+                    //   this.render();
+                    // }
+                  };
+
+
                   div.children = [
                     {
                       class: "table-body-column table-content",
@@ -2618,7 +2664,8 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                                   this.render();
                                 };
                                 // if (grid.hasSelection()) {
-                                if (grid.getSelection().modal) {
+                                const selection = grid.getSelection();
+                                if (selection && selection.modal) {
                                   div.child = modal.build();
                                 } else {
                                   div.children = [];

@@ -9,9 +9,10 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
-  getIds() {
+  getMixedIds() {
 
-    const ids = super.getIds();
+    const ids = this.getIds();
+
     const parent = this.getParent() || "0";
 
     if (ids && parent !== "0") {
@@ -24,11 +25,107 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
     return ids;
   }
 
-  getSelectedIds() {
 
-    return super.getSelectedIds()
+  // getSelectedIds() {
+  //
+  //   return super.getSelectedIds()
+  //
+  // }
+
+  getMixedSelection() {
+
+    // const selection = {...this.getSelection()};
+    //
+    // const parent = this.getParent() || "0";
+    //
+    // if (parent !== "0") {
+    //
+    //   selection.index = (selection.index || 0) + 1;
+    //
+    // }
+    //
+    // return selection;
+
+    const pureSelection = this.getSelection();
+
+    return this.mixSelection(pureSelection);
 
   }
+
+  mixSelection(selection) {
+
+    selection = {...selection};
+
+    const parent = this.getParent() || "0";
+
+    if (parent !== "0") {
+
+      selection.index = (selection.index || 0) + 1;
+
+    }
+
+    return selection;
+
+  }
+
+  setMixedSelection(selection) {
+
+    // const parent = this.getParent() || "0";
+    //
+    // if (parent !== "0") {
+    //
+    //   selection = {...selection};
+    //
+    //   if (selection.index > 0) {
+    //
+    //     selection.index--;
+    //
+    //   } else {
+    //
+    //     selection.length--;
+    //
+    //   }
+    //
+    // }
+
+    selection = this.purifySelection(selection);
+
+    this.setSelection(selection);
+  }
+
+  isValidMixedSelection(selection) {
+
+    const parent = this.getParent() || "0";
+
+    return parent === "0" || selection.index > 0 || selection.length > 1;
+
+  }
+
+  purifySelection(selection) {
+
+    const parent = this.getParent() || "0";
+
+    if (parent !== "0") {
+
+      selection = {...selection};
+
+      if (selection.index > 0) {
+
+        selection.index--;
+
+      } else {
+
+        selection.length--;
+
+      }
+
+    }
+
+    return selection;
+  }
+
+
+
 
   async add(index = 0, params = {}) {
 
@@ -50,38 +147,25 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
     //
     // }
 
-    // await super.add(index + (parent !== "0" ? 0 : 0), {
-    //   filetype: ["folder"],
-    //   mimetype: [""],
-    //   parent: [parent],
-    //   ...params
-    // });
-
-    KarmaFieldsAlpha.Query.add(this.resource.driver, index, {
+    await super.add(index, {
       filetype: ["folder"],
       mimetype: [""],
       parent: [parent],
       ...params
     });
 
-    // const ids = KarmaFieldsAlpha.Store.getIds() || [];
-    // const newIds = [...ids];
+    // KarmaFieldsAlpha.Query.add(this.resource.driver, index, {
+    //   filetype: ["folder"],
+    //   mimetype: [""],
+    //   parent: [parent],
+    //   ...params
+    // });
     //
-    // newIds.splice(index, 0, null); // -> null means item is being added. Cannot use symbols in json
+    // this.setSelection({final: true, index: index, length: 1});
     //
-    // KarmaFieldsAlpha.Store.setIds(newIds);
-
-    if (parent !== "0") {
-
-      index++;
-
-    }
-
-    this.setSelection({final: true, index: index, length: 1});
-
-    await this.render();
-
-    this.save("add"); // -> wait until default fields are all set to save
+    // await this.render();
+    //
+    // this.save("add"); // -> wait until default fields are all set to save
 
 
 
@@ -142,49 +226,41 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
   import(items, index = 0, length = 999999) {
 
     const string = items.shift();
+    const driver = this.getDriver();
+    const currentIds = this.getIds();
 
-    // const [current] = this.export([], index, length);
-    //
-    // if (string !== current) {
+    for (let i = 0; i < length; i++) {
 
-      const grid = new KarmaFieldsAlpha.Grid(string);
-      const ids = grid.getColumn(0);
-      const parent = this.getParent() || "0";
+      KarmaFieldsAlpha.Store.setValue(["1"], driver, currentIds[i + index], "trash");
+      KarmaFieldsAlpha.Query.saveValue(["1"], driver, currentIds[i + index], "trash");
 
-      if (parent) {
+    }
 
-        const driver = this.getDriver();
-        const parentAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "parent") || "parent";
+    const newIds = [...currentIds];
+    const grid = new KarmaFieldsAlpha.Grid(string);
+    const ids = grid.getColumn(0);
+    const parent = this.getParent() || "0";
+    const parentAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "parent") || "parent";
 
-        ids.forEach(id => {
+    ids.forEach(id => {
 
-          KarmaFieldsAlpha.Store.setValue([parent], driver, id, parentAlias);
-          KarmaFieldsAlpha.Store.setValue([], driver, id, "trash");
+      KarmaFieldsAlpha.Store.setValue([parent], driver, id, parentAlias);
+      KarmaFieldsAlpha.Store.setValue([], driver, id, "trash");
 
-          KarmaFieldsAlpha.Query.saveValue({
-            [parentAlias]: [parent],
-            trash: []
-          }, driver, id);
+      KarmaFieldsAlpha.Query.saveValue({
+        [parentAlias]: [parent],
+        trash: []
+      }, driver, id);
 
-        });
+    });
 
-        const newIds = this.getIds().filter(id => !ids.includes(id));
+    // newIds = newIds.filter(id => !ids.includes(id)); // -> prevent duplicates
 
-        if (parent !== "0") {
+    newIds.splice(index, length, ...ids);
 
-          index = Math.max(index, 1); // -> never insert before exit folder
+    KarmaFieldsAlpha.Store.setIds(newIds);
 
-        }
-
-        newIds.splice(index, 0, ...ids);
-
-        KarmaFieldsAlpha.Store.setIds(newIds);
-
-        KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.Query.queries, driver);
-
-      }
-
-    // }
+    KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.Query.queries, driver);
 
   }
 
@@ -337,11 +413,11 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
     const parent = this.getParent() || "0";
     const driver = this.getDriver();
 
-    if (parent !== "0") {
-
-      index = Math.max(index, 1); // -> never insert before exit folder
-
-    }
+    // if (parent !== "0") {
+    //
+    //   index = Math.max(index, 1); // -> never insert before exit folder
+    //
+    // }
 
     KarmaFieldsAlpha.Query.upload(driver, files, {
       parent: parent
@@ -356,11 +432,17 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
     const selection = this.getSelection();
 
-    const parent = this.getParent() || "0";
+    // const parent = this.getParent() || "0";
 
-    if (selection && (parent !== "0" || selection.index > 0)) { // -> not if the selected folder is exit folder
+    // if (selection && (parent !== "0" || selection.index > 0)) { // -> not if the selected folder is exit folder
+    //
+    //   this.upload(files, selection.index, selection.length);
+    //
+    // }
 
-      this.upload(files, selection.index, selection.length);
+    if (selection.length) {
+
+      this.upload(files, selection.index || 0, selection.length);
 
     }
 
@@ -377,7 +459,7 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
     //
     // }
 
-    const ids = this.getSelectedIds();
+    const ids = this.getSelectedIds().filter(id => id !== KarmaFieldsAlpha.exit);
     const driver = this.getDriver();
 
     if (ids.length) {
@@ -636,7 +718,9 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
             },
             update: grid => {
 
-              let ids = this.getIds();
+
+
+              let ids = this.getMixedIds();
 
               grid.element.classList.toggle("loading", !ids);
 
@@ -647,7 +731,8 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
                 const offset = (page - 1)*ppp;
                 const [parent] = this.parent.getValue("parent") || [];
 
-                let selection = this.getSelection();
+                let selection = this.getMixedSelection();
+
 
 
 
@@ -675,16 +760,22 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
                 }
 
                 selector.onselect = newSelection => {
-                  if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
-                    // selection = newSelection;
-                    // this.select(selection.index, selection.length);
+                  // if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
+
+                  // newSelection = this.purifySelection(newSelection);
+                  //
+                  // if (newSelection.length > 0) {
 
                     KarmaFieldsAlpha.Clipboard.focus();
-                    this.setSelection(newSelection);
-                    // this.save("nav");
+                    this.setMixedSelection(newSelection);
+                    // this.setSelection(newSelection);
                     this.render();
 
-                  }
+                  // }
+
+
+
+                  // }
                 }
 
                 // selector.onSelectionChange = newSelection => {
@@ -743,8 +834,9 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
                       // li.element.classList.remove("hidden"); // -> because it get hidden when dropped
 
-                      li.element.classList.toggle("selected", selector.includes(index));
+                      li.element.classList.toggle("selected", selector.includes(index) || Boolean(selection.final && !selection.length && id === KarmaFieldsAlpha.exit));
                       li.element.classList.toggle("media-dropzone", Boolean(id && this.isFolder(id)));
+                      // li.element.classList.toggle("exit-folder", id === KarmaFieldsAlpha.exit);
 
                       li.element.ondblclick = event => {
                         if (id && this.isFolder(id)) {
@@ -753,6 +845,7 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
                           this.openFolder(id)
                         }
                       }
+
                       // li.element.onclick = event => {
                       //   if (id === KarmaFieldsAlpha.exit) {
                       //     this.upperFolder();

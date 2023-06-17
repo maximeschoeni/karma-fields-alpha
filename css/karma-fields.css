@@ -297,6 +297,9 @@ body.karma-table-open {
 .karma-fields .karma-header .karma-field-container .karma-field-frame {
   justify-content: center;
 }
+.karma-header .karma-field-container.display-flex {
+  align-items: center;
+}
 
 
 .karma-fields .karma-field-table h1 {
@@ -644,7 +647,7 @@ body.karma-table-open {
   position: relative; /* needed for children offset calculation */
 
   /* flex-grow: 1; */
-  width: 100%;
+  /* width: 100%; */
   /* min-height: 100%; */  /* -> for droping files */
 }
 .karma-field-table ul.media-table li {
@@ -944,7 +947,7 @@ button.karma-button.editing span {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 2.5em;
+  height: 100%;
   min-width: 2.5em;
   border-radius: 3px;
   font-size: 1em;
