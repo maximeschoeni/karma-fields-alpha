@@ -14,6 +14,8 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
 
       for (let id of ids) {
 
+        if (id) {
+
           const [parent] = this.getValue(id, parentAttribute) || [KarmaFieldsAlpha.loading];
           // const [order] = await table.getValue(id, alias.order || "order") || [];
 
@@ -25,22 +27,45 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
 
           map[id] = new KarmaFieldsAlpha.Tree(id, parent);
 
+        }
+
       }
+
 
       for (let id of ids) {
 
-        const tree = map[id];
-        const parent = map[tree.parent];
+        // if (id) {
 
-        if (parent) {
+          let tree = id && map[id];
 
-          parent.children.push(tree);
+          if (!tree) {
 
-        } else {
+            tree = new KarmaFieldsAlpha.Tree(null, "0");
 
-          root.children.push(tree);
+          }
 
-        }
+          // const tree = map[id];
+
+          const parent = map[tree.parent];
+
+          if (parent) {
+
+            parent.children.push(tree);
+
+          } else {
+
+            root.children.push(tree);
+
+          }
+
+        // } else {
+        //
+        //   const loadingItem = new KarmaFieldsAlpha.Tree(null, "0");
+        //   root.children.push(loadingItem);
+        //
+        // }
+
+
 
       }
 
@@ -162,7 +187,9 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
 
       const modal = this.createChild({
         ...this.resource.modal,
-        type: "modal"
+        type: "modal",
+        index: "modal",
+        ids: this.getSelectedIds(selection)
       });
 
       return modal.follow(selection.modal, callback);
@@ -406,24 +433,30 @@ console.error("deprecated");
                 tag: "ul",
                 class: "arrangement-item-header",
                 update: header => {
-                  const row = branch.createChild({
-                    id: child.id,
-                    type: "row",
-                    children: this.resource.columns || [],
-                    index: index || 0
-                    // depth: this.resource.depth || 0
-                  });
-                  header.children = this.resource.columns.map(child => {
-                    return {
-                      tag: "li",
-                      init: li => {
-                        if (child.style) {
-                          li.element.style = child.style;
-                        }
-                      },
-                      child: row.createChild(child).build()
-                    }
-                  });
+                  header.element.classList.toggle("loading", !child.id);
+
+                  if (child.id) {
+                    const row = branch.createChild({
+                      id: child.id,
+                      type: "row",
+                      children: this.resource.columns || [],
+                      index: index || 0
+                      // depth: this.resource.depth || 0
+                    });
+                    header.children = this.resource.columns.map(child => {
+                      return {
+                        tag: "li",
+                        init: li => {
+                          if (child.style) {
+                            li.element.style = child.style;
+                          }
+                        },
+                        child: row.createChild(child).build()
+                      }
+                    });
+                  }
+
+
                 }
               },
               branch.build()

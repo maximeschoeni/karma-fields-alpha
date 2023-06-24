@@ -91,25 +91,39 @@ KarmaFieldsAlpha.Store = class {
 
   }
 
-  static setTable(table) {
+  static setTable(value) {
 
-    if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "table")) {
+    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "table")) {
+		//
+    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getTable() || "", "last", "table");
+		//
+    // }
+		//
+    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, table || "", "next", "table");
 
-      KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getTable() || "", "last", "table");
+		const current = this.getTable();
 
-    }
+		KarmaFieldsAlpha.Backup.add(value || "", current || "", "table");
 
-    KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, table || "", "next", "table");
+    // if (value) {
 
-    if (table) {
+			this.set(value, "table");
 
-			this.set(table, "table");
+		// } else {
+		//
+		// 	this.remove("table");
+		//
+		// }
 
-		} else {
+  }
 
-			this.remove("table");
+	static removeTable() {
 
-		}
+		const current = this.getTable();
+
+		KarmaFieldsAlpha.Backup.add("", current || "", "table");
+
+    this.remove("table");
 
   }
 
@@ -197,6 +211,14 @@ KarmaFieldsAlpha.Store = class {
 			KarmaFieldsAlpha.Backup.add(value[key] || "", currentValue[key] || "", "params", key);
 
 		}
+
+		this.set(value, "params");
+
+  }
+
+	static updateParams(value) {
+
+		KarmaFieldsAlpha.Backup.update(value, "params");
 
 		this.set(value, "params");
 

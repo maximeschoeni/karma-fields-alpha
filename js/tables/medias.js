@@ -9,6 +9,33 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
+  getParams() {
+
+    const data = this.getData();
+
+    if (data.id) {
+
+      const [parent] = this.getValue(data.id, "parent") || [KarmaFieldsAlpha.loading];
+
+      if (parent !== KarmaFieldsAlpha.loading) {
+
+        KarmaFieldsAlpha.Store.setParam(parent || "", "parent");
+
+        data.selectId = data.id;
+        delete data.id;
+
+        return super.getParams();
+
+      }
+
+    } else {
+
+      return super.getParams();
+
+    }
+
+  }
+
   getMixedIds() {
 
     const ids = this.getIds();
@@ -358,6 +385,14 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
         return values[0];
 
       }
+
+      // const params = this.getParams();
+      //
+      // if (params) {
+      //
+      //   return params.parent;
+      //
+      // }
 
     }
 
@@ -889,7 +924,7 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
                                     tag: "img",
                                     update: img => {
                                       if (!img.element.src.endsWith(src)) { // -> setting same src will reload image!
-                                        img.element.src = src;
+                                        img.element.src = KarmaFieldsAlpha.uploadURL+src;
                                       }
                                     }
                                   }];
@@ -1128,6 +1163,7 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
                 },
                 {
                   // -> 1 folder
+                  class: "media-detail",
                   update: frame => {
                     frame.element.classList.toggle("hidden", isMultiple && filetype !== "folder");
                     if (!isMultiple && filetype === "folder") {
@@ -1135,7 +1171,7 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
                         tag: "span",
                         class: "dashicons dashicons-category",
                         init: span => {
-                          span.element.style = "font-size:8em;height:auto;width:auto;"
+                          // span.element.style = "font-size:8em;height:auto;width:auto;"
                         }
                       }
                     }

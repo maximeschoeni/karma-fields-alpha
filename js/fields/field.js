@@ -81,11 +81,17 @@ KarmaFieldsAlpha.field = class {
     //   return new KarmaFieldsAlpha.field[type](resource);
     // }
 
-    if (!resource.uid) {
+    // if (resource.uid !== undefined) {
+    //   console.log(resource);
+    // }
 
-      resource.uid = `${this.resource.uid}-${resource.index || "0"}`;
+    // if (resource.type === "row") console.log("createField", resource.uid, resource.index);
+    //
+    // if (resource.uid === undefined) {
 
-    }
+      resource.uid = `${this.resource.uid}-${resource.index}`;
+
+    // }
 
 
 

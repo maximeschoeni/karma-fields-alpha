@@ -205,6 +205,11 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 			tag: this.resource.tag || "div",
 			class: "checkbox-container",
 			update: container => {
+
+				container.element.onmousedown = event => {
+					event.stopPropagation();
+				}
+
 				container.children = [
 					{
 						tag: "input",
@@ -224,11 +229,11 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 									const array = super.getValue();
 									const set = new Set(array);
 
-									container.element.checked = set.size === 1 && set.has(this.true());
+									checkbox.element.checked = set.size === 1 && set.has(this.true());
 
 								} else {
 
-									container.element.checked = value === this.true();
+									checkbox.element.checked = value === this.true();
 
 								}
 

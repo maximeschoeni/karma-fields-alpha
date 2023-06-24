@@ -75,6 +75,14 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
     return [];
   }
 
+  hasSelection() {
+
+    const selection = this.getSelection();
+
+    return selection && selection.length;
+
+  }
+
   // follow(selection, callback, set) {
   //
   //   callback(this, selection, set);

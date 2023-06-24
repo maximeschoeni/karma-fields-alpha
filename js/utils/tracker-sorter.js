@@ -162,9 +162,6 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       const lastRectangle = this.getRectangle(this.selection.index + this.selection.length - 1);
       const afterRectangle = this.getRectangle(this.selection.index + this.selection.length);
 
-      console.log(afterRectangle.y, lastRectangle.y);
-
-
       this.originX += (afterRectangle.x + afterRectangle.width) - (lastRectangle.x + lastRectangle.width);
       this.originY += (afterRectangle.y + afterRectangle.height) - (lastRectangle.y + lastRectangle.height);
 
@@ -206,7 +203,7 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
       if (this.onsort) {
 
-        this.onsort();
+        this.onsort(this.index, this.selection.length, this.selection.index);
 
       }
 

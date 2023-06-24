@@ -224,11 +224,18 @@ console.error("deprecated");
 
           }
 
-          dropdown.element.onchange = async event => {
+          dropdown.element.onchange = event => {
 
             this.setValue(dropdown.element.value);
 
           }
+
+          dropdown.element.onmousedown = event => {
+
+            event.stopPropagation();
+
+          }
+
 
           if (this.resource.disabled) {
 

@@ -1,0 +1,6 @@
+
+KarmaFieldsAlpha.Task = class {
+
+
+
+};

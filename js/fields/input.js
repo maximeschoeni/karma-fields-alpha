@@ -238,21 +238,30 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					}
 
 					input.element.onfocus = event => {
-
+// console.log("input focus");
 						if (multiple) {
 
 							this.setSelection({final: true});
 							KarmaFieldsAlpha.Clipboard.focus();
 							this.render();
 
+						} else {
+// debugger;
+							this.setSelection({final: true});
+							this.render();
+
 						}
 
 					}
 
-					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus NOT ON READONLY
+// 					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus NOT ON READONLY
+// debugger;
+// 						this.setSelection({final: true}); // -> prevent field from losing focus on render
+//
+// 					}
 
-						this.setSelection({final: true}); // -> prevent field from losing focus on render
-
+					input.element.onmousedown = event => {
+						event.stopPropagation();
 					}
 
           // input.element.oncopy = event => {

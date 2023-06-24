@@ -466,7 +466,6 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     }
 
-    return set;
   }
 
   paste(string, selection) {
@@ -700,7 +699,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       const row = this.createChild({
         type: "row",
-        children: this.resource.children
+        children: this.resource.children,
+        index: "token"
       });
 
       const keys = row.getKeys();
@@ -1248,7 +1248,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     const child = this.createChild({
       ...this.resource,
-      type: "row"
+      type: "row",
+      index: "new"
     });
 
     // const defaults = child.getDefault();
@@ -1264,7 +1265,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
     // this.parent.render();
   }
 
-  delete(index) {
+  remove(index, length = 1) {
 
     const values = [...this.getValue()];
 
@@ -1272,12 +1273,18 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     this.setValue(values);
 
-    this.save(`${this.resource.uid}-delete`);
+    this.save(`${this.resource.uid}-remove`);
 
     // KarmaFieldsAlpha.History.save();
     // this.parent.request("save");
     //
     // this.parent.render();
+  }
+
+  delete(index) {
+    // compat
+    this.remove(index);
+
   }
 
   // insertBlank(num, index, length) {
@@ -1307,36 +1314,30 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   // }
 
-  sortUp(index) {
+
+
+  sortUp(index, length = 1) {
 
     if (index > 0) {
 
-      this.swap(index, 1, index-1);
+      this.swap(index, length, index-1);
 
-      // this.debounce("editing", () => {
-      //
-      //   KarmaFieldsAlpha.History.save();
-      //
-      // }, 1000);
-      //
-      // this.render();
+      this.setSelection({final: true, index: index-1, length: length});
+      this.save("sort");
+      this.render();
     }
 
   }
 
-  sortDown(index) {
+  sortDown(index, length = 1) {
 
-    if (index < this.getValue().length - 1) {
+    if (index + length < this.getValue().length) {
 
-      this.swap(index, 1, index+1);
+      this.swap(index, length, index+1);
 
-      // this.debounce("editing", () => {
-      //
-      //   KarmaFieldsAlpha.History.save();
-      //
-      // }, 1000);
-      //
-      // this.render();
+      this.setSelection({final: true, index: index-1, length: length});
+      this.save("sort");
+      this.render();
     }
 
   }
@@ -1413,23 +1414,16 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                     selection = newSelection;
 
 
+                    // const [string] = this.export([], selection.index, selection.length);
+                    //
+                    // KarmaFieldsAlpha.Clipboard.write(string);
 
-                    // const slice = values.slice(selection.index, selection.index + selection.length);
-                    // const string = this.encode(slice);
 
-                    // const string = this.exportRows(selection.index, selection.length);
-
-                    const [string] = this.export([], selection.index, selection.length);
-
-                    KarmaFieldsAlpha.Clipboard.write(string);
+                    KarmaFieldsAlpha.Clipboard.focus();
 
                     this.setSelection(newSelection);
 
                     this.render();
-
-                    // KarmaFieldsAlpha.History.save();
-
-                    // this.parent.render();
 
                   }
 
@@ -1450,32 +1444,25 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 sorter.onsort = () => {
 
-                  // if (!sorter.selection.equals(selection)) {
-                  if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
-
-
+                  // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
 
                     this.swap(selection.index, selection.length, sorter.selection.index);
-
-                    // KarmaFieldsAlpha.History.save();
-
-
 
                     selection = sorter.selection;
 
                     KarmaFieldsAlpha.Clipboard.focus();
 
-                    // this.parent.render();
-
                     this.setSelection(sorter.selection);
 
-                  }
+                    this.save("order");
+
+                  // }
 
                 }
 
                 table.element.onfocusin = event => {
 
-                  // console.log("array onfocusin ");
+                  console.log("array onfocusin ");
                   this.render(); // unselect last field when input gains focus inside array
                 }
 
@@ -1504,8 +1491,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                     const row = this.createChild({
                       ...this.resource,
-                      index: index,
-                      id: index,
+                      index: index.toString(),
+                      id: index.toString(),
                       // data: this.resource.data && this.resource.data[index],
                       // selection: this.resource.selection && this.resource.selection[index],
                       // uid: `${this.resource.uid}-${index}`,
@@ -1516,7 +1503,11 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                       ...array,
                       ...this.resource.children.map((column, colIndex) => {
 
-                        const field = row.createChild({id: colIndex, ...column, index: colIndex, uid: `${this.resource.uid}-${colIndex}`});
+                        const field = row.createChild({
+                          id: colIndex,
+                          ...column,
+                          index: colIndex.toString()
+                        });
 
                         return {
                           class: "td array-cell karma-field-frame",

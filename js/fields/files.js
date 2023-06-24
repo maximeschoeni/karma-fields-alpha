@@ -178,6 +178,9 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
         // mimetype = mimetype[0] || "";
         // dir = dir[0] || "";
 
+
+
+
         if (mimetype === "image/jpeg" || mimetype === "image/png") {
 
           let sizes = KarmaFieldsAlpha.Query.getValue(driver, id, "sizes");
@@ -352,6 +355,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
         if (ids) {
 
+
+
           container.children = [
             {
               class: "gallery",
@@ -360,9 +365,14 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
               // },
               update: gallery => {
 
+                gallery.element.classList.toggle("empty", ids.length === 0);
+                gallery.element.classList.toggle("dashicons", ids.length === 0);
+                gallery.element.classList.toggle("dashicons-format-image", ids.length === 0);
+
                 let selection = this.getSelection();
 
                 gallery.element.classList.toggle("has-selection", Boolean(selection));
+
 
                 gallery.element.ondblclick = event => {
                   // this.openLibrary([]);
@@ -404,15 +414,19 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                   elements.forEach(element => element.classList.remove("selected"))
                 }
 
-                sorter.onsort = () => {
+                sorter.onsort = (index, length, target) => {
 
-                  if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
+                  // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
 
-                    this.swap(selection.index, selection.length, sorter.selection.index);
+                  console.log(index, length, target);
 
-                    this.setSelection(sorter.selection);
+                    this.swap(index, length, target);
 
-                  }
+                    this.setSelection({final: true, index: target, length: length});
+
+                    this.save("order");
+
+                  // }
 
                 }
 
@@ -697,18 +711,19 @@ KarmaFieldsAlpha.field.files.controls.add = {
 KarmaFieldsAlpha.field.files.controls.remove = {
   type: "button",
   title: "Remove",
-  text: "×",
+  text: "–",
+  // dashicon: "remove",
   action: "delete",
-  disabled: ["!", ["getSelection"]],
+  disabled: ["!", ["request", "hasSelection"]],
   hidden: ["=", ["count", ["getValue"]], 0]
 };
 
 KarmaFieldsAlpha.field.files.controls.edit = {
   type: "button",
   title: "Edit",
-  // dashicon: "update",
+  dashicon: "screenoptions",
   action: "open",
-  disabled: ["!", ["request", "getSelection"]],
+  disabled: ["!", ["request", "hasSelection"]],
   hidden: ["=", ["count", ["getValue"]], 0]
 }
 

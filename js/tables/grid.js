@@ -35,14 +35,28 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   }
 
   getParam(key) {
-    return this.getParams()[key];
+
+    const params = this.getParams();
+
+    if (params) {
+
+      return params[key];
+
+    }
+
   }
 
   getCountParams() {
 
-    const {page, ppp, orderby, order, ...params} = this.getParams();
+    const params = this.getParams();
 
-    return params || {};
+    if (params) {
+
+      const {page, ppp, orderby, order, ...countParams} = params;
+
+      return countParams;
+
+    }
 
   }
 
@@ -50,7 +64,12 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     const params = this.getCountParams();
 
-    return KarmaFieldsAlpha.Query.getCount(this.resource.driver, params);
+    if (params) {
+
+      return KarmaFieldsAlpha.Query.getCount(this.resource.driver, params);
+
+    }
+
   }
 
   getPpp() {
@@ -106,16 +125,63 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     if (!ids) {
 
       const params = this.getParams();
-      const results = KarmaFieldsAlpha.Query.getResults(this.resource.driver, params);
 
-      if (results) {
+      if (params) {
 
-        ids = results.map(item => item.id);
+        const results = KarmaFieldsAlpha.Query.getResults(this.resource.driver, params);
 
-        // KarmaFieldsAlpha.Store.setIds(ids);
+        if (results) {
 
-    		KarmaFieldsAlpha.Backup.update(ids, "ids");
-        KarmaFieldsAlpha.Store.set(ids, "ids");
+          ids = results.map(item => item.id);
+
+          // KarmaFieldsAlpha.Store.setIds(ids);
+
+      		KarmaFieldsAlpha.Backup.update(ids, "ids");
+          KarmaFieldsAlpha.Store.set(ids, "ids");
+
+
+          // -> when an id is fetched...
+          const data = this.getData();
+
+          if (data.selectId) {
+
+            const index = ids.indexOf(data.selectId);
+
+            if (index > -1) {
+
+              this.setSelection({
+                index: index,
+                length: 1,
+                final: true
+              });
+
+            }
+
+            delete data.selectId;
+
+          }
+
+
+
+          // const selection = this.getSelection();
+          //
+          // if (selection.id) {
+          //
+          //   const index = ids.indexOf(selection.id);
+          //
+          //   if (index > -1) {
+          //
+          //     selection.index = index;
+          //     selection.length = 1;
+          //     selection.final = true
+          //
+          //   }
+          //
+          //   delete selection.id;
+          //
+          // }
+
+        }
 
       }
 
@@ -261,7 +327,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       const modal = this.createChild({
         ...this.resource.modal,
-        type: "modal"
+        type: "modal",
+        index: "modal",
+        ids: this.getSelectedIds(selection)
       });
 
       return modal.follow(selection.modal, callback);
@@ -385,6 +453,34 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  // getSelection() {
+  //
+  //   const selection = super.getSelection();
+  //
+  //   if (selection.id) {
+  //
+  //     const ids = this.getIds();
+  //
+  //     if (ids) {
+  //
+  //       const index = ids.indexOf(selection.id);
+  //
+  //       if (index > -1) {
+  //
+  //         selection.index = index;
+  //         selection.length = 1;
+  //         selection.final = true
+  //
+  //       }
+  //
+  //       delete selection.id;
+  //     }
+  //
+  //   }
+  //
+  //   return selection;
+  // }
+
   setSelection(selection) {
 
     if (selection) {
@@ -420,14 +516,19 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getSelectedIds() {
+  getSelectedIds(selection) {
 
     const ids = this.getIds();
 
 
     if (ids) {
 
-      const selection = this.getSelection();
+      if (!selection) {
+
+        selection = this.getSelection();
+
+      }
+
       const index = selection.index || 0;
       const length = selection.length || 0;
 
@@ -691,7 +792,7 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
 
 
-    const ids = this.parent.getSelectedIds();
+    const ids = this.resource.ids || this.parent.getSelectedIds();
 
     if (ids) {
 
@@ -725,7 +826,7 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
   setValue(value, key) {
 
-    const ids = this.parent.getSelectedIds();
+    const ids = this.resource.ids || this.parent.getSelectedIds();
 
     if (ids) {
 

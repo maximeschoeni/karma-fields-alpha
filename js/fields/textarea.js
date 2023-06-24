@@ -18,7 +18,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 					input.element.style.height = this.resource.height;
 				}
 			},
-			update: async input => {
+			update: input => {
 
 				let value = this.getValue();
 
@@ -26,10 +26,15 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
         if (value !== KarmaFieldsAlpha.field.input.loading) {
 
-					input.element.placeholder = this.getPlaceholder();
-					input.element.classList.toggle("multi", value === KarmaFieldsAlpha.field.input.multiple);
+					const multiple = this.request("multiple");
 
-          if (value === KarmaFieldsAlpha.field.input.multiple) {
+					input.element.placeholder = this.getPlaceholder();
+					input.element.classList.toggle("multi", Boolean(multiple));
+
+					input.element.classList.toggle("selected", Boolean(multiple && (this.getSelection() || {}).final));
+
+
+          if (multiple) {
 
             input.element.value = "[multiple values]";
             input.element.readOnly = true;
@@ -50,7 +55,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
           }
 
-          input.element.oninput = async event => {
+          input.element.oninput = event => {
 
 						value = input.element.value.normalize();
 
@@ -58,11 +63,38 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
           }
 
+					// input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
+					//
+					// 	this.setSelection({final: true}); // -> prevent field from losing focus on render
+					//
+					// }
+
+
+					// --> why?
 					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
 
 						this.setSelection({final: true}); // -> prevent field from losing focus on render
 
 					}
+
+					input.element.onfocus = event => {
+
+						this.setSelection({final: true});
+
+						if (multiple) {
+
+							KarmaFieldsAlpha.Clipboard.focus();
+
+						}
+
+						this.render();
+
+					}
+
+					input.element.onmousedown = event => {
+						event.stopPropagation();
+					}
+
 
           input.element.oncopy = event => {
 						if (value === KarmaFieldsAlpha.field.input.multiple) {
