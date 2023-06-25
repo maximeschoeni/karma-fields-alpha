@@ -128,16 +128,18 @@ body.karma-table-open {
 .karma-field-container {
   gap: var(--gap-width);
 }
-.karma-fields label {
+.karma-fields .label {
   font-weight: bold;
   font-size: 1em;
   line-height: 1.08em;
   vertical-align: baseline;
   margin: 0 0 0.33em;
   display: block;
+  align-self: flex-start;
 }
-.karma-field-container.disabled label {
-  color: var(--disabled-color);
+.karma-field-container.disabled .label {
+  /* color: var(--disabled-color); */
+  opacity: 0.5;
 }
 .karma-field-container.display-block>.karma-field-frame {
   flex-grow: 0;
@@ -1048,7 +1050,7 @@ border: var(--border-width) solid var(--disabled-color);
   background-color: var(--theme-color);
   border-color: var(--theme-color);
 }
-.karma-fields .karma-upload label {
+.karma-fields .karma-upload .label {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1063,13 +1065,13 @@ border: var(--border-width) solid var(--disabled-color);
 
   margin: 0;
 }
-.karma-fields .karma-upload label:hover {
+.karma-fields .karma-upload .label:hover {
   background-color: var(--active-color);
 }
-.karma-fields .dark .karma-upload label:hover {
+.karma-fields .dark .karma-upload .label:hover {
   color: var(--theme-color);
 }
-.karma-fields .karma-upload label:active {
+.karma-fields .karma-upload .label:active {
   background-color: var(--active-color);
 }
 
@@ -1365,13 +1367,13 @@ ul.tag-links li:not(:last-child)::after {
 /* Group
 --------------------------------------*/
 
-.karma-fields label {
+.karma-fields .label {
   font-weight: bold;
 }
 
-.karma-field-group label {
+/* .karma-field-group label {
   display: block;
-}
+} */
 
 .karma-field-container {
   display: flex;
@@ -1396,7 +1398,7 @@ ul.tag-links li:not(:last-child)::after {
   display: table-cell;
   padding: 0 0 0.75em;
 }
-.karma-field-container.display-table>*>label {
+.karma-field-container.display-table>*>.label {
   display: table-cell;
   padding: 0 var(--gap-width) var(--gap-width) 0;
 }
@@ -1526,31 +1528,52 @@ ul.tag-links li:not(:last-child)::after {
   display: flex;
   align-items: flex-end;
 }
-.karma-field.checkboxes ul li label,
+/* .karma-field.checkboxes ul li label,
 .karma-field.checkbox label {
   font-size: inherit;
   font-weight: inherit;
-}
+} */
 .karma-field .karma-field-checkbox input {
   margin: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: var(--border-width) solid var(--theme-color);
+  height: 1.4em;
+  width: 1.4em;
+  background-color: var(--active-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.karma-field .karma-field-checkbox input:checked::after {
+  /* background-color: var(--theme-color); */
+  content: "\f147";
+  font-family: dashicons;
+  font-size: 1.4em;
+}
+.karma-field .karma-field-checkbox input.mixed::after {
+  content: "-";
+  font-size: 1.4em;
 }
 .karma-field .checkbox-container {
   display: flex;
   align-self: flex-start;
+  align-items: flex-end;
 }
-.karma-field .checkbox-container label {
+.karma-field .checkbox-container .checkbox-text {
   margin: 0 0.4em;
   font-size: inherit;
   font-weight: bolder;
   line-height: 1.08em;
   user-select: none;
 }
-.karma-field .checkbox-container input:disabled + label {
+.karma-field .checkbox-container input:disabled + .checkbox-text {
   color: var(--disabled-color);
   pointer-events: none;
 }
 
-.karma-field-table .table input[type=checkbox] {
+/* .karma-field-table .table input[type=checkbox] {
   width: 100%;
   height: 100%;
   display: flex;
@@ -1566,26 +1589,26 @@ ul.tag-links li:not(:last-child)::after {
   background-color: transparent;
 }
 .karma-field-table .table input[type=checkbox]:focus {
-  background-color: white;
+  background-color: var(--active-color);
 }
 .karma-field-table .table input[type=checkbox]:checked::before {
   display: block;
   float: none;
-}
-.karma-fields input[type=checkbox].selected {
+} */
+/* .karma-fields input[type=checkbox].selected {
   background-color: white;
-}
+} */
 .karma-fields input[type=checkbox]:focus {
-  background-color: white;
-  border-color: var(--disabled-color);
+  /* background-color: var(--active-color); */
+  /* border-color: var(--disabled-color); */
   box-shadow: none;
   outline: none;
 }
 
-.karma-field-frame.karma-field-checkbox {
+/* .karma-field-frame.karma-field-checkbox {
   grid-template-columns: auto auto auto 1fr;
   grid-column-gap: 5px;
-}
+} */
 
 
 
@@ -1867,7 +1890,7 @@ textarea.clipboard {
 /* Tiny MCE
 --------------------------------------*/
 
-.karma-field-tinymce label {
+.karma-field-tinymce .label {
   z-index: 3;
 }
 .karma-tinymce {

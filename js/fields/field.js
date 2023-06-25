@@ -1,5 +1,6 @@
 
 KarmaFieldsAlpha.loading = Symbol("loading");
+KarmaFieldsAlpha.mixed = Symbol("mixed");
 
 KarmaFieldsAlpha.field = class {
 

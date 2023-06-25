@@ -788,65 +788,137 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.container {
 
-  getValue(key) {
+  // getValue(key) {
+  //
+  //
+  //
+  //   const ids = this.resource.ids || this.parent.getSelectedIds();
+  //
+  //   if (ids) {
+  //
+  //     let array;
+  //
+  //     for (let id of ids) {
+  //
+  //       if (id === null) {
+  //
+  //         continue; // being added
+  //
+  //       }
+  //
+  //       const values = this.parent.getValue(id, key);
+  //
+  //       if (values) {
+  //
+  //         array = [...(array || []), ...values];
+  //
+  //       }
+  //
+  //       // -> /!\ Do not break if values is undefined because it would differ loading of next items
+  //
+  //     }
+  //
+  //     return array;
+  //
+  //   }
+  //
+  // }
 
+  getAllValues(ids, key) {
 
+    const values = [];
 
-    const ids = this.resource.ids || this.parent.getSelectedIds();
+    for (let id of ids) {
 
-    if (ids) {
+      if (id === null || id === undefined) {
 
-      let array;
-
-      for (let id of ids) {
-
-        if (id === null) {
-
-          continue; // being added
-
-        }
-
-        const values = this.parent.getValue(id, key);
-
-        if (values) {
-
-          array = [...(array || []), ...values];
-
-        }
-
-        // -> /!\ Do not break if values is undefined because it would differ loading of next items
+        continue; // being added
 
       }
 
-      return array;
+      const array = this.parent.getValue(id, key);
+
+      if (array) {
+
+        values.push(array);
+
+      }
+
+      // -> Do not break if values is undefined to allow loading of futher items
+
+    }
+
+    if (values.length === ids.length) {
+
+      return values;
 
     }
 
   }
 
-  setValue(value, key) {
+  getValue(key) {
 
-    const ids = this.resource.ids || this.parent.getSelectedIds();
+    const ids = this.request("getSelectedIds");
 
     if (ids) {
 
-      if (ids.length === 1) {
+      if (ids.length > 1) {
 
-        this.parent.setValue(value, ids[0], key); // -> one item / multiple or single value
+        const values = this.getAllValues(ids, key);
 
-      } else if (!Array.isArray(value) || value.length === 1) {
+        if (values) {
 
-        ids.forEach(id => void this.parent.setValue(value[0], id, key)); // -> multiple items / single value
+          const mixed = values.some((value, index, array) => index > 0 && !KarmaFieldsAlpha.DeepObject.equal(value, array[0]));
 
-      } else if (Array.isArray(value) && value.length === ids.length) {
+          if (mixed) {
 
-        ids.forEach((id, index) => void this.parent.setValue(value[index], id, key)); // -> multiple items / multiple values
+            return [KarmaFieldsAlpha.mixed];
 
-      } else {
+          } else {
 
-        console.error("values count does not match items count");
+            return values[0];
+
+          }
+
+        }
+
+      } else if (ids.length === 1) {
+
+        return this.parent.getValue(ids[0], key);
 
       }
+
+    }
+
+    // return undefined => not ready
+
+  }
+
+  setValue(value, key) {
+
+    const ids = this.parent.getSelectedIds();
+
+    if (ids) {
+
+      ids.forEach(id => void this.parent.setValue(value, id, key)); // -> multiple items / single value
+
+      // if (ids.length === 1) {
+      //
+      //   this.parent.setValue(value, ids[0], key); // -> one item / multiple or single value
+      //
+      // } else if (!Array.isArray(value) || value.length === 1) {
+      //
+      //   ids.forEach(id => void this.parent.setValue(value[0], id, key)); // -> multiple items / single value
+      //
+      // } else if (Array.isArray(value) && value.length === ids.length) {
+      //
+      //   ids.forEach((id, index) => void this.parent.setValue(value[index], id, key)); // -> multiple items / multiple values
+      //
+      // } else {
+      //
+      //   console.error("values count does not match items count");
+      //
+      // }
 
     }
 

@@ -157,20 +157,56 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		return this.resource.children || [];
 	}
 
-	buildChildren(field) {
+	buildLabel() {
+
+		return [{
+			tag: "label",
+			class: "label",
+			update: label => {
+				label.element.htmlFor = field.getId();
+				label.element.textContent = field.getLabel();
+			}
+		}];
+
+	}
+
+	buildPseudoLabel() {
+
+		return [{
+			class: "label",
+			update: label => {
+				label.element.textContent = field.getLabel();
+			}
+		}];
+
+	}
+
+	buildChildren(field, labelable) {
 		const children = [];
 
 		if (field.resource.label) {
 
-			children.push({
-				tag: "label",
-				update: label => {
-					if (field.resource.label) {
+			if (labelable) {
+
+				children.push({
+					tag: "label",
+					class: "label",
+					update: label => {
 						label.element.htmlFor = field.getId();
 						label.element.textContent = field.getLabel();
 					}
-				}
-			});
+				});
+
+			} else {
+
+				children.push({
+					class: "label",
+					update: label => {
+						label.element.textContent = field.getLabel();
+					}
+				});
+
+			}
 
 		}
 
@@ -221,7 +257,13 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
             uid: `${this.resource.uid}-${index}`
           }); // -> id is for retrieving selection (for unkeyed array)
 
+					const labelable = resource.type === "input"
+						|| resource.type === "textarea"
+						|| resource.type === "checkbox"
+						|| resource.type === "dropdown";
+
 					return {
+						tag: labelable ? "label" : "div",
 						class: "karma-field-frame karma-field-"+field.resource.type,
 						init: (container) => {
 							if (field.resource.style) {
@@ -258,9 +300,33 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 							if (!hidden) {
 
-								container.children = this.buildChildren(field);
+								container.children = this.buildChildren(field, labelable);
 
 							}
+
+
+							// container.children = [];
+							//
+							// if (!hidden) {
+							//
+							// 	if (resource.label) {
+							//
+							// 		if (labelable) {
+							//
+							// 			container.children = this.buildLabel(resource.label);
+							//
+							// 		} else {
+							//
+							// 			container.children = this.buildPseudoLabel(resource.label);
+							//
+							// 		}
+							//
+							// 	}
+							//
+							// 	container.children = [...container.children, field];
+							//
+							// }
+
 
 						}
 					}

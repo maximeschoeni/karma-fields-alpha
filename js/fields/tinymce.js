@@ -113,7 +113,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 				// if (element) {
 
-				console.log("getEditor", this, element, this.resource.uid);
+				// console.log("getEditor", this, element, this.resource.uid);
 
 					KarmaFieldsAlpha.tasks.push({
 						type: "editor",
@@ -2118,7 +2118,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 											if (editor) {
 												const value = this.getValue();
 												if (value !== KarmaFieldsAlpha.field.input.loading && value !== editor.getContent()) {
-													console.log("content not match", value, editor.getContent());
+													// console.log("content not match", value, editor.getContent());
 													editor.setContent(value);
 													const content = editor.getContent();
 													if (content !== value) {

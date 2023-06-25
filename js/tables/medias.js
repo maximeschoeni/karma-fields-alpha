@@ -1009,7 +1009,7 @@ KarmaFieldsAlpha.field.saucer.upload = class extends KarmaFieldsAlpha.field.butt
 					}
 				},
 				{
-					tag: "label",
+					class: "label",
 					init: input => {
 						input.element.htmlFor = this.getUid();
 						input.element.textContent = this.resource.title || "Add File";
