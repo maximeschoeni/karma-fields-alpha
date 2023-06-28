@@ -1069,14 +1069,15 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
                   update: frame => {
                     frame.element.classList.toggle("hidden", isMultiple || filetype !== "file");
                     if (!isMultiple && filetype === "file") {
-                      const mimetypes = this.getValue("mimetype");
-                      if (mimetypes) {
+                      const [mimetype] = this.getValue("mimetype") || [];
+                      if (mimetype) {
                         frame.children = [
                           {
                             tag: "figure",
                             class: "image",
                             update: figure => {
-                              if (mimetypes[0].startsWith("image")) {
+                              figure.element.classList.toggle("hidden", !mimetype.startsWith("image"));
+                              if (mimetype.startsWith("image")) {
                                 figure.child = {
                                   tag: "img",
                                   init: img => {
@@ -1104,7 +1105,8 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
                             tag: "figure",
                             class: "video",
                             update: figure => {
-                              if (mimetypes[0].startsWith("video")) {
+                              figure.element.classList.toggle("hidden", !mimetype.startsWith("video"));
+                              if (mimetype.startsWith("video")) {
                                 figure.child = {
                                   tag: "video",
                                   update: async video => {
@@ -1113,10 +1115,10 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
                                       tag: "source",
                                       update: source => {
                                         const filenames = this.getValue("filename");
-                                        if (filenames && mimetypes && !source.element.src.endsWith(filenames[0])) {
+                                        if (filenames && mimetype && !source.element.src.endsWith(filenames[0])) {
                                           video.element.pause();
                                           source.element.src = KarmaFieldsAlpha.uploadURL+"/"+filenames[0];
-                                          source.element.type = mimetypes[0];
+                                          source.element.type = mimetype;
                                           video.element.load();
                                         }
                                       }
@@ -1132,7 +1134,8 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
                             tag: "figure",
                             class: "audio",
                             update: figure => {
-                              if (mimetypes[0].startsWith("audio")) {
+                              figure.element.classList.toggle("hidden", !mimetype.startsWith("audio"));
+                              if (mimetype.startsWith("audio")) {
                                 figure.child = {
                                   tag: "audio",
                                   update: audio => {
@@ -1141,10 +1144,10 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
                                       tag: "source",
                                       update: source => {
                                         const filenames = this.getValue("filename");
-                                        if (filenames && mimetypes && !source.element.src.endsWith(filenames[0])) {
+                                        if (filenames && mimetype && !source.element.src.endsWith(filenames[0])) {
                                           audio.element.pause();
                                           source.element.src = KarmaFieldsAlpha.uploadURL+"/"+filenames[0];
-                                          source.element.type = mimetypes[0];
+                                          source.element.type = mimetype;
                                           audio.element.load();
                                         }
                                       }
@@ -1165,7 +1168,7 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
                   // -> 1 folder
                   class: "media-detail",
                   update: frame => {
-                    frame.element.classList.toggle("hidden", isMultiple && filetype !== "folder");
+                    frame.element.classList.toggle("hidden", isMultiple || filetype !== "folder");
                     if (!isMultiple && filetype === "folder") {
                       frame.child = {
                         tag: "span",

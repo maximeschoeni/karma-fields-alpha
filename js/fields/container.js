@@ -186,27 +186,27 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		if (field.resource.label) {
 
-			if (labelable) {
+			// if (labelable) {
+			//
+			// 	children.push({
+			// 		tag: "label",
+			// 		class: "label",
+			// 		update: label => {
+			// 			label.element.htmlFor = field.getId();
+			// 			label.element.textContent = field.getLabel();
+			// 		}
+			// 	});
+			//
+			// } else {
 
 				children.push({
-					tag: "label",
 					class: "label",
 					update: label => {
-						label.element.htmlFor = field.getId();
 						label.element.textContent = field.getLabel();
 					}
 				});
 
-			} else {
-
-				children.push({
-					class: "label",
-					update: label => {
-						label.element.textContent = field.getLabel();
-					}
-				});
-
-			}
+			// }
 
 		}
 

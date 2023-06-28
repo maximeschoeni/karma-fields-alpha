@@ -84,6 +84,31 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	}
 
+	// getEditorValue(element) {
+	//
+	// 	const editor = this.getEditor(element);
+	//
+	// 	if (editor) {
+	// 		// const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+	//
+	// 		if (value !== KarmaFieldsAlpha.loading && value !== editor.getContent()) {
+	// 			// console.log("content not match", value, editor.getContent());
+	//
+	// 			console.log("Editor -> value does not match current", value, editor.getContent());
+	//
+	// 			editor.setContent(value);
+	// 			const content = editor.getContent();
+	// 			if (content !== value) {
+	// 				// -> editor has formated things!
+	// 				this.setValue(content);
+	// 				this.save();
+	// 			}
+	// 		}
+	// 	}
+	//
+	//
+	// }
+
   getEditor(element) {
 
     // const key = this.getKey();
@@ -2006,11 +2031,13 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				  event.stopPropagation(); // -> prevent re-rendering
 				}
 
-				const multiple = this.request("multiple");
+				// const multiple = this.request("multiple");
 				const selection = this.getSelection() || {};
 
+				let [value] = this.getValue();
+
         let action = this.getData() || {};
-        const mode = multiple && "code" || action.mode || this.resource.mode || "edit";
+        const mode = value === KarmaFieldsAlpha.mixed && "code" || action.mode || this.resource.mode || "edit";
 
         container.children = [
           {
@@ -2116,57 +2143,58 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                     update: node => {
 											const editor = this.getEditor(node.element);
 											if (editor) {
-												const value = this.getValue();
-												if (value !== KarmaFieldsAlpha.field.input.loading && value !== editor.getContent()) {
+
+												let content = editor.getContent();
+
+												if (value !== KarmaFieldsAlpha.loading && value !== content) {
 													// console.log("content not match", value, editor.getContent());
-													editor.setContent(value);
-													const content = editor.getContent();
+
+													if (value === undefined) {
+
+														const defaultValue = KarmaFieldsAlpha.field.input.prototype.getDefault.call(this);
+
+														if (defaultValue !== undefined) {
+
+															editor.setContent(defaultValue);
+
+															content = editor.getContent();
+
+														}
+
+													} else {
+
+														editor.setContent(value);
+
+														content = editor.getContent();
+
+													}
+
+													// const content = editor.getContent();
+
 													if (content !== value) {
 														// -> editor has formated things!
+
+														console.log("Editor -> save value", value, content);
+
 														this.setValue(content);
+														this.save();
+
 													}
+
+
+
+
+
+													// editor.setContent(value);
+													// const content = editor.getContent();
+													// if (content !== value) {
+													// 	// -> editor has formated things!
+													// 	this.setValue(content);
+													// 	this.save();
+													// }
 												}
 											}
 
-											// const value = this.getValue();
-											//
-											// // console.log("tinymce update");
-											//
-											// const isEditor = mode !== "code" && value !== KarmaFieldsAlpha.field.input.multiple;
-                      // node.element.classList.toggle("hidden", !isEditor);
-											//
-                      // if (isEditor) {
-											//
-                      //   node.element.editable = true;
-											//
-											//
-											// 	if (value !== KarmaFieldsAlpha.field.input.loading) {
-											//
-											// 		const editor = await this.createEditor(node.element);
-											//
-											// 		console.log("tinymce update", value, editor.getContent(), value !== editor.getContent());
-											//
-											// 		if (value !== editor.getContent()) {
-											//
-											// 			editor.setContent(value);
-											//
-											// 		}
-											//
-											// 		this.saveContent = () => {
-											// 			console.log("save value");
-											//
-											// 			const value = editor.getContent();
-											// 			this.setValue(value);
-											// 		}
-											//
-											// 	}
-											//
-											//
-											//
-											//
-											//
-											//
-                      // }
                     }
                   },
                   {
@@ -2439,7 +2467,7 @@ KarmaFieldsAlpha.field.tinymce.buttons.ol = class extends KarmaFieldsAlpha.field
 KarmaFieldsAlpha.field.tinymce.buttons.code = class extends KarmaFieldsAlpha.field.button {
 	constructor(resource) {
 		super({
-			dashicon: "html",
+			dashicon: "editor-code",
 			title: "Code",
 			action: "execMode",
 			value: "code",

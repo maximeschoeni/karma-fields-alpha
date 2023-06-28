@@ -5,49 +5,58 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 			tag: "textarea",
 			class: "textarea karma-field",
 			init: input => {
-				if (this.resource.label) {
-					input.element.id = this.getId();
-				}
-				if (this.resource.input) {
-					Object.assign(input.element, this.resource.input, this.resource.textarea);
-				}
-        if (this.resource.readonly) {
-					input.element.readOnly = true;
-				}
+				input.element.id = this.getId();
 				if (this.resource.height) {
 					input.element.style.height = this.resource.height;
+				}
+				if (this.resource.textarea || this.resource.input) {
+					Object.assign(input.element, this.resource.textarea || this.resource.input);
 				}
 			},
 			update: input => {
 
-				let value = this.getValue();
+        let value = this.getSingleValue();
 
-        input.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
+        input.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
 
-        if (value !== KarmaFieldsAlpha.field.input.loading) {
-
-					const multiple = this.request("multiple");
+        if (value !== KarmaFieldsAlpha.loading) {
 
 					input.element.placeholder = this.getPlaceholder();
-					input.element.classList.toggle("multi", Boolean(multiple));
 
-					input.element.classList.toggle("selected", Boolean(multiple && (this.getSelection() || {}).final));
+					input.element.classList.toggle("mixed", value === KarmaFieldsAlpha.mixed);
+					input.element.classList.toggle("selected", Boolean(value === KarmaFieldsAlpha.mixed && (this.getSelection() || {}).final));
 
 
-          if (multiple) {
+          if (value === KarmaFieldsAlpha.mixed) {
 
-            input.element.value = "[multiple values]";
+            input.element.value = "[mixed values]";
             input.element.readOnly = true;
 
           } else {
 
-            input.element.readOnly = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.readonly));
+            input.element.readOnly = Boolean(this.resource.readonly && this.parse(this.resource.readonly));
 
             const modified = this.modified();
 
             input.element.parentNode.classList.toggle("modified", Boolean(modified));
 
-            if (value !== input.element.value) { // -> replacing same value will eject focus !
+						// if (value === undefined) {
+						//
+						// 	value = this.getDefault();
+						//
+						// 	if (value !== undefined) {
+						//
+						// 		this.setValue(value);
+						//
+						// 	} else {
+						//
+						// 		value = "";
+						//
+						// 	}
+						//
+						// }
+
+            if (value !== input.element.value) { // -> replacing same value will reset caret index !
 
               input.element.value = value;
 
@@ -57,23 +66,17 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
           input.element.oninput = event => {
 
-						value = input.element.value.normalize();
+						const newValue = input.element.value.normalize();
 
-						this.debounce("typing", () => this.setValue(value), 750);
+						this.setValue(newValue);
+
+						this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+
+						value = newValue;
 
           }
 
-					// input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
-					//
-					// 	this.setSelection({final: true}); // -> prevent field from losing focus on render
-					//
-					// }
-
-
-					// --> why?
-					input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
-
-						this.setSelection({final: true}); // -> prevent field from losing focus on render
+					input.element.onblur = event => {
 
 					}
 
@@ -81,7 +84,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 						this.setSelection({final: true});
 
-						if (multiple) {
+						if (value === KarmaFieldsAlpha.mixed) {
 
 							KarmaFieldsAlpha.Clipboard.focus();
 
@@ -94,40 +97,6 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 					input.element.onmousedown = event => {
 						event.stopPropagation();
 					}
-
-
-          input.element.oncopy = event => {
-						if (value === KarmaFieldsAlpha.field.input.multiple) {
-							event.preventDefault();
-							const key = this.getKey();
-							const values = this.parent.getValue(key);
-							const grid = new KarmaFieldsAlpha.Grid();
-	            grid.addColumn(...values);
-	            event.clipboardData.setData("text/plain", grid.toString().normalize());
-						}
-          };
-
-          input.element.onpaste = async event => {
-						if (value === KarmaFieldsAlpha.field.input.multiple) {
-							event.preventDefault();
-	            const string = event.clipboardData.getData("text").normalize();
-	            const grid = new KarmaFieldsAlpha.Grid(string);
-	            const column = grid.getColumn(0);
-							this.setValue(column);
-						}
-          };
-
-          input.element.oncut = async event => {
-						if (value === KarmaFieldsAlpha.field.input.multiple) {
-							event.preventDefault();
-							const key = this.getKey();
-							const values = this.parent.getValue(key);
-	            const grid = new KarmaFieldsAlpha.Grid();
-	            grid.addColumn(...values);
-	            event.clipboardData.setData("text/plain", grid.toString().normalize());
-	            this.setValue("");
-						}
-          };
 
         }
 
@@ -142,6 +111,149 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 			}
 		};
 	}
+
+	// build() {
+	// 	return {
+	// 		tag: "textarea",
+	// 		class: "textarea karma-field",
+	// 		init: input => {
+	// 			if (this.resource.label) {
+	// 				input.element.id = this.getId();
+	// 			}
+	// 			if (this.resource.input) {
+	// 				Object.assign(input.element, this.resource.input, this.resource.textarea);
+	// 			}
+  //       if (this.resource.readonly) {
+	// 				input.element.readOnly = true;
+	// 			}
+	// 			if (this.resource.height) {
+	// 				input.element.style.height = this.resource.height;
+	// 			}
+	// 		},
+	// 		update: input => {
+	//
+	// 			let value = this.getValue();
+	//
+  //       input.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
+	//
+  //       if (value !== KarmaFieldsAlpha.field.input.loading) {
+	//
+	// 				const multiple = this.request("multiple");
+	//
+	// 				input.element.placeholder = this.getPlaceholder();
+	// 				input.element.classList.toggle("multi", Boolean(multiple));
+	//
+	// 				input.element.classList.toggle("selected", Boolean(multiple && (this.getSelection() || {}).final));
+	//
+	//
+  //         if (multiple) {
+	//
+  //           input.element.value = "[multiple values]";
+  //           input.element.readOnly = true;
+	//
+  //         } else {
+	//
+  //           input.element.readOnly = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.readonly));
+	//
+  //           const modified = this.modified();
+	//
+  //           input.element.parentNode.classList.toggle("modified", Boolean(modified));
+	//
+  //           if (value !== input.element.value) { // -> replacing same value will eject focus !
+	//
+  //             input.element.value = value;
+	//
+  //           }
+	//
+  //         }
+	//
+  //         input.element.oninput = event => {
+	//
+	// 					value = input.element.value.normalize();
+	//
+	// 					this.debounce("typing", () => this.setValue(value), 750);
+	//
+  //         }
+	//
+	// 				// input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
+	// 				//
+	// 				// 	this.setSelection({final: true}); // -> prevent field from losing focus on render
+	// 				//
+	// 				// }
+	//
+	//
+	// 				// --> why?
+	// 				input.element.onfocusin = event => { // /!\ -> focusin trigger before focus
+	//
+	// 					this.setSelection({final: true}); // -> prevent field from losing focus on render
+	//
+	// 				}
+	//
+	// 				input.element.onfocus = event => {
+	//
+	// 					this.setSelection({final: true});
+	//
+	// 					if (multiple) {
+	//
+	// 						KarmaFieldsAlpha.Clipboard.focus();
+	//
+	// 					}
+	//
+	// 					this.render();
+	//
+	// 				}
+	//
+	// 				input.element.onmousedown = event => {
+	// 					event.stopPropagation();
+	// 				}
+	//
+	//
+  //         input.element.oncopy = event => {
+	// 					if (value === KarmaFieldsAlpha.field.input.multiple) {
+	// 						event.preventDefault();
+	// 						const key = this.getKey();
+	// 						const values = this.parent.getValue(key);
+	// 						const grid = new KarmaFieldsAlpha.Grid();
+	//             grid.addColumn(...values);
+	//             event.clipboardData.setData("text/plain", grid.toString().normalize());
+	// 					}
+  //         };
+	//
+  //         input.element.onpaste = async event => {
+	// 					if (value === KarmaFieldsAlpha.field.input.multiple) {
+	// 						event.preventDefault();
+	//             const string = event.clipboardData.getData("text").normalize();
+	//             const grid = new KarmaFieldsAlpha.Grid(string);
+	//             const column = grid.getColumn(0);
+	// 						this.setValue(column);
+	// 					}
+  //         };
+	//
+  //         input.element.oncut = async event => {
+	// 					if (value === KarmaFieldsAlpha.field.input.multiple) {
+	// 						event.preventDefault();
+	// 						const key = this.getKey();
+	// 						const values = this.parent.getValue(key);
+	//             const grid = new KarmaFieldsAlpha.Grid();
+	//             grid.addColumn(...values);
+	//             event.clipboardData.setData("text/plain", grid.toString().normalize());
+	//             this.setValue("");
+	// 					}
+  //         };
+	//
+  //       }
+	//
+	// 			if (this.resource.disabled) {
+	// 				input.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));
+	// 			}
+	//
+	// 			if (this.resource.enabled) {
+	// 				input.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
+	// 			}
+	//
+	// 		}
+	// 	};
+	// }
 
 	// buildDataListInput() {
 

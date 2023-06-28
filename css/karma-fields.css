@@ -29,6 +29,7 @@
   --border-width: 2px;
   --gap-width: 0.75em;
   --border-radius: 0;
+  --static-text-weight: bolder;
 
 }
 
@@ -257,7 +258,7 @@ body.karma-table-open {
   color: var(--theme-color);
   padding: var(--gap-width);
   display: block;
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
 }
 .karma-fields .navigation ul li a:hover {
   /* text-decoration: underline;
@@ -484,7 +485,7 @@ body.karma-table-open {
   text-align: left;
   padding: 0;
   display: flex;
-  outline: 1px solid black !important; /* override loading */
+  outline: var(--border-width) solid var(--theme-color) !important; /* override loading */
 }
 .karma-fields .table .th {
   background-color: var(--background-color);
@@ -519,10 +520,12 @@ body.karma-table-open {
   height: 0.6em;
 } */
 .karma-fields .table .td.modified {
-  background-color: var(--modified-color);
+  /* background-color: var(--modified-color); */
 }
 .karma-fields .table .td.selected {
-  background-color: var(--disabled-color);
+  /* background-color: var(--disabled-color); */
+  background-color: var(--theme-color);
+  color: var(--background-color);
 }
 .karma-fields .table .td.selecting,
 .karma-fields .clipboard:focus + .table .td.selected:not(.selecting-cell) {
@@ -801,7 +804,7 @@ body.karma-table-open {
   align-items: center;
   min-height: 2em;
   font-size: 0.875em;
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
   /* position: absolute;
   bottom: 0;
   width: 100%; */
@@ -864,7 +867,7 @@ ul.karma-breadcrumb {
 }
 ul.karma-breadcrumb li {
   margin: 0;
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
 }
 ul.karma-breadcrumb li:not(:last-child)::after {
   content: ">";
@@ -901,9 +904,9 @@ ul.karma-breadcrumb li a:hover {
   object-fit: contain;
 }
 .karma-field-table .media-description .filename .value {
-  white-space: nowrap;
+  /* white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: ellipsis; */
 }
 .karma-field-table .media-description .media-detail {
   display: flex;
@@ -944,7 +947,7 @@ button.karma-button {
   text-shadow: none;
   border-radius: var(--border-radius);
   font-size: 1em;
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
   line-height: 1.08em;
   position: relative;
   border: var(--border-width) solid var(--theme-color);
@@ -1056,7 +1059,7 @@ border: var(--border-width) solid var(--disabled-color);
   justify-content: center;
   height: 100%;
   min-width: 2.5em;
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
   font-size: 1em;
   line-height: 1.08em;
   border: none;
@@ -1087,14 +1090,15 @@ border: var(--border-width) solid var(--disabled-color);
   gap: var(--gap-width);
 }
 .karma-gallery.single {
-  align-items: flex-start;
+  align-items: flex-end;
+  flex-direction: row;
 }
 .karma-gallery .gallery {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: flex-start;
-  outline: var(--border-width) solid var(--theme-color);
+  border: var(--border-width) solid var(--theme-color);
   min-height: 9em;
   min-width: 9em;
   position: relative;
@@ -1133,10 +1137,10 @@ border: var(--border-width) solid var(--disabled-color);
   padding: 0.4em 0.4em;
   /* background-color: rgb(255, 255, 255, 0.9); */
   /* border-top: 1px solid var(--disabled-color); */
-  line-height: 1.08em;
+  line-height: 0.92em;;
   /* height: 4em; */
   font-size: 0.8462em;
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
   letter-spacing: -0.02em;
   text-align: center;
   /* color: var(--selected-color); */
@@ -1268,24 +1272,25 @@ border: var(--border-width) solid var(--disabled-color);
   position: relative;
 }
 .karma-tags ul li {
-  border: 1px solid black;
+  border: var(--border-width) solid var(--theme-color);
   border-radius: 1.25em;
   padding: 0 var(--gap-width);
   min-height: 2.5em;
   display: flex;
   align-items: center;
   gap: var(--gap-width);
+  font-weight: var(--static-text-weight);
 }
 .karma-tags ul li.selecting,
 .karma-tags ul li.selected {
-  background-color: var(--selected-color);
+  background-color: var(--theme-color);
   color: var(--background-color);
 }
 .karma-tags ul li a.close {
   cursor: pointer;
 }
 .karma-tags ul li.selected a.close {
-  color: white;
+  color: var(--background-color);
 }
 .karma-tags ul li:not(.selecting,.selected) a.close {
   display: none;
@@ -1299,7 +1304,7 @@ border: var(--border-width) solid var(--disabled-color);
 --------------------------------------*/
 
 .karma-field-frame .text {
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
 }
 .karma-field-frame.ellipsis {
   overflow: hidden;
@@ -1397,6 +1402,9 @@ ul.tag-links li:not(:last-child)::after {
 .karma-field-container.display-table>*>* {
   display: table-cell;
   padding: 0 0 0.75em;
+}
+.karma-field-container.display-table>*>:first-child {
+  padding-right: 0.75em;
 }
 .karma-field-container.display-table>*>.label {
   display: table-cell;
@@ -1514,6 +1522,10 @@ ul.tag-links li:not(:last-child)::after {
   min-width: 0;
 }
 
+.karma-fields .array .mixed {
+  display: flex;
+  flex-direction: column;
+}
 
 
 
@@ -1553,8 +1565,12 @@ ul.tag-links li:not(:last-child)::after {
   font-size: 1.4em;
 }
 .karma-field .karma-field-checkbox input.mixed::after {
-  content: "-";
-  font-size: 1.4em;
+  /* content: "-";
+  font-size: 1.4em; */
+  content: "";
+  width: 0.5em;
+  height: 0.2em;
+  background-color: var(--theme-color);
 }
 .karma-field .checkbox-container {
   display: flex;
@@ -1564,7 +1580,7 @@ ul.tag-links li:not(:last-child)::after {
 .karma-field .checkbox-container .checkbox-text {
   margin: 0 0.4em;
   font-size: inherit;
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
   line-height: 1.08em;
   user-select: none;
 }
@@ -1620,7 +1636,7 @@ ul.tag-links li:not(:last-child)::after {
   color: var(--theme-color);
   max-width: 100%;
   font-size: 1em;
-  font-weight: bolder;
+  font-weight: var(--static-text-weight);
   min-height: 2.5em;
   background-color: var(--background-color);
   padding: 0 2.0em 0 var(--gap-width);
@@ -1629,11 +1645,16 @@ ul.tag-links li:not(:last-child)::after {
   box-shadow: none;
 
   border: none;
-  outline: var(--border-width) solid var(--theme-color);
-}
 
+  /* right padding hack: */
+  padding-left: 0.5em;
+  border-right: 0.5em solid var(--background-color);
+  outline: var(--border-width) solid var(--theme-color);
+  outline-offset: calc(-1*var(--border-width));
+}
 .karma-fields select.karma-field:hover {
   background-color: var(--active-color);
+  border-color: var(--active-color);
 }
 
 .karma-field-table .table select.karma-field {
@@ -1689,8 +1710,8 @@ ul.tag-links li:not(:last-child)::after {
 .karma-fields .dark textarea:focus {
   color: var(--background-color);
 }
-.karma-fields input.text-input.multi:focus,
-.karma-fields textarea.multi:focus {
+.karma-fields input.text-input.mixed:focus,
+.karma-fields textarea.mixed:focus {
   color: var(--background-color);
   background-color: var(--theme-color);
 }
@@ -1770,8 +1791,8 @@ textarea.clipboard {
 
 
 /* bulk edit */
-.karma-fields input.multi:focus,
-.karma-fields textarea.multi:focus,
+.karma-fields input.mixed:focus,
+.karma-fields textarea.mixed:focus,
 .karma-fields input.selected,
 .karma-fields textarea.selected {
   background-color: var(--theme-color);

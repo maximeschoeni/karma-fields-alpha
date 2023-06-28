@@ -64,50 +64,24 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
     value = KarmaFieldsAlpha.Type.toArray(value);
 
-		let currentValue = this.getValue(...path);
+    KarmaFieldsAlpha.Store.setValue(value, this.resource.driver, ...path);
 
-		if (!KarmaFieldsAlpha.DeepObject.equal(value, currentValue)) {
+    this.render();
 
-      KarmaFieldsAlpha.History.backup(value, currentValue, "delta", this.resource.driver, this.resource.id, ...path);
-
-      KarmaFieldsAlpha.Store.set(value, "delta", this.resource.driver, this.resource.id, ...path);
-
-      this.save();
-
-      this.render();
-
-		}
-
-
-
-    // this.debounce("saving", async () => {
+		// let currentValue = this.getValue(...path);
     //
-    //   KarmaFieldsAlpha.History.save();
+		// if (!KarmaFieldsAlpha.DeepObject.equal(value, currentValue)) {
     //
-    // }, 1000);
+    //   KarmaFieldsAlpha.History.backup(value, currentValue, "delta", this.resource.driver, this.resource.id, ...path);
+    //
+    //   KarmaFieldsAlpha.Store.set(value, "delta", this.resource.driver, this.resource.id, ...path);
+    //
+    //   this.save();
+    //
+    //   this.render();
+    //
+		// }
 
-    // const data = this.getData() || {};
-    //
-    // if (data.saving) {
-    //
-    //   clearTimeout(data.saving);
-    //
-    // }
-    //
-    // data.saving = setTimeout(() => KarmaFieldsAlpha.History.save(), interval);
-    //
-    // await data.rendering;
-    //
-    // data.rendering = this.renderForm();
-    //
-    // this.setData(data);
-
-    // this.update();
-
-    // this.save();
-    // // this.deferRender();
-    //
-    // this.render();
 
 	}
 

@@ -104,6 +104,10 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
       return "exit";
 
+    } else if (id === KarmaFieldsAlpha.mixed) {
+
+      return "mixed";
+
     } else {
 
       const driver = this.getDriver();
@@ -164,7 +168,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   getFile(id) {
 
-    if (id && id !== KarmaFieldsAlpha.exit) {
+    if (id && typeof id !== "symbol") {
 
       const driver = this.getDriver();
 
@@ -214,7 +218,10 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
     if (id === KarmaFieldsAlpha.exit) {
 
       return "../";
-      // return "←]";
+
+    } else if (id === KarmaFieldsAlpha.mixed) {
+
+      return "[mixed value]";
 
     }
 
@@ -377,7 +384,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                 gallery.element.ondblclick = event => {
                   // this.openLibrary([]);
                   // this.openMediaLibrary();
-                  this.fetch();
+                  this.open();
                 }
 
                 const sorter = new KarmaFieldsAlpha.Sorter(gallery.element);
@@ -564,6 +571,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                             figure.element.classList.toggle("dashicons-media-archive", icon === "zip");
                             figure.element.classList.toggle("dashicons-hourglass", icon === "loading");
                             figure.element.classList.toggle("dashicons-warning", icon === "notfound");
+                            figure.element.classList.toggle("dashicons-images-alt", icon === "mixed");
+
 
                             if (filename) {
                               figure.children = [{
@@ -683,9 +692,9 @@ KarmaFieldsAlpha.field.files.controls = class extends KarmaFieldsAlpha.field.con
     super({
       display: "flex",
       children: [
-        "add",
-        "edit",
-        "remove"
+        "add"
+        // "edit",
+        // "remove"
       ],
       ...resource
     });

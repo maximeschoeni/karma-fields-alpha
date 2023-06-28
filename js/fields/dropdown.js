@@ -1,6 +1,6 @@
 KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
-  getDefaultValue(defaults = {}) {
+  getDefault(defaults = {}) {
 
 		if (this.resource.default) {
 
@@ -21,23 +21,23 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 	}
 
 
-  getDefault(defaults = {}) {
-console.error("deprecated");
-		const key = this.getKey();
-    const options = this.fetchOptions();
-
-		if (key && this.resource.default !== null) {
-
-			defaults[key] = this.parse(this.resource.default || "");
-
-		} else if (options.length > 0) {
-
-      defaults[key] = options[0].id;
-
-    }
-
-		return defaults;
-	}
+//   getDefault(defaults = {}) {
+// console.error("deprecated");
+// 		const key = this.getKey();
+//     const options = this.fetchOptions();
+//
+// 		if (key && this.resource.default !== null) {
+//
+// 			defaults[key] = this.parse(this.resource.default || "");
+//
+// 		} else if (options.length > 0) {
+//
+//       defaults[key] = options[0].id;
+//
+//     }
+//
+// 		return defaults;
+// 	}
 
 
   // getDefault(defaults = {}) {
@@ -115,18 +115,22 @@ console.error("deprecated");
 
       const options = [];
       const alias = KarmaFieldsAlpha.drivers[driver].alias;
-      const idAlias = alias.id || "id";
-      const nameAlias = alias.name || "name";
+      // const idAlias = alias.id || "id";
+      // const nameAlias = alias.name || "name";
+      const idAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "id") || "id";
+      const nameAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "name") || "name";
 
-      let name = item[nameAlias];
 
-      if (name === undefined) {
-
-        name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
-
-      }
 
       for (let item of results) {
+
+        let name = item[nameAlias];
+
+        if (name === undefined) {
+
+          name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
+
+        }
 
         options.push({
           id: item[idAlias],
@@ -197,36 +201,74 @@ console.error("deprecated");
 			class: "dropdown karma-field",
 			update: dropdown => {
 
-        let value = this.getValue();
-        const options = this.fetchOptions();
+        let value = this.getSingleValue();
+        let options = this.fetchOptions();
 
-        dropdown.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
+        dropdown.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
 
-        if (options && options.length > 0 && value !== KarmaFieldsAlpha.field.input.loading) {
+        if (options && options.length > 0 && value !== KarmaFieldsAlpha.loading) {
 
-          if (!options.some(option => option.id === value)) {
+          if (value === KarmaFieldsAlpha.mixed) {
 
-            value = options[0].id;
+            // const mixedOption = new Option("[mixed value]", "xxx", true, true);
+            // mixedOption.disabled = true;
+
+            options = [...options, {id: value, name: "[mixed value]"}];
+
+            // dropdown.element.length = 0;
+            // dropdown.element.add(new Option("–", "", false, false));
+            // dropdown.element.add(mixedOption);
+
+          } else {
+
+            if (!options.some(option => option.id === value)) {
+
+              value = options[0].id;
+
+              this.setValue(value);
+              this.save();
+
+            }
 
           }
 
-          if (dropdown.element.childElementCount !== options.length || dropdown.element.lastElementChild.value !== options[options.length-1].id) {
+          if (dropdown.element.childElementCount !== options.length) {
 
             dropdown.element.length = 0;
 
-            options.forEach(option => {
-              dropdown.element.add(new Option(option.name, option.id, value === option.id, value === option.id));
-            });
+            for (let option of options) {
 
-          } else if (value !== dropdown.element.value) {
+              let optionElement;
+
+              if (option.id === KarmaFieldsAlpha.mixed) {
+
+                optionElement = new Option(option.name, "", true, true);
+                optionElement.disabled = true;
+
+              } else {
+
+                optionElement = new Option(option.name, option.id, value === option.id, value === option.id);
+
+              }
+
+              dropdown.element.add(optionElement);
+
+            }
+
+          } else if (value !== dropdown.element.value && value !== KarmaFieldsAlpha.mixed) {
 
             dropdown.element.value = value || "";
 
           }
 
+
+
+
+
           dropdown.element.onchange = event => {
 
             this.setValue(dropdown.element.value);
+            this.save("change");
 
           }
 

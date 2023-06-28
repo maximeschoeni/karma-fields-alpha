@@ -574,9 +574,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 
     // -> todo: do this in copy event
-    const [string] = this.export([], selection.index, selection.length);
-
-    KarmaFieldsAlpha.Clipboard.write(string);
+    // const [string] = this.export([], selection.index, selection.length);
+    //
+    // KarmaFieldsAlpha.Clipboard.write(string);
 
   }
 
@@ -824,7 +824,9 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
   //
   // }
 
-  getAllValues(ids, key) {
+  getMixedValues(key) {
+
+    const ids = this.request("getSelectedIds");
 
     const values = [];
 
@@ -864,7 +866,7 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
       if (ids.length > 1) {
 
-        const values = this.getAllValues(ids, key);
+        const values = this.getMixedValues(key);
 
         if (values) {
 

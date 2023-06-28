@@ -959,7 +959,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     if (selection) {
 
-      this.follow(selection, (grid, selection) => grid.remove(selection.index, selection.length));
+      this.follow(selection, (field, selection) => {
+
+        field.remove(selection.index, selection.length);
+
+      });
 
     }
 
@@ -967,15 +971,22 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   canDelete() {
 
-    const selection = this.getSelection();
+    // const selection = this.getSelection();
+    //
+    // if (selection) {
+    //
+    //   return Boolean(this.follow(selection, (field, selection) => selection.length && field.remove));
+    //
+    // }
+    //
+    // return false;
 
-    if (selection) {
 
-      return Boolean(this.follow(selection, (field, selection) => selection.length && field.remove));
+    const grid = this.getGrid();
 
-    }
+    return Boolean(grid && grid.hasSelection() && grid.remove);
 
-    return false;
+
   }
 
 
@@ -2297,6 +2308,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
             //   this.paste("", selection);
             //   this.render();
             // }
+            // debugger;
             this.delete();
           }
         });

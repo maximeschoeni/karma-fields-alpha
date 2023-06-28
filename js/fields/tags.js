@@ -6,6 +6,12 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
+  getDriver() {
+
+    return this.resource.driver;
+
+  }
+
 
   open() {
     const ids = this.getValue() || [];
@@ -295,11 +301,21 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                 content.children = ids.map((id, rowIndex) => {
                   return {
                     tag: "li",
-                    update: async frame => {
+                    update: frame => {
                       // frame.element.classList.toggle("selected", selection && selection.containsRow(rowIndex) || false);
                       frame.element.classList.toggle("selected", selection && KarmaFieldsAlpha.Selection.containRow(selection, rowIndex) || false);
 
-                      const [name] = KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, "name") || ["..."];
+                      let name;
+
+                      if (id === KarmaFieldsAlpha.mixed) {
+
+                        name = "[mixed values]";
+
+                      } else {
+
+                        [name] = KarmaFieldsAlpha.Query.getValue(this.getDriver(), id, "name") || ["..."];
+
+                      }
 
                       frame.children = [
                         {
@@ -339,7 +355,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                 //   }
                 // },
                 update: controls => {
-                  if (this.resource.controls !== false) {
+                  if (this.resource.controls !== false && ids[0] !== KarmaFieldsAlpha.mixed) {
                     controls.child = this.createChild({
                       type: "controls",
                       ...this.resource.controls,

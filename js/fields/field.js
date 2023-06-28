@@ -518,6 +518,23 @@ console.error("deprecated");
     return KarmaFieldsAlpha.loading;
   }
 
+
+  getMixedValues(...path) {
+
+    const key = this.getKey();
+
+    if (key) {
+
+      return this.parent.getMixedValues(key, ...path);
+
+    }
+
+    return this.parent.getMixedValues(...path);
+
+  }
+
+
+
   // getValue(...path) {
   //
   //   return this.parent.getValue(...path);
