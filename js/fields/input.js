@@ -138,25 +138,30 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		//
     // return items;
 
-		const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+		// const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+		//
+		// if (value === KarmaFieldsAlpha.mixed) {
+		//
+		// 	const values = this.getMixedValues();
+		//
+		// 	const grid = new KarmaFieldsAlpha.Grid();
+		//
+		// 	grid.addRow(values.map(value => [value]));
+		//
+		// 	items.push(grid.toString());
+		//
+		// } else if (value !== KarmaFieldsAlpha.loading) {
+		//
+		// 	items.push(value);
+		// 
+		// }
+		//
+    // return items;
 
-		if (value === KarmaFieldsAlpha.mixed) {
 
-			const values = this.getMixedValues();
+    const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
 
-			const grid = new KarmaFieldsAlpha.Grid();
-
-			grid.addRow(values.map(value => [value]));
-
-			items.push(grid.toString());
-
-		} else if (value !== KarmaFieldsAlpha.loading) {
-
-			items.push(value);
-
-		}
-
-    return items;
+    items.push(value.toString());
 
 	}
 

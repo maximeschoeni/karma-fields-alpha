@@ -248,6 +248,7 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
     return {
       class: "post-form",
       init: form => {
+
         if (this.resource.style) {
           form.element.style = this.resource.style;
         }
@@ -323,6 +324,8 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
       },
       update: form => {
+        this.render = form.render;
+        
         // this.renderForm = form.render;
 
         // this.render = () => {

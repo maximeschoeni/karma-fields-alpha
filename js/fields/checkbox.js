@@ -26,6 +26,21 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 		return value;
 	}
 
+	export(items = []) {
+
+	  const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+
+	  items.push(value.toString());
+
+	}
+
+	import(items) {
+
+		const value = items.shift() || "";
+		this.setValue(value);
+
+  }
+
 
 	//
   // setValue(value) {

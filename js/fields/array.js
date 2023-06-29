@@ -58,27 +58,32 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   import(items, index = 0, length = 999999, colIndex = 0, colLength = 999999) {
 
     const string = items.shift();
-    const grid = new KarmaFieldsAlpha.Grid(string);
 
-    const columns = this.resource.children.slice(colIndex, colIndex + colLength);
+    if (string) {
 
-    const values = [...this.getValue()];
+      const grid = new KarmaFieldsAlpha.Grid(string);
 
-    values.splice(index, length, ...grid.array.map(() => this.getDefault()));
+      const columns = this.resource.children.slice(colIndex, colIndex + colLength);
 
-    this.setValue(values);
+      const values = [...this.getValue()];
 
-    for (let i = 0; i < grid.array.length; i++) {
+      values.splice(index, length, ...grid.array.map(() => this.getDefault()));
 
-      const child = this.createChild({
-        children: columns,
-        type: "row",
-        index: i + index
-      });
+      this.setValue(values);
 
-      const rowItems = grid.getRow(i);
+      for (let i = 0; i < grid.array.length; i++) {
 
-      child.import(rowItems);
+        const child = this.createChild({
+          children: columns,
+          type: "row",
+          index: i + index
+        });
+
+        const rowItems = grid.getRow(i);
+
+        child.import(rowItems);
+
+      }
 
     }
 

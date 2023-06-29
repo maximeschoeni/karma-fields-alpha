@@ -58,27 +58,13 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 	// 	return defaults;
 	// }
 
-  export(items = []) {
-
-		const value = this.getValue();
-
-		const options = this.fetchOptions();
-
-    if (options) {
-
-      const option = options.find(option => option.id === value);
-
-      if (option) {
-
-        items.push(option.name);
-
-      }
-
-    }
-
-
-    return items;
-	}
+  // export(items = []) {
+  //
+  //   const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+  //
+  //   items.push(value.toString());
+  //
+	// }
 
   import(items) {
 

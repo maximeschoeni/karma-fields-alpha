@@ -246,9 +246,9 @@ console.error("deprecated");
   build() {
     return {
       class: "karma-field karma-field-date",
-      init: (container) => {
-        container.element.setAttribute('tabindex', '-1');
-      },
+      // init: (container) => {
+      //   container.element.setAttribute('tabindex', '-1');
+      // },
       update: (container) => {
         this.onRender = container.render;
 
@@ -362,12 +362,16 @@ console.error("deprecated");
                                             event.preventDefault();
                                             let sqlDate = day.moment.format(this.resource.output_format);
                                             data.date = null;
-                                            this.parent.request("set-option", data.date, this.resource.key, "date");
+                                            // this.parent.request("set-option", data.date, this.resource.key, "date");
 
-                                            const key = this.getKey();
+                                            // const key = this.getKey();
+                                            //
+                                            // this.parent.request("set", sqlDate, key);
+                                            // this.parent.request("render");
 
-                                            this.parent.request("set", sqlDate, key);
-                                            this.parent.request("render");
+                                            this.setValue(sqlDate);
+                                            this.save("select");
+                                            this.render();
                                           }
                                         }
                                       }],

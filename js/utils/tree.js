@@ -100,6 +100,49 @@ KarmaFieldsAlpha.Tree = class {
     return false;
   }
 
+  // mapIndex(selection) {
+  //
+  //   let index = 0;
+  //
+  //   if (selection.final && selection.length) {
+  //
+  //     return index + selection.index || 0;
+  //
+  //   } else {
+  //
+  //     for (let i = 0; i < this.children.length; i++) {
+  //
+  //       index += 1 + this.mapIndex(selection[i]);
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return index;
+  // }
+
+  // follow(selection, callback) {
+  //
+  //   if (selection.final && selection.length) {
+  //
+  //     return callback(this);
+  //
+  //   } else {
+  //
+  //     for (let i = 0; i < this.children.length; i++) {
+  //
+  //       if (selection[i]) {
+  //
+  //         return this.children[i].follow(selection[i]);
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+
   swap(path, newPath, length) {
 
     const originIndex = path.pop();

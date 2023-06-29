@@ -1,6 +1,18 @@
 
 KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
+  getDriver() {
+
+    if (!this.resource.driver) {
+
+      console.error("Driver not set");
+
+    }
+
+    return this.resource.driver;
+
+  }
+
   getValue(...path) {
 
     return KarmaFieldsAlpha.Query.getValue(this.resource.driver, ...path);
@@ -261,7 +273,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       if (items.length < length) {
 
-        this.remove(index + items.length, length);
+        this.remove(index + items.length, length - items.length);
 
       } else if (items.length > length) {
 
@@ -319,7 +331,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   follow(selection, callback) {
 
-    if (selection.final) {
+    if (selection.final || selection.modal && selection.modal.final) {
 
       return callback(this, selection);
 
@@ -359,6 +371,19 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  copy(selection) {
+
+    const [value] = this.export([], selection.index, selection.length, selection.colIndex, selection.colLength);
+
+    return value;
+  }
+
+  paste(value, selection) {
+
+    this.import([value], selection.index, selection.length, selection.colIndex, selection.colLength);
+
+  }
+
 
   async add(index = 0, params = {}) {
 
@@ -382,6 +407,12 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     await this.render();
 
     this.save("add"); // -> wait until default fields are all set to save
+
+  }
+
+  delete(selection) {
+
+    this.remove(selection.index || 0, selection.length || 0);
 
   }
 
@@ -491,7 +522,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       } else if (selection.length && this.resource.modal) {
 
-        selection.modal = {};
+        selection.modal = {final: true};
 
       }
 
@@ -529,13 +560,18 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       }
 
-      const index = selection.index || 0;
-      const length = selection.length || 0;
+      if (selection) {
 
-      return ids.slice(index, index + length);
+        const index = selection.index || 0;
+        const length = selection.length || 0;
+
+        return ids.slice(index, index + length);
+
+      }
 
     }
 
+    return [];
   }
 
 
@@ -577,6 +613,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     // const [string] = this.export([], selection.index, selection.length);
     //
     // KarmaFieldsAlpha.Clipboard.write(string);
+
+    KarmaFieldsAlpha.Clipboard.focus();
 
   }
 
@@ -821,6 +859,18 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
   //     return array;
   //
   //   }
+  //
+  // }
+
+  // export(items, ...args) {
+  //
+  //   return this.parent.export(items, ...args);
+  //
+  // }
+  //
+  // import(items, ...args) {
+  //
+  //   this.parent.import(items, ...args);
   //
   // }
 

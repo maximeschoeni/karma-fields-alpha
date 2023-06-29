@@ -681,24 +681,36 @@ console.error("deprecated");
 
 
   paste(value, selection) {
-console.error("deprecated");
-    if (selection && this.resource.children) {
 
-      for (let i = 0; i < this.resource.children.length; i++) {
+    this.import([value], selection.index || 0, selection.length || 0);
 
-        if (selection[i]) {
 
-          const child = this.createChild({...this.resource.children[i], index: i});
+// console.error("deprecated");
+//     if (selection && this.resource.children) {
+//
+//       for (let i = 0; i < this.resource.children.length; i++) {
+//
+//         if (selection[i]) {
+//
+//           const child = this.createChild({...this.resource.children[i], index: i});
+//
+//           child.paste(value, selection[child.resource.index]);
+//
+//           break;
+//
+//         }
+//
+//       }
+//
+//     }
 
-          child.paste(value, selection[child.resource.index]);
+  }
 
-          break;
+  copy(selection) {
 
-        }
+    const [value] = this.export([], selection.index || 0, selection.length || 0);
 
-      }
-
-    }
+    return value;
 
   }
 

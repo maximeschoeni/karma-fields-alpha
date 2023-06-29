@@ -153,16 +153,27 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
       selection = this.getSelection();
 
     }
+    //
+    // if (selection && selection[0]) {
+    //
+    //   const tree = this.createTree();
+    //
+    //   return tree.slice(selection[0]).map(item => item.id)
+    //
+    // }
+    //
+    // return [];
 
     if (selection && selection[0]) {
 
-      const tree = this.createTree();
+      const branch = this.getChild(0);
 
-      return tree.slice(selection[0]).map(item => item.id)
+      return branch.collectIds(selection[0]);
 
     }
 
     return [];
+
   }
 
   hasSelection() {
@@ -183,38 +194,176 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
 
   follow(selection, callback) {
 
-    if (selection.modal) {
+    if (selection.final || selection.modal && selection.modal.final) {
 
-      const modal = this.createChild({
-        ...this.resource.modal,
-        type: "modal",
-        index: "modal",
-        ids: this.getSelectedIds(selection)
-      });
+      return callback(this, selection);
 
-      return modal.follow(selection.modal, callback);
+    } else if (selection.modal) {
+
+      // const modal = this.createChild({
+      //   ...this.resource.modal,
+      //   type: "modal",
+      //   index: "modal",
+      //   ids: this.getSelectedIds(selection)
+      // });
+      //
+      // return modal.follow(selection.modal, callback);
+
+      return this.getChild("modal").follow(selection.modal, callback);
 
     } else if (selection[0]) { // -> follow branches
 
+      // const tree = this.createTree();
+      //
+      // if (tree.hasSelection(selection)) {
+      //
+      //   return callback(this, selection);
+      //
+      // } else { // -> follow branches till row
+      //
+      //   const branch = this.createChild({
+      //     type: "branch",
+      //     children: tree.children,
+      //     id: tree.id,
+      //     columns: this.resource.children,
+      //     depth: 0,
+      //     index: 0,
+      //     path: [],
+      //   });
+      //
+      //   return branch.follow(selection[0], callback);
+      //
+      // }
+
+      return this.getChild(0).follow(selection[0], callback);
+
+    }
+
+  }
+
+  getChild(index) {
+
+    if (index === 0) {
+
       const tree = this.createTree();
 
-      if (tree.hasSelection(selection)) {
+      return this.createChild({
+        type: "branch",
+        children: tree.children,
+        id: tree.id,
+        columns: this.resource.modal && this.resource.modal.children || this.resource.children,
+        depth: 0,
+        index: index,
+        path: [],
+      });
 
-        return callback(this, selection);
+    } else if (index === "modal") {
 
-      } else { // -> follow branches till row
+      return this.createChild({
+        ...this.resource.modal,
+        type: "modal",
+        index: "modal"
+      });
 
-        const branch = this.createChild({
-          type: "branch",
-          children: tree.children,
-          id: tree.id,
-          columns: this.resource.children,
-          depth: 0,
-          index: 0,
-          path: [],
-        });
+    }
 
-        return branch.follow(selection[0], callback);
+  }
+
+  // copy(selection) {
+  //
+  //   const tree = this.createTree();
+  //
+  //   const index = tree.mapIndex(selection[0]);
+  //
+  //   if (selection[0]) {
+  //
+  //   }
+  //
+  // }
+
+  paste(value, selection) {
+
+    if (selection[0]) {
+
+      // const tree = this.createTree();
+      //
+      // const branch = this.createChild({
+      //   type: "branch",
+      //   children: tree.children,
+      //   id: tree.id,
+      //   columns: this.resource.modal && this.resource.modal.children || this.resource.children,
+      //   depth: 0,
+      //   index: 0,
+      //   path: [],
+      // });
+
+      const branch = this.getChild(0);
+
+      return branch.paste(value, selection[0]);
+
+    }
+
+  }
+
+  copy(selection) {
+
+    if (selection[0]) {
+
+      // const tree = this.createTree();
+      //
+      // const branch = this.createChild({
+      //   type: "branch",
+      //   children: tree.children,
+      //   id: tree.id,
+      //   columns: this.resource.modal && this.resource.modal.children || this.resource.children,
+      //   depth: 0,
+      //   index: 0,
+      //   path: [],
+      // });
+
+      const branch = this.getChild(0);
+
+      return branch.copy(selection[0]);
+
+    }
+
+  }
+
+  delete(selection) {
+
+    // const tree = this.createTree();
+    //
+    // if (selection[0]) {
+    //
+    //   const branch = this.createChild({
+    //     type: "branch",
+    //     children: tree.children,
+    //     id: tree.id,
+    //     columns: this.resource.modal && this.resource.modal.children || this.resource.children,
+    //     depth: 0,
+    //     index: 0,
+    //     path: [],
+    //   });
+    //
+    //   const ids = branch.collectIds(selection[0]);
+    //
+    //   if (ids && ids.length) {
+    //
+    //     this.removeIds(ids);
+    //
+    //   }
+    //
+    // }
+
+    if (selection[0]) {
+
+      const branch = this.getChild(0);
+
+      const ids = branch.collectIds(selection[0]);
+
+      if (ids && ids.length) {
+
+        this.removeIds(ids);
 
       }
 
@@ -284,6 +433,273 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
   //   return super.getValue(...path);
   // }
 
+  copy(selection) {
+
+    if (selection.final) {
+
+      const grid = new KarmaFieldsAlpha.Grid();
+      const index = selection.index || 0;
+      const length = selection.length || 0;
+
+      // for (let i = 0; i < length; i++) {
+      //
+      //   const child = this.resource.children[i + index];
+      //
+      //   if (child) {
+      //
+      //     const row = this.createChild({
+      //       id: child.id,
+      //       type: "row",
+      //       children: this.resource.columns || [],
+      //       index: index + i
+      //     });
+      //
+      //     const rowItems = row.export();
+      //
+      //     grid.addRow(rowItems);
+      //
+      //   }
+      //
+      // }
+
+      for (let i = 0; i < length; i++) {
+
+        const child = this.getChild(i + index);
+
+        const row = child.getChild("row");
+
+        const rowItems = row.export();
+
+        grid.addRow(rowItems);
+
+      }
+
+      return grid.toString();
+
+    } else {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        // const child = this.resource.children[i];
+
+        if (selection[i]) {
+
+          // const branch = this.createChild({
+          //   type: "branch",
+          //   children: child.children,
+          //   id: child.id,
+          //   columns: this.resource.columns,
+          //   depth: this.resource.depth++,
+          //   index: i,
+          //   path: [...this.resource.path, i],
+          // });
+
+          const branch = this.getChild(i);
+
+          return branch.copy(selection[i]);
+        }
+
+      }
+
+    }
+
+  }
+
+  async paste(value, selection) {
+
+    if (selection.final) {
+
+      const grid = new KarmaFieldsAlpha.Grid(value);
+      const index = selection.index || 0;
+      const length = selection.length || 0;
+
+      if (grid.array.length < length) {
+
+        this.remove(index + grid.array.length, length - grid.array.length);
+
+      } else if (grid.array.length > length) {
+
+        for (let i = 0; i < grid.array.length - length; i++) {
+
+          await this.add(index + length);
+
+        }
+
+      }
+
+      for (let i = 0; i < grid.array.length; i++) {
+
+        const rowItems = grid.array[i];
+
+        // const child = this.resource.children[i + index];
+        //
+        // if (child) {
+        //
+        //   // const row = this.createChild({
+        //   //   id: child.id,
+        //   //   type: "row",
+        //   //   children: this.resource.columns || [],
+        //   //   index: index + i
+        //   // });
+        //   // const branch = this.getChild(i + index);
+        //   // const row = this.getChild("row");
+        //   //
+        //   // row.import(rowItems);
+        //
+        // }
+
+        const branch = this.getChild(i + index);
+        const row = branch.getChild("row");
+
+        row.import(rowItems);
+
+      }
+
+    } else {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        // const child = this.resource.children[i];
+
+        if (selection[i]) {
+
+          // const branch = this.createChild({
+          //   type: "branch",
+          //   children: child.children,
+          //   id: child.id,
+          //   columns: this.resource.columns,
+          //   depth: this.resource.depth++,
+          //   index: i,
+          //   path: [...this.resource.path, i],
+          // });
+
+          const branch = this.getChild(i);
+
+          return branch.paste(value, selection[i]);
+        }
+
+      }
+
+    }
+
+  }
+
+  collectIds(selection) {
+
+    if (selection.final) {
+
+      const index = selection.index || 0;
+      const length = selection.length || 0;
+
+      return this.resource.children.slice(index, index + length).map(tree => tree.id);
+
+    } else {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        if (selection[i]) {
+
+          const child = this.getChild(i);
+
+          return child.collectIds(selection[i]);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  hasSelection(selection) {
+
+    if (selection.final) {
+
+      return selection.length > 0;
+
+    } else {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        if (selection[i]) {
+
+          const child = this.getChild(i);
+
+          return child.hasSelection(selection[i]);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  getChild(index) {
+
+    if (index === "row") {
+
+      return this.createChild({
+        id: this.resource.id,
+        type: "row",
+        children: this.resource.columns || [],
+        index: index
+      });
+
+    } else {
+
+      const tree = this.resource.children[index];
+
+      return this.createChild({
+        type: "branch",
+        children: tree.children || [],
+        id: tree.id,
+        columns: this.resource.columns,
+        depth: this.resource.depth++,
+        index: index,
+        path: [...this.resource.path, index],
+      });
+
+    }
+
+  }
+
+
+  follow(callback, selection) {
+
+    if (selection.final) {
+
+      return callback(this, selection)
+
+    } else {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        const child = this.resource.children[i];
+
+        if (selection[i]) {
+
+          const branch = this.createChild({
+            type: "branch",
+            children: child.children,
+            id: child.id,
+            columns: this.resource.columns,
+            depth: this.resource.depth++,
+            index: i,
+            path: [...this.resource.path, i],
+          });
+
+          return branch.copy(selection[i]);
+        }
+
+      }
+
+    }
+
+  }
+
+
+
   setSelection(selection) {
 
     this.parent.setSelection(selection && {
@@ -333,6 +749,7 @@ console.error("deprecated");
           // this.select(newSelection);
 
           this.setSelection(newSelection);
+          KarmaFieldsAlpha.Clipboard.focus();
           this.save("nav");
           this.render();
 
@@ -357,7 +774,7 @@ console.error("deprecated");
         sorter.onsort = () => {
 
           this.swap([...path, selection.index], [...sorter.path, sorter.selection.index], sorter.selection.length);
-
+          KarmaFieldsAlpha.Clipboard.focus();
           this.save("swap");
           this.render();
 
@@ -440,7 +857,7 @@ console.error("deprecated");
                       id: child.id,
                       type: "row",
                       children: this.resource.columns || [],
-                      index: index || 0
+                      index: "row"
                       // depth: this.resource.depth || 0
                     });
                     header.children = this.resource.columns.map(child => {
