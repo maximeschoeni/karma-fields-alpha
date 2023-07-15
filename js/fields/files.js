@@ -29,6 +29,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   openMediaLibrary() {
 
+    const rootSelection = KarmaFieldsAlpha.Store.getSelection();
+
     const selection = this.getSelection();
 
     const frame = wp.media({
@@ -37,7 +39,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
         text: "Use this file"
       },
       library: {
-        post__in: this.getSelectedIds(),
+        // post__in: this.getSelectedIds(),
+        posts_per_page: 500,
         type: this.resource.file && (this.resource.file.type || this.resource.file.types)
           || this.resource.mime_types
           || this.resource.mimeTypes
@@ -49,17 +52,22 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
       },
       multiple: this.getMax() > 1 ? true : false
     });
-    frame.on("select", async () => {
+    frame.on("select", () => {
+
       const attachments = frame.state().get("selection").toJSON();
       const attachmentIds = attachments.map(attachment => attachment.id.toString());
 
-      if (selection) {
-        this.insert(attachmentIds, selection.index, selection.length);
-      } else {
-        this.append(attachmentIds);
-      }
+      KarmaFieldsAlpha.Store.setSelection(rootSelection); // -> restore modal
 
-      this.setSelection({final: true}); // -> just keep modal open
+      if (selection) {
+
+        this.insert(attachmentIds, selection.index, selection.length);
+
+      } else {
+
+        this.append(attachmentIds);
+
+      }
 
     });
     frame.on("open", () => {
@@ -68,6 +76,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
         mediaSelection.add(wp.media.attachment(id));
       }
     });
+
 
     frame.open();
   }
@@ -425,8 +434,6 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                   // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
 
-                  console.log(index, length, target);
-
                     this.swap(index, length, target);
 
                     this.setSelection({final: true, index: target, length: length});
@@ -446,7 +453,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                 }
 
-                gallery.children = ids.map((id, rowIndex) => {
+                gallery.children = ids.filter(id => id && id !== "0").map((id, rowIndex) => {
                   return {
                     class: "frame",
                     // init: async frame => {

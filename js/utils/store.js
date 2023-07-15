@@ -297,7 +297,7 @@ KarmaFieldsAlpha.Store = class {
 
 	static getSelection(...path) {
 
-    return this.get("selection", ...path) || {};
+    return this.get("selection", ...path);
 
   }
 

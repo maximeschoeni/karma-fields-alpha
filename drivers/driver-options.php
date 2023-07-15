@@ -76,6 +76,23 @@ Class Karma_Fields_Alpha_Driver_Options {
         $option
       ));
 
+    } else if (isset($params['ids'])) {
+
+      $ids = explode(',', $params['ids']);
+      $ids = array_map('esc_attr', $ids);
+
+      foreach ($ids as $id) {
+
+        $option = get_option($id);
+        $option = apply_filters('karma_fields_query_options', $option, $id, $params);
+
+        $output[] = array_merge(
+          array('id' => $id),
+          $option
+        );
+
+      }
+
     }
 
     return $output;

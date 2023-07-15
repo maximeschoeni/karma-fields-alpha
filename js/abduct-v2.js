@@ -28,7 +28,6 @@ async function abduct(element, implants) {
 
 	let i = 0;
 	let child = element.firstElementChild;
-	const promises = [];
 	while (i < implants.length) {
 		await spawn(implants[i], element, child);
 		i++;

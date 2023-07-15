@@ -20,6 +20,25 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 	}
 
+  initValue() {
+
+    let value = "";
+    const options = this.fetchOptions();
+
+
+
+    if (options !== KarmaFieldsAlpha.loading && options.length) {
+
+      value = options[0].id;
+
+      this.setValue(value);
+      this.save();
+
+    }
+
+    return value;
+  }
+
 
 //   getDefault(defaults = {}) {
 // console.error("deprecated");
@@ -88,46 +107,48 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 	getOptions(driver, params) {
 
-    if (!KarmaFieldsAlpha.drivers[driver]) {
+    return KarmaFieldsAlpha.Query.getOptions(driver, params);
 
-      console.error("Driver not found", driver);
-
-    }
-
-
-    const results = KarmaFieldsAlpha.Query.getResults(driver, params);
-
-    if (results) {
-
-      const options = [];
-      const alias = KarmaFieldsAlpha.drivers[driver].alias;
-      // const idAlias = alias.id || "id";
-      // const nameAlias = alias.name || "name";
-      const idAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "id") || "id";
-      const nameAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "name") || "name";
+    // if (!KarmaFieldsAlpha.Query.get(driver)) {
+    //
+    //   console.error("Driver not found", driver);
+    //
+    // }
 
 
-
-      for (let item of results) {
-
-        let name = item[nameAlias];
-
-        if (name === undefined) {
-
-          name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
-
-        }
-
-        options.push({
-          id: item[idAlias],
-          name: name
-        });
-
-      }
-
-      return options;
-
-    }
+    // const results = KarmaFieldsAlpha.Query.getResults(driver, params);
+    //
+    // if (results) {
+    //
+    //   const options = [];
+    //   // const alias = KarmaFieldsAlpha.drivers[driver].alias;
+    //   // const idAlias = alias.id || "id";
+    //   // const nameAlias = alias.name || "name";
+    //   const idAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "id") || "id";
+    //   const nameAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "name") || "name";
+    //
+    //
+    //
+    //   for (let item of results) {
+    //
+    //     let name = item[nameAlias];
+    //
+    //     if (name === undefined) {
+    //
+    //       name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
+    //
+    //     }
+    //
+    //     options.push({
+    //       id: item[idAlias],
+    //       name: name
+    //     });
+    //
+    //   }
+    //
+    //   return options;
+    //
+    // }
 
   }
 
@@ -171,6 +192,12 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
     if (moreOptions) {
 
+      if (moreOptions === KarmaFieldsAlpha.loading) {
+
+        return KarmaFieldsAlpha.loading;
+
+      }
+
       options = [...options, ...moreOptions];
 
     }
@@ -209,10 +236,12 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
             if (!options.some(option => option.id === value)) {
 
-              value = options[0].id;
+              // value = options[0].id;
+              //
+              // this.setValue(value);
+              // this.save();
 
-              this.setValue(value);
-              this.save();
+              value = this.initValue();
 
             }
 

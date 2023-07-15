@@ -21,6 +21,14 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
       const firstBox = this.getBox(this.selection.index);
       const lastBox = this.getBox(this.selection.index + this.selection.length - 1);
 
+      // console.log(lastBox, this.selection.index, this.selection.length, this.getChildren(), this.container);
+
+      if (!firstBox || !lastBox) {
+
+        console.error("wtf container is empty!");
+
+      }
+
       // const movingBox = {
       //   x: currentBox.x + this.tracker.x - this.originX,
       //   y: currentBox.y + this.tracker.y - this.originY,

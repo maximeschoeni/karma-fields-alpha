@@ -14,24 +14,33 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
 
   open() {
-    const ids = this.getValue() || [];
-    this.setSelection({index: ids.length, length: 0, final: true});
+    const selection = this.getSelection();
+
+    if (!selection || !selection.length) {
+
+      const ids = this.getValue() || [];
+
+      this.setSelection({index: ids.length, length: 0, final: true});
+
+    }
+
     this.fetch();
   }
 
   getDefault(defaults = {}) {
 
-		const key = this.getKey();
+		let value = this.resource.default;
 
-    if (key && this.resource.default) {
+    if (this.resource.default) {
 
-      defaults[key] = KarmaFieldsAlpha.Type.toArray(this.parse(this.resource.default));
+      value = KarmaFieldsAlpha.Type.toArray(this.parse(this.resource.default));
 
     }
 
-		return defaults;
+		return value || [];
 
 	}
+
 
   export(items = [], index = 0, length = 999999) {
 
@@ -138,10 +147,17 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
-  // getValue() {
-  //   const key = this.getKey();
-  //   return this.parent.getValue(key);
-  // }
+  getValue() {
+
+    const values = super.getValue();
+
+    if (values) {
+
+      return values.filter(id => id && id !== "0");
+
+    }
+
+  }
   //
   // setValue(ids) {
   //   const key = this.getKey();
@@ -313,7 +329,10 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
                       } else {
 
-                        [name] = KarmaFieldsAlpha.Query.getValue(this.getDriver(), id, "name") || ["..."];
+                        const driver = this.getDriver();
+                        const alias = KarmaFieldsAlpha.Query.get(driver, "alias", "name") || "name";
+
+                        [name] = KarmaFieldsAlpha.Query.getValue(driver, id, alias) || ["..."];
 
                       }
 
@@ -325,7 +344,6 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                           }
                         },
                         {
-                          tag: "a",
                           class: "close",
                           init: close => {
                             close.element.textContent = "×";

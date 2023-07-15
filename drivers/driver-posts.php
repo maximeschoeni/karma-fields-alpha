@@ -87,7 +87,6 @@ Class Karma_Fields_Alpha_Driver_Posts {
         die('Post not found!');
       }
 
-
       foreach ($data as $key => $value) {
 
         if (apply_filters('karma_fields_posts_driver_update', null, $value, $key, $id, $args, $data) === null) {
@@ -207,7 +206,50 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       }
 
-      if (isset($data['post_type']) || isset($data['trash'])) {
+      // if (isset($data['post_type']) || isset($data['trash'])) {
+      //
+      //   $post_type = get_post_type($id);
+      //   $trash = false;
+      //
+      //   if (strpos($post_type, 'trashed-') !== 0) {
+      //
+      //     $trash = true;
+      //     $post_type = substr($post_type, strlen('trashed-'));
+      //
+      //   }
+      //
+      //   if (isset($data['post_type'][0])) {
+      //
+      //     $post_type = $data['post_type'][0];
+      //
+      //   }
+      //
+      //   if (isset($data['trash'])) {
+      //
+      //     if (isset($data['trash'][0]) && $data['trash'][0] === '1') {
+      //
+      //       $args['post_type'] = 'trashed-'.$post_type;
+      //
+      //     } else {
+      //
+      //       $args['post_type'] = $post_type;
+      //
+      //     }
+      //
+      //   } else if ($trash) {
+      //
+      //     $args['post_type'] = 'trashed-'.$post_type;
+      //
+      //   } else {
+      //
+      //     $args['post_type'] = $post_type;
+      //
+      //   }
+      //
+      // }
+
+
+      if (isset($data->post_type) || isset($data->trash)) {
 
         $post_type = get_post_type($id);
         $trash = false;
@@ -219,15 +261,15 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         }
 
-        if (isset($data['post_type'][0])) {
+        if (isset($data->post_type[0])) {
 
-          $post_type = $data['post_type'][0];
+          $post_type = $data->post_type[0];
 
         }
 
-        if (isset($data['trash'])) {
+        if (isset($data->trash)) {
 
-          if (isset($data['trash'][0]) && $data['trash'][0] === '1') {
+          if (isset($data->trash[0]) && $data->trash[0] === '1') {
 
             $args['post_type'] = 'trashed-'.$post_type;
 

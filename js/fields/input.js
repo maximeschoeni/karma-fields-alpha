@@ -27,18 +27,20 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		if (value === undefined) {
 
-			value = this.getDefault();
+			// value = this.getDefault();
+			//
+			// if (value !== undefined) {
+			//
+			// 	this.setValue(value);
+			// 	this.save();
+			//
+			// } else {
+			//
+			// 	value = "";
+			//
+			// }
 
-			if (value !== undefined) {
-
-				this.setValue(value);
-				this.save();
-
-			} else {
-
-				value = "";
-
-			}
+			value = this.initValue();
 
 		}
 
@@ -50,6 +52,24 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		// -> string
 
 	}
+
+	initValue() {
+
+		let value = this.getDefault();
+
+		if (value !== undefined) {
+
+			this.setValue(value);
+			this.save();
+
+		} else {
+
+			value = "";
+
+		}
+
+		return value;
+  }
 
 
 	// getDefault(defaults = {}) {
@@ -153,7 +173,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		// } else if (value !== KarmaFieldsAlpha.loading) {
 		//
 		// 	items.push(value);
-		// 
+		//
 		// }
 		//
     // return items;
@@ -197,7 +217,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 	}
 
 	/**
-	 * Remove value
+	 * Remove value (-> mixed)
 	 */
 	remove() {
 
@@ -383,6 +403,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
         let value = this.getSingleValue();
 
+
         input.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
 
         if (value !== KarmaFieldsAlpha.loading) {
@@ -480,7 +501,11 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 						event.stopPropagation();
 					}
 
-        }
+        } else {
+
+					input.element.value = "";
+
+				}
 
 				if (this.resource.disabled) {
 					input.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));

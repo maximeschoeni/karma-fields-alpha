@@ -233,7 +233,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      const columns = this.resource.children.slice(colIndex, colIndex + colLength);
+      // const columns = this.resource.children.slice(colIndex, colIndex + colLength);
+      const columns = this.resource.children;
 
       for (let i = 0; i < Math.min(ids.length - index, length); i++) {
 
@@ -271,13 +272,14 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       const grid = new KarmaFieldsAlpha.Grid(string);
       const ids = this.getIds();
 
-      if (items.length < length) {
+      // if (items.length < length) {
+      if (grid.array.length < length) {
 
-        this.remove(index + items.length, length - items.length);
+        this.remove(index + grid.array.length, length - grid.array.length);
 
-      } else if (items.length > length) {
+      } else if (grid.array.length > length) {
 
-        for (let i = 0; i < items.length - length; i++) {
+        for (let i = 0; i < grid.array.length - length; i++) {
 
           this.add(index + length + i);
 
@@ -305,7 +307,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       } else {
 
 
-        const columns = this.resource.children.slice(colIndex, colIndex + colLength);
+        // const columns = this.resource.children.slice(colIndex, colIndex + colLength);
+        const columns = this.resource.children;
 
 
         for (let i = 0; i < grid.array.length; i++) {
@@ -331,11 +334,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   follow(selection, callback) {
 
-    if (selection.final || selection.modal && selection.modal.final) {
-
-      return callback(this, selection);
-
-    } else if (selection.modal) {
+    if (selection.modal && !selection.modal.final) {
 
       const modal = this.createChild({
         ...this.resource.modal,
@@ -345,6 +344,21 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       });
 
       return modal.follow(selection.modal, callback);
+
+    } else if (selection.final || selection.modal && selection.modal.final) {
+
+      return callback(this, selection);
+
+    // } else if (selection.modal) {
+    //
+    //   const modal = this.createChild({
+    //     ...this.resource.modal,
+    //     type: "modal",
+    //     index: "modal",
+    //     ids: this.getSelectedIds(selection)
+    //   });
+    //
+    //   return modal.follow(selection.modal, callback);
 
     } else { // -> paste into selected things inside a row (like files field)
 
@@ -371,6 +385,20 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  selectAll() {
+
+    const ids = this.getIds();
+
+    const selection = {
+      ...this.getSelection(),
+      index: 0,
+      length: ids.length
+    };
+
+    this.setSelection(selection);
+
+  }
+
   copy(selection) {
 
     const [value] = this.export([], selection.index, selection.length, selection.colIndex, selection.colLength);
@@ -383,7 +411,6 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     this.import([value], selection.index, selection.length, selection.colIndex, selection.colLength);
 
   }
-
 
   async add(index = 0, params = {}) {
 
@@ -402,7 +429,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     // KarmaFieldsAlpha.Store.setIds(newIds);
 
 
-    this.setSelection({final: true, index: index, length: 1});
+    this.setSelection({final: true, index: index, length: 1, reveal: true});
 
     await this.render();
 
@@ -718,15 +745,13 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
                   update: th => {
                     th.children = [
                       {
-                        tag: "a",
-                        class: "header-cell-title",
+                        class: "header-cell-content title",
                         init: a => {
                           a.element.textContent = resource.label;
                         }
                       },
                       {
-                        tag: "a",
-                        class: "header-cell-order",
+                        class: "header-cell-content order",
                         child: {
                           tag: "span",
                           class: "dashicons",
@@ -792,6 +817,15 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
                         td.element.classList.toggle("selected", Boolean(isRowSelected));
                         td.element.classList.toggle("selected-cell", Boolean(isCellSelected));
+
+
+                        if (selection && selection.reveal && rowIndex === selection.index) {
+                          const container = this.getScrollContainer();
+                          if (container) {
+                            container.scrollTop = td.element.offsetTop - 0;
+                            selection.reveal = false;
+                          }
+                        }
 
 
 

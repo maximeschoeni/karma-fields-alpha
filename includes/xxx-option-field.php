@@ -7,7 +7,7 @@
 	wp_nonce_field($action, $nonce, false, true);
 ?>
 <style>
-  .karma-fields .array .td.selected,
+  /* .karma-fields .array .td.selected,
   .karma-fields .array .td.selected .td,
   .karma-fields .array .td.selected .th {
     background-color: #fff;
@@ -20,8 +20,23 @@
   }
 	.karma-field-frame {
     align-items: flex-start;
-	}
+	} */
 </style>
+
+<script>
+
+	KarmaFieldsAlpha.embeds.push({
+		driver: "options",
+		id: <?php echo $option_name; ?>,
+		...<?php echo json_encode($args); ?>,
+    type: "postform",
+		index: "karma-fields-option-field-<?php echo $this->index; ?>-container"
+	});
+
+</script>
+
+
+<?php /*
 <script>
 	document.addEventListener("DOMContentLoaded", function() {
 		const container = document.getElementById("karma-fields-option-field-<?php echo $this->index; ?>-container");
@@ -40,3 +55,4 @@
 		KarmaFieldsAlpha.build(postform.build(), container);
 	});
 </script>
+*/

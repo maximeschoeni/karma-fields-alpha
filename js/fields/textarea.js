@@ -98,7 +98,11 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 						event.stopPropagation();
 					}
 
-        }
+        } else {
+
+					input.element.value = "";
+
+				}
 
 				if (this.resource.disabled) {
 					input.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));

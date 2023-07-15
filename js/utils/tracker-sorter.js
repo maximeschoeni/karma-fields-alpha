@@ -114,36 +114,40 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
       const selectedRectangle = this.getRectangle(this.selection.index, this.selection.length);
 
-      const draggingRectangle = selectedRectangle.offset(travelX, travelY).constrain(containerRectangle);
+      if (selectedRectangle) {
 
-      // console.log(containerRectangle, selectedRectangle, draggingRectangle);
+        const draggingRectangle = selectedRectangle.offset(travelX, travelY).constrain(containerRectangle);
 
-      if ((this.tracker.deltaX < 0 || this.tracker.deltaY < 0) && this.selection.index > 0) {
+        // console.log(containerRectangle, selectedRectangle, draggingRectangle);
 
-        const beforeRectangle = this.getRectangle(this.selection.index - 1, 1);
+        if ((this.tracker.deltaX < 0 || this.tracker.deltaY < 0) && this.selection.index > 0) {
 
-        if (draggingRectangle.isBefore(beforeRectangle)) {
+          const beforeRectangle = this.getRectangle(this.selection.index - 1, 1);
 
-          this.swapToSame(-1);
+          if (draggingRectangle.isBefore(beforeRectangle)) {
+
+            this.swapToSame(-1);
+
+          }
+
+        } else if ((this.tracker.deltaX > 0 || this.tracker.deltaY > 0) && this.selection.index + this.selection.length < this.getNumRow()) {
+
+          const afterRectangle = this.getRectangle(this.selection.index + this.selection.length, 1);
+
+          if (draggingRectangle.isAfter(afterRectangle)) {
+
+            this.swapToSame(1);
+
+          }
 
         }
 
-      } else if ((this.tracker.deltaX > 0 || this.tracker.deltaY > 0) && this.selection.index + this.selection.length < this.getNumRow()) {
+        travelX = this.tracker.x - this.originX;
+        travelY = this.tracker.y - this.originY;
 
-        const afterRectangle = this.getRectangle(this.selection.index + this.selection.length, 1);
-
-        if (draggingRectangle.isAfter(afterRectangle)) {
-
-          this.swapToSame(1);
-
-        }
+        this.sliceSegment(this.selection).forEach(element => element.style.transform = `translate(${travelX}px, ${travelY}px)`);
 
       }
-
-      travelX = this.tracker.x - this.originX;
-      travelY = this.tracker.y - this.originY;
-
-      this.sliceSegment(this.selection).forEach(element => element.style.transform = `translate(${travelX}px, ${travelY}px)`);
 
     } else {
 
@@ -169,6 +173,10 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
       this.selection = new KarmaFieldsAlpha.Selection(this.selection.index + 1, this.selection.length);
 
+      if (this.onSwap) {
+        this.onSwap(this.selection);
+      }
+
     } else {
 
       const firstRectangle = this.getRectangle(this.selection.index);
@@ -180,6 +188,10 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       this.insertElementsAt(this.container, elements, this.selection.index - 1);
 
       this.selection = new KarmaFieldsAlpha.Selection(this.selection.index - 1, this.selection.length);
+
+      if (this.onSwap) {
+        this.onSwap(this.selection);
+      }
 
     }
 

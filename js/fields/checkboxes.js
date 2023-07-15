@@ -1,7 +1,7 @@
 
 KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
-	getDefaultValue() {
+	getDefault() {
 
 		if (this.resource.default) {
 
@@ -9,6 +9,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 		}
 
+		return [];
 	}
 
 	getValue(key) {
@@ -19,13 +20,35 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 			if (array) {
 
-				if (array.includes(key)) {
+				if (array[0] === KarmaFieldsAlpha.mixed) {
 
-					return "1";
+					const mixedValues = this.getMixedValues();
 
-				} else {
+					if (mixedValues.every(array => array.includes(key))) {
 
-					return "";
+						return ["1"];
+
+					} else if (!mixedValues.some(array => array.includes(key))) {
+
+						return [""];
+
+					} else {
+
+						return [KarmaFieldsAlpha.mixed];
+
+					}
+
+			 	} else {
+
+					if (array.includes(key)) {
+
+						return ["1"];
+
+					} else {
+
+						return [""];
+
+					}
 
 				}
 
@@ -39,9 +62,9 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 				if (array.length === 0) {
 
-					array = this.getDefaultValue();
+					array = this.getDefault();
 
-					if (array !== undefined) {
+					if (array && array.length) {
 
 						this.setValue(array);
 
@@ -87,7 +110,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 		} else {
 
-			super.setArray(value);
+			super.setValue(value);
 
 		}
 
@@ -293,11 +316,18 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 	// 	this.parent.request("set", array, key);
 	// }
 
-	fetchOptions() {
+	// fetchOptions() {
+	//
+	// 	const dropbox = new KarmaFieldsAlpha.field.dropdown(this.resource);
+	//
+	// 	// return KarmaFieldsAlpha.field.dropdown.prototype.fetchOptions.call(this);
+	//
+	// 	return dropbox.fetchOptions();
+	//
+	// }
 
-		return KarmaFieldsAlpha.field.dropdown.prototype.fetchOptions.call(this);
 
-	}
+
 
 
 	export(items = []) {
@@ -332,7 +362,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 			class: "karma-field checkboxes",
 			update: dropdown => {
 
-				const options = this.fetchOptions();
+				const options = this.getOptions();
 				let array = this.getValue();
 
 				dropdown.element.classList.toggle("loading", !array);
@@ -343,16 +373,19 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 						tag: "ul",
 						update: ul => {
 							ul.children = options.map((option, index) => {
-								return this.createChild({
-									type: "checkbox",
-									key: option.id,
-									text: option.name,
+								return {
 									tag: "li",
-									false: "",
-									true: "1",
-									index: index,
-									uid: `${this.resource.uid}-${index}`
-								}).build();
+									child: this.createChild({
+										type: "checkbox",
+										key: option.id,
+										text: option.name,
+										tag: "label",
+										false: "",
+										true: "1",
+										index: index,
+										uid: `${this.resource.uid}-${index}`
+									}).build()
+								}
 							});
 						}
 					};

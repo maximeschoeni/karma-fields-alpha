@@ -25,7 +25,7 @@ KarmaFieldsAlpha.Query = class {
 
   static get(driver, ...path) {
 
-    KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver, ...path);
+    return KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver, ...path);
 
   }
 
@@ -67,6 +67,7 @@ KarmaFieldsAlpha.Query = class {
 
     }
 
+
     if (value === undefined) { // -> create a task to fetch it
 
       const attempt = this.getAttempt(driver, id);
@@ -105,7 +106,7 @@ KarmaFieldsAlpha.Query = class {
 
         value = [];
 
-        console.log("no value found", driver, id, key);
+        // console.log("no value found", driver, id, key);
 
         KarmaFieldsAlpha.DeepObject.set(this.vars, value, driver, id, key);
 
@@ -189,7 +190,7 @@ KarmaFieldsAlpha.Query = class {
 
     if (task.ids.size) {
 
-      const relations = await KarmaFieldsAlpha.Gateway.get(`relations/${task.driver}/${task.relation}?ids=${[...task.ids].join(",")}`);
+      const relations = await KarmaFieldsAlpha.Gateway.get(`relations/${task.driver}/${task.attempt}?ids=${[...task.ids].join(",")}`);
 
       for (let relation of relations) {
 
@@ -212,7 +213,7 @@ KarmaFieldsAlpha.Query = class {
 
       for (let id of task.ids) {
 
-        KarmaFieldsAlpha.DeepObject.set(this.attempts, true, task.driver, id, task.relation);
+        KarmaFieldsAlpha.DeepObject.set(this.attempts, true, task.driver, id, task.attempt);
 
       }
 
@@ -285,7 +286,9 @@ KarmaFieldsAlpha.Query = class {
 
   static async resolveCount(task) {
 
-    const count = await KarmaFieldsAlpha.Gateway.get(`count/${task.driver}${task.paramstring?"?":""}${task.paramstring}`);
+    let count = await KarmaFieldsAlpha.Gateway.get(`count/${task.driver}${task.paramstring?"?":""}${task.paramstring}`);
+
+    count = parseInt(count);
 
     KarmaFieldsAlpha.DeepObject.set(this.counts, count, task.driver, task.paramstring);
 
@@ -328,6 +331,9 @@ KarmaFieldsAlpha.Query = class {
       }
 
     }
+
+    this.queries = {};
+    this.counts = {};
 
   }
 
@@ -383,7 +389,7 @@ KarmaFieldsAlpha.Query = class {
 
     }
 
-    KarmaFieldsAlpha.Query.saveValue(task.params, task.driver, id);
+    // KarmaFieldsAlpha.Query.saveValue(task.params, task.driver, id);
 
 
     KarmaFieldsAlpha.Store.set(["1"], "delta", task.driver, id, "trash");
@@ -493,7 +499,7 @@ KarmaFieldsAlpha.Query = class {
 
       KarmaFieldsAlpha.Store.setValue(["1"], driver, id, "trash");
 
-      this.saveValue(["1"], driver, id, "trash");
+      // this.saveValue(["1"], driver, id, "trash");
 
     }
 
@@ -548,9 +554,45 @@ KarmaFieldsAlpha.Query = class {
   }
 
 
+
+  static getOptions(driver, params) {
+
+    const results = this.getResults(driver, params);
+
+    if (results) {
+
+      const options = [];
+      const idAlias = this.get(driver, "alias", "id") || "id";
+      const nameAlias = this.get(driver, "alias", "name") || "name";
+
+      for (let item of results) {
+
+        let name = item[nameAlias];
+
+        if (name === undefined) {
+
+          name = KarmaFieldsAlpha.Type.toString(this.getValue(driver, item[idAlias], nameAlias) || ["..."])
+
+        }
+
+        options.push({
+          id: item[idAlias],
+          name: name
+        });
+
+      }
+
+      return options;
+
+    }
+
+    return KarmaFieldsAlpha.loading;
+
+  }
+
+
 }
 
-KarmaFieldsAlpha.Query.tasks = [];
 KarmaFieldsAlpha.Query.vars = {};
 KarmaFieldsAlpha.Query.queries = {};
 KarmaFieldsAlpha.Query.counts = {};

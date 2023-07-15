@@ -276,7 +276,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
           // const current = this.getValue();
 					const content = editor.getContent();
-          if (content !== this.getValue()) {
+          // if (content !== this.getValue()) {
+					if (content !== this.getSingleValue()) {
             this.setValue(content);
 						this.save("delete");
           }
@@ -2034,7 +2035,10 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				// const multiple = this.request("multiple");
 				const selection = this.getSelection() || {};
 
-				let [value] = this.getValue();
+				let [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+
+				container.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
+
 
         let action = this.getData() || {};
         const mode = value === KarmaFieldsAlpha.mixed && "code" || action.mode || this.resource.mode || "edit";
@@ -2129,7 +2133,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                         },
                         child: this.createChild({
                           type: "buttons",
-                          ...this.resource.buttons
+                          ...(this.resource.buttons || this.resource.header)
                         }).build()
                       }
                     ]

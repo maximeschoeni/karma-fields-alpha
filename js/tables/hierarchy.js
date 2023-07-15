@@ -408,7 +408,8 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
             depth: 0,
             index: 0,
             path: [],
-            classes: ["table", "grid", "arrangement", "tree"]
+            classes: ["table", "grid", "arrangement", "tree"],
+            maxDepth: this.resource.maxDepth || 0
           });
 
           body.children = [
@@ -658,6 +659,7 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
         depth: this.resource.depth++,
         index: index,
         path: [...this.resource.path, index],
+        maxDepth: (this.resource.maxDepth || 0) - 1
       });
 
     }
@@ -737,13 +739,13 @@ console.error("deprecated");
         const path = this.resource.path || [];
         const sorter = new KarmaFieldsAlpha.HSorter(ul.element);
         // const sorter = new KarmaFieldsAlpha.Sorter(ul.element);
-        const selection = this.getSelection();
+        let selection = this.getSelection();
         sorter.colCount = 1;
         sorter.rowCount = this.resource.children.length;
         sorter.currentSelection = selection;
         sorter.selection = selection;
         sorter.path = [...path];
-        sorter.maxDepth = 1;
+        sorter.maxDepth = this.resource.maxDepth || 0;
         sorter.onselect = newSelection => {
 
           // this.select(newSelection);
@@ -773,7 +775,7 @@ console.error("deprecated");
 
         sorter.onsort = () => {
 
-          this.swap([...path, selection.index], [...sorter.path, sorter.selection.index], sorter.selection.length);
+          // this.swap([...path, selection.index], [...sorter.path, sorter.selection.index], sorter.selection.length);
           KarmaFieldsAlpha.Clipboard.focus();
           this.save("swap");
           this.render();
@@ -800,6 +802,23 @@ console.error("deprecated");
           // await this.parent.request("render");
 
         }
+
+        sorter.onSwap = newSelection => {
+
+          // this.setSelection({
+          //   index: newSelection.index,
+          //   length: newSelection.length,
+          //   final: true
+          // });
+
+          selection = this.getSelection();
+
+          this.swap([...path, selection.index], [...sorter.path, newSelection.index], newSelection.length);
+
+
+
+        }
+
 
         sorter.onSelectionChange = newSelection => {
 

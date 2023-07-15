@@ -153,9 +153,22 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
   // }
 
-	getChildren() {
-		return this.resource.children || [];
-	}
+	initValue() {
+
+    if (this.resource.children) {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        const child = this.getChild(i);
+
+        child.initValue();
+
+      }
+
+    }
+
+  }
+
 
 	buildLabel() {
 

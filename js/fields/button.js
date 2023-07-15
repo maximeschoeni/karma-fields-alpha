@@ -48,7 +48,12 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 				}
 
         if (this.resource.enabled) {
-					button.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
+
+					const enabled = this.parse(this.resource.enabled);
+
+													// console.log(this.resource, this.resource.enabled, enabled);
+
+					button.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(enabled);
 				}
 
 				if (this.resource.active) {

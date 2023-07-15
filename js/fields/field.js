@@ -56,6 +56,16 @@ KarmaFieldsAlpha.field = class {
     return KarmaFieldsAlpha.field.uniqueId++;
   }
 
+  getScrollContainer() {
+
+    if (this.parent) {
+
+      return this.parent.getScrollContainer();
+
+    }
+
+  }
+
   // addChild(child, id) {
   //   this.children.push(child);
 
@@ -117,18 +127,51 @@ KarmaFieldsAlpha.field = class {
   }
 
 
-  getChild(resource, ...resources) {
+  // getChild(resource, ...resources) {
+  //
+  //   const child = this.createChild(resource);
+  //
+  //   if (resources.length) {
+  //
+  //     return child.getChild(...resources);
+  //
+  //   }
+  //
+  //   return child;
+  // }
 
-    const child = this.createChild(resource);
+  getChildren() {
+		return this.resource.children || [];
+	}
 
-    if (resources.length) {
+	getChild(index) {
 
-      return child.getChild(...resources);
+		const children = this.getChildren();
 
-    }
+		if (children) {
 
-    return child;
-  }
+			let resource = children[index];
+
+			if (resource) {
+
+				if (typeof resource === "string") {
+
+					resource = {type: resource};
+
+				}
+
+				return this.createChild({
+					id: index,
+					...resource,
+					index: index
+				});
+
+			}
+
+		}
+
+	}
+
 
   // createChild(resource, id) {
   //
@@ -308,7 +351,13 @@ console.error("deprecated");
 
   save(name) {
 
-    this.parent.save(`${this.resource.index}-${name}`);
+    if (name) {
+
+      this.parent.save(`${this.resource.index}-${name}`);
+
+    }
+
+    this.parent.save();
 
   }
 
@@ -404,6 +453,19 @@ console.error("deprecated");
 
   }
 
+  getResource(key) {
+
+    if (this.resource[key] !== undefined) {
+
+      return this.resource[key];
+
+    } else if (this.parent) {
+
+      return this.parent.getResource(key);
+    }
+
+  }
+
   // expect(action, object, ...path) {
 
   //   if (this.resource.children) {
@@ -490,6 +552,9 @@ console.error("deprecated");
   //   // noop
 	// }
 
+  initValue() {
+
+	}
 
   getValue(...path) {
 
@@ -652,7 +717,7 @@ console.error("deprecated");
 
         if (selection[i]) {
 
-          const child = this.createChild({...this.resource.children[i], index: i, uid: `${this.resource.uid}-${i}`});
+          const child = this.createChild({...this.resource.children[i], index: i});
 
           return child.follow(selection[child.resource.index], callback);
 
@@ -804,7 +869,16 @@ console.error("deprecated");
 
     }
 
-    return {};
+    // return {};
+  }
+
+  hasSelection() {
+
+    const selection = this.getSelection();
+
+    return Boolean(selection && selection.length);
+
+    // return {};
   }
 
   setSelection(selection) {
@@ -889,111 +963,196 @@ console.error("deprecated");
 
   }
 
+  // parseObject(objectExpression) {
+  //
+  //   const object = {};
+  //
+  //   for (let key in objectExpression) {
+  //
+  //     object[key] = this.parse(objectExpression[key]);
+  //
+  //   }
+  //
+  //   return object;
+  // }
 
 
 
   parse(expression) {
 
-    if (Array.isArray(expression)) {
+    return new KarmaFieldsAlpha.Expression(expression, this).parse();
 
-      const [operation, ...expressions] = expression;
+    // if (Array.isArray(expression)) {
+    //
+    //   const [operation, ...expressions] = expression;
+    //
+    //   if (operation === "esc") {
+    //
+    //     return expressions[0];
+    //
+    //   } else if (operation === "debugger") {
+    //
+    //     debugger;
+    //
+    //   }
+    //
+    //   const values = expressions.map(expression => this.parse(expression));
+    //
+    //   if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+    //
+    //     return KarmaFieldsAlpha.loading;
+    //
+    //   }
+    //
+    //   switch (operation) {
+    //     case "=":
+    //     case "==": return KarmaFieldsAlpha.Type.toObject(values[0]) == KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case "===": return KarmaFieldsAlpha.Type.toObject(values[0]) === KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case "!=": return KarmaFieldsAlpha.Type.toObject(values[0]) != KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case "!==": return KarmaFieldsAlpha.Type.toObject(values[0]) !== KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case ">": return KarmaFieldsAlpha.Type.toObject(values[0]) > KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case "<": return KarmaFieldsAlpha.Type.toObject(values[0]) < KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case ">=": return KarmaFieldsAlpha.Type.toObject(values[0]) >= KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case "<=": return KarmaFieldsAlpha.Type.toObject(values[0]) <= KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case "+": return KarmaFieldsAlpha.Type.toNumber(values[0]) + KarmaFieldsAlpha.Type.toNumber(values[1]);
+    //     case "-": return KarmaFieldsAlpha.Type.toNumber(values[0]) - KarmaFieldsAlpha.Type.toNumber(values[1]);
+    //     case "*": return KarmaFieldsAlpha.Type.toNumber(values[0]) * KarmaFieldsAlpha.Type.toNumber(values[1]);
+    //     case "/": return KarmaFieldsAlpha.Type.toNumber(values[0]) / KarmaFieldsAlpha.Type.toNumber(values[1]);
+    //     case "%": return KarmaFieldsAlpha.Type.toNumber(values[0]) % KarmaFieldsAlpha.Type.toNumber(values[1]);;
+    //     case "&&": return KarmaFieldsAlpha.Type.toObject(values[0]) && KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case "||": return KarmaFieldsAlpha.Type.toObject(values[0]) || KarmaFieldsAlpha.Type.toObject(values[1]);
+    //     case "in": return KarmaFieldsAlpha.Type.toArray(values[1]).includes(KarmaFieldsAlpha.Type.toObject(values[0]));
+    //     case "!": return !KarmaFieldsAlpha.Type.toBoolean(values[0]);
+    //     case "?": return KarmaFieldsAlpha.Type.toBoolean(values[0]) ? values[1] : values[2];
+    //     case "concat":
+    //     case "...": return [].concat(...values.map(value => KarmaFieldsAlpha.Type.toArray(value)));
+    //     case "max": return Math.max(...values.map(value => KarmaFieldsAlpha.Type.toNumber(value)));
+    //     case "min": return Math.min(...values.map(value => KarmaFieldsAlpha.Type.toNumber(value)));
+    //     case "replace": {
+    //       const [string, wildcard, ...replacements] = values.map(value => KarmaFieldsAlpha.Type.toObject(value));
+    //       return replacements.reduce((string, replacement) => string.replace(wildcard, replacement), KarmaFieldsAlpha.Type.toString(string));
+    //     }
+    //     case "date": {
+    //       const [date, option, locale] = values.map(value => KarmaFieldsAlpha.Type.toObject(value));
+    //       return new Intl.DateTimeFormat(locale || KarmaFieldsAlpha.locale, option).format(new Date(date));
+    //     }
+    //     case "request": {
+    //       return this.parent.request(...values);
+    //     }
+    //     case "getValue": return this.parent.getValue(...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
+    //     case "queryValue": {
+    //       const driver =  KarmaFieldsAlpha.Type.toString(values[0]);
+    //       const id =  KarmaFieldsAlpha.Type.toString(values[1]);
+    //       const key =  KarmaFieldsAlpha.Type.toString(values[2]);
+    //       return KarmaFieldsAlpha.Query.getValue(driver, id, key) || KarmaFieldsAlpha.loading;
+    //     }
+    //     case "query": {
+    //
+    //       return KarmaFieldsAlpha.Query.getResults(...values.map(value => KarmaFieldsAlpha.Type.toObject(value))) || KarmaFieldsAlpha.loading;
+    //     }
+    //     case "parseParams": {
+    //       const params =  {...values[0]};
+    //       for (let key in params) {
+    //         params[key] = KarmaFieldsAlpha.Type.toString(this.parse(params[key]));
+    //       }
+    //       return params;
+    //     }
+    //     case "getOptions": {
+    //       const driver =  KarmaFieldsAlpha.Type.toString(values[0]);
+    //       const params =  {...KarmaFieldsAlpha.Type.toObject(values[1])};
+    //       for (let key in params) {
+    //         params[key] = KarmaFieldsAlpha.Type.toString(this.parse(params[key]));
+    //       }
+    //       return KarmaFieldsAlpha.Query.getOptions(driver, params) || KarmaFieldsAlpha.loading;
+    //     }
+    //     case "id": return this.parent.getId();
+    //     case "modified": return this.modified(...values.map(value => KarmaFieldsAlpha.Type.toString(value)));
+    //     case "map": {
+    //       let [array, replacement] = values; // ! replacement is already parsed !
+    //       replacement = expression[2];
+    //       this.loopItem = null;
+    //       return KarmaFieldsAlpha.Type.toArray(array).map(value => {
+    //         this.loopItem = value;
+    //         return this.parse(replacement);
+    //       });
+    //     }
+    //     case "item": return KarmaFieldsAlpha.DeepObject.get(this.loopItem, ...values.map(value => KarmaFieldsAlpha.Type.toString(value)));
+    //     case "join": return KarmaFieldsAlpha.Type.toArray(values[0]).join(KarmaFieldsAlpha.Type.toString(values[1]), values[2] || ", ");
+    //
+    //     case "length":
+    //     case "count": return KarmaFieldsAlpha.Type.toArray(values[0]).length;
+    //     // case "count": return KarmaFieldsAlpha.Query.getCount(...values.map(value => KarmaFieldsAlpha.Type.toObject(value))) || KarmaFieldsAlpha.loading;
+    //
+    //     case "key": return this.getKey();
+    //     case "index": return this.parent.getIndex();
+    //
+    //     case "getParam": return KarmaFieldsAlpha.Type.toString(this.parent.request("getParam", ...values));
+    //
+    //     case "debugger": return values[0];
+    //
+    //     case "get": { // -> compat
+    //       const [type, ...path] = values;
+    //       let value = this.parent.getValue(...path.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
+    //       if (value !== KarmaFieldsAlpha.loading) {
+    //         value = KarmaFieldsAlpha.Type.convert(value, KarmaFieldsAlpha.Type.toString(type));
+    //       }
+    //       return value;
+    //     }
+    //
+    //   }
+    //
+    // }
+    //
+    // return expression;
+  }
 
-      if (operation === "esc") {
 
-        return expressions[0];
+  getOptions() {
 
-      } else if (operation === "debugger") {
+		let options = [];
 
-        debugger;
+		if (this.resource.options) {
+
+			options = this.parse(this.resource.options);
+
+      if (!options || options === KarmaFieldsAlpha.loading) {
+
+        return;
 
       }
 
-      const values = expressions.map(expression => this.parse(expression));
+		}
 
-      if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+    let moreOptions;
 
-        return KarmaFieldsAlpha.loading;
+		if (this.resource.driver) {
 
-      }
+      moreOptions = KarmaFieldsAlpha.Query.getOptions(this.resource.driver, this.resource.params || {});
 
-      switch (operation) {
-        case "=":
-        case "==": return KarmaFieldsAlpha.Type.toObject(values[0]) == KarmaFieldsAlpha.Type.toObject(values[1]);
-        case "===": return KarmaFieldsAlpha.Type.toObject(values[0]) === KarmaFieldsAlpha.Type.toObject(values[1]);
-        case "!=": return KarmaFieldsAlpha.Type.toObject(values[0]) != KarmaFieldsAlpha.Type.toObject(values[1]);
-        case "!==": return KarmaFieldsAlpha.Type.toObject(values[0]) !== KarmaFieldsAlpha.Type.toObject(values[1]);
-        case ">": return KarmaFieldsAlpha.Type.toObject(values[0]) > KarmaFieldsAlpha.Type.toObject(values[1]);
-        case "<": return KarmaFieldsAlpha.Type.toObject(values[0]) < KarmaFieldsAlpha.Type.toObject(values[1]);
-        case ">=": return KarmaFieldsAlpha.Type.toObject(values[0]) >= KarmaFieldsAlpha.Type.toObject(values[1]);
-        case "<=": return KarmaFieldsAlpha.Type.toObject(values[0]) <= KarmaFieldsAlpha.Type.toObject(values[1]);
-        case "+": return KarmaFieldsAlpha.Type.toNumber(values[0]) + KarmaFieldsAlpha.Type.toNumber(values[1]);
-        case "-": return KarmaFieldsAlpha.Type.toNumber(values[0]) - KarmaFieldsAlpha.Type.toNumber(values[1]);
-        case "*": return KarmaFieldsAlpha.Type.toNumber(values[0]) * KarmaFieldsAlpha.Type.toNumber(values[1]);
-        case "/": return KarmaFieldsAlpha.Type.toNumber(values[0]) / KarmaFieldsAlpha.Type.toNumber(values[1]);
-        case "%": return KarmaFieldsAlpha.Type.toNumber(values[0]) % KarmaFieldsAlpha.Type.toNumber(values[1]);;
-        case "&&": return KarmaFieldsAlpha.Type.toObject(values[0]) && KarmaFieldsAlpha.Type.toObject(values[1]);
-        case "||": return KarmaFieldsAlpha.Type.toObject(values[0]) || KarmaFieldsAlpha.Type.toObject(values[1]);
-        case "in": return KarmaFieldsAlpha.Type.toArray(values[1]).includes(KarmaFieldsAlpha.Type.toObject(values[0]));
-        case "!": return !KarmaFieldsAlpha.Type.toBoolean(values[0]);
-        case "?": return KarmaFieldsAlpha.Type.toBoolean(values[0]) ? values[1] : values[2];
-        case "concat":
-        case "...": return [].concat(...values.map(value => KarmaFieldsAlpha.Type.toArray(value)));
-        case "max": return Math.max(...values.map(value => KarmaFieldsAlpha.Type.toNumber(value)));
-        case "min": return Math.min(...values.map(value => KarmaFieldsAlpha.Type.toNumber(value)));
-        case "replace": {
-          const [string, wildcard, ...replacements] = values.map(value => KarmaFieldsAlpha.Type.toObject(value));
-          return replacements.reduce((string, replacement) => string.replace(wildcard, replacement), KarmaFieldsAlpha.Type.toString(string));
-        }
-        case "date": {
-          const [date, option, locale] = values.map(value => KarmaFieldsAlpha.Type.toObject(value));
-          return new Intl.DateTimeFormat(locale || KarmaFieldsAlpha.locale, option).format(new Date(date));
-        }
-        case "request": {
-          return this.parent.request(...values);
-        }
-        case "getValue": return this.parent.getValue(...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
-        case "queryValue": return KarmaFieldsAlpha.Query.getValue(...values.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
-        case "query": return KarmaFieldsAlpha.Query.getResults(...values.map(value => KarmaFieldsAlpha.Type.toObject(value))) || KarmaFieldsAlpha.loading;
-        case "id": return this.parent.getId();
-        case "modified": return this.modified(...values.map(value => KarmaFieldsAlpha.Type.toString(value)));
-        case "map": {
-          let [array, replacement] = values; // ! replacement is already parsed !
-          replacement = expression[2];
-          this.loopItem = null;
-          return KarmaFieldsAlpha.Type.toArray(array).map(value => {
-            this.loopItem = value;
-            return this.parse(replacement);
-          });
-        }
-        case "item": return KarmaFieldsAlpha.DeepObject.get(this.loopItem, ...values.map(value => KarmaFieldsAlpha.Type.toString(value)));
-        case "join": return KarmaFieldsAlpha.Type.toArray(values[0]).join(KarmaFieldsAlpha.Type.toString(values[1]));
+		} else if (this.resource.table) {
 
-        case "length":
-        case "count": return KarmaFieldsAlpha.Type.toArray(values[0]).length;
-        // case "count": return KarmaFieldsAlpha.Query.getCount(...values.map(value => KarmaFieldsAlpha.Type.toObject(value))) || KarmaFieldsAlpha.loading;
+      const grid = this.request("getGrid", this.resource.table);
 
-        case "key": return this.getKey();
-        case "index": return this.parent.getIndex();
+      if (grid && grid.resource.driver) {
 
-        case "getParam": return KarmaFieldsAlpha.Type.toString(this.parent.request("getParam", ...values));
-
-        case "debugger": return values[0];
-
-        case "get": { // -> compat
-          const [type, ...path] = values;
-          let value = this.parent.getValue(...path.map(value => KarmaFieldsAlpha.Type.toString(value))) || KarmaFieldsAlpha.loading;
-          if (value !== KarmaFieldsAlpha.loading) {
-            value = KarmaFieldsAlpha.Type.convert(value, KarmaFieldsAlpha.Type.toString(type));
-          }
-          return value;
-        }
+        moreOptions =  KarmaFieldsAlpha.Query.getOptions(grid.resource.driver, grid.resource.params || {});
 
       }
+
+		}
+
+    if (moreOptions) {
+
+      options = [...options, ...moreOptions];
 
     }
 
-    return expression;
-  }
+		return options;
+
+	}
+
+
+
 
 
 };

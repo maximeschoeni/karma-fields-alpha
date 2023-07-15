@@ -4,27 +4,180 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
   constructor(resource) {
 
 		super({
-      format: "DD/MM/YYYY",
-      output_format: "YYYY-MM-DD hh:mm:ss",
-      export_format: "DD/MM/YYYY",
+      // format: "DD/MM/YYYY",
+      // output_format: "YYYY-MM-DD hh:mm:ss",
+      // export_format: "DD/MM/YYYY",
+      // separator: "/",
+      // regexp: "^(\\d{2})\\D(\\d{2})\\D(\\d{4})$",
+      // formatBETA: "d/m/y",
+      displayFormat: "dd/mm/yyyy",
+      storeFormat: "yyyy-mm-dd",
       ...resource
     });
 
+
+
 	}
 
-  getDefault() {
-console.error("deprecated");
-    let value = "";
-    if (this.resource.default === "now") {
-      value = moment().format(this.resource.output_format);
-    } else if (this.resource.default) {
-      const momentDate = moment(this.resource.default, [this.resource.format, this.resource.output_format]);
-      if (momentDate.isValid()) {
-        value = momentDate.format(this.resource.output_format);
+  static parse(string, format) {
+
+    const formats = format.split(/[^dmy]/);
+    const values = string.split(/\D/);
+
+    // const object = Object.fromEntries(formats.filter((format, index) => values[index] && values[index].length === format).map((format, index) => [format, Number(values[index])]));
+
+    const object = {};
+
+    for (let i = 0; i < 3; i++) {
+
+      const key = formats[i];
+      const value = values[i];
+
+      if (key && value && key.length === value.length && !isNaN(value)) {
+
+        object[key] = Number(value);
+
       }
+
     }
-    const key = this.getKey();
-    return {[key]: value};
+
+    if (object.dd && object.mm && object.yyyy) {
+
+      return new Date(object.yyyy, object.mm-1, object.dd);
+
+    }
+
+
+
+
+
+    // const object = {};
+    //
+    // for (let item of format.split(/[^dmy]/)) {
+    //
+    //   const index = format.indexOf(item);
+    //
+    //   switch (item) {
+    //
+    //     case "dd":
+    //       object.d = Number(string.slice(index, index+2));
+    //       break;
+    //
+    //     case "mm":
+    //       object.m = Number(string.slice(index, index+2));
+    //       break;
+    //
+    //     case "yyyy":
+    //       object.y = Number(string.slice(index, index+4));
+    //       break;
+    //
+    //   }
+    //
+    //   // const index = format.indexOf(item);
+    //   // const length = item.length;
+    //   //
+    //   // object[item] = Number(string.slice(index, index+length));
+    //
+    // }
+    //
+    // if (object.d && !isNaN(object.d) && object.m && !isNaN(object.m) && object.y && !isNaN(object.y)) {
+    //
+    //   return new Date(object.y, object.m-1, object.d);
+    //
+    // }
+    //
+
+  }
+
+  static format(date, format) {
+
+    return format
+      .replace("dd", date.toLocaleDateString("en", {day: "2-digit"}))
+      .replace("mm", date.toLocaleDateString("en", {month: "2-digit"}))
+      .replace("yyyy", date.toLocaleDateString("en", {year: "numeric"}));
+
+  }
+
+
+  // match(value) {
+  //
+  //   return value.match(new RegExp(this.resource.regexp));
+  //
+  // }
+
+  // formatDate(date) {
+  //
+  //   const d = date.toLocaleDateString(KarmaFieldsAlpha.locale, {day: "2-digit"});
+  //   const m = date.toLocaleDateString(KarmaFieldsAlpha.locale, {month: "2-digit"});
+  //   const y = date.toLocaleDateString(KarmaFieldsAlpha.locale, {year: "numeric"});
+  //
+  //   return this.resource.formatBETA.replace("d", d).replace("m", m).replace("y", y);
+  // }
+  //
+  // parseDate(string) {
+  //
+  //   const matches = string.match(new RegExp(this.resource.regexp));
+  //
+  //   if (matches) {
+  //
+  //     const dmy = this.resource.formatBETA.replace(/[^dmy]/g, "");
+  //     const d = dmy.indexOf("d");
+  //     const m = dmy.indexOf("m");
+  //     const y = dmy.indexOf("y");
+  //
+  //     return new Date(matches[y+1], matches[m+1]-1, matches[d+1]);
+  //
+  //   }
+  //
+  // }
+  //
+  // toSQL(date) {
+  //
+  //   // const y = date.getFullYear();
+  //   // const m = ("00"+(date.getMonth() + 1)).slice(-2);
+  //   // const d = ("00"+(date.getDate())).slice(-2);
+  //
+  //   const d = date.toLocaleDateString("en", {day: "2-digit"});
+  //   const m = date.toLocaleDateString("en", {month: "2-digit"});
+  //   const y = date.toLocaleDateString("en", {year: "numeric"});
+  //
+  //   return `${y}-${m}-${d} 00:00:00`;
+  //
+  // }
+
+  getPlaceholder() {
+
+    return super.getPlaceholder() || this.resource.displayFormat;
+
+  }
+
+  getDefault() {
+
+    let value;
+
+    if (this.resource.default === "now") {
+
+      // value = moment().format(this.resource.output_format);
+
+      // value = this.toSQL(new Date());
+      value = this.constructor.format(new Date(), this.resource.storeFormat);
+
+    } else if (this.resource.default) {
+
+      // const momentDate = moment(this.resource.default, [this.resource.format, this.resource.output_format]);
+      // if (momentDate.isValid()) {
+      //   value = momentDate.format(this.resource.output_format);
+      // }
+
+      value = this.parse(this.resource.default);
+
+    } else if (this.resource.default !== null) {
+
+      value = "";
+
+    }
+
+    return value;
   }
 
   // exportValue() {
@@ -90,15 +243,21 @@ console.error("deprecated");
 
 		while((date.getTime() < firstDayNextMonth.getTime()) || date.getDay() !== 1) {
 			var day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      // day.setHours(0, 0, 0, 0);
+      var time = day.getTime();
+
 			days.push({
 				date: day,
-        moment: moment(day),
+        time: time,
+        // sql: this.toSQL(day),
+        // sql: this.constructor.format(day, this.resource.storeFormat),
+        // moment: moment(day),
 				// sqlDate: this.format(day),
-				isDayBefore: day.getTime() == lastDayPrevMonth.getTime(),
-				isDayAfter: day.getTime() == firstDayNextMonth.getTime(),
-				isOffset: day.getTime() <= lastDayPrevMonth.getTime() || day.getTime() >= firstDayNextMonth.getTime(),
-				isToday: day.getTime() === today,
-				isWeekend: day.getDay() === 0 || day.getDay() === 6
+				isDayBefore: time == lastDayPrevMonth.getTime(),
+				isDayAfter: time == firstDayNextMonth.getTime(),
+				isOffset: time <= lastDayPrevMonth.getTime() || time >= firstDayNextMonth.getTime(),
+				isToday: time === today,
+				isWeekend: time === 0 || time === 6
 			});
 			date.setDate(date.getDate() + 1);
 		}
@@ -233,15 +392,15 @@ console.error("deprecated");
   //   };
   // }
 
-  render() {
-
-    if (this.onRender) {
-
-      this.onRender();
-
-    }
-
-  }
+  // render() {
+  //
+  //   if (this.onRender) {
+  //
+  //     this.onRender();
+  //
+  //   }
+  //
+  // }
 
   build() {
     return {
@@ -250,16 +409,22 @@ console.error("deprecated");
       //   container.element.setAttribute('tabindex', '-1');
       // },
       update: (container) => {
-        this.onRender = container.render;
+        // this.onRender = container.render;
 
-        let value = this.getValue();
+        let value = this.getSingleValue();
 
         // const key = this.getKey();
         // const values = this.parent.request("get", {}, key);
 
-        container.element.classList.toggle("loading", value === KarmaFieldsAlpha.field.input.loading);
+        container.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
 
-        if (value !== KarmaFieldsAlpha.field.input.loading) {
+        if (value === KarmaFieldsAlpha.mixed) {
+
+          container.children = [this.createChild({
+            type: "input"
+          }).build()];
+
+        } else if (value !== KarmaFieldsAlpha.loading) {
 
           const data = this.getData();
 
@@ -287,6 +452,10 @@ console.error("deprecated");
                         while(days.length) {
                           rows.push(days.splice(0, 7));
                         }
+
+                        // const activeDate = new Date(value);
+                        const activeDate = value && this.constructor.parse(value, this.resource.storeFormat);
+
                         container.child = {
                           class: "calendar",
                           children: [
@@ -312,7 +481,8 @@ console.error("deprecated");
                                   tag: "li",
                                   class: "current-month",
                                   update: li => {
-                                    li.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {month: "long", year: "numeric"}).format(data.date);
+                                    // li.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {month: "long", year: "numeric"}).format(data.date);
+                                    li.element.textContent = data.date.toLocaleDateString(KarmaFieldsAlpha.locale, {month: "long", year: "numeric"});
                                   }
                                 },
                                 {
@@ -338,8 +508,8 @@ console.error("deprecated");
                                 return {
                                   tag: "li",
                                   update: li => {
-                                    li.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {weekday: "narrow"}).format(day.date);
-
+                                    // li.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {weekday: "short"}).format(day.date);
+                                    li.element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, {weekday: "short"});
                                   }
                                 };
                               })
@@ -357,10 +527,14 @@ console.error("deprecated");
                                         tag: "a",
                                         update: a => {
                                           // a.element.textContent = day.moment.format("D");
-                                          a.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {day: "numeric"}).format(day.date);
+                                          // a.element.textContent = new Intl.DateTimeFormat(KarmaFieldsAlpha.locale, {day: "numeric"}).format(day.date);
+                                          a.element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, {day: "numeric"});
+
                                           a.element.onmouseup = event => {
                                             event.preventDefault();
-                                            let sqlDate = day.moment.format(this.resource.output_format);
+                                            // let sqlDate = day.moment.format(this.resource.output_format);
+                                            // const sqlDate = this.toSQL(day.date);
+                                            const sqlDate = this.constructor.format(day.date, this.resource.storeFormat);
                                             data.date = null;
                                             // this.parent.request("set-option", data.date, this.resource.key, "date");
 
@@ -376,9 +550,11 @@ console.error("deprecated");
                                         }
                                       }],
                                       update: li => {
-                                        let sqlDate = day.moment.format(this.resource.output_format);
+                                        // let sqlDate = day.moment.format(this.resource.output_format);
+                                        // const sqlDate = this.toSQL(day.date);
 
-                                        li.element.classList.toggle("active", value === sqlDate);
+                                        // li.element.classList.toggle("active", value === sqlDate);
+                                        li.element.classList.toggle("active", Boolean(activeDate && day.date.getTime() === activeDate.getTime()));
                                         li.element.classList.toggle("offset", day.isOffset);
                                         li.element.classList.toggle("today", day.isToday);
                                       }
@@ -409,6 +585,7 @@ console.error("deprecated");
               },
               update: (input) => {
 
+                input.element.placeholder = this.getPlaceholder();
 
 
                 if (this.resource.readonly) {
@@ -416,34 +593,60 @@ console.error("deprecated");
                 } else {
                   input.element.onkeyup = () => {
 
-                    let mDate = moment(input.element.value, this.resource.format);
+                    // let mDate = moment(input.element.value, this.resource.format);
+                    //
+                    // if (input.element.value.length === 10 && mDate.isValid()) {
+                    //   data.date = mDate.toDate();
+                    //   var sqlDate = mDate.format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
+                    //   this.setValue(sqlDate);
+                    // } else {
+                    //   this.setValue(input.element.value);
+                    //
+                    // }
 
-                    if (input.element.value.length === 10 && mDate.isValid()) {
-                      data.date = mDate.toDate();
-                      var sqlDate = mDate.format(this.resource.output_format || "YYYY-MM-DD hh:mm:ss");
+                    // const date = this.parseDate(input.element.value);
+                    const date = this.constructor.parse(input.element.value, this.resource.displayFormat);
+
+                    if (date) {
+                      data.date = date;
+                      // const sqlDate = this.toSQL(date);
+                      const sqlDate = this.constructor.format(date, this.resource.storeFormat);
                       this.setValue(sqlDate);
-                      this.render();
+                    } else {
+                      this.setValue(input.element.value);
                     }
 
+                    this.render();
                   };
                   input.element.onfocus = () => {
-                    let mDate = moment(input.element.value, this.resource.format);
-                    data.date = mDate && mDate.isValid() && mDate.toDate() || new Date();
+                    // let mDate = moment(input.element.value, this.resource.format);
+                    // data.date = mDate && mDate.isValid() && mDate.toDate() || new Date();
+                    // const date = this.parseDate(input.element.value);
+                    const date = this.constructor.parse(input.element.value, this.resource.displayFormat);
+                    data.date = date || new Date();
                     this.render();
                   };
                   input.element.onfocusout = () => {
+                    // data.date = null;
+                    // this.render();
+                    // console.log("onfocusout");
+                  };
+                  input.element.onblur = () => {
                     data.date = null;
                     this.render();
                   };
                 }
 
-                let displayDate = "";
+                let displayDate;
 
-                let mDate = moment(value, this.resource.output_format);
+                // let mDate = moment(value, this.resource.output_format);
 
-                if (mDate.isValid()) {
+                // let date = new Date(value);
+                const date = this.constructor.parse(value, this.resource.storeFormat);
 
-                  displayDate = mDate.format(this.resource.format);
+                if (date) {
+
+                  displayDate = this.constructor.format(date, this.resource.displayFormat);
 
                 } else {
 

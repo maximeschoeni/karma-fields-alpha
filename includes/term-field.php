@@ -1,3 +1,13 @@
+<tr class="form-field">
+	<th scope="row"><label for="start"><?php echo $label; ?></label></th>
+	<td>
+		<?php $this->print_embed('taxonomy', $term_id, $args); ?>
+	</td>
+</tr>
+
+
+<?php /*
+
 <div id="karma-fields-term-<?php echo $term_id; ?>-field-<?php echo $this->index; ?>-container" class="karma-fields karma-fields-term"></div>
 
 <?php
@@ -40,3 +50,4 @@
  		KarmaFieldsAlpha.build(postform.build(), container);
  	});
 </script>
+*/

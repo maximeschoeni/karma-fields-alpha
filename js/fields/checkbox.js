@@ -26,6 +26,20 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 		return value;
 	}
 
+	initValue() {
+
+		const value = this.getDefault();
+
+		if (value !== undefined && value !== null) {
+
+			this.setValue(value);
+			this.save();
+
+		}
+
+		return value || "";
+	}
+
 	export(items = []) {
 
 	  const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
@@ -365,18 +379,21 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 								// -> set default
 								if (value === undefined) {
 
-									const defaultValue = this.getDefault();
+									// const defaultValue = this.getDefault();
+									//
+									// if (defaultValue !== undefined && defaultValue !== null) {
+									//
+									// 	this.setValue(defaultValue);
+									//
+									// }
 
-									if (defaultValue !== undefined && defaultValue !== null) {
-
-										this.setValue(defaultValue);
-
-									}
+									value = this.initValue();
 
 								}
 
 								checkbox.element.classList.toggle("mixed", value === KarmaFieldsAlpha.mixed);
 								checkbox.element.checked = value === this.true();
+
 
 								checkbox.element.onchange = () => {
 

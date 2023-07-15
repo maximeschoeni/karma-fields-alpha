@@ -271,15 +271,19 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     const array = this.getValue();
 
-    const child = this.createChild({
-      ...this.resource,
+    const row = this.createChild({
+      children: this.resource.children,
       type: "row",
-      index: "new"
+      index: array.length
     });
 
-    this.setValue([...array, {}]);
+    this.save("add");
 
-    this.save(`${this.resource.uid}-add`);
+    row.initValue();
+
+    // this.setValue([...array, {}]);
+
+
 
   }
 
@@ -287,17 +291,35 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     const values = [...this.getValue()];
 
-    values.splice(index, 1);
+    if (length) {
 
-    this.setValue(values);
+      values.splice(index, length);
 
-    this.save(`${this.resource.uid}-remove`);
+      this.setValue(values);
+
+      this.save("remove");
+
+    }
 
   }
 
-  delete(index) {
+  delete(selection) {
     // compat
-    this.remove(index);
+    this.remove(selection.index || 0, selection.length || 0);
+
+  }
+
+  paste(value, selection) {
+
+    this.import([value], selection.index || 0, selection.length || 0);
+
+  }
+
+  copy(selection) {
+
+    const [value] = this.export([], selection.index || 0, selection.length || 0);
+
+    return value;
 
   }
 
@@ -334,6 +356,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
       update: array => {
 
         const values = this.getValue();
+
         const mixed = values && values[0] === KarmaFieldsAlpha.mixed;
 
         array.children = [
@@ -416,11 +439,11 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 }
 
-                table.element.onfocusin = event => {
-
-                  console.log("array onfocusin ");
-                  this.render(); // unselect last field when input gains focus inside array
-                }
+                // table.element.onfocusin = event => {
+                //
+                //   console.log("array onfocusin ");
+                //   this.render(); // unselect last field when input gains focus inside array
+                // }
 
                 table.children = [
                   ...this.resource.children.filter(column => values.length && hasHeader).map(column => {
@@ -566,6 +589,7 @@ KarmaFieldsAlpha.field.array.footer.add = {
   type: "button",
   id: "add",
   action: "add",
+  // dashicon: "insert",
   title: "+"
 };
 
@@ -611,6 +635,12 @@ KarmaFieldsAlpha.field.array.row = class extends KarmaFieldsAlpha.field {
   getIndex() {
 
     return this.resource.index;
+
+  }
+
+  initValue() {
+
+    return KarmaFieldsAlpha.field.container.prototype.initValue.call(this);
 
   }
 

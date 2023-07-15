@@ -25,28 +25,28 @@ KarmaFieldsAlpha.Backup = class {
 
   }
 
-  static save(ref) {
+  static save(ref, force) {
 
     if (ref && ref !== this.ref) {
 
-      console.log("backup ADD STATE", ref, this.before, this.after);
+      // if (!KarmaFieldsAlpha.DeepObject.equal(this.before, this.after)) {
 
-      if (!KarmaFieldsAlpha.DeepObject.equal(this.before, this.after)) {
+        // -> array::add must always save even when no change
 
         KarmaFieldsAlpha.History.merge(this.before);
         KarmaFieldsAlpha.History.addState(this.after);
 
         this.ref = ref;
 
-      }
+      // }
 
     } else {
-
-      console.log("backup update", ref, this.before, this.after);
 
       KarmaFieldsAlpha.History.merge(this.after);
 
     }
+
+
 
     this.before = {};
     this.after = {};
