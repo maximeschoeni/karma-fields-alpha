@@ -241,7 +241,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
     }
 
     const driver = this.getDriver();
-    let file = KarmaFieldsAlpha.Query.getValue(driver, id, "basename");
+    let file = KarmaFieldsAlpha.Query.getValue(driver, id, "filename");
     let filetype = KarmaFieldsAlpha.Query.getValue(driver, id, "filetype");
 
     if (filetype) {

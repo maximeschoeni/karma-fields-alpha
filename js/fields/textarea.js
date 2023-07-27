@@ -5,7 +5,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 			tag: "textarea",
 			class: "textarea karma-field",
 			init: input => {
-				input.element.id = this.getId();
+				input.element.id = this.getUid();
 				if (this.resource.height) {
 					input.element.style.height = this.resource.height;
 				}

@@ -5,7 +5,7 @@ KarmaFieldsAlpha.Gateway = class {
 		if (typeof params !== "string") {
 			params = KarmaFieldsAlpha.Nav.toString(params);
 		}
-    
+
 		if (params) {
 			params = "?"+params;
 		}
@@ -56,7 +56,7 @@ KarmaFieldsAlpha.Gateway = class {
 	// 	this.optionPromises = {};
 	// }
 
-	static upload(file, params) {
+	static stream(file, params) {
 	  let fileName = file.name.normalize();
 	  const chunkSize = 1048576; // 1MB
 		// const chunkSize = 65536; // 64KB
@@ -102,6 +102,30 @@ KarmaFieldsAlpha.Gateway = class {
 	    }
 	    uploadNextPart();
 	  });
+	}
+
+
+	static upload(file, params) {
+	  let fileName = file.name.normalize();
+
+		const formData = new FormData();
+		formData.append("file", file);
+		formData.append("name", fileName);
+		if (params) {
+			for (let key in params) {
+				formData.append(key, params[key]);
+			}
+		}
+		return fetch(KarmaFieldsAlpha.restMediaURL, {
+			headers: {
+				// "Content-Type": "application/json",
+				"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce
+			},
+			method: "post",
+			body: formData,
+			mode: "same-origin"
+		}).then(response => response.json()).then(result => result.id);
+
 	}
 
 }

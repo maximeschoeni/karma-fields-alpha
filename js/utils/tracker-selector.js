@@ -164,7 +164,12 @@ KarmaFieldsAlpha.Selector = class {
     // } else if (this.getElementsRectangle(this.container).contains(this.tracker.x, this.tracker.y)) {
     } else if (index === -1 && (new KarmaFieldsAlpha.Rect(0, 0, this.container.clientWidth, this.container.clientHeight)).contains(this.tracker.x, this.tracker.y)) {
 
+      if (this.onselect) {
 
+        this.onselect({index: 0, length: 0}, true); // compat
+
+      }
+      
       if (this.onbackground) {
 
         this.onbackground();

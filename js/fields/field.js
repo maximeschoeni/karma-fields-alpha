@@ -43,10 +43,10 @@ KarmaFieldsAlpha.field = class {
     return this.resource.label;
   }
 
-  getId() {
-    // return "karma-fields-"+this.fieldId;
-    return this.resource.uid;
-  }
+  // getId() {
+  //   // return "karma-fields-"+this.fieldId;
+  //   return this.resource.uid;
+  // }
 
   getUid() {
     return this.resource.uid;
@@ -570,17 +570,57 @@ console.error("deprecated");
 
   }
 
+  getId() {
+
+    if (this.parent) {
+
+      return this.parent.getId();
+
+    }
+
+  }
+
+  getName(...path) {
+
+    return this.parent.getName(...path);
+
+  }
+
+  getParent(...path) {
+
+    return this.parent.getParent(...path);
+
+  }
+
+  getPosition(...path) {
+
+    return this.parent.getPosition(...path);
+
+  }
+
+  // getAliasedValue(key) {
+  //
+  //   return this.parent.getAliasedValue(...path);
+  //
+  // }
+
   getSingleValue(...path) {
 
     const values = this.getValue(...path);
 
-    if (values) {
+    if (values === KarmaFieldsAlpha.mixed) {
 
-      return values[0];
+			return KarmaFieldsAlpha.mixed;
 
-    }
+		}
 
-    return KarmaFieldsAlpha.loading;
+    if (!values || values === KarmaFieldsAlpha.loading) {
+
+			return KarmaFieldsAlpha.loading;
+
+		}
+
+    return values[0];
   }
 
 
@@ -625,6 +665,12 @@ console.error("deprecated");
 
 
   }
+
+  getDriver() {
+
+		return this.resource.driver || this.parent.getDriver();
+
+	}
 
   // getDelta() {
 

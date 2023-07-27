@@ -37,6 +37,12 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
+  getTableResource(tableId) {
+
+    return this.resource.tables && this.resource.tables[tableId];
+
+  }
+
   getData() {
 
     if (!KarmaFieldsAlpha.field.data) {
@@ -436,11 +442,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     if (grid && grid.add) {
 
-      const selection = grid.getSelection() || {};
-
-      const index = (selection.index || 0) + (selection.length || 0);
-
-      grid.add(index, params);
+      grid.add(params);
 
       this.render();
 
@@ -517,6 +519,14 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
       }
 
       KarmaFieldsAlpha.Store.setTable(table);
+
+      const tableResource = this.getTableResource(table);
+
+      if (tableResource && tableResource.body) {
+
+        params = {...tableResource.body.params, ...params};
+
+      }
 
     }
 
@@ -717,7 +727,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
         KarmaFieldsAlpha.Store.setTable(tableId);
 
-        KarmaFieldsAlpha.Store.setParams(params);
+        KarmaFieldsAlpha.Store.setParams(params || {});
         KarmaFieldsAlpha.Store.removeIds();
 
         grid.setSelection({});
@@ -808,23 +818,73 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async upload(files, index = 0, length = 0) {
 
-    const tableId = this.getTable();
+  isMediaTable(tableId) {
 
-    if (tableId !== "files") {
+    return this.resource.tables[tableId] && this.resource.tables[tableId].body && this.resource.tables[tableId].body.type === "medias";
+  }
 
-      this.setTable("files");
+  getMediaTable() {
 
-      await this.render();
+    for (let tableId in this.resource.tables) {
+
+      if (this.isMediaTable(tableId)) {
+
+        return tableId;
+
+      }
 
     }
 
-    const grid = this.getGrid("files");
+  }
 
-    const selection = grid.getSelection() || {};
+  async upload(files, index = 0, length = 0) {
 
-    grid.upload(files, selection.index || 0, length);
+
+    let tableId = this.getTable();
+
+    if (!this.isMediaTable(tableId)) {
+
+      tableId = this.getMediaTable();
+
+      if (tableId) {
+
+        this.setTable(tableId);
+
+        await this.render();
+
+      }
+
+
+    }
+
+    if (tableId) {
+
+      let grid = this.getGrid(tableId);
+
+      grid.upload(files);
+
+    } else {
+
+      console.warn("No medias table found to upload file");
+
+    }
+
+
+    //
+    // if (tableId !== "files") {
+    //
+    //   this.setTable("files");
+    //
+    //   await this.render();
+    //
+    // }
+
+    // const grid = this.getGrid("files");
+    //
+    // const selection = grid.getSelection() || {};
+    //
+    // grid.upload(files, selection.index || 0, length);
 
   }
 
@@ -1653,6 +1713,9 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                   div.element.onmousedown = event => {
                     event.stopPropagation();
                     event.preventDefault();
+
+
+
                     grid.setSelection({final: true, index: 0, length: 0});
 
                     KarmaFieldsAlpha.Clipboard.focus();
@@ -1697,8 +1760,7 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                                 const modal = grid.createChild({
                                   type: "modal",
                                   ...grid.resource.modal,
-                                  index: "modal",
-                                  ids: ids
+                                  index: "modal"
                                 });
                                 div.element.style.width = grid.resource.modal.width || "30em";
                                 div.element.onmousedown = event => {
@@ -1867,7 +1929,7 @@ KarmaFieldsAlpha.field.saucer.controls = class extends KarmaFieldsAlpha.field.co
     super({
       display: "flex",
       children: [
-        "reload",
+        // "reload",
         "save",
         "add",
         "delete",

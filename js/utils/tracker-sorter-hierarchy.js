@@ -107,7 +107,7 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
             // if (firstBox.y + travelY < containerBox.y) {
             // if (firstBox.y + firstBox.height/2 + travelY < 0) {
             // if (firstBox.y + firstBox.height*0.25 + travelY < 0) {
-            if (firstBox.y + travelY < -10) {
+            if (firstBox.y + travelY < -10 && closest) {
               this.swapToParent(closest, 0);
             }
 
@@ -206,6 +206,10 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
   swapToParent(closest, offset) {
 
+// if (offset == 0) debugger;
+
+// debugger;
+
 
     this.container.style.height = "auto";
 
@@ -218,22 +222,41 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
     const width = this.getWidth();
     const elements = children.splice((this.colHeader + this.selection.index)*width, this.selection.length*width);
 
-    const index = this.path.pop();
+    // const index = this.path.pop();
+    // const index = this.path.pop();
+
+    let newIndex = this.path[this.path.length-1] + offset;
+    let newPath = this.path.slice(0, -1);
+
+
 
     this.container = closest;
 
-    this.insertElementsAt(this.container, elements, index + offset);
+    this.insertElementsAt(this.container, elements, newIndex);
 
-    this.selection = {...this.selection, index: index + offset};
+    this.selection = {...this.selection, index: newIndex};
 
     const destBox = this.getBox(this.selection.index);
 
     this.originX += destBox.x - offsetLeft - originBox.x;
     this.originY += destBox.y - offsetTop - originBox.y;
 
+    if (this.onSwap) {
+
+      // this.onSwap(this.selection, this.path, this.index, newPath, newIndex, this.selection.length);
+      this.onSwap(this.index, newIndex, this.selection.length, this.path, newPath);
+
+    }
+
+
+    this.index = newIndex;
+    this.path = newPath;
+
   }
 
   swapToChild(child, offset) {
+
+    // console.log(offset);
 
     const box = this.getBox(this.selection.index);
 
@@ -245,41 +268,49 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
     this.container = child;
 
-    let index;
+    let newIndex;
+    let newPath;
 
     if (offset > 0) {
 
 
-      this.path.push(this.selection.index);
+      // this.path.push(this.selection.index);
 
-      index = 0;
+
+      newIndex = 0;
+      newPath = [...this.path, this.index];
 
     } else {
 
-      this.path.push(this.selection.index -1);
+      // this.path.push(this.selection.index -1);
 
-      index = this.getHeight();
+      newPath = [...this.path, this.index -1]
 
-      if (index > 0) {
+      newIndex = this.getHeight();
 
-        this.originY += this.getBox(0, index).height;
+      if (newIndex > 0) {
+
+        this.originY += this.getBox(0, newIndex).height;
 
       }
 
     }
 
-    this.selection = {...this.selection, index: index};
+    this.selection = {...this.selection, index: newIndex};
 
-
-    this.insertElementsAt(this.container, elements, index);
+    this.insertElementsAt(this.container, elements, newIndex);
 
     this.originX -= box.x - this.container.offsetLeft;
     this.originY -= box.y - this.container.offsetTop;
 
+    if (this.onSwap) {
 
+      this.onSwap(this.index, newIndex, this.selection.length, this.path, newPath);
 
-    // this.selection = {...this.selection, index: index};
+    }
 
+    this.index = newIndex;
+    this.path = newPath;
 
 
 

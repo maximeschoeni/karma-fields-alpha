@@ -499,6 +499,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
           break;
 
         case 'id':
+        case 'ID':
           $args['p'] = intval($value);
           break;
 
@@ -536,6 +537,11 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         case 'meta_key':
           $args['meta_key'] = $value;
+          break;
+
+        case 'parent':
+          // todo parse alias before sending
+          $args['post_parent'] = $value;
           break;
 
         default:

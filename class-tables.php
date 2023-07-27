@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '53';
+	public $version = '54';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -150,6 +150,7 @@ class Karma_Fields_Alpha {
 				// wp_enqueue_script('karma-fields-alpha-tag-links', $plugin_url . '/js/fields/tag-links.js', array('karma-fields-alpha-field'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-gallery', $plugin_url . '/js/fields/gallery.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-files', $plugin_url . '/js/fields/files.js', array('karma-fields-alpha-field'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-hidden', $plugin_url . '/js/fields/hidden.js', array('karma-fields-alpha-field'), $this->version, true);
 
 				// beta
 				wp_enqueue_script('karma-fields-alpha-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-alpha-input'), $this->version, true);
@@ -190,6 +191,7 @@ class Karma_Fields_Alpha {
 
 				// utils
 				wp_enqueue_script('karma-fields-utils-deep-object', $plugin_url . '/js/utils/deep-object.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-deep-array', $plugin_url . '/js/utils/deep-array.js', array(), $this->version, true);
 				// wp_enqueue_script('karma-fields-utils-nav', $plugin_url . '/js/utils/nav.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-gateway', $plugin_url . '/js/utils/gateway.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-rect', $plugin_url . '/js/utils/rect.js', array(), $this->version, true);
@@ -349,7 +351,14 @@ class Karma_Fields_Alpha {
 				'filemeta1',
 				'filemeta2',
 				'meta',
-				'taxonomy')
+				'taxonomy'
+			),
+			array(
+				'id' => 'ID',
+				'name' => 'post_title',
+				'parent' => 'post_parent',
+				'upload-date' => 'post_date'
+			)
 		);
 
 		$this->register_driver(
@@ -360,6 +369,15 @@ class Karma_Fields_Alpha {
       array(
         'id' => 'term_id'
       )
+		);
+
+		// for taxonomies dropdown:
+		$this->register_driver(
+			'taxonomies',
+			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-taxonomies.php',
+			'Karma_Fields_Alpha_Driver_Taxonomies',
+      array(),
+      array()
 		);
 
 		// $this->register_driver(
@@ -405,6 +423,73 @@ class Karma_Fields_Alpha {
 		// 	KARMA_FIELDS_PATH.'/drivers/driver-taxonomy.php',
 		// 	'Karma_Fields_Driver_Taxonomy'
 		// );
+
+
+
+
+		// register default taxonomy table
+		$this->register_table('taxonomy', array(
+			'body' => array(
+				'driver' => 'taxonomy',
+				'type' => 'grid',
+				'params' => array(
+					'ppp' => 100,
+					'orderby' => 'name'
+				),
+				'children' => array(
+					array(
+						'type' => 'index'
+					),
+          array(
+						'label' => 'Name',
+						'sortable' => true,
+						'order' => 'asc',
+						'width' => '1fr',
+						'key' => 'name',
+						'type' => 'input'
+					),
+          array(
+						'label' => 'Slug',
+						'width' => '1fr',
+						'key' => 'slug',
+						'type' => 'input'
+					),
+          array(
+						'label' => 'Description',
+            'sortable' => true,
+						'order' => 'asc',
+						'width' => 'auto',
+						'type' => 'textarea',
+						'key' => 'description'
+					)
+				)
+			),
+			'header' => array(
+				'title' => array('||', array('getParam', 'taxonomy'), 'Terms')
+			),
+			'filters' => array(
+				'type' => 'group',
+				'display' => 'flex',
+				'children' => array(
+					array(
+						'type' => 'dropdown',
+						'label' => 'Taxonomies',
+						'driver' => 'taxonomies',
+						'params' => array('public' => true),
+						'options' => array(array('id' => '', 'name' => '–')),
+						'key' => 'taxonomy'
+					),
+					array(
+						'type' => 'input',
+						'label' => 'Search',
+						'key' => 'search',
+						'style' => 'flex:1'
+					)
+				)
+			)
+		));
+
+
 
     do_action('karma_fields_init', $this);
 
@@ -897,7 +982,7 @@ class Karma_Fields_Alpha {
 	public function rest_upload($request) {
 
 		// $driver_name = $request->get_param('driver');
-		$driver_name = 'files';
+		$driver_name = 'medias';
 
 		$driver = $this->get_driver($driver_name);
 
@@ -1134,12 +1219,11 @@ class Karma_Fields_Alpha {
 
 		$this->index++;
 
-
-		if ($this->resource) {
+		// if ($this->resource) {
 
 			include plugin_dir_path(__FILE__) . 'includes/nav.php';
 
-		}
+		// }
 
 	}
 

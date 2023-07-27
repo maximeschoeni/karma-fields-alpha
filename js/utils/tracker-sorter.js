@@ -24,6 +24,8 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       this.offsetX = this.tracker.x - this.currentRect.x;
       this.offsetY = this.tracker.y - this.currentRect.y;
       this.index = this.selection.index;
+      this.originIndex = this.index;
+      this.originPath = this.path;
       this.indexOffset = row - this.index;
       this.dragging = true;
 
@@ -31,6 +33,7 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
       this.container.classList.add("dragging");
       this.container.style.height = `${this.container.clientHeight}px`;
+
 
     } else {
 
@@ -161,6 +164,8 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
     const elements = this.sliceSegment(this.selection);
 
+    let newIndex;
+
     if (offset > 0) {
 
       const lastRectangle = this.getRectangle(this.selection.index + this.selection.length - 1);
@@ -171,10 +176,17 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
       this.insertElementsAt(this.container, elements, this.selection.index + this.selection.length + 1);
 
-      this.selection = new KarmaFieldsAlpha.Selection(this.selection.index + 1, this.selection.length);
+      // this.selection = new KarmaFieldsAlpha.Selection(this.selection.index + 1, this.selection.length);
+
+      newIndex = this.selection.index + 1;
+
+      this.selection = {...this.selection, index: newIndex}
 
       if (this.onSwap) {
-        this.onSwap(this.selection);
+
+        this.onSwap(this.index, newIndex, this.selection.length, this.path, this.path);
+
+
       }
 
     } else {
@@ -187,13 +199,25 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
       this.insertElementsAt(this.container, elements, this.selection.index - 1);
 
-      this.selection = new KarmaFieldsAlpha.Selection(this.selection.index - 1, this.selection.length);
+      // this.selection = new KarmaFieldsAlpha.Selection(this.selection.index - 1, this.selection.length);
+
+      newIndex = this.selection.index - 1;
+
+      this.selection = {...this.selection, index: newIndex}
 
       if (this.onSwap) {
-        this.onSwap(this.selection);
+
+        // this.onSwap(this.index, this.selection.index, this.selection.length);
+        this.onSwap(this.index, newIndex, this.selection.length, this.path, this.path);
+
+
       }
 
     }
+
+    this.index = newIndex;
+
+    // this.index = this.selection.index;
 
     // this.selection = {index: this.selection.index + offset, length: this.selection.length};
 
@@ -215,7 +239,7 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
       if (this.onsort) {
 
-        this.onsort(this.index, this.selection.length, this.selection.index);
+        this.onsort(this.originIndex, this.selection.index, this.selection.length, this.originPath, this.path);
 
       }
 

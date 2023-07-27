@@ -309,8 +309,11 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
     // $args['update_term_meta_cache'] = false;
 
-
     $terms = get_terms($args);
+
+    // $attachment_terms = get_attachment_taxonomies($args);
+    //
+    // var_dump($args, $attachment_terms);
 
     $output = array();
 

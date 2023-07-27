@@ -2,7 +2,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   fetch() {
 
-    this.parent.request("fetch", this.resource.table);
+    this.parent.request("fetch", this.resource.table, this.resource.params);
 
   }
 
@@ -14,6 +14,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
 
   open() {
+
     const selection = this.getSelection();
 
     if (!selection || !selection.length) {

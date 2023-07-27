@@ -53,6 +53,12 @@ KarmaFieldsAlpha.Expression = class {
 
   }
 
+  toSingle() {
+
+    return this.toObject();
+
+  }
+
   toString() {
 
     const value = this.parse();
@@ -162,21 +168,49 @@ KarmaFieldsAlpha.Expression = class {
 
   logic() {
 
-    const v1 = this.create(this.expression[1]).toObject();
-    const v2 = this.create(this.expression[2]).toObject();
+    const values = this.expression.slice(1).map(value => this.create(value).toObject());
 
-    if (v1 === KarmaFieldsAlpha.loading || v2 === KarmaFieldsAlpha.loading) {
+    if (values.some(value => value === KarmaFieldsAlpha.loading)) {
 
       return KarmaFieldsAlpha.loading;
 
     }
 
-    switch (this.expression[0]) {
+    let result = values.shift();
 
-      case "&&": return v1 && v2;
-      case "||": return v1 || v2;
+    while (values.length) {
+
+      const value = values.shift();
+
+      switch (this.expression[0]) {
+
+        case "&&":
+          result = result && value;
+          break;
+
+        case "||":
+          result = result || value;
+          break;
+
+      }
 
     }
+
+    return result;
+
+  }
+
+  math() {
+
+    const values = this.expression.slice(2).map(value => this.create(value).toNumber());
+
+    if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+
+      return KarmaFieldsAlpha.loading;
+
+    }
+
+    return Math[this.expression[1]](...values);
 
   }
 
@@ -302,7 +336,7 @@ KarmaFieldsAlpha.Expression = class {
 
     }
 
-    return new Intl.DateTimeFormat(locale, option).format(new Date(date));
+    return new Intl.DateTimeFormat(locale, option).format(new Date(date || null));
 
   }
 
@@ -316,7 +350,19 @@ KarmaFieldsAlpha.Expression = class {
 
     }
 
-    return this.field.parent.getValue(key);
+    return this.field.parent.getValue(key) || KarmaFieldsAlpha.loading;
+
+  }
+
+  getName() {
+
+    return this.field.parent.getName();
+
+  }
+
+  getUploadDate() {
+
+    return this.field.parent.getValue(KarmaFieldsAlpha.symbols.uploadDate) || KarmaFieldsAlpha.loading;
 
   }
 
@@ -332,7 +378,7 @@ KarmaFieldsAlpha.Expression = class {
 
     }
 
-    return KarmaFieldsAlpha.Query.getValue(driver, id, key);
+    return KarmaFieldsAlpha.Query.getValue(driver, id, key) || KarmaFieldsAlpha.loading;
 
   }
 
@@ -348,7 +394,7 @@ KarmaFieldsAlpha.Expression = class {
 
     }
 
-    return KarmaFieldsAlpha.Query.getResults(driver, params);
+    return KarmaFieldsAlpha.Query.getResults(driver, params) || KarmaFieldsAlpha.loading;
 
   }
 
@@ -378,7 +424,7 @@ KarmaFieldsAlpha.Expression = class {
 
     }
 
-    return KarmaFieldsAlpha.Query.getOptions(driver, params);
+    return KarmaFieldsAlpha.Query.getOptions(driver, params) || KarmaFieldsAlpha.loading;
 
   }
 
@@ -386,7 +432,7 @@ KarmaFieldsAlpha.Expression = class {
 
     const key = this.expression[1];
 
-    return KarmaFieldsAlpha.Query.getParam(key);
+    return KarmaFieldsAlpha.Store.getParam(key);
 
   }
 
@@ -472,6 +518,9 @@ KarmaFieldsAlpha.Expression = class {
       case "||":
         return this.logic();
 
+      case "math":
+        return this.math();
+
       case "include":
         return this.include();
 
@@ -496,6 +545,12 @@ KarmaFieldsAlpha.Expression = class {
 
       case "getValue":
         return this.getValue();
+
+      case "upload-date":
+        return this.getUploadDate();
+
+      case "getName":
+        return this.getName();
 
       case "queryValue":
         return this.queryValue();

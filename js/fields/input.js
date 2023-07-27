@@ -16,42 +16,54 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	/**
+	/** MOVED IN FIELD
 	 * Get single value.
 	 *
 	 * @return string | Symbol("loading") | Symbol("mixed")
 	 */
-	getSingleValue() {
-
-		let [value] = this.getValue() || [KarmaFieldsAlpha.loading];
-
-		if (value === undefined) {
-
-			// value = this.getDefault();
-			//
-			// if (value !== undefined) {
-			//
-			// 	this.setValue(value);
-			// 	this.save();
-			//
-			// } else {
-			//
-			// 	value = "";
-			//
-			// }
-
-			value = this.initValue();
-
-		}
-
-		return value;
-
-		// return
-		// -> symbol(loading) = not loaded
-		// -> symbol(mixed) = mixed
-		// -> string
-
-	}
+	// getSingleValue() {
+	//
+	// 	// let [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+	// 	//
+	// 	// if (value === undefined) {
+	// 	//
+	// 	// 	value = this.initValue();
+	// 	//
+	// 	// }
+	// 	//
+	// 	// return value;
+	//
+	//
+	// 	let values = this.getValue();
+	//
+	// 	if (!values || values === KarmaFieldsAlpha.loading) {
+	//
+	// 		return KarmaFieldsAlpha.loading;
+	//
+	// 	}
+	//
+	// 	if (values === KarmaFieldsAlpha.mixed) {
+	//
+	// 		return KarmaFieldsAlpha.mixed;
+	//
+	// 	}
+	//
+	// 	let value = values[0];
+	//
+	// 	if (value === undefined) {
+	//
+	// 		value = this.initValue();
+	//
+	// 	}
+	//
+	// 	return value;
+	//
+	// 	// return
+	// 	// -> symbol(loading) = not loaded
+	// 	// -> symbol(mixed) = mixed
+	// 	// -> string
+	//
+	// }
 
 	initValue() {
 
@@ -212,7 +224,21 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	getPlaceholder() {
 
-		return this.parse(this.resource.placeholder || "");
+		if (this.resource.placeholder) {
+
+			const placeholder = this.parse(this.resource.placeholder);
+
+			if (placeholder === KarmaFieldsAlpha.loading) {
+
+				return "...";
+
+			}
+
+			return placeholder;
+
+		}
+
+		return "";
 
 	}
 
@@ -394,15 +420,14 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 				if (this.resource.type === "input") {
 					input.element.type = "text";
 				}
-				input.element.id = this.getId();
+				input.element.id = this.getUid();
 				if (this.resource[this.resource.type]) {
 					Object.assign(input.element, this.resource[this.resource.type]);
 				}
 			},
 			update: input => {
 
-        let value = this.getSingleValue();
-
+        let value = this.getSingleValue() || "";
 
         input.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
 
@@ -445,9 +470,9 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 						//
 						// }
 
-            if (value !== input.element.value) { // -> replacing same value will reset caret index !
+            if (value !== input.element.value) { // -> replacing same value will ruin selection !
 
-              input.element.value = value;
+              input.element.value = value || "";
 
             }
 

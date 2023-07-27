@@ -411,7 +411,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
       update: (container) => {
         // this.onRender = container.render;
 
-        let value = this.getSingleValue();
+        let value = this.getSingleValue() || "";
 
         // const key = this.getKey();
         // const values = this.parent.request("get", {}, key);
@@ -581,7 +581,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
               class: "text-input date karma-field-input",
               init: (input) => {
                 input.element.type = "text";
-                input.element.id = this.getId();
+                input.element.id = this.getUid();
               },
               update: (input) => {
 

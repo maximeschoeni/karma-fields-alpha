@@ -368,7 +368,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 						init: checkbox => {
 							checkbox.element.type = "checkbox";
 							// const id = this.getId();
-							checkbox.element.id = this.getId();
+							checkbox.element.id = this.getUid();
 						},
 						update: async checkbox => {
 

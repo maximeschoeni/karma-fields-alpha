@@ -13,6 +13,7 @@
 <script>
 
 	document.addEventListener("DOMContentLoaded", function() {
+
 		var container = document.getElementById("karma-fields-field-nav");
 		// var container = document.getElementById("wp-admin-bar-karma-fields-in-admin-bar");
 		var resource = <?php echo json_encode($this->resource) ?>;
@@ -22,6 +23,7 @@
 			index: index,
 			uid: index.toString()
 		});
+
 
 
 		// KarmaFieldsAlpha.resource = resource;
