@@ -140,6 +140,27 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   }
 
+  getSelectionChild(selection) {
+
+    const values = this.getValue();
+
+    for (let i in values) {
+
+      if (selection[i]) {
+
+        return this.createChild({
+          id: i,
+          index: i,
+          type: "row",
+          children: this.resource.children
+        });
+
+      }
+
+    }
+
+  }
+
   getColumns(rows) {
 
     const keys = this.getKeys();
@@ -260,11 +281,16 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   }
 
-  swap(index, length, target) {
+  swap(index, target, length) {
+
     let values = this.getValue();
+
     values = KarmaFieldsAlpha.DeepObject.clone(values || []);
+
     values.splice(target, 0, ...values.splice(index, length));
+
 		this.setValue(values);
+
   }
 
   add() {
@@ -303,9 +329,20 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   }
 
-  delete(selection) {
-    // compat
-    this.remove(selection.index || 0, selection.length || 0);
+
+  delete(selection) { // descendant function
+
+    const child = this.getSelectionChild(selection);
+
+    if (child) {
+
+      child.delete(selection[child.resource.index]);
+
+    } else {
+
+      this.remove(selection.index || 0, selection.length || 0);
+
+    }
 
   }
 
@@ -420,18 +457,38 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                   elements.forEach(element => element.classList.remove("selected"))
                 }
 
+                sorter.onSwap = (index, targetIndex, length) => {
+
+                  console.log(index, targetIndex, length);
+
+                  // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
+
+                    this.swap(index, targetIndex, length);
+
+                    // selection = {final: 1, index: targetIndex, length: length};
+
+                    KarmaFieldsAlpha.Clipboard.focus();
+
+                    this.setSelection({final: 1, index: targetIndex, length: length});
+
+                    // this.save("order");
+
+                  // }
+
+                }
+
 
                 sorter.onsort = () => {
 
                   // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
 
-                    this.swap(selection.index, selection.length, sorter.selection.index);
-
-                    selection = sorter.selection;
-
-                    KarmaFieldsAlpha.Clipboard.focus();
-
-                    this.setSelection(sorter.selection);
+                    // this.swap(selection.index, selection.length, sorter.selection.index);
+                    //
+                    // selection = sorter.selection;
+                    //
+                    // KarmaFieldsAlpha.Clipboard.focus();
+                    //
+                    // this.setSelection(sorter.selection);
 
                     this.save("order");
 
@@ -470,6 +527,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                         const field = row.createChild({
                           id: colIndex,
                           ...column,
+                          width: "100%",
                           index: colIndex.toString()
                         });
 
@@ -494,7 +552,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 ];
 
-                table.element.style.gridTemplateColumns = this.resource.children.map(resource => resource.width || "1fr").join(" ");
+
+                table.element.style.gridTemplateColumns = this.resource.children.map(resource => resource.width || "auto").join(" ");
 
               }
 
@@ -702,5 +761,5 @@ KarmaFieldsAlpha.field.array.row.sortArrows = {
 KarmaFieldsAlpha.field.array.row.index = {
   type: "text",
   value: ["+", ["request", "getIndex"], 1],
-  style: "width: 40px"
+  width: "auto"
 };

@@ -61,7 +61,8 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
         // 'caption' => $post->post_excerpt,
         'post_excerpt' => $post->post_excerpt,
         'post_content' => $post->post_content,
-        'mimetype' => $post->post_mime_type,
+        // 'mimetype' => $post->post_mime_type,
+        'post_mime_type' => $post->post_mime_type,
         'filetype' => $post->post_type === 'attachment' ? 'file' : 'folder'
       );
     }, $query->posts);
@@ -194,6 +195,7 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
         $filename = $result->meta_value;
 
         $dir = dirname('/'.$filename); // -> like /2023/05. Needed for getting sizes pull path
+        $dir = rtrim($dir, '/');
 
         $file = $upload_dir.'/'.$filename; // -> just for size
 

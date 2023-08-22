@@ -1,4 +1,3 @@
-
 KarmaFieldsAlpha.Expression = class {
 
   constructor(expression, field) {
@@ -42,9 +41,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const value = this.parse();
 
-    if (value === KarmaFieldsAlpha.loading) {
+    // if (value === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof value === "symbol") {
+
+      return value;
 
     }
 
@@ -63,9 +68,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const value = this.parse();
 
-    if (value === KarmaFieldsAlpha.loading) {
+    // if (value === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof value === "symbol") {
+
+      return value;
 
     }
 
@@ -77,9 +88,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const value = this.parse();
 
-    if (value === KarmaFieldsAlpha.loading) {
+    // if (value === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof value === "symbol") {
+
+      return value;
 
     }
 
@@ -91,9 +108,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const value = this.parse();
 
-    if (value === KarmaFieldsAlpha.loading) {
+    // if (value === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof value === "symbol") {
+
+      return value;
 
     }
 
@@ -105,9 +128,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const value = this.parse();
 
-    if (value === KarmaFieldsAlpha.loading) {
+    // if (value === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof value === "symbol") {
+
+      return value;
 
     }
 
@@ -120,9 +149,21 @@ KarmaFieldsAlpha.Expression = class {
     const v1 = this.create(this.expression[1]).toNumber();
     const v2 = this.create(this.expression[2]).toNumber();
 
-    if (v1 === KarmaFieldsAlpha.loading || v2 === KarmaFieldsAlpha.loading) {
+    // if (v1 === KarmaFieldsAlpha.loading || v2 === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof v1 === "symbol") {
+
+      return v1;
+
+    }
+
+    if (typeof v2 === "symbol") {
+
+      return v2;
 
     }
 
@@ -144,9 +185,21 @@ KarmaFieldsAlpha.Expression = class {
     const v1 = this.create(this.expression[1]).toObject();
     const v2 = this.create(this.expression[2]).toObject();
 
-    if (v1 === KarmaFieldsAlpha.loading || v2 === KarmaFieldsAlpha.loading) {
+    // if (v1 === KarmaFieldsAlpha.loading || v2 === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof v1 === "symbol") {
+
+      return v1;
+
+    }
+
+    if (typeof v2 === "symbol") {
+
+      return v2;
 
     }
 
@@ -161,6 +214,7 @@ KarmaFieldsAlpha.Expression = class {
       case "<": return v1 < v2;
       case ">=": return v1 >= v2;
       case "<=": return v1 <= v2;
+      case "like": return typeof v1 === "string" && typeof v2 === "string" && v1.match(new RegExp(v2));
 
     }
 
@@ -170,9 +224,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const values = this.expression.slice(1).map(value => this.create(value).toObject());
 
-    if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+    // if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (values.some(value => typeof value === "symbol")) {
+
+      return values.find(value => typeof value === "symbol");
 
     }
 
@@ -204,9 +264,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const values = this.expression.slice(2).map(value => this.create(value).toNumber());
 
-    if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+    // if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (values.some(value => typeof value === "symbol")) {
+
+      return values.find(value => typeof value === "symbol");
 
     }
 
@@ -218,9 +284,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const value = this.create(this.expression[1]).toBoolean();
 
-    if (value === KarmaFieldsAlpha.loading) {
+    // if (value === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof value === "symbol") {
+
+      return value;
 
     }
 
@@ -234,9 +306,15 @@ KarmaFieldsAlpha.Expression = class {
     const v2 = this.create(this.expression[2]).parse();
     const v3 = this.create(this.expression[3]).parse();
 
-    if (v1 === KarmaFieldsAlpha.loading) {
+    // if (v1 === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof v1 === "symbol") {
+
+      return v1;
 
     }
 
@@ -248,9 +326,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const arrays = this.expression.slice(1).map(value => this.create(value).toArray());
 
-    if (arrays === KarmaFieldsAlpha.loading) {
+    // if (arrays === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof array === "symbol") {
+
+      return array;
 
     }
 
@@ -263,9 +347,15 @@ KarmaFieldsAlpha.Expression = class {
     const array = this.create(this.expression[1]).toArray();
     const glue = this.expression[2] || ", ";
 
-    if (array === KarmaFieldsAlpha.loading) {
+    // if (array === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof array === "symbol") {
+
+      return array;
 
     }
 
@@ -278,9 +368,21 @@ KarmaFieldsAlpha.Expression = class {
     const array = this.create(this.expression[1]).toArray();
     const value = this.create(this.expression[2]).toObject();
 
-    if (array === KarmaFieldsAlpha.loading || value === KarmaFieldsAlpha.loading) {
+    // if (array === KarmaFieldsAlpha.loading || value === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof array === "symbol") {
+
+      return array;
+
+    }
+
+    if (typeof value === "symbol") {
+
+      return value;
 
     }
 
@@ -292,9 +394,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const array = this.create(this.expression[1]).toArray();
 
-    if (array === KarmaFieldsAlpha.loading) {
+    // if (array === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof array === "symbol") {
+
+      return array;
 
     }
 
@@ -306,9 +414,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const array = this.create(this.expression[1]).toArray();
 
-    if (array === KarmaFieldsAlpha.loading) {
+    // if (array === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof array === "symbol") {
+
+      return array;
 
     }
 
@@ -316,11 +430,13 @@ KarmaFieldsAlpha.Expression = class {
 
   }
 
-  item() {
+  getItem() {
 
-    const key = this.expression[1];
+    return KarmaFieldsAlpha.DeepObject.get(this.field, ...this.expression.slice(1));
 
-    return this.field[key];
+    // const key = this.expression[1];
+    //
+    // return this.field[key];
 
   }
 
@@ -330,9 +446,15 @@ KarmaFieldsAlpha.Expression = class {
     const option = this.expression[2] || {};
     const locale = this.expression[3] || KarmaFieldsAlpha.locale;
 
-    if (date === KarmaFieldsAlpha.loading) {
+    // if (date === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof date === "symbol") {
+
+      return date;
 
     }
 
@@ -344,9 +466,15 @@ KarmaFieldsAlpha.Expression = class {
 
     const key = this.create(this.expression[1]).toString();
 
-    if (key === KarmaFieldsAlpha.loading) {
+    // if (key === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof key === "symbol") {
+
+      return key;
 
     }
 
@@ -354,17 +482,17 @@ KarmaFieldsAlpha.Expression = class {
 
   }
 
-  getName() {
-
-    return this.field.parent.getName();
-
-  }
-
-  getUploadDate() {
-
-    return this.field.parent.getValue(KarmaFieldsAlpha.symbols.uploadDate) || KarmaFieldsAlpha.loading;
-
-  }
+  // getName() {
+  //
+  //   return this.field.parent.getName();
+  //
+  // }
+  //
+  // getUploadDate() {
+  //
+  //   return this.field.parent.getValue(KarmaFieldsAlpha.symbols.uploadDate) || KarmaFieldsAlpha.loading;
+  //
+  // }
 
   queryValue() {
 
@@ -372,9 +500,27 @@ KarmaFieldsAlpha.Expression = class {
     const id = this.create(this.expression[2]).toString();
     const key = this.create(this.expression[3]).toString();
 
-    if (driver === KarmaFieldsAlpha.loading || id === KarmaFieldsAlpha.loading || key === KarmaFieldsAlpha.loading) {
+    // if (driver === KarmaFieldsAlpha.loading || id === KarmaFieldsAlpha.loading || key === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof driver === "symbol") {
+
+      return driver;
+
+    }
+
+    if (typeof id === "symbol") {
+
+      return id;
+
+    }
+
+    if (typeof key === "symbol") {
+
+      return key;
 
     }
 
@@ -388,9 +534,21 @@ KarmaFieldsAlpha.Expression = class {
     // params = this.create(this.expression[2]).toObject();
     const params = this.create(["parseParams", this.expression[2]]).parse();
 
-    if (driver === KarmaFieldsAlpha.loading || params === KarmaFieldsAlpha.loading) {
+    // if (driver === KarmaFieldsAlpha.loading || params === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (typeof driver === "symbol") {
+
+      return driver;
+
+    }
+
+    if (typeof params === "symbol") {
+
+      return params;
 
     }
 
@@ -402,11 +560,17 @@ KarmaFieldsAlpha.Expression = class {
 
     const entries = Object.entries(this.expression[1]).map(([key, value]) => [key, this.create(value).toString()]);
 
-    if (entries.some(([key, value]) => value === KarmaFieldsAlpha.loading)) {
+    // if (entries.some(([key, value]) => value === KarmaFieldsAlpha.loading)) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
-
-    }
+    // if (entries.some(([key, value]) => typeof driver === "symbol")) {
+    //
+    //   return entries.find(([key, value]) => typeof driver === "symbol")[1];
+    //
+    // }
 
     return Object.fromEntries(entries);
 
@@ -418,11 +582,11 @@ KarmaFieldsAlpha.Expression = class {
     // params = this.create(this.expression[2]).toObject();
     const params = this.create(["parseParams", this.expression[2]]).parse();
 
-    if (driver === KarmaFieldsAlpha.loading || params === KarmaFieldsAlpha.loading) {
-
-      return KarmaFieldsAlpha.loading;
-
-    }
+    // if (driver === KarmaFieldsAlpha.loading || params === KarmaFieldsAlpha.loading) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
     return KarmaFieldsAlpha.Query.getOptions(driver, params) || KarmaFieldsAlpha.loading;
 
@@ -474,14 +638,28 @@ KarmaFieldsAlpha.Expression = class {
 
     const replacements = this.expression.slice(3).map(replacement => this.create(replacement).toString());
 
-    if (replacements.some(value => value === KarmaFieldsAlpha.loading)) {
+    // if (replacements.some(value => value === KarmaFieldsAlpha.loading)) {
+    //
+    //   return KarmaFieldsAlpha.loading;
+    //
+    // }
 
-      return KarmaFieldsAlpha.loading;
+    if (replacements.some(value => typeof value === "symbol")) {
+
+      return replacements.find(value => typeof value === "symbol");
 
     }
 
     return replacements.reduce((string, replacement) => string.replace(wildcard, replacement), string);
 
+  }
+
+  isLoading() {
+    return this.create(this.expression[1]).toSingle() === KarmaFieldsAlpha.loading;
+  }
+
+  isMixed() {
+    return this.create(this.expression[1]).toSingle() === KarmaFieldsAlpha.mixed;
   }
 
 
@@ -503,6 +681,7 @@ KarmaFieldsAlpha.Expression = class {
       case "<":
       case ">=":
       case "<=":
+      case "like":
         return this.compare();
 
       case "+":
@@ -546,11 +725,8 @@ KarmaFieldsAlpha.Expression = class {
       case "getValue":
         return this.getValue();
 
-      case "upload-date":
-        return this.getUploadDate();
-
-      case "getName":
-        return this.getName();
+      // case "getName":
+      //   return this.getName();
 
       case "queryValue":
         return this.queryValue();
@@ -567,8 +743,9 @@ KarmaFieldsAlpha.Expression = class {
       case "map":
         return this.map();
 
+      case "getItem":
       case "item":
-        return this.item();
+        return this.getItem();
 
       case "join":
         return this.join();
@@ -583,7 +760,7 @@ KarmaFieldsAlpha.Expression = class {
 
       case "index":
       case "getIndex":
-        return this.parent.getIndex();
+        return this.field.parent.getIndex();
 
       case "id":
       case "getIds":
@@ -602,6 +779,13 @@ KarmaFieldsAlpha.Expression = class {
       // case "toBoolean":
       //   return this.create(this.expression[1])[this.expression[0]]();
 
+      case "isLoading":
+        return this.isLoading();
+
+      case "isMixed":
+        return this.isMixed();
+
+
       case "debugger":
         debugger;
         this.create(this.expression[1]).parse();
@@ -612,6 +796,21 @@ KarmaFieldsAlpha.Expression = class {
 
     }
 
+  }
+
+
+  static parseParams(params, context) {
+
+    const object = {};
+
+    for (let key in params) {
+
+      // object[key] = this.create(params[key]).toString();
+      object[key] = new this(params[key], context).toString();
+
+    }
+
+    return object;
   }
 
 

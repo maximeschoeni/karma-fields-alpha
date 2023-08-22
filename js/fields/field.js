@@ -172,6 +172,45 @@ KarmaFieldsAlpha.field = class {
 
 	}
 
+  getSelectionChild(selection) {
+
+    const children = this.getChildren();
+
+    if (selection && children) {
+
+      for (let i in children) {
+
+        if (selection[i]) {
+
+          return this.getChild(i);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  delete(selection = this.getSelection()) {
+
+    const child = this.getSelectionChild(selection);
+
+    if (child) {
+
+      child.delete(selection[child.resource.index]);
+
+    }
+
+  }
+
+  execute(command, ...params) {
+
+    this.parent.execute(command, ...params);
+
+  }
+
+
 
   // createChild(resource, id) {
   //
@@ -560,7 +599,7 @@ console.error("deprecated");
 
     const key = this.getKey();
 
-    if (key) {
+    if (key !== undefined) {
 
       return this.parent.getValue(key, ...path);
 
@@ -628,7 +667,7 @@ console.error("deprecated");
 
     const key = this.getKey();
 
-    if (key) {
+    if (key !== undefined) {
 
       return this.parent.getMixedValues(key, ...path);
 
@@ -652,7 +691,7 @@ console.error("deprecated");
 
     const key = this.getKey();
 
-    if (key) {
+    if (key !== undefined) {
 
       this.parent.setValue(value, key, ...path);
 
@@ -682,7 +721,7 @@ console.error("deprecated");
 
     const key = this.getKey();
 
-    if (key) {
+    if (key !== undefined) {
 
       return this.parent.modified(key, ...path);
 
@@ -785,6 +824,30 @@ console.error("deprecated");
       // }
 
 
+
+    }
+
+  }
+
+  descend(selection, action) {
+
+    if (this[action]) {
+
+      return this[action](selection);
+
+    } else if (this.resource.children) {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        if (selection[i]) {
+
+          const child = this.createChild({...this.resource.children[i], index: i});
+
+          return child.descend(selection[child.resource.index], action);
+
+        }
+
+      }
 
     }
 
@@ -1022,7 +1085,17 @@ console.error("deprecated");
   //   return object;
   // }
 
+  submit() {
 
+    this.parent.submit();
+
+  }
+
+  parseParams(params) {
+
+    return KarmaFieldsAlpha.Expression.parseParams(params, this);
+
+  }
 
   parse(expression) {
 

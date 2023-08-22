@@ -25,7 +25,7 @@ KarmaFieldsAlpha.HSorter = class extends KarmaFieldsAlpha.Sorter {
 
       if (!firstBox || !lastBox) {
 
-        console.error("wtf container is empty!");
+        console.error("wtf container is empty!", this.selection, this.index, this.length);
 
       }
 

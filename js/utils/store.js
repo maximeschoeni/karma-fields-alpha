@@ -238,6 +238,12 @@ KarmaFieldsAlpha.Store = class {
 
   }
 
+	static hasParams() {
+
+    return this.has("params") || {};
+
+  }
+
 
 
 	static getIds() {

@@ -371,6 +371,11 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 					dropdown.child = {
 						tag: "ul",
+						init: ul => {
+							if (this.resource.columns) {
+								ul.element.style.columnCount = parseInt(this.resource.columns);
+							}
+						},
 						update: ul => {
 							ul.children = options.map((option, index) => {
 								return {

@@ -2,7 +2,9 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   fetch() {
 
-    this.parent.request("fetch", this.resource.table, this.resource.params);
+    const params = this.parseParams(this.resource.params, this);
+
+    this.parent.request("fetch", this.resource.table, params);
 
   }
 
@@ -129,7 +131,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async swap(index, length, target) {
+  async swap(index, target, length) {
 
     if (target !== index) {
 
@@ -202,9 +204,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
-  delete() {
-
-    const selection = this.getSelection();
+  delete(selection = this.getSelection()) {
 
     if (selection) {
 
@@ -298,16 +298,26 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                   elements.forEach(element => element.classList.remove("selected"))
                 }
 
-                sorter.onsort = () => {
+                sorter.onSwap = (index, target, length) => {
+                  this.swap(index, target, length);
+                  this.setSelection({final: true, index: target, length: length});
+                };
 
-                  // if (!sorter.selection.equals(selection)) {
-                  if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
+                sorter.onsort = (index, targetIndex, length) => {
 
-                    this.swap(selection.index, selection.length, sorter.selection.index);
+                  // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
+                  //
+                  //   this.swap(selection.index, selection.length, sorter.selection.index);
+                  //
+                  //   this.setSelection(sorter.selection);
+                  //
+                  // }
 
-                    this.setSelection(sorter.selection);
+                  // this.swap(index, targetIndex, length);
+                  //
+                  // this.setSelection(sorter.selection);
 
-                  }
+                  this.save("order");
 
                 }
 

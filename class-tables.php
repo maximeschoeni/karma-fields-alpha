@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '54';
+	public $version = '56';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -155,6 +155,9 @@ class Karma_Fields_Alpha {
 				// beta
 				wp_enqueue_script('karma-fields-alpha-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-alpha-input'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-editor', $plugin_url . '/js/fields/editor.js', array('karma-fields-alpha-input'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-block-editor', $plugin_url . '/js/fields/block-editor.js', array(), $this->version, true);
+
+
 
 				// table
 				// wp_enqueue_script('karma-fields-alpha-saucer', $plugin_url . '/js/tables/layout.js', array('karma-fields-alpha-field'), $this->version, true);
@@ -213,6 +216,7 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-tracker-sorter', $plugin_url . '/js/utils/tracker-sorter.js', array('karma-fields-alpha-tracker-selector'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-tracker-hierarchy', $plugin_url . '/js/utils/tracker-sorter-hierarchy.js', array('karma-fields-alpha-tracker-sorter'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-tracker-drag-and-drop', $plugin_url . '/js/utils/tracker-drag-and-drop.js', array('karma-fields-alpha-tracker-sorter'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-tracker-block', $plugin_url . '/js/utils/tracker-block.js', array('karma-fields-alpha-tracker-sorter'), $this->version, true);
 
 
 				wp_enqueue_script('karma-fields-utils-selection', $plugin_url . '/js/utils/selection.js', array('karma-fields-utils-segment'), $this->version, true);
@@ -357,7 +361,8 @@ class Karma_Fields_Alpha {
 				'id' => 'ID',
 				'name' => 'post_title',
 				'parent' => 'post_parent',
-				'upload-date' => 'post_date'
+				'upload-date' => 'post_date',
+				'mimetype' => 'post_mime_type'
 			)
 		);
 
@@ -562,7 +567,7 @@ class Karma_Fields_Alpha {
 						if ($encoded_input) {
 
 							$encoded_input = stripslashes($encoded_input);
-							$input = json_decode($encoded_input, false);
+							$input = (array) json_decode($encoded_input, false);
 
 							// var_dump($input); die();
 
@@ -1120,6 +1125,7 @@ class Karma_Fields_Alpha {
 	 */
 	public function print_embed($driver, $id, $args) {
 		static $index = 0;
+
 
 		$index++;
 

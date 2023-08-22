@@ -22,8 +22,7 @@ KarmaFieldsAlpha.Selector = class {
 
       this.init();
 
-      // this.tracker.event.preventDefault();
-      this.tracker.event.stopPropagation();
+      // this.tracker.event.stopPropagation();
 
     }
 
@@ -78,7 +77,9 @@ KarmaFieldsAlpha.Selector = class {
 
     const index = this.findIndex(this.tracker.x, this.tracker.y);
 
+
     this.firstIndex = index;
+
 
     // this.tie = {
     //   index: this.getRow(index),
@@ -114,6 +115,15 @@ KarmaFieldsAlpha.Selector = class {
     }
 
     this.update();
+
+
+
+    if (index > -1) {
+
+      this.tracker.event.stopPropagation();
+
+    }
+
 
   }
 
@@ -169,7 +179,7 @@ KarmaFieldsAlpha.Selector = class {
         this.onselect({index: 0, length: 0}, true); // compat
 
       }
-      
+
       if (this.onbackground) {
 
         this.onbackground();
@@ -428,6 +438,13 @@ KarmaFieldsAlpha.Selector = class {
 
   growSelection(selection) {
 
+    if (this.tie.index === -1) {
+
+      return;
+
+    }
+
+
 
     // const union = selection.union(this.tie);
     const union = KarmaFieldsAlpha.Selection.union(selection, this.tie);
@@ -457,6 +474,7 @@ KarmaFieldsAlpha.Selector = class {
 
       this.selection = union;
       this.selection.final = true;
+
 
       // Object.freeze(this.selection);
 

@@ -51,6 +51,7 @@ KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
 
 
 KarmaFieldsAlpha.build = async function(args, parent, element, clean) {
+
 	args.render = (clean) => this.build(args, parent, args.element, clean);
 	// args.render = async (clean) => {
 	// 	if (args.queue) {

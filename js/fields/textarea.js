@@ -21,11 +21,17 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
         if (value !== KarmaFieldsAlpha.loading) {
 
+					if (value === undefined) {
+
+						this.initValue();
+						value = "";
+
+					}
+
 					input.element.placeholder = this.getPlaceholder();
 
 					input.element.classList.toggle("mixed", value === KarmaFieldsAlpha.mixed);
 					input.element.classList.toggle("selected", Boolean(value === KarmaFieldsAlpha.mixed && (this.getSelection() || {}).final));
-
 
           if (value === KarmaFieldsAlpha.mixed) {
 
@@ -39,22 +45,6 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
             const modified = this.modified();
 
             input.element.parentNode.classList.toggle("modified", Boolean(modified));
-
-						// if (value === undefined) {
-						//
-						// 	value = this.getDefault();
-						//
-						// 	if (value !== undefined) {
-						//
-						// 		this.setValue(value);
-						//
-						// 	} else {
-						//
-						// 		value = "";
-						//
-						// 	}
-						//
-						// }
 
             if (value !== input.element.value) { // -> replacing same value will reset caret index !
 
@@ -74,7 +64,14 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 						value = newValue;
 
+						// adapt textarea height
+						input.element.style.height = "1px";
+					  input.element.style.height = (25+input.element.scrollHeight)+"px";
+
           }
+
+					input.element.style.height = "1px";
+					input.element.style.height = (10+input.element.scrollHeight)+"px";
 
 					input.element.onblur = event => {
 

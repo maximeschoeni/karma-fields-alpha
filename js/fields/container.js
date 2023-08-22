@@ -291,6 +291,9 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 							if (field.resource.flex) {
 								container.element.style.flex = field.resource.flex;
 							}
+							if (field.resource.width) {
+								container.element.style.maxWidth = field.resource.width;
+							}
 						},
 						update: (container) => {
 							container.children = [];

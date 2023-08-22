@@ -31,9 +31,12 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 					event.stopPropagation(); // -> e.g. prevent selecting parent array
 				}
 
-				button.element.onclick = async event => {
+				button.element.onclick = event => {
+
 					event.preventDefault(); // -> prevent submitting form in post-edit
-          if (this.resource.values) {
+					if (this.resource.command) {
+						this.parent.execute(this.resource.command, this.resource.value);
+					} else if (this.resource.values) {
             this.parent.request(this.resource.action, ...this.resource.values);
           } else if (this.resource.value) {
             this.parent.request(this.resource.action, this.resource.value);

@@ -37,17 +37,27 @@ KarmaFieldsAlpha.Query = class {
 
   static getAlias(driver, key) {
 
-    if (!KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver)) {
+    if (KarmaFieldsAlpha.drivers && KarmaFieldsAlpha.drivers[driver] && KarmaFieldsAlpha.drivers[driver].alias) {
 
-      console.error("Driver does not exist: ", driver);
+      return KarmaFieldsAlpha.drivers[driver].alias[key] || key;
 
     }
 
-    return KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver, "alias", key) || key;
+    return key
+
+    // if (!KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver)) {
+    //
+    //   console.error("Driver does not exist: ", driver);
+    //
+    // }
+
+    // return KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver, "alias", key) || key;
 
   }
 
   static initValue(driver, value, id, key) {
+
+    key = this.getAlias(driver, key);
 
     const current = KarmaFieldsAlpha.DeepObject.get(this.vars, driver, id, key);
 
@@ -93,15 +103,53 @@ KarmaFieldsAlpha.Query = class {
 
 
 
+    // -> better check value returned by queries (for non-wordpress installations)
+    // if (!KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver)) {
+    //
+    //   console.error("Driver does not exist: ", driver);
+    //
+    // }
 
-    if (!KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver)) {
+    // if (typeof key === "symbol") {
+    //
+    //   if (key === KarmaFieldsAlpha.symbols.id) {
+    //
+    //     key = this.getAlias(driver, "id");
+    //
+    //   } else if (key === KarmaFieldsAlpha.symbols.name) {
+    //
+    //     key = this.getAlias(driver, "name");
+    //
+    //   } else if (key === KarmaFieldsAlpha.symbols.parent) {
+    //
+    //     key = this.getAlias(driver, "parent");
+    //
+    //   } else if (key === KarmaFieldsAlpha.symbols.position) {
+    //
+    //     key = this.getAlias(driver, "position");
+    //
+    //   } else if (key === KarmaFieldsAlpha.symbols.uploadDate) {
+    //
+    //     key = this.getAlias(driver, "upload-date");
+    //
+    //   } else if (key === KarmaFieldsAlpha.symbols.filetype) {
+    //
+    //     key = this.getAlias(driver, "filetype");
+    //
+    //   } else if (key === KarmaFieldsAlpha.symbols.mimetype) {
+    //
+    //     key = this.getAlias(driver, "mimetype");
+    //
+    //   } else if (key === KarmaFieldsAlpha.symbols.date) {
+    //
+    //     key = this.getAlias(driver, "date");
+    //
+    //   }
+    //
+    // }
 
-      console.error("Driver does not exist: ", driver);
-
-    }
-
+    // deprecated
     if (key === KarmaFieldsAlpha.symbols.uploadDate) {
-
 
       key = KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.drivers, driver, "alias", "upload-date");
 
@@ -116,6 +164,14 @@ KarmaFieldsAlpha.Query = class {
     //     key = alias;
     //
     //   }
+    //
+    // }
+
+    key = this.getAlias(driver, key);
+
+    // if (alias) {
+    //
+    //   key = alias;
     //
     // }
 
@@ -408,7 +464,17 @@ KarmaFieldsAlpha.Query = class {
 
   static async resolveUpdate(task) {
 
-    await KarmaFieldsAlpha.Gateway.post(`update/${task.driver}/${task.id}`, task.data);
+    // -> manage alias
+    const data = Object.fromEntries(Object.entries(task.data).map(([key, value]) => [this.getAlias(task.driver, key), value]));
+
+    // await
+    KarmaFieldsAlpha.Gateway.post(`update/${task.driver}/${task.id}`, data);
+
+    for (let key in data) {
+
+      KarmaFieldsAlpha.DeepObject.set(this.vars, task.data[key], task.driver, task.id, key);
+
+    }
 
     KarmaFieldsAlpha.DeepObject.assign(this.vars, task.data, task.driver, task.id);
 
@@ -452,7 +518,7 @@ KarmaFieldsAlpha.Query = class {
 
     const currentItems = KarmaFieldsAlpha.Store.get("ids") || [];
 
-    let id = await KarmaFieldsAlpha.Gateway.post(`add/${task.driver}`).then(id => id.toString());
+    let id = await KarmaFieldsAlpha.Gateway.post(`add/${task.driver}`, task.params).then(id => id.toString());
 
     const newItems = KarmaFieldsAlpha.DeepArray.clone(currentItems);
     KarmaFieldsAlpha.DeepArray.set(newItems, {id: id}, task.index, ...task.path);
@@ -713,7 +779,7 @@ KarmaFieldsAlpha.Query = class {
   }
 
   static getAliasedValue(driver, id, key) {
-
+console.log("deprecated");
     const alias = this.getAlias(driver, key);
 
     return this.getValue(driver, id, alias);
@@ -721,7 +787,7 @@ KarmaFieldsAlpha.Query = class {
   }
 
   static getSingleAliasedValue(driver, id, key) {
-
+console.log("deprecated");
     const values = this.getAliasedValue(driver, id, key);
 
     if (!values) {
@@ -736,49 +802,49 @@ KarmaFieldsAlpha.Query = class {
 
 
   static getName(driver, id) {
-
+console.log("deprecated");
     return this.getSingleAliasedValue(driver, id, "name") || "";
 
   }
 
   static getParent(driver, id) {
-
+console.log("deprecated");
     return this.getSingleAliasedValue(driver, id, "parent") || "0";
 
   }
 
   static getPosition(driver, id) {
-
+console.log("deprecated");
     return this.parseInt(getSingleAliasedValue(driver, id, "position") || 0);
 
   }
 
   static getFileType(driver, id) {
-
+console.log("deprecated");
     return this.getSingleAliasedValue(driver, id, "filetype") || "";
 
   }
 
   static getMimeType(driver, id) {
-
+console.log("deprecated");
     return this.getSingleAliasedValue(driver, id, "mimetype") || "";
 
   }
 
   static getFilename(driver, id) {
-
+console.log("deprecated");
     return this.getSingleAliasedValue(driver, id, "filename") || "";
 
   }
 
   static getDir(driver, id) {
-
+console.log("deprecated");
     return this.getSingleAliasedValue(driver, id, "dir") || "";
 
   }
 
   static getSizes(driver, id) {
-
+console.log("deprecated");
     return this.getAliasedValue(driver, id, "sizes") || KarmaFieldsAlpha.loading;
 
   }

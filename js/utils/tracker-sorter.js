@@ -23,7 +23,11 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       this.currentRect = this.getBox(row);
       this.offsetX = this.tracker.x - this.currentRect.x;
       this.offsetY = this.tracker.y - this.currentRect.y;
+
+      this.originAbsPos = this.getAbsolutePosition();
+
       this.index = this.selection.index;
+      this.length = this.selection.length;
       this.originIndex = this.index;
       this.originPath = this.path;
       this.indexOffset = row - this.index;
@@ -34,7 +38,8 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       this.container.classList.add("dragging");
       this.container.style.height = `${this.container.clientHeight}px`;
 
-
+      this.tracker.event.stopPropagation();
+      
     } else {
 
       super.init();
@@ -239,7 +244,7 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
       if (this.onsort) {
 
-        this.onsort(this.originIndex, this.selection.index, this.selection.length, this.originPath, this.path);
+        this.onsort(this.originIndex, this.index, this.selection.length, this.originPath, this.path);
 
       }
 
@@ -277,6 +282,23 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
     }
 
+  }
+
+
+  getAbsolutePosition(x = 0, y = 0) {
+
+    let container = this.container;
+
+    while (container && !container.classList.contains("block-root")) {
+
+      x += container.offsetLeft;
+      y += container.offsetTop;
+
+      container = container.parentElement;
+
+    }
+
+    return {x: x, y: y};
   }
 
 

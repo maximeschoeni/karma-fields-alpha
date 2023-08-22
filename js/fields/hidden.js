@@ -58,7 +58,7 @@ KarmaFieldsAlpha.field.hidden = class extends KarmaFieldsAlpha.field {
         let value = this.getSingleValue() || "";
 
 				if (!value) {
-debugger;
+
 					let value = this.getDefault();
 
 					this.initValue(value);

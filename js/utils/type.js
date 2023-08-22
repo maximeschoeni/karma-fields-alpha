@@ -24,7 +24,7 @@ KarmaFieldsAlpha.Type = class {
     if (Array.isArray(value)) {
       value = value[0];
     }
-    if (value === undefined || value === null || value === KarmaFieldsAlpha.loading) {
+    if (value === undefined || value === null || typeof value === "symbol") {
       value = "";
     }
     return value.toString();
@@ -34,7 +34,7 @@ KarmaFieldsAlpha.Type = class {
     if (Array.isArray(value)) {
       value = value[0];
     }
-    if (value === KarmaFieldsAlpha.loading || isNaN(value)) {
+    if (typeof value === "symbol" || isNaN(value)) {
       value = 0;
     }
     return Number(value);
@@ -44,7 +44,10 @@ KarmaFieldsAlpha.Type = class {
     if (Array.isArray(value)) {
       value = value[0];
     }
-    return Boolean(value) && value !== KarmaFieldsAlpha.loading;
+    if (typeof value === "symbol") {
+      value = false;
+    }
+    return Boolean(value);
   }
 
   static toObject(value) {

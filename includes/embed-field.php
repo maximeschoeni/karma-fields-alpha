@@ -2,7 +2,7 @@
 
 </style>
 
-<div id="karma-fields-embed-<?php echo $this->index; ?>" class="karma-fields"></div>
+<div id="karma-fields-embed-<?php echo $index; ?>" class="karma-fields"></div>
 
 <?php
 	$action = "karma_field-action";
@@ -18,7 +18,7 @@
 		id: "<?php echo $id; ?>",
 		...<?php echo json_encode($args); ?>,
     type: "postform",
-		index: "karma-fields-embed-<?php echo $this->index; ?>"
+		index: "karma-fields-embed-<?php echo $index; ?>"
 	});
 
 </script>

@@ -21,6 +21,16 @@ KarmaFieldsAlpha.DragAndDrop = class extends KarmaFieldsAlpha.Sorter {
       const x = this.tracker.x - this.offsetX + this.currentRect.width/2;
       const y = this.tracker.y - this.offsetY + this.currentRect.height/2;
 
+
+      // if (this.tracker.diffX < 0) {
+      //
+      //
+      //
+      // }
+      //
+      //
+      // console.log(this.tracker.diffX, this.index, this.indexOffset);
+
       // const index = this.findIndex(this.tracker.x, this.tracker.y);
       const index = this.findIndex(x, y);
 
@@ -28,9 +38,15 @@ KarmaFieldsAlpha.DragAndDrop = class extends KarmaFieldsAlpha.Sorter {
 
         if (this.overIndex > -1) {
 
-          if (this.onDragOut) {
+          if (this.onDragOut) { // the dropzone under then dragged item
 
             this.sliceElements(this.overIndex, 1).forEach(element => void this.onDragOut(element));
+
+          }
+
+          if (this.onDraggedOut) { // -> the dragged item over a dropzone
+
+            this.sliceSegment(this.selection).forEach(element => void this.onDraggedOut(element));
 
           }
 
@@ -42,9 +58,15 @@ KarmaFieldsAlpha.DragAndDrop = class extends KarmaFieldsAlpha.Sorter {
 
         if (index > -1 && index !== this.index && this.dropZones.indexOf(index) > -1) {
 
-          if (this.onDragOver) {
+          if (this.onDragOver) { // the dropzone under then dragged item
 
             this.sliceElements(index, 1).forEach(element => void this.onDragOver(element));
+
+          }
+
+          if (this.onDraggedOver) { // -> the dragged item over a dropzone
+
+            this.sliceSegment(this.selection).forEach(element => void this.onDraggedOver(element));
 
           }
 
@@ -58,6 +80,12 @@ KarmaFieldsAlpha.DragAndDrop = class extends KarmaFieldsAlpha.Sorter {
       let travelY = this.tracker.y - this.originY;
 
       this.sliceSegment(this.selection).forEach(element => element.style.transform = `translate(${travelX}px, ${travelY}px)`);
+
+      // if (this.onDrag) { // -> the dragged item over a dropzone
+      //
+      //   this.sliceSegment(this.selection).forEach(element => void this.onDrag(element, travelX, travelY, this.overIndex));
+      //
+      // }
 
     } else {
 

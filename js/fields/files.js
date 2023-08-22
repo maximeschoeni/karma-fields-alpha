@@ -7,6 +7,12 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
   //
   // }
 
+//   setValue(value, ...path) {
+// // debugger;
+//     super.setValue(value, ...path);
+//
+//   }
+
   getDriver() {
 
     return this.resource.driver || "medias";
@@ -103,214 +109,215 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   }
 
-  getIcon(id) {
-
-    if (id === null) {
-
-      return "upload";
-
-    } else if (id === KarmaFieldsAlpha.exit) {
-
-      return "exit";
-
-    } else if (id === KarmaFieldsAlpha.mixed) {
-
-      return "mixed";
-
-    } else {
-
-      const driver = this.getDriver();
-      let [mimetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype") || [KarmaFieldsAlpha.loading];
-      let [filetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "filetype") || [KarmaFieldsAlpha.loading];
-
-      // console.log(id, mimetype, filetype);
-
-      if (mimetype !== undefined && filetype !== undefined) {
-
-        if (mimetype === KarmaFieldsAlpha.loading || filetype === KarmaFieldsAlpha.loading) {
-
-          return "upload";
-
-        } else if (filetype === "folder") {
-
-          return "folder";
-
-        } else if (mimetype.startsWith("image")) {
-
-          return "image";
-
-        } else if (mimetype.startsWith("video")) {
-
-          return "video";
-
-        } else if (mimetype.startsWith("audio")) {
-
-          return "audio";
-
-        } else if (mimetype.startsWith("text")) {
-
-          return "text";
-
-        } else if (mimetype === "application/pdf") {
-
-          return "document";
-
-        } else if (mimetype === "application/zip") {
-
-          return "zip";
-
-        } else {
-
-          return "default";
-
-        }
-
-      } else {
-
-        return "notfound";
-
-      }
-
-    }
-
-  }
-
-  getFile(id) {
-
-    if (id && typeof id !== "symbol") {
-
-      const driver = this.getDriver();
-
-      let [mimetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype") || [];
-      let [filename] = KarmaFieldsAlpha.Query.getValue(driver, id, "filename") || [];
-      let [dir] = KarmaFieldsAlpha.Query.getValue(driver, id, "dir") || [];
-
-      if (filename !== undefined && mimetype !== undefined && dir !== undefined) {
-
-        // filename = filename[0] || "";
-        // mimetype = mimetype[0] || "";
-        // dir = dir[0] || "";
-
-
-
-
-        if (mimetype === "image/jpeg" || mimetype === "image/png") {
-
-          let sizes = KarmaFieldsAlpha.Query.getValue(driver, id, "sizes");
-
-          if (sizes) {
-
-            const thumb = sizes.find(size => size.name === "thumbnail");
-
-            if (thumb) {
-
-              return dir+"/"+thumb.filename;
-
-            }
-
-          }
-
-        }  else if (mimetype.startsWith("image")) {
-
-          return dir+"/"+filename;
-
-        }
-
-      }
-
-    }
-
-  }
-
-  getCaption(id) {
-
-    if (id === KarmaFieldsAlpha.exit) {
-
-      return "../";
-
-    } else if (id === KarmaFieldsAlpha.mixed) {
-
-      return "[mixed value]";
-
-    }
-
-    if (!id) {
-
-      return "loading...";
-
-    }
-
-    const driver = this.getDriver();
-    let file = KarmaFieldsAlpha.Query.getValue(driver, id, "filename");
-    let filetype = KarmaFieldsAlpha.Query.getValue(driver, id, "filetype");
-
-    if (filetype) {
-
-      if (filetype[0] === "folder") {
-
-        let title = KarmaFieldsAlpha.Query.getValue(driver, id, "name");
-
-        if (title) {
-
-          return title[0] || "";
-
-        } else {
-
-          return "loading...";
-
-        }
-
-      } else {
-
-        let mimetype = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype");
-
-        if (mimetype) {
-
-          mimetype = mimetype[0] || "";
-
-          if (mimetype !== KarmaFieldsAlpha.loading) {
-
-            if (file) {
-
-              file = file[0] || "";
-
-              if (file) {
-
-                return file.slice(file.lastIndexOf("/") + 1);
-
-              } else {
-
-                return "file not found";
-
-              }
-
-            } else {
-
-              return "loading file...";
-
-            }
-
-          } else {
-
-            return "attachment not found";
-
-          }
-
-        } else {
-
-          return "loading attachment...";
-
-        }
-
-      }
-
-    } else {
-
-      return "loading...";
-
-    }
-
-  }
+  // getIcon(id) {
+  //
+  //   if (id === null) {
+  //
+  //     return "upload";
+  //
+  //   } else if (id === KarmaFieldsAlpha.exit) {
+  //
+  //     return "exit";
+  //
+  //   } else if (id === KarmaFieldsAlpha.mixed) {
+  //
+  //     return "mixed";
+  //
+  //   } else {
+  //
+  //     const driver = this.getDriver();
+  //     let [mimetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype") || [KarmaFieldsAlpha.loading];
+  //     let [filetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "filetype") || [KarmaFieldsAlpha.loading];
+  //
+  //     // console.log(id, mimetype, filetype);
+  //
+  //     if (mimetype !== undefined && filetype !== undefined) {
+  //
+  //       if (mimetype === KarmaFieldsAlpha.loading || filetype === KarmaFieldsAlpha.loading) {
+  //
+  //         return "upload";
+  //
+  //       } else if (filetype === "folder") {
+  //
+  //         return "folder";
+  //
+  //       } else if (mimetype.startsWith("image")) {
+  //
+  //         return "image";
+  //
+  //       } else if (mimetype.startsWith("video")) {
+  //
+  //         return "video";
+  //
+  //       } else if (mimetype.startsWith("audio")) {
+  //
+  //         return "audio";
+  //
+  //       } else if (mimetype.startsWith("text")) {
+  //
+  //         return "text";
+  //
+  //       } else if (mimetype === "application/pdf") {
+  //
+  //         return "document";
+  //
+  //       } else if (mimetype === "application/zip") {
+  //
+  //         return "zip";
+  //
+  //       } else {
+  //
+  //         return "default";
+  //
+  //       }
+  //
+  //     } else {
+  //
+  //       return "notfound";
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+  //
+  // getFile(id) {
+  //
+  //   if (id && typeof id !== "symbol") {
+  //
+  //     const driver = this.getDriver();
+  //
+  //     let [mimetype] = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype") || [];
+  //     let [filename] = KarmaFieldsAlpha.Query.getValue(driver, id, "filename") || [];
+  //     let [dir] = KarmaFieldsAlpha.Query.getValue(driver, id, "dir") || [];
+  //
+  //
+  //     if (filename !== undefined && mimetype !== undefined && dir !== undefined) {
+  //
+  //       // filename = filename[0] || "";
+  //       // mimetype = mimetype[0] || "";
+  //       // dir = dir[0] || "";
+  //
+  //
+  //
+  //
+  //       if (mimetype === "image/jpeg" || mimetype === "image/png") {
+  //
+  //         let sizes = KarmaFieldsAlpha.Query.getValue(driver, id, "sizes");
+  //
+  //         if (sizes) {
+  //
+  //           const thumb = sizes.find(size => size.name === "thumbnail");
+  //
+  //           if (thumb) {
+  //
+  //             return dir+"/"+thumb.filename;
+  //
+  //           }
+  //
+  //         }
+  //
+  //       }  else if (mimetype.startsWith("image")) {
+  //
+  //         return dir+"/"+filename;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+  //
+  // getCaption(id) {
+  //
+  //   if (id === KarmaFieldsAlpha.exit) {
+  //
+  //     return "../";
+  //
+  //   } else if (id === KarmaFieldsAlpha.mixed) {
+  //
+  //     return "[mixed value]";
+  //
+  //   }
+  //
+  //   if (!id) {
+  //
+  //     return "loading...";
+  //
+  //   }
+  //
+  //   const driver = this.getDriver();
+  //   let file = KarmaFieldsAlpha.Query.getValue(driver, id, "filename");
+  //   let filetype = KarmaFieldsAlpha.Query.getValue(driver, id, "filetype");
+  //
+  //   if (filetype) {
+  //
+  //     if (filetype[0] === "folder") {
+  //
+  //       let title = KarmaFieldsAlpha.Query.getValue(driver, id, "name");
+  //
+  //       if (title) {
+  //
+  //         return title[0] || "";
+  //
+  //       } else {
+  //
+  //         return "loading...";
+  //
+  //       }
+  //
+  //     } else {
+  //
+  //       let mimetype = KarmaFieldsAlpha.Query.getValue(driver, id, "mimetype");
+  //
+  //       if (mimetype) {
+  //
+  //         mimetype = mimetype[0] || "";
+  //
+  //         if (mimetype !== KarmaFieldsAlpha.loading) {
+  //
+  //           if (file) {
+  //
+  //             file = file[0] || "";
+  //
+  //             if (file) {
+  //
+  //               return file.slice(file.lastIndexOf("/") + 1);
+  //
+  //             } else {
+  //
+  //               return "file not found";
+  //
+  //             }
+  //
+  //           } else {
+  //
+  //             return "loading file...";
+  //
+  //           }
+  //
+  //         } else {
+  //
+  //           return "attachment not found";
+  //
+  //         }
+  //
+  //       } else {
+  //
+  //         return "loading attachment...";
+  //
+  //       }
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     return "loading...";
+  //
+  //   }
+  //
+  // }
 
 
   build() {
@@ -319,7 +326,9 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 			init: container => {
         // this.render = container.render;
 
-
+        // container.element.onmousedown = event => {
+        //   event.stopPropagation();
+        // }
 
 			},
       update: container => {
@@ -381,6 +390,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
               // },
               update: gallery => {
 
+
+
                 gallery.element.classList.toggle("empty", ids.length === 0);
                 gallery.element.classList.toggle("dashicons", ids.length === 0);
                 gallery.element.classList.toggle("dashicons-format-image", ids.length === 0);
@@ -396,6 +407,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                   this.open();
                 }
 
+
+
                 const sorter = new KarmaFieldsAlpha.Sorter(gallery.element);
                 sorter.colCount = 1;
                 sorter.rowCount = ids.length;
@@ -403,17 +416,21 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                 sorter.onselect = newSelection => {
 
-                  if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
+                  // if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
+                  //
+                  //   const [string] = this.export([], newSelection.index, newSelection.length);
+                  //
+                  //   KarmaFieldsAlpha.Clipboard.write(string);
+                  //
+                  //   this.setSelection(newSelection);
+                  //
+                  //   this.render();
+                  //
+                  // }
 
-                    const [string] = this.export([], newSelection.index, newSelection.length);
-
-                    KarmaFieldsAlpha.Clipboard.write(string);
-
-                    this.setSelection(newSelection);
-
-                    this.render();
-
-                  }
+                  KarmaFieldsAlpha.Clipboard.focus();
+                  this.setSelection(newSelection);
+                  this.render();
 
                 }
 
@@ -430,13 +447,21 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                   elements.forEach(element => element.classList.remove("selected"))
                 }
 
-                sorter.onsort = (index, length, target) => {
+                sorter.onSwap = (index, target, length) => {
+                  // console.log(index, target, length);
+
+                  this.swap(index, target, length);
+                  this.setSelection({final: true, index: target, length: length});
+
+                };
+
+                sorter.onsort = (index, target, length) => {
 
                   // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
+// debugger;
+                    // this.swap(index, length, target);
 
-                    this.swap(index, length, target);
-
-                    this.setSelection({final: true, index: target, length: length});
+                    // this.setSelection({final: true, index: target, length: length});
 
                     this.save("order");
 
@@ -453,176 +478,192 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                 }
 
-                gallery.children = ids.filter(id => id && id !== "0").map((id, rowIndex) => {
+                gallery.children = ids.map((id, rowIndex) => {
+
                   return {
                     class: "frame",
-                    // init: async frame => {
-                    //   frame.element.tabIndex = -1;
-                    // },
-                    update: async frame => {
-
-                      frame.element.classList.toggle("selected", KarmaFieldsAlpha.Segment.contain(selection, rowIndex));
-
-                      // let [mimetype] = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype") || [KarmaFieldsAlpha.loading];
-                      //
-                      // let icon;
-                      //
-                      // frame.element.classList.toggle("loading", mimetype === KarmaFieldsAlpha.loading);
-                      //
-                      // if (!mimetype) {
-                      //
-                      //   icon = "notfound";
-                      //
-                      // } else if (mimetype === KarmaFieldsAlpha.loading) {
-                      //
-                      //   icon = "loading";
-                      //
-                      // } else if (mimetype.startsWith("image")) {
-                      //
-                      //   icon = "image";
-                      //
-                      // } else if (mimetype.startsWith("video")) {
-                      //
-                      //   icon = "video";
-                      //
-                      // } else if (mimetype.startsWith("audio")) {
-                      //
-                      //   icon = "audio";
-                      //
-                      // } else if (mimetype.startsWith("text")) {
-                      //
-                      //   icon = "text";
-                      //
-                      // } else if (mimetype === "application/pdf") {
-                      //
-                      //   icon = "document";
-                      //
-                      // } else if (mimetype === "application/zip") {
-                      //
-                      //   icon = "zip";
-                      //
-                      // } else {
-                      //
-                      //   icon = "default";
-                      //
-                      // }
-                      //
-                      // let [file] = KarmaFieldsAlpha.Query.getValue(this.driver, id, "_wp_attached_file") || [KarmaFieldsAlpha.loading];
-
-                      frame.children = [
-                        {
-                          tag: "figure",
-                          update: async figure => {
-
-                            // if (icon === "image") {
-                            //
-                            //   const sizes = (mimetype === "image/jpeg" || mimetype === "image/png") && KarmaFieldsAlpha.Query.getValue(this.driver, id, "sizes");
-                            //
-                            //   if (sizes) {
-                            //
-                            //     const thumb = sizes.find(size => size.name === 'thumbnail');
-                            //
-                            //     if (thumb) {
-                            //
-                            //       figure.children = [{
-                            //         tag: "img",
-                            //         update: image => {
-                            //           image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.file;
-                            //           image.element.width = thumb.width;
-                            //           image.element.height = thumb.height;
-                            //         }
-                            //       }];
-                            //
-                            //     } else {
-                            //
-                            //       icon = "notfound";
-                            //
-                            //     }
-                            //
-                            //   } else if (file) {
-                            //
-                            //     if (file !== KarmaFieldsAlpha.loading) {
-                            //
-                            //       figure.children = [{
-                            //         tag: "img",
-                            //         update: image => {
-                            //           image.element.src = KarmaFieldsAlpha.uploadURL+"/"+file;
-                            //         }
-                            //       }];
-                            //
-                            //     }
-                            //
-                            //   } else {
-                            //
-                            //     icon = "notfound";
-                            //
-                            //   }
-                            //
-                            // } else {
-                            //
-                            //   figure.children = [];
-                            //
-                            // }
-
-                            const filename = this.getFile(id);
-                            const icon = !filename && this.getIcon(id);
-
-                            figure.element.classList.toggle("dashicons", icon !== "thumb");
-                            figure.element.classList.toggle("dashicons-upload", icon === "upload");
-                            figure.element.classList.toggle("dashicons-media-video", icon === "video");
-                            figure.element.classList.toggle("dashicons-media-audio", icon === "audio");
-                            figure.element.classList.toggle("dashicons-media-text", icon === "text");
-                            figure.element.classList.toggle("dashicons-media-document", icon === "document");
-                            figure.element.classList.toggle("dashicons-media-default", icon === "default");
-                            figure.element.classList.toggle("dashicons-format-image", icon === "image");
-                            figure.element.classList.toggle("dashicons-media-archive", icon === "zip");
-                            figure.element.classList.toggle("dashicons-hourglass", icon === "loading");
-                            figure.element.classList.toggle("dashicons-warning", icon === "notfound");
-                            figure.element.classList.toggle("dashicons-images-alt", icon === "mixed");
-
-
-                            if (filename) {
-                              figure.children = [{
-                                tag: "img",
-                                update: image => {
-                                  if (!image.element.src.endsWith(filename)) {
-                                    image.element.src = KarmaFieldsAlpha.uploadURL+filename;
-                                  }
-                                }
-                              }];
-                            } else {
-                              figure.children = [];
-                            }
-
-                          }
-                        },
-                        {
-                          class: "filename",
-                          update: caption => {
-                            caption.element.innerHTML = this.getCaption(id);
-                            // if (mimetype) {
-                            //   if (mimetype !== KarmaFieldsAlpha.loading) {
-                            //     if (file) {
-                            //       if (file !== KarmaFieldsAlpha.loading) {
-                            //         const filename = file.slice(file.lastIndexOf("/") + 1);
-                            //         caption.element.innerHTML = filename;
-                            //       } else {
-                            //         caption.element.innerHTML = "loading file...";
-                            //       }
-                            //     } else {
-                            //       caption.element.innerHTML = "file not found";
-                            //     }
-                            //   } else {
-                            //     caption.element.innerHTML = "loading attachment...";
-                            //   }
-                            // } else {
-                            //   caption.element.innerHTML = "attachment not found";
-                            // }
-                          }
-                        }
-                      ];
-                    }
+                    update: frame => {
+                      frame.element.classList.toggle("selected", Boolean(selection && KarmaFieldsAlpha.Segment.contain(selection, rowIndex)));
+                    },
+                    child: new KarmaFieldsAlpha.field.text.media({
+                      driver: this.getDriver(),
+                      id: id,
+                      uploading: !id,
+                      display: "thumb",
+                      caption: true
+                    }).build()
                   };
+
+
+                  // return {
+                  //   class: "frame",
+                  //   // init: async frame => {
+                  //   //   frame.element.tabIndex = -1;
+                  //   // },
+                  //   update: async frame => {
+                  //
+                  //     frame.element.classList.toggle("selected", KarmaFieldsAlpha.Segment.contain(selection, rowIndex));
+                  //
+                  //     // let [mimetype] = KarmaFieldsAlpha.Query.getValue(this.driver, id, "mimetype") || [KarmaFieldsAlpha.loading];
+                  //     //
+                  //     // let icon;
+                  //     //
+                  //     // frame.element.classList.toggle("loading", mimetype === KarmaFieldsAlpha.loading);
+                  //     //
+                  //     // if (!mimetype) {
+                  //     //
+                  //     //   icon = "notfound";
+                  //     //
+                  //     // } else if (mimetype === KarmaFieldsAlpha.loading) {
+                  //     //
+                  //     //   icon = "loading";
+                  //     //
+                  //     // } else if (mimetype.startsWith("image")) {
+                  //     //
+                  //     //   icon = "image";
+                  //     //
+                  //     // } else if (mimetype.startsWith("video")) {
+                  //     //
+                  //     //   icon = "video";
+                  //     //
+                  //     // } else if (mimetype.startsWith("audio")) {
+                  //     //
+                  //     //   icon = "audio";
+                  //     //
+                  //     // } else if (mimetype.startsWith("text")) {
+                  //     //
+                  //     //   icon = "text";
+                  //     //
+                  //     // } else if (mimetype === "application/pdf") {
+                  //     //
+                  //     //   icon = "document";
+                  //     //
+                  //     // } else if (mimetype === "application/zip") {
+                  //     //
+                  //     //   icon = "zip";
+                  //     //
+                  //     // } else {
+                  //     //
+                  //     //   icon = "default";
+                  //     //
+                  //     // }
+                  //     //
+                  //     // let [file] = KarmaFieldsAlpha.Query.getValue(this.driver, id, "_wp_attached_file") || [KarmaFieldsAlpha.loading];
+                  //
+                  //     frame.children = [
+                  //       {
+                  //         tag: "figure",
+                  //         update: async figure => {
+                  //
+                  //           // if (icon === "image") {
+                  //           //
+                  //           //   const sizes = (mimetype === "image/jpeg" || mimetype === "image/png") && KarmaFieldsAlpha.Query.getValue(this.driver, id, "sizes");
+                  //           //
+                  //           //   if (sizes) {
+                  //           //
+                  //           //     const thumb = sizes.find(size => size.name === 'thumbnail');
+                  //           //
+                  //           //     if (thumb) {
+                  //           //
+                  //           //       figure.children = [{
+                  //           //         tag: "img",
+                  //           //         update: image => {
+                  //           //           image.element.src = KarmaFieldsAlpha.uploadURL+"/"+thumb.file;
+                  //           //           image.element.width = thumb.width;
+                  //           //           image.element.height = thumb.height;
+                  //           //         }
+                  //           //       }];
+                  //           //
+                  //           //     } else {
+                  //           //
+                  //           //       icon = "notfound";
+                  //           //
+                  //           //     }
+                  //           //
+                  //           //   } else if (file) {
+                  //           //
+                  //           //     if (file !== KarmaFieldsAlpha.loading) {
+                  //           //
+                  //           //       figure.children = [{
+                  //           //         tag: "img",
+                  //           //         update: image => {
+                  //           //           image.element.src = KarmaFieldsAlpha.uploadURL+"/"+file;
+                  //           //         }
+                  //           //       }];
+                  //           //
+                  //           //     }
+                  //           //
+                  //           //   } else {
+                  //           //
+                  //           //     icon = "notfound";
+                  //           //
+                  //           //   }
+                  //           //
+                  //           // } else {
+                  //           //
+                  //           //   figure.children = [];
+                  //           //
+                  //           // }
+                  //
+                  //           const filename = this.getFile(id);
+                  //           const icon = !filename && this.getIcon(id);
+                  //
+                  //           figure.element.classList.toggle("dashicons", icon !== "thumb");
+                  //           figure.element.classList.toggle("dashicons-upload", icon === "upload");
+                  //           figure.element.classList.toggle("dashicons-media-video", icon === "video");
+                  //           figure.element.classList.toggle("dashicons-media-audio", icon === "audio");
+                  //           figure.element.classList.toggle("dashicons-media-text", icon === "text");
+                  //           figure.element.classList.toggle("dashicons-media-document", icon === "document");
+                  //           figure.element.classList.toggle("dashicons-media-default", icon === "default");
+                  //           figure.element.classList.toggle("dashicons-format-image", icon === "image");
+                  //           figure.element.classList.toggle("dashicons-media-archive", icon === "zip");
+                  //           figure.element.classList.toggle("dashicons-hourglass", icon === "loading");
+                  //           figure.element.classList.toggle("dashicons-warning", icon === "notfound");
+                  //           figure.element.classList.toggle("dashicons-images-alt", icon === "mixed");
+                  //
+                  //
+                  //           if (filename) {
+                  //             figure.children = [{
+                  //               tag: "img",
+                  //               update: image => {
+                  //                 if (!image.element.src.endsWith(filename)) {
+                  //                   image.element.src = KarmaFieldsAlpha.uploadURL+filename;
+                  //                 }
+                  //               }
+                  //             }];
+                  //           } else {
+                  //             figure.children = [];
+                  //           }
+                  //
+                  //         }
+                  //       },
+                  //       {
+                  //         class: "filename",
+                  //         update: caption => {
+                  //           caption.element.innerHTML = this.getCaption(id);
+                  //           // if (mimetype) {
+                  //           //   if (mimetype !== KarmaFieldsAlpha.loading) {
+                  //           //     if (file) {
+                  //           //       if (file !== KarmaFieldsAlpha.loading) {
+                  //           //         const filename = file.slice(file.lastIndexOf("/") + 1);
+                  //           //         caption.element.innerHTML = filename;
+                  //           //       } else {
+                  //           //         caption.element.innerHTML = "loading file...";
+                  //           //       }
+                  //           //     } else {
+                  //           //       caption.element.innerHTML = "file not found";
+                  //           //     }
+                  //           //   } else {
+                  //           //     caption.element.innerHTML = "loading attachment...";
+                  //           //   }
+                  //           // } else {
+                  //           //   caption.element.innerHTML = "attachment not found";
+                  //           // }
+                  //         }
+                  //       }
+                  //     ];
+                  //   }
+                  // };
                 });
 
                 // if (data.uploads) {
@@ -666,6 +707,9 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
             },
             {
               class: "controls",
+              update: controls => {
+                controls.element.classList.toggle("hidden", this.resource.controls === false);
+              },
               child: {
                 class: "footer-content",
                 // init: controls => {

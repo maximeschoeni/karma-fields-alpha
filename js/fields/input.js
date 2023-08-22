@@ -69,18 +69,13 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		let value = this.getDefault();
 
-		if (value !== undefined) {
+		if (value !== undefined && value !== KarmaFieldsAlpha.loading) {
 
 			this.setValue(value);
 			this.save();
 
-		} else {
-
-			value = "";
-
 		}
 
-		return value;
   }
 
 
@@ -231,6 +226,12 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 			if (placeholder === KarmaFieldsAlpha.loading) {
 
 				return "...";
+
+			}
+
+			if (placeholder === KarmaFieldsAlpha.mixed) {
+
+				return "[mixed]";
 
 			}
 
@@ -414,24 +415,31 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	build() {
 		return {
-			tag: this.resource.type,
+			tag: "input", // tag: this.resource.type   ! -> Fail when extending class!
 			class: "text-input karma-field",
 			init: input => {
 				if (this.resource.type === "input") {
 					input.element.type = "text";
 				}
 				input.element.id = this.getUid();
-				if (this.resource[this.resource.type]) {
-					Object.assign(input.element, this.resource[this.resource.type]);
+				if (this.resource.input) {
+					Object.assign(input.element, this.resource.input);
 				}
 			},
 			update: input => {
 
-        let value = this.getSingleValue() || "";
+        let value = this.getSingleValue();
 
         input.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
 
         if (value !== KarmaFieldsAlpha.loading) {
+
+					if (value === undefined) {
+
+						this.initValue();
+						value = "";
+
+					}
 
 					const multiple = value === KarmaFieldsAlpha.mixed;
 
@@ -441,7 +449,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					input.element.classList.toggle("selected", Boolean(value === KarmaFieldsAlpha.mixed && (this.getSelection() || {}).final));
 
 
-          if (multiple) {
+          if (value === KarmaFieldsAlpha.mixed) {
 
             input.element.value = "[mixed values]";
             input.element.readOnly = true;
@@ -528,7 +536,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
         } else {
 
-					input.element.value = "";
+					input.element.value = ""; // -> ?
 
 				}
 

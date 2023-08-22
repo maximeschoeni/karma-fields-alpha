@@ -248,38 +248,47 @@ Class Karma_Fields_Alpha_Driver_Posts {
       //
       // }
 
-
-      if (isset($data->post_type) || isset($data->trash)) {
+      if (isset($data['post_type']) || isset($data['trash'])) {
 
         $post_type = get_post_type($id);
         $trash = false;
 
-        if (strpos($post_type, 'trashed-') !== 0) {
+        if (strpos($post_type, 'trashed-') === 0) {
 
           $trash = true;
           $post_type = substr($post_type, strlen('trashed-'));
 
         }
 
-        if (isset($data->post_type[0])) {
+        if (isset($data['post_type'][0])) {
 
-          $post_type = $data->post_type[0];
+          $post_type = $data['post_type'][0];
 
         }
 
-        if (isset($data->trash)) {
+        if (isset($data['trash'])) {
 
-          if (isset($data->trash[0]) && $data->trash[0] === '1') {
+          $trash = $data['trash'] && $data['trash'][0] === '1';
 
-            $args['post_type'] = 'trashed-'.$post_type;
+        }
 
-          } else {
 
-            $args['post_type'] = $post_type;
 
-          }
+        // if (isset($data['trash'])) {
+        //
+        //   if (isset($data['trash'][0]) && $data['trash'][0] === '1') {
+        //
+        //     $args['post_type'] = 'trashed-'.$post_type;
+        //
+        //   } else {
+        //
+        //     $args['post_type'] = $post_type;
+        //
+        //   }
+        //
+        // } else
 
-        } else if ($trash) {
+        if ($trash) {
 
           $args['post_type'] = 'trashed-'.$post_type;
 
@@ -391,6 +400,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
     }
 
     $args['post_type'] = 'trashed-'.$args['post_type'];
+
 
 
     // var_dump($args, $data);

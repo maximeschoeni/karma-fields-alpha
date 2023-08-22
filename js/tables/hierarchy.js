@@ -186,19 +186,12 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
   // todo: standardize this function with Media's
   getParent(id) {
 
-    const values = this.getAlias(id, "parent");
+    return this.getSingleValue(id, "parent");
 
-    if (!values) {
-
-      return KarmaFieldsAlpha.loading;
-
-    }
-
-    return values[0] || "0";
   }
 
   getIndex(id) {
-
+    console.error("deprecated");
     const values = this.getAlias(id, "index");
 
     if (!values) {
@@ -212,34 +205,33 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
   }
 
   setParent(value, id) {
-
+console.error("deprecated");
     this.setAlias(value, id, "parent");
 
   }
 
   setIndex(value, id) {
-
+console.error("deprecated");
     this.setAlias(value, id, "index");
 
   }
 
   initParent(value, id) {
-
+console.error("deprecated");
     this.initAlias(value, id, "parent");
 
   }
 
   initIndex(value, id) {
-
+console.error("deprecated");
     this.initAlias(value, id, "index");
 
   }
 
 
 
-  async add(params = {}) {
+  async add(params = {}, ...path) {
 
-    debugger;
     const selection = this.getSelection() || {};
 
     // if (selection && selection[0]) {
@@ -257,7 +249,7 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
     const index = (selection.index || 0) + (selection.length || 0);
 
 
-    KarmaFieldsAlpha.Query.add(this.resource.driver, params, index, ...path);
+    KarmaFieldsAlpha.Query.add(this.resource.driver, params, 0, index, ...path);
 
 
 
@@ -364,8 +356,8 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
 
           KarmaFieldsAlpha.DeepArray.forEachObject(root, (item, index, parent) => {
 
-            this.initIndex(index, item.id);
-            this.initParent(parent.id, item.id);
+            this.initValue(index, item.id, "position");
+            this.initValue(parent.id, item.id, "parent");
 
             // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.Query.vars, driver, item.id, indexAlias)) {
             //
@@ -503,18 +495,24 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
 
       // const parentId = parent && parent.id || "0";
 
-      const currentIndex = this.getIndex(item.id);
-      const currentParentId = this.getParent(item.id);
+      const currentIndex = this.getSingleValue(item.id, "position");
+      const currentParentId = this.getSingleValue(item.id, "parent");
+
+      if (currentIndex === KarmaFieldsAlpha.loading || currentParentId === KarmaFieldsAlpha.loading) {
+
+        console.error("item not loaded!");
+
+      }
 
       if (index !== currentIndex) {
 
-        this.setIndex(index, item.id);
+        this.setValue(index, item.id, "position");
 
       }
 
       if (parent.id !== currentParentId) {
 
-        this.setParent(parent.id, item.id);
+        this.setValue(parent.id, item.id, "parent");
 
       }
 
@@ -788,6 +786,42 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
+  getSelectionChild(selection) {
+
+    if (selection) {
+
+      if (selection.modal && !selection.modal.final) {
+
+        return this.createChild({
+          ...this.resource.modal,
+          type: "modal",
+          index: "modal",
+        });
+
+      }
+
+      if (selection[0]) {
+
+        const items = this.getItems();
+
+        return this.createChild({
+          type: "branch",
+          items: items[0].children,
+          id: "0",
+          columns: this.resource.modal && this.resource.modal.children || this.resource.children,
+          depth: 0,
+          index: 0,
+          path: [],
+          classes: ["table", "grid", "arrangement", "tree"],
+          maxDepth: this.resource.maxDepth || 0
+        });
+
+      }
+
+    }
+
+  }
+
   // copy(selection) {
   //
   //   const tree = this.createTree();
@@ -848,21 +882,47 @@ KarmaFieldsAlpha.field.hierarchy = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
-  delete(selection) {
+  // delete(selection) {
+  //
+  //   if (selection[0]) {
+  //
+  //     const branch = this.getChild(0);
+  //
+  //     const items = branch.getSelectedItems(selection[0]);
+  //
+  //     if (items && items.length) {
+  //
+  //       this.removeIds(items.map(item => item.id));
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
-    if (selection[0]) {
 
-      const branch = this.getChild(0);
+  remove(index, length, ...path) {
 
-      const items = branch.getSelectedItems(selection[0]);
+    let items = this.getItems();
 
-      if (items && items.length) {
+    for (let item of items) {
 
-        this.removeIds(items.map(item => item.id));
-
-      }
+      this.setValue("1", item.id, "trash");
 
     }
+
+    items = KarmaFieldsAlpha.DeepArray.clone(items);
+
+    const splicedItems = KarmaFieldsAlpha.DeepArray.splice(items, length, [], ...path, index);
+
+    const driver = this.getDriver();
+    KarmaFieldsAlpha.Query.removeIds(driver, splicedItems.map(item => item.id));
+
+    KarmaFieldsAlpha.Store.setIds(items);
+
+    this.setSelection({final: true, index: 0, length: 0});
+    this.save("delete");
+    this.render();
 
   }
 
@@ -1119,6 +1179,8 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
   //
   // }
 
+
+
   getSelectedItems(selection) {
 
     if (selection.final) {
@@ -1244,6 +1306,45 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
 
   }
 
+  getSelectionChild(selection) {
+
+    if (selection.row) {
+
+      return this.createChild({
+        id: this.resource.id,
+        type: "row",
+        children: this.resource.columns || [],
+        index: "row"
+      });
+
+    } else {
+
+      for (let index in this.resource.items) {
+
+        if (selection[index]) {
+
+          const item = this.resource.items[index];
+
+          return this.createChild({
+            type: "branch",
+            items: item.children || [],
+            // children: tree.children || [],
+            id: item.id,
+            columns: this.resource.columns,
+            depth: this.resource.depth++,
+            index: index,
+            path: [...this.resource.path, this.resource.index],
+            maxDepth: this.getMaxDepth() - 1
+          });
+
+        }
+
+      }
+
+    }
+
+  }
+
 
 
   setSelection(selection) {
@@ -1267,6 +1368,28 @@ console.error("deprecated");
 
     // this.parent.swap(originPath, originIndex, destPath, destIndex, length);
     this.parent.swap(index, newIndex, length, path, newPath);
+
+  }
+
+  delete(selection = this.getSelection()) {
+
+    const child = this.getSelectionChild(selection);
+
+    if (child) {
+
+      child.delete(selection[child.resource.index]);
+
+    } else if (selection) {
+
+      this.remove(selection.index || 0, selection.length || 0)
+
+    }
+
+  }
+
+  remove(index, length, ...path) {
+
+    this.parent.remove(index, length, this.resource.index, ...path);
 
   }
 
@@ -1467,12 +1590,14 @@ console.error("deprecated");
                 update: header => {
                   header.element.classList.toggle("loading", !child.id);
 
+
                   // if (child.id) {
                     const row = branch.createChild({
                       id: child.id,
                       type: "row",
                       children: this.resource.columns || [],
-                      index: "row"
+                      index: "row",
+                      rowIndex: branch.resource.index
                       // depth: this.resource.depth || 0
                     });
                     header.children = this.resource.columns.map(child => {

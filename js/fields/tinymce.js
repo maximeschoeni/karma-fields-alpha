@@ -249,7 +249,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 			// unactivate history
 			editor.on("BeforeAddUndo", event => {
-				event.preventDefault(); // -> che!
+				event.preventDefault();
 
 				// console.log("save", event);
 				// this.save("input");
@@ -2028,9 +2028,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 				// this.render = container.render;
 
-				container.element.onmousedown = event => {
-				  event.stopPropagation(); // -> prevent re-rendering
-				}
+				// container.element.onmousedown = event => {
+				//   event.stopPropagation(); // -> prevent re-rendering (moved to text field)
+				// }
 
 				// const multiple = this.request("multiple");
 				const selection = this.getSelection() || {};
@@ -2143,6 +2143,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 										init: node => {
 											node.element.editable = true;
 											node.element.id = this.resource.uid;
+
+											node.element.onmousedown = event => {
+											  event.stopPropagation(); // -> prevent re-rendering (moved to text field)
+											}
+
 										},
                     update: node => {
 											const editor = this.getEditor(node.element);

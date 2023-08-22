@@ -69,25 +69,46 @@ KarmaFieldsAlpha.DeepObject = class {
 
   }
 
+  // static has(object, key, ...path) {
+  //
+  //   if (object) {
+  //
+  //     if (key === undefined) {
+  //
+  //       return true;
+  //
+  //   	} else {
+  //
+  //   		return this.has(object[key], ...path);
+  //
+  //   	}
+  //
+  //   }
+  //
+  //   return false;
+  //
+  // };
+
   static has(object, key, ...path) {
 
-    if (object) {
+    if (key === undefined) {
 
-      if (key === undefined) {
+      return object !== undefined;
 
-        return true;
+  	} else {
 
-    	} else {
+      if (object) {
 
-    		return this.has(object[key], ...path);
+  			return this.get(object[key], ...path);
 
-    	}
+  		}
 
-    }
+      return false;
 
-    return false;
+  	}
 
   };
+
 
   static assign(object, value, key, ...path) {
 
