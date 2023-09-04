@@ -1,21 +1,23 @@
 
 KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
 
-  init() {
+  start(row) {
 
-    let index;
-    let row;
+    // let index;
+    // let row;
+    //
+    // if (this.selection) {
+    //
+    //   index = this.findIndex(this.tracker.x, this.tracker.y);
+    //   row = this.getRow(index);
+    //
+    // }
+    //
+    // // if (row >= 0 && KarmaFieldsAlpha.Segment.contain(this.selection, row)) {
+    // // if (row >= 0 && this.selection.contains(row)) {
+    // if (row >= 0 && KarmaFieldsAlpha.Selection.containRow(this.selection, row)) {
 
-    if (this.selection) {
-
-      index = this.findIndex(this.tracker.x, this.tracker.y);
-      row = this.getRow(index);
-
-    }
-
-    // if (row >= 0 && KarmaFieldsAlpha.Segment.contain(this.selection, row)) {
-    // if (row >= 0 && this.selection.contains(row)) {
-    if (row >= 0 && KarmaFieldsAlpha.Selection.containRow(this.selection, row)) {
+    if (this.selection && KarmaFieldsAlpha.Selection.containRow(this.selection, row)) {
 
       this.originX = this.tracker.x;
       this.originY = this.tracker.y;
@@ -38,13 +40,16 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       this.container.classList.add("dragging");
       this.container.style.height = `${this.container.clientHeight}px`;
 
-      this.tracker.event.stopPropagation();
-      
+      this.tracker.event.stopPropagation(); // -> WHY ??
+
     } else {
 
-      super.init();
+      super.start(row); // -> proceed selection
 
     }
+
+
+    // this.tracker.event.stopPropagation(); // prevent selection of container underneath
 
   }
 
@@ -285,20 +290,22 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
   }
 
 
-  getAbsolutePosition(x = 0, y = 0) {
+  getAbsolutePosition() {
+
+    const position = {x: 0, y: 0};
 
     let container = this.container;
 
     while (container && !container.classList.contains("block-root")) {
 
-      x += container.offsetLeft;
-      y += container.offsetTop;
+      position.x += container.offsetLeft;
+      position.y += container.offsetTop;
 
-      container = container.parentElement;
+      container = container.offsetParent;
 
     }
 
-    return {x: x, y: y};
+    return position;
   }
 
 

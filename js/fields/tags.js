@@ -204,6 +204,14 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
+  copy(selection) {
+
+    const [value] = this.export([], selection.index || 0, selection.length || 0);
+
+    return value;
+
+  }
+
   delete(selection = this.getSelection()) {
 
     if (selection) {

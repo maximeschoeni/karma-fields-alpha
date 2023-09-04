@@ -2,6 +2,10 @@
 
 // /Applications/MAMP/htdocs/wordpress/wp-includes/js/tinymce/plugins/link/plugin.min.js
 
+
+
+
+
 KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	static getPath(refNode, node) {
@@ -46,401 +50,386 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	}
 
-	// static getPosition(node, path) {
-	//
-	// 	const offset = path.pop();
-	//
-	// 	for (let index of path) {
-	//
-	// 		node = node.childNodes[index];
-	//
-	// 	}
-	//
-	// 	return [node, offset];
-	//
-	// }
 
 
-	constructor(resource) {
-		super(resource);
+  getEditor() {
 
-		// this.image = this.createChild({
-		// 	id: "image",
-		// 	key: "image",
-		// 	type: "file",
-		// 	mimetypes: ["image"]
-		// });
-		//
-		// this.file = this.createChild({
-		// 	id: "file",
-		// 	key: "file",
-		// 	type: "file",
-		// 	mimetypes: [],
-		// 	multiple: false
-		// });
+		return this.editor || KarmaFieldsAlpha.loading;
+
+  }
 
 
-		// this.buffer = new KarmaFieldsAlpha.Buffer("tinymce");
+
+	registerInstance(instance) {
+
+		if (instance.editor && instance.editor !== KarmaFieldsAlpha.loading) {
+
+			instance.onUpdateContent = (content, context) => {
+				this.setValue(content);
+				this.save("input");
+			}
+
+			instance.onUpdateSelection = (selection) => {
+				this.setSelection(selection);
+				this.render();
+			}
+
+			instance.onFetchImage = () => {
+				this.fetchImage();
+			}
+
+			this.editor = instance.editor || KarmaFieldsAlpha.loading;
+
+		}
 
 	}
 
-	// getEditorValue(element) {
+	// static async createEditor(element, params = {}, instance) {
 	//
-	// 	const editor = this.getEditor(element);
+	// 	const [editor] = await tinyMCE.init({
+	// 		target: element,
+	// 		hidden_input: false,
+	// 		inline: true,
+	// 		menubar: false,
+	// 		contextmenu: false,
+	// 		toolbar: false,
+	// 		skin: false,
+	// 		// theme_url: "tinymce/themes/modern/theme.js",
+	//     // paste_as_text: true,
+	// 		paste_word_valid_elements: 'b,strong,i,em,ul,ol',
+	// 		// plugins: "link lists table paste",
+	// 		// image_caption: true,
+	// 		plugins: "link lists paste image",
+	// 		convert_urls: false,
+  //     entity_encoding : "raw", // -> don't encode diacritics
+  //     // placeholder: "hjhlo",
+	// 		// entity_encoding: "named",
+	// 		// image_caption: true,
+	// 		// paste_preprocess: (plugin, args) => {
+	// 	  //   console.log(args.content);
+	// 	  // }
+  //     ...params
+	// 	});
 	//
-	// 	if (editor) {
-	// 		// const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+	// 	this.instance = editor;
 	//
-	// 		if (value !== KarmaFieldsAlpha.loading && value !== editor.getContent()) {
-	// 			// console.log("content not match", value, editor.getContent());
 	//
-	// 			console.log("Editor -> value does not match current", value, editor.getContent());
+	// 	// unactivate history
+	// 	editor.on("BeforeAddUndo", event => {
+	// 		event.preventDefault();
+	// 	});
 	//
-	// 			editor.setContent(value);
+	// 	editor.on("input", event => {
+	// 		if (this.onUpdateContent) {
 	// 			const content = editor.getContent();
-	// 			if (content !== value) {
-	// 				// -> editor has formated things!
-	// 				this.setValue(content);
-	// 				this.save();
+	// 			this.onUpdateContent(content, "input");
+	// 		}
+	// 	});
+	// 	editor.on("paste", event => {
+	// 		if (this.onUpdateContent) {
+	// 			const content = editor.getContent();
+	// 			this.onUpdateContent(content, "paste");
+	// 		}
+	// 	});
+	// 	editor.on("cut", event => {
+	// 		if (this.onUpdateContent) {
+	// 			const content = editor.getContent();
+	// 			this.onUpdateContent(content, "paste");
+	// 		}
+	// 	});
+	//
+	// 	// -> input event does not seem to capture line break (single or double) or delete line break !
+	// 	editor.on("keyup", event => {
+	// 		if ((event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") && this.onUpdateContent) {
+	// 			const content = editor.getContent();
+	// 			this.onUpdateContent(content, "delete");
+	// 		}
+	// 	});
+	//
+	// 	editor.on("focus", event => {
+	// 		if (this.onUpdateSelection) {
+	// 			this.onUpdateSelection({final: true});
+	// 		}
+	// 	});
+	//
+	// 	editor.on("click", event => {
+	//
+	// 		const node = editor.selection.getNode();
+	// 		const a = node.closest("a");
+	//
+	// 		if (a) {
+	//
+	// 			const range = new Range();
+	// 			range.selectNode(a);
+	//
+	// 			if (this.onUpdateSelection) {
+	//
+	// 				this.onUpdateSelection({
+	// 					linkForm: {final: true},
+	// 					startPath: this.getPath(element, range.startContainer),
+	// 					startOffset: range.startOffset,
+	// 					endPath: this.getPath(element, range.endContainer),
+	// 					endOffset: range.endOffset
+	// 				});
+	//
+	// 			}
+	//
+	// 			editor.selection.setRng(range);
+	//
+	// 		} else if (node.matches("img")) {
+	//
+	//
+	// 		} else {
+	//
+	// 			if (this.onUpdateSelection) {
+	//
+	// 				this.onUpdateSelection({final: true});
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	});
+	//
+	// 	editor.on("dblclick", event => {
+	// 		const node = editor.selection.getNode();
+	// 		if (node.matches("img") || node.matches("figure")) {
+	// 			if (this.onFetchImage) {
+	// 				this.onFetchImage()
 	// 			}
 	// 		}
-	// 	}
+	// 	});
+	//
+	// 	editor.on("ObjectResized", event => {
+	// 		if (this.onUpdateContent) {
+	// 			const content = editor.getContent();
+	// 			this.onUpdateContent(content, "paste");
+	// 		}
+	// 	});
 	//
 	//
+	// 	this.getInstance(container).editor;
+	//
+	// 	// return editor;
 	// }
 
-  getEditor(element) {
 
-    // const key = this.getKey();
 
-    // return this.parent.request("get-option", {}, key, "editor");
 
-		let editor = tinyMCE.get(this.resource.uid);
 
-		if (editor && element && editor.getElement() !== element) {
 
-			editor.destroy();
-			editor = undefined;
 
-		}
 
-		if (!editor) {
 
-			const task = KarmaFieldsAlpha.tasks.find(task => task.type === "editor" && task.id === this.resource.uid);
+	// DEPRECATED
+	async createEditor(element, params, container) {
 
-			if (!task && element) {
+		const [editor] = await tinyMCE.init({
+			target: element,
+			hidden_input: false,
+			inline: true,
+			menubar: false,
+			contextmenu: false,
+			toolbar: false,
+			skin: false,
+			// theme_url: "tinymce/themes/modern/theme.js",
+	    // paste_as_text: true,
+			paste_word_valid_elements: 'b,strong,i,em,ul,ol',
+			// plugins: "link lists table paste",
+			// image_caption: true,
 
-				// if (!element) {
+			plugins: "link lists paste image",
+			convert_urls: false,
+      entity_encoding : "raw", // -> don't encode diacritics
+      // placeholder: "hjhlo",
+			// entity_encoding: "named",
+			// image_caption: true,
+			// paste_preprocess: (plugin, args) => {
+		  //   console.log(args.content);
+		  // }
+      ...params
+		});
+
+		// if (!editors.length) {
+		// 	console.warn("editor not created", editors, editor, element);
+		// }
+		//
+		// editor = editors.pop();
+
+		// if (!editor) {
+		// 	editor = tinymce.get(element.id);
+		// 	console.log("!!", editor);
+		// }
+
+		// unactivate history
+		editor.on("BeforeAddUndo", event => {
+			event.preventDefault();
+
+			// console.log("save", event);
+			// this.save("input");
+		});
+
+		editor.on("input", event => {
+			const content = editor.getContent();
+			this.setValue(content);
+			this.save("input");
+		});
+		editor.on("paste", event => {
+			const content = editor.getContent();
+			this.setValue(content);
+			this.save("paste");
+		});
+		editor.on("cut", event => {
+			const content = editor.getContent();
+			this.setValue(content);
+			this.save("cut");
+		});
+
+		// -> input event does not seem to capture line break (single or double) or delete line break !
+		editor.on("keyup", event => {
+			if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
+				const content = editor.getContent();
+				if (content !== this.getSingleValue()) {
+          this.setValue(content);
+					this.save("delete");
+        }
+			}
+		});
+
+		// editor.on("NodeChange", event => {
+		// 	if (event.selectionChange) {
+    //     const data = this.getData();
+		// 		// console.log("NodeChange", data.activeModal, event.element !== data.activeNode);
+		//
+		//
+		// 		if (data.activeModal && event.element !== data.activeNode) {
+    //       data.activeNode = null;
+    //       data.activeModal = null;
+		//
+		//
+		// 			this.renderPopover();
+		// 		}
+		// 	}
+		// 	if (this.renderToolbar) {
+    //     this.renderToolbar();
+    //   }
+		// });
+		//
+		// editor.on("focusout", event => {
+    //   const data = this.getData();
+		// 	if (data.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
+		// 		data.activeNode = null;
+		// 		data.activeModal = null;
+		// 		this.renderPopover();
+		// 	}
+    //   if (this.renderToolbar) {
+    //     this.renderToolbar();
+    //   }
+		// });
+
+		editor.on("focus", event => {
+
+			this.setSelection({final: true});
+			this.render();
+
+		});
+
+		editor.on("click", event => {
+
+			const node = editor.selection.getNode();
+      const data = this.getData();
+			const selection = this.getSelection();
+			const a = node.closest("a");
+
+			// if (node.matches("a")) {
+			if (a) {
+
+				// data.activeNode = node;
+				// data.activeModal = "linkForm";
+				// const containerBox = element.parentNode.getBoundingClientRect();
+				// const box = node.getBoundingClientRect();
+
+				// const range = editor.selection.getRng();
+				// const sel = editor.selection.getSel();
+
+				const range = new Range();
+				range.selectNode(a);
+				// console.log(range);
+
+
+
+				this.setSelection({
+					linkForm: {final: true},
+
+					// anchorPath: KarmaFieldsAlpha.field.tinymce.getPath(element, sel.anchorNode),
+					// anchorOffset: sel.anchorOffset,
+					// focusPath: KarmaFieldsAlpha.field.tinymce.getPath(element, sel.focusNode),
+					// focusOffset: sel.focusOffset,
+
+
+					startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
+					startOffset: range.startOffset,
+					endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
+					endOffset: range.endOffset
+
+				});
+
+				editor.selection.setRng(range);
+
+
+			} else if (node.matches("img")) {
+				// data.activeNode = node;
+
+				// this.setSelection({imgForm: {}});
+				// this.request("editmedia");
+
+				// const range = new Range();
+				// range.selectNode(node);
 				//
-				// 	element = document.getElementById(this.resource.uid);
+				// this.setSelection({
+				// 	imageForm: {final: true},
+				// 	startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
+				// 	startOffset: range.startOffset,
+				// 	endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
+				// 	endOffset: range.endOffset
 				//
-				// }
+				// });
 
-				// if (element) {
+			} else {
 
-				// console.log("getEditor", this, element, this.resource.uid);
-
-					KarmaFieldsAlpha.tasks.push({
-						type: "editor",
-						id: this.resource.uid,
-						resolve: async task => this.createEditor(element, this.resource.mceinit)
-					});
-
-				// }
+				this.setSelection({final: true});
 
 			}
 
-		}
+			this.render();
 
+		});
 
+		editor.on("dblclick", event => {
+			const node = editor.selection.getNode();
 
+			// console.log(node);
+			if (node.matches("img") || node.matches("figure")) {
+				this.fetchImage();
+				// this.request("addmedia");
+			}
+		});
 
-		//  else if (editor.getElement() !== element) {
-		//
-		// 	console.error("Editor element does not match!", element, editor.getElement());
-		//
-		// }
+		editor.on("ObjectResized", event => {
 
-    return editor;
-  }
+			const content = editor.getContent();
+			this.setValue(content);
+			this.save("resize");
+		});
 
-  setEditor(editor) {
-
-		console.error("deprecated");
-
-    // const key = this.getKey();
-
-    // this.parent.request("set-option", editor, key, "editor");
-
-    const data = this.getData();
-
-    data.editor = editor;
-
-    // this.setData(data);
-  }
-
-	async createEditor(element, params) {
-
-		// if (!KarmaFieldsAlpha.editors) {
-		// 	KarmaFieldsAlpha.editors = [];
-		// }
-		//
-		// KarmaFieldsAlpha.editors.push(element);
-
-
-		// if (this.editor) {
-		// 	this.editor.destroy();
-		// 	this.editor = null;
-		// }
-
-		// -> check if editor.element match
-
-		// let editor = this.buffer.get(...path);
-    // let editor = this.getEditor();
-		//
-		//
-		//
-		// if (editor && editor.bodyElement !== element) {
-		// 	editor.destroy();
-		// 	editor = null;
-		// }
-		//
-		// if (!editor) {
-			const [editor] = await tinyMCE.init({
-				target: element,
-				hidden_input: false,
-				inline: true,
-				menubar: false,
-				contextmenu: false,
-				toolbar: false,
-				skin: false,
-				// theme_url: "tinymce/themes/modern/theme.js",
-		    // paste_as_text: true,
-				paste_word_valid_elements: 'b,strong,i,em,ul,ol',
-				// plugins: "link lists table paste",
-
-
-				// image_caption: true,
-
-
-
-				plugins: "link lists paste image",
-				convert_urls: false,
-        entity_encoding : "raw", // -> don't encode diacritics
-        // placeholder: "hjhlo",
-				// entity_encoding: "named",
-				// image_caption: true,
-				// paste_preprocess: (plugin, args) => {
-			  //   console.log(args.content);
-			  // }
-        ...params
-			});
-
-			// if (!editors.length) {
-			// 	console.warn("editor not created", editors, editor, element);
-			// }
-			//
-			// editor = editors.pop();
-
-			// if (!editor) {
-			// 	editor = tinymce.get(element.id);
-			// 	console.log("!!", editor);
-			// }
-
-			// unactivate history
-			editor.on("BeforeAddUndo", event => {
-				event.preventDefault();
-
-				// console.log("save", event);
-				// this.save("input");
-			});
-
-			editor.on("input", event => {
-				const content = editor.getContent();
-				this.setValue(content);
-				this.save("input");
-			});
-			editor.on("paste", event => {
-				const content = editor.getContent();
-				this.setValue(content);
-				this.save("paste");
-			});
-			editor.on("cut", event => {
-				const content = editor.getContent();
-				this.setValue(content);
-				this.save("cut");
-			});
-
-			// -> input event does not seem to capture line break (single or double) or delete line break !
-			editor.on("keyup", event => {
-				if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
-          // const current = this.getValue();
-					const content = editor.getContent();
-          // if (content !== this.getValue()) {
-					if (content !== this.getSingleValue()) {
-            this.setValue(content);
-						this.save("delete");
-          }
-				}
-			});
-
-			// editor.on("NodeChange", event => {
-			// 	if (event.selectionChange) {
-      //     const data = this.getData();
-			// 		// console.log("NodeChange", data.activeModal, event.element !== data.activeNode);
-			//
-			//
-			// 		if (data.activeModal && event.element !== data.activeNode) {
-      //       data.activeNode = null;
-      //       data.activeModal = null;
-			//
-			//
-			// 			this.renderPopover();
-			// 		}
-			// 	}
-			// 	if (this.renderToolbar) {
-      //     this.renderToolbar();
-      //   }
-			// });
-			//
-			// editor.on("focusout", event => {
-      //   const data = this.getData();
-			// 	if (data.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
-			// 		data.activeNode = null;
-			// 		data.activeModal = null;
-			// 		this.renderPopover();
-			// 	}
-      //   if (this.renderToolbar) {
-      //     this.renderToolbar();
-      //   }
-			// });
-
-			editor.on("focus", event => {
-
-				this.setSelection({final: true});
-				this.render();
-
-
-			});
-
-			editor.on("click", event => {
-
-				const node = editor.selection.getNode();
-        const data = this.getData();
-
-				const selection = this.getSelection();
-
-
-				const a = node.closest("a");
-
-				// if (node.matches("a")) {
-				if (a) {
-
-					// data.activeNode = node;
-					// data.activeModal = "linkForm";
-					// const containerBox = element.parentNode.getBoundingClientRect();
-					// const box = node.getBoundingClientRect();
-
-					// const range = editor.selection.getRng();
-					// const sel = editor.selection.getSel();
-
-					const range = new Range();
-					range.selectNode(a);
-					// console.log(range);
-
-
-
-					this.setSelection({
-						linkForm: {final: true},
-
-						// anchorPath: KarmaFieldsAlpha.field.tinymce.getPath(element, sel.anchorNode),
-						// anchorOffset: sel.anchorOffset,
-						// focusPath: KarmaFieldsAlpha.field.tinymce.getPath(element, sel.focusNode),
-						// focusOffset: sel.focusOffset,
-
-
-						startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
-						startOffset: range.startOffset,
-						endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
-						endOffset: range.endOffset
-
-					});
-
-					editor.selection.setRng(range);
-
-
-				} else if (node.matches("img")) {
-					// data.activeNode = node;
-
-					// this.setSelection({imgForm: {}});
-					// this.request("editmedia");
-
-					// const range = new Range();
-					// range.selectNode(node);
-					//
-					// this.setSelection({
-					// 	imageForm: {final: true},
-					// 	startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
-					// 	startOffset: range.startOffset,
-					// 	endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
-					// 	endOffset: range.endOffset
-					//
-					// });
-
-				} else {
-
-					this.setSelection({final: true});
-
-				}
-
-				this.render();
-
-			});
-
-			editor.on("dblclick", event => {
-				const node = editor.selection.getNode();
-
-				// console.log(node);
-				if (node.matches("img") || node.matches("figure")) {
-					this.fetchImage();
-					// this.request("addmedia");
-				}
-			});
-
-			editor.on("ObjectResized", event => {
-				// this.request("resizemedia");
-				// this.renderPopover();
-
-				// const node = editor.selection.getNode();
-				//
-				// var cs = getComputedStyle(element);
-				// var containerWidth = element.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-				//
-				// // console.log(node, event, containerWidth);
-				// if (event.target.matches("img")) {
-				// 	node.setAttribute("data-style", `width: ${100*event.width/containerWidth}%`);
-				// } else if (event.target.matches("figure")) {
-				// 	const img = event.target.querySelector("img");
-				// 	img.setAttribute("style", `width: ${100*event.width/containerWidth}%`)
-				// }
-
-				const content = editor.getContent();
-				this.setValue(content);
-				this.save("resize");
-			});
-
-      // this.setEditor(editor);
-
-		// }
-		//
-		// return editor;
+		container.tinymce = editor;
 	}
 
   queryCommand(key) {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       return editor.queryCommandState(key);
 
@@ -452,7 +441,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       editor.execCommand(key);
 
@@ -467,7 +456,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       return editor.queryCommandValue("InsertUnorderedList") === "true";
 
@@ -480,7 +469,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       return editor.queryCommandValue("InsertOrderedList") === "true";
 
@@ -494,7 +483,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       if (editor.queryCommandValue("InsertUnorderedList") !== "true") {
 
@@ -521,7 +510,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       if (editor.queryCommandValue("InsertOrderedList") !== "true") {
 
@@ -548,7 +537,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
   getFormat() {
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       const matches = editor.queryCommandValue("FormatBlock").match(/h[1-6]/);
 
@@ -567,7 +556,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       editor.execCommand("FormatBlock", false, value);
 
@@ -597,7 +586,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 		const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       editor.execCommand("Unlink");
 
@@ -667,7 +656,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       const node = editor.selection.getNode();
 
@@ -692,7 +681,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
 			const editorBody = editor.getElement();
 			const selection = this.getSelection();
@@ -736,7 +725,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 		const editor = this.getEditor();
 
-		if (editor) {
+		if (editor && editor !== KarmaFieldsAlpha.loading) {
 
 
 			const element = editor.getElement();
@@ -953,7 +942,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     const editor = this.getEditor();
 
-    if (editor) {
+    if (editor && editor !== KarmaFieldsAlpha.loading) {
 
       return editor.selection.getContent().length > 0;
 
@@ -1595,7 +1584,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 		const editor = this.getEditor();
 
-		if (editor) {
+		if (editor && editor !== KarmaFieldsAlpha.loading) {
 
 			const table = KarmaFieldsAlpha.mediasTable || "medias";
 			const element = editor.getElement();
@@ -1800,9 +1789,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	attachImages(attachmentIds) {
 
-		const editor = this.request("getEditor");
+		const editor = this.getEditor();
 
-		if (editor) {
+		if (editor && editor !== KarmaFieldsAlpha.loading) {
 
 			const attachments = this.getFiles(attachmentIds);
 
@@ -1905,75 +1894,75 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 	// }
 
 
-	saveContent() {
-
-		// const key = this.getKey();
-		// const value = this.editor.getContent();
-		// const current = await this.parent.request("get", {}, key);
-		//
-		// if (value !== KarmaFieldsAlpha.Type.toString(current)) {
-		//
-		// 	KarmaFieldsAlpha.History.save();
-		// 	await this.parent.request("set", {data: value}, key);
-		// 	await this.parent.request("edit");
-		//
-		// }
-
-
-		// this.throttle(async () => {
-
-		// 	const key = this.getKey();
-		// 	let value = this.editor.getContent();
-
-		// 	value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
-
-		// 	const current = this.parent.request("get", {}, key);
-
-    //   if (current && value !== KarmaFieldsAlpha.Type.toString(current)) {
-
-    //     KarmaFieldsAlpha.History.save();
-    //     this.parent.request("set", value, key);
-    //     this.parent.request("edit");
-
-    //   }
-
-
-
-		// }, 500);
-
-
-
-
-    // this.debounce("typing", async () => {
-
-      // const editor = this.getEditor();
-			//
-      // if (editor) {
-			//
-      //   let value = editor.getContent().normalize();
-			//
-      //   value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
-			//
-      //   const [currentValue] = this.getValue() || [];
-			//
-      //   if (value !== currentValue) {
-			//
-      //     this.setValue(value);
-			//
-      //     this.parent.request("save");
-      //     this.parent.request("render");
-			//
-      //   }
-			//
-      // }
-
-      // this.unlock();
-
-    // }, 1000);
-
-    // this.lock();
-
-	}
+	// saveContent() {
+	//
+	// 	// const key = this.getKey();
+	// 	// const value = this.editor.getContent();
+	// 	// const current = await this.parent.request("get", {}, key);
+	// 	//
+	// 	// if (value !== KarmaFieldsAlpha.Type.toString(current)) {
+	// 	//
+	// 	// 	KarmaFieldsAlpha.History.save();
+	// 	// 	await this.parent.request("set", {data: value}, key);
+	// 	// 	await this.parent.request("edit");
+	// 	//
+	// 	// }
+	//
+	//
+	// 	// this.throttle(async () => {
+	//
+	// 	// 	const key = this.getKey();
+	// 	// 	let value = this.editor.getContent();
+	//
+	// 	// 	value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
+	//
+	// 	// 	const current = this.parent.request("get", {}, key);
+	//
+  //   //   if (current && value !== KarmaFieldsAlpha.Type.toString(current)) {
+	//
+  //   //     KarmaFieldsAlpha.History.save();
+  //   //     this.parent.request("set", value, key);
+  //   //     this.parent.request("edit");
+	//
+  //   //   }
+	//
+	//
+	//
+	// 	// }, 500);
+	//
+	//
+	//
+	//
+  //   // this.debounce("typing", async () => {
+	//
+  //     // const editor = this.getEditor();
+	// 		//
+  //     // if (editor) {
+	// 		//
+  //     //   let value = editor.getContent().normalize();
+	// 		//
+  //     //   value = value.replace("&amp;nbsp;", "&nbsp;"); // -> tinymce convert &nbsp; into &amp;nbsp;
+	// 		//
+  //     //   const [currentValue] = this.getValue() || [];
+	// 		//
+  //     //   if (value !== currentValue) {
+	// 		//
+  //     //     this.setValue(value);
+	// 		//
+  //     //     this.parent.request("save");
+  //     //     this.parent.request("render");
+	// 		//
+  //     //   }
+	// 		//
+  //     // }
+	//
+  //     // this.unlock();
+	//
+  //   // }, 1000);
+	//
+  //   // this.lock();
+	//
+	// }
 
 	// async getValue() {
 	//
@@ -2021,10 +2010,27 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	// }
 
+	hasFocus() {
+
+		const editor = this.getEditor();
+
+		return Boolean(editor && editor !== KarmaFieldsAlpha.loading && editor.hasFocus());
+
+	}
+
 	build() {
 		return {
 			class: "editor karma-tinymce",
+			init: container => {
+				container.element.tinymce = KarmaFieldsAlpha.loading;
+			},
       update: container => {
+
+				const instance = KarmaFieldsAlpha.tinymce.getInstance(container.element);
+
+				// console.log("updte container", container.element, instance);
+
+				this.registerInstance(instance);
 
 				// this.render = container.render;
 
@@ -2035,7 +2041,19 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				// const multiple = this.request("multiple");
 				const selection = this.getSelection() || {};
 
-				let [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+				let value = this.getSingleValue();
+
+				if (value === undefined) {
+
+					value = KarmaFieldsAlpha.field.input.prototype.getDefault.call(this);
+
+					if (value !== undefined) {
+
+						this.setValue(value);
+
+					}
+
+				}
 
 				container.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
 
@@ -2060,8 +2078,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                           // children: ["separator", "edit"],
 													children: ["separator", "edit"],
                           ...this.resource.textarea_buttons,
-													index: "toolbar",
-													uid: `${this.resource.uid}-toolbar`
+													index: "toolbar"
                         }).build()
                       }
                     ]
@@ -2075,8 +2092,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 												node.child = this.createChild({
 													type: "textarea",
 													index: "textarea",
-													key: "raw",
-													uid: `${this.resource.uid}-textarea` // -> how to connect with label ??
+													key: "raw"
+													// uid: `${this.resource.uid}-textarea` // -> how to connect with label ??
 												}).build()
                         // node.child = {
                         //   tag: "textarea",
@@ -2130,6 +2147,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                         class: "toolbar",
                         update: toolbar => {
                           this.renderToolbar = toolbar.render;
+													toolbar.element.classList.toggle("dark", this.hasFocus());
                         },
                         child: this.createChild({
                           type: "buttons",
@@ -2142,7 +2160,18 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                     class: "tinymce editor-body",
 										init: node => {
 											node.element.editable = true;
-											node.element.id = this.resource.uid;
+											// node.element.id = this.resource.uid; // FAIL -> in block editor, resource.uid is not static
+
+											instance.init(node.element, this.resource.mceinit);
+
+
+
+
+											// KarmaFieldsAlpha.tasks.push({
+											// 	type: "editor",
+											// 	element: node.element,
+											// 	resolve: async task => this.createEditor(node.element, this.resource.mceinit, container.element)
+											// });
 
 											node.element.onmousedown = event => {
 											  event.stopPropagation(); // -> prevent re-rendering (moved to text field)
@@ -2150,58 +2179,36 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 										},
                     update: node => {
-											const editor = this.getEditor(node.element);
-											if (editor) {
 
-												let content = editor.getContent();
+											const editor = this.getEditor();
 
-												if (value !== KarmaFieldsAlpha.loading && value !== content) {
-													// console.log("content not match", value, editor.getContent());
+											if (editor === KarmaFieldsAlpha.loading) {
 
-													if (value === undefined) {
+												return;
 
-														const defaultValue = KarmaFieldsAlpha.field.input.prototype.getDefault.call(this);
+											}
 
-														if (defaultValue !== undefined) {
+											if (value === KarmaFieldsAlpha.loading) {
 
-															editor.setContent(defaultValue);
+												return;
 
-															content = editor.getContent();
+											}
 
-														}
+											let content = editor.getContent();
 
-													} else {
+											if (content !== value) {
 
-														editor.setContent(value);
+												editor.setContent(value);
 
-														content = editor.getContent();
+												content = editor.getContent();
 
-													}
+												if (content !== value) { // -> check if editor has formated things!
 
-													// const content = editor.getContent();
+													this.setValue(content);
+													this.save();
 
-													if (content !== value) {
-														// -> editor has formated things!
-
-														console.log("Editor -> save value", value, content);
-
-														this.setValue(content);
-														this.save();
-
-													}
-
-
-
-
-
-													// editor.setContent(value);
-													// const content = editor.getContent();
-													// if (content !== value) {
-													// 	// -> editor has formated things!
-													// 	this.setValue(content);
-													// 	this.save();
-													// }
 												}
+
 											}
 
                     }
@@ -2252,6 +2259,12 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                             //     popover.element.style.top = (nodeBox.bottom - containerBox.y + 5).toFixed()+"px";
                             //   }
                             // }
+
+														popover.element.onmousedown = event => {
+															event.stopPropagation();
+														}
+
+
 														popover.element.classList.toggle("hidden", !selection[type]);
                             popover.element.classList.toggle("active", Boolean(selection[type]));
                             if (selection[type]) {
@@ -2285,7 +2298,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 															// // width: box.width,
 															// // height: box.height
 
-															if (editor) {
+															if (editor && editor !== KarmaFieldsAlpha.loading) {
 
 																const editorBody = editor.getElement();
 
@@ -2369,7 +2382,7 @@ KarmaFieldsAlpha.field.tinymce.buttons = class extends KarmaFieldsAlpha.field.co
 		super({
 			display: "flex",
 			// children: ["format", "bold", "italic", "link", "ul", "ol"],
-			children: ["format", "bold", "italic", "link", "ul", "ol", "image", "separator", "code"],
+			children: ["format", "bold", "italic", "link", "ul", "ol", "image", "code"],
 			...resource
 		});
 
@@ -2396,6 +2409,20 @@ KarmaFieldsAlpha.field.tinymce.buttons.format = class extends KarmaFieldsAlpha.f
 		});
 	}
 }
+
+// KarmaFieldsAlpha.field.tinymce.buttons.lists = class extends KarmaFieldsAlpha.field.dropdown {
+// 	constructor(resource) {
+// 		super({
+// 			type: "dropdown",
+// 			key: "lists",
+// 			options: [
+// 				{id: "ul", name: ""},
+// 				{id: "ol", name: ""}
+// 			],
+// 			...resource
+// 		});
+// 	}
+// }
 
 KarmaFieldsAlpha.field.tinymce.buttons.bold = class extends KarmaFieldsAlpha.field.button {
 	constructor(resource) {
@@ -2967,9 +2994,9 @@ KarmaFieldsAlpha.field.tinymce.imageForm = class extends KarmaFieldsAlpha.field.
 
 	attachImages(attachmentIds) {
 
-		const editor = this.request("getEditor");
+		const editor = this.getEditor();
 
-		if (!editor) {
+		if (!editor || editor === KarmaFieldsAlpha.loading) {
 
 			return;
 
@@ -3063,6 +3090,194 @@ KarmaFieldsAlpha.field.tinymce.imageForm = class extends KarmaFieldsAlpha.field.
 
 }
 
+
+KarmaFieldsAlpha.tinymce = class {
+
+	static clearInstances() {
+
+		if (this.map) {
+
+			this.map.forEach(instance => void instance.destroy());
+
+			this.map.clear();
+
+		}
+
+	}
+
+	static getInstance(container) {
+
+		if (!this.map) {
+
+			this.map = new Map();
+
+		}
+
+		if (!this.map.has(container)) {
+
+			this.map.set(container, new this());
+
+		}
+
+		return this.map.get(container);
+
+	}
+
+	constructor() {
+
+		// this.editor = KarmaFieldsAlpha.loading;
+
+	}
+
+	init(element, params = {}) {
+
+		// console.log("init", element, this);
+
+		KarmaFieldsAlpha.tasks.push({
+			type: "editor",
+			element: element,
+			resolve: async task => this.create(element, params)
+		});
+
+	}
+
+	async create(element, params = {}) {
+
+
+
+		const [editor] = await tinyMCE.init({
+			target: element,
+			hidden_input: false,
+			inline: true,
+			menubar: false,
+			contextmenu: false,
+			toolbar: false,
+			skin: false,
+			// theme_url: "tinymce/themes/modern/theme.js",
+	    // paste_as_text: true,
+			paste_word_valid_elements: 'b,strong,i,em,ul,ol',
+			// plugins: "link lists table paste",
+			// image_caption: true,
+			plugins: "link lists paste image",
+			convert_urls: false,
+      entity_encoding : "raw", // -> don't encode diacritics
+      // placeholder: "hjhlo",
+			// entity_encoding: "named",
+			// image_caption: true,
+			// paste_preprocess: (plugin, args) => {
+		  //   console.log(args.content);
+		  // }
+      ...params
+		});
+
+		// unactivate history
+		editor.on("BeforeAddUndo", event => {
+			event.preventDefault();
+		});
+
+		editor.on("input", event => {
+			if (this.onUpdateContent) {
+				const content = editor.getContent();
+				this.onUpdateContent(content, "input");
+			}
+		});
+		editor.on("paste", event => {
+			if (this.onUpdateContent) {
+				const content = editor.getContent();
+				this.onUpdateContent(content, "paste");
+			}
+		});
+		editor.on("cut", event => {
+			if (this.onUpdateContent) {
+				const content = editor.getContent();
+				this.onUpdateContent(content, "paste");
+			}
+		});
+
+		// -> input event does not seem to capture line break (single or double) or delete line break !
+		editor.on("keyup", event => {
+			if ((event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") && this.onUpdateContent) {
+				const content = editor.getContent();
+				this.onUpdateContent(content, "delete");
+			}
+		});
+
+		editor.on("focus", event => {
+			if (this.onUpdateSelection) {
+				this.onUpdateSelection({final: true});
+			}
+		});
+
+		editor.on("click", event => {
+
+			const node = editor.selection.getNode();
+			const a = node.closest("a");
+
+			if (a) {
+
+				const range = new Range();
+				range.selectNode(a);
+
+				if (this.onUpdateSelection) {
+
+					this.onUpdateSelection({
+						linkForm: {final: true},
+						startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
+						startOffset: range.startOffset,
+						endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
+						endOffset: range.endOffset
+					});
+
+				}
+
+				editor.selection.setRng(range);
+
+			} else if (node.matches("img")) {
+
+
+			} else {
+
+				if (this.onUpdateSelection) {
+
+					this.onUpdateSelection({final: true});
+
+				}
+
+			}
+
+		});
+
+		editor.on("dblclick", event => {
+			const node = editor.selection.getNode();
+			if (node.matches("img") || node.matches("figure")) {
+				if (this.onFetchImage) {
+					this.onFetchImage()
+				}
+			}
+		});
+
+		editor.on("ObjectResized", event => {
+			if (this.onUpdateContent) {
+				const content = editor.getContent();
+				this.onUpdateContent(content, "paste");
+			}
+		});
+
+		this.editor = editor;
+
+	}
+
+	destroy() {
+
+		if (this.editor) {
+
+			this.editor.destroy();
+
+		}
+
+	}
+
+}
 
 
 

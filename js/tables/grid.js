@@ -643,7 +643,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     const {page, ppp, orderby, order, ...defaultParams} = this.resource.params;
 
-    params = {...params, ...defaultParams}; // default params are needed (e.g) for setting post-type
+    params = {...defaultParams, ...params}; // default params are needed (e.g) for setting post-type
 
 
     //
@@ -796,6 +796,19 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     const selection = this.getSelection();
 
     return Boolean(selection && selection.length);
+
+  }
+
+  /**
+   * set selection to modal (not deeper), when modal background is clicked
+   *
+   * is extended by hierarchy
+   */
+  clearModalSelection() {
+
+    const selection = this.getSelection();
+
+    this.setSelection({index: selection.index || 0, length: selection.length || 0, final: true});
 
   }
 

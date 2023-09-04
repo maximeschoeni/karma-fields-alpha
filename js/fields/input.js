@@ -418,9 +418,10 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 			tag: "input", // tag: this.resource.type   ! -> Fail when extending class!
 			class: "text-input karma-field",
 			init: input => {
-				if (this.resource.type === "input") {
-					input.element.type = "text";
-				}
+				// if (this.resource.type === "input") {
+				// 	input.element.type = "text"; // ! -> Fail when extending class!
+				// }
+				input.element.type = "text";
 				input.element.id = this.getUid();
 				if (this.resource.input) {
 					Object.assign(input.element, this.resource.input);

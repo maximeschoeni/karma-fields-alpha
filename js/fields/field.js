@@ -204,6 +204,31 @@ KarmaFieldsAlpha.field = class {
 
   }
 
+  copy(selection = this.getSelection()) {
+
+    const child = this.getSelectionChild(selection);
+
+    if (child) {
+
+      return child.copy(selection[child.resource.index]);
+
+    }
+
+  }
+
+  paste(string, selection = this.getSelection()) { // -> same as base method
+
+    const child = this.getSelectionChild(selection);
+
+    if (child) {
+
+      return child.paste(string, selection[child.resource.index]);
+
+    }
+
+  }
+
+
   execute(command, ...params) {
 
     this.parent.execute(command, ...params);
@@ -854,39 +879,19 @@ console.error("deprecated");
   }
 
 
-  paste(value, selection) {
+  // paste(value, selection) {
+  //
+  //   this.import([value], selection.index || 0, selection.length || 0);
+  //
+  // }
 
-    this.import([value], selection.index || 0, selection.length || 0);
-
-
-// console.error("deprecated");
-//     if (selection && this.resource.children) {
-//
-//       for (let i = 0; i < this.resource.children.length; i++) {
-//
-//         if (selection[i]) {
-//
-//           const child = this.createChild({...this.resource.children[i], index: i});
-//
-//           child.paste(value, selection[child.resource.index]);
-//
-//           break;
-//
-//         }
-//
-//       }
-//
-//     }
-
-  }
-
-  copy(selection) {
-
-    const [value] = this.export([], selection.index || 0, selection.length || 0);
-
-    return value;
-
-  }
+  // copy(selection) {
+  //
+  //   const [value] = this.export([], selection.index || 0, selection.length || 0);
+  //
+  //   return value;
+  //
+  // }
 
 
   // export(object = {}) {

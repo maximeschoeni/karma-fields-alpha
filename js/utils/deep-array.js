@@ -1,19 +1,19 @@
 
 KarmaFieldsAlpha.DeepArray = class {
 
-  // static get(array, index, ...path) {
-  //
-  //   if (index === undefined) {
-  //
-  //     return array;
-  //
-  // 	} else if (array[index] && array[index].children) {
-  //
-  //     return this.get(array[index].children, ...path);
-  //
-  // 	}
-  //
-  // };
+  static getArray(array, index, ...path) {
+
+    if (index === undefined) {
+
+      return array;
+
+  	} else if (array[index] && array[index].children) {
+
+      return this.getArray(array[index].children, ...path);
+
+  	}
+
+  };
 
   static get(array, index, ...path) {
 
@@ -72,7 +72,7 @@ KarmaFieldsAlpha.DeepArray = class {
         array[index] = {};
 
       }
-      
+
       if (!array[index].children) {
 
         array[index].children = [];

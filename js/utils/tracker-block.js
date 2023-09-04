@@ -9,6 +9,43 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
   //
   // }
 
+  // getChildren() {
+  //
+  // }
+
+
+  constructor(container) {
+
+    super(container);
+
+    this.root = container.closest(".block-root");
+
+  }
+
+  start(row) {
+
+    if (this.selection && KarmaFieldsAlpha.Selection.containRow(this.selection, row)) {
+
+      this.root.style.minHeight = `${this.root.clientHeight}px`;
+      this.root.classList.add("dragging-happens");
+
+    }
+
+    super.start(row);
+  }
+
+  complete() {
+
+    if (this.dragging) {
+
+      this.root.style.minHeight = "none";
+      this.root.classList.remove("dragging-happens");
+
+    }
+
+    super.complete();
+  }
+
   update() {
 
     if (this.dragging) {
@@ -25,8 +62,14 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
       //
       // }
 
+
+
+
       const containerBox = {x: 0, y: 0, width: this.container.clientWidth, height: this.container.clientHeight};
       const children = this.getChildren();
+
+
+
       const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
 
       let containerAbsPos = this.getAbsolutePosition();
@@ -62,45 +105,48 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
 
       const padding = 10;
 
-      const exitLeft = !isRoot && this.tracker.deltaX < 0
+      const deltaX = this.tracker.clientDiffX;
+      const deltaY = this.tracker.clientDiffY;
+
+      const exitLeft = !isRoot && deltaX < 0
         // && (this.selection.length < this.container.childElementCount || leftContainer && leftContainer.childElementCount > 0)
         && leftContainer
         // && firstBox.x + travelX + firstBox.width/2 < containerBox.x;
         && elements[0].offsetLeft + travelX + elements[0].clientWidth/2 < 0;
 
-      const exitRight = !isRoot && this.tracker.deltaX > 0
+      const exitRight = !isRoot && deltaX > 0
         // && (this.selection.length < this.container.childElementCount || rightContainer && rightContainer.childElementCount > 0)
         && rightContainer
         // && firstBox.x + travelX + firstBox.width/2 > containerBox.x + containerBox.width;
         && elements[0].offsetLeft + travelX + elements[0].clientWidth/2 > this.container.clientWidth;
 
-      const exitTop = !isRoot && this.tracker.deltaY < 0
+      const exitTop = !isRoot && deltaY < 0
         && this.selection.index === 0
         // && firstBox.y + travelY + firstBox.height/2 < containerBox.y;
         && elements[0].offsetTop + travelY < -padding;
 
-      const exitBottom = !isRoot && this.tracker.deltaY > 0
+      const exitBottom = !isRoot && deltaY > 0
         && this.selection.index + this.selection.length === this.container.childElementCount
         // && lastBox.y + travelY + lastBox.height/2 > containerBox.y + containerBox.height;
         && elements[elements.length-1].offsetTop + travelY + elements[elements.length-1].clientHeight > this.container.clientHeight + padding;
 
-      const enterTop = this.tracker.deltaY < 0
-        && elementBefore && elementBefore.classList.contains("block-columns")
+      const enterTop = deltaY < 0
+        && elementBefore && elementBefore.classList.contains("block-group")
         // && topNeighbourBox && firstBox.y + travelY < topNeighbourBox.y + topNeighbourBox.height - padding;
         && elements[0].offsetTop + travelY < elementBefore.offsetTop + elementBefore.clientHeight - padding;
 
-      const enterBottom = this.tracker.deltaY > 0
-        && elementAfter && elementAfter.classList.contains("block-columns")
+      const enterBottom = deltaY > 0
+        && elementAfter && elementAfter.classList.contains("block-group")
         // && bottomNeighbourBox && lastBox.y + travelY + lastBox.height > bottomNeighbourBox.y + padding;
         && elements[elements.length-1].offsetTop + travelY + elements[elements.length-1].clientHeight > elementAfter.offsetTop + padding;
 
-      const swapTop = this.tracker.deltaY < 0
-        && elementBefore && !elementBefore.classList.contains("block-columns")
+      const swapTop = deltaY < 0
+        && elementBefore && !elementBefore.classList.contains("block-group")
         // && topNeighbourBox && firstBox.y + travelY < topNeighbourBox.y + topNeighbourBox.height/2;
         && elements[0].offsetTop + travelY < elementBefore.offsetTop + elementBefore.clientHeight/2;
 
-      const swapBottom = this.tracker.deltaY > 0
-        && elementAfter && !elementAfter.classList.contains("block-columns")
+      const swapBottom = deltaY > 0
+        && elementAfter && !elementAfter.classList.contains("block-group")
         // && bottomNeighbourBox && firstBox.y + travelY + firstBox.height < bottomNeighbourBox.y + bottomNeighbourBox.height/2;
         && elements[elements.length-1].offsetTop + travelY + elements[elements.length-1].clientHeight > elementAfter.offsetTop + elementAfter.clientHeight/2;
 
@@ -115,6 +161,7 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
       //   swapTop: swapTop,
       //   swapBottom: swapBottom
       // });
+
 
 
       if (exitLeft) {
@@ -178,9 +225,6 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
       travelX = this.tracker.x - this.offsetX - elements[0].offsetLeft - containerAbsPos.x + this.originAbsPos.x;
       travelY = this.tracker.y - this.offsetY - elements[0].offsetTop - containerAbsPos.y + this.originAbsPos.y;
 
-
-      // console.log(travelX, this.tracker.x, containerAbsPos.x);
-
       this.sliceSegment(this.selection).forEach(element => element.style.transform = `translate(${travelX}px, ${travelY}px)`);
 
     } else {
@@ -192,7 +236,7 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
   }
 
   exitLeft() {
-    console.log("exitLeft");
+    // console.log("exitLeft");
     // debugger;
 
     const children = this.getChildren();
@@ -264,7 +308,8 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
   }
 
   exitRight() {
-    console.log("exitRight");
+    // console.log("exitRight");
+
 
     // debugger;
 
@@ -341,24 +386,19 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
 
   exitTop() {
 
-    console.log("exitTop");
+    // console.log("exitTop");
 
-    const parentColumns = this.container.parentNode;
+    // const parentColumns = this.container.parentNode;
+    const parentColumns = this.container.closest(".block");
+
     const newContainer = parentColumns.parentNode;
+
     const children = this.getChildren();
     const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
     const newIndex = this.path[this.path.length-2];
     const newPath = this.path.slice(0, -2);
 
-    // const offsetLeft = elements[0].offsetLeft + this.container.offsetLeft + parentColumns.offsetLeft;
-    // const offsetTop = elements[0].offsetTop + this.container.offsetTop + parentColumns.offsetTop;
-
     this.insertElements(newContainer, elements, parentColumns);
-
-    // requestAnimationFrame(() => {
-    //   this.originX += elements[0].offsetLeft - offsetLeft;
-    //   this.originY += elements[0].offsetTop - offsetTop;
-    // });
 
     this.container = newContainer;
 
@@ -377,9 +417,13 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
 
   exitBottom() {
 
-    console.log("exitBottom");
+    // debugger;
 
-    const parentColumns = this.container.parentElement;
+
+    // console.log("exitBottom");
+
+    // const parentColumns = this.container.parentElement;
+    const parentColumns = this.container.closest(".block");
     const newContainer = parentColumns.parentElement;
     const children = this.getChildren();
     const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
@@ -427,13 +471,17 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
 
   enterTop() {
 
-    console.log("enterTop");
+    // console.log("enterTop");
 
     const children = this.getChildren();
     const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
 
     const prevColumns = elements[0].previousElementSibling;
-    const newContainer = prevColumns.firstElementChild; // this.findColumn(prevColumns)
+    // const newContainer = prevColumns.firstElementChild;
+    const newContainer = prevColumns.querySelector(".block-column");
+
+
+
 
     const newIndex = newContainer.childElementCount;
     const newPath = [...this.path, this.selection.index - 1, 0];
@@ -466,13 +514,15 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
 
   enterBottom() {
 
-    console.log("enterBottom");
+    // console.log("enterBottom");
+    // debugger;
 
     const children = this.getChildren();
     const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
 
     const nextColumns = elements[elements.length-1].nextElementSibling;
-    const newContainer = nextColumns.firstElementChild; // this.findColumn(nextColumns)
+    // const newContainer = nextColumns.firstElementChild; // this.findColumn(nextColumns)
+    const newContainer = nextColumns.querySelector(".block-column"); // this.findColumn(nextColumns)
 
     const newIndex = 0;
     const newPath = [...this.path, this.selection.index, 0];

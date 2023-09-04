@@ -329,6 +329,9 @@ KarmaFieldsAlpha.Tracker = class {
 		this.nX = x/this.box.width;
 		this.nY = y/this.box.height;
 
+		this.lastClientX = this.clientX;
+		this.lastClientY = this.clientY;
+
 		this.swipeRight = false;
 		this.swipeLeft = false;
 		this.swipeDown = false;
@@ -368,6 +371,13 @@ KarmaFieldsAlpha.Tracker = class {
 
 		this.nX = x/this.box.width;
 		this.nY = y/this.box.height;
+
+
+		this.clientDiffX = this.clientX - this.lastClientX;
+		this.clientDiffY = this.clientY - this.lastClientY;
+
+		this.lastClientX = this.clientX;
+		this.lastClientY = this.clientY;
 
 		if (this.onupdate) {
 			this.onupdate();

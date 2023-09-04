@@ -326,10 +326,6 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 			init: container => {
         // this.render = container.render;
 
-        // container.element.onmousedown = event => {
-        //   event.stopPropagation();
-        // }
-
 			},
       update: container => {
 

@@ -16,7 +16,13 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 	export(items = []) {
 
-		if (this.resource.export) {
+		if (this.resource.export === true) {
+
+			const value = this.getContent();
+
+			items.push(value);
+
+		} else if (this.resource.export) {
 
 			const value = new KarmaFieldsAlpha.Expression(this.resource.export, this).toString();
 
@@ -215,7 +221,7 @@ KarmaFieldsAlpha.field.text.a = class extends KarmaFieldsAlpha.field {
 
 				if (table !== KarmaFieldsAlpha.loading && params !== KarmaFieldsAlpha.loading) {
 
-					KarmaFieldsAlpha.saucer.open(table, params);
+					KarmaFieldsAlpha.saucer.open(table, params, this.resource.context);
 
 				}
 
@@ -299,28 +305,30 @@ KarmaFieldsAlpha.field.text.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
+				const dir = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "dir") || "";
+
+				if (dir === KarmaFieldsAlpha.loading) {
+
+					return {icon: "image", text:text};
+
+				}
+
 				if (mimetype === "image/jpeg" || mimetype === "image/png") {
 
 					// const dir = KarmaFieldsAlpha.Query.getDir(driver, id);
-					const dir = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "dir");
+
 					// const sizes = KarmaFieldsAlpha.Query.getSizes(driver, id);
-					const sizes = KarmaFieldsAlpha.Query.getValue(driver, id, "sizes");
-
-					if (dir === KarmaFieldsAlpha.loading || !sizes || sizes === KarmaFieldsAlpha.loading) {
-
-						return {icon: "image", text:text};
-
-					}
+					const sizes = KarmaFieldsAlpha.Query.getValue(driver, id, "sizes") || [];
 
 					return {
 						icon: "image",
 						text: text,
 						mimetype: mimetype,
 						filename: filename,
-						src: KarmaFieldsAlpha.uploadURL+"/"+filename,
+						src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
 						sizes: sizes,
-						dir: dir || "",
-						srcset: sizes.filter(size => size.width).map(size => `${KarmaFieldsAlpha.uploadURL}${dir}/${encodeURI(size.filename)} ${size.width}w`)
+						dir: dir || ""
+						// srcset: sizes.filter(size => size.width).map(size => `${KarmaFieldsAlpha.uploadURL}${dir}/${encodeURI(size.filename)} ${size.width}w`)
 					};
 
 				} else {
@@ -330,7 +338,8 @@ KarmaFieldsAlpha.field.text.media = class extends KarmaFieldsAlpha.field {
 						text: text,
 						mimetype: mimetype,
 						filename: filename,
-						src: KarmaFieldsAlpha.uploadURL+"/"+filename,
+						dir: dir || "",
+						src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
 					};
 
 				}
@@ -346,18 +355,35 @@ KarmaFieldsAlpha.field.text.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
+				const dir = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "dir") || "";
+
+				if (dir === KarmaFieldsAlpha.loading) {
+
+					return {icon: "image", text:text};
+
+				}
+
 				return {
 					icon: "video",
 					text: text,
 					mimetype: mimetype,
 					filename: filename,
-					src: KarmaFieldsAlpha.uploadURL+"/"+filename,
+					dir: dir || "",
+					src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
 				};
 
 			} else if (mimetype && mimetype.startsWith("audio")) {
 
 				// const filename = KarmaFieldsAlpha.Query.getFilename(driver, id);
 				const filename = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "filename");
+
+				const dir = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "dir") || "";
+
+				if (dir === KarmaFieldsAlpha.loading) {
+
+					return {icon: "image", text:text};
+
+				}
 
 				if (filename === KarmaFieldsAlpha.loading) {
 
@@ -370,7 +396,8 @@ KarmaFieldsAlpha.field.text.media = class extends KarmaFieldsAlpha.field {
 					text: text,
 					mimetype: mimetype,
 					filename: filename,
-					src: KarmaFieldsAlpha.uploadURL+"/"+filename,
+					dir: dir || "",
+					src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
 				};
 
 			} else if (mimetype && mimetype.startsWith("text")) {
@@ -458,6 +485,7 @@ KarmaFieldsAlpha.field.text.media = class extends KarmaFieldsAlpha.field {
 									update: img => {
 										let src;
 										const thumb = this.resource.display === "thumb" && media.sizes && media.sizes.find(size => size.name === "thumbnail" && size.filename);
+
 										if (thumb) {
 											src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(thumb.filename)}`;
 										} else {

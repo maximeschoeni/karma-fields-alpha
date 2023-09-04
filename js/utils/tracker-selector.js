@@ -86,44 +86,58 @@ KarmaFieldsAlpha.Selector = class {
     //   length: 1
     // };
 
-    const row = this.getRow(index);
-    const col = this.getCol(index);
+    // const row = this.getRow(index);
+    // const col = this.getCol(index);
+    //
+    // this.tie = new KarmaFieldsAlpha.Selection(row, 1, col, 1);
+    //
+    //
+    // if (this.selection) { // this.selection should be frozen
+    //
+    //   if (this.tracker.event.shiftKey) {
+    //     this.tie = this.selection;
+    //   } else {
+    //     this.sliceSegment(this.selection).forEach(element => element.classList.remove("selected"));
+    //     this.sliceSelection(this.selection).forEach(element => element.classList.remove("selected-cell"));
+    //     this.selection = null;
+    //   }
+    // }
 
-    this.tie = new KarmaFieldsAlpha.Selection(row, 1, col, 1);
-
-
-
-    // Object.freeze(this.tie);
-
-    if (this.selection) { // this.selection should be frozen
-
-      // if (!this.selection instanceof KarmaFieldsAlpha.Selection) {
-      //
-      //   // console.warning("this.selection is not instance of Selection!");
-      //
-      //   // this.selection = (new KarmaFieldsAlpha.Selection()).assign(this.selection);
-      //
-      // }
-
-      if (this.tracker.event.shiftKey) {
-        this.tie = this.selection;
-      } else {
-        this.sliceSegment(this.selection).forEach(element => element.classList.remove("selected"));
-        this.sliceSelection(this.selection).forEach(element => element.classList.remove("selected-cell"));
-        this.selection = null;
-      }
-    }
-
-    this.update();
+    // this.update();
 
 
 
     if (index > -1) {
 
+      const row = this.getRow(index);
+      const col = this.getCol(index);
+
+      this.start(row, col);
+
       this.tracker.event.stopPropagation();
 
     }
 
+
+  }
+
+
+  start(row, col) {
+
+    this.tie = new KarmaFieldsAlpha.Selection(row || 0, 1, col || 0, 1);
+
+    if (this.selection) { // this.selection should be frozen
+
+      if (this.tracker.event.shiftKey) {
+        this.tie = this.selection;
+      } else {
+        // this.sliceSegment(this.selection).forEach(element => element.classList.remove("selected"));
+        // this.sliceSelection(this.selection).forEach(element => element.classList.remove("selected-cell"));
+        this.selection = null;
+      }
+    }
+
+    this.update();
 
   }
 

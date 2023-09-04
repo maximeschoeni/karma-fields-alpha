@@ -43,6 +43,7 @@ KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
 	}
 	while (child) {
 		let next = child && child.nextElementSibling;
+		child.dispatchEvent(new Event("removed"));
 		element.removeChild(child);
 		child = next;
 	}

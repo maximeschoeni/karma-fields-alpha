@@ -518,16 +518,38 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   //
   // }
 
-  copy() {
+  // copy() {
+  //
+  //   const selection = this.getSelection() || {};
+  //
+  //   return this.follow(selection, (field, selection) => {
+  //
+  //     // return field.export([], selection.index, selection.length, selection.colIndex, selection.colLength);
+  //     return field.copy(selection);
+  //
+  //   });
+  //
+  // }
 
-    const selection = this.getSelection() || {};
+  paste(string, selection = this.getSelection()) {
 
-    return this.follow(selection, (field, selection) => {
+    super.paste(string, selection);
 
-      // return field.export([], selection.index, selection.length, selection.colIndex, selection.colLength);
-      return field.copy(selection);
+    this.save("paste");
 
-    });
+    this.render();
+
+  }
+
+  copy(selection = this.getSelection()) { // -> same as base method
+
+    const child = this.getSelectionChild(selection);
+
+    if (child) {
+
+      return child.copy(selection[child.resource.index]);
+
+    }
 
   }
 
@@ -623,19 +645,20 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  open(table, params, replaceWindow) {
+  open(table, params, context) {
 
     if (table) {
 
       const currentTable = KarmaFieldsAlpha.Store.getTable();
 
-      if (replaceWindow && currentTable) {
+      if (context && currentTable) {
 
         this.addTransfer({
           selection: KarmaFieldsAlpha.Store.getSelection(),
           table: currentTable,
           params: KarmaFieldsAlpha.Store.getParams(),
-          ids: KarmaFieldsAlpha.Store.getIds()
+          ids: KarmaFieldsAlpha.Store.getIds(),
+          context: context
         });
 
       }
@@ -838,7 +861,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
         selection: KarmaFieldsAlpha.Store.getSelection(),
         table: KarmaFieldsAlpha.Store.getTable(),
         params: KarmaFieldsAlpha.Store.getParams(),
-        ids: KarmaFieldsAlpha.Store.getIds()
+        ids: KarmaFieldsAlpha.Store.getIds(),
+        context: "fetch"
       });
 
       const grid = this.getGrid(tableId);
@@ -891,7 +915,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     const transferts = KarmaFieldsAlpha.Store.getTransfers();
 
-    return transferts.length > 0;
+    return transferts[0] && transferts[0].context === "fetch";
 
   }
 
@@ -1969,6 +1993,7 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
 
                                 const ids = grid.getSelectedIds();
 
+
                                 const modal = grid.createChild({
                                   type: "modal",
                                   ...grid.resource.modal,
@@ -1977,9 +2002,13 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                                 div.element.style.width = grid.resource.modal.width || "30em";
                                 div.element.onmousedown = event => {
                                   event.stopPropagation(); // -> prevent unselecting
-                                  const selection = grid.getSelection();
+
+                                  // const selection = grid.getSelection();
                                   // grid.setSelection({index: selection.index, length: selection.length}); -> FAIL ON HIERARCHICAL GRID!
-                                  grid.setSelection(selection);
+                                  // grid.setSelection(selection); // -> FAIL to unselect field inside modal
+
+                                  grid.clearModalSelection();
+
                                   this.render();
                                 };
                                 // if (grid.hasSelection()) {

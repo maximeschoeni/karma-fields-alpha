@@ -359,12 +359,41 @@ console.error("deprecated")
 
     const parent = this.getParent() || "0";
 
-    await super.add({
+    // await super.add({
+    //   filetype: ["folder"],
+    //   mimetype: [""],
+    //   parent: [parent],
+    //   ...params
+    // });
+
+
+    const items = this.getItems();
+
+    const selection = this.getSelection() || {};
+
+    let index = (selection.index || 0) + (selection.length || 0);
+
+    if (items && index === 0 && items[0].exit) {
+
+      index++;
+
+    }
+
+    const {page, ppp, orderby, order, ...defaultParams} = this.resource.params; // default params are needed (e.g) for setting post-type
+
+    KarmaFieldsAlpha.Query.add(this.resource.driver, {
+      ...defaultParams,
       filetype: ["folder"],
       mimetype: [""],
       parent: [parent],
       ...params
-    });
+    }, index);
+
+    this.setSelection({final: true, index: index, length: 1});
+
+    await this.render();
+
+    this.save("add"); // -> wait until default fields are all set to save
 
   }
 
@@ -516,7 +545,7 @@ console.error("deprecated")
 
       const driver = this.getDriver();
 
-      return this.getSingleValue(driver, id, "parent") || "0";
+      return this.getSingleValue(id, "parent") || "0";
 
       // const values = KarmaFieldsAlpha.Query.getValue(driver, id, "parent");
       //
@@ -607,7 +636,7 @@ console.error("deprecated")
 
     const items = this.getItems();
 
-    if (items[index].exit) {
+    if (items[index] && items[index].exit) {
 
       index++;
 
@@ -811,7 +840,7 @@ console.error("deprecated");
 
   isFolder(id) {
 
-    return this.getSingleValue(id, "filetype") === "folder";
+    return id === "0" || this.getSingleValue(id, "filetype") === "folder";
 
   }
 
@@ -880,7 +909,9 @@ console.error("deprecated");
                 // }
 
                 selector.rowCount = items.length;
-                selector.dropZones = items.map((item, index) => index).filter(index => items[index].exit || items[index].type === "folder");
+                // selector.dropZones = items.map((item, index) => index).filter(index => items[index].exit || items[index].type === "folder"); // FAIL -> newly created items have no type
+                selector.dropZones = items.map((item, index) => index).filter(index => items[index].exit || this.isFolder(items[index].id)); // FAIL -> newly created items have no type
+
 
                 if (selection && selection.final) {
                   selector.selection = selection;
@@ -987,6 +1018,8 @@ console.error("deprecated");
                     class: "frame",
                     update: li => {
 
+                      li.element.classList.remove("drop-active");
+
                       // const filetype = this.getValue(id, "filetype");
 
                       // const isSelected = selection && KarmaFieldsAlpha.Selection.containRow(selection, index);
@@ -997,11 +1030,14 @@ console.error("deprecated");
 
                       // li.element.classList.toggle("selected", selector.includes(index) || Boolean(selection && selection.final && !selection.length && item.id === KarmaFieldsAlpha.exit));
                       li.element.classList.toggle("selected", selector.includes(index));
-                      li.element.classList.toggle("media-dropzone", Boolean(item.exit || item.type === "folder"));
-                      // li.element.classList.toggle("exit-folder", id === KarmaFieldsAlpha.exit);
+                      // li.element.classList.toggle("media-dropzone", Boolean(item.exit || item.type === "folder"));
+                      li.element.classList.toggle("media-dropzone", Boolean(item.exit || this.isFolder(item.id)));
+
+
 
                       li.element.ondblclick = event => {
-                        if (item.id && item.id !== KarmaFieldsAlpha.loading && item.type === "folder") {
+                        // if (item.id && item.id !== KarmaFieldsAlpha.loading && item.type === "folder") {
+                        if (item.id && item.id !== KarmaFieldsAlpha.loading && this.isFolder(item.id)) {
                           // this.request("setParam", id, "parent");
                           // this.parent.setValue(id, "parent");
                           this.openFolder(item.id);

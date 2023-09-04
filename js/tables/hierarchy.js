@@ -927,6 +927,16 @@ console.error("deprecated");
   }
 
 
+
+  clearModalSelection() {
+
+    const selection = this.getSelection();
+
+    this.setSelection({0: selection[0]}); // = remove modal property
+
+  }
+
+
   // async select(selection) {
   //
   //   this.setSelection(selection);
@@ -1270,11 +1280,17 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
   }
 
 
-  follow(callback, selection) {
+  follow(selection, callback) {
 
     if (selection.final) {
 
       return callback(this, selection)
+
+    } else if (selection.row) {
+
+      const row = this.getChild("row");
+
+      return row.follow(selection.row, callback);
 
     } else {
 
@@ -1295,9 +1311,9 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
           //   path: [...this.resource.path, this.resource.index],
           // });
 
-          const branch = this.createChild(i);
+          const branch = this.getChild(i);
 
-          return branch.copy(selection[i]);
+          return branch.follow(selection[i], callback);
         }
 
       }
@@ -1600,7 +1616,7 @@ console.error("deprecated");
                       rowIndex: branch.resource.index
                       // depth: this.resource.depth || 0
                     });
-                    header.children = this.resource.columns.map(child => {
+                    header.children = this.resource.columns.map((child, childIndex) => {
                       return {
                         tag: "li",
                         init: li => {
@@ -1608,7 +1624,10 @@ console.error("deprecated");
                             li.element.style = child.style;
                           }
                         },
-                        child: row.createChild(child).build()
+                        child: row.createChild({
+                          ...child,
+                          index: childIndex
+                        }).build()
                       }
                     });
                   // }
