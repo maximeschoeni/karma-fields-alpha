@@ -19,7 +19,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   }
 
-  fetch() {
+  fetch(table) {
 
     if (this.resource.uploader === "wp" || this.resource.library === "wp") {
 
@@ -27,7 +27,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
     } else {
 
-      this.parent.request("fetch", this.resource.table || "medias");
+      // this.parent.request("fetch", this.resource.table || "medias");
+      super.fetch(table || this.resource.table ||  "medias");
 
     }
 

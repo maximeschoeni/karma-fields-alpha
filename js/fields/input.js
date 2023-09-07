@@ -79,6 +79,19 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
   }
 
 
+
+	debounce(callback, duration = 500) {
+
+		if (this.debounceTimer) {
+
+			clearTimeout(this.debounceTimer);
+
+		}
+
+		this.debounceTimer = setTimeout(() => void callback(), duration);
+	}
+
+
 	// getDefault(defaults = {}) {
 	//
 	// 	const key = this.getKey();
@@ -152,6 +165,45 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 	// 	}
 	//
   // }
+
+	copy() {
+
+		let values = this.getValue();
+
+		if (!values || values === KarmaFieldsAlpha.loading) {
+
+			return "[loading]";
+
+		}
+
+		if (values === KarmaFieldsAlpha.mixed || values[0] === KarmaFieldsAlpha.mixed) { // compat
+
+			values = this.getMixedValues();
+
+		}
+
+		const grid = new KarmaFieldsAlpha.Grid();
+
+		grid.addColumn(values);
+
+		return grid.toString();
+	}
+
+	paste(string) {
+
+		// if (!string || typeof string !== "string") {
+		//
+		// 	console.error("paste value must be a string");
+		//
+		// }
+		//
+		// const grid = new KarmaFieldsAlpha.Grid(string);
+		//
+		// const [value] = grid.getRow(0);
+
+		this.setValue(string);
+
+	}
 
 	export(items = []) {
 
@@ -250,6 +302,12 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		this.setValue("");
 		this.save("delete");
+
+	}
+
+	delete() {
+
+		this.remove();
 
 	}
 
@@ -503,13 +561,25 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
           input.element.oninput = event => {
 
-						const newValue = input.element.value.normalize();
+						// const newValue = input.element.value.normalize();
+						//
+						// this.setValue(newValue);
+						//
+						// this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
 
-						this.setValue(newValue);
 
-						this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
 
-						value = newValue;
+						this.debounce(() => {
+
+							const newValue = input.element.value.normalize();
+
+							this.setValue(newValue);
+
+							this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+
+							value = newValue;
+
+						}, 300);
 
           }
 

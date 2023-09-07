@@ -309,6 +309,8 @@ KarmaFieldsAlpha.Store = class {
 
   static setSelection(selection) {
 
+
+
     // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "selection", ...path)) {
 		//
     //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getSelection(...path), "last", "selection", ...path);

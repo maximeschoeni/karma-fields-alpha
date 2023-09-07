@@ -236,6 +236,23 @@ KarmaFieldsAlpha.field = class {
   }
 
 
+  getSelectedValue(selection = this.getSelection()) {
+
+    const child = this.getSelectionChild(selection);
+
+    if (child) {
+
+      return child.getSelectedValue(selection[child.resource.index]);
+
+    } else {
+
+      return this.getValue();
+
+    }
+
+  }
+
+
 
   // createChild(resource, id) {
   //

@@ -85,7 +85,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     KarmaFieldsAlpha.Store.removeIds();
 
-    KarmaFieldsAlpha.Store.setSelection({});
+    // KarmaFieldsAlpha.Store.setSelection({}); // Fail when fetching custom item in table
+    KarmaFieldsAlpha.Store.setSelection({
+      ...this.getSelection(),
+      length: 0
+    });
 
     this.render();
 
@@ -463,27 +467,27 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
 
-  paste(string) {
-
-    const selection = this.getSelection();
-
-    if (selection) {
-
-      this.follow(selection, (field, selection) => {
-
-        // field.import([string], selection.index, selection.length, selection.colIndex, selection.colLength);
-
-        field.paste(string, selection);
-
-        field.save("paste");
-
-        this.render();
-
-      });
-
-    }
-
-  }
+  // paste(string) {
+  //
+  //   const selection = this.getSelection();
+  //
+  //   if (selection) {
+  //
+  //     this.follow(selection, (field, selection) => {
+  //
+  //       // field.import([string], selection.index, selection.length, selection.colIndex, selection.colLength);
+  //
+  //       field.paste(string, selection);
+  //
+  //       field.save("paste");
+  //
+  //       this.render();
+  //
+  //     });
+  //
+  //   }
+  //
+  // }
 
   // pasteBETA(string, selection = this.getSelection()) {
   //
@@ -634,6 +638,12 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
   hasChange() {
+
+    // if (!KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta"))) {
+    //
+    //   console.log(KarmaFieldsAlpha.Store.get("delta"));
+    //
+    // }
 
     return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta"));
 
@@ -830,21 +840,75 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
 
+  // async render() {
+  //
+  //   if (this.rendering) {
+  //
+  //     return this.renderPromise;
+  //
+  //   } else if (this.onRender) {
+  //
+  //     // console.log("sauce render");
+  //
+  //     this.renderPromise = this.onRender().then(() => this.rendering = false);
+  //
+  //     this.rendering = true;
+  //
+  //     return this.renderPromise;
+  //
+  //   }
+  //
+  // }
+
+
   async render() {
 
-    if (this.rendering) {
-
-      return this.renderPromise;
-
-    } else if (this.onRender) {
-
-      // console.log("sauce render");
-
-      this.renderPromise = this.onRender().then(() => this.rendering = false);
+    if (!this.rendering) {
 
       this.rendering = true;
 
-      return this.renderPromise;
+      let task;
+
+      do {
+
+        console.log("render");
+
+        // if (this.onRender) {
+        //
+        //   await this.onRender();
+        //
+        // }
+
+        if (KarmaFieldsAlpha.embeds) {
+
+          console.time();
+
+          for (let resource of KarmaFieldsAlpha.embeds) {
+
+            const element = document.getElementById(resource.index);
+
+            const child = this.createChild(resource);
+
+            await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+
+          }
+
+          console.timeEnd();
+
+        }
+
+        task = KarmaFieldsAlpha.tasks.shift();
+
+        if (task) {
+
+          await task.resolve(task);
+
+        }
+
+      } while (task);
+
+
+      this.rendering = false;
 
     }
 
@@ -876,7 +940,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
         KarmaFieldsAlpha.Store.setParams(params || {});
         KarmaFieldsAlpha.Store.removeIds();
 
-        grid.setSelection({});
+        const values = this.getSelectedValue();
+
+        grid.setSelection({values: values});
 
         grid.save("open");
 
@@ -1332,191 +1398,191 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
 
-  build() {
-    return {
-      class: "saucer",
-      init: container => {
-        document.addEventListener("keydown", event => {
-          if (event.key === "s" && event.metaKey) {
-            event.preventDefault();
-            this.send();
-          } else if (event.key === "z" && event.metaKey) {
-            event.preventDefault();
-            if (event.shiftKey) {
-              // console.log("redo");
-              this.redo();
-            } else {
-              // console.log("undo");
-              // debugger;
-              this.undo();
-            }
-          }
-        });
-        window.addEventListener("popstate", async event => {
-          // console.log("popstate", location.hash);
-          KarmaFieldsAlpha.History.update();
-          this.render();
-        });
-        container.element.addEventListener("mousedown", event => {
-          if (this.hasSelection()) {
-            this.setSelection();
-            this.render();
-          }
-        });
-        window.addEventListener("mousedown", event => {
-          if (this.hasSelection()) {
-            this.setSelection();
-            this.render();
-          }
-        });
-        container.element.ondrop = event => {
-          event.preventDefault();
-          const files = event.dataTransfer.files;
-          if (event.dataTransfer.files.length) {
-            this.upload(event.dataTransfer.files);
-          }
-        }
-        container.element.ondragover = event => {
-          event.preventDefault();
-        }
-        KarmaFieldsAlpha.History.update();
-      },
-      update: saucer => {
-
-
-
-
-
-        saucer.children = [
-          {
-            class: "clipboard",
-            tag: "textarea",
-            init: clipboard => {
-              clipboard.element.id = "karma-fields-alpha-clipboard";
-              clipboard.readOnly = true;
-              this.focus = () => {
-                clipboard.element.focus({preventScroll: true});
-                clipboard.element.select();
-                clipboard.element.setSelectionRange(0, 999999);
-              }
-
-              KarmaFieldsAlpha.Clipboard.focus = this.focus; // -> compat
-
-
-              clipboard.element.addEventListener("keyup", event => {
-                if (event.key === "a" && event.metaKey) {
-                  event.preventDefault();
-                  this.selectAll();
-                }
-              });
-
-              clipboard.element.addEventListener("keyup", event => {
-                if (event.key === "Delete" || event.key === "Backspace") {
-                  event.preventDefault();
-                  this.delete();
-                } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-                  event.preventDefault();
-                  this.follow(undefined, (field, selection) => {
-                    if (event.key === "ArrowUp" && field.sortUp && typeof field.sortUp === "function" && selection.length > 0) {
-                      field.sortUp(selection.index || 0, selection.length);
-                    } if (event.key === "ArrowDown" && field.sortDown && typeof field.sortDown === "function" && selection.length > 0) {
-                      field.sortDown(selection.index || 0, selection.length);
-                    }
-                  });
-                }
-              });
-
-              clipboard.element.addEventListener("paste", event => {
-                event.preventDefault();
-                const string = event.clipboardData.getData("text/plain").normalize();
-                console.log("PASTE", string);
-                // clipboard.value = string;
-                this.paste(string);
-              });
-
-              clipboard.element.addEventListener("cut", event => {
-                event.preventDefault();
-                const value = this.copy();
-                console.log("CUT", value);
-                event.clipboardData.setData("text/plain", value || "");
-                // clipboard.value = "";
-                this.paste("");
-              });
-
-              clipboard.element.addEventListener("copy", event => {
-                event.preventDefault();
-
-                const value = this.copy();
-                console.log("COPY", value);
-                event.clipboardData.setData("text/plain", value || "");
-              });
-
-              // clipboard.element.onfocus = event => {
-              //
-              // }
-
-              clipboard.onblur = event => {
-                console.log("clipboard blur");
-              }
-
-            }
-          },
-          {
-            class: "popup",
-            update: popup => {
-              const currentTableId = this.getTable();
-              document.body.classList.toggle("karma-table-open", Boolean(currentTableId));
-              popup.element.classList.toggle("hidden", !currentTableId && !this.resource.navigation);
-              if (currentTableId || this.resource.navigation) {
-                popup.children = [
-                  {
-                    class: "popup-content",
-                    children: [
-                      {
-                        class: "navigation karma-field-frame",
-                        update: navigation => {
-                          navigation.element.classList.toggle("hidden", !this.resource.navigation);
-                          if (this.resource.navigation) {
-                            navigation.child = this.createChild({
-                              ...this.resource.navigation,
-                              type: "menu",
-                              index: "menu"
-                            }).build();
-                          }
-                        }
-                      },
-                      this.createChild({
-                        index: "board",
-                        type: "board",
-                        tables: this.resource.tables
-                      }).build()
-                    ]
-                  }
-                ]
-              }
-            }
-          }
-        ];
-      },
-      complete: async saucer => {
-        if (KarmaFieldsAlpha.embeds) {
-          for (let resource of KarmaFieldsAlpha.embeds) {
-            const element = document.getElementById(resource.index);
-            const child = this.createChild(resource);
-            await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
-          }
-        }
-        const task = KarmaFieldsAlpha.tasks.shift();
-
-        if (task) {
-          await task.resolve(task);
-          await saucer.render();
-        } else {
-          this.onRender = saucer.render;
-        }
-      }
-    };
-  }
+  // buildBKP() {
+  //   return {
+  //     class: "saucer",
+  //     init: container => {
+  //       document.addEventListener("keydown", event => {
+  //         if (event.key === "s" && event.metaKey) {
+  //           event.preventDefault();
+  //           this.send();
+  //         } else if (event.key === "z" && event.metaKey) {
+  //           event.preventDefault();
+  //           if (event.shiftKey) {
+  //             // console.log("redo");
+  //             this.redo();
+  //           } else {
+  //             // console.log("undo");
+  //             // debugger;
+  //             this.undo();
+  //           }
+  //         }
+  //       });
+  //       window.addEventListener("popstate", async event => {
+  //         // console.log("popstate", location.hash);
+  //         KarmaFieldsAlpha.History.update();
+  //         this.render();
+  //       });
+  //       container.element.addEventListener("mousedown", event => {
+  //         if (this.hasSelection()) {
+  //           this.setSelection();
+  //           this.render();
+  //         }
+  //       });
+  //       window.addEventListener("mousedown", event => {
+  //         if (this.hasSelection()) {
+  //           this.setSelection();
+  //           this.render();
+  //         }
+  //       });
+  //       container.element.ondrop = event => {
+  //         event.preventDefault();
+  //         const files = event.dataTransfer.files;
+  //         if (event.dataTransfer.files.length) {
+  //           this.upload(event.dataTransfer.files);
+  //         }
+  //       }
+  //       container.element.ondragover = event => {
+  //         event.preventDefault();
+  //       }
+  //       KarmaFieldsAlpha.History.update();
+  //     },
+  //     update: saucer => {
+  //
+  //       // this.onRender = saucer.render;
+  //
+  //
+  //
+  //       saucer.children = [
+  //         {
+  //           class: "clipboard",
+  //           tag: "textarea",
+  //           init: clipboard => {
+  //             clipboard.element.id = "karma-fields-alpha-clipboard";
+  //             clipboard.readOnly = true;
+  //             this.focus = () => {
+  //               clipboard.element.focus({preventScroll: true});
+  //               clipboard.element.select();
+  //               clipboard.element.setSelectionRange(0, 999999);
+  //             }
+  //
+  //             KarmaFieldsAlpha.Clipboard.focus = this.focus; // -> compat
+  //
+  //
+  //             clipboard.element.addEventListener("keyup", event => {
+  //               if (event.key === "a" && event.metaKey) {
+  //                 event.preventDefault();
+  //                 this.selectAll();
+  //               }
+  //             });
+  //
+  //             clipboard.element.addEventListener("keyup", event => {
+  //               if (event.key === "Delete" || event.key === "Backspace") {
+  //                 event.preventDefault();
+  //                 this.delete();
+  //               } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+  //                 event.preventDefault();
+  //                 this.follow(undefined, (field, selection) => {
+  //                   if (event.key === "ArrowUp" && field.sortUp && typeof field.sortUp === "function" && selection.length > 0) {
+  //                     field.sortUp(selection.index || 0, selection.length);
+  //                   } if (event.key === "ArrowDown" && field.sortDown && typeof field.sortDown === "function" && selection.length > 0) {
+  //                     field.sortDown(selection.index || 0, selection.length);
+  //                   }
+  //                 });
+  //               }
+  //             });
+  //
+  //             clipboard.element.addEventListener("paste", event => {
+  //               event.preventDefault();
+  //               const string = event.clipboardData.getData("text/plain").normalize();
+  //               console.log("PASTE", string);
+  //               // clipboard.value = string;
+  //               this.paste(string);
+  //             });
+  //
+  //             clipboard.element.addEventListener("cut", event => {
+  //               event.preventDefault();
+  //               const value = this.copy();
+  //               console.log("CUT", value);
+  //               event.clipboardData.setData("text/plain", value || "");
+  //               // clipboard.value = "";
+  //               this.paste("");
+  //             });
+  //
+  //             clipboard.element.addEventListener("copy", event => {
+  //               event.preventDefault();
+  //
+  //               const value = this.copy();
+  //               console.log("COPY", value);
+  //               event.clipboardData.setData("text/plain", value || "");
+  //             });
+  //
+  //             // clipboard.element.onfocus = event => {
+  //             //
+  //             // }
+  //
+  //             clipboard.onblur = event => {
+  //               console.log("clipboard blur");
+  //             }
+  //
+  //           }
+  //         },
+  //         {
+  //           class: "popup",
+  //           update: popup => {
+  //             const currentTableId = this.getTable();
+  //             document.body.classList.toggle("karma-table-open", Boolean(currentTableId));
+  //             popup.element.classList.toggle("hidden", !currentTableId && !this.resource.navigation);
+  //             if (currentTableId || this.resource.navigation) {
+  //               popup.children = [
+  //                 {
+  //                   class: "popup-content",
+  //                   children: [
+  //                     {
+  //                       class: "navigation karma-field-frame",
+  //                       update: navigation => {
+  //                         navigation.element.classList.toggle("hidden", !this.resource.navigation);
+  //                         if (this.resource.navigation) {
+  //                           navigation.child = this.createChild({
+  //                             ...this.resource.navigation,
+  //                             type: "menu",
+  //                             index: "menu"
+  //                           }).build();
+  //                         }
+  //                       }
+  //                     },
+  //                     this.createChild({
+  //                       index: "board",
+  //                       type: "board",
+  //                       tables: this.resource.tables
+  //                     }).build()
+  //                   ]
+  //                 }
+  //               ]
+  //             }
+  //           }
+  //         }
+  //       ];
+  //     },
+  //     complete: async saucer => {
+  //       // if (KarmaFieldsAlpha.embeds) {
+  //       //   for (let resource of KarmaFieldsAlpha.embeds) {
+  //       //     const element = document.getElementById(resource.index);
+  //       //     const child = this.createChild(resource);
+  //       //     await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+  //       //   }
+  //       // }
+  //       // const task = KarmaFieldsAlpha.tasks.shift();
+  //       //
+  //       // if (task) {
+  //       //   await task.resolve(task);
+  //       //   await saucer.render();
+  //       // } else {
+  //       //   this.onRender = saucer.render;
+  //       // }
+  //     }
+  //   };
+  // }
 
 }
 
@@ -1720,7 +1786,7 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
   // }
 
 
-  build() {
+  buildBKP() {
 
     return {
       class: "tables",
@@ -1762,6 +1828,219 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
 
   }
+
+
+
+
+
+  build() {
+    return {
+      class: "saucer",
+      init: container => {
+        document.addEventListener("keydown", event => {
+          if (event.key === "s" && event.metaKey) {
+            event.preventDefault();
+            this.parent.send();
+          } else if (event.key === "z" && event.metaKey) {
+            event.preventDefault();
+            if (event.shiftKey) {
+              // console.log("redo");
+              this.parent.redo();
+            } else {
+              // console.log("undo");
+              // debugger;
+              this.parent.undo();
+            }
+          }
+        });
+        window.addEventListener("popstate", async event => {
+          // console.log("popstate", location.hash);
+          KarmaFieldsAlpha.History.update();
+          this.parent.render();
+        });
+        container.element.addEventListener("mousedown", event => {
+          if (this.parent.hasSelection()) {
+            this.parent.setSelection();
+            this.parent.render();
+          }
+        });
+        window.addEventListener("mousedown", event => {
+          if (this.parent.hasSelection()) {
+            this.parent.setSelection();
+            this.parent.render();
+          }
+        });
+        container.element.ondrop = event => {
+          event.preventDefault();
+          const files = event.dataTransfer.files;
+          if (event.dataTransfer.files.length) {
+            this.parent.upload(event.dataTransfer.files);
+          }
+        }
+        container.element.ondragover = event => {
+          event.preventDefault();
+        }
+        KarmaFieldsAlpha.History.update();
+      },
+      update: saucer => {
+
+        // this.onRender = saucer.render;
+
+
+
+        saucer.children = [
+          {
+            class: "clipboard",
+            tag: "textarea",
+            init: clipboard => {
+              clipboard.element.id = "karma-fields-alpha-clipboard";
+              clipboard.readOnly = true;
+              this.parent.focus = () => { // !!!!
+                clipboard.element.focus({preventScroll: true});
+                clipboard.element.select();
+                clipboard.element.setSelectionRange(0, 999999);
+              }
+
+              KarmaFieldsAlpha.Clipboard.focus = this.parent.focus; // -> compat
+
+
+              clipboard.element.addEventListener("keyup", event => {
+                if (event.key === "a" && event.metaKey) {
+                  event.preventDefault();
+                  this.parent.selectAll();
+                }
+              });
+
+              clipboard.element.addEventListener("keyup", event => {
+                if (event.key === "Delete" || event.key === "Backspace") {
+                  event.preventDefault();
+                  this.parent.delete();
+                } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                  event.preventDefault();
+                  this.parent.follow(undefined, (field, selection) => {
+                    if (event.key === "ArrowUp" && field.sortUp && typeof field.sortUp === "function" && selection.length > 0) {
+                      field.sortUp(selection.index || 0, selection.length);
+                    } if (event.key === "ArrowDown" && field.sortDown && typeof field.sortDown === "function" && selection.length > 0) {
+                      field.sortDown(selection.index || 0, selection.length);
+                    }
+                  });
+                }
+              });
+
+              clipboard.element.addEventListener("paste", event => {
+                event.preventDefault();
+                const string = event.clipboardData.getData("text/plain").normalize();
+                console.log("PASTE", string);
+                // clipboard.value = string;
+                this.parent.paste(string);
+              });
+
+              clipboard.element.addEventListener("cut", event => {
+                event.preventDefault();
+                const value = this.parent.copy();
+                console.log("CUT", value);
+                event.clipboardData.setData("text/plain", value || "");
+                // clipboard.value = "";
+                this.parent.paste("");
+              });
+
+              clipboard.element.addEventListener("copy", event => {
+                event.preventDefault();
+
+                const value = this.parent.copy();
+                console.log("COPY", value);
+                event.clipboardData.setData("text/plain", value || "");
+              });
+
+              // clipboard.element.onfocus = event => {
+              //
+              // }
+
+              clipboard.onblur = event => {
+                console.log("clipboard blur");
+              }
+
+            }
+          },
+          {
+            class: "popup",
+            update: popup => {
+              const currentTableId = this.parent.getTable();
+              document.body.classList.toggle("karma-table-open", Boolean(currentTableId));
+              popup.element.classList.toggle("hidden", !currentTableId && !this.resource.navigation);
+              if (currentTableId || this.resource.navigation) {
+                popup.children = [
+                  {
+                    class: "popup-content",
+                    children: [
+                      {
+                        class: "navigation karma-field-frame",
+                        update: navigation => {
+                          navigation.element.classList.toggle("hidden", !this.resource.navigation);
+                          if (this.resource.navigation) {
+                            navigation.child = this.createChild({
+                              ...this.resource.navigation,
+                              type: "menu",
+                              index: "menu"
+                            }).build();
+                          }
+                        }
+                      },
+                      // this.createChild({
+                      //   index: "board",
+                      //   type: "board",
+                      //   tables: this.resource.tables
+                      // }).build()
+                      {
+                        class: "tables",
+                        update: container => {
+
+                          // const currentTableId = this.request("getTable");
+                          const currentTableId = KarmaFieldsAlpha.Store.getTable();
+
+
+                          // document.body.classList.toggle("karma-table-open", Boolean(currentTableId));
+
+                          container.children = Object.keys(this.resource.tables).map((tableId, index) => {
+                            return {
+                              class: "table-container",
+                              update: async container => {
+
+                                container.element.classList.toggle("hidden", tableId !== currentTableId);
+
+                                if (tableId === currentTableId) {
+
+                                  container.children = [this.createChild({
+                                    type: "table",
+                                    ...this.resource.tables[tableId],
+                                    // index: index
+                                    index: tableId
+                                    // uid: `${this.resource.uid}-${tableId}`
+                                  }).build()];
+
+                                } else {
+
+                                  container.children = [];
+
+                                }
+                              }
+                            };
+                          });
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ];
+      }
+    };
+
+  }
+
+
 }
 
 

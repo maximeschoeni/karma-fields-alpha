@@ -875,10 +875,6 @@ console.error("deprecated");
             },
             update: grid => {
 
-
-
-
-              // let ids = this.getMixedIds();
               let items = this.getItems();
 
               grid.element.classList.toggle("loading", !items || items === KarmaFieldsAlpha.loading);
@@ -892,10 +888,23 @@ console.error("deprecated");
 
                 let selection = this.getSelection();
 
-
-
-
-
+                // if (selection && selection.values) {
+                //
+                //   const firstIndex = items.findIndex(item => item.id === selection.values[0]);
+                //   const lastIndex = items.findIndex(item => item.id === selection.values[selection.values.length - 1]);
+                //
+                //   if (firstIndex !== undefined) {
+                //
+                //     selection = {
+                //       index: firstIndex,
+                //       length: lastIndex - firstIndex + 1
+                //     };
+                //
+                //     this.setSelection(selection);
+                //
+                //   }
+                //
+                // }
 
                 // const selector = new KarmaFieldsAlpha.Selector(grid.element);
                 const selector = new KarmaFieldsAlpha.DragAndDrop(grid.element);
@@ -941,6 +950,8 @@ console.error("deprecated");
                 selector.onSelectionChange = newSelection => {
 
                   this.setSelection(newSelection);
+
+                  this.render();
 
                 }
 
@@ -989,6 +1000,7 @@ console.error("deprecated");
                 };
 
                 selector.ondrop = (index, selection) => {
+
                   // const ids = this.getIds();
                   const target = items[index];
                   // const selectedIds = items.slice(selection.index, selection.index + selection.length).filter(item => item.id).map(item => item.id);
@@ -997,6 +1009,13 @@ console.error("deprecated");
 
                   this.move(selectedItems, target);
                 };
+
+                selector.onCancelDrag = () => {
+
+                  this.setSelection({});
+                  this.render();
+
+                }
 
 
                 grid.element.classList.toggle("has-selection", Boolean(selection));
@@ -1010,7 +1029,6 @@ console.error("deprecated");
                 //   selector.colHeader++;
                 //
                 // }
-
 
                 grid.children = items.map((item, index) => {
                   return {
@@ -1029,7 +1047,8 @@ console.error("deprecated");
                       // li.element.classList.remove("hidden"); // -> because it get hidden when dropped
 
                       // li.element.classList.toggle("selected", selector.includes(index) || Boolean(selection && selection.final && !selection.length && item.id === KarmaFieldsAlpha.exit));
-                      li.element.classList.toggle("selected", selector.includes(index));
+                      // li.element.classList.toggle("selected", selector.includes(index));
+                      li.element.classList.toggle("selected", KarmaFieldsAlpha.Segment.contain(selection, index));
                       // li.element.classList.toggle("media-dropzone", Boolean(item.exit || item.type === "folder"));
                       li.element.classList.toggle("media-dropzone", Boolean(item.exit || this.isFolder(item.id)));
 

@@ -38,7 +38,7 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       this.sliceSegment(this.selection).forEach(element => element.classList.add("drag"));
 
       this.container.classList.add("dragging");
-      this.container.style.height = `${this.container.clientHeight}px`;
+      // this.container.style.height = `${this.container.clientHeight}px`;
 
       this.tracker.event.stopPropagation(); // -> WHY ??
 
@@ -245,7 +245,7 @@ KarmaFieldsAlpha.Sorter = class extends KarmaFieldsAlpha.Selector {
       });
 
       this.container.classList.remove("dragging");
-      this.container.style.height = "auto";
+      // this.container.style.height = "auto";
 
       if (this.onsort) {
 

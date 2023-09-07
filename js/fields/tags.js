@@ -1,10 +1,10 @@
 KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
-  fetch() {
+  fetch(table) {
 
     const params = this.parseParams(this.resource.params, this);
 
-    this.parent.request("fetch", this.resource.table, params);
+    this.parent.request("fetch", table || this.resource.table, params);
 
   }
 
@@ -128,6 +128,12 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
       }
 
     }
+
+  }
+
+  getSelectedValue() {
+
+    return this.getValue();
 
   }
 

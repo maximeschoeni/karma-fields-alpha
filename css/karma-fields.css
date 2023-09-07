@@ -25,7 +25,7 @@
   --theme-color: #2271b1;
   /* --theme-secondary-color: #72aee6; */
   --theme-secondary-color: #679BC6;
-  --theme-disabled-color: #D3E3EF;
+  --theme-disabled-color: #BDD0E1;
 
   --theme-bg-color: #1d2327;
   --theme-secondary-bg-color: #2c3338;
@@ -871,6 +871,7 @@ button.karma-button {
   position: relative;
   border: var(--border-width) solid var(--border-color);
   cursor: pointer;
+  user-select: none;
 }
 /* .dark button.karma-button {
   color: var(--text-color);
@@ -909,7 +910,11 @@ button.karma-button.active,
 button.karma-button:active,
 button.karma-button.primary:active {
   background-color: var(--active-background-color);
-  color: var(--active-text-color)
+  /* color: var(--active-text-color) */
+}
+button.karma-button.primary:hover,
+button.karma-button.primary:active {
+  color: var(--text-color);
 }
 /* .dark button.karma-button:hover,
 .dark button.karma-button.active,
@@ -922,7 +927,7 @@ button.karma-button[disabled],
 button.karma-button.primary[disabled] {
   color: var(--disabled-text-color) !important;
   background-color: var(--disabled-background-color) !important;
-  border: var(--border-width) solid var(--border-color) !important;
+  border: var(--border-width) solid var(--disabled-text-color) !important;
   box-shadow: none !important;
   text-shadow: none !important;
   cursor: default;
@@ -1108,6 +1113,7 @@ border: var(--border-width) solid var(--disabled-color);
   align-items: center;
   gap: var(--gap-width);
   font-weight: var(--static-text-weight);
+  margin: 0;
 }
 .karma-tags ul li:hover {
   background-color: var(--active-background-color);
@@ -1625,8 +1631,8 @@ ul.tag-links li:not(:last-child)::after {
 }
 .karma-fields input[type=text]:hover,
 .karma-fields textarea:hover {
-  color: var(--text-color);
-  background-color: var(--hover-background-color);
+  /* color: var(--text-color);
+  background-color: var(--hover-background-color); */
 }
 .karma-fields textarea {
   padding: var(--gap-width) var(--gap-width);
@@ -1662,8 +1668,8 @@ ul.tag-links li:not(:last-child)::after {
 }
 .karma-fields input[type=text].mixed:hover,
 .karma-fields textarea.mixed:hover {
-  color: var(--text-color);
-  background-color: var(--hover-background-color);
+  /* color: var(--text-color);
+  background-color: var(--hover-background-color); */
 }
 .karma-fields input[type=text]:disabled,
 .karma-fields textarea:disabled {
@@ -1691,10 +1697,10 @@ ul.tag-links li:not(:last-child)::after {
 .karma-fields textarea::placeholder {
   color: var(--placeholder-text-color);
 }
-.karma-fields input:focus::selection,
+/* .karma-fields input:focus::selection,
 .karma-fields textarea:focus::selection {
   color: var(--text-color);
-}
+} */
 
 
 

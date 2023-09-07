@@ -108,6 +108,8 @@ KarmaFieldsAlpha.DragAndDrop = class extends KarmaFieldsAlpha.Sorter {
       //
       this.container.style.height = "auto";
 
+      console.log(this.overIndex);
+
       if (this.overIndex > -1) {
 
         // this.sliceSegment(this.selection).forEach(element => void element.classList.add("hidden"));
@@ -125,6 +127,12 @@ KarmaFieldsAlpha.DragAndDrop = class extends KarmaFieldsAlpha.Sorter {
         }
 
       } else {
+
+        if (this.onCancelDrag) {
+
+          this.onCancelDrag();
+
+        }
 
         this.container.classList.remove("dragging");
 

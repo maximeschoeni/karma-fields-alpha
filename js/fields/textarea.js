@@ -1,5 +1,48 @@
 KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
+
+	// write(value, lastValue = "") {
+	//
+	// 	this.setValue(value);
+	//
+	// 	if (value.length < lastValue.length) {
+	//
+	// 		this.save(`${this.resource.uid}-delete`);
+	//
+	// 	} else {
+	//
+	// 		this.save(`${this.resource.uid}-input`);
+	//
+	// 	}
+	//
+	// }
+	//
+	// inputText(value, inputType) {
+	//
+	// 	value = value.normalize();
+	//
+	// 	const current = this.lastValue || "";
+	//
+	// 	if (inputType === "insertText") {
+	//
+	// 		this.debounce(() => {
+	//
+	// 			this.write(value)
+	//
+	// 		}, 300);
+	//
+	// 	} else {
+	//
+	// 		this.write(value)
+	//
+	// 	}
+	//
+	//
+	//
+	//
+	// }
+
+
 	build() {
 		return {
 			tag: "textarea",
@@ -50,28 +93,72 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
               input.element.value = value;
 
+							input.element.style.height = "1px";
+						  input.element.style.height = (25+input.element.scrollHeight)+"px";
+
             }
 
           }
 
+					// input.element.onpaste = event => {
+					// 	event.preventDefault();
+					//
+					// 	console.log("onpaste", event);
+					// }
+
           input.element.oninput = event => {
 
-						const newValue = input.element.value.normalize();
+						console.log("oninput", event);
 
-						this.setValue(newValue);
+						// const newValue = input.element.value.normalize();
+						//
+						// this.setValue(newValue);
+						//
+						// this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+						//
+						// value = newValue;
 
-						this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+						value = this.write(newValue, value, event.inputType);
 
-						value = newValue;
+
+
+						if (event.inputType === "insertText") {
+
+							this.debounce(() => {
+
+								const newValue = input.element.value.normalize();
+
+								this.setValue(newValue);
+
+								this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+
+								value = newValue;
+
+							}, 300);
+
+							value = newValue;
+
+						} else {
+
+							const newValue = input.element.value.normalize();
+
+							this.setValue(newValue);
+
+							this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+
+							value = newValue;
+
+						}
+
+
 
 						// adapt textarea height
+
 						input.element.style.height = "1px";
 					  input.element.style.height = (25+input.element.scrollHeight)+"px";
 
           }
 
-					input.element.style.height = "1px";
-					input.element.style.height = (10+input.element.scrollHeight)+"px";
 
 					input.element.onblur = event => {
 

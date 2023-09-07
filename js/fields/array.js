@@ -1,22 +1,22 @@
 
 KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
-  constructor(resource) {
-    super(resource);
-
-    // compat
-    if (this.resource.add_button_name) {
-      this.resource.footer = {
-        children: [
-          {
-            type: "add",
-            title: this.resource.add_button_name
-          }
-        ]
-      }
-    }
-
-	}
+  // constructor(resource) {
+  //   super(resource);
+  //
+  //   // compat
+  //   if (this.resource.add_button_name) {
+  //     this.resource.footer = {
+  //       children: [
+  //         {
+  //           type: "add",
+  //           title: this.resource.add_button_name
+  //         }
+  //       ]
+  //     }
+  //   }
+  //
+	// }
 
   export(items = [], index = 0, length = 999999, colIndex = 0, colLength = 999999) {
 

@@ -464,7 +464,7 @@ KarmaFieldsAlpha.Expression = class {
 
   getValue() {
 
-    const key = this.create(this.expression[1]).toString();
+    const key = this.create(this.expression[1]).toString() || this.field.getKey();
 
     // if (key === KarmaFieldsAlpha.loading) {
     //
@@ -479,6 +479,28 @@ KarmaFieldsAlpha.Expression = class {
     }
 
     return this.field.parent.getValue(key) || KarmaFieldsAlpha.loading;
+
+  }
+
+  hasValue() {
+
+    const key = this.create(this.expression[1]).toString() || this.field.getKey();
+
+    if (typeof key === "symbol") {
+
+      return key;
+
+    }
+
+    const values = this.field.parent.getValue(key);
+
+    if (values === KarmaFieldsAlpha.loading) {
+
+      return KarmaFieldsAlpha.loading;
+
+    }
+
+    return values.length > 0;
 
   }
 
@@ -614,7 +636,7 @@ KarmaFieldsAlpha.Expression = class {
   }
 
   getIndex() {
-
+debugger;
     return this.field.parent.getIndex();
 
   }
@@ -725,8 +747,8 @@ KarmaFieldsAlpha.Expression = class {
       case "getValue":
         return this.getValue();
 
-      // case "getName":
-      //   return this.getName();
+      case "hasValue":
+        return this.hasValue();
 
       case "queryValue":
         return this.queryValue();

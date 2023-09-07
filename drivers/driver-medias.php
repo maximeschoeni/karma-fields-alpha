@@ -27,6 +27,7 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
         GROUP BY p.ID"
       );
 
+
       $attachment_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'inherit' AND post_parent = $parent_id");
 
       $args['post__in'] = array_merge(
@@ -45,9 +46,14 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
     $args['no_found_rows'] = true;
     $args['cache_results'] = false;
 
+
+
+
+    // var_dump(get_post_types(array( 'exclude_from_search' => false )), $args);
+
     $query = new WP_Query($args);
 
-    // var_dump($args, $query->posts); die();
+    // var_dump($query->request); die();
 
     return array_map(function($post) {
       return array(

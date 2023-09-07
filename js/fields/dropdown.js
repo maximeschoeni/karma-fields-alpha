@@ -22,14 +22,23 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
   initValue() {
 
-    let value = "";
-    const options = this.fetchOptions();
+    // let value = "";
+    // const options = this.fetchOptions();
+    //
+    //
+    //
+    // if (options !== KarmaFieldsAlpha.loading && options.length) {
+    //
+    //   value = options[0].id;
+    //
+    //   this.setValue(value);
+    //   this.save();
+    //
+    // }
 
+    let value = this.getDefault();
 
-
-    if (options !== KarmaFieldsAlpha.loading && options.length) {
-
-      value = options[0].id;
+    if (value !== KarmaFieldsAlpha.loading) {
 
       this.setValue(value);
       this.save();
