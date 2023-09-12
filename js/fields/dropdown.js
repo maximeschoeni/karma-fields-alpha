@@ -292,7 +292,8 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
           dropdown.element.onchange = event => {
 
             this.setValue(dropdown.element.value);
-            this.save("change");
+            this.render();
+            this.save("change", "Change dropdown value");
 
           }
 

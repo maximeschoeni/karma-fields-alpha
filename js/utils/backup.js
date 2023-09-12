@@ -25,13 +25,15 @@ KarmaFieldsAlpha.Backup = class {
 
   }
 
-  static save(ref, force) {
+  static save(ref, name) {
 
     if (ref && ref !== this.ref) {
 
       // if (!KarmaFieldsAlpha.DeepObject.equal(this.before, this.after)) {
 
         // -> array::add must always save even when no change
+
+        this.after.name = name;
 
         KarmaFieldsAlpha.History.merge(this.before);
         KarmaFieldsAlpha.History.addState(this.after);

@@ -66,7 +66,7 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
     const driver = this.getDriver();
     const id = this.getId();
-    
+
     return KarmaFieldsAlpha.Store.get("delta", driver, id, ...path) || KarmaFieldsAlpha.Query.getValue(driver, id, ...path);
 
     // return KarmaFieldsAlpha.Query.getValue(this.resource.driver, this.resource.id, ...path);
@@ -86,7 +86,7 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
     KarmaFieldsAlpha.Store.setValue(value, driver, id, ...path);
 
-    this.render();
+    // this.render();
 
 		// let currentValue = this.getValue(...path);
     //

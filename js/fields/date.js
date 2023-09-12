@@ -544,8 +544,9 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                                             // this.parent.request("render");
 
                                             this.setValue(sqlDate);
-                                            this.save("select");
                                             this.render();
+                                            this.save("select");
+
                                           }
                                         }
                                       }],

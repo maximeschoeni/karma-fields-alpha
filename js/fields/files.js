@@ -425,7 +425,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                   //
                   // }
 
-                  KarmaFieldsAlpha.Clipboard.focus();
+                  // KarmaFieldsAlpha.Clipboard.focus();
+                  this.deferFocus();
                   this.setSelection(newSelection);
                   this.render();
 
@@ -447,7 +448,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                 sorter.onSwap = (index, target, length) => {
                   // console.log(index, target, length);
 
-                  this.swap(index, target, length);
+                  this.swap(index, target, length); // -> will render
                   this.setSelection({final: true, index: target, length: length});
 
                 };
@@ -460,7 +461,9 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                     // this.setSelection({final: true, index: target, length: length});
 
+                    this.deferFocus();
                     this.save("order");
+                    this.render();
 
                   // }
 

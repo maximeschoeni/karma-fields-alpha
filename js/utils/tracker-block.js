@@ -14,11 +14,53 @@ KarmaFieldsAlpha.BlockSorter = class extends KarmaFieldsAlpha.Sorter {
   // }
 
 
-  constructor(container) {
+  constructor(container, root, library) {
 
     super(container);
 
     this.root = container.closest(".block-root");
+
+
+
+    this.libraryTracker = new KarmaFieldsAlpha.Tracker(library);
+
+
+
+    this.tracker.oninit = () => {
+
+      const index = this.findIndex(this.tracker.x, this.tracker.y);
+
+
+      if (index > -1) {
+
+        const row = this.getRow(index);
+        const col = this.getCol(index);
+
+        this.start(row, col);
+
+        this.tracker.event.stopPropagation();
+
+      }
+
+    }
+
+    this.tracker.onupdate = () => {
+
+      this.update();
+
+    }
+
+    this.tracker.oncomplete = () => {
+
+      this.complete();
+
+    }
+
+
+
+
+
+
 
   }
 

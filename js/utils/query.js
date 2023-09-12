@@ -197,6 +197,7 @@ KarmaFieldsAlpha.Query = class {
         if (!task) {
 
           task = {
+            name: `Loading vars (${driver}/${attempt})`,
             type: "vars",
             driver: driver,
             ids: new Set(),
@@ -363,6 +364,7 @@ KarmaFieldsAlpha.Query = class {
       if (!task) {
 
         task = {
+          name: `Loading data (${driver}/${paramstring})`,
           type: "query",
           driver: driver,
           paramstring: paramstring,
@@ -393,6 +395,7 @@ KarmaFieldsAlpha.Query = class {
       if (!task) {
 
         task = {
+          name: `Counting (${driver}/${paramstring})`,
           type: "count",
           driver: driver,
           paramstring: paramstring,
@@ -428,6 +431,7 @@ KarmaFieldsAlpha.Query = class {
     KarmaFieldsAlpha.DeepObject.merge(this.vars, data);
 
     KarmaFieldsAlpha.tasks.push({
+      name: `Update (${driver}/${id})`,
       type: "update",
       driver: driver,
       id: id,
@@ -446,6 +450,7 @@ KarmaFieldsAlpha.Query = class {
       for (let id in data[driver]) {
 
         KarmaFieldsAlpha.tasks.push({
+          name: `Update (${driver}/${id})`,
           type: "update",
           driver: driver,
           id: id,
@@ -485,6 +490,7 @@ KarmaFieldsAlpha.Query = class {
   static add(driver, params = {}, index = 0, ...path) {
 
     KarmaFieldsAlpha.tasks.push({
+      name: `Add (${driver})`,
       type: "add",
       driver: driver,
       params: params,
@@ -559,6 +565,7 @@ KarmaFieldsAlpha.Query = class {
     for (let i = 0; i < files.length; i++) {
 
       const task = {
+        name: `Upload Files (${i}/${files.length})`,
         type: "upload",
         driver: driver,
         file: files[i],
@@ -632,6 +639,7 @@ KarmaFieldsAlpha.Query = class {
     for (let id of ids) {
 
       KarmaFieldsAlpha.tasks.push({
+        name: `Regenerate Files (${driver}/${id})`,
         type: "regen",
         driver: driver,
         id: id,

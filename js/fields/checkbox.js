@@ -400,11 +400,13 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 									if (value === KarmaFieldsAlpha.mixed || value === this.true()) {
 
 										this.setValue(this.false());
+										this.render();
 										this.save("uncheck");
 
 									} else {
 
 										this.setValue(this.true());
+										this.render();
 										this.save("check");
 
 									}

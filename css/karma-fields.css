@@ -1905,6 +1905,26 @@ textarea.clipboard {
   display: none;
 }
 
+
+/* WP Editor
+--------------------------------------*/
+
+.editor-container {
+  border: var(--border-width) solid var(--border-color);
+}
+.editor-container .mce-toolbar-grp {
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+.editor-container .div.mce-toolbar-grp {
+  border-bottom: none; /* reset wp default */
+}
+.editor-container .mce-top-part::before {
+  -webkit-box-shadow: none; /* reset wp default */
+  -moz-box-shadow: none; /* reset wp default */
+  box-shadow: none; /* reset wp default */
+}
+
+
 /* Tiny MCE
 --------------------------------------*/
 

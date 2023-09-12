@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '59';
+	public $version = '60';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -154,9 +154,9 @@ class Karma_Fields_Alpha {
 
 				// beta
 				wp_enqueue_script('karma-fields-alpha-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-alpha-input'), $this->version, true);
-				// wp_enqueue_script('karma-fields-alpha-editor', $plugin_url . '/js/fields/editor.js', array('karma-fields-alpha-input'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-block-editor', $plugin_url . '/js/fields/block-editor.js', array(), $this->version, true);
 
+				wp_enqueue_script('karma-fields-alpha-editor', $plugin_url . '/js/fields/editor.js', array('karma-fields-alpha-input'), $this->version, true);
 
 
 				// table

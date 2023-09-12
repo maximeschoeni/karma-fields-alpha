@@ -108,51 +108,24 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
           input.element.oninput = event => {
 
-						console.log("oninput", event);
+						const newValue = input.element.value.normalize();
 
-						// const newValue = input.element.value.normalize();
-						//
-						// this.setValue(newValue);
-						//
+						this.setValue(newValue);
+
 						// this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
-						//
-						// value = newValue;
+						this.saveChange(newValue, value);
 
-						value = this.write(newValue, value, event.inputType);
-
-
+						value = newValue;
 
 						if (event.inputType === "insertText") {
 
-							this.debounce(() => {
-
-								const newValue = input.element.value.normalize();
-
-								this.setValue(newValue);
-
-								this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
-
-								value = newValue;
-
-							}, 300);
-
-							value = newValue;
+							this.debounce(() => void this.render(), 300);
 
 						} else {
 
-							const newValue = input.element.value.normalize();
-
-							this.setValue(newValue);
-
-							this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
-
-							value = newValue;
+							this.render()
 
 						}
-
-
-
-						// adapt textarea height
 
 						input.element.style.height = "1px";
 					  input.element.style.height = (25+input.element.scrollHeight)+"px";
@@ -170,7 +143,9 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 						if (value === KarmaFieldsAlpha.mixed) {
 
-							KarmaFieldsAlpha.Clipboard.focus();
+							this.deferFocus();
+
+							// KarmaFieldsAlpha.Clipboard.focus();
 
 						}
 

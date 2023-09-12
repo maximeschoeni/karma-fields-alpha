@@ -137,7 +137,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async swap(index, target, length) {
+  swap(index, target, length) {
 
     if (target !== index) {
 
@@ -149,6 +149,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
         clone.splice(target, 0, ...clone.splice(index, length));
 
         this.setValue(clone);
+        this.render();
+        this.save("swap");
 
       }
 
@@ -224,6 +226,10 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
       this.insert([], selection.index, selection.length);
 
+      this.setSelection({});
+
+      this.render();
+
       this.save(`${this.resource.uid}-delete`);
 
     }
@@ -237,6 +243,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
 
     this.setSelection({index: this.getValue().length, length: 0, final: true});
+
+    this.render();
 
     this.save(`${this.resource.uid}-remove`);
 
@@ -286,17 +294,23 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                 sorter.onselect = newSelection => {
 
                   // if (!newSelection.equals(selection)) {
-                  if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
+                  // if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
+                  //
+                  //   // const [string] = this.export([], newSelection.index, newSelection.length);
+                  //
+                  //   // KarmaFieldsAlpha.Clipboard.write(string);
+                  //
+                  //   this.deferFocus();
+                  //   this.setSelection(newSelection);
+                  //
+                  //   this.render();
+                  //
+                  // }
 
-                    const [string] = this.export([], newSelection.index, newSelection.length);
+                  this.deferFocus();
+                  this.setSelection(newSelection);
 
-                    KarmaFieldsAlpha.Clipboard.write(string);
-
-                    this.setSelection(newSelection);
-
-                    this.render();
-
-                  }
+                  this.render();
 
                 }
 
@@ -313,7 +327,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                 }
 
                 sorter.onSwap = (index, target, length) => {
-                  this.swap(index, target, length);
+                  this.swap(index, target, length); // will render
                   this.setSelection({final: true, index: target, length: length});
                 };
 
@@ -331,7 +345,9 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                   //
                   // this.setSelection(sorter.selection);
 
+                  this.deferFocus();
                   this.save("order");
+                  this.render();
 
                 }
 

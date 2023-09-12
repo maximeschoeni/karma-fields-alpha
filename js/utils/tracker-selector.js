@@ -22,8 +22,6 @@ KarmaFieldsAlpha.Selector = class {
 
       this.init();
 
-      // this.tracker.event.stopPropagation();
-
     }
 
     this.tracker.onupdate = () => {

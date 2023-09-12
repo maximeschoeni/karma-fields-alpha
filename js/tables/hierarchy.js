@@ -507,12 +507,16 @@ console.error("deprecated");
       if (index !== currentIndex) {
 
         this.setValue(index, item.id, "position");
+        this.render();
+        this.save("swap");
 
       }
 
       if (parent.id !== currentParentId) {
 
         this.setValue(parent.id, item.id, "parent");
+        this.render();
+        this.save("swap");
 
       }
 
@@ -1477,7 +1481,8 @@ console.error("deprecated");
           // this.select(newSelection);
 
           this.setSelection(newSelection);
-          KarmaFieldsAlpha.Clipboard.focus();
+          // KarmaFieldsAlpha.Clipboard.focus();
+          this.deferFocus();
           this.save("nav");
           this.render();
 
@@ -1504,7 +1509,8 @@ console.error("deprecated");
           this.parent.request("completeSwap");
 
           // this.swap([...path, selection.index], [...sorter.path, sorter.selection.index], sorter.selection.length);
-          KarmaFieldsAlpha.Clipboard.focus();
+          // KarmaFieldsAlpha.Clipboard.focus();
+          this.deferFocus();
           this.save("swap");
           this.render();
 

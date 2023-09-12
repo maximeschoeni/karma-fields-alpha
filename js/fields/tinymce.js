@@ -66,12 +66,13 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 			instance.onUpdateContent = (content, context) => {
 				this.setValue(content);
+				this.render();
 				this.save("input");
 			}
 
 			instance.onUpdateSelection = (selection) => {
 				this.setSelection(selection);
-				this.render();
+				this.render(); // -> shouldn't be local render ?
 			}
 
 			instance.onFetchImage = () => {
@@ -447,6 +448,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 			const content = editor.getContent();
 			this.setValue(content);
+			this.render();
 
     }
 
@@ -500,6 +502,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
       // this.saveContent();
 			const content = editor.getContent();
 			this.setValue(content);
+			this.render();
 			this.save("ul");
 
     }
@@ -563,6 +566,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
       // this.saveContent();
 			const content = editor.getContent();
 			this.setValue(content);
+			this.render();
 			this.save("format");
 
     }
@@ -593,8 +597,8 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// this.saveContent();
 			const content = editor.getContent();
 			this.setValue(content);
-
 			this.setSelection({final: true});
+			this.render();
 			this.save("unlink");
 
     }
@@ -711,7 +715,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			this.setValue(content);
 
 			this.setSelection({final: true});
-
+			this.render();
 			this.save("link");
 
     }
@@ -1619,7 +1623,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 	}
 
 	insert(ids) {
-
+		console.error("deprecated");
 		if (ids.length) {
 
 			this.getData().attachments = ids;
@@ -1855,7 +1859,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 				const content = editor.getContent();
 				this.setValue(content);
-
+				this.render();
 				this.save("insert");
 
 			}
@@ -2718,6 +2722,8 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 
 			}
 
+			this.render();
+
 			// for (let key in data.buffer) {
 
 			//   super.setValue(data.buffer[key], key);
@@ -2855,7 +2861,7 @@ KarmaFieldsAlpha.field.tinymce.linkForm = class extends KarmaFieldsAlpha.field.t
 
 				if (file) {
 
-					this.setValue(file, "href");
+					this.setValue(file, "href"); // ????
 
 					return [file];
 
@@ -2968,6 +2974,7 @@ KarmaFieldsAlpha.field.tinymce.imageForm = class extends KarmaFieldsAlpha.field.
 	}
 
 	insert(ids) {
+		console.error("deprecated"); // -> to be reworked
 
 		if (ids.length) {
 

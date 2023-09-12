@@ -323,11 +323,15 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       this.setValue(values);
 
+      this.render();
+
       this.save("remove");
 
     }
 
   }
+
+
 
 
   delete(selection) { // descendant function
@@ -349,6 +353,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
   paste(value, selection) {
 
     this.import([value], selection.index || 0, selection.length || 0);
+
+    this.render();
 
   }
 
@@ -435,7 +441,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                     selection = newSelection;
 
-                    KarmaFieldsAlpha.Clipboard.focus();
+                    // KarmaFieldsAlpha.Clipboard.focus();
+                    this.deferFocus();
 
                     this.setSelection(newSelection);
 
@@ -459,7 +466,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 sorter.onSwap = (index, targetIndex, length) => {
 
-                  console.log(index, targetIndex, length);
+                  // console.log(index, targetIndex, length);
 
                   // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
 
@@ -467,11 +474,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                     // selection = {final: 1, index: targetIndex, length: length};
 
-                    KarmaFieldsAlpha.Clipboard.focus();
+                    // KarmaFieldsAlpha.Clipboard.focus();
+
 
                     this.setSelection({final: 1, index: targetIndex, length: length});
 
-                    // this.save("order");
+                    this.render();
 
                   // }
 
@@ -490,7 +498,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                     //
                     // this.setSelection(sorter.selection);
 
+                    this.deferFocus();
                     this.save("order");
+                    this.render();
 
                   // }
 
@@ -703,6 +713,12 @@ KarmaFieldsAlpha.field.array.row = class extends KarmaFieldsAlpha.field {
 
   }
 
+  deleteRow() { // -> button action
+
+    this.parent.remove(this.resource.index, 1);
+
+  }
+
 }
 
 
@@ -720,7 +736,7 @@ KarmaFieldsAlpha.field.array.row = class extends KarmaFieldsAlpha.field {
 KarmaFieldsAlpha.field.array.row.delete = class extends KarmaFieldsAlpha.field.button {
   constructor(resource) {
     super({
-      action: "delete",
+      action: "deleteRow",
       value: ["index"],
       title: "Delete",
       dashicon: "no-alt",

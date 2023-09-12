@@ -430,11 +430,11 @@ console.error("deprecated");
 
   }
 
-  save(name) {
+  save(name, label) {
 
     if (name) {
 
-      this.parent.save(`${this.resource.index}-${name}`);
+      this.parent.save(`${this.resource.index}-${name}`, label);
 
     }
 
@@ -1046,7 +1046,11 @@ console.error("deprecated");
   }
 
 
+  deferFocus() { // -> defer focus to clipboard textarea
 
+    this.parent.deferFocus();
+
+  }
 
 
 

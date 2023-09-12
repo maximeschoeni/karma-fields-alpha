@@ -255,6 +255,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       order = (this.getOrder() || order || "asc") === "asc" ? "desc" : "asc";
       // KarmaFieldsAlpha.Nav.change(order, undefined, "order");
       this.parent.setValue(order, "order");
+      this.render();
 
     } else {
 
@@ -263,6 +264,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       this.parent.setValue(order || "asc", "order");
       this.parent.setValue(key, "orderby");
+      this.render();
 
     }
 
@@ -936,7 +938,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     //
     // KarmaFieldsAlpha.Clipboard.write(string);
 
-    KarmaFieldsAlpha.Clipboard.focus();
+    // KarmaFieldsAlpha.Clipboard.focus();
+
+    this.deferFocus();
 
   }
 

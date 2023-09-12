@@ -114,76 +114,76 @@ KarmaFieldsAlpha.field.blockEditor = class extends KarmaFieldsAlpha.field {
 
 
 
-  export(items = [], index = 0, length = 999999, colIndex = 0, colLength = 999999) {
-
-    const values = this.getValue();
-
-    if (values) {
-
-      if (values[0] === KarmaFieldsAlpha.mixed) {
-
-        return items;
-
-      }
-
-      const grid = new KarmaFieldsAlpha.Grid();
-      const columns = this.resource.children.slice(colIndex, colIndex + colLength);
-
-      for (let i = 0; i < Math.min(values.length - index, length); i++) {
-
-        const rowField = this.createChild({
-          type: "row",
-          index: i + index,
-          children: columns
-        });
-
-        const rowItems = rowField.export();
-
-        grid.addRow(rowItems);
-
-      }
-
-      items.push(grid.toString());
-
-    }
-
-    return items;
-
-  }
-
-  import(items, index = 0, length = 999999, colIndex = 0, colLength = 999999) {
-
-    const string = items.shift();
-
-    if (string) {
-
-      const grid = new KarmaFieldsAlpha.Grid(string);
-
-      const columns = this.resource.children.slice(colIndex, colIndex + colLength);
-
-      const values = [...this.getValue()];
-
-      values.splice(index, length, ...grid.array.map(() => this.getDefault()));
-
-      this.setValue(values);
-
-      for (let i = 0; i < grid.array.length; i++) {
-
-        const child = this.createChild({
-          children: columns,
-          type: "row",
-          index: i + index
-        });
-
-        const rowItems = grid.getRow(i);
-
-        child.import(rowItems);
-
-      }
-
-    }
-
-  }
+  // export(items = [], index = 0, length = 999999, colIndex = 0, colLength = 999999) {
+  //
+  //   const values = this.getValue();
+  //
+  //   if (values) {
+  //
+  //     if (values[0] === KarmaFieldsAlpha.mixed) {
+  //
+  //       return items;
+  //
+  //     }
+  //
+  //     const grid = new KarmaFieldsAlpha.Grid();
+  //     const columns = this.resource.children.slice(colIndex, colIndex + colLength);
+  //
+  //     for (let i = 0; i < Math.min(values.length - index, length); i++) {
+  //
+  //       const rowField = this.createChild({
+  //         type: "row",
+  //         index: i + index,
+  //         children: columns
+  //       });
+  //
+  //       const rowItems = rowField.export();
+  //
+  //       grid.addRow(rowItems);
+  //
+  //     }
+  //
+  //     items.push(grid.toString());
+  //
+  //   }
+  //
+  //   return items;
+  //
+  // }
+  //
+  // import(items, index = 0, length = 999999, colIndex = 0, colLength = 999999) {
+  //
+  //   const string = items.shift();
+  //
+  //   if (string) {
+  //
+  //     const grid = new KarmaFieldsAlpha.Grid(string);
+  //
+  //     const columns = this.resource.children.slice(colIndex, colIndex + colLength);
+  //
+  //     const values = [...this.getValue()];
+  //
+  //     values.splice(index, length, ...grid.array.map(() => this.getDefault()));
+  //
+  //     this.setValue(values);
+  //
+  //     for (let i = 0; i < grid.array.length; i++) {
+  //
+  //       const child = this.createChild({
+  //         children: columns,
+  //         type: "row",
+  //         index: i + index
+  //       });
+  //
+  //       const rowItems = grid.getRow(i);
+  //
+  //       child.import(rowItems);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
 
   getDefault() {
@@ -406,6 +406,8 @@ KarmaFieldsAlpha.field.blockEditor = class extends KarmaFieldsAlpha.field {
 
       this.setValue(values);
 
+      this.render();
+
       this.setSelection({index: 0, length: 0});
 
     }
@@ -483,6 +485,8 @@ KarmaFieldsAlpha.field.blockEditor = class extends KarmaFieldsAlpha.field {
       KarmaFieldsAlpha.DeepArray.splice(values, 0, transferedItems, ...newPath, newIndex);
 
       this.setValue(values);
+
+      this.render();
 
     }
 
@@ -1242,6 +1246,8 @@ KarmaFieldsAlpha.field.blockEditor.columns = class extends KarmaFieldsAlpha.fiel
 
     this.setValue([...children, value], "children");
 
+    this.render();
+
   }
 
 
@@ -1599,20 +1605,22 @@ KarmaFieldsAlpha.field.blockEditor.column = class extends KarmaFieldsAlpha.field
 
         sorter.onselect = newSelection => {
           this.setSelection(newSelection);
-          KarmaFieldsAlpha.Clipboard.focus();
+          // KarmaFieldsAlpha.Clipboard.focus();
+          this.deferFocus();
           this.save("nav");
           this.render();
         }
 
         sorter.onsort = (index, newIndex, length, path, newPath) => {
           this.parent.request("completeSwap");
-          KarmaFieldsAlpha.Clipboard.focus();
+          // KarmaFieldsAlpha.Clipboard.focus();
+          this.deferFocus();
           this.save("swap");
           this.render();
         }
 
         sorter.onSwap = (index, newIndex, length, path, newPath) => {
-          this.swap(index, newIndex, length, path, newPath);
+          this.swap(index, newIndex, length, path, newPath); // -> will render.
         }
 
         sorter.onSelectionChange = newSelection => {

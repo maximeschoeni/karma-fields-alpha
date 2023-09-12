@@ -416,6 +416,24 @@ KarmaFieldsAlpha.Store = class {
 
 
 
+	static getFocus() { // boolean: get if focus is on clipboard textarea
+
+    return this.get("focus") || false;
+
+  }
+
+  static setFocus(value) {
+
+		const current = this.getFocus();
+
+		KarmaFieldsAlpha.Backup.add(value || false, current, "focus");
+
+    this.set(value, "focus");
+
+  }
+
+
+
 
 }
 

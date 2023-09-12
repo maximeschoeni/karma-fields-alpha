@@ -497,7 +497,7 @@ console.error("deprecated")
     // }
 
     this.parent.setValue(id || "0", "parent");
-
+    this.render();
     this.save("open");
 
   }
@@ -513,6 +513,7 @@ console.error("deprecated")
     // }
 
     this.parent.setValue(id || "0", "parent");
+    this.render();
 
     this.save("open");
 
@@ -935,7 +936,8 @@ console.error("deprecated");
                   //
                   // if (newSelection.length > 0) {
 
-                    KarmaFieldsAlpha.Clipboard.focus();
+                    // KarmaFieldsAlpha.Clipboard.focus();
+                    this.deferFocus();
                     this.setSelection(newSelection);
                     // this.setSelection(newSelection);
                     this.render();
@@ -1568,6 +1570,7 @@ KarmaFieldsAlpha.field.saucer.breadcrumb = class extends KarmaFieldsAlpha.field 
                   a.element.onclick = event => {
                     if (index !== array.length - 1) {
                       this.parent.setValue(item.id, "parent");
+                      this.render();
                     }
                   }
                 }

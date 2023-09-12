@@ -28,7 +28,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 
 				button.element.onmousedown = event => {
 					event.preventDefault(); // -> keep focus to current active element
-					event.stopPropagation(); // -> e.g. prevent selecting parent array
+					event.stopPropagation(); // -> prevent selecting parent stuffs
 				}
 
 				button.element.onclick = event => {

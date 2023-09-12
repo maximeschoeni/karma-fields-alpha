@@ -219,7 +219,7 @@ KarmaFieldsAlpha.field.text.a = class extends KarmaFieldsAlpha.field {
 
 				const params = this.parse(this.resource.params);
 
-				if (table !== KarmaFieldsAlpha.loading && params !== KarmaFieldsAlpha.loading) {
+				if (table !== KarmaFieldsAlpha.loading && params !== KarmaFieldsAlpha.loading && !Object.values(params).some(value => value === KarmaFieldsAlpha.loading)) {
 
 					KarmaFieldsAlpha.saucer.open(table, params, this.resource.context);
 

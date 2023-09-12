@@ -91,6 +91,22 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		this.debounceTimer = setTimeout(() => void callback(), duration);
 	}
 
+	saveChange(newValue, currentValue) {
+
+		const label = this.getLabel() || this.resource.type;
+
+		if (newValue.length < currentValue.length) {
+
+			this.save(`${this.resource.uid}-delete`, `Delete into ${label}`);
+
+		} else {
+
+			this.save(`${this.resource.uid}-input`, `Insert into ${label}`);
+
+		}
+
+	}
+
 
 	// getDefault(defaults = {}) {
 	//
@@ -301,6 +317,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 	remove() {
 
 		this.setValue("");
+		this.render();
 		this.save("delete");
 
 	}
@@ -537,7 +554,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 						//
 						// }
 
-            if (value !== input.element.value) { // -> replacing same value will ruin selection !
+            if (true || value !== input.element.value.normalize()) { // -> replacing same value will ruin selection !
 
               input.element.value = value || "";
 
@@ -569,17 +586,37 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 
 
-						this.debounce(() => {
+						// this.debounce(() => {
+						//
+						// 	const newValue = input.element.value.normalize();
+						//
+						// 	this.setValue(newValue);
+						// 	this.render();
+						//
+						// 	this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+						//
+						// 	value = newValue;
+						//
+						// }, 300);
 
-							const newValue = input.element.value.normalize();
+						const newValue = input.element.value.normalize();
 
-							this.setValue(newValue);
+						this.setValue(newValue);
 
-							this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+						// this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+						this.saveChange(newValue, value);
 
-							value = newValue;
+						value = newValue;
 
-						}, 300);
+						if (event.inputType === "insertText") {
+
+							this.debounce(() => void this.render(), 300);
+
+						} else {
+
+							this.render()
+
+						}
 
           }
 
@@ -593,17 +630,35 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 						if (value === KarmaFieldsAlpha.mixed) {
 
-							KarmaFieldsAlpha.Clipboard.focus();
+							this.deferFocus();
+
+							// KarmaFieldsAlpha.Clipboard.focus();
 
 						}
 
-						this.render();
+						this.render(); // update clipboard textarea, unselect other stuffs
 
 					}
 
 					input.element.onmousedown = event => {
-						event.stopPropagation();
+
+						event.stopPropagation(); // -> prevent selecting parent stuffs
+
 					}
+
+					input.element.onkeydown = event => {
+
+						if (event.key === "Enter") {
+
+							event.preventDefault(); // -> prevent sending form if embeded in a post page
+
+              this.parent.request("submit"); // -> Save
+
+            }
+
+					}
+
+
 
         } else {
 
