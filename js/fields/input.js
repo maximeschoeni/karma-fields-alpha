@@ -254,7 +254,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
     // return items;
 
 
-    const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+    const value = this.getSingleValue() || "";
 
     items.push(value.toString());
 

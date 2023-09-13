@@ -152,6 +152,31 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 					});
 
+				} else if (this.resource.media) {
+
+					if (this.resource.media.id) {
+
+						let ids = this.parse(this.resource.media.id);
+
+						ids = KarmaFieldsAlpha.Type.toArray(ids);
+
+
+						node.children = ids.map((id, index) => {
+
+							return this.createChild({
+								type: "media",
+								driver: this.resource.media.driver || "medias",
+								display: this.resource.media.display || "thumb",
+								id: id,
+								index: index
+							}).build();
+
+						});
+
+					}
+
+
+
 				}
 
 				// if (this.resource.highlight) {
@@ -245,12 +270,29 @@ KarmaFieldsAlpha.field.text.a = class extends KarmaFieldsAlpha.field {
 }
 
 
-KarmaFieldsAlpha.field.text.media = class extends KarmaFieldsAlpha.field {
+KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 	getMedia() {
 
 		const driver = this.resource.driver || this.getDriver();
-		const id = this.resource.id || this.getId() || KarmaFieldsAlpha.loading;
+		// const id = this.resource.id || this.getId() || KarmaFieldsAlpha.loading;
+
+
+		let id = this.parse(this.resource.id);
+
+		if (typeof id !== "symbol") {
+
+			id = KarmaFieldsAlpha.Type.toString(id);
+
+		}
+
+		// if (!id) {
+		//
+		// 	id = this.getId() || KarmaFieldsAlpha.loading;
+		//
+		// }
+
+		// console.log(id, this.resource.id);
 
 		if (!driver) {
 
@@ -420,7 +462,7 @@ KarmaFieldsAlpha.field.text.media = class extends KarmaFieldsAlpha.field {
 
 		} else {
 
-			return {icon: "notfound", text: "notfound"};
+			return {icon: "none", text: ""};
 
 		}
 
@@ -432,7 +474,10 @@ KarmaFieldsAlpha.field.text.media = class extends KarmaFieldsAlpha.field {
 			class: "karma-field-media",
 			init: node => {
 				if (this.resource.width) {
-					node.element.width = this.resource.width;
+					node.element.style.width = this.resource.width;
+				}
+				if (this.resource.height) {
+					node.element.style.height = this.resource.height;
 				}
 				if (this.resource.display) {
 					node.element.classList.add(`display-${this.resource.display}`);

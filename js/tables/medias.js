@@ -400,16 +400,25 @@ console.error("deprecated")
 
   export(dataRow = [], index = 0, length = 999999) {
 
-    // const ids = this.getIds();
-    const items = this.getItems().filter(item => !item.exit);
-    const grid = new KarmaFieldsAlpha.Grid();
-    const slice = items.slice(index, index + length).filter(item => item.id).map(item => item.id);
+    if (this.resource.export || this.resource.import) {
 
-    grid.addColumn(slice);
+      return super.export(dataRow, index, length);
 
-    dataRow.push(grid.toString());
+    } else { // -> just export ids
 
-    return dataRow;
+      const items = this.getItems().filter(item => !item.exit);
+      const grid = new KarmaFieldsAlpha.Grid();
+      const slice = items.slice(index, index + length).filter(item => item.id).map(item => item.id);
+
+      grid.addColumn(slice);
+
+      dataRow.push(grid.toString());
+
+      return dataRow;
+
+    }
+
+
 
   }
 
@@ -1279,6 +1288,26 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
 
         const items = this.request("getSelectedItems");
 
+        let id;
+
+        if (items.length > 1) {
+
+          id = KarmaFieldsAlpha.mixed;
+
+        } else if (items[0] && items[0].loading) {
+
+          id = KarmaFieldsAlpha.loading;
+
+        } else if (items[0] && items[0].exit) {
+
+          id = KarmaFieldsAlpha.exit;
+
+        } else if (items[0]) {
+
+          id = items[0].id;
+
+        }
+
         // const id = this.getId();
 
         container.children = [
@@ -1287,14 +1316,26 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
           //   driver: driver
           // }).build()
 
+          // this.createChild({
+          //   type: "text",
+          //   width: "100%",
+          //   mixed: items.length > 1,
+          //   exit: items[0].exit,
+          //   loading: items[0].loading,
+          //   medias: [{display: "description"}]
+          // }).build(),
+
           this.createChild({
-            type: "text",
+            type: "media",
             width: "100%",
-            mixed: items.length > 1,
-            exit: items[0].exit,
-            loading: items[0].loading,
-            medias: [{display: "description"}]
+            height: "15em",
+            id: id,
+            display: "medium" // = default
           }).build(),
+
+
+
+
           this.createChild("imageDescription").build()
         ];
 

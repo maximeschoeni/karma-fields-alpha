@@ -173,7 +173,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   redo() {
 
     KarmaFieldsAlpha.History.redo();
-    
+
     const state = KarmaFieldsAlpha.History.getState() || {};
     const name = state.name || "?";
 
@@ -1952,11 +1952,7 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
               clipboard.element.id = "karma-fields-alpha-clipboard";
               clipboard.readOnly = true;
 
-              if (KarmaFieldsAlpha.Store.getFocus()) {
 
-                clipboard.element.focus({preventScroll: true});
-
-              }
 
               this.parent.focus = () => { // !!!!
                 console.error("deprecated. Use deferFocus() instead")
@@ -2022,6 +2018,11 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
               }
 
+            },
+            update: clipboard => {
+              if (KarmaFieldsAlpha.Store.getFocus()) {
+                clipboard.element.focus({preventScroll: true});
+              }
             }
           },
           {

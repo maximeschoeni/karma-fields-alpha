@@ -500,9 +500,13 @@ KarmaFieldsAlpha.Query = class {
       resolve: task => this.resolveAdd(task)
     });
 
+
+
     const items = KarmaFieldsAlpha.Store.get("ids") || [];
     const newItems = KarmaFieldsAlpha.DeepArray.clone(items);
     KarmaFieldsAlpha.DeepArray.splice(newItems, 0, [{loading: true}], index, ...path);
+
+    console.log(index, newItems);
 
 
     // const ids = KarmaFieldsAlpha.Store.get("ids") || [];
@@ -522,12 +526,14 @@ KarmaFieldsAlpha.Query = class {
 
   static async resolveAdd(task) {
 
-    const currentItems = KarmaFieldsAlpha.Store.get("ids") || [];
-
     let id = await KarmaFieldsAlpha.Gateway.post(`add/${task.driver}`, task.params).then(id => id.toString());
+
+    const currentItems = KarmaFieldsAlpha.Store.get("ids") || [];
 
     const newItems = KarmaFieldsAlpha.DeepArray.clone(currentItems);
     KarmaFieldsAlpha.DeepArray.set(newItems, {id: id}, task.index, ...task.path);
+
+    // console.log(task.index, newItems);
 
     // const newIds = [...currentIds];
     // newIds[task.index] = id;
@@ -596,8 +602,6 @@ KarmaFieldsAlpha.Query = class {
 
   static async resolveUpload(task) {
 
-    const currentItems = KarmaFieldsAlpha.Store.get("ids") || [];
-
     let id;
 
     if (KarmaFieldsAlpha.useWPMediaUploader) {
@@ -609,6 +613,8 @@ KarmaFieldsAlpha.Query = class {
       id = await KarmaFieldsAlpha.Gateway.stream(task.file, task.params);
 
     }
+
+    const currentItems = KarmaFieldsAlpha.Store.get("ids") || [];
 
     id = id.toString();
     const newItems = [...currentItems];

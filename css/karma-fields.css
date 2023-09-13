@@ -24,7 +24,8 @@
 
   --theme-color: #2271b1;
   /* --theme-secondary-color: #72aee6; */
-  --theme-secondary-color: #679BC6;
+  /* --theme-secondary-color: #679BC6; */
+  --theme-secondary-color: #377EB7;
   --theme-disabled-color: #BDD0E1;
 
   --theme-bg-color: #1d2327;
@@ -41,9 +42,9 @@
   --border-color: var(--theme-color);
   --text-color: var(--theme-color);
   --inverse-background-color: var(--theme-color);
-  /* --selected-background-color: var(--theme-secondary-color); */
-  --selected-background-color: var(--theme-color);
-  --screen-background-color: var(--theme-color); /* -> just for selected thumbs screen effect (and dark) */
+  --selected-background-color: var(--theme-secondary-color);
+  /* --selected-background-color: var(--theme-color); */
+  --screen-background-color: var(--theme-secondary-color); /* -> just for selected thumbs screen effect (and dark) */
 
   /* light grey */
   --background-color: var(--theme-light-color);
@@ -588,7 +589,7 @@ body.karma-table-open {
 .karma-fields .table .td.selected a:hover {
   color: var(--active-color);
 }
-.karma-fields .table .td > div {
+.karma-fields .table .td>div {
   display: flex;
   width: 100%;
 }
@@ -1214,9 +1215,9 @@ ul.tag-links li:not(:last-child)::after {
   width: 10em;
   height: 11.5em;
 }
-.karma-field-media.display-description {
-  width: 100%;
-  height: 15em;
+.karma-field-media.display-description { /* deprecated */
+  /* width: 100%;
+  height: 15em; */
 }
 .karma-field-media figure {
   margin: 0;
@@ -1228,10 +1229,12 @@ ul.tag-links li:not(:last-child)::after {
   width: 100%;
 }
 .frame.selected .karma-field-media figure.image,
+.td.selected .karma-field-media figure.image,
 .karma-field-media.greyscale figure.image {
   background-color: var(--screen-background-color);
 }
 .frame.selected .karma-field-media figure.image img,
+.td.selected .karma-field-media figure.image img,
 .karma-field-media.greyscale figure.image img {
   filter: grayscale(1) contrast(1.3);
   mix-blend-mode: screen;
@@ -1285,6 +1288,13 @@ ul.tag-links li:not(:last-child)::after {
 
 /* Text - Media - selection
 --------------------------------------*/
+
+
+
+
+/* Text - Media - in Grid
+--------------------------------------*/
+
 
 
 

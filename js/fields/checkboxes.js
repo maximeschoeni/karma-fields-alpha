@@ -332,7 +332,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 	export(items = []) {
 
-		const array = this.getValue();
+		const array = this.getValue() || [];
 		const grid = new KarmaFieldsAlpha.Grid();
 
 		grid.addColumn(array);

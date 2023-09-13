@@ -370,7 +370,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     const items = this.getItems();
     const grid = new KarmaFieldsAlpha.Grid();
 
-    if (this.resource.modal) {
+    const mode = this.resource.export || this.resource.import;
+
+    if (mode === "modal") {
 
 
       for (let i = 0; i < Math.min(items.length - index, length); i++) {
@@ -395,6 +397,48 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       }
 
+    } else if (mode && Array.isArray(mode)) {
+
+      for (let i = 0; i < Math.min(items.length - index, length); i++) {
+
+        const item = items[i + index];
+
+        if (item && item.id) {
+
+          // const rowItems = this.resource.export.map(key => {
+          //
+          //   this.getValue(item.id, key)
+          // });
+
+          const values = [];
+
+          const rowField = this.createChild({
+            type: "row",
+            id: item.id
+          });
+
+          for (let resource of mode) {
+
+            if (typeof resource === "string") {
+
+              resource = {key: resource};
+
+            }
+
+            const child = rowField.createChild({
+              type: "input",
+              ...resource
+            });
+
+            child.export(values);
+
+          }
+
+          grid.addRow(values);
+
+        }
+
+      }
 
     } else {
 
@@ -457,7 +501,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       }
 
-      if (this.resource.modal) {
+      const mode = this.resource.import || this.resource.export;
+
+      if (mode === "modal") {
 
         for (let i = 0; i < grid.array.length; i++) {
 
@@ -475,6 +521,47 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
           const rowItems = grid.getRow(i);
 
           child.import(rowItems);
+
+        }
+
+      } else if (mode && Array.isArray(mode)) {
+
+        for (let i = 0; i < grid.array.length; i++) {
+
+          const item = items[i + index];
+          const rowItems = grid.getRow(i);
+
+          // mode.forEach(key => {
+          //   this.setValue(rowItems.shift(), item.id, key);
+          // });
+          //
+          // if (item) {
+          //
+          //   this.setValue();
+          //
+          // }
+
+          const rowField = this.createChild({
+            type: "row",
+            id: item.id
+          });
+
+          for (let field of mode) {
+
+            if (typeof field === "string") {
+
+              field = {key: field};
+
+            }
+
+            const child = rowField.createChild({
+              type: "input",
+              ...field
+            });
+
+            child.import(rowItems);
+
+          }
 
         }
 
@@ -633,9 +720,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     } else if (selection) {
 
-      const [value] = this.export([], selection.index, selection.length, selection.colIndex, selection.colLength);
+      const values = this.export([], selection.index, selection.length, selection.colIndex, selection.colLength);
 
-      return value;
+      return values[0];
 
     }
 
@@ -1011,7 +1098,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
               // selection = newSelection;
 
+              this.deferFocus();
               this.select(newSelection);
+              this.render();
 
             }
 
@@ -1020,6 +1109,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
           selector.onSelectionChange = newSelection => {
 
             this.setSelection(newSelection);
+            this.render();
 
           }
 
