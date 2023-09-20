@@ -5,7 +5,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     super(resource);
 
-    this.notices = [];
+    this.notifications = [];
 
   }
 
@@ -332,17 +332,67 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   getNotice() {
 
-    return this.notices[this.notices.length - 1] || "";
+    return this.getLastNotification();
 
   }
 
-  addNotice(notice) {
+  addNotice(notification) {
 
-    console.log(notice);
-
-    return this.notices.push(notice);
+    this.addNotification(notification);
 
   }
+
+  getLastNotification() {
+
+    return this.notifications[this.notifications.length - 1];
+
+  }
+
+  addNotification(notification) {
+
+    this.notifications.push(notification);
+
+  }
+
+  hasNotification() {
+
+    const notification = this.getLastNotification();
+
+    return !notification || notification.loading;
+
+  }
+
+  // createNotification(task) {
+  //
+  //   if (task) {
+  //
+  //     this.addNotification({
+  //       action: task.action || task.name,
+  //       description: task.description || task.name,
+  //       loading: true
+  //     });
+  //
+  //   } else {
+  //
+  //     this.addNotification({
+  //       action: "render",
+  //       description: "Rendering",
+  //       loading: true
+  //     });
+  //
+  //   }
+  //
+  // }
+  //
+  // clearNotification() {
+  //
+  //   this.addNotification({
+  //     action: "done",
+  //     description: "Done",
+  //     loading: false
+  //   });
+  //
+  // }
 
 
 
@@ -916,52 +966,88 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       this.rendering = true;
 
+      // let task;
+      //
+      // do {
+      //
+      //   if (KarmaFieldsAlpha.embeds) {
+      //
+      //     // console.time();
+      //
+      //     for (let resource of KarmaFieldsAlpha.embeds) {
+      //
+      //       const element = document.getElementById(resource.index);
+      //
+      //       const child = this.createChild(resource);
+      //
+      //       await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+      //
+      //     }
+      //
+      //     // console.timeEnd();
+      //
+      //   }
+      //
+      //   task = KarmaFieldsAlpha.tasks.shift();
+      //
+      //
+      //   if (task) {
+      //
+      //     await task.resolve(task);
+      //
+      //     // this.addNotice(task.name || "?");
+      //
+      //     this.createNotification(task);
+      //
+      //   } else if (this.hasNotification()) {
+      //
+      //     this.clearNotification();
+      //
+      //   }
+      //
+      // } while (task);
+
+
       let task;
 
-      do {
+      this.addNotification({
+        description: "Rendering",
+        loading: true
+      });
 
-        // console.log("render");
-
-        // if (this.onRender) {
-        //
-        //   await this.onRender();
-        //
-        // }
-
-
-
-
-
-        if (KarmaFieldsAlpha.embeds) {
-
-          // console.time();
-
-          for (let resource of KarmaFieldsAlpha.embeds) {
-
-            const element = document.getElementById(resource.index);
-
-            const child = this.createChild(resource);
-
-            await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
-
-          }
-
-          // console.timeEnd();
-
-        }
-
-        task = KarmaFieldsAlpha.tasks.shift();
-
+      while (task || this.hasNotification()) {
 
         if (task) {
 
           await task.resolve(task);
 
-          this.addNotice(task.name || "?");
+          this.addNotification({
+            description: task.description || task.name,
+            loading: true
+          });
+
+        } else {
+
+          this.addNotification({
+            description: "",
+            loading: false
+          });
 
         }
 
-      } while (task);
+        for (let resource of KarmaFieldsAlpha.embeds) {
+
+          const element = document.getElementById(resource.index);
+
+          const child = this.createChild(resource);
+
+          await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+
+        }
+
+        task = KarmaFieldsAlpha.tasks.shift();
+
+      }
 
 
       this.rendering = false;
@@ -972,7 +1058,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
 
-  fetch(tableId, params, id) {
+  fetch(tableId, params, ids) {
 
     if (this.resource.tables && this.resource.tables[tableId] && this.resource.tables[tableId].body) {
 
@@ -989,16 +1075,14 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       if (grid) {
 
-        grid.getData().id = id;
-
         KarmaFieldsAlpha.Store.setTable(tableId);
 
         KarmaFieldsAlpha.Store.setParams(params || {});
         KarmaFieldsAlpha.Store.removeIds();
 
-        const values = this.getSelectedValue();
+        // const values = this.getSelectedValue();
 
-        grid.setSelection({values: values});
+        grid.setSelection({values: ids});
 
         grid.save("open");
 
@@ -1153,6 +1237,20 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     // const selection = grid.getSelection() || {};
     //
     // grid.upload(files, selection.index || 0, length);
+
+  }
+
+  async regen() {
+
+    const driver = KarmaFieldsAlpha.mediasDriver;
+
+    const results = await KarmaFieldsAlpha.Gateway.get(`query/${driver}?filetype=file`);
+
+    const ids = results.map(result => result.id);
+
+    KarmaFieldsAlpha.Query.regen(driver, ids);
+
+    this.render();
 
   }
 
@@ -2292,7 +2390,7 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                     event.stopPropagation();
                     event.preventDefault();
 
-                    console.log("Is that still in  use??");
+                    // console.log("Is that still in  use??");
 
                     grid.setSelection({final: true, index: 0, length: 0});
 
@@ -2714,4 +2812,22 @@ KarmaFieldsAlpha.field.saucer.pagination.lastpage = {
   text: "»",
   // disabled: ["request", "lastpage", "boolean"]
   disabled: ["==", ["request", "getPage"], ["request", "getNumPage"]]
+}
+
+KarmaFieldsAlpha.field.saucer.notifications = class extends KarmaFieldsAlpha.field.text {
+
+  getContent() {
+
+    const notification = this.request("getLastNotification");
+
+    if (notification) {
+
+      return notification.description;
+
+    }
+
+    return '';
+
+	}
+
 }

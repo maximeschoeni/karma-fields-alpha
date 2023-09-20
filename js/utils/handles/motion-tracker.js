@@ -32,6 +32,7 @@ KarmaFieldsAlpha.MotionTracker = class {
 	constructor(element) {
 
 		this.element = element;
+		this.container = element;
 
 		this.scrollContainer = element.closest(".scroll-container");
 

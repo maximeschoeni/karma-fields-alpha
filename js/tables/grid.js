@@ -170,15 +170,23 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     let params = KarmaFieldsAlpha.Store.get("params");
 
-    if (params === undefined) {
 
-      params = {
-        page: 1,
-        ppp: 100,
-        ...this.resource.params
-      };
+    // if (params === undefined) {
+    //
+    //   params = {
+    //     page: 1,
+    //     ppp: 100,
+    //     ...this.resource.params
+    //   };
+    //
+    // }
 
-    }
+    params = {
+      page: 1,
+      ppp: 100,
+      ...this.resource.params,
+      ...params
+    };
 
 
     return params;
@@ -1738,6 +1746,12 @@ KarmaFieldsAlpha.field.grid.row.sortArrows = {
   ]
 };
 
+
+
+// array(
+//   'type' => 'text',
+//   'content' => array('request', 'getNotice')
+// ),
 
 
 // KarmaFieldsAlpha.field.grid.row.index = {

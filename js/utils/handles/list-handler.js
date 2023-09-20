@@ -12,7 +12,7 @@ KarmaFieldsAlpha.ListHandler = class extends KarmaFieldsAlpha.MotionTracker {
 
     const children = this.getChildren();
 
-    for (i = 0; i < children.length; i++) {
+    for (let i = 0; i < children.length; i++) {
 
       const element = children[i];
 
@@ -56,71 +56,71 @@ KarmaFieldsAlpha.ListHandler = class extends KarmaFieldsAlpha.MotionTracker {
   }
 
 
-  insertElementsAt(container, elements, index) {
+  // insertElementsAt(container, elements, index) {
+  //
+  //   const children = this.getChildren();
+  //
+  //   const target = children[index];
+  //
+  //   if (target) {
+  //
+  //     for (let element of elements) {
+  //
+  //       container.insertBefore(element, target);
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     for (let element of elements) {
+  //
+  //       container.appendChild(element);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
-    const children = this.getChildren();
+  // getAbsolutePosition() {
+  //
+  //   const position = {x: 0, y: 0};
+  //
+  //   let container = this.container;
+  //
+  //   while (container && !container.classList.contains("block-root")) {
+  //
+  //     position.x += container.offsetLeft;
+  //     position.y += container.offsetTop;
+  //
+  //     container = container.offsetParent;
+  //
+  //   }
+  //
+  //   return position;
+  // }
 
-    const target = children[index];
-
-    if (target) {
-
-      for (let element of elements) {
-
-        container.insertBefore(element, target);
-
-      }
-
-    } else {
-
-      for (let element of elements) {
-
-        container.appendChild(element);
-
-      }
-
-    }
-
-  }
-
-  getAbsolutePosition() {
-
-    const position = {x: 0, y: 0};
-
-    let container = this.container;
-
-    while (container && !container.classList.contains("block-root")) {
-
-      position.x += container.offsetLeft;
-      position.y += container.offsetTop;
-
-      container = container.offsetParent;
-
-    }
-
-    return position;
-  }
-
-  insertElements(container, elements, targetElement) {
-
-    if (targetElement) {
-
-      for (let element of elements) {
-
-        container.insertBefore(element, targetElement);
-
-      }
-
-    } else {
-
-      for (let element of elements) {
-
-        container.appendChild(element);
-
-      }
-
-    }
-
-  }
+  // insertElements(container, elements, targetElement) {
+  //
+  //   if (targetElement) {
+  //
+  //     for (let element of elements) {
+  //
+  //       container.insertBefore(element, targetElement);
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     for (let element of elements) {
+  //
+  //       container.appendChild(element);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
   removeElements(container, elements) {
 

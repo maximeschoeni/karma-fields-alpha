@@ -67,7 +67,7 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 				let content = this.getContent();
 
-        if (content) {
+        if (content !== undefined) {
 
 					node.element.classList.toggle("loading", content === KarmaFieldsAlpha.loading);
 

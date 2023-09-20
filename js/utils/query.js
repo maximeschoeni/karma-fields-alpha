@@ -364,7 +364,7 @@ KarmaFieldsAlpha.Query = class {
       if (!task) {
 
         task = {
-          name: `Loading data (${driver}/${paramstring})`,
+          name: `Loading Data`,
           type: "query",
           driver: driver,
           paramstring: paramstring,
@@ -395,7 +395,7 @@ KarmaFieldsAlpha.Query = class {
       if (!task) {
 
         task = {
-          name: `Counting (${driver}/${paramstring})`,
+          name: `Counting`,
           type: "count",
           driver: driver,
           paramstring: paramstring,
@@ -431,7 +431,7 @@ KarmaFieldsAlpha.Query = class {
     KarmaFieldsAlpha.DeepObject.merge(this.vars, data);
 
     KarmaFieldsAlpha.tasks.push({
-      name: `Update (${driver}/${id})`,
+      name: `Update`,
       type: "update",
       driver: driver,
       id: id,
@@ -445,12 +445,14 @@ KarmaFieldsAlpha.Query = class {
 
     const data = KarmaFieldsAlpha.Store.get("delta");
 
+    const tasks = [];
+
     for (let driver in data) {
 
       for (let id in data[driver]) {
 
-        KarmaFieldsAlpha.tasks.push({
-          name: `Update (${driver}/${id})`,
+        tasks.push({
+          action: "info",
           type: "update",
           driver: driver,
           id: id,
@@ -459,6 +461,16 @@ KarmaFieldsAlpha.Query = class {
         });
 
       }
+
+    }
+
+    for (let i = 0; i < tasks.length; i++) {
+
+      const task = tasks[i];
+
+      task.name = `Update (${i+1}/${tasks.length})`,
+
+      KarmaFieldsAlpha.tasks.push(task);
 
     }
 
@@ -472,8 +484,7 @@ KarmaFieldsAlpha.Query = class {
     // -> manage alias
     const data = Object.fromEntries(Object.entries(task.data).map(([key, value]) => [this.getAlias(task.driver, key), value]));
 
-    // await
-    KarmaFieldsAlpha.Gateway.post(`update/${task.driver}/${task.id}`, data);
+    await KarmaFieldsAlpha.Gateway.post(`update/${task.driver}/${task.id}`, data);
 
     for (let key in data) {
 
@@ -642,10 +653,14 @@ KarmaFieldsAlpha.Query = class {
 
   static regen(driver, ids) {
 
-    for (let id of ids) {
+    // for (let id of ids) {
+    for (let i = 0; i < ids.length; i++) {
+
+      const id = ids[i];
 
       KarmaFieldsAlpha.tasks.push({
-        name: `Regenerate Files (${driver}/${id})`,
+        name: `Update files (${i+1}/${ids.length})`,
+        action: "info",
         type: "regen",
         driver: driver,
         id: id,

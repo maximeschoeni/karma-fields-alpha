@@ -4,7 +4,9 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
     const params = this.parseParams(this.resource.params, this);
 
-    this.parent.request("fetch", table || this.resource.table, params);
+    const selectedIds = this.getSelectedIds();
+
+    this.parent.request("fetch", table || this.resource.table, params, selectedIds);
 
   }
 

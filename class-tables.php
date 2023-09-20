@@ -234,8 +234,30 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-embed', $plugin_url . '/js/utils/embed.js', array(), $this->version, true);
 
 
+				// handles
+
+				wp_enqueue_script('karma-fields-handles-motion-tracker', $plugin_url . '/js/utils/handles/motion-tracker.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-handler', $plugin_url . '/js/utils/handles/list-handler.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-picker', $plugin_url . '/js/utils/handles/list-picker.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-sorter', $plugin_url . '/js/utils/handles/list-sorter.js', array(), $this->version, true);
+
+
+
+
+
+
+
+
+
 				// external dependancies
 				wp_enqueue_script('papaparse', $plugin_url . '/js/vendor/papaparse.min.js', array(), $this->version, true);
+
+
+
+
+
+
+
 
 
 				wp_enqueue_script('karma-fields-alpha', $plugin_url . '/js/noop.js', array(), $this->version, true);

@@ -404,68 +404,63 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                   this.open();
                 }
 
+                const sorter = new KarmaFieldsAlpha.ListSorter(gallery.element);
 
+                // const sorter = new KarmaFieldsAlpha.Sorter(gallery.element);
+                // sorter.colCount = 1;
+                // sorter.rowCount = ids.length;
 
-                const sorter = new KarmaFieldsAlpha.Sorter(gallery.element);
-                sorter.colCount = 1;
-                sorter.rowCount = ids.length;
                 sorter.selection = selection;
 
-                sorter.onselect = newSelection => {
 
-                  // if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
-                  //
-                  //   const [string] = this.export([], newSelection.index, newSelection.length);
-                  //
-                  //   KarmaFieldsAlpha.Clipboard.write(string);
-                  //
-                  //   this.setSelection(newSelection);
-                  //
-                  //   this.render();
-                  //
-                  // }
 
-                  // KarmaFieldsAlpha.Clipboard.focus();
-                  this.deferFocus();
+                sorter.onSelect = (newSelection, elements) => {
+
+                  elements.map(element => element.classList.add("selected"));
                   this.setSelection(newSelection);
+
+                }
+
+                sorter.onUnselect = (newSelection, elements) => {
+
+                  elements.map(element => element.classList.remove("selected"));
+
+                }
+
+                sorter.onSelectionComplete = () => {
+
+                  this.deferFocus();
                   this.render();
 
                 }
 
-                sorter.onSelectionChange = newSelection => {
+                // sorter.onSelectionChange = newSelection => {
+                //
+                //   this.setSelection(newSelection);
+                // }
 
-                  this.setSelection(newSelection);
-                }
-
-                sorter.onPaintRow = elements => {
-                  elements.forEach(element => element.classList.add("selected"))
-                }
-
-                sorter.onUnpaintRow = elements => {
-                  elements.forEach(element => element.classList.remove("selected"))
-                }
+                // sorter.onPaintRow = elements => {
+                //   elements.forEach(element => element.classList.add("selected"))
+                // }
+                //
+                // sorter.onUnpaintRow = elements => {
+                //   elements.forEach(element => element.classList.remove("selected"))
+                // }
 
                 sorter.onSwap = (index, target, length) => {
-                  // console.log(index, target, length);
+
+                  console.log("swap", index, target, length);
 
                   this.swap(index, target, length); // -> will render
                   this.setSelection({final: true, index: target, length: length});
 
                 };
 
-                sorter.onsort = (index, target, length) => {
+                sorter.onSort = (index, target, length) => {
 
-                  // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
-// debugger;
-                    // this.swap(index, length, target);
-
-                    // this.setSelection({final: true, index: target, length: length});
-
-                    this.deferFocus();
-                    this.save("order");
-                    this.render();
-
-                  // }
+                  this.deferFocus();
+                  this.save("order");
+                  this.render();
 
                 }
 

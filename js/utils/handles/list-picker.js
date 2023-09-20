@@ -2,12 +2,19 @@
 
 KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
 
+  // constructor(container) {
+  //
+  //   super(container);
+  //
+  //   this.selection = {};
+  //
+  // }
 
   init() {
 
     super.init();
 
-    const index = this.findPosition(this.x, this.y);
+    const index = this.findIndex(this.x, this.y);
 
     this.start(index);
 
@@ -17,7 +24,7 @@ KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
 
     super.update();
 
-    const index = this.findPosition(this.x, this.y);
+    const index = this.findIndex(this.x, this.y);
 
     this.move(index);
 
@@ -78,7 +85,15 @@ KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
 
       } else {
 
-        this.selection = null;
+        if (this.onUnselect) {
+
+          const elements = this.slice(this.selection.index, this.selection.length);
+
+          this.onUnselect(this.selection, elements);
+
+        }
+
+        this.selection = {};
 
       }
 
@@ -131,6 +146,18 @@ KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
     this.tie = null;
     this.selecting = false;
 
+    if (this.onSelectionComplete) {
+
+      this.onSelectionComplete();
+
+    }
+
   }
+
+  // setSelection(selection) {
+  //
+  //   this.selection = {...selection};
+  //
+  // }
 
 }
