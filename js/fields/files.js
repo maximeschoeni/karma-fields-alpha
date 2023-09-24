@@ -404,24 +404,24 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                   this.open();
                 }
 
-                const sorter = new KarmaFieldsAlpha.ListSorter(gallery.element);
+                const sorter = new KarmaFieldsAlpha.ListSorterInline(gallery.element, selection);
 
                 // const sorter = new KarmaFieldsAlpha.Sorter(gallery.element);
                 // sorter.colCount = 1;
                 // sorter.rowCount = ids.length;
 
-                sorter.selection = selection;
+                // sorter.selection = {...selection};
 
 
 
-                sorter.onSelect = (newSelection, elements) => {
+                sorter.onSelect = elements => {
 
                   elements.map(element => element.classList.add("selected"));
-                  this.setSelection(newSelection);
+                  this.setSelection(sorter.selection);
 
                 }
 
-                sorter.onUnselect = (newSelection, elements) => {
+                sorter.onUnselect = elements => {
 
                   elements.map(element => element.classList.remove("selected"));
 
@@ -447,16 +447,14 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                 //   elements.forEach(element => element.classList.remove("selected"))
                 // }
 
-                sorter.onSwap = (index, target, length) => {
+                sorter.onSwap = (newSelection, lastSelection) => {
 
-                  console.log("swap", index, target, length);
-
-                  this.swap(index, target, length); // -> will render
+                  this.swap(lastSelection.index, newSelection.index, newSelection.length);
                   this.setSelection({final: true, index: target, length: length});
 
                 };
 
-                sorter.onSort = (index, target, length) => {
+                sorter.onSort = (newSelection, lastSelection) => {
 
                   this.deferFocus();
                   this.save("order");
@@ -464,14 +462,14 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                 }
 
-                sorter.onbackground = () => {
-
-                  this.setSelection({index: ids.length, length: 0, final: true});
-                  KarmaFieldsAlpha.Clipboard.write("");
-
-                  this.render();
-
-                }
+                // sorter.onbackground = () => {
+                //
+                //   this.setSelection({index: ids.length, length: 0, final: true});
+                //   KarmaFieldsAlpha.Clipboard.write("");
+                //
+                //   this.render();
+                //
+                // }
 
                 gallery.children = ids.map((id, rowIndex) => {
 

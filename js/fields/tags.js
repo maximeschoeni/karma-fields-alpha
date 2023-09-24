@@ -151,8 +151,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
         clone.splice(target, 0, ...clone.splice(index, length));
 
         this.setValue(clone);
-        this.render();
-        this.save("swap");
+        // this.render();
+        // this.save("swap");
 
       }
 
@@ -286,72 +286,110 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
                 let selection = this.getSelection();
 
-                const sorter = new KarmaFieldsAlpha.Sorter(content.element);
-                sorter.colCount = 1;
-                sorter.rowCount = ids.length;
-                sorter.selection = selection;
+                // const sorter = new KarmaFieldsAlpha.Sorter(content.element);
+                // sorter.colCount = 1;
+                // sorter.rowCount = ids.length;
 
+                const sorter = new KarmaFieldsAlpha.ListSorterInline(content.element, selection);
+                // sorter.selection = {...selection};
 
+                sorter.onSelect = elements => {
 
-                sorter.onselect = newSelection => {
+                  elements.map(element => element.classList.add("selected"));
+                  this.setSelection(sorter.selection);
 
-                  // if (!newSelection.equals(selection)) {
-                  // if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
-                  //
-                  //   // const [string] = this.export([], newSelection.index, newSelection.length);
-                  //
-                  //   // KarmaFieldsAlpha.Clipboard.write(string);
-                  //
-                  //   this.deferFocus();
-                  //   this.setSelection(newSelection);
-                  //
-                  //   this.render();
-                  //
-                  // }
+                }
+
+                sorter.onUnselect = elements => {
+
+                  elements.map(element => element.classList.remove("selected"));
+
+                }
+
+                sorter.onSelectionComplete = () => {
 
                   this.deferFocus();
-                  this.setSelection(newSelection);
-
                   this.render();
 
                 }
 
-                sorter.onSelectionChange = newSelection => {
+
+
+                // sorter.onselect = newSelection => {
+                //
+                //   // if (!newSelection.equals(selection)) {
+                //   // if (!KarmaFieldsAlpha.Selection.compare(newSelection, selection)) {
+                //   //
+                //   //   // const [string] = this.export([], newSelection.index, newSelection.length);
+                //   //
+                //   //   // KarmaFieldsAlpha.Clipboard.write(string);
+                //   //
+                //   //   this.deferFocus();
+                //   //   this.setSelection(newSelection);
+                //   //
+                //   //   this.render();
+                //   //
+                //   // }
+                //
+                //   this.deferFocus();
+                //   this.setSelection(newSelection);
+                //
+                //   this.render();
+                //
+                // }
+                //
+                // sorter.onSelectionChange = newSelection => {
+                //   this.setSelection(newSelection);
+                // }
+                //
+                // sorter.onPaintRow = elements => {
+                //   elements.forEach(element => element.classList.add("selected"))
+                // }
+                //
+                // sorter.onUnpaintRow = elements => {
+                //   elements.forEach(element => element.classList.remove("selected"))
+                // }
+
+                sorter.onSwap = (newSelection, lastSelection) => {
+
+                  this.swap(lastSelection.index, newSelection.target, newSelection.length);
                   this.setSelection(newSelection);
-                }
 
-                sorter.onPaintRow = elements => {
-                  elements.forEach(element => element.classList.add("selected"))
-                }
-
-                sorter.onUnpaintRow = elements => {
-                  elements.forEach(element => element.classList.remove("selected"))
-                }
-
-                sorter.onSwap = (index, target, length) => {
-                  this.swap(index, target, length); // will render
-                  this.setSelection({final: true, index: target, length: length});
                 };
 
-                sorter.onsort = (index, targetIndex, length) => {
-
-                  // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
-                  //
-                  //   this.swap(selection.index, selection.length, sorter.selection.index);
-                  //
-                  //   this.setSelection(sorter.selection);
-                  //
-                  // }
-
-                  // this.swap(index, targetIndex, length);
-                  //
-                  // this.setSelection(sorter.selection);
+                sorter.onSort = (index, target, length) => {
 
                   this.deferFocus();
                   this.save("order");
                   this.render();
 
                 }
+
+
+                // sorter.onSwap = (index, target, length) => {
+                //   this.swap(index, target, length); // will render
+                //   this.setSelection({final: true, index: target, length: length});
+                // };
+                //
+                // sorter.onsort = (index, targetIndex, length) => {
+                //
+                //   // if (!KarmaFieldsAlpha.Selection.compare(sorter.selection, selection)) {
+                //   //
+                //   //   this.swap(selection.index, selection.length, sorter.selection.index);
+                //   //
+                //   //   this.setSelection(sorter.selection);
+                //   //
+                //   // }
+                //
+                //   // this.swap(index, targetIndex, length);
+                //   //
+                //   // this.setSelection(sorter.selection);
+                //
+                //   this.deferFocus();
+                //   this.save("order");
+                //   this.render();
+                //
+                // }
 
                 content.element.ondblclick = event => {
                   this.fetch();

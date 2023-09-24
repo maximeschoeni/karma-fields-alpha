@@ -2434,7 +2434,6 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
 
                                 const ids = grid.getSelectedIds();
 
-
                                 const modal = grid.createChild({
                                   type: "modal",
                                   ...grid.resource.modal,

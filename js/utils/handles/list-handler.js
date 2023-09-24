@@ -55,6 +55,55 @@ KarmaFieldsAlpha.ListHandler = class extends KarmaFieldsAlpha.MotionTracker {
 
   }
 
+  // getElementBox(...elements) {
+  //
+  //   const box = {
+  //     x: Infinity,
+  //     y: Infinity,
+  //     width: 0,
+  //     height: 0
+  //   };
+  //
+  //   for (let element of elements) {
+  //
+  //     box.x = Math.min(box.x, element.offsetLeft);
+  //     box.y = Math.min(box.y, element.offsetTop);
+  //     box.width = Math.max(box.width, element.offsetLeft + element.clientWidth - box.x);
+  //     box.height = Math.max(box.height, element.offsetTop + element.clientHeight);
+  //
+  //   }
+  //
+  //   return box;
+  // }
+
+
+  getElementBox(...elements) {
+
+    let left = Infinity;
+    let top = Infinity;
+    let right = 0;
+    let bottom = 0;
+
+    for (let element of elements) {
+
+      left = Math.min(left, element.offsetLeft);
+      top = Math.min(top, element.offsetTop);
+      right = Math.max(right, element.offsetLeft + element.clientWidth);
+      bottom = Math.max(bottom, element.offsetTop + element.clientHeight);
+
+    }
+
+    return {
+      x: left,
+      y: top,
+      width: right - left,
+      height: bottom - top
+    };
+
+  }
+
+
+
 
   // insertElementsAt(container, elements, index) {
   //

@@ -483,6 +483,13 @@ Class Karma_Fields_Alpha_Driver_Posts {
               $args['orderby'] = array('meta_value' => $params['order']);
               break;
 
+            case 'menu_order':
+              $args['orderby'] = array('menu_order' => $params['order']);
+              break;
+
+
+
+
             // case 'post_type': // -> for medias
             //   $args['orderby'] = array('post_type' => 'DESC', 'date' => 'DESC');
             //   break;

@@ -2,13 +2,15 @@
 
 KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
 
-  // constructor(container) {
-  //
-  //   super(container);
-  //
-  //   this.selection = {};
-  //
-  // }
+  constructor(container, selection) {
+
+    super(container);
+
+    this.selection = {...selection};
+
+    // this.selection = {index: index, length: length};
+
+  }
 
   init() {
 
@@ -40,16 +42,20 @@ KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
 
   start(index) {
 
-    if (index > -1) {
+    // if (index > -1) {
 
-      this.selecting = true;
+    this.selecting = true;
 
-      this.startSelection(index);
+    this.startSelection(index);
 
-      this.event.stopPropagation();
+    // } else {
+    //
+    //   this.selecting = true;
+    //   this.startSelection(index);
+    //
+    // }
 
-    }
-
+    this.event.stopPropagation();
   }
 
   move(index) {
@@ -73,15 +79,19 @@ KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
   }
 
 
-  startSelection(row) {
+  startSelection(index) {
 
-    this.tie = {index: row, length: 1};
+    if (index > -1) {
 
-    if (this.selection) { // this.selection should be frozen
+      this.tie = {index: index, length: 1};
+
+    }
+
+    if (this.selection.length) {
 
       if (this.event.shiftKey) {
 
-        this.tie = this.selection;
+        this.tie = {index: this.selection.index, length: this.selection.length};
 
       } else {
 
@@ -89,51 +99,64 @@ KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
 
           const elements = this.slice(this.selection.index, this.selection.length);
 
-          this.onUnselect(this.selection, elements);
+          this.onUnselect(elements);
 
         }
 
-        this.selection = {};
+        this.selection = {...this.selection, length: 0}; // -> we need to keep selection other properties (like path)
 
       }
 
     }
 
-    this.growSelection(row);
+    this.growSelection(index);
 
   }
 
-  growSelection(row) {
+  growSelection(index) {
 
-    if (!this.tie) {
+    // if (!this.tie) {
+    //
+    //   return;
+    //
+    // }
 
-      return;
+    let union;
+
+    if (index > -1 && this.tie) {
+
+      union = KarmaFieldsAlpha.Segment.union({index: index, length: 1}, this.tie);
+
+    } else {
+
+      union = {index: 0, length: 0};
 
     }
 
-    const union = KarmaFieldsAlpha.Segment.union({index: row, length: 1}, this.tie);
+    // const union = KarmaFieldsAlpha.Segment.union({index: index, length: 1}, this.tie);
 
-    if (!this.selection || !KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
+    // if (!this.selection.length || !KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
+    if (!KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
 
-      if (this.selection) {
+      if (this.selection.length) {
 
         if (this.onUnselect) {
 
           const elements = this.slice(this.selection.index, this.selection.length);
 
-          this.onUnselect(this.selection, elements);
+          this.onUnselect(elements);
 
         }
 
       }
 
-      this.selection = union;
+      this.selection = {...this.selection, ...union}; // -> we need to keep selection other properties (like path)
 
       if (this.onSelect) {
 
         const elements = this.slice(this.selection.index, this.selection.length);
 
-        this.onSelect(this.selection, elements);
+        this.onSelect(elements);
 
       }
 
@@ -154,10 +177,17 @@ KarmaFieldsAlpha.ListPicker = class extends KarmaFieldsAlpha.ListHandler {
 
   }
 
-  // setSelection(selection) {
-  //
-  //   this.selection = {...selection};
-  //
-  // }
+  getSelection() {
+
+    return this.selection;
+
+  }
+
+  setSelection(selection) {
+
+    this.selection = {...selection};
+
+  }
+
 
 }
