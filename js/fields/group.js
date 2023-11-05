@@ -38,36 +38,62 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
   // }
 
-  getValue(...path) {
+  getValue(subkey) {
     // return this.parent.getValue();
+
+    // const key = this.getKey();
+    //
+    // if (key) {
+    //
+    //   const values = this.parent.getValue(key);
+    //
+    //   const [subkey] = path;
+    //
+    //   if (values && subkey) {
+    //
+    //     const object = values[0];
+    //
+    //     if (object) {
+    //
+    //       return KarmaFieldsAlpha.Type.toArray(object[subkey]);
+    //
+    //     }
+    //
+    //     return [];
+    //
+    //   }
+    //
+    //   return values;
+    //
+    // } else {
+    //
+    //   return this.parent.getValue(...path);
+    //
+    // }
 
     const key = this.getKey();
 
     if (key) {
 
-      const values = this.parent.getValue(key);
+      const object = this.parent.getSingleValue(key);
 
-      const [subkey] = path;
+      if (object === KarmaFieldsAlpha.loading) {
 
-      if (values && subkey) {
-
-        const object = values[0];
-
-        if (object) {
-
-          return KarmaFieldsAlpha.Type.toArray(object[subkey]);
-
-        }
-
-        return [];
+        return KarmaFieldsAlpha.loading;
 
       }
 
-      return values;
+      if (object && object[subkey]) {
+
+        return KarmaFieldsAlpha.Type.toArray(object[subkey]);
+
+      }
+
+      return [];
 
     } else {
 
-      return this.parent.getValue(...path);
+      return this.parent.getValue(subkey);
 
     }
 
@@ -80,11 +106,11 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
     if (key) {
 
-      const values = this.parent.getValue(key);
+      const object = this.parent.getSingleValue(key);
 
-      if (values) {
+      if (object && object !== KarmaFieldsAlpha.loading) {
 
-        const object = {...values[0], [subkey]: value};
+        const object = {...object, [subkey]: value};
 
         Object.freeze(object);
 
@@ -243,6 +269,107 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 	}
 
 }
+
+
+KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
+
+  // setSelection(selection) {
+  //
+  //   if (selection) {
+  //
+  //     const currentSelection = this.getSelection();
+  //
+  //     selection = {index: 0, length: 1, ...currentSelection, ...selection};
+  //
+  //   }
+  //
+  //   super.setSelection(selection);
+  //
+  // }
+
+
+
+  build() {
+
+    return {
+      class: "tabs",
+      update: tabs => {
+        // const selection = this.getSelection();
+
+        const data = this.getData();
+        const currentIndex = data && data.index || 0;
+
+        tabs.children = [
+          {
+            class: "tabs-header",
+            children: this.getChildren().map((child, index) => {
+              return {
+                tag: "a",
+                class: "tab-handler",
+                update: node => {
+                  node.element.innerHTML = child.label;
+                  // const isActive = selection && index === selection.childId || !selection && index === 0;
+                  const isActive = index === currentIndex;
+                  node.element.classList.toggle("active", Boolean(isActive));
+                  node.element.onclick = event => {
+                    // this.setSelection({child: {}, childId: index});
+                    data.index = index;
+                    this.render();
+                  }
+                }
+              };
+            })
+          },
+          {
+            class: "tabs-body",
+
+            children: this.getChildren().map((resource, index) => {
+              return {
+                class: "tab-content",
+                update: node => {
+
+                  // node.element.onmousedown = event => {
+                  //
+                  //   // debugger;
+                  //   event.stopPropagation();
+                  //   this.setSelection({child: {}, childId: index});
+                  //   tabs.render();
+                  // }
+
+                  // const isActive = selection && index === selection.childId || !selection && index === 0;
+                  const isActive = index === currentIndex;
+
+                  node.element.classList.toggle("hidden", !isActive);
+
+                  if (isActive) {
+
+                    const child = this.getChild(index);
+
+                    node.children = [child.build()];
+
+                  } else {
+
+                    node.children = [];
+
+                  }
+
+                }
+              };
+            })
+          }
+        ]
+      }
+    };
+
+  }
+
+
+}
+
+
+
+
+
 
 KarmaFieldsAlpha.field.foldableGroup = class extends KarmaFieldsAlpha.field.group {
 

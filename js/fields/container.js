@@ -242,6 +242,9 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 				if (this.resource.class) {
 					group.element.classList.add(this.resource.class);
 				}
+				if (this.resource.classes) {
+					group.element.classList.add(...this.resource.classes);
+				}
 				if (this.resource.wrap === false) {
 					group.element.style.flexWrap = "nowrap";
 				}

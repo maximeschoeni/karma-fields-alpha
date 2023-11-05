@@ -1,7 +1,7 @@
 
 <script>
   KarmaFieldsAlpha = {
-    restURL: "<?php echo rest_url().'karma-fields-alpha/v1'; ?>",
+    restURL: "<?php echo rest_url(); ?>",
     uploadURL: "<?php echo wp_get_upload_dir()['baseurl']; ?>",
     nonce: "<?php echo wp_create_nonce( 'wp_rest' ); ?>",
     locale: "<?php echo str_replace('_', '-', get_locale()); ?>",

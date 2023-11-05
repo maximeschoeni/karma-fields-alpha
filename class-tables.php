@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '60';
+	public $version = '63';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -110,6 +110,9 @@ class Karma_Fields_Alpha {
 			// wp_enqueue_style('karma-fields-alpha-navigation', $plugin_url . '/css/navigation.css', array(), $this->version);
 
 			wp_enqueue_style('karma-fields-alpha-styles', $plugin_url . '/css/karma-fields.css', array(), $this->version);
+			// wp_enqueue_style('karma-fields-alpha-theme-blue-styles', $plugin_url . '/css/karma-fields-theme-blue.css', array(), $this->version);
+
+			wp_enqueue_editor();
 
 			wp_enqueue_media();
 
@@ -233,6 +236,8 @@ class Karma_Fields_Alpha {
 
 				wp_enqueue_script('karma-fields-utils-embed', $plugin_url . '/js/utils/embed.js', array(), $this->version, true);
 
+				wp_enqueue_script('karma-fields-utils-database', $plugin_url . '/js/utils/database.js', array(), $this->version, true);
+
 
 				// handles
 
@@ -242,6 +247,10 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-handles-list-sorter', $plugin_url . '/js/utils/handles/list-sorter.js', array('karma-fields-handles-list-picker'), $this->version, true);
 				wp_enqueue_script('karma-fields-handles-list-sorter-inline', $plugin_url . '/js/utils/handles/list-sorter-inline.js', array('karma-fields-handles-list-sorter'), $this->version, true);
 				wp_enqueue_script('karma-fields-handles-list-sort-hierarchy', $plugin_url . '/js/utils/handles/list-sort-hierarchy.js', array('karma-fields-handles-list-sorter'), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-sort-grid', $plugin_url . '/js/utils/handles/list-sort-grid.js', array('karma-fields-handles-list-sorter'), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-sort-block', $plugin_url . '/js/utils/handles/list-sort-block.js', array('karma-fields-handles-list-sort-hierarchy'), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-sort-block-library', $plugin_url . '/js/utils/handles/list-sort-block-library.js', array('karma-fields-handles-list-sort-block'), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-row-picker', $plugin_url . '/js/utils/handles/row-picker.js', array('karma-fields-handles-list-picker'), $this->version, true);
 
 
 
@@ -545,7 +554,8 @@ class Karma_Fields_Alpha {
 						if ($encoded_input) {
 
 							$encoded_input = stripslashes($encoded_input);
-							$input = json_decode($encoded_input, false);
+							$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input);
+							$input = json_decode($encoded_input, $associative);
 
 							if ($input) {
 
@@ -592,7 +602,9 @@ class Karma_Fields_Alpha {
 						if ($encoded_input) {
 
 							$encoded_input = stripslashes($encoded_input);
-							$input = (array) json_decode($encoded_input, false);
+							// $input = (array) json_decode($encoded_input, false);
+							$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input);
+							$input = json_decode($encoded_input, $associative); // need parsed as array for blocks
 
 							// var_dump($input); die();
 
@@ -782,7 +794,7 @@ class Karma_Fields_Alpha {
 
 			} else {
 
-				return "karma fields error: driver has no method 'query'";
+				return "karma fields error: driver ($driver_name) has no method 'query'";
 
 			}
 

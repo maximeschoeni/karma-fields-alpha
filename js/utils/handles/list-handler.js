@@ -4,7 +4,13 @@ KarmaFieldsAlpha.ListHandler = class extends KarmaFieldsAlpha.MotionTracker {
 
   getChildren() {
 
-    return [...this.container.children];
+    if (!this.children) {
+
+      this.children = [...this.container.children];
+
+    }
+
+    return this.children;
 
   }
 
@@ -27,9 +33,7 @@ KarmaFieldsAlpha.ListHandler = class extends KarmaFieldsAlpha.MotionTracker {
     return -1;
   }
 
-  slice(index, length) {
-
-    const children = this.getChildren();
+  slice(index, length, children = this.getChildren()) {
 
     return children.slice(index, index + length);
 

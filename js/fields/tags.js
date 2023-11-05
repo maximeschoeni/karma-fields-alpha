@@ -25,7 +25,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
       const ids = this.getValue() || [];
 
-      this.setSelection({index: ids.length, length: 0, final: true});
+      this.setSelection({index: ids.length, length: 0});
 
     }
 
@@ -78,6 +78,21 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   getSelectedIds() {
 
+    // const selection = this.getSelection();
+    //
+    // if (selection) {
+    //
+  	// 	const ids = this.getValue();
+    //
+    //   if (ids) {
+    //
+    //     return ids.slice(selection.index, selection.index + selection.length);
+    //
+    //   }
+    //
+    // }
+
+
     const selection = this.getSelection();
 
     if (selection) {
@@ -86,7 +101,10 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
       if (ids) {
 
-        return ids.slice(selection.index, selection.index + selection.length);
+        const index = selection.index || 0;
+        const length = selection.length || 0;
+
+        return ids.slice(index, index + length);
 
       }
 
@@ -95,13 +113,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
     return [];
   }
 
-  hasSelection() {
 
-    const selection = this.getSelection();
-
-    return selection && selection.length;
-
-  }
 
   // follow(selection, callback, set) {
   //
@@ -113,17 +125,38 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   paste(value, selection) {
 
+    // if (selection) {
+    //
+    //   const ids = this.getIds();
+    //
+    //   if (ids) {
+    //
+    //     const [current] = this.export([], selection.index, selection.length);
+    //
+    //     if (value !== current) {
+    //
+    //       this.import([value], selection.index, selection.length);
+    //
+    //     }
+    //
+    //   }
+    //
+    // }
+
     if (selection) {
 
       const ids = this.getIds();
 
       if (ids) {
 
-        const [current] = this.export([], selection.index, selection.length);
+        const index = selection.index || 0;
+        const length = selection.length || 0;
+
+        const [current] = this.export([], index, length);
 
         if (value !== current) {
 
-          this.import([value], selection.index, selection.length);
+          this.import([value], index, length);
 
         }
 
@@ -216,7 +249,10 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   copy(selection) {
 
-    const [value] = this.export([], selection.index || 0, selection.length || 0);
+    const index = selection.index || 0;
+    const length = selection.length || 0;
+
+    const [value] = this.export([], index, length);
 
     return value;
 
@@ -226,7 +262,10 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
     if (selection) {
 
-      this.insert([], selection.index, selection.length);
+      const index = selection.index || 0;
+      const length = selection.length || 0;
+
+      this.insert([], index, length);
 
       this.setSelection({});
 
@@ -242,9 +281,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
     this.insert([], index, length);
 
-
-
-    this.setSelection({index: this.getValue().length, length: 0, final: true});
+    this.setSelection({index: this.getValue().length, length: 0});
 
     this.render();
 
@@ -296,7 +333,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                 sorter.onSelect = elements => {
 
                   elements.map(element => element.classList.add("selected"));
-                  this.setSelection(sorter.selection);
+                  this.setSelection(sorter.state.selection);
 
                 }
 
@@ -350,10 +387,10 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                 //   elements.forEach(element => element.classList.remove("selected"))
                 // }
 
-                sorter.onSwap = (newSelection, lastSelection) => {
+                sorter.onSwap = (newState, lastState) => {
 
-                  this.swap(lastSelection.index, newSelection.target, newSelection.length);
-                  this.setSelection(newSelection);
+                  this.swap(lastState.selection.index, newState.selection.index, newState.selection.length);
+                  this.setSelection(newState.selection);
 
                 };
 
@@ -400,7 +437,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                     tag: "li",
                     update: frame => {
                       // frame.element.classList.toggle("selected", selection && selection.containsRow(rowIndex) || false);
-                      frame.element.classList.toggle("selected", selection && KarmaFieldsAlpha.Selection.containRow(selection, rowIndex) || false);
+                      frame.element.classList.toggle("selected", selection && KarmaFieldsAlpha.Segment.contain(selection, rowIndex) || false);
 
                       let name;
 
@@ -447,7 +484,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                 controls.element.classList.toggle("hidden", this.resource.controls === false);
               },
               child: {
-                class: "footer-content",
+                class: "footer-content simple-buttons",
                 // init: controls => {
                 //   controls.element.onmousedown = event => {
                 //     event.preventDefault(); // -> prevent losing focus on selected items
@@ -490,7 +527,7 @@ KarmaFieldsAlpha.field.tags.controls = class extends KarmaFieldsAlpha.field.cont
   static add = {
     type: "button",
     title: "Add",
-    text: "+",
+    text: "Add",
     action: "open",
     hidden: [">=", ["count", ["getValue"]], ["request", "getMax"]]
   }

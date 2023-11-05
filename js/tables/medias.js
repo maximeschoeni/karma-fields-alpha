@@ -283,6 +283,20 @@ console.error("deprecated")
 
   }
 
+  getChild(index) {
+
+    if (index === "modal") {
+
+      return this.createChild({
+        ...this.resource.modal,
+        type: "modal",
+        index: "modal",
+      });
+
+    }
+
+  }
+
 
   getMixedSelection() {
 
@@ -389,7 +403,7 @@ console.error("deprecated")
       ...params
     }, index);
 
-    this.setSelection({final: true, index: index, length: 1});
+    this.setSelection({index: index, length: 1});
 
     await this.render();
 
@@ -623,7 +637,7 @@ console.error("deprecated")
 
     KarmaFieldsAlpha.Store.setIds(newItems);
 
-    this.setSelection({final: true, index: 0, length: 0});
+    this.setSelection({index: 0, length: 0});
 
     this.save("move");
 
@@ -932,7 +946,7 @@ console.error("deprecated");
                 selector.dropZones = items.map((item, index) => index).filter(index => items[index].exit || this.isFolder(items[index].id)); // FAIL -> newly created items have no type
 
 
-                if (selection && selection.final) {
+                if (selection && !selection.child) {
                   selector.selection = selection;
                   // const [string] = this.export([], selection.index, selection.length);
                   // KarmaFieldsAlpha.Clipboard.write(string);

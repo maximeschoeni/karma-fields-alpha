@@ -87,11 +87,40 @@ Class Karma_Fields_Alpha_Driver_Posts {
         die('Post not found!');
       }
 
+      $data = (array) $data;
+
       foreach ($data as $key => $value) {
 
         if (apply_filters('karma_fields_posts_driver_update', null, $value, $key, $id, $args, $data) === null) {
 
           switch ($key) {
+
+            case 'post_content':
+
+              $args[$key] = $value[0];
+
+              // $args[$key] = '';
+              // if (isset($value[0]) && $value[0]) {
+              //
+              //   // var_dump($value[0]);
+              //   if (is_array($value[0]) && isset($value[0]['children'])) {
+              //     $wp_blocks = $this->render_wp_blocks($value[0]['children']);
+              //
+              //
+              //     $args[$key] = '';
+              //     foreach ($wp_blocks as $wp_block) {
+              //       $args[$key] .= render_block($wp_block);
+              //     }
+              //     var_dump($args[$key]);
+              //   } else if (is_string($value[0])) {
+              //     $args[$key] = $value[0];
+              //   }
+              // }
+              //
+              // die();
+
+
+              break;
 
             case 'post_name':
             case 'post_title':
@@ -99,7 +128,6 @@ Class Karma_Fields_Alpha_Driver_Posts {
             case 'post_excerpt':
             case 'post_date':
             case 'post_status':
-
               $args[$key] = $value[0];
               break;
 
@@ -112,6 +140,18 @@ Class Karma_Fields_Alpha_Driver_Posts {
             case 'post_mime_type':
             case 'post_type':
               break;
+
+
+              // array(
+              //   'date_query' => array(
+              //     array(
+              //       'year' => 2012,
+              //       'month' => 12,
+              //       'day' => 12,
+              //     )
+              //   )
+              // );
+
 
             // case 'trash':
             //   if (intval($value[0])) {
@@ -319,6 +359,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
       //   }
 
 
+
         $args = array_merge($post_arr, $args);
 
         wp_insert_post($args);
@@ -453,6 +494,14 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     foreach ($params as $key => $value) {
 
+      if (has_filter("karma_fields_posts_driver_query_param-$key")) {
+
+        $args = apply_filters("karma_fields_posts_driver_query_param-$key", $args, $value, $key, $params);
+
+        continue;
+
+      }
+
       switch ($key) {
 
         case 'driver':
@@ -496,8 +545,10 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
             default:
               // todo: handle numeric meta, taxonomies
-              $args['orderby'] = array('metavalue' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
+              $args['orderby'] = array('meta_value' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
               $args['meta_key'] = $value;
+
+
               break;
 
           }
@@ -524,8 +575,12 @@ Class Karma_Fields_Alpha_Driver_Posts {
           $args['post__in'] = array_map('intval', explode(',', $value));
           break;
 
-        case 'post_date':
-          $args['m'] = $value; // ex:201307
+        // case 'post_date':
+        //   $args['m'] = $value; // ex:201307
+        //   break;
+
+        case 'post_date_year':
+          $args['year'] = intval($value);
           break;
 
         case 'post_mime_type':
@@ -541,8 +596,12 @@ Class Karma_Fields_Alpha_Driver_Posts {
           break;
 
         case 'post_parent':
+          $args['post_parent__in'] = array_map('intval', explode(',', $value));
+          break;
+
         case 'post_author':
-          $args[$key] = intval($value);
+          // $args[$key] = intval($value);
+          $args['post_author__in'] = array_map('intval', explode(',', $value));
           break;
 
         case 'search':
@@ -601,6 +660,8 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     $args['no_found_rows'] = true;
 
+    // var_dump($args); die();
+
 // global $wpdb;
 //
 // die();
@@ -643,6 +704,12 @@ Class Karma_Fields_Alpha_Driver_Posts {
   public function count($params) {
 
     $args = $this->get_query_args($params);
+
+    $args['paged'] = 1;
+    $args['posts_per_page'] = 1;
+
+    // unset($args['orderby']);
+
     $args['fields'] = 'ids';
     $query = new WP_Query($args);
 
@@ -1353,6 +1420,16 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         // -> parse blocks
 
+        // if (has_blocks($result->value)) {
+        //
+        //   $wp_blocks = parse_blocks($result->value);
+        //
+        //   $blocks = $this->parse_wp_blocks($wp_blocks);
+        //
+        //   $result->value = array('children' => $blocks);
+        //
+        // }
+
         $result->value = apply_filters('karma_fields_posts_driver_join_content', $result->value, $result->key, $result->id);
 
       }
@@ -1368,5 +1445,204 @@ Class Karma_Fields_Alpha_Driver_Posts {
     }
 
   }
+
+
+
+  /**
+   * parse wp block
+   */
+  public function parse_wp_block($wp_block) {
+
+    $block = array();
+
+    switch ($wp_block['blockName']) {
+
+      case 'core/paragraph':
+      case 'core/quote':
+      case 'core/classic':
+        $block['type'] = 'blockTinymce';
+        if (isset($wp_block['innerHTML'])) {
+          $block['content'] = $wp_block['innerHTML'];
+        }
+        break;
+
+      case 'core/image':
+
+        $block_content = new WP_HTML_Tag_Processor($wp_block['innerHTML']);
+
+        while ($block_content->next_tag()) {
+          var_dump($block_content->get_tag());
+            // if (
+            //      ( 'DIV' === $tags->get_tag() || 'SPAN' === $tags->get_tag() ) &&
+            //      'jazzy' === $tags->get_attribute( 'data-style' )
+            // ) {
+            //     $tags->add_class( 'theme-style-everest-jazz' );
+            //     $remaining_count--;
+            // }
+        }
+
+
+      die();
+
+        $block['type'] = 'blockGallery';
+        if (isset($wp_block['attrs']['id']) && $wp_block['attrs']['id']) {
+          $block['files'] = array($wp_block['attrs']['id']);
+        }
+        break;
+
+      case 'core/columns':
+        $block['type'] = 'columns';
+        if (isset($wp_block['innerBlocks']) && $wp_block['innerBlocks']) {
+          $block['children'] = $this->parse_wp_blocks($wp_block['innerBlocks']);
+        }
+        break;
+
+      case "core/column":
+        $block['type'] = 'column';
+        if (isset($wp_block['innerBlocks']) && $wp_block['innerBlocks']) {
+          $block['children'] = $this->parse_wp_blocks($wp_block['innerBlocks']);
+        }
+        break;
+
+    }
+
+    return $block;
+
+  }
+
+  /**
+   * parse wp blocks array
+   */
+  public function parse_wp_blocks($wp_blocks) {
+
+    $blocks = array();
+
+    foreach($wp_blocks as $wp_block) {
+
+      $block = $this->parse_wp_block($wp_block);
+
+      if ($block) {
+
+        $blocks[] = $block;
+
+      }
+
+    }
+
+    return $blocks;
+
+  }
+
+  /**
+   * render wp block
+   */
+  public function render_wp_block($block) {
+
+    $wp_block = array();
+
+    switch ($block['type']) {
+
+      case 'blockTinymce':
+        $wp_block['blockName'] = "core/classic";
+        $wp_block['attrs'] = array();
+        $wp_block['innerBlocks'] = array();
+        $wp_block['innerHTML'] = isset($block['content']) ? $block['content'] : '';
+        $wp_block['innerContent'] = array($wp_block['innerHTML']);
+        break;
+
+      case 'blockGallery':
+        $wp_block['blockName'] = 'core/image';
+        $wp_block['innerBlocks'] = array();
+        if (isset($block['files'][0])) {
+          $id = $block['files'][0];
+          $src = wp_get_attachment_image_src($id, 'large');
+          $img = wp_get_attachment_image($id, 'large');
+          $wp_block['attrs'] = array(
+            'id' => $id,
+            'width' => $src[1],
+            'height' => $src[2],
+            'sizeSlug' => 'large',
+            'linkDestination' => 'custom',
+            'className' => "is-style-default"
+          );
+          $wp_block['innerHTML'] = $img;
+          $wp_block['innerContent'] = array($img);
+        }
+        break;
+
+      case 'columns':
+        $wp_block['blockName'] = 'core/columns';
+        $wp_block['attrs'] = array();
+        $wp_block['innerBlocks'] = array();
+        $wp_block['innerContent'] = array();
+        $wp_block['innerContent'][] = '<div class="wp-block-columns">';
+        if (isset($block['children'])) {
+          $wp_block['innerBlocks'] = $this->render_wp_blocks($block['children']);
+          foreach ($wp_block['innerBlocks'] as $wp_column) {
+            $wp_block['innerContent'][] = $wp_column['innerHTML'];
+          }
+        }
+        $wp_block['innerContent'][] = '</div>';
+        $wp_block['innerHTML'] = implode('', $wp_block['innerContent']);
+        break;
+
+      case 'column':
+        $wp_block['blockName'] = 'core/column';
+        $wp_block['attrs'] = array();
+        // $wp_block['innerBlocks'] = array();
+        // if (isset($block['children'])) {
+        //   $wp_block['innerBlocks'] = $this->render_wp_blocks($block['children']);
+        // }
+        // $wp_block['innerHTML'] = '<div class="wp-block-column"></div>';
+        // $wp_block['innerContent'] = array();
+        // $wp_block['innerContent'][] = '<div class="wp-block-column">';
+        // foreach ($wp_block['innerBlocks'] as $child) {
+        //   $wp_block['innerContent'][] = '';
+        // }
+        // $wp_block['innerContent'][] = '</div>';
+
+        $wp_block['innerBlocks'] = array();
+        $wp_block['innerContent'] = array();
+        $wp_block['innerContent'][] = '<div class="wp-block-column">';
+        if (isset($block['children'])) {
+          $wp_block['innerBlocks'] = $this->render_wp_blocks($block['children']);
+          foreach ($wp_block['innerBlocks'] as $wp_column) {
+            $wp_block['innerContent'][] = $wp_column['innerHTML'];
+          }
+        }
+        $wp_block['innerContent'][] = '</div>';
+        $wp_block['innerHTML'] = implode('', $wp_block['innerContent']);
+
+        break;
+
+    }
+
+    return $wp_block;
+
+  }
+
+  /**
+   * render wp blocks array
+   */
+  public function render_wp_blocks($blocks) {
+
+    $wp_blocks = array();
+
+    foreach ($blocks as $block) {
+
+      $wp_block = $this->render_wp_block($block);
+
+      if ($wp_block) {
+
+        $wp_blocks[] = $wp_block;
+
+      }
+
+    }
+
+    return $wp_blocks;
+
+  }
+
 
 }

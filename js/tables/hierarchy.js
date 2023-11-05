@@ -246,14 +246,17 @@ console.error("deprecated");
 
 
 
-    const index = (selection.index || 0) + (selection.length || 0);
+    // const index = (selection.index || 0) + (selection.length || 0);
+
+    const index = selection.index || 0;
+    const length = selection.length || 0;
 
 
     KarmaFieldsAlpha.Query.add(this.resource.driver, params, 0, index, ...path);
 
 
 
-    this.setSelection({index: index, length: 1, path: path});
+    this.setSelection({index: index + length, length: 1, path: path});
 
     await this.render();
 
@@ -644,7 +647,32 @@ console.error("deprecated");
   }
 
 
-  setAbsoluteSelection(selection) {
+  setAbsoluteSelection(selection, ...path) {
+
+    // while (path.length) {
+    //
+    //   const index = path.pop();
+    //
+    //   selection = {
+    //     index: index,
+    //     length: 0,
+    //     [index]: selection
+    //   };
+    //
+    // }
+    //
+    // this.setSelection(selection);
+
+    while (path.length) {
+
+      const index = path.pop();
+
+      selection = {
+        childId: index,
+        child: selection
+      };
+
+    }
 
     this.setSelection(selection);
 
@@ -726,15 +754,15 @@ console.error("deprecated");
 
   getSelectedItems(selection = this.getSelection()) {
 
-      if (selection && selection[0]) {
+    const child = this.getSelectedChild(selection);
 
-        const branch = this.getChild(0);
+    if (child) {
 
-        return branch.getSelectedItems(selection[0]);
+      return child.getSelectedItems(selection.child);
 
-      }
+    }
 
-      return [];
+    return [];
 
   }
 
@@ -750,11 +778,19 @@ console.error("deprecated");
     //
     // }
 
-    if (selection && selection[0]) {
+    // if (selection && selection[0]) {
+    //
+    //   const branch = this.getChild(0);
+    //
+    //   return branch.hasSelection(selection[0]);
+    //
+    // }
 
-      const branch = this.getChild(0);
+    if (selection && selection.child) {
 
-      return branch.hasSelection(selection[0]);
+      const branch = this.getChild(selection.childId);
+
+      return branch.hasSelection(selection.child);
 
     }
 
@@ -762,54 +798,91 @@ console.error("deprecated");
 
   }
 
-  follow(selection, callback) {
+  isRowSelected(selection = this.getSelection()) {
 
-    if (selection.final || selection.modal && selection.modal.final) {
+    if (selection) {
 
-      return callback(this, selection);
+      const child = this.getSelectedChild(selection);
 
-    } else if (selection.modal) {
+      if (child) {
 
-      // const modal = this.createChild({
-      //   ...this.resource.modal,
-      //   type: "modal",
-      //   index: "modal",
-      //   ids: this.getSelectedIds(selection)
-      // });
-      //
-      // return modal.follow(selection.modal, callback);
+        return child.isRowSelected();
+      }
 
-      return this.getChild("modal").follow(selection.modal, callback);
+    }
 
-    } else if (selection[0]) { // -> follow branches
+    return false;
+  }
 
-      // const tree = this.createTree();
-      //
-      // if (tree.hasSelection(selection)) {
-      //
-      //   return callback(this, selection);
-      //
-      // } else { // -> follow branches till row
-      //
-      //   const branch = this.createChild({
-      //     type: "branch",
-      //     children: tree.children,
-      //     id: tree.id,
-      //     columns: this.resource.children,
-      //     depth: 0,
-      //     index: 0,
-      //     path: [],
-      //   });
-      //
-      //   return branch.follow(selection[0], callback);
-      //
-      // }
+  // follow(selection, callback) {
+  //
+  //   if (selection.final || selection.modal && selection.modal.final) {
+  //
+  //     return callback(this, selection);
+  //
+  //   } else if (selection.modal) {
+  //
+  //     // const modal = this.createChild({
+  //     //   ...this.resource.modal,
+  //     //   type: "modal",
+  //     //   index: "modal",
+  //     //   ids: this.getSelectedIds(selection)
+  //     // });
+  //     //
+  //     // return modal.follow(selection.modal, callback);
+  //
+  //     return this.getChild("modal").follow(selection.modal, callback);
+  //
+  //   } else if (selection[0]) { // -> follow branches
+  //
+  //     // const tree = this.createTree();
+  //     //
+  //     // if (tree.hasSelection(selection)) {
+  //     //
+  //     //   return callback(this, selection);
+  //     //
+  //     // } else { // -> follow branches till row
+  //     //
+  //     //   const branch = this.createChild({
+  //     //     type: "branch",
+  //     //     children: tree.children,
+  //     //     id: tree.id,
+  //     //     columns: this.resource.children,
+  //     //     depth: 0,
+  //     //     index: 0,
+  //     //     path: [],
+  //     //   });
+  //     //
+  //     //   return branch.follow(selection[0], callback);
+  //     //
+  //     // }
+  //
+  //     return this.getChild(0).follow(selection[0], callback);
+  //
+  //   }
+  //
+  // }
 
-      return this.getChild(0).follow(selection[0], callback);
+  getModal(selection = this.getSelection()) {
+
+    const child = this.getSelectedChild(selection);
+
+    if (child) {
+
+      if (!child.getModal) {
+
+        console.warn("child is not a branch", child, selection);
+
+      } else {
+
+        return child.getModal(selection.child);
+
+      }
 
     }
 
   }
+
 
   getChild(index) {
 
@@ -828,6 +901,8 @@ console.error("deprecated");
         items: items[index].children,
         id: "0",
         columns: this.resource.modal && this.resource.modal.children || this.resource.children,
+        modal: this.resource.modal,
+        hierarchical: this.resource.hierarchical,
         depth: 0,
         index: index,
         path: [],
@@ -906,23 +981,34 @@ console.error("deprecated");
 
   paste(value, selection) {
 
-    if (selection[0]) {
+    // if (selection[0]) {
+    //
+    //   // const tree = this.createTree();
+    //   //
+    //   // const branch = this.createChild({
+    //   //   type: "branch",
+    //   //   children: tree.children,
+    //   //   id: tree.id,
+    //   //   columns: this.resource.modal && this.resource.modal.children || this.resource.children,
+    //   //   depth: 0,
+    //   //   index: 0,
+    //   //   path: [],
+    //   // });
+    //
+    //   const branch = this.getChild(0);
+    //
+    //   return branch.paste(value, selection[0]);
+    //
+    // }
 
-      // const tree = this.createTree();
-      //
-      // const branch = this.createChild({
-      //   type: "branch",
-      //   children: tree.children,
-      //   id: tree.id,
-      //   columns: this.resource.modal && this.resource.modal.children || this.resource.children,
-      //   depth: 0,
-      //   index: 0,
-      //   path: [],
-      // });
 
-      const branch = this.getChild(0);
+    // -> same as field !
 
-      return branch.paste(value, selection[0]);
+    if (selection.child) {
+
+      const branch = this.getChild(selection.childId);
+
+      return branch.paste(value, selection.child);
 
     }
 
@@ -930,23 +1016,33 @@ console.error("deprecated");
 
   copy(selection) {
 
-    if (selection[0]) {
+    // if (selection[0]) {
+    //
+    //   // const tree = this.createTree();
+    //   //
+    //   // const branch = this.createChild({
+    //   //   type: "branch",
+    //   //   children: tree.children,
+    //   //   id: tree.id,
+    //   //   columns: this.resource.modal && this.resource.modal.children || this.resource.children,
+    //   //   depth: 0,
+    //   //   index: 0,
+    //   //   path: [],
+    //   // });
+    //
+    //   const branch = this.getChild(0);
+    //
+    //   return branch.copy(selection[0]);
+    //
+    // }
 
-      // const tree = this.createTree();
-      //
-      // const branch = this.createChild({
-      //   type: "branch",
-      //   children: tree.children,
-      //   id: tree.id,
-      //   columns: this.resource.modal && this.resource.modal.children || this.resource.children,
-      //   depth: 0,
-      //   index: 0,
-      //   path: [],
-      // });
+    // -> same as field !
 
-      const branch = this.getChild(0);
+    if (selection.child) {
 
-      return branch.copy(selection[0]);
+      const branch = this.getChild(selection.childId);
+
+      return branch.copy(selection.child);
 
     }
 
@@ -990,7 +1086,7 @@ console.error("deprecated");
 
     KarmaFieldsAlpha.Store.setIds(items);
 
-    this.setSelection({final: true, index: 0, length: 0});
+    this.setSelection({index: 0, length: 0});
     this.save("delete");
     this.render();
 
@@ -998,11 +1094,21 @@ console.error("deprecated");
 
 
 
-  clearModalSelection() {
+  clearModalSelection(selection = this.getSelection()) {
 
-    const selection = this.getSelection();
+    // const selection = this.getSelection();
+    //
+    // this.setSelection({0: selection[0]}); // = remove modal property
 
-    this.setSelection({0: selection[0]}); // = remove modal property
+    // this.setSelection({child: {}, childId: "modal"});
+
+    const child = this.getSelectedChild(selection);
+
+    if (child && child.clearModalSelection) {
+
+      child.clearModalSelection(selection);
+
+    }
 
   }
 
@@ -1058,6 +1164,7 @@ console.error("deprecated");
             index: 0,
             path: [],
             classes: ["table", "grid", "arrangement", "tree", "root"],
+            hierarchical: this.resource.hierarchical
             // maxDepth: this.resource.maxDepth || 0
           });
 
@@ -1085,13 +1192,35 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
 
   copy(selection) {
 
-    if (selection && selection[selection.index]) {
+    // if (selection && selection[selection.index]) {
+    //
+    //   const branch = this.getChild(selection.index);
+    //
+    //   return branch.copy(selection[selection.index]);
+    //
+    // } else if (selection) {
+    //
+    //   const grid = new KarmaFieldsAlpha.Grid();
+    //   const index = selection.index || 0;
+    //   const length = selection.length || 0;
+    //
+    //   for (let i = 0; i < length; i++) {
+    //
+    //     const child = this.getChild(i + index);
+    //
+    //     const row = child.getChild("row");
+    //
+    //     const rowItems = row.export();
+    //
+    //     grid.addRow(rowItems);
+    //
+    //   }
+    //
+    //   return grid.toString();
+    //
+    // }
 
-      const branch = this.getChild(selection.index);
-
-      return branch.copy(selection[selection.index]);
-
-    } else if (selection) {
+    if (selection && !selection.child) {
 
       const grid = new KarmaFieldsAlpha.Grid();
       const index = selection.index || 0;
@@ -1111,19 +1240,56 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
 
       return grid.toString();
 
+    } else {
+
+      return super.copy(selection);
+
     }
 
   }
 
   async paste(value, selection) {
 
-    if (selection && selection[selection.index]) {
+    // if (selection && selection[selection.index]) {
+    //
+    //   const branch = this.getChild(selection.index);
+    //
+    //   return branch.paste(value, selection[i]);
+    //
+    // } else if (selection) {
+    //
+    //   const grid = new KarmaFieldsAlpha.Grid(value);
+    //   const index = selection.index || 0;
+    //   const length = selection.length || 0;
+    //
+    //   if (grid.array.length < length) {
+    //
+    //     this.remove(index + grid.array.length, length - grid.array.length);
+    //
+    //   } else if (grid.array.length > length) {
+    //
+    //     for (let i = 0; i < grid.array.length - length; i++) {
+    //
+    //       await this.add(index + length);
+    //
+    //     }
+    //
+    //   }
+    //
+    //   for (let i = 0; i < grid.array.length; i++) {
+    //
+    //     const rowItems = grid.array[i];
+    //
+    //     const branch = this.getChild(i + index);
+    //     const row = branch.getChild("row");
+    //
+    //     row.import(rowItems);
+    //
+    //   }
+    //
+    // }
 
-      const branch = this.getChild(selection.index);
-
-      return branch.paste(value, selection[i]);
-
-    } else if (selection) {
+    if (selection && !selection.child) {
 
       const grid = new KarmaFieldsAlpha.Grid(value);
       const index = selection.index || 0;
@@ -1153,6 +1319,10 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
         row.import(rowItems);
 
       }
+
+    } else {
+
+      super.paste(value, selection);
 
     }
 
@@ -1186,8 +1356,8 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
   // }
 
 
-
-  getSelectedItems(selection) {
+  // !!  modal needs selected items from above, saucer need selected items from below (transfers)
+  getSelectedItems(selection = this.getSelection()) {
 
     // if (selection.final) {
     //
@@ -1212,22 +1382,31 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
     //
     // }
 
+    // if (selection) {
+    //
+    //   if (selection[selection.index]) {
+    //
+    //     const child = this.getChild(selection.index);
+    //
+    //     return child.getSelectedItems(selection[selection.index]);
+    //
+    //   } else {
+    //
+    //     const index = selection.index || 0;
+    //     const length = selection.length || 0;
+    //
+    //     return this.resource.items.slice(index, index + length);
+    //
+    //   }
+    //
+    // }
+
     if (selection) {
 
-      if (selection[selection.index]) {
+      const index = selection.index || 0;
+      const length = selection.length || 0;
 
-        const child = this.getChild(selection.index);
-
-        return child.getSelectedItems(selection[selection.index]);
-
-      } else {
-
-        const index = selection.index || 0;
-        const length = selection.length || 0;
-
-        return this.resource.items.slice(index, index + length);
-
-      }
+      return this.resource.items.slice(index, index + length);
 
     }
 
@@ -1252,13 +1431,27 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
 
   }
 
+  // setSelection(selection) {
+  //
+  //   if (selection) {
+  //
+  //     selection = {
+  //       ...this.getSelection(), // keep index/length
+  //       ...selection
+  //     };
+  //
+  //   }
+  //
+  //   super.setSelection(selection);
+  // }
+
   hasSelection(selection) {
 
-    if (selection && selection[selection.index]) {
+    if (selection && selection.child) {
 
-      const child = this.getChild(selection.index);
+      const child = this.getChild(selection.childId);
 
-      return child.hasSelection(selection[selection.index]);
+      return child.hasSelection(selection.child);
 
     } else if (selection) {
 
@@ -1276,6 +1469,79 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
 
   }
 
+  getModal(selection = this.getSelection()) {
+
+    if (selection && selection.length) {
+
+      return this.getChild("modal");
+
+    } else if (selection && selection.child) {
+
+      const child = this.getSelectedChild(selection);
+
+      if (child && child instanceof KarmaFieldsAlpha.field.hierarchy.branch) {
+
+        return child.getModal(selection.child);
+
+      }
+
+    }
+
+    // const child = this.getSelectedChild(selection);
+    //
+    // if (child) {
+    //
+    //   if (child instanceof KarmaFieldsAlpha.field.grid.modal) {
+    //
+    //     return child;
+    //
+    //   } else if (child instanceof KarmaFieldsAlpha.field.hierarchy.branch) {
+    //
+    //     return child.getModal(selection.child);
+    //
+    //   }
+    //
+    // }
+
+  }
+
+  clearModalSelection(selection = this.getSelection()) {
+
+    const child = this.getSelectedChild(selection);
+
+    if (child && child instanceof KarmaFieldsAlpha.field.hierarchy.branch) {
+
+      this.clearModalSelection(selection.child);
+
+    } else if (selection && selection.childId === "modal") {
+
+      const index = selection.index || 0;
+      const length = selection.length || 0;
+
+      this.setSelection({index: index, length: length});
+
+    }
+
+  }
+
+  isRowSelected(selection = this.getSelection()) {
+
+    const child = this.getSelectedChild(selection);
+
+    if (child && child instanceof KarmaFieldsAlpha.field.hierarchy.branch) {
+
+      return child.isRowSelected(selection.child);
+
+    } else {
+
+      return selection && selection.length ? true : false;
+
+    }
+
+
+  }
+
+
   getChild(index) {
 
     if (index === "row") {
@@ -1285,6 +1551,15 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
         type: "row",
         children: this.resource.columns || [],
         index: index
+      });
+
+    } else if (index === "modal") {
+
+      return this.createChild({
+        type: "modal",
+        ...this.resource.modal,
+        // items: this.resource.items,
+        index: "modal"
       });
 
     } else {
@@ -1297,6 +1572,7 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
         // children: tree.children || [],
         id: item.id,
         columns: this.resource.columns,
+        modal: this.resource.modal,
         depth: this.resource.depth++,
         index: index,
         path: [...this.resource.path, this.resource.index],
@@ -1308,116 +1584,116 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
   }
 
 
-  follow(selection, callback) {
+  // follow(selection, callback) {
+  //
+  //   if (selection.final) {
+  //
+  //     return callback(this, selection)
+  //
+  //   } else if (selection.row) {
+  //
+  //     const row = this.getChild("row");
+  //
+  //     return row.follow(selection.row, callback);
+  //
+  //   } else {
+  //
+  //     for (let i = 0; i < this.resource.items.length; i++) {
+  //
+  //       const item = this.resource.items[i];
+  //
+  //       if (selection[i]) {
+  //
+  //         // const branch = this.createChild({
+  //         //   type: "branch",
+  //         //   items: item.children,
+  //         //   // children: item.children,
+  //         //   id: item.id,
+  //         //   columns: this.resource.columns,
+  //         //   depth: this.resource.depth++,
+  //         //   index: i,
+  //         //   path: [...this.resource.path, this.resource.index],
+  //         // });
+  //
+  //         const branch = this.getChild(i);
+  //
+  //         return branch.follow(selection[i], callback);
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
-    if (selection.final) {
-
-      return callback(this, selection)
-
-    } else if (selection.row) {
-
-      const row = this.getChild("row");
-
-      return row.follow(selection.row, callback);
-
-    } else {
-
-      for (let i = 0; i < this.resource.items.length; i++) {
-
-        const item = this.resource.items[i];
-
-        if (selection[i]) {
-
-          // const branch = this.createChild({
-          //   type: "branch",
-          //   items: item.children,
-          //   // children: item.children,
-          //   id: item.id,
-          //   columns: this.resource.columns,
-          //   depth: this.resource.depth++,
-          //   index: i,
-          //   path: [...this.resource.path, this.resource.index],
-          // });
-
-          const branch = this.getChild(i);
-
-          return branch.follow(selection[i], callback);
-        }
-
-      }
-
-    }
-
-  }
-
-  getSelectionChild(selection) {
-
-    if (selection.row) {
-
-      return this.createChild({
-        id: this.resource.id,
-        type: "row",
-        children: this.resource.columns || [],
-        index: "row"
-      });
-
-    } else {
-
-      for (let index in this.resource.items) {
-
-        if (selection[index]) {
-
-          const item = this.resource.items[index];
-
-          return this.createChild({
-            type: "branch",
-            items: item.children || [],
-            // children: tree.children || [],
-            id: item.id,
-            columns: this.resource.columns,
-            depth: this.resource.depth++,
-            index: index,
-            path: [...this.resource.path, this.resource.index],
-            maxDepth: this.getMaxDepth() - 1
-          });
-
-        }
-
-      }
-
-    }
-
-  }
-
-
-
-  setSelection(selection) {
-
-    // console.log("setSelection", selection, this.resource);
-
-    this.parent.setSelection(selection && {
-      [this.resource.index]: selection,
-      index: this.resource.index,
-      length: 0
-    });
-
-  }
+  // getSelectionChild(selection) {
+  //
+  //   if (selection.row) {
+  //
+  //     return this.createChild({
+  //       id: this.resource.id,
+  //       type: "row",
+  //       children: this.resource.columns || [],
+  //       index: "row"
+  //     });
+  //
+  //   } else {
+  //
+  //     for (let index in this.resource.items) {
+  //
+  //       if (selection[index]) {
+  //
+  //         const item = this.resource.items[index];
+  //
+  //         return this.createChild({
+  //           type: "branch",
+  //           items: item.children || [],
+  //           // children: tree.children || [],
+  //           id: item.id,
+  //           columns: this.resource.columns,
+  //           depth: this.resource.depth++,
+  //           index: index,
+  //           path: [...this.resource.path, this.resource.index],
+  //           maxDepth: this.getMaxDepth() - 1
+  //         });
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
 
 
-  setAbsoluteSelection(selection) { // -> needed to set a selection with a different path from a reference node
+  // setSelection(selection) {
+  //
+  //   // console.log("setSelection", selection, this.resource);
+  //
+  //   this.parent.setSelection(selection && {
+  //     [this.resource.index]: selection,
+  //     index: this.resource.index,
+  //     length: 0
+  //   });
+  //
+  // }
 
-    const path = selection.path || [];
 
-    delete selection.path;
 
-    while (path.length) {
+  setAbsoluteSelection(selection, ...path) { // -> needed to set a selection with a different path from a reference node
 
-      const index = path.pop();
-
-      selection = {index: index, length: 0, [index]: selection};
-
-    }
+    // const path = selection.path || [];
+    //
+    // delete selection.path;
+    //
+    // while (path.length) {
+    //
+    //   const index = path.pop();
+    //
+    //   selection = {index: index, length: 0, [index]: selection};
+    //
+    // }
 
 
     // if (selection.path) {
@@ -1434,7 +1710,7 @@ KarmaFieldsAlpha.field.hierarchy.branch = class extends KarmaFieldsAlpha.field {
     //
     // }
 
-    this.parent.setAbsoluteSelection(selection);
+    this.parent.setAbsoluteSelection(selection, ...path);
 
   }
 
@@ -1454,15 +1730,28 @@ console.error("deprecated");
 
   delete(selection = this.getSelection()) {
 
-    const child = this.getSelectionChild(selection);
+    // const child = this.getSelectionChild(selection);
+    //
+    // if (child) {
+    //
+    //   child.delete(selection[child.resource.index]);
+    //
+    // } else if (selection) {
+    //
+    //   this.remove(selection.index || 0, selection.length || 0)
+    //
+    // }
 
-    if (child) {
+    if (selection && !selection.child) {
 
-      child.delete(selection[child.resource.index]);
+      const index = selection.index || 0;
+      const length = selection.length || 0;
 
-    } else if (selection) {
+      this.remove(index, length);
 
-      this.remove(selection.index || 0, selection.length || 0)
+    } else {
+
+      super.delete(selection);
 
     }
 
@@ -1530,17 +1819,30 @@ console.error("deprecated");
         //
         // sorter.maxDepth = this.getMaxDepth();
 
-        if (selection) {
-
-          selection = {index: selection.index, length: selection.length}; // -> get ride of subselection
-
-        }
-
-        console.log(selection);
+        // if (selection) {
+        //
+        //   selection = {index: selection.index, length: selection.length}; // -> get ride of subselection
+        //
+        // }
 
 
 
-        const sorter = new KarmaFieldsAlpha.ListSortHierarchy(ul.element, selection, [...path, this.resource.index]);
+
+        let sorter = new KarmaFieldsAlpha.ListSortHierarchy(ul.element, selection, this.resource.hierarchical, ...path, this.resource.index);
+
+
+
+
+
+        // if (this.resource.hierarchical) {
+        //
+        //   sorter = new KarmaFieldsAlpha.ListSortHierarchy(ul.element, selection, ...path, this.resource.index);
+        //
+        // } else {
+        //
+        //   sorter = new KarmaFieldsAlpha.ListSorter(ul.element, selection);
+        //
+        // }
 
         // sorter.selection = {selection};
         // sorter.path = [...path, this.resource.index];
@@ -1560,7 +1862,7 @@ console.error("deprecated");
 
           elements.map(element => element.classList.add("selected"));
 
-          this.setAbsoluteSelection(sorter.selection);
+          this.setAbsoluteSelection(sorter.state.selection, ...sorter.state.path);
 
         }
 
@@ -1577,14 +1879,18 @@ console.error("deprecated");
 
         }
 
-        sorter.onSwap = (newSelection, lastSelection) => {
+        sorter.onSwap = (newState, lastState) => {
 
-          this.swap(lastSelection.index, newSelection.index, newSelection.length, lastSelection.path, newSelection.path);
-          // this.setSelection(newSelection);
+          // const that = sorter;
+          // debugger;
+
+          this.swap(lastState.selection.index, newState.selection.index, newState.selection.length, lastState.path, newState.path);
+
+
 
         };
 
-        sorter.onSort = (newSelection, lastSelection) => {
+        sorter.onSort = (newState, lastState) => {
 
           this.deferFocus();
           this.save("order");
@@ -1640,7 +1946,8 @@ console.error("deprecated");
             depth: (this.resource.depth || 0) + 1,
             // maxDepth: this.getMaxDepth() - 1,
             index: index,
-            path: [...this.resource.path, this.resource.index]
+            path: [...this.resource.path, this.resource.index],
+            hierarchical: this.resource.hierarchical
           });
 
           // const branch = this.getChild(index);
@@ -1657,6 +1964,7 @@ console.error("deprecated");
 
               li.element.classList.toggle("selected", Boolean(isSelected));
               li.element.classList.toggle("empty", !child.children || child.children.length === 0);
+              li.element.classList.toggle("odd", index%2 === 0);
             },
             children: [
               {

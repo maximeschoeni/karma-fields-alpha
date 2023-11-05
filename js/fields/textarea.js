@@ -74,7 +74,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 					input.element.placeholder = this.getPlaceholder();
 
 					input.element.classList.toggle("mixed", value === KarmaFieldsAlpha.mixed);
-					input.element.classList.toggle("selected", Boolean(value === KarmaFieldsAlpha.mixed && (this.getSelection() || {}).final));
+					input.element.classList.toggle("selected", Boolean(value === KarmaFieldsAlpha.mixed && this.getSelection()));
 
           if (value === KarmaFieldsAlpha.mixed) {
 
@@ -112,12 +112,11 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 						this.setValue(newValue);
 
-						// this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
 						this.saveChange(newValue, value);
 
 						value = newValue;
 
-						if (event.inputType === "insertText") {
+						if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
 
 							this.debounce(() => void this.render(), 300);
 
@@ -149,7 +148,11 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 						}
 
+						// requestAnimationFrame(() => {
 						this.render();
+						// });
+
+
 
 					}
 

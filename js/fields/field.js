@@ -173,6 +173,12 @@ KarmaFieldsAlpha.field = class {
 	}
 
   getSelectionChild(selection) {
+    console.error("deprecated");
+    // if (selection && selection.path && selection.path.length) {
+    //
+    //   return this.getChild(selection.path[0]);
+    //
+    // }
 
     const children = this.getChildren();
 
@@ -192,13 +198,70 @@ KarmaFieldsAlpha.field = class {
 
   }
 
+
+  getSelectedChild(selection) {
+
+    if (selection && selection.child) {
+
+      return this.getChild(selection.childId);
+
+    }
+
+  }
+
+
   delete(selection = this.getSelection()) {
 
-    const child = this.getSelectionChild(selection);
+    // if (selection && selection.path && selection.path.length > 0) {
+    //
+    //   const [index, ...path] = selection.path;
+    //
+    //   const child = this.getChild(index);
+    //
+    //   child.delete({...selection, path: path});
+    //
+    // }
+
+
+
+    // const child = this.getSelectionChild(selection);
+    //
+    // if (child) {
+    //
+    //   child.delete(selection[child.resource.index]);
+    //
+    // }
+
+    // if (selection && selection[selection.index]) {
+    //
+    //   const child = this.getChild(selection.index);
+    //
+    //   if (child) {
+    //
+    //     child.delete(selection[selection.index]);
+    //
+    //   }
+    //
+    // }
+
+
+    // if (selection && selection.child) {
+    //
+    //   const child = this.getChild(selection.childId);
+    //
+    //   if (child) {
+    //
+    //     child.delete(selection.child);
+    //
+    //   }
+    //
+    // }
+
+    const child = this.getSelectedChild(selection);
 
     if (child) {
 
-      child.delete(selection[child.resource.index]);
+      child.delete(selection.child);
 
     }
 
@@ -206,11 +269,37 @@ KarmaFieldsAlpha.field = class {
 
   copy(selection = this.getSelection()) {
 
-    const child = this.getSelectionChild(selection);
+    // if (selection && selection.path && selection.path.length > 0) {
+    //
+    //   const [index, ...path] = selection.path;
+    //
+    //   const child = this.getChild(index);
+    //
+    //   return child.copy({...selection, path: path});
+    //
+    // }
 
-    if (child) {
+    // if (selection && selection[selection.index]) {
+    //
+    //   const child = this.getChild(selection.index);
+    //
+    //   if (child) {
+    //
+    //     return child.copy(selection[selection.index]);
+    //
+    //   }
+    //
+    // }
 
-      return child.copy(selection[child.resource.index]);
+    if (selection && selection.child) {
+
+      const child = this.getChild(selection.childId);
+
+      if (child) {
+
+        return child.copy(selection.child);
+
+      }
 
     }
 
@@ -218,11 +307,38 @@ KarmaFieldsAlpha.field = class {
 
   paste(string, selection = this.getSelection()) { // -> same as base method
 
-    const child = this.getSelectionChild(selection);
+    // if (selection && selection.path && selection.path.length > 0) {
+    //
+    //   const [index, ...path] = selection.path;
+    //
+    //   const child = this.getChild(index);
+    //
+    //   return child.paste(string, {...selection, path: path});
+    //
+    // }
 
-    if (child) {
 
-      return child.paste(string, selection[child.resource.index]);
+    // if (selection && selection[selection.index]) {
+    //
+    //   const child = this.getChild(selection.index);
+    //
+    //   if (child) {
+    //
+    //     return child.paste(string, selection[selection.index]);
+    //
+    //   }
+    //
+    // }
+
+    if (selection && selection.child) {
+
+      const child = this.getChild(selection.childId);
+
+      if (child) {
+
+        return child.paste(string, selection.child);
+
+      }
 
     }
 
@@ -238,11 +354,11 @@ KarmaFieldsAlpha.field = class {
 
   getSelectedValue(selection = this.getSelection()) {
 
-    const child = this.getSelectionChild(selection);
+    const child = this.getSelectedChild(selection);
 
     if (child) {
 
-      return child.getSelectedValue(selection[child.resource.index]);
+      return child.getSelectedValue(selection.child);
 
     } else {
 
@@ -274,21 +390,41 @@ KarmaFieldsAlpha.field = class {
 
   createChild(resource) {
 
-    // let child = this.childMap[id || resource.id || resource.type || resource];
+    const child = this.createField(resource);
+
+    child.parent = this;
+
+
+    // console.log("createChild", );
     //
-    // if (!child) {
-
-
-      const child = this.createField(resource);
-
-      // this.children.push(child);
-      // this.childMap[id || resource.id || resource.type] = child;
-      child.parent = this;
-
-
+    // if (this.selection && this.selection.childId === resource.index) {
+    //
+    //   child.selection = this.selection.child;
+    //
     // }
 
+    // const selection = this.getSelection();
+    //
+    // if (selection && selection.childId === child.resource.index) {
+    //
+    //   this.selection = selection.child;
+    //
+    // }
+
+
+
     return child;
+  }
+
+  getRoot() {
+
+    if (this.parent) {
+
+      return this.parent.getRoot();
+
+    }
+
+    return this;
   }
 
   // getDescendants() {
@@ -834,23 +970,40 @@ console.error("deprecated");
 
   follow(selection, callback) {
 
-    if (selection.final) {
+    const child = this.getSelectedChild(selection);
+
+    if (child) {
+
+      child.follow(selection.child, callback);
+
+    } else if (selection) {
 
       return callback(this, selection);
 
-    } else if (selection && this.resource.children) {
+    }
 
-      for (let i = 0; i < this.resource.children.length; i++) {
 
-        if (selection[i]) {
 
-          const child = this.createChild({...this.resource.children[i], index: i});
 
-          return child.follow(selection[child.resource.index], callback);
+    // if (selection) {
+    //
+    //   if (selection.child) {
+    //
+    //     const child = this.getChild(selection.childId);
+    //
+    //     if (child) {
+    //
+    //       return child.follow(selection.child, callback);
+    //
+    //     }
+    //
+    //   } else {
+    //
+    //     return callback(this, selection);
+    //
+    //   }
 
-        }
-
-      }
+  }
 
 
       // if (selection.index) {
@@ -867,9 +1020,7 @@ console.error("deprecated");
 
 
 
-    }
 
-  }
 
   descend(selection, action) {
 
@@ -894,6 +1045,9 @@ console.error("deprecated");
     }
 
   }
+
+
+
 
 
   // paste(value, selection) {
@@ -987,20 +1141,47 @@ console.error("deprecated");
   // }
 
 
+  // setAbsoluteSelection(segment, ...path) {
+  //
+  //   this.parent.setAbsoluteSelection(segment, this.resource.index, ...path);
+  //
+  // }
+
 
 
 
   getSelection() {
 
+    // return this.selection;
+
+
+    // const selection = this.parent.getSelection();
+    //
+    // if (selection && selection.path && selection.path > 0) {
+    //
+    //   return {...selection, path: selection.path.slice(1)};
+    //
+    // }
+
+
+    // const selection = this.parent.getSelection();
+    //
+    // if (selection) {
+    //
+    //   return selection[this.resource.index];
+    //
+    // }
+
     const selection = this.parent.getSelection();
 
-    if (selection) {
+    // console.log("getSelection", selection && selection.child, this.selection);
 
-      return selection[this.resource.index];
+    if (selection && selection.childId === this.resource.index) {
+
+      return selection.child;
 
     }
 
-    // return {};
   }
 
   hasSelection() {
@@ -1014,7 +1195,34 @@ console.error("deprecated");
 
   setSelection(selection) {
 
-    this.parent.setSelection(selection && {[this.resource.index]: selection});
+    // if (selection) {
+    //
+    //   selection = {
+    //     [this.resource.index]: selection,
+    //     index: this.resource.index,
+    //     length: 0
+    //   };
+    //
+    // }
+    //
+    // this.parent.setSelection(selection);
+
+
+    if (selection) {
+
+      selection = {
+        // ...this.parent.getSelection(),
+        childId: this.resource.index,
+        child: selection
+      };
+
+    }
+
+    this.parent.setSelection(selection);
+
+
+
+
 
   }
 

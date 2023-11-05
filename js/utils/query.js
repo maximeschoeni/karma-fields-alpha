@@ -205,7 +205,11 @@ KarmaFieldsAlpha.Query = class {
             // resolve: task => this.resolveAttempt(task)
           };
 
-          if (attempt === "query") {
+          if (attempt === "internal") {
+
+            task.resolve = task => this.resolveInternal(task);
+
+          } else if (attempt === "query") {
 
             task.resolve = task => this.resolveIds(task);
 
@@ -236,6 +240,34 @@ KarmaFieldsAlpha.Query = class {
     return value; // return array | undefined (not ready)
   }
 
+
+  static async resolveInternal(task) {
+
+    const results = await KarmaFieldsAlpha.Data.get(task.driver, [...task.ids]);
+    const idAlias = this.getAlias(task.driver, "id");
+
+    for (let item of results) {
+
+      const id = item[idAlias].toString();
+
+      for (let key in item) {
+
+        const value = KarmaFieldsAlpha.Type.toArray(item[key]);
+
+        KarmaFieldsAlpha.DeepObject.set(this.vars, value, task.driver, id, key);
+
+      }
+
+      KarmaFieldsAlpha.DeepObject.set(this.attempts, true, task.driver, id, "internal");
+
+      KarmaFieldsAlpha.DeepObject.set(this.vars, ["0"], task.driver, id, "trash");
+
+    }
+
+    return results; // -> to do: should return an array of ids
+
+  }
+
   static async resolveQuery(task) {
 
     const results = await KarmaFieldsAlpha.Gateway.get(`query/${task.driver}${task.paramstring?"?":""}${task.paramstring}`);
@@ -264,6 +296,9 @@ KarmaFieldsAlpha.Query = class {
       KarmaFieldsAlpha.DeepObject.set(this.attempts, true, task.driver, id, "query");
 
       KarmaFieldsAlpha.DeepObject.set(this.vars, ["0"], task.driver, id, "trash");
+
+
+      await KarmaFieldsAlpha.Data.set(item, task.driver, id);
 
     }
 
@@ -304,6 +339,8 @@ KarmaFieldsAlpha.Query = class {
 
         KarmaFieldsAlpha.DeepObject.set(this.vars, ["0"], task.driver, id, "trash");
 
+        await KarmaFieldsAlpha.Data.set(item, task.driver, id);
+
       }
 
       KarmaFieldsAlpha.DeepObject.set(this.queries, results, task.driver, paramstring);
@@ -334,6 +371,8 @@ KarmaFieldsAlpha.Query = class {
         }
 
         value.push(relation.value);
+
+        await KarmaFieldsAlpha.Data.set(value, task.driver, id, key);
 
       }
 
@@ -378,6 +417,21 @@ KarmaFieldsAlpha.Query = class {
     }
 
     return query;
+  }
+
+  static getIds(driver, params) {
+
+    let results = this.getResults(driver, params);
+
+    if (results) {
+
+      const idAlias = this.getAlias(driver, "id");
+
+      results = results.map(item => item[idAlias]);
+
+    }
+
+    return results;
   }
 
 

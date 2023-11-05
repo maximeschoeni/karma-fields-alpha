@@ -5,7 +5,7 @@
 		--border-radius: 3px;
   }
 	.karma-fields .karma-field-table h1 {
-		color: var(--text-color);
+		/* color: var(--text-color); */
 	}
 </style>
 <div id="board" class="karma-fields"></div>

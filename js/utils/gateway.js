@@ -10,7 +10,7 @@ KarmaFieldsAlpha.Gateway = class {
 			params = "?"+params;
 		}
 
-		return fetch(KarmaFieldsAlpha.restURL+"/"+queryString+params, {
+		return fetch(KarmaFieldsAlpha.restURL+"karma-fields-alpha/v1/"+queryString+params, {
 			cache: "default", // force-cache
 			headers: {
 				"Content-Type": "application/json",
@@ -27,7 +27,7 @@ KarmaFieldsAlpha.Gateway = class {
 	}
 
 	static post(queryString, data, params) {
-		return fetch(KarmaFieldsAlpha.restURL+"/"+queryString, {
+		return fetch(KarmaFieldsAlpha.restURL+"karma-fields-alpha/v1/"+queryString, {
 			method: "post",
 			headers: {
 				"Content-Type": "application/json",
@@ -81,7 +81,7 @@ KarmaFieldsAlpha.Gateway = class {
 							formData.append(key, params[key]);
 						}
 					}
-	        return fetch(KarmaFieldsAlpha.restURL+"/upload", {
+	        return fetch(KarmaFieldsAlpha.restURL+"karma-fields-alpha/v1/upload", {
 						headers: {
 							// "Content-Type": "application/json",
 							"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce

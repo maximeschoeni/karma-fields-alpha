@@ -522,7 +522,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					input.element.placeholder = this.getPlaceholder();
 
 					input.element.classList.toggle("mixed", value === KarmaFieldsAlpha.mixed);
-					input.element.classList.toggle("selected", Boolean(value === KarmaFieldsAlpha.mixed && (this.getSelection() || {}).final));
+					input.element.classList.toggle("selected", Boolean(value === KarmaFieldsAlpha.mixed && this.getSelection()));
 
 
           if (value === KarmaFieldsAlpha.mixed) {
@@ -554,7 +554,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 						//
 						// }
 
-            if (true || value !== input.element.value.normalize()) { // -> replacing same value will ruin selection !
+            if (value !== input.element.value.normalize()) { // -> replacing same value will ruin selection !
 
               input.element.value = value || "";
 
@@ -608,7 +608,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 						value = newValue;
 
-						if (event.inputType === "insertText") {
+						if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
 
 							this.debounce(() => void this.render(), 300);
 
@@ -626,7 +626,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					input.element.onfocus = event => {
 
-						this.setSelection({final: true});
+						this.setSelection({});
 
 						if (value === KarmaFieldsAlpha.mixed) {
 
@@ -665,6 +665,14 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					input.element.value = ""; // -> ?
 
 				}
+
+				if (this.getSelection() && input.element !== document.activeElement && value !== KarmaFieldsAlpha.mixed) {
+
+					input.element.focus();
+
+				}
+
+
 
 				if (this.resource.disabled) {
 					input.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));

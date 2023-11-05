@@ -36,7 +36,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   openMediaLibrary() {
 
-    const rootSelection = KarmaFieldsAlpha.Store.getSelection();
+    const rootSelection = KarmaFieldsAlpha.Store.getSelection(); // -> save selection
 
     const selection = this.getSelection();
 
@@ -107,6 +107,19 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
       }).then(response => response.json());
 
     }
+
+  }
+
+
+  hasFileSelected() {
+
+    return this.hasSelection();
+
+  }
+
+  deleteFile() {
+
+    return this.delete();
 
   }
 
@@ -390,12 +403,15 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
 
                 gallery.element.classList.toggle("empty", ids.length === 0);
-                gallery.element.classList.toggle("dashicons", ids.length === 0);
-                gallery.element.classList.toggle("dashicons-format-image", ids.length === 0);
+                // gallery.element.classList.toggle("dashicons", ids.length === 0);
+                // gallery.element.classList.toggle("dashicons-format-image", ids.length === 0);
 
                 let selection = this.getSelection();
 
                 gallery.element.classList.toggle("has-selection", Boolean(selection));
+
+
+
 
 
                 gallery.element.ondblclick = event => {
@@ -417,7 +433,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                 sorter.onSelect = elements => {
 
                   elements.map(element => element.classList.add("selected"));
-                  this.setSelection(sorter.selection);
+                  this.setSelection(sorter.state.selection);
 
                 }
 
@@ -447,10 +463,10 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                 //   elements.forEach(element => element.classList.remove("selected"))
                 // }
 
-                sorter.onSwap = (newSelection, lastSelection) => {
+                sorter.onSwap = (newState, lastState) => {
 
-                  this.swap(lastSelection.index, newSelection.index, newSelection.length);
-                  this.setSelection({final: true, index: target, length: length});
+                  this.swap(lastState.selection.index, newState.selection.index, newState.selection.length);
+                  this.setSelection(newState.selection);
 
                 };
 
@@ -699,7 +715,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
               }
             },
             {
-              class: "controls",
+              class: "controls simple-buttons",
               update: controls => {
                 controls.element.classList.toggle("hidden", this.resource.controls === false);
               },
@@ -711,10 +727,9 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                 //   }
                 // },
                 update: controls => {
-                  // this.onRenderControls = controls.render;
-                  if (this.resource.controls !== false) {
+                  // if (this.resource.controls !== false) {
                     controls.child = this.createChild(this.resource.controls || "controls").build();
-                  }
+                  // }
                 }
               }
             }
@@ -736,9 +751,9 @@ KarmaFieldsAlpha.field.files.controls = class extends KarmaFieldsAlpha.field.con
     super({
       display: "flex",
       children: [
-        "add"
-        // "edit",
-        // "remove"
+        "add",
+        "edit",
+        "remove"
       ],
       ...resource
     });
@@ -756,7 +771,8 @@ KarmaFieldsAlpha.field.files.controls.test = {
 KarmaFieldsAlpha.field.files.controls.add = {
   type: "button",
   title: "Add",
-  text: "+",
+  text: "Add File",
+  // dashicon: "insert",
   action: "open",
   hidden: [">=", ["count", ["getValue"]], ["request", "getMax"]]
 };
@@ -764,19 +780,19 @@ KarmaFieldsAlpha.field.files.controls.add = {
 KarmaFieldsAlpha.field.files.controls.remove = {
   type: "button",
   title: "Remove",
-  text: "–",
+  text: "Remove",
   // dashicon: "remove",
-  action: "delete",
-  disabled: ["!", ["request", "hasSelection"]],
+  action: "deleteFile",
+  disabled: ["!", ["request", "hasFileSelected"]],
   hidden: ["=", ["count", ["getValue"]], 0]
 };
 
 KarmaFieldsAlpha.field.files.controls.edit = {
   type: "button",
-  title: "Edit",
-  dashicon: "screenoptions",
+  text: "Change",
+  // dashicon: "screenoptions",
   action: "open",
-  disabled: ["!", ["request", "hasSelection"]],
+  disabled: ["!", ["request", "hasFileSelected"]],
   hidden: ["=", ["count", ["getValue"]], 0]
 }
 

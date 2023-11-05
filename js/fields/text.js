@@ -16,17 +16,27 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 	export(items = []) {
 
-		if (this.resource.export === true) {
+		if (this.resource.export) {
+
+			const value = new KarmaFieldsAlpha.Expression(this.resource.export, this).toString();
+
+			items.push(value);
+
+		} else if (this.resource.export !== false) {
 
 			const value = this.getContent();
 
 			items.push(value);
 
-		} else if (this.resource.export) {
+		}
 
-			const value = new KarmaFieldsAlpha.Expression(this.resource.export, this).toString();
+	}
 
-			items.push(value);
+	import(items = []) {
+
+		if (this.resource.export !== false) {
+
+			items.shift();
 
 		}
 
@@ -36,7 +46,15 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.value || this.resource.content) {
 
-			return this.parse(this.resource.value || this.resource.content);
+			const content = this.parse(this.resource.value || this.resource.content);
+
+			if (content === KarmaFieldsAlpha.loading) {
+
+				return KarmaFieldsAlpha.loading;
+
+			}
+
+			return KarmaFieldsAlpha.Type.toString(content);
 
 		}
 
@@ -67,38 +85,46 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 				let content = this.getContent();
 
+				const children = this.getChildren();
+
+
+
         if (content !== undefined) {
 
 					node.element.classList.toggle("loading", content === KarmaFieldsAlpha.loading);
 
-          // const content = this.parse(this.resource.value);
+					// if (content === KarmaFieldsAlpha.loading) {
 					//
-          // node.element.classList.toggle("loading", content === KarmaFieldsAlpha.loading);
+					// 	node.element.innerHTML = '...';
 					//
-          // node.element.innerHTML = KarmaFieldsAlpha.Type.toString(content);
+					// } else if (typeof content === "symbol") {
+					//
+					// 	node.element.innerHTML = content.toString();
+					//
+					// } else {
+					//
+					// 	content = KarmaFieldsAlpha.Type.toArray(content);
+					//
+					// 	node.element.innerHTML = content.map(value => `<div class="text-item">${KarmaFieldsAlpha.Type.toString(value)}</div>`).join("");
+					//
+					// }
 
+					if (content !== KarmaFieldsAlpha.loading) {
 
-
-					if (content === KarmaFieldsAlpha.loading) {
-
-						node.element.innerHTML = '...';
-
-					} else if (typeof content === "symbol") {
-
-						node.element.innerHTML = content.toString();
-
-					} else {
+					// 	node.element.innerHTML = '...';
+					//
+					// } else if (typeof content === "symbol") {
+					//
+					// 	node.element.innerHTML = content.toString();
+					//
+					// } else {
 
 						content = KarmaFieldsAlpha.Type.toArray(content);
-
-
-
-
-						// node.element.innerHTML = KarmaFieldsAlpha.Type.toString(content);
 
 						node.element.innerHTML = content.map(value => `<div class="text-item">${KarmaFieldsAlpha.Type.toString(value)}</div>`).join("");
 
 					}
+
 
         } else if (this.resource.links) {
 
@@ -242,7 +268,7 @@ KarmaFieldsAlpha.field.text.a = class extends KarmaFieldsAlpha.field {
 
 				const table = this.parse(this.resource.table);
 
-				const params = this.parse(this.resource.params);
+				const params = this.parseParams(this.resource.params);
 
 				if (table !== KarmaFieldsAlpha.loading && params !== KarmaFieldsAlpha.loading && !Object.values(params).some(value => value === KarmaFieldsAlpha.loading)) {
 
@@ -267,6 +293,292 @@ KarmaFieldsAlpha.field.text.a = class extends KarmaFieldsAlpha.field {
 	}
 
 
+}
+
+KarmaFieldsAlpha.field.text.link = class extends KarmaFieldsAlpha.field {
+
+	getHref() {
+
+		if (this.resource.href) {
+
+			const href = this.parse(this.resource.href);
+
+			if (href !== KarmaFieldsAlpha.loading) {
+
+				return href;
+
+			}
+
+		}
+
+	}
+
+	getContent() {
+
+		const content = this.parse(this.resource.content);
+
+		if (content === KarmaFieldsAlpha.loading) {
+
+			return "";
+
+		}
+
+		return KarmaFieldsAlpha.Type.toString(content);
+
+	}
+
+	click() {
+
+		const table = this.parse(this.resource.table);
+
+		const params = this.parseParams(this.resource.params);
+
+		if (table !== KarmaFieldsAlpha.loading && params !== KarmaFieldsAlpha.loading && !Object.values(params).some(value => value === KarmaFieldsAlpha.loading)) {
+
+			KarmaFieldsAlpha.saucer.open(table, params, this.resource.context);
+
+		}
+
+	}
+
+	build() {
+
+		return {
+			tag: "a",
+			update: node => {
+
+				node.element.onmousedown = event => {
+
+					event.stopPropagation();
+
+				};
+
+				if (this.resource.href) {
+
+					node.element.href = this.getHref();
+
+				} else {
+
+					node.element.onclick = event => {
+
+						event.preventDefault();
+
+						this.click();
+
+					}
+
+				}
+
+				node.element.innerHTML = this.getContent();
+
+				if (this.resource.target) {
+
+					node.element.target = this.resource.target;
+
+				}
+
+			}
+		};
+
+	}
+
+}
+
+
+
+KarmaFieldsAlpha.field.filterLink = class extends KarmaFieldsAlpha.field.text {
+
+	getChildren() {
+
+		// const key = this.resource.key;
+		const children = [];
+
+		if (!this.resource.driver) {
+
+			console.error("driver is missing");
+
+		}
+
+		const ids = this.getValue();
+
+		if (ids && ids !== KarmaFieldsAlpha.loading) {
+
+			for (let id of ids) {
+
+				const values = KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, "name");
+
+				if (values && values !== KarmaFieldsAlpha.loading) {
+
+					const child = this.createChild({
+						type: "link",
+						content: KarmaFieldsAlpha.Type.toString(values),
+						params: {[this.resource.key]: id}
+					});
+
+					children.push(child);
+
+				}
+
+			}
+
+		}
+
+		return children;
+
+	}
+
+	build() {
+
+		return {
+			tag: "ul",
+			class: "karma-field links",
+			update: node => {
+				node.element.classList.toggle("display-inline", this.resource.display === "inline");
+				node.children = this.getChildren().map(child => {
+					return {
+						tag: "li",
+						child: child.build()
+					}
+				});
+			}
+		};
+
+	}
+
+}
+
+
+
+KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
+
+	nav(index = 0) {
+
+		let table = this.parse(this.resource.table);
+		let params = this.parse(this.resource.params);
+
+		if (params !== KarmaFieldsAlpha.loading && table !== KarmaFieldsAlpha.loading) {
+
+			if (table) {
+
+				table = KarmaFieldsAlpha.Type.toString(table);
+
+			}
+
+			if (params) {
+
+				params = KarmaFieldsAlpha.Type.toArray(params);
+
+				params = params[index];
+
+			}
+
+			KarmaFieldsAlpha.saucer.open(table, params, this.resource.context);
+
+		}
+
+	}
+
+	getContents() {
+
+		let contents = this.parse(this.resource.content);
+
+		if (contents && contents !== KarmaFieldsAlpha.loading) {
+
+			return KarmaFieldsAlpha.Type.toArray(contents);
+
+		}
+
+		return [];
+	}
+
+	getHrefs() {
+
+		if (this.resource.href) {
+
+			let href = this.parse(this.resource.href);
+
+			if (href !== KarmaFieldsAlpha.loading) {
+
+				return KarmaFieldsAlpha.Type.toArray(href);
+
+			}
+
+		}
+
+	}
+
+
+	build() {
+
+		return {
+			tag: "ul",
+			class: "karma-field links",
+			update: node => {
+				node.element.classList.toggle("display-inline", this.resource.display === "inline");
+
+				const contents = this.getContents();
+				const hrefs = this.getHrefs();
+
+				node.children = contents.map((content, index) => {
+					return {
+						tag: "li",
+						child: {
+							tag: "a",
+							update: node => {
+
+								node.element.onmousedown = event => {
+									event.stopPropagation();
+								};
+
+								if (this.resource.table || this.resource.params) {
+
+									node.element.onclick = event => {
+										event.preventDefault();
+										this.nav(index);
+									}
+
+								} else if (hrefs && hrefs[index]) {
+
+									node.element.href = hrefs[index];
+
+								}
+
+								node.element.innerHTML = content;
+
+								if (this.resource.target) {
+
+									node.element.target = this.resource.target;
+
+								}
+
+							}
+						}
+					}
+				});
+			}
+		};
+
+	}
+
+}
+
+
+KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.links {
+
+	constructor(resource) {
+
+		const taxonomy = this.resource.taxonomy || "category";
+		const table = this.resource.table || null; // -> use same table
+		const driver = this.resource.driver || "taxonomy";
+
+		super({
+			content: ["map", ["getValue", this.resource.taxonomy], ["queryValue", this.resource.driver, ["getItem"], "name"]],
+			params: ["map", ["getValue", this.resource.taxonomy], ["object", this.resource.taxonomy, ["getItem"]]],
+			table: this.resource.table,
+			...resource
+		});
+
+	}
 }
 
 
@@ -304,11 +616,11 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 		} else if (this.resource.uploading) {
 
-			return {icon: "uploading", text: "..."};
+			return {icon: "uploading", text: ""};
 
 		} else if (id === KarmaFieldsAlpha.loading || this.resource.loading) {
 
-			return {icon: "loading", text: "..."};
+			return {icon: "loading", text: ""};
 
 		} else if (id === KarmaFieldsAlpha.mixed || this.resource.mixed) {
 
@@ -326,7 +638,18 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 			const filetype = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "filetype");
 			// const name = KarmaFieldsAlpha.Query.getName(driver, id);
 			const name = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "name");
-			const text = name === KarmaFieldsAlpha.loading ? "..." : name;
+
+			let text;
+
+			if (name !== KarmaFieldsAlpha.loading) {
+
+				text = name;
+
+			} else {
+
+				text = "";
+
+			}
 
 			if (mimetype === KarmaFieldsAlpha.loading || filetype === KarmaFieldsAlpha.loading) {
 
@@ -498,20 +821,46 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 							const visible = media.icon && (!media.src || this.resource.display === "icon" || (this.resource.display === "thumb" && (media.icon === "video" || media.icon === "audio")));
 							node.element.classList.toggle("hidden", !visible);
 							if (visible) {
-								node.element.classList.toggle("dashicons", Boolean(visible));
-								node.element.classList.toggle("dashicons-category", media.icon === "folder");
-								node.element.classList.toggle("dashicons-format-image", media.icon === "image");
-								node.element.classList.toggle("dashicons-media-video", media.icon === "video");
-								node.element.classList.toggle("dashicons-media-audio", media.icon === "audio");
-								node.element.classList.toggle("dashicons-media-text", media.icon === "text");
-								node.element.classList.toggle("dashicons-media-document", media.icon === "document");
-								node.element.classList.toggle("dashicons-media-archive", media.icon === "archive");
-								node.element.classList.toggle("dashicons-media-default", media.icon === "default");
-								node.element.classList.toggle("dashicons-open-folder", media.icon === "exit");
-								node.element.classList.toggle("dashicons-upload", media.icon === "uploading");
-								node.element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
-								node.element.classList.toggle("dashicons-warning", media.icon === "notfound");
-								node.element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
+								node.children = [
+									{
+										update: node => {
+											node.element.classList.toggle("dashicons", Boolean(visible));
+											node.element.classList.toggle("dashicons-category", media.icon === "folder");
+											node.element.classList.toggle("dashicons-format-image", media.icon === "image");
+											node.element.classList.toggle("dashicons-media-video", media.icon === "video");
+											node.element.classList.toggle("dashicons-media-audio", media.icon === "audio");
+											node.element.classList.toggle("dashicons-media-text", media.icon === "text");
+											node.element.classList.toggle("dashicons-media-document", media.icon === "document");
+											node.element.classList.toggle("dashicons-media-archive", media.icon === "archive");
+											node.element.classList.toggle("dashicons-media-default", media.icon === "default");
+											node.element.classList.toggle("dashicons-open-folder", media.icon === "exit");
+											node.element.classList.toggle("dashicons-upload", media.icon === "uploading");
+											node.element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
+											node.element.classList.toggle("dashicons-warning", media.icon === "notfound");
+											node.element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
+										}
+									},
+									{
+										class: "filename",
+										update: filename => {
+											filename.element.innerHTML = media.text;
+										}
+									}
+									// {
+									// 	class: "file-caption",
+									// 	update: node => {
+									// 		node.element.classList.toggle("hidden", !this.resource.caption);
+									// 		if (this.resource.caption) {
+									// 			node.child = {
+									// 				class: "filename",
+									// 				update: filename => {
+									// 					filename.element.innerHTML = media.text;
+									// 				}
+									// 			}
+									// 		}
+									// 	}
+									// }
+								];
 							}
 						}
 					},
@@ -603,21 +952,21 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 								}
 							}
 						}
-					},
-					{
-						class: "file-caption",
-						update: node => {
-							node.element.classList.toggle("hidden", !this.resource.caption);
-							if (this.resource.caption) {
-								node.child = {
-									class: "filename",
-									update: filename => {
-										filename.element.innerHTML = media.text;
-									}
-								}
-							}
-						}
 					}
+					// {
+					// 	class: "file-caption",
+					// 	update: node => {
+					// 		node.element.classList.toggle("hidden", !this.resource.caption);
+					// 		if (this.resource.caption) {
+					// 			node.child = {
+					// 				class: "filename",
+					// 				update: filename => {
+					// 					filename.element.innerHTML = media.text;
+					// 				}
+					// 			}
+					// 		}
+					// 	}
+					// }
 				]
 			}
 		};

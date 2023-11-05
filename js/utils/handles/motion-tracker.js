@@ -34,7 +34,7 @@ KarmaFieldsAlpha.MotionTracker = class {
 		this.element = element;
 		this.container = element;
 
-		this.scrollContainer = element.closest(".scroll-container");
+		this.scrollContainer = element.closest(".scroll-container,.interface-navigable-region");
 
 		// this.trackMouse();
 
@@ -300,6 +300,8 @@ KarmaFieldsAlpha.MotionTracker = class {
 
 	init() {
 
+		this.constructor.mouseDown = true;
+
 		this.box = this.element.getBoundingClientRect();
 
 		// this.scrollX = 0;
@@ -387,6 +389,8 @@ KarmaFieldsAlpha.MotionTracker = class {
 	}
 
 	complete() {
+
+		this.constructor.mouseDown = false;
 
 		this.swipeRight = (this.maxDX > -this.minDX && this.maxDX > this.maxDY && this.maxDX > -this.minDY && this.diffX > this.maxDX-this.threshold);
 		this.swipeLeft = (this.minDX < -this.maxDX && this.minDX < this.minDY && this.minDX < -this.maxDY && this.diffX < this.minDX+this.threshold);

@@ -2076,7 +2076,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                     class: "editor-header",
                     children: [
                       {
-                        class: "toolbar",
+                        class: "toolbar simple-buttons",
                         child: this.createChild({
                           type: "buttons",
                           // children: ["separator", "edit"],
@@ -2148,10 +2148,10 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
                     class: "editor-header",
                     children: [
                       {
-                        class: "toolbar",
+                        class: "toolbar simple-buttons",
                         update: toolbar => {
                           this.renderToolbar = toolbar.render;
-													toolbar.element.classList.toggle("dark", this.hasFocus());
+													// toolbar.element.classList.toggle("dark", this.hasFocus());
                         },
                         child: this.createChild({
                           type: "buttons",

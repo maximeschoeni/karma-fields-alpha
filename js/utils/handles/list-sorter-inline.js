@@ -13,23 +13,25 @@ KarmaFieldsAlpha.ListSorterInline = class extends KarmaFieldsAlpha.ListSorter {
 
   swapBefore (children, translateX, translateY) {
 
-    const pivot = children[this.selection.index - 1];
+    const pivot = children[this.state.selection.index - 1];
 
     if (pivot) {
 
-      const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      const elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
       const selectionBox = this.getElementBox(...elements);
       const pivotBox = pivot && this.getElementBox(pivot);
-      const isAbove = selectionBox.y + selectionBox.height/2 + translateY < pivotBox.y && children.slice(0, this.selection.index).some(element => element.offsetTop < selectionBox.y);
+      const isAbove = selectionBox.y + selectionBox.height/2 + translateY < pivotBox.y && children.slice(0, this.state.selection.index).some(element => element.offsetTop < selectionBox.y);
       const isBefore = selectionBox.x + translateX < pivotBox.x + pivotBox.width/2 && selectionBox.y + selectionBox.height/2 + translateY < pivotBox.y + pivotBox.height;
 
       if (isBefore || isAbove) {
 
         this.insertElements(this.container, elements, pivot);
 
-        this.selection = {
-          index: this.selection.index - 1,
-          length: this.selection.length
+        this.state = {
+          selection: {
+            index: this.state.selection.index - 1,
+            length: this.state.selection.length
+          }
         };
 
         return true;
@@ -42,23 +44,25 @@ KarmaFieldsAlpha.ListSorterInline = class extends KarmaFieldsAlpha.ListSorter {
 
   swapAfter (children, translateX, translateY) {
 
-    const pivot = children[this.selection.index + this.selection.length];
+    const pivot = children[this.state.selection.index + this.state.selection.length];
 
     if (pivot) {
 
-      const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      const elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
       const selectionBox = this.getElementBox(...elements);
       const pivotBox = pivot && this.getElementBox(pivot);
-      const isBelow = selectionBox.y + selectionBox.height/2 + translateY > pivotBox.y + pivotBox.height && children.slice(this.selection.index + this.selection.length).some(element => element.offsetTop > selectionBox.y);
+      const isBelow = selectionBox.y + selectionBox.height/2 + translateY > pivotBox.y + pivotBox.height && children.slice(this.state.selection.index + this.state.selection.length).some(element => element.offsetTop > selectionBox.y);
       const isAfter = selectionBox.x + selectionBox.width + translateX > pivotBox.x + pivotBox.width/2 && selectionBox.y + selectionBox.height/2 + translateY > pivotBox.y;
 
       if (isAfter || isBelow) {
 
         this.insertElements(this.container, elements, pivot.nextElementSibling);
 
-        this.selection = {
-          index: this.selection.index + 1,
-          length: this.selection.length
+        this.state = {
+          selection: {
+            index: this.state.selection.index + 1,
+            length: this.state.selection.length
+          }
         };
 
         return true;

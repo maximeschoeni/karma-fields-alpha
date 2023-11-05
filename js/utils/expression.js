@@ -426,8 +426,15 @@ KarmaFieldsAlpha.Expression = class {
 
     }
 
-    return array.map(value => new this.constructor(this.expression[2], value).parse());
+    const results = array.map(value => new this.constructor(this.expression[2], value).parse());
 
+    if (results.some(result => result === KarmaFieldsAlpha.loading)) {
+
+      return KarmaFieldsAlpha.loading;
+
+    }
+
+    return results;
   }
 
   getItem() {
@@ -442,7 +449,7 @@ KarmaFieldsAlpha.Expression = class {
 
   date() {
 
-    const date = this.create(this.expression[1]).toObject();
+    const dateString = this.create(this.expression[1]).toObject();
     const option = this.expression[2] || {};
     const locale = this.expression[3] || KarmaFieldsAlpha.locale;
 
@@ -452,13 +459,21 @@ KarmaFieldsAlpha.Expression = class {
     //
     // }
 
-    if (typeof date === "symbol") {
+    if (typeof dateString === "symbol") {
 
-      return date;
+      return dateString;
 
     }
 
-    return new Intl.DateTimeFormat(locale, option).format(new Date(date || null));
+    const dateObj = new Date(dateString);
+
+    if (!isNaN(dateObj)) {
+
+      return dateObj.toLocaleDateString(locale, option);
+
+    }
+
+    return "";
 
   }
 
@@ -522,12 +537,6 @@ KarmaFieldsAlpha.Expression = class {
     const id = this.create(this.expression[2]).toString();
     const key = this.create(this.expression[3]).toString();
 
-    // if (driver === KarmaFieldsAlpha.loading || id === KarmaFieldsAlpha.loading || key === KarmaFieldsAlpha.loading) {
-    //
-    //   return KarmaFieldsAlpha.loading;
-    //
-    // }
-
     if (typeof driver === "symbol") {
 
       return driver;
@@ -547,6 +556,42 @@ KarmaFieldsAlpha.Expression = class {
     }
 
     return KarmaFieldsAlpha.Query.getValue(driver, id, key) || KarmaFieldsAlpha.loading;
+
+  }
+
+  queryValues() {
+
+    const driver = this.create(this.expression[1]).toString();
+    const ids = this.create(this.expression[2]).toArray();
+    const key = this.create(this.expression[3]).toString();
+
+    if (typeof driver === "symbol") {
+
+      return driver;
+
+    }
+
+    if (typeof ids === "symbol") {
+
+      return ids;
+
+    }
+
+    if (typeof key === "symbol") {
+
+      return key;
+
+    }
+
+    const values = ids.map(id => KarmaFieldsAlpha.Query.getValue(driver, id, key) || KarmaFieldsAlpha.loading);
+
+    if (values.some(value => value === KarmaFieldsAlpha.loading)) {
+
+      return KarmaFieldsAlpha.loading;
+
+    }
+
+    return values.reduce((accumulator, items) => [...accumulator, ...items], []);
 
   }
 
@@ -636,7 +681,7 @@ KarmaFieldsAlpha.Expression = class {
   }
 
   getIndex() {
-debugger;
+
     return this.field.parent.getIndex();
 
   }
@@ -682,6 +727,57 @@ debugger;
 
   isMixed() {
     return this.create(this.expression[1]).toSingle() === KarmaFieldsAlpha.mixed;
+  }
+
+
+  // object() {
+  //
+  //   const object = {};
+  //
+  //   for (let i = 1; i < this.expression.length; i += 2) {
+  //
+  //     const key = this.create(this.expression[i]).toString();
+  //     const value = this.create(this.expression[i+1]).toString();
+  //
+  //     object[key] = value;
+  //
+  //   }
+  //
+  //   if (Object.keys(object).some(key => key === KarmaFieldsAlpha.loading)) {
+  //
+  //     return KarmaFieldsAlpha.loading;
+  //
+  //   }
+  //
+  //   if (Object.values(object).some(key => key === KarmaFieldsAlpha.loading)) {
+  //
+  //     return KarmaFieldsAlpha.loading;
+  //
+  //   }
+  //
+  //   return object;
+  //
+  // }
+
+
+  object() {
+
+    const object = {};
+
+    for (let key in this.expression[1]) {
+
+      object[key] = this.create(this.expression[1][key]).toString();
+
+    }
+
+    if (Object.values(object).some(key => key === KarmaFieldsAlpha.loading)) {
+
+      return KarmaFieldsAlpha.loading;
+
+    }
+
+    return object;
+
   }
 
 
@@ -785,8 +881,9 @@ debugger;
         return this.field.parent.getIndex();
 
       case "id":
+      case "getId":
       case "getIds":
-        return this.field.getIds();
+        return this.field.getId();
 
       case "modified":
         return this.field.modified();
@@ -806,6 +903,9 @@ debugger;
 
       case "isMixed":
         return this.isMixed();
+
+      case "object":
+        return this.object();
 
 
       case "debugger":

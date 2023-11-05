@@ -1,72 +1,126 @@
+KarmaFieldsAlpha.RowPicker = class extends KarmaFieldsAlpha.ListPicker {
 
+  constructor(container, selection, width, header) {
 
-KarmaFieldsAlpha.RowPicker = class extends KarmaFieldsAlpha.GridController {
+    super(container, selection);
 
-  startSelection(row) {
-
-    this.tie = {index: row, length: 1};
-
-    if (this.selection) { // this.selection should be frozen
-
-      if (this.event.shiftKey) {
-
-        this.tie = this.selection;
-
-      } else {
-
-        this.selection = null;
-
-      }
-
-    }
-
-    this.grow(row);
+    this.header = header || 0;
+    this.width = width || 0;
 
   }
 
-  growSelection(row) {
+  slice(index, length, children = this.getChildren()) {
 
-    if (!this.tie) {
+    const itemIndex = (index+this.header)*this.width;
+    const itemLength = length*this.width;
 
-      return;
+    return children.slice(itemIndex, itemIndex + itemLength);
 
-    }
+  }
 
-    const union = KarmaFieldsAlpha.Segment.union({index: row, length: 1}, this.tie);
+  findIndex(x, y) { // find body index from mouse x/y
 
-    if (!this.selection || !KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
+    const children = this.getChildren();
 
-      if (this.selection) {
+    const rowCount = Math.floor(children.length/this.width);
 
-        if (this.onUnselect) {
+    for (let j = this.header; j < rowCount; j++) {
 
-          const elements = this.sliceRows(this.selection.index, this.selection.length);
+      for (let i = 0; i < this.width; i++) {
 
-          this.onUnselect(this.selection, elements);
+        const element = children[j*this.width + i];
+
+        if (y >= element.offsetTop && y < element.offsetTop + element.clientHeight) {
+
+          if (x >= element.offsetLeft && x < element.offsetLeft + element.clientWidth) {
+
+            return j - this.header;
+
+          }
+
+        } else {
+
+          break;
 
         }
 
       }
 
-      this.selection = union;
-
-      if (this.onSelect) {
-
-        const elements = this.sliceRows(this.selection.index, this.selection.length);
-
-        this.onSelect(this.selection, elements);
-
-      }
-
     }
 
   }
 
-  completeSelection() {
 
-    this.tie = null;
-    this.selecting = false;
-
-  }
 
 }
+
+// KarmaFieldsAlpha.RowPicker = class extends KarmaFieldsAlpha.GridController {
+//
+//   startSelection(row) {
+//
+//     this.tie = {index: row, length: 1};
+//
+//     if (this.selection) { // this.selection should be frozen
+//
+//       if (this.event.shiftKey) {
+//
+//         this.tie = this.selection;
+//
+//       } else {
+//
+//         this.selection = null;
+//
+//       }
+//
+//     }
+//
+//     this.grow(row);
+//
+//   }
+//
+//   growSelection(row) {
+//
+//     if (!this.tie) {
+//
+//       return;
+//
+//     }
+//
+//     const union = KarmaFieldsAlpha.Segment.union({index: row, length: 1}, this.tie);
+//
+//     if (!this.selection || !KarmaFieldsAlpha.Segment.compare(union, this.selection)) {
+//
+//       if (this.selection) {
+//
+//         if (this.onUnselect) {
+//
+//           const elements = this.sliceRows(this.selection.index, this.selection.length);
+//
+//           this.onUnselect(this.selection, elements);
+//
+//         }
+//
+//       }
+//
+//       this.selection = union;
+//
+//       if (this.onSelect) {
+//
+//         const elements = this.sliceRows(this.selection.index, this.selection.length);
+//
+//         this.onSelect(this.selection, elements);
+//
+//       }
+//
+//     }
+//
+//   }
+//
+//   completeSelection() {
+//
+//     this.tie = null;
+//     this.selecting = false;
+//
+//   }
+//
+// }
