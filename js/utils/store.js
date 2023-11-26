@@ -1,441 +1,552 @@
+KarmaFieldsAlpha.store = {};
 
 KarmaFieldsAlpha.Store = class {
 
-	static getObject() {
+  static get(...path) {
 
-		if (!KarmaFieldsAlpha.store && KarmaFieldsAlpha.History.useNative) {
+    return KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.store, ...path);
+  }
 
-			const string = localStorage.getItem(this.storageName);
+  static set(value, ...path) {
 
-			if (string) {
+    KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.store, value, ...path);
 
-				KarmaFieldsAlpha.store = JSON.parse(string);
+  }
 
-			} else {
+  static remove(...path) {
 
-				KarmaFieldsAlpha.store = {};
+    KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.store, ...path);
 
-			}
-
-		}
-
-		return KarmaFieldsAlpha.store;
-	}
-
-	static setObject(object) {
-
-		KarmaFieldsAlpha.store = object;
-
-		if (KarmaFieldsAlpha.History.useNative) {
-
-			const string = JSON.stringify(KarmaFieldsAlpha.store);
-
-			localStorage.setItem(this.storageName, string);
-
-		}
-
-	}
-
-	static get(...path) {
-
-		return KarmaFieldsAlpha.DeepObject.get(this.getObject(), ...path);
-
-	}
-
-	static set(value, ...path) {
-
-		const object = this.getObject();
-
-		KarmaFieldsAlpha.DeepObject.set(object, value, ...path);
-
-		this.setObject(object);
-
-	}
-
-	static remove(...path) {
-
-		const object = this.getObject();
-
-		KarmaFieldsAlpha.DeepObject.remove(object, ...path);
-
-		this.setObject(object);
-	}
+  }
 
 	static assign(value, ...path) {
 
-		const object = this.getObject();
-
-		KarmaFieldsAlpha.DeepObject.assign(object, value, ...path);
-
-		this.setObject(object);
-
-	}
-
-	static merge(value) {
-
-		const object = this.getObject();
-
-		KarmaFieldsAlpha.DeepObject.merge(object, value);
-
-		this.setObject(object);
-
-	}
-
-
-
-
-
-	static getTable() {
-
-    return this.get("table") || "";
+    KarmaFieldsAlpha.DeepObject.assign(KarmaFieldsAlpha.store, value, ...path);
 
   }
 
-  static setTable(value) {
-
-    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "table")) {
-		//
-    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getTable() || "", "last", "table");
-		//
-    // }
-		//
-    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, table || "", "next", "table");
-
-		const current = this.getTable();
-
-		KarmaFieldsAlpha.Backup.add(value || "", current || "", "table");
-
-    // if (value) {
-
-			this.set(value, "table");
-
-		// } else {
-		//
-		// 	this.remove("table");
-		//
-		// }
-
-  }
-
-	static removeTable() {
-
-		const current = this.getTable();
-
-		KarmaFieldsAlpha.Backup.add("", current || "", "table");
-
-    this.remove("table");
-
-  }
-
-
-
-	// static changeNav() {
-	//
-	// 	if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "table")) {
-	//
-  //     KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getTable() || "", "last", "table");
-	//
-  //   }
-	//
-	// 	if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "params", key)) {
-	//
-  //     KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getParam(key), "last", "params", key);
-	//
-  //   }
-	//
-	// 	if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "ids")) {
-	//
-  //     KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getIds() || [], "last", "ids");
-	//
-  //   }
-	//
-	// 	if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "selection", ...path)) {
-	//
-  //     KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getSelection(...path), "last", "selection", ...path);
-	//
-  //   }
-	//
+	// static loadBuffer() {
+  //
+  //   KarmaFieldsAlpha.Store.Buffer.load();
+  //
 	// }
-
-
-
-	static getParam(key) {
-
-    return this.get("params", key) || "";
-
-  }
-
-
-	static setParam(value, key) {
-
-    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "params", key)) {
-		//
-    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getParam(key), "last", "params", key);
-		//
-    // }
-		//
-    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, value || "", "next", "params", key);
-
-		const currentValue = this.getParam(key);
-
-		KarmaFieldsAlpha.Backup.add(value || "", currentValue || "", "params", key);
-
-
-		if (value) {
-
-			this.set(value, "params", key);
-
-		} else {
-
-			this.remove("params", key);
-
-		}
-    // this.set(value || "", "params", key);
-
-  }
-
-
-	static getParams() {
-
-    return this.get("params") || {};
-
-  }
-
-
-	static setParams(value) {
-
-		const currentValue = this.getParams();
-
-		for (let key in {...value, ...currentValue}) {
-
-			KarmaFieldsAlpha.Backup.add(value[key] || "", currentValue[key] || "", "params", key);
-
-		}
-
-		this.set(value, "params");
-
-  }
-
-	static updateParams(value) {
-
-		KarmaFieldsAlpha.Backup.update(value, "params");
-
-		this.set(value, "params");
-
-  }
-
-	static removeParams() {
-
-		const currentValue = this.getParams();
-
-		for (let key in currentValue) {
-
-			KarmaFieldsAlpha.Backup.add("", currentValue[key], "params", key);
-
-		}
-
-		this.remove("params");
-
-  }
-
-	static hasParams() {
-
-    return this.has("params") || {};
-
-  }
-
-
-
-	static getIds() {
-
-    return this.get("ids");
-
-  }
-
-  static setIds(ids) {
-
-    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "ids")) {
-		//
-    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getIds() || [], "last", "ids");
-		//
-    // }
-		//
-    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, ids || [], "next", "ids");
-
-		// const currentIds = this.getIds() || [];
-		//
-		// KarmaFieldsAlpha.History.set(currentIds, "ids");
-
-		const currentIds = this.getIds();
-
-		KarmaFieldsAlpha.Backup.add(ids || [], currentIds || [], "ids");
-
-		if (ids) {
-
-			this.set(ids, "ids");
-
-		} else {
-
-			this.remove("ids");
-
-		}
-
-
-
-  }
-
-  static removeIds() {
-
-		this.setIds();
-
-    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "ids")) {
-		//
-    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getIds() || [], "last", "ids");
-		//
-    // }
-		//
-    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, [], "next", "ids");
-		//
-    // this.remove("ids");
-
-  }
-
-
-	static getSelection(...path) {
-
-    return this.get("selection", ...path);
-
-  }
-
-  static setSelection(selection) {
-
-
-
-    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "selection", ...path)) {
-		//
-    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getSelection(...path), "last", "selection", ...path);
-		//
-    // }
-		//
-    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, value || {}, "next", "selection", ...path);
-
-		Object.freeze(selection);
-
-		const currentSelection = this.getSelection();
-
-		// KarmaFieldsAlpha.History.set(currentSelection, "selection");
-
-		KarmaFieldsAlpha.Backup.add(selection || {}, currentSelection || {}, "selection");
-
-
-		if (selection) {
-
-			this.set(selection, "selection");
-
-		} else {
-
-			this.remove("selection");
-
-		}
-
-  }
-
-	static getTransfers() {
-
-    return this.get("transfers") || [];
-
-  }
-
-  static setTransfers(transfers) {
-
-    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "transfers")) {
-		//
-    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getTransfers(), "last", "transfers");
-		//
-    // }
-		//
-    // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, transfers || [], "next", "transfers");
-
-		const current = this.getTransfers();
-
-		KarmaFieldsAlpha.Backup.add(transfers || [], current || [], "transfers");
-
-		if (transfers && transfers.length) {
-
-			this.set(transfers, "transfers");
-
-		} else {
-
-			this.remove("transfers");
-
-		}
-
-  }
-
-	static getValue(...path) {
-
-    return this.get("delta", ...path) || KarmaFieldsAlpha.Query.getValue(...path);
-
-  }
-
-	// static rememberValue(...path) {
-	//
-  //   if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "delta", ...path)) {
-	//
-  //     KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getValue(...path) || [], "last", "delta", ...path);
-	//
-  //   }
-	//
+  //
+	// static getBuffer(...path) {
+  //
+  //   return KarmaFieldsAlpha.Store.Buffer.get(...path);
+  //
 	// }
-	//
-	// static changeValue(value, ...path) {
-	//
-	// 	KarmaFieldsAlpha.History.change(value || [], this.getValue(...path) || [], "delta", ...path);
-	//
+  //
+	// static async setBuffer(value, ...path) {
+  //
+  //   await KarmaFieldsAlpha.Store.Buffer.set(value, ...path);
+  //
 	// }
-
-  static setValue(value, ...path) {
-
-    // if (!KarmaFieldsAlpha.DeepObject.has(KarmaFieldsAlpha.history, "last", "delta", ...path)) {
-		//
-    //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, this.getValue(...path) || [], "last", "delta", ...path);
-		//
-    // }
-
-		// this.rememberValue(...path);
-		//
-		// KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.history, value || [], "next", "delta", ...path);
-
-		const current = this.getValue(...path) || [];
-
-		KarmaFieldsAlpha.Backup.add(value, current, "delta", ...path);
-
-    this.set(value || [], "delta", ...path);
-
-	}
-
-
-
-	static getFocus() { // boolean: get if focus is on clipboard textarea
-
-    return this.get("focus") || false;
-
-  }
-
-  static setFocus(value) {
-
-		const current = this.getFocus();
-
-		KarmaFieldsAlpha.Backup.add(value || false, current, "focus");
-
-    this.set(value, "focus");
-
-  }
-
-
-
+  //
+	// static async assignBuffer(value, ...path) {
+  //
+  //   await KarmaFieldsAlpha.Store.Buffer.assign(value, ...path);
+  //
+	// }
+  //
+	// static mergeBuffer(value, ...path) {
+  //
+  //   await KarmaFieldsAlpha.Store.Buffer.merge(value, ...path);
+  //
+  // }
+  //
+	// static getState(...path) {
+  //
+  //   return KarmaFieldsAlpha.Store.State.get(...path);
+  //
+	// }
+  //
+	// static async updateState(value, ...path) {
+  //
+  //   await KarmaFieldsAlpha.Store.State.set(value, ...path);
+  //
+	// }
+  //
+	// static getCurrentLayer(...path) {
+  //
+  //   return KarmaFieldsAlpha.Store.Layer.getCurrent(...path);
+  //
+	// }
+  //
+	// static async updateCurrentLayer(value, ...path) {
+  //
+  //   await KarmaFieldsAlpha.Store.Layer.set(value, ...path);
+  //
+	// }
+  //
+	// static getSelection() {
+  //
+  //   return KarmaFieldsAlpha.Store.Layer.getSelection();
+  //
+	// }
+  //
+	// static async setSelection(selection) {
+  //
+  //   await KarmaFieldsAlpha.Store.Layer.setSelection(selection);
+  //
+	// }
+  //
+	// static getTable() {
+  //
+  //   return KarmaFieldsAlpha.Store.Layer.getTable();
+  //
+	// }
+  //
+	// static async setTable(table) {
+  //
+  //   await KarmaFieldsAlpha.Store.Layer.setTable(table);
+  //
+	// }
+  //
+	// static getParam(key) {
+  //
+  //   return KarmaFieldsAlpha.Store.Layer.getParam(key);
+  //
+	// }
+  //
+	// static async setParam(value, key) {
+  //
+  //   await KarmaFieldsAlpha.Store.Layer.setParam(value, key);
+  //
+	// }
+  //
+	// static getItems() {
+  //
+  //   return KarmaFieldsAlpha.Store.Layer.getItems();
+  //
+	// }
+  //
+	// static async setItems(items) {
+  //
+  //   await KarmaFieldsAlpha.Store.Layer.setItems(items);
+  //
+	// }
+  //
+	// static updateOption(data, ...path) {
+  //
+  //   await KarmaFieldsAlpha.Store.State.setOption(data, ...path);
+  //
+	// }
+  //
+  //
+	// static hasChange() {
+  //
+  //   return KarmaFieldsAlpha.Store.Delta.hasChange();
+  //
+	// }
+  //
+	// static modified(...path) {
+  //
+  //   return KarmaFieldsAlpha.Store.Delta.modified();
+  //
+  // }
 
 }
 
-KarmaFieldsAlpha.store = {};
-KarmaFieldsAlpha.Store.storageName = "UF0";
+KarmaFieldsAlpha.Store.Buffer = class {
+
+  static async load() {
+
+		// KarmaFieldsAlpha.tasks.push({
+		// 	resolve: async task => {
+		// 		const buffer = await KarmaFieldsAlpha.Database.Options.get("buffer") || {};
+    //     buffer.loaded = true;
+		// 		this.set(buffer);
+		// 	}
+		// });
+
+    const buffer = await KarmaFieldsAlpha.Database.Options.get("buffer") || {};
+    buffer.loaded = true;
+    await this.set(buffer);
+
+	}
+
+  static isLoaded() {
+
+    return this.get("loaded") || false;
+
+  }
+
+	static get(...path) {
+
+		return KarmaFieldsAlpha.Store.get("buffer", ...path);
+
+	}
+
+	static async set(value, ...path) {
+
+		KarmaFieldsAlpha.Store.set(value, "buffer", ...path);
+
+		await KarmaFieldsAlpha.Database.Options.set(value, "buffer", ...path);
+
+	}
+
+  static async remove(...path) {
+
+		KarmaFieldsAlpha.Store.remove("buffer", ...path);
+
+		await KarmaFieldsAlpha.Database.Options.remove("buffer", ...path);
+
+	}
+
+	static async assign(value, ...path) {
+
+		KarmaFieldsAlpha.Store.assign(value, "buffer", ...path);
+
+		await KarmaFieldsAlpha.Database.Options.assign(value, "buffer", ...path);
+
+	}
+
+	static async merge(value, ...path) {
+
+		const source = this.get(...path);
+
+		KarmaFieldsAlpha.DeepObject.merge(source, value);
+
+		await this.set(source, ...path);
+
+  }
+
+}
+
+KarmaFieldsAlpha.Store.State = class {
+
+  static get(...path) {
+
+    return KarmaFieldsAlpha.Store.Buffer.get("state", ...path);
+
+  }
+
+  static async set(value, ...path) {
+
+    await KarmaFieldsAlpha.History.update(value, ...path);
+
+    await KarmaFieldsAlpha.Store.Buffer.set(value, "state", ...path);
+
+  }
+
+  static async remove(...path) {
+
+    await KarmaFieldsAlpha.History.update(null, ...path);
+
+    await KarmaFieldsAlpha.Store.Buffer.remove("state", ...path);
+
+  }
+
+
+  static async merge(value, ...path) {
+
+    const source = this.get(...path);
+
+    KarmaFieldsAlpha.DeepObject.merge(source, value);
+
+    await this.set(source, ...path);
+
+  }
+
+  static getOption(...path) {
+
+		this.get("options", ...path);
+
+	}
+
+  static async setOption(data, ...path) {
+
+		await this.set(data, "options", ...path);
+
+	}
+
+}
+
+KarmaFieldsAlpha.Store.Delta = class {
+
+  static get(...path) {
+
+    return KarmaFieldsAlpha.Store.State.get("delta", ...path);
+
+  }
+
+  static async set(value, ...path) {
+
+    KarmaFieldsAlpha.Store.State.set(value, "delta", ...path);
+
+  }
+
+  static async remove(...path) {
+
+    KarmaFieldsAlpha.Store.State.set("delta", ...path);
+
+  }
+
+  static hasChange() {
+
+		const delta = this.get();
+
+		if (delta) {
+
+			const vars = KarmaFieldsAlpha.Store.get("vars") || {};
+
+			return !KarmaFieldsAlpha.DeepObject.include(vars, delta);
+
+		}
+
+		return false;
+	}
+
+	static modified(...path) {
+
+    const delta = this.get(...path);
+
+    if (delta) {
+
+			const value = KarmaFieldsAlpha.Store.get("vars", ...path);
+
+			return KarmaFieldsAlpha.DeepObject.differ(value, delta);
+
+    }
+
+    return false;
+  }
+
+}
+
+KarmaFieldsAlpha.Store.Layer = class {
+
+  static get(index, ...path) {
+
+    return KarmaFieldsAlpha.Store.State.get("layers", index, ...path);
+
+  }
+
+  static set(layer, index, ...path) {
+
+    return KarmaFieldsAlpha.Store.State.set(layer, "layers", index, ...path);
+
+  }
+
+  static remove(index, ...path) {
+
+    return KarmaFieldsAlpha.Store.State.remove("layers", index, ...path);
+
+  }
+
+  static getIndex() {
+
+    return KarmaFieldsAlpha.Store.State.get("layerIndex") || 0;
+
+  }
+
+  static async setIndex(index) {
+
+    await KarmaFieldsAlpha.Store.State.set(index, "layerIndex");
+
+  }
+
+  static getCurrent(...path) {
+
+    const index = this.getIndex();
+
+    return this.get(index, ...path);
+
+  }
+
+  static async setCurrent(value, ...path) {
+
+    const index = this.getIndex();
+
+    await this.set(value, index, ...path);
+
+  }
+
+  static async removeCurrent(...path) {
+
+    const index = this.getIndex();
+
+    await this.remove(index, ...path);
+
+  }
+
+  static getSelection() {
+
+		return this.getCurrent("selection");
+
+	}
+
+	static async setSelection(selection) {
+
+		await this.setCurrent(selection, "selection");
+
+	}
+
+  static async removeSelection() {
+
+		await this.removeCurrent("selection");
+
+	}
+
+	static getTable() {
+
+		return this.getCurrent("table");
+
+	}
+
+	static async setTable(table) {
+
+		await this.setCurrent(table, "table");
+
+	}
+
+	static getParam(key) {
+
+		return this.getCurrent("params", key);
+
+	}
+
+	static async setParam(value, key) {
+
+		await this.setCurrent(value, "params", key);
+
+	}
+
+  static async removeParam(key) {
+
+		await this.removeCurrent("params", key);
+
+	}
+
+  static getParams() {
+
+		return this.getCurrent("params");
+
+	}
+
+	static async setParams(value) {
+
+		await this.setCurrent(value, "params");
+
+	}
+
+	static getItems() {
+
+		return this.getCurrent("items");
+
+	}
+
+	static async setItems(items) {
+
+		await this.setCurrent(items, "items");
+
+	}
+
+  static async removeItems() {
+
+		await this.removeCurrent("items");
+
+	}
+
+}
+
+KarmaFieldsAlpha.Store.Embeds = class {
+
+  get() {
+
+    return KarmaFieldsAlpha.Store.get("embeds") || [];
+
+  }
+
+  add(resource) {
+
+    const embeds = this.get();
+
+    embeds.push(resource);
+
+  }
+
+}
+
+KarmaFieldsAlpha.Store.Focus = class {
+
+  get() {
+
+    return KarmaFieldsAlpha.Store.Layer.get("focus");
+
+  }
+
+  set(focus) {
+
+    KarmaFieldsAlpha.Store.Layer.set(focus, "focus");
+
+  }
+
+  remove() {
+
+    KarmaFieldsAlpha.Store.Layer.remove(focus);
+
+  }
+
+  has(path) {
+
+    const focus = this.get();
+
+    return Boolean(focus && focus.length === path.length && path.every((id, index) => id === focus[index]));
+
+  }
+
+}
+
+KarmaFieldsAlpha.Store.Clipboard = class {
+
+  get() {
+
+    return KarmaFieldsAlpha.Store.State.get("clipboard");
+
+  }
+
+  set(value) {
+
+    KarmaFieldsAlpha.Store.Layer.set(value, "clipboard");
+
+  }
+
+}
+
+KarmaFieldsAlpha.Store.Tasks = class {
+
+  static get() {
+
+    return KarmaFieldsAlpha.Store.get("tasks");
+
+  }
+
+  static set(tasks) {
+
+    KarmaFieldsAlpha.Store.set(tasks, "tasks");
+
+  }
+
+  static add(task) {
+
+    const tasks = this.get() || [];
+
+    this.set([...tasks, task]);
+
+  }
+
+  static find(callback) {
+
+    const tasks = this.get();
+
+    if (tasks) {
+
+      return tasks.find(callback);
+
+    }
+
+  }
+
+}

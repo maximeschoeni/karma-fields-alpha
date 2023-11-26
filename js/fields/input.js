@@ -2,19 +2,51 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	getDefault() {
 
-		if (this.resource.default !== null) {
+		if (this.resource.default === null) {
 
-			if (this.resource.default) {
+			return null;
 
-				return this.parse(this.resource.default);
+		} else if (this.resource.default) {
 
-			}
-
-			return "";
+			return this.parse(this.resource.default);
 
 		}
 
+		return new KarmaFieldsAlpha.Content("");
+
 	}
+
+	// isDisabled() {
+	//
+	// 	if (this.resource.disabled) {
+	//
+	// 		return KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));
+	//
+	// 	}
+	//
+	// 	if (this.resource.enabled) {
+	//
+	// 		return !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
+	//
+	// 	}
+	//
+	// 	return false;
+	// }
+
+	isDisabled() {
+
+    if (this.resource.disabled) {
+
+      return this.parent.parse(this.resource.disabled).toBoolean();
+
+    } else if (this.resource.enabled) {
+
+      return !this.parent.parse(this.resource.enabled).toBoolean();
+
+    }
+
+    return false;
+  }
 
 	/** MOVED IN FIELD
 	 * Get single value.
@@ -91,21 +123,21 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		this.debounceTimer = setTimeout(() => void callback(), duration);
 	}
 
-	saveChange(newValue, currentValue) {
-
-		const label = this.getLabel() || this.resource.type;
-
-		if (newValue.length < currentValue.length) {
-
-			this.save(`${this.resource.uid}-delete`, `Delete into ${label}`);
-
-		} else {
-
-			this.save(`${this.resource.uid}-input`, `Insert into ${label}`);
-
-		}
-
-	}
+	// saveChange(newValue, currentValue) {
+	//
+	// 	const label = this.getLabel() || this.resource.type;
+	//
+	// 	if (newValue.length < currentValue.length) {
+	//
+	// 		this.save(`${this.resource.uid}-delete`, `Delete into ${label}`);
+	//
+	// 	} else {
+	//
+	// 		this.save(`${this.resource.uid}-input`, `Insert into ${label}`);
+	//
+	// 	}
+	//
+	// }
 
 
 	// getDefault(defaults = {}) {
@@ -184,28 +216,60 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	copy() {
 
-		let values = this.getValue();
+		let content = this.getContent();
 
-		if (!values || values === KarmaFieldsAlpha.loading) {
+		// if (content.loading) {
+		//
+		// 	return "[loading]";
+		//
+		// }
 
-			return "[loading]";
+		if (content.mixed) {
+
+			content = new KarmaFieldsAlpha.Content.Grid(content);
+
+			// values = this.getMixedValues();
+			//
+			// const grid = new KarmaFieldsAlpha.Grid();
+			//
+			// grid.addColumn(values);
+			//
+			// return grid.toString();
 
 		}
 
-		if (values === KarmaFieldsAlpha.mixed || values[0] === KarmaFieldsAlpha.mixed) { // compat
+		// else {
+		//
+		// 	return KarmaFieldsAlpha.Type.toString(response.value);
+		//
+		// }
 
-			values = this.getMixedValues();
+		return content.toString();
 
-		}
 
-		const grid = new KarmaFieldsAlpha.Grid();
 
-		grid.addColumn(values);
-
-		return grid.toString();
+		// let values = this.getValue();
+		//
+		// if (!values || values === KarmaFieldsAlpha.loading) {
+		//
+		// 	return "[loading]";
+		//
+		// }
+		//
+		// if (values === KarmaFieldsAlpha.mixed || values[0] === KarmaFieldsAlpha.mixed) { // compat
+		//
+		// 	values = this.getMixedValues();
+		//
+		// }
+		//
+		// const grid = new KarmaFieldsAlpha.Grid();
+		//
+		// grid.addColumn(values);
+		//
+		// return grid.toString();
 	}
 
-	paste(string) {
+	async paste(string) {
 
 		// if (!string || typeof string !== "string") {
 		//
@@ -217,93 +281,133 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		//
 		// const [value] = grid.getRow(0);
 
-		this.setValue(string);
+		const content = new KarmaFieldsAlpha.Content(string);
+		await KarmaFieldsAlpha.History.save("paste", "Paste");
+		await this.setContent(content);
+		await this.request("render");
 
 	}
 
-	export(items = []) {
+	async delete() {
 
-		// const value = this.getValue();
+		// if (!string || typeof string !== "string") {
 		//
-		// if (value !== KarmaFieldsAlpha.field.input.loading) {
-		//
-		// 	items.push(value);
+		// 	console.error("paste value must be a string");
 		//
 		// }
 		//
-    // return items;
+		// const grid = new KarmaFieldsAlpha.Grid(string);
+		//
+		// const [value] = grid.getRow(0);
 
-		// const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
-		//
-		// if (value === KarmaFieldsAlpha.mixed) {
-		//
-		// 	const values = this.getMixedValues();
-		//
-		// 	const grid = new KarmaFieldsAlpha.Grid();
-		//
-		// 	grid.addRow(values.map(value => [value]));
-		//
-		// 	items.push(grid.toString());
-		//
-		// } else if (value !== KarmaFieldsAlpha.loading) {
-		//
-		// 	items.push(value);
-		//
-		// }
-		//
-    // return items;
-
-
-    const value = this.getSingleValue() || "";
-
-    items.push(value.toString());
+		const content = new KarmaFieldsAlpha.Content("");
+		await KarmaFieldsAlpha.History.save("delete", "Delete");
+		await this.setContent(content);
+		await this.request("render");
 
 	}
 
-  import(items) {
+	getContent() {
 
-		// const value = items.shift() || "";
-		// const currentValue = this.getValue();
-		//
-		// if (currentValue === KarmaFieldsAlpha.field.input.multiple) {
-		//
-		// 	const grid = new KarmaFieldsAlpha.Grid(value); // warning -> text with line breaks will split in multiple values !
-		//
-		// 	const array = grid.getColumn(0);
-		//
-		// 	this.setValue(array);
-		//
-		// } else if (currentValue !== KarmaFieldsAlpha.field.input.loading) {
-		//
-		// 	this.setValue(value);
-		//
-		// }
+		const key = this.getKey();
+
+		return this.parent.getContent(key);
+
+	}
+
+	async setContent(content) {
+
+		const key = this.getKey();
+
+		await this.parent.setContent(content, key);
+
+	}
 
 
-		const value = items.shift() || "";
-		this.setValue(value);
+	export() { // -> return array of string
+
+    const content = this.getContent();
+
+		content.value = content.toArray().slice(0, 1);
+
+		return content;
 
   }
+
+	async import(collection) {
+
+    const string = collection.value.shift();
+
+		const content = new KarmaFieldsAlpha.Content(string);
+
+		await this.setContent(content);
+  }
+
+
+
+	// export(collection) {
+	//
+  //   const content = this.getContent();
+	//
+	// 	// if (content.loading) {
+	// 	//
+	// 	// 	return "[loading]";
+	// 	//
+	// 	// }
+	// 	//
+	// 	// const value = KarmaFieldsAlpha.Type.toString(response.value);
+	//
+  //   collection.add(content);
+	//
+	// }
+
+  // import(collection) {
+	//
+	// 	// const value = items.shift() || "";
+	// 	// const currentValue = this.getValue();
+	// 	//
+	// 	// if (currentValue === KarmaFieldsAlpha.field.input.multiple) {
+	// 	//
+	// 	// 	const grid = new KarmaFieldsAlpha.Grid(value); // warning -> text with line breaks will split in multiple values !
+	// 	//
+	// 	// 	const array = grid.getColumn(0);
+	// 	//
+	// 	// 	this.setValue(array);
+	// 	//
+	// 	// } else if (currentValue !== KarmaFieldsAlpha.field.input.loading) {
+	// 	//
+	// 	// 	this.setValue(value);
+	// 	//
+	// 	// }
+	//
+	//
+	// 	const content = collection.pick();
+	//
+	// 	this.setContent(content);
+	//
+  // }
 
 	getPlaceholder() {
 
 		if (this.resource.placeholder) {
 
-			const placeholder = this.parse(this.resource.placeholder);
+			return this.parse(this.resource.placeholder).toString();
 
-			if (placeholder === KarmaFieldsAlpha.loading) {
-
-				return "...";
-
-			}
-
-			if (placeholder === KarmaFieldsAlpha.mixed) {
-
-				return "[mixed]";
-
-			}
-
-			return placeholder;
+			// const placeholder = this.parse(this.resource.placeholder);
+			//
+			// if (placeholder === KarmaFieldsAlpha.loading) {
+			//
+			// 	return "...";
+			//
+			// }
+			//
+			// if (placeholder === KarmaFieldsAlpha.mixed) {
+			//
+			// 	return "[mixed]";
+			//
+			// }
+			//
+			// return placeholder;
 
 		}
 
@@ -314,19 +418,19 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 	/**
 	 * Remove value (-> mixed)
 	 */
-	remove() {
-
-		this.setValue("");
-		this.render();
-		this.save("delete");
-
-	}
-
-	delete() {
-
-		this.remove();
-
-	}
+	// remove() {
+	//
+	// 	this.setValue("");
+	// 	this.render();
+	// 	this.save("delete");
+	//
+	// }
+	//
+	// delete() {
+	//
+	// 	this.remove();
+	//
+	// }
 
 // 	build() {
 // 		return {
@@ -488,6 +592,54 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 // 		};
 // 	}
 
+	isReadonly() {
+
+		if (this.resource.readonly) {
+
+			return KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.readonly));
+
+		}
+
+		return false;
+	}
+
+	async save(deleting = false) {
+
+		if (deleting) {
+
+			await KarmaFieldsAlpha.History.save(`${this.uid}-delete`, "Delete");
+
+		} else {
+
+			await KarmaFieldsAlpha.History.save(`${this.uid}-insert`, "Insert");
+
+		}
+	}
+
+	async write(newValue, currentValue) {
+
+		console.error("deprecated");
+
+		if (newValue.length < currentValue.length) {
+
+			await KarmaFieldsAlpha.History.save(`${this.uid}-delete`, "Delete");
+
+		} else {
+
+			await KarmaFieldsAlpha.History.save(`${this.uid}-insert`, "Insert");
+
+		}
+
+		const content = new KarmaFieldsAlpha.Content(newValue);
+
+		await this.setContent(content);
+
+		await this.request("render");
+
+	}
+
+
+
 	build() {
 		return {
 			tag: "input", // tag: this.resource.type   ! -> Fail when extending class!
@@ -497,78 +649,86 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 				// 	input.element.type = "text"; // ! -> Fail when extending class!
 				// }
 				input.element.type = "text";
-				input.element.id = this.getUid();
+				// input.element.id = this.getUid();
 				if (this.resource.input) {
 					Object.assign(input.element, this.resource.input);
 				}
 			},
-			update: input => {
+			update: async input => {
 
-        let value = this.getSingleValue();
+        const content = this.getContent();
 
-        input.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
+        input.element.classList.toggle("loading", Boolean(content.loading));
 
-        if (value !== KarmaFieldsAlpha.loading) {
+        if (!content.loading) {
 
-					if (value === undefined) {
+					if (content.notFound) {
 
-						this.initValue();
-						value = "";
+						const defaultContent = this.getDefault();
 
-					}
+						input.element.value = defaultContent.toString();
 
-					const multiple = value === KarmaFieldsAlpha.mixed;
+						if (defaultContent.value !== null) {
 
-					input.element.placeholder = this.getPlaceholder();
+							// this.updateValue(defaultValue);
 
-					input.element.classList.toggle("mixed", value === KarmaFieldsAlpha.mixed);
-					input.element.classList.toggle("selected", Boolean(value === KarmaFieldsAlpha.mixed && this.getSelection()));
+							// const inputRequest = new KaramFieldsAlpha.Input(defaultValue);
+							// inputRequest.needRecord = false;
+							// inputRequest.needRender = false;
+
+							// debugger;
 
 
-          if (value === KarmaFieldsAlpha.mixed) {
+							await this.setContent(defaultContent);
+							// this.request("render");
 
-            input.element.value = "[mixed values]";
-            input.element.readOnly = true;
+							KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
 
-          } else {
+						}
 
-            input.element.readOnly = Boolean(this.resource.readonly && this.parse(this.resource.readonly));
+					} else {
 
-            const modified = this.modified();
+						input.element.placeholder = this.getPlaceholder();
+						input.element.classList.toggle("mixed", Boolean(content.mixed));
+						// input.element.classList.toggle("selected", Boolean(content.mixed && this.selection));
+						input.element.classList.toggle("selected", Boolean(content.mixed && this.hasFocus()));
 
-            input.element.parentNode.classList.toggle("modified", Boolean(modified));
 
-						// if (value === undefined) {
 						//
-						// 	value = this.getDefault();
+						// this.unfocus = () => {
+						// 	input.element.classList.remove("selected");
+						// }
+
+						// if (content.mixed && KarmaFieldsAlpha.Store.Focus.has(this.path)) {
 						//
-						// 	if (value !== undefined) {
+						// 	input.element.classList.add("selected");
 						//
-						// 		this.setValue(value);
+						// 	this.unfocus = () => void input.element.classList.remove("selected");
 						//
-						// 	} else {
+						// } else {
 						//
-						// 		value = "";
-						//
-						// 	}
+						// 	input.element.classList.remove("selected");
 						//
 						// }
 
-            if (value !== input.element.value.normalize()) { // -> replacing same value will ruin selection !
 
-              input.element.value = value || "";
 
-            }
+	          if (content.mixed) {
 
-          }
+	            input.element.value = "[mixed values]";
+	            input.element.readOnly = true;
 
-					if (this.resource.type === "input") {
+	          } else {
 
-						input.element.onkeyup = async event => {
+	            input.element.readOnly = this.isReadonly();
+	            input.element.parentNode.classList.toggle("modified", Boolean(content.modified));
 
-	            if (event.key === "Enter" && value !== KarmaFieldsAlpha.mixed) {
+							const value = content.toString();
 
-	              this.parent.request("submit");
+
+	            if (input.element.value.normalize() !== value) { // -> replacing same value will ruin selection !
+
+	              input.element.value = value || "";
 
 	            }
 
@@ -576,67 +736,67 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					}
 
-          input.element.oninput = event => {
+					// -> NOT TEXTAREA
+					input.element.onkeyup = async event => {
 
-						// const newValue = input.element.value.normalize();
-						//
-						// this.setValue(newValue);
-						//
-						// this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
+						if (event.key === "Enter" && !content.mixed) {
 
-
-
-						// this.debounce(() => {
-						//
-						// 	const newValue = input.element.value.normalize();
-						//
-						// 	this.setValue(newValue);
-						// 	this.render();
-						//
-						// 	this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
-						//
-						// 	value = newValue;
-						//
-						// }, 300);
-
-						const newValue = input.element.value.normalize();
-
-						this.setValue(newValue);
-
-						// this.save(`${this.resource.uid}-${newValue.length < value.length ? "delete" : "input"}`);
-						this.saveChange(newValue, value);
-
-						value = newValue;
-
-						if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
-
-							this.debounce(() => void this.render(), 300);
-
-						} else {
-
-							this.render()
+							this.request("submit");
 
 						}
-
-          }
-
-					input.element.onblur = event => {
 
 					}
 
-					input.element.onfocus = event => {
+					let value = content.toString();
 
-						this.setSelection({});
+          input.element.oninput = async event => {
 
-						if (value === KarmaFieldsAlpha.mixed) {
 
-							this.deferFocus();
+						// console.time();
 
-							// KarmaFieldsAlpha.Clipboard.focus();
+						const newValue = input.element.value.normalize();
+
+						await this.save(newValue.length < value.length);
+
+						const content = new KarmaFieldsAlpha.Content(newValue);
+
+						await this.setContent(content);
+
+						if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
+
+							this.debounce(() => void this.request("render"), this.resource.debounce || 300);
+
+						} else {
+
+							await this.request("render");
 
 						}
 
-						this.render(); // update clipboard textarea, unselect other stuffs
+						// console.timeEnd();
+
+						// const debounceTimeout = (event.inputType === "insertText" || event.inputType === "deleteContentBackward") && (this.resource.debounce || 400) || 0;
+						//
+						// this.debounce(() => {
+						//
+						// 	this.request("render");
+						//
+						// }, debounceTimeout);
+
+          }
+
+					input.element.onfocus = async event => {
+
+						// this.request("focus", false, this.path);
+
+						// this.setSelection({});
+
+						// const useClipboard = Boolean(content.mixed);
+
+						await this.setFocus(content.mixed);
+
+						// this.useClipboard(content.mixed);
+
+						await this.request("render"); // update clipboard textarea, unselect other stuffs
 
 					}
 
@@ -652,7 +812,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 							event.preventDefault(); // -> prevent sending form if embeded in a post page
 
-              this.parent.request("submit"); // -> Save
+              this.request("submit"); // -> Save
 
             }
 
@@ -662,25 +822,17 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
         } else {
 
-					input.element.value = ""; // -> ?
+					input.element.value = ""; // set blank while loading
 
 				}
 
-				if (this.getSelection() && input.element !== document.activeElement && value !== KarmaFieldsAlpha.mixed) {
+				// if (this.getSelection() && input.element !== document.activeElement && value !== KarmaFieldsAlpha.mixed) {
+				//
+				// 	input.element.focus();
+				//
+				// }
 
-					input.element.focus();
-
-				}
-
-
-
-				if (this.resource.disabled) {
-					input.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));
-				}
-
-				if (this.resource.enabled) {
-					input.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
-				}
+				input.element.disabled = this.isDisabled();
 
 			}
 		};

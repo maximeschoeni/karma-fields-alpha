@@ -24,12 +24,20 @@
 			// uid: index.toString()
 		});
 
+		field.uid = "saucer";
+		field.id = "saucer";
+
 		KarmaFieldsAlpha.embeds.push({
 			...resource,
 			index: "board",
 			type: "board"
-			// uid: index.toString()
 		});
+
+		// KarmaFieldsAlpha.Store.set({
+		// 	...resource,
+		// 	index: "board",
+		// 	type: "board"
+		// }, "embeds", index);
 
 
 

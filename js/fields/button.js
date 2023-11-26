@@ -6,18 +6,18 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 
 		if (this.resource.disabled) {
 // if (this.resource.text === "Remove") debugger;
-			const disabled = this.parse(this.resource.disabled);
+			return this.parse(this.resource.disabled).toBoolean();
 
 			// return (disabled !== KarmaFieldsAlpha.loading && KarmaFieldsAlpha.Type.toBoolean(disabled));
-			return (disabled === KarmaFieldsAlpha.loading || KarmaFieldsAlpha.Type.toBoolean(disabled));
+			// return (disabled === KarmaFieldsAlpha.loading || KarmaFieldsAlpha.Type.toBoolean(disabled));
 
-		}
+		} else if (this.resource.enabled) {
 
-		if (this.resource.enabled) {
+			return !this.parse(this.resource.enabled).toBoolean();
 
-			const enabled = this.parse(this.resource.enabled);
-
-			return (enabled === KarmaFieldsAlpha.loading || !KarmaFieldsAlpha.Type.toBoolean(enabled));
+			// const enabled = this.parse(this.resource.enabled);
+			//
+			// return (enabled === KarmaFieldsAlpha.loading || !KarmaFieldsAlpha.Type.toBoolean(enabled));
 
 		}
 
@@ -29,9 +29,9 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 
 		if (this.resource.active) {
 
-			const active = this.parse(this.resource.active);
+			return this.parse(this.resource.active).toBoolean();
 
-			return active !== KarmaFieldsAlpha.loading && KarmaFieldsAlpha.Type.toBoolean(active);
+			// return active !== KarmaFieldsAlpha.loading && KarmaFieldsAlpha.Type.toBoolean(active);
 		}
 
 		return false;
@@ -46,7 +46,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 			// return loading !== KarmaFieldsAlpha.loading && KarmaFieldsAlpha.Type.toBoolean(loading);
 
 
-			return this.parse(this.resource.loading) === KarmaFieldsAlpha.loading;
+			return Boolean(this.parse(this.resource.loading).loading);
 
 		}
 
@@ -55,27 +55,48 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 
 	click() {
 
-		if (this.resource.command) {
 
-			this.parent.execute(this.resource.command, this.resource.value);
 
-		// } else if (this.resource.download) {
-		//
-		// 	this.startDownload();
+		if (this.resource.request) {
 
-		} else if (this.resource.values) {
+			this.parent.request(...this.resource.request);
 
-			this.parent.request(this.resource.action, ...this.resource.values);
+		} else if (this.resource.action) {
 
-		} else if (this.resource.value) {
+			// compat
+			if (this.resource.value) {
 
-			this.parent.request(this.resource.action, this.resource.value);
+				this.resource.values = [this.resource.value];
 
-		} else {
+			}
 
-			this.parent.request(this.resource.action);
+			const values = this.resource.values || [];
+
+			this.parent.request(this.resource.action, ...values);
 
 		}
+
+		// if (this.resource.command) {
+		//
+		// 	this.parent.request(this.resource.command, this.resource.value);
+		//
+		// // } else if (this.resource.download) {
+		// //
+		// // 	this.startDownload();
+		//
+		// } else if (this.resource.values) {
+		//
+		// 	this.parent.request(this.resource.action, ...this.resource.values);
+		//
+		// } else if (this.resource.value) {
+		//
+		// 	this.parent.request(this.resource.action, this.resource.value);
+		//
+		// } else {
+		//
+		// 	this.parent.request(this.resource.action);
+		//
+		// }
 
 	}
 
@@ -198,7 +219,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 					update: span => {
 						span.element.classList.toggle("hidden", !this.resource.dashicon);
 						if (this.resource.dashicon) {
-							span.element.className = "dashicons dashicons-"+this.parse(this.resource.dashicon);
+							span.element.className = "dashicons dashicons-"+this.parse(this.resource.dashicon).toString();
 						}
 					}
 				},
@@ -208,7 +229,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 						span.element.classList.toggle("hidden", !this.resource.text);
 						if (this.resource.text) {
 							span.element.className = "text";
-							span.element.textContent = this.parse(this.resource.text);
+							span.element.textContent = this.parse(this.resource.text).toString();
 						}
 					}
 				},
@@ -216,8 +237,12 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 			update: async button => {
 
 				if (this.resource.primary) {
-					button.element.classList.add("primary");
+
+					button.element.classList.toggle("primary", this.parse(this.resource.primary).toBoolean());
+
 				}
+
+
 
 				button.element.onmousedown = event => {
 					event.preventDefault(); // -> keep focus to current active element
@@ -294,9 +319,7 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 	getFilename() {
 
-		const filename = this.parse(this.resource.filename || "export.csv");
-
-		return KarmaFieldsAlpha.Type.toString(filename);
+		return this.parse(this.resource.filename || "export.csv").toString();
 
 	}
 
@@ -304,17 +327,26 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 	click() {
 
-		if (!KarmaFieldsAlpha.currentExport) {
+		const currentExport = KarmaFieldsAlpha.Store.get("currentExport");
 
-			const params = KarmaFieldsAlpha.Store.getParams();
+		if (!currentExport) {
 
-			KarmaFieldsAlpha.currentExport = {
+			const params = KarmaFieldsAlpha.Store.Layer.getParams();
+
+			// KarmaFieldsAlpha.currentExport = {
+			// 	page: 1,
+			// 	params: params,
+			// 	// string: "",
+			// 	rows: [],
+			// 	// grid: new KarmaFieldsAlpha.Grid()
+			// };
+
+			KarmaFieldsAlpha.Store.set({
 				page: 1,
 				params: params,
-				// string: "",
 				rows: [],
-				// grid: new KarmaFieldsAlpha.Grid()
-			};
+				grid: new KarmaFieldsAlpha.GridContent()
+			}, "currentExport");
 
 			this.render();
 
@@ -326,49 +358,65 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 		const ppp = this.resource.ppp || 1000;
 
-		const object = KarmaFieldsAlpha.currentExport;
+		const object = KarmaFieldsAlpha.Store.get("currentExport");
 
 		if (object) {
 
-			const saucer = this.getRoot();
-			const table = saucer.getGrid();
-			const count = table.getCount();
+			// const saucer = this.getRoot();
+			// const table = saucer.getGrid();
+			// const count = table.getCount();
 
-			if (count !== undefined && count !== KarmaFieldsAlpha.loading) {
+
+			const table = this.request("getGrid");
+
+			// const driver = this.request("getDriver");
+			const countContent = this.request("count");
+
+			if (!countContent.loading) {
+
+				const count = countContent.toNumber();
 
 				object.total = Math.ceil(count/ppp);
 
-				while (object.rows.length < count) {
+				while (object.grid.value.length < count) {
 
 					const params = {...object.params, page: object.page, ppp: ppp};
 					const ids = KarmaFieldsAlpha.Query.getIds(table.resource.driver, params);
 
-					if (!ids || ids === KarmaFieldsAlpha.loading) {
+					if (!ids) {
 
 						break;
 
 					}
 
-					const rows = table.exportData(ids);
+					// const rows = table.exportData(ids);
 
-					if (!rows || rows === KarmaFieldsAlpha.loading) {
+					const gridContent = new KarmaFieldsAlpha.Content.Grid();
+
+					table.exportData(gridContent, ids);
+
+					if (gridContent.loading) {
 
 						break;
 
 					}
 
-					object.rows = [...object.rows, ...rows];
+					// object.rows = [...object.rows, ...gridContent.toArray()];
+					object.grid.value = [...object.grid.value, ...gridContent.value];
 					object.page++;
 
 				}
 
-				if (object.rows.length >= count) {
+				if (object.grid.value.length >= count) {
 
-					const grid = new KarmaFieldsAlpha.Grid();
 
-					grid.addRow(...object.rows);
+					// const grid = new KarmaFieldsAlpha.Grid();
+					//
+					// grid.addRow(...object.rows);
+					//
+					// const csv = grid.toString();
 
-					const csv = grid.toString();
+					const csv = object.grid.toString();
 					const filename = this.getFilename();
 
 					const element = document.createElement('a');
@@ -381,13 +429,17 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 					document.body.removeChild(element);
 
-					delete KarmaFieldsAlpha.currentExport;
+					// delete KarmaFieldsAlpha.currentExport;
+
+					KarmaFieldsAlpha.Store.remove("currentExport");
 
 					return false;
 
 				}
 
 			}
+
+			// KarmaFieldsAlpha.Store.set(object, "currentExport");
 
 			return true;
 		}
@@ -405,7 +457,7 @@ KarmaFieldsAlpha.field.submit = class extends KarmaFieldsAlpha.field.button {
 			primary: true,
 			title: "Submit",
 			action: "submit",
-			disabled: ["!", ["modified"]],
+			disabled: ["!", ["hasChange"]],
 			...resource
 		});
 

@@ -5,6 +5,23 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 	// static state = false;
 	// static selected = [];
 
+
+	getContent() {
+
+		const key = this.getKey();
+
+		this.parent.getContent(key);
+
+	}
+
+	async setContent(content) {
+
+		const key = this.getKey();
+
+		await this.parent.setContent(content, key);
+
+	}
+
 	true() {
 		return this.resource.true || "1";
 	}
@@ -15,15 +32,8 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
 	getDefault() {
 
-		let value = this.resource.default || "";
+		return this.parse(this.resource.default);
 
-		if (value) {
-
-			value = this.parse(defaultValue);
-
-		}
-
-		return value;
 	}
 
 	initValue() {
@@ -40,18 +50,19 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 		return value || "";
 	}
 
-	export(items = []) {
+	export(collection) {
 
-	  const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+	  const content = this.getContent();
 
-	  items.push(value.toString());
+	  collection.add(content);
 
 	}
 
-	import(items) {
+	import(collection) {
 
-		const value = items.shift() || "";
-		this.setValue(value);
+		const content = collection.pick();
+
+		this.setContent(content);
 
   }
 
@@ -351,6 +362,21 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 //
 // }
 
+	isDisabled() {
+
+		if (this.resource.disabled) {
+
+			return this.parent.parse(this.resource.disabled).toBoolean();
+
+		} else if (this.resource.enabled) {
+
+			return !this.parent.parse(this.resource.enabled).toBoolean();
+
+		}
+
+		return false;
+	}
+
 	build() {
 
 		return {
@@ -368,16 +394,16 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 						init: checkbox => {
 							checkbox.element.type = "checkbox";
 							// const id = this.getId();
-							checkbox.element.id = this.getUid();
+							checkbox.element.id = this.uid();
 						},
 						update: async checkbox => {
 
-							let [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+							let content = this.getContent();
 
-							if (value !== KarmaFieldsAlpha.loading) {
+							if (!content.loading) {
 
 								// -> set default
-								if (value === undefined) {
+								if (content.notFound) {
 
 									// const defaultValue = this.getDefault();
 									//
@@ -387,43 +413,44 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 									//
 									// }
 
-									value = this.initValue();
+									content = this.getDefault();
 
-								}
+									if (!content.loading) {
 
-								checkbox.element.classList.toggle("mixed", value === KarmaFieldsAlpha.mixed);
-								checkbox.element.checked = value === this.true();
+										this.setContent(content);
 
-
-								checkbox.element.onchange = () => {
-
-									if (value === KarmaFieldsAlpha.mixed || value === this.true()) {
-
-										this.setValue(this.false());
-										this.render();
-										this.save("uncheck");
-
-									} else {
-
-										this.setValue(this.true());
-										this.render();
-										this.save("check");
+										KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
 
 									}
 
 								}
 
-								if (this.resource.disabled) {
+								checkbox.element.classList.toggle("mixed", Boolean(content.mixed));
+								checkbox.element.checked = content.toString() === this.true();
 
-									checkbox.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));
+								checkbox.element.onchange = () => {
+
+									if (content.mixed || content.toString() === this.true()) {
+
+										const content = new KarmaFieldsAlpha.Content(this.false());
+
+										this.setContent(content);
+										this.request("render");
+										KarmaFieldsAlpha.History.save("uncheck", "Uncheck");
+
+									} else {
+
+										const content = new KarmaFieldsAlpha.Content(this.true());
+
+										this.setContent(content);
+										this.request("render");
+										KarmaFieldsAlpha.History.save("check", "Check");
+
+									}
 
 								}
 
-								if (this.resource.enabled) {
-
-									checkbox.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
-
-								}
+								checkbox.element.disabled = this.isDisabled();
 
 							}
 

@@ -1,6 +1,6 @@
 
 <script>
-  KarmaFieldsAlpha = {
+  K = KarmaFieldsAlpha = {
     restURL: "<?php echo rest_url(); ?>",
     uploadURL: "<?php echo wp_get_upload_dir()['baseurl']; ?>",
     nonce: "<?php echo wp_create_nonce( 'wp_rest' ); ?>",
@@ -11,6 +11,5 @@
     drivers: <?php echo json_encode($drivers); ?>,
     useWPMediaUploader: true,
     restMediaURL: "<?php echo rest_url(); ?>wp/v2/media"
-
   };
 </script>

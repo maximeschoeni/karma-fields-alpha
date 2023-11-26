@@ -7,21 +7,25 @@ KarmaFieldsAlpha.field = class {
   static fieldId = 0;
   static uniqueId = 1;
 
-  static getData() {
-
-    return this.data;
-
-  }
-
-  static setData(value) {
-
-    this.data = value;
-
-  }
+  // static getData() {
+  //
+  //   return this.data;
+  //
+  // }
+  //
+  // static setData(value) {
+  //
+  //   this.data = value;
+  //
+  // }
 
   constructor(resource = {}) {
 		// this.children = [];
     // this.childMap = {};
+
+    this.id = 0;
+    this.uid = 0;
+    this.path = [];
 		this.resource = resource || {};
 
 		this.fieldId = KarmaFieldsAlpha.field.fieldId++;
@@ -36,11 +40,15 @@ KarmaFieldsAlpha.field = class {
   // }
 
   getKey() {
+
     return this.resource.key;
+
   }
 
   getLabel() {
+
     return this.resource.label;
+
   }
 
   // getId() {
@@ -49,22 +57,22 @@ KarmaFieldsAlpha.field = class {
   // }
 
   getUid() {
-    return this.resource.uid;
+    return this.uid;
   }
 
-  getUniqueId() {
-    return KarmaFieldsAlpha.field.uniqueId++;
-  }
+  // getUniqueId() {
+  //   return KarmaFieldsAlpha.field.uniqueId++;
+  // }
 
-  getScrollContainer() {
-
-    if (this.parent) {
-
-      return this.parent.getScrollContainer();
-
-    }
-
-  }
+  // getScrollContainer() {
+  //
+  //   if (this.parent) {
+  //
+  //     return this.parent.getScrollContainer();
+  //
+  //   }
+  //
+  // }
 
   // addChild(child, id) {
   //   this.children.push(child);
@@ -74,7 +82,81 @@ KarmaFieldsAlpha.field = class {
   //   child.parent = this;
   // }
 
-  createField(resource) {
+  // createField(resource) {
+  //
+  //   if (typeof resource === "string") {
+  //
+  //     resource = {
+  //       type: resource
+  //     };
+  //
+  //   }
+  //
+  //   const constructor = this.constructor;
+  //
+  //   const type = resource.type || "group";
+  //
+  //   // if (KarmaFieldsAlpha.field[type]) {
+  //   //   return new KarmaFieldsAlpha.field[type](resource);
+  //   // }
+  //
+  //   // if (resource.uid !== undefined) {
+  //   //   console.log(resource);
+  //   // }
+  //
+  //   // if (resource.type === "row") console.log("createField", resource.uid, resource.index);
+  //   //
+  //   // if (resource.uid === undefined) {
+  //
+  //     resource.uid = `${this.resource.uid}-${resource.index}`;
+  //
+  //   // }
+  //
+  //
+  //
+  //
+  //
+  //   if (this.constructor[type] && typeof this.constructor[type] === "function") {
+  //     return new this.constructor[type](resource);
+  //   }
+  //
+  //   if (this.constructor[type] && typeof this.constructor[type] === "object" && this.constructor[type].type !== type) {
+  //     return this.createField({...this.constructor[type], ...resource, type: this.constructor[type].type});
+  //   }
+  //
+  //   if (this.parent) {
+  //     return this.parent.createField(resource);
+  //   }
+  //
+  //
+  //
+  //   console.error("Field type does not exist", resource, this);
+  //
+  // }
+
+  getConstructor(type) {
+
+//     if (KarmaFieldsAlpha.field[type] && typeof KarmaFieldsAlpha.field[type] === "function") {
+//       return new KarmaFieldsAlpha.field[type](resource);
+//     }
+
+    if (this.constructor[type] && typeof this.constructor[type] === "function") {
+      // return new this.constructor[type](resource);
+      return this.constructor[type];
+    }
+
+    if (this.parent) {
+      return this.parent.getConstructor(type);
+    }
+
+    console.error("Field type does not exist", type);
+
+  }
+
+
+  createChild(resource, id) {
+
+    // const child = this.createField(resource);
 
     if (typeof resource === "string") {
 
@@ -84,48 +166,169 @@ KarmaFieldsAlpha.field = class {
 
     }
 
-    const constructor = this.constructor;
+    // compat
+    if (id === undefined) {
 
-    const type = resource.type || "group";
+      id = resource.index;
 
-    // if (KarmaFieldsAlpha.field[type]) {
-    //   return new KarmaFieldsAlpha.field[type](resource);
-    // }
+    }
 
-    // if (resource.uid !== undefined) {
-    //   console.log(resource);
-    // }
+    const constructor = this.getConstructor(resource.type || "group");
+    const child = new constructor(resource);
 
-    // if (resource.type === "row") console.log("createField", resource.uid, resource.index);
+    child.parent = this;
+    child.id = id;
+    child.uid = `${this.uid}-${id}`;
+    child.path = [...this.path, id];
+    child.options = this.options && this.options[id];
+
+    // const selection = this.getSelection();
     //
-    // if (resource.uid === undefined) {
-
-      resource.uid = `${this.resource.uid}-${resource.index}`;
-
+    // // if (this.selection && this.selection.childId === id) {
+    // if (selection && selection.child && selection.child.id === id) {
+    //
+    //   child.selection = selection.child;
+    //
     // }
 
+    // const selectionPath = this.getSelectionPath();
+    //
+    // if (selectionPath && selectionPath[0] === id) {
+    //
+    //   child.selectionPath = selectionPath.slice(1);
+    //
+    //   if (child.selectionPath.length === 0) {
+    //
+    //     child.selected = true;
+    //
+    //   }
+    //
+    // }
 
+    return child;
+  }
 
+  useClipboard() {
 
-
-    if (this.constructor[type] && typeof this.constructor[type] === "function") {
-      return new this.constructor[type](resource);
-    }
-
-    if (this.constructor[type] && typeof this.constructor[type] === "object" && this.constructor[type].type !== type) {
-      return this.createField({...this.constructor[type], ...resource, type: this.constructor[type].type});
-    }
-
-    if (this.parent) {
-      return this.parent.createField(resource);
-    }
-
-
-
-    console.error("Field type does not exist", resource, this);
+    KarmaFieldsAlpha.Store.State.set(true, "clipboard");
 
   }
 
+  getFocus() {
+
+    return KarmaFieldsAlpha.Store.Layer.get("focus");
+
+  }
+
+  async setFocus(useClipboard = false) {
+
+    await KarmaFieldsAlpha.Store.State.set(useClipboard, "clipboard");
+    await KarmaFieldsAlpha.Store.Layer.set(this.path, "focus");
+
+  }
+
+  async removeFocus() {
+
+    await KarmaFieldsAlpha.Store.Layer.remove("focus");
+
+  }
+
+  hasFocus() {
+
+    const focus = KarmaFieldsAlpha.Store.Layer.get("focus");
+
+    return focus && focus.length === this.path.length && this.path.every((id, index) => id === focus[index]);
+
+  }
+
+  // getSelectionRange(...path) {
+  //
+  //   return KarmaFieldsAlpha.Store.State.get("fields", ...this.path, "selectionRange", ...path);
+  //
+  // }
+
+  // getSelectionIndex() {
+  //
+  //   return this.getSelectionRange("index") || 0;
+  //
+  // }
+  //
+  // getSelectionLength() {
+  //
+  //   KarmaFieldsAlpha.Store.State.get("fields", ...this.path, "selectionRange", "length") || 0;
+  //
+  // }
+
+  // setSelectionRange(value, ...path) {
+  //
+  //   KarmaFieldsAlpha.Store.State.get(value, "fields", ...this.path, "selectionRange", ...path);
+  //
+  // }
+
+  getSelection(...path) {
+
+    return KarmaFieldsAlpha.Store.State.get("fields", ...this.path, "selection", ...path);
+
+  }
+
+  setSelection(value, ...path) {
+
+    KarmaFieldsAlpha.Store.State.set(value, "fields", ...this.path, "selection", ...path);
+
+  }
+
+  removeSelection() {
+
+    return KarmaFieldsAlpha.Store.State.remove("fields", ...this.path, "selection");
+
+  }
+
+  async save(id, name) {
+
+    await KarmaFieldsAlpha.History.save(id, name);
+
+  }
+
+  lift(tail, action, ...args) {
+
+    if (tail.length) {
+
+      const [id, ...subtail] = tail;
+      const child = this.getChild(id);
+
+      if (child) {
+
+        return child.lift(subtail, action, ...args);
+
+      }
+
+    } else if (this[action]) {
+
+      return this[action](...args);
+
+    }
+
+  }
+
+  grind(closure, callback) {
+
+    const result = closure();
+
+    if (result && result.loading) {
+
+      KarmaFieldsAlpha.Store.Task.add({
+        type: "grind",
+        resolve: () => this.grind(closure, callback)
+      });
+
+      this.request("render");
+
+    } else {
+
+      callback(result);
+
+    }
+  }
 
   // getChild(resource, ...resources) {
   //
@@ -164,7 +367,7 @@ KarmaFieldsAlpha.field = class {
 					id: index,
 					...resource,
 					index: index
-				});
+				}, index);
 
 			}
 
@@ -172,201 +375,480 @@ KarmaFieldsAlpha.field = class {
 
 	}
 
-  getSelectionChild(selection) {
-    console.error("deprecated");
-    // if (selection && selection.path && selection.path.length) {
-    //
-    //   return this.getChild(selection.path[0]);
-    //
-    // }
-
-    const children = this.getChildren();
-
-    if (selection && children) {
-
-      for (let i in children) {
-
-        if (selection[i]) {
-
-          return this.getChild(i);
-
-        }
-
-      }
-
-    }
-
-  }
-
-
-  getSelectedChild(selection) {
-
-    if (selection && selection.child) {
-
-      return this.getChild(selection.childId);
-
-    }
-
-  }
+  // getSelectionChild(selection) {
+  //   console.error("deprecated");
+  //   // if (selection && selection.path && selection.path.length) {
+  //   //
+  //   //   return this.getChild(selection.path[0]);
+  //   //
+  //   // }
+  //
+  //   const children = this.getChildren();
+  //
+  //   if (selection && children) {
+  //
+  //     for (let i in children) {
+  //
+  //       if (selection[i]) {
+  //
+  //         return this.getChild(i);
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
 
-  delete(selection = this.getSelection()) {
+  // getSelectedChild(selection) {
+  //
+  //   if (selection && selection.child) {
+  //
+  //     return this.getChild(selection.childId);
+  //
+  //   }
+  //
+  // }
 
-    // if (selection && selection.path && selection.path.length > 0) {
-    //
-    //   const [index, ...path] = selection.path;
-    //
-    //   const child = this.getChild(index);
-    //
-    //   child.delete({...selection, path: path});
-    //
-    // }
+  getSelectedChild() {
 
+    if (this.selection && this.selection.child) {
 
-
-    // const child = this.getSelectionChild(selection);
-    //
-    // if (child) {
-    //
-    //   child.delete(selection[child.resource.index]);
-    //
-    // }
-
-    // if (selection && selection[selection.index]) {
-    //
-    //   const child = this.getChild(selection.index);
-    //
-    //   if (child) {
-    //
-    //     child.delete(selection[selection.index]);
-    //
-    //   }
-    //
-    // }
-
-
-    // if (selection && selection.child) {
-    //
-    //   const child = this.getChild(selection.childId);
-    //
-    //   if (child) {
-    //
-    //     child.delete(selection.child);
-    //
-    //   }
-    //
-    // }
-
-    const child = this.getSelectedChild(selection);
-
-    if (child) {
-
-      child.delete(selection.child);
-
-    }
-
-  }
-
-  copy(selection = this.getSelection()) {
-
-    // if (selection && selection.path && selection.path.length > 0) {
-    //
-    //   const [index, ...path] = selection.path;
-    //
-    //   const child = this.getChild(index);
-    //
-    //   return child.copy({...selection, path: path});
-    //
-    // }
-
-    // if (selection && selection[selection.index]) {
-    //
-    //   const child = this.getChild(selection.index);
-    //
-    //   if (child) {
-    //
-    //     return child.copy(selection[selection.index]);
-    //
-    //   }
-    //
-    // }
-
-    if (selection && selection.child) {
-
-      const child = this.getChild(selection.childId);
-
-      if (child) {
-
-        return child.copy(selection.child);
-
-      }
-
-    }
-
-  }
-
-  paste(string, selection = this.getSelection()) { // -> same as base method
-
-    // if (selection && selection.path && selection.path.length > 0) {
-    //
-    //   const [index, ...path] = selection.path;
-    //
-    //   const child = this.getChild(index);
-    //
-    //   return child.paste(string, {...selection, path: path});
-    //
-    // }
-
-
-    // if (selection && selection[selection.index]) {
-    //
-    //   const child = this.getChild(selection.index);
-    //
-    //   if (child) {
-    //
-    //     return child.paste(string, selection[selection.index]);
-    //
-    //   }
-    //
-    // }
-
-    if (selection && selection.child) {
-
-      const child = this.getChild(selection.childId);
-
-      if (child) {
-
-        return child.paste(string, selection.child);
-
-      }
+      return this.getChild(this.selection.child.id);
 
     }
 
   }
 
 
-  execute(command, ...params) {
+  // dispatch(functionName, ...args) {
+  //
+  //   const focus = this.getFocus();
+  //
+  //   if (focus) {
+  //
+  //     return this.lift(focus, functionName, ...args);
+  //
+  //   }
+  //
+  //
+  //
+  //
+  //   // if (this.selection) {
+  //   //
+  //   //   if (this.selection.child) { // -> selection.childId may equal 0 !
+  //   //
+  //   //     const child = this.getChild(this.selection.child.id);
+  //   //
+  //   //     if (child) {
+  //   //
+  //   //       return child.dispatch(functionName, ...args);
+  //   //
+  //   //     }
+  //   //
+  //   //   } else if (this[functionName]) {
+  //   //
+  //   //     return this[functionName](...args);
+  //   //
+  //   //   }
+  //   //
+  //   // } else if (this.parent) {
+  //   //
+  //   //   return this.parent.dispatch(functionName, ...args);
+  //   //
+  //   // }
+  //
+  // }
 
-    this.parent.execute(command, ...params);
+  // dispatch(functionName, ...args) {
+  //
+  //   if (this.selection) {
+  //
+  //     if (this.selection.child) { // -> selection.childId may equal 0 !
+  //
+  //       const child = this.getChild(this.selection.child.id);
+  //
+  //       if (child) {
+  //
+  //         return child.dispatch(functionName, ...args);
+  //
+  //       }
+  //
+  //     } else if (this[functionName]) {
+  //
+  //       return this[functionName](...args);
+  //
+  //     }
+  //
+  //   } else if (this.parent) {
+  //
+  //     return this.parent.dispatch(functionName, ...args);
+  //
+  //   }
+  //
+  // }
 
-  }
+  // dispatch(event) {
+  //
+  //   if (this.selection) {
+  //
+  //     if (this.selection.child) { // -> selection.childId may equal 0 !
+  //
+  //       const child = this.getChild(selection.childId);
+  //
+  //       if (child) {
+  //
+  //         return child.dispatch(event);
+  //
+  //       }
+  //
+  //     } else if (event.callback) {
+  //
+  //       return event.callback(this);
+  //
+  //     }  else if (this[event.name]) {
+  //
+  //       return this[event.name]();
+  //
+  //     }
+  //
+  //   } else if (this.parent) {
+  //
+  //     return this.parent.dispatch(event);
+  //
+  //   }
+  //
+  // }
 
+  // request(functionName, ...args) {
+  //
+  //   if (this[functionName]) {
+  //
+  //     return this[functionName](...args);
+  //
+  //   } else if (this.parent) {
+  //
+  //     return this.parent.request(functionName, ...args);
+  //
+  //   }
+  //
+  // }
 
-  getSelectedValue(selection = this.getSelection()) {
+  // request(event) {
+  //
+  //   if (this[event.name]) {
+  //
+  //     return this[event.name](event);
+  //
+  //   } else if (this.parent) {
+  //
+  //     if (event.recordPath) {
+  //
+  //       if (!event.path) {
+  //
+  //         event.path = [];
+  //
+  //       }
+  //
+  //       event.path.unshift(this.resource.index);
+  //
+  //     }
+  //
+  //     if (event.recordKeys) {
+  //
+  //       const key = this.getKey();
+  //
+  //       if (key) {
+  //
+  //         if (!event.keypath) {
+  //
+  //           event.keypath = [];
+  //
+  //         }
+  //
+  //         event.keypath.unshift(key);
+  //       }
+  //
+  //     }
+  //
+  //     return this.parent.request(event);
+  //
+  //   }
+  //
+  // }
 
-    const child = this.getSelectedChild(selection);
+  request(functionName, ...args) {
 
-    if (child) {
+    if (this[functionName]) {
 
-      return child.getSelectedValue(selection.child);
+      return this[functionName](...args);
 
-    } else {
+    } else if (this.parent) {
 
-      return this.getValue();
+      return this.parent.request(functionName, ...args);
 
     }
 
   }
+
+  // post(data, ...path {
+  //
+  //   this.post(data, this.id, ...path);
+  //
+  // }
+
+  setOption(data, ...path) {
+
+    if (this.parent) {
+
+      this.parent.setOption(data, this.id, ...path);
+
+    }
+
+  }
+
+  // requestWithPath(functionName, ...path) {
+  //
+  //   if (this[functionName]) {
+  //
+  //     return this[functionName](...path);
+  //
+  //   } else if (this.parent) {
+  //
+  //     return this.parent.request(functionName, this.id, ...path);
+  //
+  //   }
+  //
+  // }
+  //
+  // requestWithKeyPath(functionName, ...keypath) {
+  //
+  //   if (this[functionName]) {
+  //
+  //     return this[functionName](...keypath);
+  //
+  //   } else if (this.parent) {
+  //
+  //     const key = this.getKey();
+  //
+  //     if (key) {
+  //
+  //       keypath = [key, ...keypath];
+  //
+  //     }
+  //
+  //     return this.parent.request(functionName, ...keypath);
+  //
+  //   }
+  //
+  // }
+
+
+
+
+
+  // delete(selection = this.getSelection()) {
+  //
+  //   // if (selection && selection.path && selection.path.length > 0) {
+  //   //
+  //   //   const [index, ...path] = selection.path;
+  //   //
+  //   //   const child = this.getChild(index);
+  //   //
+  //   //   child.delete({...selection, path: path});
+  //   //
+  //   // }
+  //
+  //
+  //
+  //   // const child = this.getSelectionChild(selection);
+  //   //
+  //   // if (child) {
+  //   //
+  //   //   child.delete(selection[child.resource.index]);
+  //   //
+  //   // }
+  //
+  //   // if (selection && selection[selection.index]) {
+  //   //
+  //   //   const child = this.getChild(selection.index);
+  //   //
+  //   //   if (child) {
+  //   //
+  //   //     child.delete(selection[selection.index]);
+  //   //
+  //   //   }
+  //   //
+  //   // }
+  //
+  //
+  //   // if (selection && selection.child) {
+  //   //
+  //   //   const child = this.getChild(selection.childId);
+  //   //
+  //   //   if (child) {
+  //   //
+  //   //     child.delete(selection.child);
+  //   //
+  //   //   }
+  //   //
+  //   // }
+  //
+  //   const child = this.getSelectedChild(selection);
+  //
+  //   if (child) {
+  //
+  //     child.delete(selection.child);
+  //
+  //   }
+  //
+  // }
+
+  // dispatch(event) {
+  //
+  //   if (!event.selection) {
+  //
+  //     event.selection = this.getSelection();
+  //
+  //   }
+  //
+  //   if (event.selection) {
+  //
+  //     if (event.selection.child) {
+  //
+  //       const child = this.getSelectedChild(selection);
+  //
+  //       if (child) {
+  //
+  //         event.selection = event.selection.child;
+  //
+  //         return child.dispatch(event);
+  //
+  //       }
+  //
+  //     } else if (this[event.name]) {
+  //
+  //       return this[event.name](event);
+  //
+  //     }
+  //
+  //   } else if (this.parent) {
+  //
+  //     return this.parent.dispatch(event);
+  //
+  //   }
+  //
+  // }
+
+
+
+
+  // copy(selection = this.getSelection()) {
+  //
+  //   // if (selection && selection.path && selection.path.length > 0) {
+  //   //
+  //   //   const [index, ...path] = selection.path;
+  //   //
+  //   //   const child = this.getChild(index);
+  //   //
+  //   //   return child.copy({...selection, path: path});
+  //   //
+  //   // }
+  //
+  //   // if (selection && selection[selection.index]) {
+  //   //
+  //   //   const child = this.getChild(selection.index);
+  //   //
+  //   //   if (child) {
+  //   //
+  //   //     return child.copy(selection[selection.index]);
+  //   //
+  //   //   }
+  //   //
+  //   // }
+  //
+  //   if (selection && selection.child) {
+  //
+  //     const child = this.getChild(selection.childId);
+  //
+  //     if (child) {
+  //
+  //       return child.copy(selection.child);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+  //
+  // paste(string, selection = this.getSelection()) { // -> same as base method
+  //
+  //   // if (selection && selection.path && selection.path.length > 0) {
+  //   //
+  //   //   const [index, ...path] = selection.path;
+  //   //
+  //   //   const child = this.getChild(index);
+  //   //
+  //   //   return child.paste(string, {...selection, path: path});
+  //   //
+  //   // }
+  //
+  //
+  //   // if (selection && selection[selection.index]) {
+  //   //
+  //   //   const child = this.getChild(selection.index);
+  //   //
+  //   //   if (child) {
+  //   //
+  //   //     return child.paste(string, selection[selection.index]);
+  //   //
+  //   //   }
+  //   //
+  //   // }
+  //
+  //   if (selection && selection.child) {
+  //
+  //     const child = this.getChild(selection.childId);
+  //
+  //     if (child) {
+  //
+  //       return child.paste(string, selection.child);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+
+
+  // execute(command, ...params) {
+  //
+  //   console.warning("deprecated");
+  //
+  //   this.parent.execute(command, ...params);
+  //
+  // }
+
+
+  // getSelectedValue(selection = this.getSelection()) {
+  //
+  //   console.error("deprecated");
+  //
+  //   const child = this.getSelectedChild(selection);
+  //
+  //   if (child) {
+  //
+  //     return child.getSelectedValue(selection.child);
+  //
+  //   } else {
+  //
+  //     return this.getValue();
+  //
+  //   }
+  //
+  // }
 
 
 
@@ -388,33 +870,7 @@ KarmaFieldsAlpha.field = class {
   //   return child;
   // }
 
-  createChild(resource) {
 
-    const child = this.createField(resource);
-
-    child.parent = this;
-
-
-    // console.log("createChild", );
-    //
-    // if (this.selection && this.selection.childId === resource.index) {
-    //
-    //   child.selection = this.selection.child;
-    //
-    // }
-
-    // const selection = this.getSelection();
-    //
-    // if (selection && selection.childId === child.resource.index) {
-    //
-    //   this.selection = selection.child;
-    //
-    // }
-
-
-
-    return child;
-  }
 
   getRoot() {
 
@@ -564,19 +1020,29 @@ console.error("deprecated");
 
     await this.parent.render();
 
-  }
 
-  save(name, label) {
-
-    if (name) {
-
-      this.parent.save(`${this.resource.index}-${name}`, label);
-
-    }
-
-    this.parent.save();
 
   }
+
+  // save(name, label) {
+  //
+  //   // if (name) {
+  //   //
+  //   //   this.parent.save(`${this.resource.index}-${name}`, label);
+  //   //
+  //   // }
+  //
+  //   console.error("deprecated");
+  //
+  //   if (this.parent) {
+  //
+  //     this.parent.save(name, label);
+  //
+  //   }
+  //
+  //
+  //
+  // }
 
 
   // async isModified() {
@@ -584,6 +1050,49 @@ console.error("deprecated");
   //   const key = this.getKey();
   //   return this.parent.request("modified", {}, key);
 
+  // }
+
+
+  // push(selection, functionName, ...args) {
+  //
+  //   if (!selection) {
+  //
+  //     selection = this.getSelection();
+  //
+  //   }
+  //
+  //   if (selection) {
+  //
+  //     if (selection.child) {
+  //
+  //       const child = this.getSelectedChild(selection);
+  //
+  //       return child.push(selection.child, functionName, ...args);
+  //
+  //     } else if (this[functionName]) {
+  //
+  //       return functionName.call(this, ...args);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+  //
+  // pull(functionName, ...args) {
+  //
+  //   const callback = this[functionName];
+  //
+  //   if (callback) {
+  //
+  //     callback.call(this, ...args);
+  //
+  //   } else if (this.parent) {
+  //
+  //     this.parent.pull(functionName, ...args)
+  //
+  //   }
+  //
   // }
 
 
@@ -656,19 +1165,19 @@ console.error("deprecated");
 
   // }
 
-  request(action, ...values) {
-
-    if (this[action]) {
-
-      return this[action](...values);
-
-    } else if (this.parent) {
-
-      return this.parent.request(action, ...values);
-
-    }
-
-  }
+  // request(action, ...values) {
+  //
+  //   if (this[action]) {
+  //
+  //     return this[action](...values);
+  //
+  //   } else if (this.parent) {
+  //
+  //     return this.parent.request(action, ...values);
+  //
+  //   }
+  //
+  // }
 
   getResource(key) {
 
@@ -769,25 +1278,51 @@ console.error("deprecated");
   //   // noop
 	// }
 
-  initValue() {
+  // initValue() {
+  //
+	// }
 
-	}
+  getContent(...path) {
 
-  getValue(...path) {
+    // const key = this.getKey();
+    //
+    // if (this.parent) {
+    //
+    //   if (key !== undefined) {
+    //
+    //     return this.parent.getContent(key, ...path);
+    //
+    //   }
+    //
+    //   return this.parent.getContent(...path);
+    //
+    // }
 
-    const key = this.getKey();
-
-    if (key !== undefined) {
-
-      return this.parent.getValue(key, ...path);
-
-    }
-
-    return this.parent.getValue(...path);
+    return this.parent.getContent(...path);
 
   }
 
+
+
+  // getValue(...path) {
+  //
+  //   console.error("deprecated");
+  //
+  //   const key = this.getKey();
+  //
+  //   if (key !== undefined) {
+  //
+  //     return this.parent.getValue(key, ...path);
+  //
+  //   }
+  //
+  //   return this.parent.getValue(...path);
+  //
+  // }
+
   getId() {
+
+    console.error("deprecated");
 
     if (this.parent) {
 
@@ -797,23 +1332,23 @@ console.error("deprecated");
 
   }
 
-  getName(...path) {
-
-    return this.parent.getName(...path);
-
-  }
-
-  getParent(...path) {
-
-    return this.parent.getParent(...path);
-
-  }
-
-  getPosition(...path) {
-
-    return this.parent.getPosition(...path);
-
-  }
+  // getName(...path) {
+  //
+  //   return this.parent.getName(...path);
+  //
+  // }
+  //
+  // getParent(...path) {
+  //
+  //   return this.parent.getParent(...path);
+  //
+  // }
+  //
+  // getPosition(...path) {
+  //
+  //   return this.parent.getPosition(...path);
+  //
+  // }
 
   // getAliasedValue(key) {
   //
@@ -821,39 +1356,39 @@ console.error("deprecated");
   //
   // }
 
-  getSingleValue(...path) {
+  // getSingleValue(...path) {
+  //
+  //   const values = this.getValue(...path);
+  //
+  //   if (values === KarmaFieldsAlpha.mixed) {
+  //
+	// 		return KarmaFieldsAlpha.mixed;
+  //
+	// 	}
+  //
+  //   if (!values || values === KarmaFieldsAlpha.loading) {
+  //
+	// 		return KarmaFieldsAlpha.loading;
+  //
+	// 	}
+  //
+  //   return values[0];
+  // }
 
-    const values = this.getValue(...path);
 
-    if (values === KarmaFieldsAlpha.mixed) {
-
-			return KarmaFieldsAlpha.mixed;
-
-		}
-
-    if (!values || values === KarmaFieldsAlpha.loading) {
-
-			return KarmaFieldsAlpha.loading;
-
-		}
-
-    return values[0];
-  }
-
-
-  getMixedValues(...path) {
-
-    const key = this.getKey();
-
-    if (key !== undefined) {
-
-      return this.parent.getMixedValues(key, ...path);
-
-    }
-
-    return this.parent.getMixedValues(...path);
-
-  }
+  // getMixedValues(...path) {
+  //
+  //   const key = this.getKey();
+  //
+  //   if (key !== undefined) {
+  //
+  //     return this.parent.getMixedValues(key, ...path);
+  //
+  //   }
+  //
+  //   return this.parent.getMixedValues(...path);
+  //
+  // }
 
 
 
@@ -863,27 +1398,60 @@ console.error("deprecated");
   //
   // }
 
-  setValue(value, ...path) {
 
-    // this.parent.setValue(value, ...path);
+  async setContent(content, ...path) {
 
-    const key = this.getKey();
+    await this.parent.setContent(content, ...path);
 
-    if (key !== undefined) {
-
-      this.parent.setValue(value, key, ...path);
-
-    } else {
-
-      this.parent.setValue(value, ...path);
-
-    }
-
-
+    // const key = this.getKey();
+    //
+    // if (this.parent) {
+    //
+    //   this.parent.setContent(content, key, ...path);
+    //
+    // }
 
   }
 
+  async removeContent(content, ...path) {
+
+    await this.parent.removeContent(content, ...path);
+
+    // const key = this.getKey();
+    //
+    // if (this.parent) {
+    //
+    //   this.parent.setContent(content, key, ...path);
+    //
+    // }
+
+  }
+
+  // setValue(value, ...path) {
+  //
+  //   console.error("deprecated");
+  //
+  //   // this.parent.setValue(value, ...path);
+  //
+  //   const key = this.getKey();
+  //
+  //   if (key !== undefined) {
+  //
+  //     this.parent.setValue(value, key, ...path);
+  //
+  //   } else {
+  //
+  //     this.parent.setValue(value, ...path);
+  //
+  //   }
+  //
+  //
+  //
+  // }
+
   getDriver() {
+
+    console.error("deprecated");
 
 		return this.resource.driver || this.parent.getDriver();
 
@@ -895,31 +1463,33 @@ console.error("deprecated");
 
   // }
 
-  modified(...path) {
-
-    const key = this.getKey();
-
-    if (key !== undefined) {
-
-      return this.parent.modified(key, ...path);
-
-    } else {
-
-      return this.parent.modified(...path);
-
-    }
-
-  }
+  // modified(...path) {
+  //
+  //   const key = this.getKey();
+  //
+  //   if (key !== undefined) {
+  //
+  //     return this.parent.modified(key, ...path);
+  //
+  //   } else {
+  //
+  //     return this.parent.modified(...path);
+  //
+  //   }
+  //
+  // }
 
 
   // !
-  getIdXXX() {
-    return this.parent.getId();
-  }
+  // getIdXXX() {
+  //   return this.parent.getId();
+  // }
 
-  getIndex() {
-    return this.parent.getIndex();
-  }
+  // getIndex() {
+  //
+  //   console.error("deprecated");
+  //   return this.parent.getIndex();
+  // }
 
   // getKeys(set = new Set()) {
 
@@ -942,6 +1512,8 @@ console.error("deprecated");
   //   return set;
   // }
 
+
+  // used for array
   getKeys(set = new Set()) {
 
     if (this.resource.children) {
@@ -968,42 +1540,42 @@ console.error("deprecated");
     return set;
   }
 
-  follow(selection, callback) {
-
-    const child = this.getSelectedChild(selection);
-
-    if (child) {
-
-      child.follow(selection.child, callback);
-
-    } else if (selection) {
-
-      return callback(this, selection);
-
-    }
-
-
-
-
-    // if (selection) {
-    //
-    //   if (selection.child) {
-    //
-    //     const child = this.getChild(selection.childId);
-    //
-    //     if (child) {
-    //
-    //       return child.follow(selection.child, callback);
-    //
-    //     }
-    //
-    //   } else {
-    //
-    //     return callback(this, selection);
-    //
-    //   }
-
-  }
+  // follow(selection, callback) {
+  //
+  //   const child = this.getSelectedChild(selection);
+  //
+  //   if (child) {
+  //
+  //     child.follow(selection.child, callback);
+  //
+  //   } else if (selection) {
+  //
+  //     return callback(this, selection);
+  //
+  //   }
+  //
+  //
+  //
+  //
+  //   // if (selection) {
+  //   //
+  //   //   if (selection.child) {
+  //   //
+  //   //     const child = this.getChild(selection.childId);
+  //   //
+  //   //     if (child) {
+  //   //
+  //   //       return child.follow(selection.child, callback);
+  //   //
+  //   //     }
+  //   //
+  //   //   } else {
+  //   //
+  //   //     return callback(this, selection);
+  //   //
+  //   //   }
+  //
+  // }
 
 
       // if (selection.index) {
@@ -1022,29 +1594,29 @@ console.error("deprecated");
 
 
 
-  descend(selection, action) {
-
-    if (this[action]) {
-
-      return this[action](selection);
-
-    } else if (this.resource.children) {
-
-      for (let i = 0; i < this.resource.children.length; i++) {
-
-        if (selection[i]) {
-
-          const child = this.createChild({...this.resource.children[i], index: i});
-
-          return child.descend(selection[child.resource.index], action);
-
-        }
-
-      }
-
-    }
-
-  }
+  // descend(selection, action) {
+  //
+  //   if (this[action]) {
+  //
+  //     return this[action](selection);
+  //
+  //   } else if (this.resource.children) {
+  //
+  //     for (let i = 0; i < this.resource.children.length; i++) {
+  //
+  //       if (selection[i]) {
+  //
+  //         const child = this.createChild({...this.resource.children[i], index: i});
+  //
+  //         return child.descend(selection[child.resource.index], action);
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
 
 
@@ -1080,38 +1652,116 @@ console.error("deprecated");
 	// 	return object;
 	// }
 
-  export(items = []) {
+  export() { // -> return array of string
+
+    let collection = new KarmaFieldsAlpha.Content.Collection();
 
     if (this.resource.children) {
 
-			for (let resource of this.resource.children) {
+      for (let i = 0; i < this.resource.children.length; i++) {
 
-				const child = this.createChild(resource);
+        const resource = this.resource.children[i];
+				const child = this.createChild(resource, i);
 
-        child.export(items);
+        const content = child.export();
+
+
+
+        if (content.loading) {
+
+          collection.loading = true;
+
+        } else {
+
+          collection.value = [...collection.value, ...content.value];
+
+        }
 
 			}
 
 		}
 
-		return items;
+		return collection;
   }
 
-  import(items) {
+  async import(collection) {
 
     if (this.resource.children) {
 
-			for (let resource of this.resource.children) {
+      for (let i = 0; i < this.resource.children.length; i++) {
 
-				const child = this.createChild(resource);
+        const resource = this.resource.children[i];
+				const child = this.createChild(resource, i);
 
-        child.import(items);
+        await child.import(collection);
 
 			}
 
 		}
 
   }
+
+  async destroy() {
+
+    const key = this.getKey();
+
+    if (key) {
+
+      await this.removeContent(key);
+
+    } else if (this.resource.children) {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        const resource = this.resource.children[i];
+				const child = this.createChild(resource, i);
+
+        await child.destroy();
+
+			}
+
+    }
+
+  }
+
+
+
+
+
+  // export(collection = new KarmaFieldsAlpha.Content.Collection()) {
+  //
+  //   if (this.resource.children) {
+  //
+  //     for (let i = 0; i < this.resource.children.length; i++) {
+  //
+  //       const resource = this.resource.children[i];
+	// 			const child = this.createChild(resource, i);
+  //
+  //       child.export(collection);
+  //
+	// 		}
+  //
+	// 	}
+  //
+	// 	return collection;
+  // }
+  //
+  // import(collection) {
+  //
+  //   if (this.resource.children) {
+  //
+  //     for (let i = 0; i < this.resource.children.length; i++) {
+  //
+  //       const resource = this.resource.children[i];
+	// 			const child = this.createChild(resource, i);
+  //
+  //       child.import(collection);
+  //
+	// 		}
+  //
+	// 	}
+  //
+  // }
 
 	// import(object) {
 
@@ -1150,81 +1800,6 @@ console.error("deprecated");
 
 
 
-  getSelection() {
-
-    // return this.selection;
-
-
-    // const selection = this.parent.getSelection();
-    //
-    // if (selection && selection.path && selection.path > 0) {
-    //
-    //   return {...selection, path: selection.path.slice(1)};
-    //
-    // }
-
-
-    // const selection = this.parent.getSelection();
-    //
-    // if (selection) {
-    //
-    //   return selection[this.resource.index];
-    //
-    // }
-
-    const selection = this.parent.getSelection();
-
-    // console.log("getSelection", selection && selection.child, this.selection);
-
-    if (selection && selection.childId === this.resource.index) {
-
-      return selection.child;
-
-    }
-
-  }
-
-  hasSelection() {
-
-    const selection = this.getSelection();
-
-    return Boolean(selection && selection.length);
-
-    // return {};
-  }
-
-  setSelection(selection) {
-
-    // if (selection) {
-    //
-    //   selection = {
-    //     [this.resource.index]: selection,
-    //     index: this.resource.index,
-    //     length: 0
-    //   };
-    //
-    // }
-    //
-    // this.parent.setSelection(selection);
-
-
-    if (selection) {
-
-      selection = {
-        // ...this.parent.getSelection(),
-        childId: this.resource.index,
-        child: selection
-      };
-
-    }
-
-    this.parent.setSelection(selection);
-
-
-
-
-
-  }
 
   clearSelection(selection) {
 console.error("deprecated");
@@ -1254,45 +1829,47 @@ console.error("deprecated");
   }
 
 
-  deferFocus() { // -> defer focus to clipboard textarea
+  // deferFocus() { // -> defer focus to clipboard textarea
+  //
+  //   this.parent.deferFocus();
+  //
+  // }
 
-    this.parent.deferFocus();
-
-  }
 
 
-
-  getData() {
-
-    const data = this.parent.getData();
-
-    if (!data[this.resource.index]) {
-
-      data[this.resource.index] = {};
-
-    }
-
-    return data[this.resource.index];
-
-    // if (data) {
-    //
-    //   return data[this.resource.index];
-    //
-    // }
-
-  }
-
-  setData(value) {
-
-    this.parent.setData({...this.parent.getData(), [this.resource.index]: value});
-
-  }
+  // getData() {
+  //
+  //   return this.data;
+  //
+  //   // const data = this.parent.getData();
+  //   //
+  //   // if (!data[this.resource.index]) {
+  //   //
+  //   //   data[this.resource.index] = {};
+  //   //
+  //   // }
+  //   //
+  //   // return data[this.resource.index];
+  //   //
+  //   // // if (data) {
+  //   // //
+  //   // //   return data[this.resource.index];
+  //   // //
+  //   // // }
+  //
+  // }
+  //
+  // setData(value) {
+  //
+  //   this.parent.setData({...this.parent.getData(), [this.resource.index]: value});
+  //
+  // }
 
   debounce(name, callback, interval = 500) {
 
     // const data = this.getData() || {};
 
-    const data = this.getData();
+    const data = this.getOption();
 
     if (data[name]) {
 
@@ -1302,7 +1879,7 @@ console.error("deprecated");
 
     data[name] = setTimeout(callback, interval);
 
-    // this.setData(data);
+    this.setOption(data);
 
   }
 
@@ -1325,15 +1902,15 @@ console.error("deprecated");
 
   }
 
-  parseParams(params) {
-
-    return KarmaFieldsAlpha.Expression.parseParams(params, this);
-
-  }
+  // parseParams(params) {
+  //
+  //   return new KarmaFieldsAlpha.Expression(params, this);
+  //
+  // }
 
   parse(expression) {
 
-    return new KarmaFieldsAlpha.Expression(expression, this).parse();
+    return new KarmaFieldsAlpha.Expression(expression, this);
 
     // if (Array.isArray(expression)) {
     //

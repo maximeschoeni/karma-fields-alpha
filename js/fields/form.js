@@ -13,56 +13,67 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
   }
 
-  // -> same as grid !
-  getValue(...path) {
+  getContent(...path) {
 
-    // return KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id, ...path) || KarmaFieldsAlpha.Query.getValue(this.resource.driver, this.resource.id, ...path);
+    const driver = this.getDriver();
 
-    const id = this.getId();
-
-    return KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, ...path);
-
-	}
-
-  // -> same as grid !
-	setValue(value, ...path) {
-
-    // value = KarmaFieldsAlpha.Type.toArray(value);
-    //
-		// let currentValue = this.getValue(...path);
-    //
-		// if (!KarmaFieldsAlpha.DeepObject.equal(value, currentValue)) {
-    //
-    //   KarmaFieldsAlpha.History.backup(value, currentValue, "delta", this.resource.driver, this.resource.id, ...path);
-    //
-    //   KarmaFieldsAlpha.Store.set(value, "delta", this.resource.driver, this.resource.id, ...path);
-    //
-    //   this.save();
-    //
-    //   this.render();
-    //
-		// }
-
-    value = KarmaFieldsAlpha.Type.toArray(value);
-
-    const id = this.getId();
-
-    KarmaFieldsAlpha.Store.setValue(value, this.resource.driver, id, ...path)
-
-    this.render();
-
-	}
-
-  // -> same as grid
-  modified(...path) {
-
-    // return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id, ...path), this.resource.driver, this.resource.id, ...path);
-
-    const id = this.getId();
-
-    return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta", this.resource.driver, id, ...path), this.resource.driver, id, ...path);
+    return KarmaFieldsAlpha.Query.getValue(driver, ...path);
 
   }
+
+  async setContent(content, ...path) {
+
+    const driver = this.getDriver();
+
+    await KarmaFieldsAlpha.Store.State.set(content.toArray(), driver, ...path);
+
+  }
+
+  // getValue(...path) {
+  //
+  //   // return KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id, ...path) || KarmaFieldsAlpha.Query.getValue(this.resource.driver, this.resource.id, ...path);
+  //
+  //   const id = this.getId();
+  //
+  //   return KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, ...path);
+  //
+	// }
+
+
+
+  // queryValue(...path) {
+  //
+  //   // return KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id, ...path) || KarmaFieldsAlpha.Query.getValue(this.resource.driver, this.resource.id, ...path);
+  //
+  //   const id = this.getId();
+  //
+  //   return KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, ...path);
+  //
+	// }
+
+  // // -> same as grid !
+	// setValue(value, ...path) {
+  //
+  //   value = KarmaFieldsAlpha.Type.toArray(value);
+  //
+  //   const id = this.getId();
+  //
+  //   KarmaFieldsAlpha.Store.setValue(value, this.resource.driver, id, ...path)
+  //
+  //   this.render();
+  //
+	// }
+
+  // // -> same as grid
+  // modified(...path) {
+  //
+  //   // return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta", this.resource.driver, this.resource.id, ...path), this.resource.driver, this.resource.id, ...path);
+  //
+  //   const id = this.getId();
+  //
+  //   return !KarmaFieldsAlpha.DeepObject.include(KarmaFieldsAlpha.Query.vars, KarmaFieldsAlpha.Store.get("delta", this.resource.driver, id, ...path), this.resource.driver, id, ...path);
+  //
+  // }
 
   getDriver() {
 
@@ -72,9 +83,9 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
   submit() {
 
-    KarmaFieldsAlpha.Query.send();
+    KarmaFieldsAlpha.Query.sync();
 
-    this.render();
+    this.request("render");
 
   }
 

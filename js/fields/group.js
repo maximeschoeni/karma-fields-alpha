@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
+KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   // getSelection(subKey) {
 
@@ -38,93 +38,150 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
   // }
 
-  getValue(subkey) {
-    // return this.parent.getValue();
 
-    // const key = this.getKey();
-    //
-    // if (key) {
-    //
-    //   const values = this.parent.getValue(key);
-    //
-    //   const [subkey] = path;
-    //
-    //   if (values && subkey) {
-    //
-    //     const object = values[0];
-    //
-    //     if (object) {
-    //
-    //       return KarmaFieldsAlpha.Type.toArray(object[subkey]);
-    //
-    //     }
-    //
-    //     return [];
-    //
-    //   }
-    //
-    //   return values;
-    //
-    // } else {
-    //
-    //   return this.parent.getValue(...path);
-    //
-    // }
+  getContent(...path) {
 
     const key = this.getKey();
 
     if (key) {
 
-      const object = this.parent.getSingleValue(key);
+      const content = this.parent.getContent(key);
 
-      if (object === KarmaFieldsAlpha.loading) {
+      if (content.loading) {
 
-        return KarmaFieldsAlpha.loading;
-
-      }
-
-      if (object && object[subkey]) {
-
-        return KarmaFieldsAlpha.Type.toArray(object[subkey]);
+        return new KarmaFieldsAlpha.Content.Request();
 
       }
 
-      return [];
+      const value = KarmaFieldsAlpha.DeepObject.get(content.toObject(), ...path);
 
-    } else {
+      return new KarmaFieldsAlpha.Content(value);
 
-      return this.parent.getValue(subkey);
+    } else if (this.parent) {
+
+      return this.parent.getContent(...path);
 
     }
 
   }
 
-  setValue(value, subkey) {
-    // return this.parent.getValue();
+  setContent(content, ...path) {
 
     const key = this.getKey();
 
     if (key) {
 
-      const object = this.parent.getSingleValue(key);
+      let groupContent = this.parent.getContent(key);
 
-      if (object && object !== KarmaFieldsAlpha.loading) {
+      if (!groupContent.loading) {
 
-        const object = {...object, [subkey]: value};
+        const object = groupContent.toObject();
 
-        Object.freeze(object);
+        KarmaFieldsAlpha.DeepObject.set(object, content.value, ...path);
 
-        this.parent.setValue(object, key);
+        content = new KarmaFieldsAlpha.Content(object);
+
+        this.parent.setContent(content, key);
 
       }
 
     } else {
 
-      this.parent.setValue(value, subkey);
+      this.parent.setContent(content, ...path);
 
     }
 
   }
+
+
+
+  // getValue(subkey) {
+  //   // return this.parent.getValue();
+  //
+  //   // const key = this.getKey();
+  //   //
+  //   // if (key) {
+  //   //
+  //   //   const values = this.parent.getValue(key);
+  //   //
+  //   //   const [subkey] = path;
+  //   //
+  //   //   if (values && subkey) {
+  //   //
+  //   //     const object = values[0];
+  //   //
+  //   //     if (object) {
+  //   //
+  //   //       return KarmaFieldsAlpha.Type.toArray(object[subkey]);
+  //   //
+  //   //     }
+  //   //
+  //   //     return [];
+  //   //
+  //   //   }
+  //   //
+  //   //   return values;
+  //   //
+  //   // } else {
+  //   //
+  //   //   return this.parent.getValue(...path);
+  //   //
+  //   // }
+  //
+  //   const key = this.getKey();
+  //
+  //   if (key) {
+  //
+  //     const object = this.parent.getSingleValue(key);
+  //
+  //     if (object === KarmaFieldsAlpha.loading) {
+  //
+  //       return KarmaFieldsAlpha.loading;
+  //
+  //     }
+  //
+  //     if (object && object[subkey]) {
+  //
+  //       return KarmaFieldsAlpha.Type.toArray(object[subkey]);
+  //
+  //     }
+  //
+  //     return [];
+  //
+  //   } else {
+  //
+  //     return this.parent.getValue(subkey);
+  //
+  //   }
+  //
+  // }
+  //
+  // setValue(value, subkey) {
+  //   // return this.parent.getValue();
+  //
+  //   const key = this.getKey();
+  //
+  //   if (key) {
+  //
+  //     const object = this.parent.getSingleValue(key);
+  //
+  //     if (object && object !== KarmaFieldsAlpha.loading) {
+  //
+  //       const object = {...object, [subkey]: value};
+  //
+  //       Object.freeze(object);
+  //
+  //       this.parent.setValue(object, key);
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     this.parent.setValue(value, subkey);
+  //
+  //   }
+  //
+  // }
 
 
 
@@ -214,58 +271,309 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field.container {
 
 	// }
 
-	getDefault(defaults = {}) {
+	// getDefault(defaults = {}) {
+  //
+	// 	const key = this.getKey();
+  //
+	// 	if (key) {
+  //
+  //     defaults[key] = super.getDefault();
+  //
+	// 	} else {
+  //
+  //     super.getDefault(defaults);
+  //
+  //   }
+  //
+	// 	return defaults;
+	// }
+
+
+
+  // export(items = []) {
+  //
+  //   if (this.resource.children) {
+  //
+	// 		for (let resource of this.resource.children) {
+  //
+	// 			const child = this.createChild(resource);
+  //
+  //       child.export(items);
+  //
+	// 		}
+  //
+	// 	}
+  //
+	// 	return items;
+  // }
+  //
+  // import(items) {
+  //
+  //   if (this.resource.children) {
+  //
+	// 		for (let resource of this.resource.children) {
+  //
+	// 			const child = this.createChild(resource);
+  //
+  //       child.import(items);
+  //
+	// 		}
+  //
+	// 	}
+  //
+  // }
+
+
+
+	export(collection) {
 
 		const key = this.getKey();
 
 		if (key) {
 
-      defaults[key] = super.getDefault();
+      let content = this.parent.getContent(key);
+      // const object = content.toObject();
+      // const string = JSON.stringify(object);
+      // content = new KarmaFieldsAlpha.Content(string);
+
+      collection.add(content);
+
+      // items.push(content);
+      //
+      // if (content.loading) {
+      //
+      //   items.push("");
+      //
+      // } else {
+      //
+      //   const object = content.toObject();
+      //   const string = JSON.stringify(object);
+      //
+      //   items.push(string);
+      //
+      // }
 
 		} else {
 
-      super.getDefault(defaults);
+      // for (let i = 0; i < this.resource.children.length; i++) {
+      //
+      //   const resource = this.resource.children[i];
+			// 	const child = this.createChild(resource, i);
+      //
+      //   items = child.export(items);
+      //
+			// }
+
+      super.export(items);
+
+		}
+
+    return items;
+	}
+
+	import(collection) {
+
+		const key = this.getKey();
+
+		if (key) {
+
+      const content = collection.pick();
+      // const content = new KarmaFieldsAlpha.Content(value);
+
+      this.parent.setContent(content, key);
+
+		} else {
+
+      super.import(collection);
+			// for (let i = 0; i < this.resource.children.length; i++) {
+      //
+      //   const resource = this.resource.children[i];
+			// 	const child = this.createChild(resource, i);
+      //
+      //   child.import(items);
+      //
+			// }
+
+		}
+
+	}
+
+  isHidden(field) {
+
+    if (field.resource.hidden) {
+
+      return this.parse(field.resource.hidden).toBoolean();
+
+    } else if (field.resource.visible) {
+
+      return !this.parse(field.resource.visible).toBoolean();
 
     }
 
-		return defaults;
+    return false;
+  }
+
+  buildLabel() {
+
+		return [{
+			tag: "label",
+			class: "label",
+			update: label => {
+				label.element.htmlFor = field.getId();
+				label.element.textContent = field.getLabel();
+			}
+		}];
+
 	}
 
-	export(object = {}) {
+	buildPseudoLabel() {
 
-		const key = this.getKey();
+		return [{
+			class: "label",
+			update: label => {
+				label.element.textContent = field.getLabel();
+			}
+		}];
 
-		if (key) {
+	}
 
-			object[key] = this.parent.request("get", {}, key);
+	buildChildren(field, labelable) {
+		const children = [];
 
-		} else {
+		if (field.resource.label) {
 
-			super.export(object);
+			children.push({
+				class: "label",
+				update: label => {
+					label.element.textContent = field.getLabel();
+				}
+			});
 
 		}
 
-    return object;
+		if (field.build) { // -> not separators
+
+			children.push(field.build());
+
+		}
+
+		return children;
 	}
 
-	import(object = {}) {
+	build() {
+		return {
+			class: "karma-field karma-field-container display-"+(this.resource.display || "block"),
+			init: group => {
+				if (this.resource.container && this.resource.container.style) {
+					group.element.style = this.resource.container.style;
+				}
+				if (this.resource.class) {
+					group.element.classList.add(this.resource.class);
+				}
+				if (this.resource.classes) {
+					group.element.classList.add(...this.resource.classes);
+				}
+				if (this.resource.wrap === false) {
+					group.element.style.flexWrap = "nowrap";
+				}
+			},
+			update: group => {
 
-		const key = this.getKey();
+				group.children = this.getChildren().map((resource, index) => {
 
-		if (key) {
+          if (typeof resource === "string") {
 
-			if (object[key] !== undefined) {
+            resource = {type: resource};
 
-				this.parent.request("set", object[key], key);
+          }
+
+					// const field = this.createChild({
+          //   id: index,
+          //   ...resource,
+          //   index: index,
+          //   uid: `${this.resource.uid}-${index}`
+          // }, index);
+
+          const field = this.createChild(resource, index);
+
+					const labelable = resource.type === "input"
+						|| resource.type === "textarea"
+						|| resource.type === "checkbox"
+						|| resource.type === "dropdown";
+
+					return {
+						tag: labelable ? "label" : "div",
+						class: "karma-field-frame karma-field-"+field.resource.type,
+						init: (container) => {
+							if (field.resource.style) {
+								container.element.style = field.resource.style;
+							}
+							if (field.resource.class) {
+								field.resource.class.split(" ").forEach(name => container.element.classList.add(name));
+							}
+							if (field.resource.flex) {
+								container.element.style.flex = field.resource.flex;
+							}
+							if (field.resource.width) {
+								container.element.style.maxWidth = field.resource.width;
+							}
+						},
+						update: (container) => {
+							container.children = [];
+
+              let hidden = this.isHidden(field);
+
+              // if (field.resource.hidden) {
+              //
+              //   hidden = KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.hidden));
+              //   // container.element.classList.toggle("hidden", KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.hidden)));
+              // }
+              //
+              // if (field.resource.visible) {
+              //
+              //   hidden = !KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.visible))
+              //   // container.element.classList.toggle("hidden", !KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.visible)));
+              // }
+
+							container.element.classList.toggle("hidden", hidden);
+
+							if (!hidden) {
+
+								container.children = this.buildChildren(field, labelable);
+
+							}
+
+
+							// container.children = [];
+							//
+							// if (!hidden) {
+							//
+							// 	if (resource.label) {
+							//
+							// 		if (labelable) {
+							//
+							// 			container.children = this.buildLabel(resource.label);
+							//
+							// 		} else {
+							//
+							// 			container.children = this.buildPseudoLabel(resource.label);
+							//
+							// 		}
+							//
+							// 	}
+							//
+							// 	container.children = [...container.children, field];
+							//
+							// }
+
+
+						}
+					}
+				});
 
 			}
 
-		} else {
-
-			super.import(object);
-
-		}
-
+		};
 	}
 
 }

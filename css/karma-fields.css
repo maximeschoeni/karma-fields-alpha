@@ -358,12 +358,51 @@ body.karma-table-open {
   padding: var(--gap-width);
   border-top: 1px solid var(--border-color);
   z-index: 2;
+
+  background-image: repeating-linear-gradient(-45deg, white 0 25%, transparent 25% 50%);
+  background-size: 40em 40em;
+  animation: slide 8s infinite linear;
+
+  transition: background-color 600ms;
+
 }
 .karma-field-table .table-footer.dark {
   background-color: var(--theme-bg-color);
   border-color: var(--theme-bg-color);
 }
 
+
+.karma-field-table .table-footer.loading {
+  background-color: var(--background-color);
+
+
+  /* background-size: 10em 17.4em; */
+
+  color: #e8e8e8 !important;
+  border-color: var(--disabled-color) !important;
+
+
+
+
+  /* background-image: linear-gradient(-45deg, white 33%, var(--background-color) 33%,var(--background-color) 70%, white 70%);
+  background-size: 40em 40em; */
+
+
+  /* background-image: linear-gradient(-45deg,var(--wp-components-color-accent,var(--wp-admin-theme-color,#3858e9)) 33%,var(--wp-components-color-accent-darker-20,var(--wp-admin-theme-color-darker-20,#183ad6)) 33%,var(--wp-components-color-accent-darker-20,var(--wp-admin-theme-color-darker-20,#183ad6)) 70%,var(--wp-components-color-accent,var(--wp-admin-theme-color,#3858e9)) 70%);
+  background-size: 20em 20em;
+
+
+  background-image: linear-gradient(-45deg,var(--wp-components-color-accent,var(--wp-admin-theme-color,#3858e9)) 33%,var(--wp-components-color-accent-darker-20,var(--wp-admin-theme-color-darker-20,#183ad6)) 33%,var(--wp-components-color-accent-darker-20,var(--wp-admin-theme-color-darker-20,#183ad6)) 70%,var(--wp-components-color-accent,var(--wp-admin-theme-color,#3858e9)) 70%);
+    background-size: 100px 100%; */
+
+
+}
+
+@keyframes slide {
+	100% {
+		background-position-x: -40em;
+	}
+}
 
 
 
@@ -410,8 +449,18 @@ body.karma-table-open {
   position: relative;
 
   border: 1px solid var(--border-color);
-}
 
+  align-content: start;
+  flex-grow: 1;
+  background-color: white;
+}
+.karma-fields .table.even {
+  background-color: var(--background-color);
+}
+.karma-fields .table.active {
+  border-color: var(--theme-color);
+  outline: 1px solid var(--theme-color);
+}
 .karma-fields .table.filled {
   /* border: 1px solid black; */
 }
@@ -763,7 +812,7 @@ ul.karma-breadcrumb li a:hover {
   justify-content: center; */
   border: none;
   background-color: transparent;
-  padding: 0.1em 0.25em;
+  padding: 0.1em 0;
 
 }
 .karma-fields .simple-buttons .button.active {
@@ -1276,6 +1325,7 @@ ul.tag-links li:not(:last-child)::after {
   display: flex;
   flex-direction: column;
   gap: var(--gap-width);
+
 }
 
 
@@ -1292,7 +1342,14 @@ ul.tag-links li:not(:last-child)::after {
   /* padding: var(--border-width); */
   /* gap: var(--border-width); */
   border: 1px solid var(--border-color);
+  /* border-radius: 4px; */
 }
+.karma-fields .array .array-body.active {
+  outline: 1px solid var(--theme-color);
+  border-color: var(--theme-color);
+}
+
+
 .karma-fields .array .array-footer {
   flex-shrink: 0;
   flex-grow: 1;
@@ -1405,7 +1462,7 @@ ul.tag-links li:not(:last-child)::after {
 
 /* Table Input */
 
-.karma-fields .table input[type=text],
+/* .karma-fields .table input[type=text],
 .karma-fields .table textarea {
   border: none;
   margin: 0;
@@ -1425,7 +1482,7 @@ ul.tag-links li:not(:last-child)::after {
 .karma-fields .table textarea {
   line-height: 1.1em;
   min-height: 4em;
-}
+} */
 
 /* Input Datalist */
 
@@ -1437,19 +1494,13 @@ ul.tag-links li:not(:last-child)::after {
 /* Clipboard textarea */
 textarea.clipboard {
   position: fixed;
-  /* width: 1px;
-  height: 0; */
   padding: 0;
   border: none;
-  /* opacity: 0.01; */
   bottom: 0;
-
   font-size: 1px;
   width: 1em;
   height: 1em;
-
   order: 999;
-
 }
 
 
@@ -1460,6 +1511,9 @@ textarea.clipboard {
 .karma-fields textarea.selected {
   background-color: var(--selected-background-color);
   /* color: var(--inverse-text-color); */
+
+  border-color: var(--theme-color);
+  outline: 1px solid var(--theme-color);
 }
 
 
