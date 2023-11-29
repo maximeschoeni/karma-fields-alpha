@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.Content = class {
+KarmaFieldsAlpha.Content = class { // -> Pocket ?
 
   constructor(value, params) {
 

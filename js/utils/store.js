@@ -1,3 +1,35 @@
+
+/*
+
+Store Data structure
+
+- vars
+- tasks
+- attempts
+- fields
+- counts
+- queries
+- history
+  - index
+  - max
+- buffer
+  - loaded
+  - state
+    - delta
+    - clipboard
+    - fields
+    - layerindex
+    - layers
+      layer 1
+        - table
+        - params
+        - focus
+        - items
+      layer 2
+
+
+ */
+
 KarmaFieldsAlpha.store = {};
 
 KarmaFieldsAlpha.Store = class {
@@ -25,142 +57,13 @@ KarmaFieldsAlpha.Store = class {
 
   }
 
-	// static loadBuffer() {
-  //
-  //   KarmaFieldsAlpha.Store.Buffer.load();
-  //
-	// }
-  //
-	// static getBuffer(...path) {
-  //
-  //   return KarmaFieldsAlpha.Store.Buffer.get(...path);
-  //
-	// }
-  //
-	// static async setBuffer(value, ...path) {
-  //
-  //   await KarmaFieldsAlpha.Store.Buffer.set(value, ...path);
-  //
-	// }
-  //
-	// static async assignBuffer(value, ...path) {
-  //
-  //   await KarmaFieldsAlpha.Store.Buffer.assign(value, ...path);
-  //
-	// }
-  //
-	// static mergeBuffer(value, ...path) {
-  //
-  //   await KarmaFieldsAlpha.Store.Buffer.merge(value, ...path);
-  //
-  // }
-  //
-	// static getState(...path) {
-  //
-  //   return KarmaFieldsAlpha.Store.State.get(...path);
-  //
-	// }
-  //
-	// static async updateState(value, ...path) {
-  //
-  //   await KarmaFieldsAlpha.Store.State.set(value, ...path);
-  //
-	// }
-  //
-	// static getCurrentLayer(...path) {
-  //
-  //   return KarmaFieldsAlpha.Store.Layer.getCurrent(...path);
-  //
-	// }
-  //
-	// static async updateCurrentLayer(value, ...path) {
-  //
-  //   await KarmaFieldsAlpha.Store.Layer.set(value, ...path);
-  //
-	// }
-  //
-	// static getSelection() {
-  //
-  //   return KarmaFieldsAlpha.Store.Layer.getSelection();
-  //
-	// }
-  //
-	// static async setSelection(selection) {
-  //
-  //   await KarmaFieldsAlpha.Store.Layer.setSelection(selection);
-  //
-	// }
-  //
-	// static getTable() {
-  //
-  //   return KarmaFieldsAlpha.Store.Layer.getTable();
-  //
-	// }
-  //
-	// static async setTable(table) {
-  //
-  //   await KarmaFieldsAlpha.Store.Layer.setTable(table);
-  //
-	// }
-  //
-	// static getParam(key) {
-  //
-  //   return KarmaFieldsAlpha.Store.Layer.getParam(key);
-  //
-	// }
-  //
-	// static async setParam(value, key) {
-  //
-  //   await KarmaFieldsAlpha.Store.Layer.setParam(value, key);
-  //
-	// }
-  //
-	// static getItems() {
-  //
-  //   return KarmaFieldsAlpha.Store.Layer.getItems();
-  //
-	// }
-  //
-	// static async setItems(items) {
-  //
-  //   await KarmaFieldsAlpha.Store.Layer.setItems(items);
-  //
-	// }
-  //
-	// static updateOption(data, ...path) {
-  //
-  //   await KarmaFieldsAlpha.Store.State.setOption(data, ...path);
-  //
-	// }
-  //
-  //
-	// static hasChange() {
-  //
-  //   return KarmaFieldsAlpha.Store.Delta.hasChange();
-  //
-	// }
-  //
-	// static modified(...path) {
-  //
-  //   return KarmaFieldsAlpha.Store.Delta.modified();
-  //
-  // }
-
 }
 
 KarmaFieldsAlpha.Store.Buffer = class {
 
-  static async load() {
+  static async load(pageId) {
 
-		// KarmaFieldsAlpha.tasks.push({
-		// 	resolve: async task => {
-		// 		const buffer = await KarmaFieldsAlpha.Database.Options.get("buffer") || {};
-    //     buffer.loaded = true;
-		// 		this.set(buffer);
-		// 	}
-		// });
-
-    const buffer = await KarmaFieldsAlpha.Database.Options.get("buffer") || {};
+    const buffer = await KarmaFieldsAlpha.Database.Options.get(pageId) || {};
     buffer.loaded = true;
     await this.set(buffer);
 
@@ -178,37 +81,37 @@ KarmaFieldsAlpha.Store.Buffer = class {
 
 	}
 
-	static async set(value, ...path) {
+	static set(value, ...path) {
 
 		KarmaFieldsAlpha.Store.set(value, "buffer", ...path);
 
-		await KarmaFieldsAlpha.Database.Options.set(value, "buffer", ...path);
+		KarmaFieldsAlpha.Database.Options.set(value, "buffer", ...path);
 
 	}
 
-  static async remove(...path) {
+  static remove(...path) {
 
 		KarmaFieldsAlpha.Store.remove("buffer", ...path);
 
-		await KarmaFieldsAlpha.Database.Options.remove("buffer", ...path);
+		KarmaFieldsAlpha.Database.Options.remove("buffer", ...path);
 
 	}
 
-	static async assign(value, ...path) {
+	static assign(value, ...path) {
 
 		KarmaFieldsAlpha.Store.assign(value, "buffer", ...path);
 
-		await KarmaFieldsAlpha.Database.Options.assign(value, "buffer", ...path);
+		KarmaFieldsAlpha.Database.Options.assign(value, "buffer", ...path);
 
 	}
 
-	static async merge(value, ...path) {
+	static merge(value, ...path) {
 
 		const source = this.get(...path);
 
 		KarmaFieldsAlpha.DeepObject.merge(source, value);
 
-		await this.set(source, ...path);
+		this.set(source, ...path);
 
   }
 
@@ -222,32 +125,40 @@ KarmaFieldsAlpha.Store.State = class {
 
   }
 
-  static async set(value, ...path) {
+  static set(value, ...path) {
 
-    await KarmaFieldsAlpha.History.update(value, ...path);
+    // KarmaFieldsAlpha.History.update(value, ...path);
 
-    await KarmaFieldsAlpha.Store.Buffer.set(value, "state", ...path);
+    const currentValue = this.get(...path);
 
-  }
+    KarmaFieldsAlpha.History.delta(value, currentValue, ...path);
 
-  static async remove(...path) {
-
-    await KarmaFieldsAlpha.History.update(null, ...path);
-
-    await KarmaFieldsAlpha.Store.Buffer.remove("state", ...path);
+    KarmaFieldsAlpha.Store.Buffer.set(value, "state", ...path);
 
   }
 
+  static remove(...path) {
 
-  static async merge(value, ...path) {
+    // KarmaFieldsAlpha.History.update(null, ...path);
 
-    const source = this.get(...path);
+    const currentValue = this.get(...path);
 
-    KarmaFieldsAlpha.DeepObject.merge(source, value);
+    KarmaFieldsAlpha.History.delta(null, currentValue, ...path);
 
-    await this.set(source, ...path);
+    KarmaFieldsAlpha.Store.Buffer.remove("state", ...path);
 
   }
+
+
+  // static async merge(value, ...path) {
+  //
+  //   const source = this.get(...path);
+  //
+  //   KarmaFieldsAlpha.DeepObject.merge(source, value);
+  //
+  //   await this.set(source, ...path);
+  //
+  // }
 
   static getOption(...path) {
 
@@ -255,9 +166,9 @@ KarmaFieldsAlpha.Store.State = class {
 
 	}
 
-  static async setOption(data, ...path) {
+  static setOption(data, ...path) {
 
-		await this.set(data, "options", ...path);
+		this.set(data, "options", ...path);
 
 	}
 
@@ -271,15 +182,25 @@ KarmaFieldsAlpha.Store.Delta = class {
 
   }
 
-  static async set(value, ...path) {
+  static set(value, ...path) {
 
-    KarmaFieldsAlpha.Store.State.set(value, "delta", ...path);
+    // KarmaFieldsAlpha.Store.State.set(value, "delta", ...path);
+
+    const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
+
+    KarmaFieldsAlpha.History.delta(value, currentValue, "delta", ...path);
+
+    KarmaFieldsAlpha.Store.Buffer.set(value, "state", "delta", ...path);
 
   }
 
-  static async remove(...path) {
+  static remove(...path) {
 
-    KarmaFieldsAlpha.Store.State.set("delta", ...path);
+    const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
+
+    KarmaFieldsAlpha.History.delta([], currentValue, "delta", ...path);
+
+    KarmaFieldsAlpha.Store.Buffer.set([], "state", "delta", ...path);
 
   }
 
@@ -325,13 +246,13 @@ KarmaFieldsAlpha.Store.Layer = class {
 
   static set(layer, index, ...path) {
 
-    return KarmaFieldsAlpha.Store.State.set(layer, "layers", index, ...path);
+    KarmaFieldsAlpha.Store.State.set(layer, "layers", index, ...path);
 
   }
 
   static remove(index, ...path) {
 
-    return KarmaFieldsAlpha.Store.State.remove("layers", index, ...path);
+    KarmaFieldsAlpha.Store.State.remove("layers", index, ...path);
 
   }
 
@@ -341,9 +262,9 @@ KarmaFieldsAlpha.Store.Layer = class {
 
   }
 
-  static async setIndex(index) {
+  static setIndex(index) {
 
-    await KarmaFieldsAlpha.Store.State.set(index, "layerIndex");
+    KarmaFieldsAlpha.Store.State.set(index, "layerIndex");
 
   }
 
@@ -355,19 +276,19 @@ KarmaFieldsAlpha.Store.Layer = class {
 
   }
 
-  static async setCurrent(value, ...path) {
+  static setCurrent(value, ...path) {
 
     const index = this.getIndex();
 
-    await this.set(value, index, ...path);
+    this.set(value, index, ...path);
 
   }
 
-  static async removeCurrent(...path) {
+  static removeCurrent(...path) {
 
     const index = this.getIndex();
 
-    await this.remove(index, ...path);
+    this.remove(index, ...path);
 
   }
 
@@ -377,15 +298,15 @@ KarmaFieldsAlpha.Store.Layer = class {
 
 	}
 
-	static async setSelection(selection) {
+	static setSelection(selection) {
 
-		await this.setCurrent(selection, "selection");
+		this.setCurrent(selection, "selection");
 
 	}
 
-  static async removeSelection() {
+  static removeSelection() {
 
-		await this.removeCurrent("selection");
+		this.removeCurrent("selection");
 
 	}
 
@@ -395,9 +316,9 @@ KarmaFieldsAlpha.Store.Layer = class {
 
 	}
 
-	static async setTable(table) {
+	static setTable(table) {
 
-		await this.setCurrent(table, "table");
+		this.setCurrent(table, "table");
 
 	}
 
@@ -407,15 +328,15 @@ KarmaFieldsAlpha.Store.Layer = class {
 
 	}
 
-	static async setParam(value, key) {
+	static setParam(value, key) {
 
-		await this.setCurrent(value, "params", key);
+		this.setCurrent(value, "params", key);
 
 	}
 
-  static async removeParam(key) {
+  static removeParam(key) {
 
-		await this.removeCurrent("params", key);
+		this.removeCurrent("params", key);
 
 	}
 
@@ -425,9 +346,9 @@ KarmaFieldsAlpha.Store.Layer = class {
 
 	}
 
-	static async setParams(value) {
+	static setParams(value) {
 
-		await this.setCurrent(value, "params");
+		this.setCurrent(value, "params");
 
 	}
 
@@ -437,29 +358,42 @@ KarmaFieldsAlpha.Store.Layer = class {
 
 	}
 
-	static async setItems(items) {
+	static setItems(items) {
 
-		await this.setCurrent(items, "items");
+		this.setCurrent(items, "items");
+
+	}
+
+  static removeItems() {
+
+		this.removeCurrent("items");
 
 	}
 
-  static async removeItems() {
+  static close() {
 
-		await this.removeCurrent("items");
+    let index = this.getIndex();
 
-	}
+    if (index) {
+
+      KarmaFieldsAlpha.Store.State.remove("layers", index);
+      this.setIndex(index-1);
+
+    }
+
+  }
 
 }
 
 KarmaFieldsAlpha.Store.Embeds = class {
 
-  get() {
+  static get() {
 
     return KarmaFieldsAlpha.Store.get("embeds") || [];
 
   }
 
-  add(resource) {
+  static add(resource) {
 
     const embeds = this.get();
 
@@ -469,51 +403,51 @@ KarmaFieldsAlpha.Store.Embeds = class {
 
 }
 
-KarmaFieldsAlpha.Store.Focus = class {
+// KarmaFieldsAlpha.Store.Focus = class {
+//
+//   get() {
+//
+//     return KarmaFieldsAlpha.Store.Layer.get("focus");
+//
+//   }
+//
+//   set(focus) {
+//
+//     KarmaFieldsAlpha.Store.Layer.set(focus, "focus");
+//
+//   }
+//
+//   remove() {
+//
+//     KarmaFieldsAlpha.Store.Layer.remove(focus);
+//
+//   }
+//
+//   has(path) {
+//
+//     const focus = this.get();
+//
+//     return Boolean(focus && focus.length === path.length && path.every((id, index) => id === focus[index]));
+//
+//   }
+//
+// }
 
-  get() {
-
-    return KarmaFieldsAlpha.Store.Layer.get("focus");
-
-  }
-
-  set(focus) {
-
-    KarmaFieldsAlpha.Store.Layer.set(focus, "focus");
-
-  }
-
-  remove() {
-
-    KarmaFieldsAlpha.Store.Layer.remove(focus);
-
-  }
-
-  has(path) {
-
-    const focus = this.get();
-
-    return Boolean(focus && focus.length === path.length && path.every((id, index) => id === focus[index]));
-
-  }
-
-}
-
-KarmaFieldsAlpha.Store.Clipboard = class {
-
-  get() {
-
-    return KarmaFieldsAlpha.Store.State.get("clipboard");
-
-  }
-
-  set(value) {
-
-    KarmaFieldsAlpha.Store.Layer.set(value, "clipboard");
-
-  }
-
-}
+// KarmaFieldsAlpha.Store.Clipboard = class {
+//
+//   get() {
+//
+//     return KarmaFieldsAlpha.Store.State.get("clipboard");
+//
+//   }
+//
+//   set(value) {
+//
+//     KarmaFieldsAlpha.Store.Layer.set(value, "clipboard");
+//
+//   }
+//
+// }
 
 KarmaFieldsAlpha.Store.Tasks = class {
 

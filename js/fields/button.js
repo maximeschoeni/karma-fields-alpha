@@ -234,7 +234,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 					}
 				},
 			],
-			update: async button => {
+			update: button => {
 
 				if (this.resource.primary) {
 

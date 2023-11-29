@@ -1,48 +1,5 @@
 KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
-
-	// write(value, lastValue = "") {
-	//
-	// 	this.setValue(value);
-	//
-	// 	if (value.length < lastValue.length) {
-	//
-	// 		this.save(`${this.resource.uid}-delete`);
-	//
-	// 	} else {
-	//
-	// 		this.save(`${this.resource.uid}-input`);
-	//
-	// 	}
-	//
-	// }
-	//
-	// inputText(value, inputType) {
-	//
-	// 	value = value.normalize();
-	//
-	// 	const current = this.lastValue || "";
-	//
-	// 	if (inputType === "insertText") {
-	//
-	// 		this.debounce(() => {
-	//
-	// 			this.write(value)
-	//
-	// 		}, 300);
-	//
-	// 	} else {
-	//
-	// 		this.write(value)
-	//
-	// 	}
-	//
-	//
-	//
-	//
-	// }
-
-
 	build() {
 		return {
 			tag: "textarea",
@@ -56,7 +13,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 					Object.assign(input.element, this.resource.textarea || this.resource.input);
 				}
 			},
-			update: async input => {
+			update: input => {
 
         let content = this.getContent();
 
@@ -70,7 +27,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 						if (!content.loading) {
 
-							await this.setContent(content);
+							this.setContent(content);
 
 							KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
 
@@ -114,17 +71,17 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 					const value = content.toString();
 
-          input.element.oninput = async event => {
+          input.element.oninput = event => {
 
 						const newValue = input.element.value.normalize();
 
 						if (newValue !== value) {
 
-							await this.save(newValue.length < value.length);
+							this.save(newValue.length < value.length);
 
 							const content = new KarmaFieldsAlpha.Content(newValue);
 
-							await this.setContent(content);
+							this.setContent(content);
 
 							if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
 
@@ -132,7 +89,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 							} else {
 
-								await this.request("render");
+								this.request("render");
 
 							}
 
@@ -140,21 +97,11 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
           }
 
-					input.element.onfocus = async event => {
+					input.element.onfocus = event => {
 
-						// this.setSelection({});
-						//
-						// if (content.mixed) {
-						//
-						// 	this.request("deferFocus");
-						//
-						// 	// KarmaFieldsAlpha.Clipboard.focus();
-						//
-						// }
+						this.setFocus(content.mixed);
 
-						await this.setFocus(content.mixed);
-
-						await this.request("render"); // update clipboard textarea, unselect other stuffs
+						this.request("render"); // update clipboard textarea, unselect other stuffs
 
 					}
 

@@ -1,44 +1,5 @@
 KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
-  // getSelection(subKey) {
-
-  //   const key = this.getKey();
-
-	// 	if (key) {
-
-  //     const selection = this.parent.getSelection(key);
-
-  //     if (selection) {
-
-  //       return selection[subKey];
-
-  //     }
-
-  //   } else {
-
-  //     return this.parent.getSelection(subKey);
-
-  //   }
-
-  // }
-
-  // setSelection(values, subKey) {
-
-  //   const key = this.getKey();
-
-	// 	if (key) {
-
-  //     this.parent.setSelection({[subKey]: values}, key);
-
-  //   } else {
-
-  //     this.parent.setSelection(values, subKey);
-
-  //   }
-
-  // }
-
-
   getContent(...path) {
 
     const key = this.getKey();
@@ -93,238 +54,6 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   }
 
-
-
-  // getValue(subkey) {
-  //   // return this.parent.getValue();
-  //
-  //   // const key = this.getKey();
-  //   //
-  //   // if (key) {
-  //   //
-  //   //   const values = this.parent.getValue(key);
-  //   //
-  //   //   const [subkey] = path;
-  //   //
-  //   //   if (values && subkey) {
-  //   //
-  //   //     const object = values[0];
-  //   //
-  //   //     if (object) {
-  //   //
-  //   //       return KarmaFieldsAlpha.Type.toArray(object[subkey]);
-  //   //
-  //   //     }
-  //   //
-  //   //     return [];
-  //   //
-  //   //   }
-  //   //
-  //   //   return values;
-  //   //
-  //   // } else {
-  //   //
-  //   //   return this.parent.getValue(...path);
-  //   //
-  //   // }
-  //
-  //   const key = this.getKey();
-  //
-  //   if (key) {
-  //
-  //     const object = this.parent.getSingleValue(key);
-  //
-  //     if (object === KarmaFieldsAlpha.loading) {
-  //
-  //       return KarmaFieldsAlpha.loading;
-  //
-  //     }
-  //
-  //     if (object && object[subkey]) {
-  //
-  //       return KarmaFieldsAlpha.Type.toArray(object[subkey]);
-  //
-  //     }
-  //
-  //     return [];
-  //
-  //   } else {
-  //
-  //     return this.parent.getValue(subkey);
-  //
-  //   }
-  //
-  // }
-  //
-  // setValue(value, subkey) {
-  //   // return this.parent.getValue();
-  //
-  //   const key = this.getKey();
-  //
-  //   if (key) {
-  //
-  //     const object = this.parent.getSingleValue(key);
-  //
-  //     if (object && object !== KarmaFieldsAlpha.loading) {
-  //
-  //       const object = {...object, [subkey]: value};
-  //
-  //       Object.freeze(object);
-  //
-  //       this.parent.setValue(object, key);
-  //
-  //     }
-  //
-  //   } else {
-  //
-  //     this.parent.setValue(value, subkey);
-  //
-  //   }
-  //
-  // }
-
-
-
-	// request(subject, content, ...path) {
-
-	// 	const key = this.getKey();
-
-	// 	if (key) {
-
-	// 		// path = [key, ...path];
-
-	// 		switch (subject) {
-
-	// 			case "get": {
-	// 				// const response = await this.parent.request("get", {}, key);
-	// 				// const value = KarmaFieldsAlpha.Type.toObject(response);
-	// 				// return KarmaFieldsAlpha.DeepObject.get(value, ...path);
-
-  //         const values = this.parent.request("get", {}, key);
-
-  //         if (values) {
-
-	// 				  return KarmaFieldsAlpha.Type.toArray(KarmaFieldsAlpha.DeepObject.get(values[0], ...path));
-
-  //         }
-
-	// 			}
-
-	// 			// case "state": {
-	// 			// 	const state = await this.parent.request("state", {}, key);
-	// 			// 	const value = KarmaFieldsAlpha.Type.toObject(state.value);
-	// 			// 	return {
-	// 			// 		...state,
-	// 			// 		value: KarmaFieldsAlpha.DeepObject.get(value, ...path)
-	// 			// 	};
-	// 			// }
-
-	// 			case "set": {
-	// 				const values = this.parent.request("get", {}, key);
-
-  //         if (values) {
-
-  //           const value = KarmaFieldsAlpha.Type.toObject(values[0]);
-  //           const clone = KarmaFieldsAlpha.DeepObject.clone(value);
-  //           KarmaFieldsAlpha.DeepObject.set(clone, content, ...path);
-  //           this.parent.request("set", clone, key);
-
-  //         }
-	// 				// const value = KarmaFieldsAlpha.Type.toObject(response);
-	// 				// const clone = KarmaFieldsAlpha.DeepObject.clone(value);
-	// 				// KarmaFieldsAlpha.DeepObject.set(clone, content.data, ...path);
-	// 				// await this.parent.request("set", {data: clone}, key);
-	// 				break;
-	// 			}
-
-	// 			// case "fetch": {
-	// 			// 	return this.parent.request(subject, content, key, ...path); // for transfer record value
-	// 			// }
-
-
-	// 			default:
-	// 				return this.parent.request(subject, content, key);
-
-	// 		}
-
-	// 	} else {
-
-	// 		return this.parent.request(subject, content, ...path);
-
-	// 	}
-
-	// }
-
-	// getKeys() {
-
-	// 	const key = this.getKey();
-
-	// 	if (key) {
-
-	// 		return new Set([key]);
-
-	// 	} else {
-
-	// 		return super.getKeys();
-
-	// 	}
-
-	// }
-
-	// getDefault(defaults = {}) {
-  //
-	// 	const key = this.getKey();
-  //
-	// 	if (key) {
-  //
-  //     defaults[key] = super.getDefault();
-  //
-	// 	} else {
-  //
-  //     super.getDefault(defaults);
-  //
-  //   }
-  //
-	// 	return defaults;
-	// }
-
-
-
-  // export(items = []) {
-  //
-  //   if (this.resource.children) {
-  //
-	// 		for (let resource of this.resource.children) {
-  //
-	// 			const child = this.createChild(resource);
-  //
-  //       child.export(items);
-  //
-	// 		}
-  //
-	// 	}
-  //
-	// 	return items;
-  // }
-  //
-  // import(items) {
-  //
-  //   if (this.resource.children) {
-  //
-	// 		for (let resource of this.resource.children) {
-  //
-	// 			const child = this.createChild(resource);
-  //
-  //       child.import(items);
-  //
-	// 		}
-  //
-	// 	}
-  //
-  // }
-
-
-
 	export(collection) {
 
 		const key = this.getKey();
@@ -332,37 +61,10 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 		if (key) {
 
       let content = this.parent.getContent(key);
-      // const object = content.toObject();
-      // const string = JSON.stringify(object);
-      // content = new KarmaFieldsAlpha.Content(string);
 
       collection.add(content);
 
-      // items.push(content);
-      //
-      // if (content.loading) {
-      //
-      //   items.push("");
-      //
-      // } else {
-      //
-      //   const object = content.toObject();
-      //   const string = JSON.stringify(object);
-      //
-      //   items.push(string);
-      //
-      // }
-
 		} else {
-
-      // for (let i = 0; i < this.resource.children.length; i++) {
-      //
-      //   const resource = this.resource.children[i];
-			// 	const child = this.createChild(resource, i);
-      //
-      //   items = child.export(items);
-      //
-			// }
 
       super.export(items);
 
@@ -378,21 +80,12 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 		if (key) {
 
       const content = collection.pick();
-      // const content = new KarmaFieldsAlpha.Content(value);
 
       this.parent.setContent(content, key);
 
 		} else {
 
       super.import(collection);
-			// for (let i = 0; i < this.resource.children.length; i++) {
-      //
-      //   const resource = this.resource.children[i];
-			// 	const child = this.createChild(resource, i);
-      //
-      //   child.import(items);
-      //
-			// }
 
 		}
 
@@ -523,18 +216,6 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
               let hidden = this.isHidden(field);
 
-              // if (field.resource.hidden) {
-              //
-              //   hidden = KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.hidden));
-              //   // container.element.classList.toggle("hidden", KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.hidden)));
-              // }
-              //
-              // if (field.resource.visible) {
-              //
-              //   hidden = !KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.visible))
-              //   // container.element.classList.toggle("hidden", !KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.visible)));
-              // }
-
 							container.element.classList.toggle("hidden", hidden);
 
 							if (!hidden) {
@@ -542,30 +223,6 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 								container.children = this.buildChildren(field, labelable);
 
 							}
-
-
-							// container.children = [];
-							//
-							// if (!hidden) {
-							//
-							// 	if (resource.label) {
-							//
-							// 		if (labelable) {
-							//
-							// 			container.children = this.buildLabel(resource.label);
-							//
-							// 		} else {
-							//
-							// 			container.children = this.buildPseudoLabel(resource.label);
-							//
-							// 		}
-							//
-							// 	}
-							//
-							// 	container.children = [...container.children, field];
-							//
-							// }
-
 
 						}
 					}
@@ -580,22 +237,6 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 
 KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
-
-  // setSelection(selection) {
-  //
-  //   if (selection) {
-  //
-  //     const currentSelection = this.getSelection();
-  //
-  //     selection = {index: 0, length: 1, ...currentSelection, ...selection};
-  //
-  //   }
-  //
-  //   super.setSelection(selection);
-  //
-  // }
-
-
 
   build() {
 
@@ -636,15 +277,6 @@ KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
                 class: "tab-content",
                 update: node => {
 
-                  // node.element.onmousedown = event => {
-                  //
-                  //   // debugger;
-                  //   event.stopPropagation();
-                  //   this.setSelection({child: {}, childId: index});
-                  //   tabs.render();
-                  // }
-
-                  // const isActive = selection && index === selection.childId || !selection && index === 0;
                   const isActive = index === currentIndex;
 
                   node.element.classList.toggle("hidden", !isActive);

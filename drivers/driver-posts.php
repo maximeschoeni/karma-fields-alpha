@@ -141,73 +141,24 @@ Class Karma_Fields_Alpha_Driver_Posts {
             case 'post_type':
               break;
 
-
-              // array(
-              //   'date_query' => array(
-              //     array(
-              //       'year' => 2012,
-              //       'month' => 12,
-              //       'day' => 12,
-              //     )
-              //   )
-              // );
-
-
-            // case 'trash':
-            //   if (intval($value[0])) {
-            //     $post_type = get_post_type($id);
-            //     // update_post_meta($id, 'trash-post_type', $post_type);
-            //
-            //     if (strpos($post_type, 'trashed-') !== 0) {
-            //
-            //       $args['post_type'] = 'trashed-'.$post_type;
-            //
-            //     }
-            //
-            //
-            //     // $wpdb->update($wpdb->posts, array('post_type' => 'karma-trash'), array('ID' => $id), array('%s'), array('%d'));
-            //
-            //     // if ($post_type === 'attachment') {
-            //     //   $rel_path = get_post_meta($id, '_wp_attached_file', true);
-            //     //   $wp_upload_dir = wp_upload_dir();
-            //     //   $dir = $wp_upload_dir['basedir'];
-            //     //   $trash_dir = $dir.'/karma-trash';
-            //     //   $path = get_attached_file($id);
-            //     //   if (!file_exists($trash_dir)) {
-            //     //     mkdir($trash_dir);
-            //     //   }
-            //     //   rename($path, $trash_dir.'/'.$rel_path);
-            //     //   $meta = wp_get_attachment_metadata($id);
-            //     //   $backup_sizes = get_post_meta($id, '_wp_attachment_backup_sizes', true);
-            //     //   wp_delete_attachment_files($id, $meta, $backup_sizes, $path);
-            //     // }
-            //   } else {
-            //     // $post_type = get_post_meta($id, 'trash-post_type', true);
-            //     // if ($post_type) {
-            //     //   $args['post_type'] = $post_type;
-            //     //   delete_post_meta($id, 'trash-post_type');
-            //     // }
-            //     $post_type = get_post_type($id);
-            //
-            //     if (strpos($post_type, 'trashed-') === 0) {
-            //
-            //       $args['post_type'] = substr($post_type, strlen('trashed-'));
-            //
-            //     }
-            //
-            //
-            //
-            //
-            //   }
-            //   break;
-
             default:
 
               if (taxonomy_exists($key)) { // -> taxonomy
 
                 $value = array_filter(array_map('intval', $value));
 
-                wp_set_post_terms($id, $value, $key);
+
+
+                // var_dump($id, $value, $key);
+
+                wp_set_post_terms(intval($id), $value, $key);
+
+
+                // $r = wp_set_object_terms(3836, array(2), 'category');
+                //
+                // // $r = wp_set_object_terms(intval($id), $value, $key);
+                //
+                // var_dump($r);
 
               } else { // -> meta
 
@@ -246,48 +197,6 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       }
 
-      // if (isset($data['post_type']) || isset($data['trash'])) {
-      //
-      //   $post_type = get_post_type($id);
-      //   $trash = false;
-      //
-      //   if (strpos($post_type, 'trashed-') !== 0) {
-      //
-      //     $trash = true;
-      //     $post_type = substr($post_type, strlen('trashed-'));
-      //
-      //   }
-      //
-      //   if (isset($data['post_type'][0])) {
-      //
-      //     $post_type = $data['post_type'][0];
-      //
-      //   }
-      //
-      //   if (isset($data['trash'])) {
-      //
-      //     if (isset($data['trash'][0]) && $data['trash'][0] === '1') {
-      //
-      //       $args['post_type'] = 'trashed-'.$post_type;
-      //
-      //     } else {
-      //
-      //       $args['post_type'] = $post_type;
-      //
-      //     }
-      //
-      //   } else if ($trash) {
-      //
-      //     $args['post_type'] = 'trashed-'.$post_type;
-      //
-      //   } else {
-      //
-      //     $args['post_type'] = $post_type;
-      //
-      //   }
-      //
-      // }
-
       if (isset($data['post_type']) || isset($data['trash'])) {
 
         $post_type = get_post_type($id);
@@ -312,22 +221,6 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         }
 
-
-
-        // if (isset($data['trash'])) {
-        //
-        //   if (isset($data['trash'][0]) && $data['trash'][0] === '1') {
-        //
-        //     $args['post_type'] = 'trashed-'.$post_type;
-        //
-        //   } else {
-        //
-        //     $args['post_type'] = $post_type;
-        //
-        //   }
-        //
-        // } else
-
         if ($trash) {
 
           $args['post_type'] = 'trashed-'.$post_type;
@@ -341,24 +234,8 @@ Class Karma_Fields_Alpha_Driver_Posts {
       }
 
 
+
       if ($args) {
-      //
-      //   $args['ID'] = $id;
-      //
-      //   if (empty($args['post_type'])) {
-      //
-      //     $args['post_type'] = $post->post_type; // -> for attachments
-      //     $args['post_mime_type'] = $post->post_mime_type; // -> for attachments
-      //
-      //   }
-      //
-      //   if (empty($args['post_status'])) {
-      //
-      //     $args['post_status'] = $post->post_status; // -> for folders
-      //
-      //   }
-
-
 
         $args = array_merge($post_arr, $args);
 
@@ -510,30 +387,32 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
         case 'orderby':
 
+          $order = isset($params['order']) ? $params['order'] : 'ASC';
+
           switch ($value) {
 
             case 'post_name':
-              $args['orderby'] = array('name' => $params['order'], 'date' => 'DESC');
+              $args['orderby'] = array('name' => $order, 'date' => 'DESC');
               break;
 
             case 'post_title':
-              $args['orderby'] = array('title' => $params['order'], 'date' => 'DESC');
+              $args['orderby'] = array('title' => $order, 'date' => 'DESC');
               break;
 
             case 'post_date':
-              $args['orderby'] = array('date' => $params['order'], 'title' => 'ASC');
+              $args['orderby'] = array('date' => $order, 'title' => 'ASC');
               break;
 
             case 'post_author':
-              $args['orderby'] = array('author' => $params['order'], 'title' => 'ASC', 'date' => 'DESC');
+              $args['orderby'] = array('author' => $order, 'title' => 'ASC', 'date' => 'DESC');
               break;
 
             case 'meta_value':
-              $args['orderby'] = array('meta_value' => $params['order']);
+              $args['orderby'] = array('meta_value' => $order);
               break;
 
             case 'menu_order':
-              $args['orderby'] = array('menu_order' => $params['order']);
+              $args['orderby'] = array('menu_order' => $order);
               break;
 
 

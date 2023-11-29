@@ -1,19 +1,5 @@
 KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
-	// async getContent() {
-	// 	if (this.resource.value) {
-	// 		return this.parse(this.resource.value);
-	// 	}
-	// 	if (this.resource.key) {
-	// 		return this.request("get", {}, this.resource.key).then(response => KarmaFieldsAlpha.Type.toString(response));
-	// 	}
-	// 	return "";
-	// }
-
-	// exportValue() {
-	// 	return this.parse(this.resource.export || this.resource.value);
-	// }
-
 	export() {
 
 		const collection = new KarmaFieldsAlpha.Content.Collection();
@@ -25,23 +11,6 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 			collection.merge(content);
 
 		}
-		// else if (this.resource.export !== false && this.resource.content) {
-		//
-		// 	const content = this.getContent();
-		//
-		// 	if (content.loading) {
-		//
-		// 		collection.loading = true;
-		//
-		// 	} else {
-		//
-		// 		collection.value = [...collection.value, content.toSingle()];
-		//
-		// 	}
-		//
-		// 	collection.add(content);
-		//
-		// }
 
 		return collection;
 	}
@@ -57,20 +26,6 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 	}
 
 	getContent() {
-
-		// if (this.resource.value || this.resource.content) {
-		//
-		// 	const content = this.parse(this.resource.value || this.resource.content);
-		//
-		// 	if (content === KarmaFieldsAlpha.loading) {
-		//
-		// 		return KarmaFieldsAlpha.loading;
-		//
-		// 	}
-		//
-		// 	return KarmaFieldsAlpha.Type.toString(content);
-		//
-		// }
 
 		return this.parse(this.resource.value || this.resource.content);
 
@@ -110,7 +65,7 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 					if (content.loading) {
 
 						node.children = [];
-						
+
 					} else {
 
 						// content = KarmaFieldsAlpha.Type.toArray(content);
@@ -227,11 +182,6 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 
 				}
-
-				// if (this.resource.highlight) {
-				// 	const highlight = await this.parse(this.resource.highlight);
-				// 	node.element.classList.toggle("highlight", Boolean(highlight));
-				// }
 
 				if (this.resource.disabled) {
 					node.element.classList.toggle("disabled", KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled)));

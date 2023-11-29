@@ -28,12 +28,21 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
 
   }
 
-  async setContent(content, key) {
+  setContent(content, key) {
 
     const driver = this.getDriver();
     const id = this.getId();
 
-    await KarmaFieldsAlpha.Store.State.set(content.toArray(), "delta", driver, id, key);
+    KarmaFieldsAlpha.Store.Delta.set(content.toArray(), driver, id, key);
+
+  }
+
+  removeContent(key) {
+
+    const driver = this.getDriver();
+    const id = this.getId();
+
+    KarmaFieldsAlpha.Store.Delta.set([], driver, id, key);
 
   }
 
@@ -54,13 +63,13 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
             input.element.name = "karma-fields-items[]";
             if (input.element.form) {
               input.element.form.addEventListener("submit", event => {
-                KarmaFieldsAlpha.Store.Delta.remove(this.getDriver(), this.getId());
+                KarmaFieldsAlpha.Store.Delta.set({}, this.getDriver(), this.getId());
                 KarmaFieldsAlpha.Store.Layer.removeSelection();
               });
             }
           },
           update: input => {
-            const delta = KarmaFieldsAlpha.Store.State.get("delta", this.getDriver(), this.getId());
+            const delta = KarmaFieldsAlpha.Store.Delta.get(this.getDriver(), this.getId());
             if (delta) {
               input.element.value = JSON.stringify(delta);
             }

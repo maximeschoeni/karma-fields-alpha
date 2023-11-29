@@ -266,9 +266,7 @@ KarmaFieldsAlpha.Query = class { // class Driver ?
 
   }
 
-  static async add(driver, params = null, index = 0, length = 1, ...path) {
-
-    // const layer = KarmaFieldsAlpha.Store.State.get("layerIndex");
+  static add(driver, params = null, index = 0, length = 1, ...path) {
 
     const tasks = KarmaFieldsAlpha.Store.get("tasks") || [];
 
@@ -296,22 +294,6 @@ KarmaFieldsAlpha.Query = class { // class Driver ?
 
     }
 
-
-
-
-    // const task = {
-    //   name: `Inserting...`,
-    //   type: "add",
-    //   driver: driver,
-    //   params: params,
-    //   index: index,
-		// 	layer: layer,
-    //   path: path,
-    //   resolve: task => KarmaFieldsAlpha.Remote.add(task.driver, task.params, task.index, task.layer, ...task.path)
-    // };
-
-    // KarmaFieldsAlpha.Store.set([...tasks, task], "tasks");
-
     const items = KarmaFieldsAlpha.Store.Layer.getItems() || [];
     const newItems = [...items];
 
@@ -321,7 +303,7 @@ KarmaFieldsAlpha.Query = class { // class Driver ?
 
     }
 
-    await KarmaFieldsAlpha.Store.Layer.setItems(newItems);
+    KarmaFieldsAlpha.Store.Layer.setItems(newItems);
 
     KarmaFieldsAlpha.Store.remove("queries", driver);
     KarmaFieldsAlpha.Store.remove("counts", driver);
@@ -367,21 +349,6 @@ KarmaFieldsAlpha.Query = class { // class Driver ?
 
   }
 
-
-  // static removeIds(driver, ids) {
-  //
-  //   const currentItems = KarmaFieldsAlpha.Store.Layer.get("items");
-  //   const newItems = currentItems.filter(item => !ids.includes(item.id));
-  //
-  //   for (let id of ids) {
-  //
-  //     KarmaFieldsAlpha.Store.State.set(["1"], "delta", driver, id, "trash");
-  //
-  //   }
-  //
-  //   KarmaFieldsAlpha.Store.Layer.set(newItems, "items");
-  //
-  // }
 
   static init() {
 

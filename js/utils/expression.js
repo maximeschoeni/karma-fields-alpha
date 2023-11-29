@@ -190,7 +190,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     if (v1.loading || v2.loading) {
 
-      thia.loading = true;
+      this.loading = true;
 
     } else {
 

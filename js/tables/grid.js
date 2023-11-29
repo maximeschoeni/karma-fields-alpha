@@ -21,19 +21,19 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async setContent(content, ...path) {
+  setContent(content, ...path) {
 
     const driver = this.getDriver();
 
-    await KarmaFieldsAlpha.Store.State.set(content.toArray(), "delta", driver, ...path);
+    KarmaFieldsAlpha.Store.Delta.set(content.toArray(), driver, ...path);
 
   }
 
-  async removeContent(...path) {
+  removeContent(...path) {
 
     const driver = this.getDriver();
 
-    await KarmaFieldsAlpha.Store.State.remove("delta", driver, ...path);
+    KarmaFieldsAlpha.Store.Delta.remove(driver, ...path);
 
   }
 
@@ -149,59 +149,59 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async setPage(page) {
+  setPage(page) {
 
-    await KarmaFieldsAlpha.History.save("changePage", "Change Page");
-    await KarmaFieldsAlpha.Store.Layer.setParam(1, "page");
-    await this.render();
+    KarmaFieldsAlpha.History.save("changePage", "Change Page");
+    KarmaFieldsAlpha.Store.Layer.setParam(1, "page");
+    this.render();
 
   }
 
-  async firstPage() {
+  firstPage() {
 
     const page = this.getPage();
 
     if (page > 1) {
 
-      await this.setPage(page);
+      this.setPage(page);
 
     }
 
   }
 
-  async prevPage() {
+  prevPage() {
 
     const page = this.getPage();
 
     if (page > 1) {
 
-      await this.setPage(page - 1);
+      this.setPage(page - 1);
 
     }
 
   }
 
-  async nextPage() {
+  nextPage() {
 
     const page = this.getPage();
     const numPage = this.getNumPage().toNumber();
 
     if (page < numPage) {
 
-      await this.setPage(page + 1);
+      this.setPage(page + 1);
 
     }
 
   }
 
-  async lastPage() {
+  lastPage() {
 
     const page = this.getPage();
     const numPage = this.getNumPage().toNumber();
 
     if (page < numPage) {
 
-      await this.setPage(numPage);
+      this.setPage(numPage);
 
     }
 
@@ -307,7 +307,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async importIds(grid, ids) {
+  importIds(grid, ids) {
 
     if (grid.value.length === ids.length) {
 
@@ -324,7 +324,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
         const content = new KarmaFieldsAlpha.Content.Collection(grid.value[i]);
 
-        await child.import(content);
+        child.import(content);
 
       }
 
@@ -409,7 +409,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     return "loading...";
   }
 
-  async paste(value) {
+  paste(value) {
 
     const grid = new KarmaFieldsAlpha.Content.Grid(value);
 
@@ -417,7 +417,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     if (!items.loading) {
 
-      await this.save("paste", "Paste");
+      this.save("paste", "Paste");
 
       const selection = this.getSelection();
 
@@ -438,11 +438,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       KarmaFieldsAlpha.Store.Tasks.add({
         type: "import",
-        resolve: async () => {
-          const items = this.getItems();
+        resolve: () => {
+          // const items = this.getItems();
           const slice = items.toArray().slice(index, index + array.length);
           const ids = slice.filter(item => !item.loading && item.id).map(item => item.id);
-          await this.importIds(grid, ids);
+          this.importIds(grid, ids);
         }
       });
 
@@ -455,20 +455,20 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async add(...path) {
+  add(...path) {
 
     const index = this.selection && this.selection.index || 0;
     const length = this.selection && this.selection.length || 0;
 
     const params = this.parse(this.resource.defaults).toObject();
 
-    await KarmaFieldsAlpha.History.save("insert", "Insert");
+    KarmaFieldsAlpha.History.save("insert", "Insert");
 
-    await KarmaFieldsAlpha.Query.add(this.resource.driver, params, index, 1, ...path);
+    KarmaFieldsAlpha.Query.add(this.resource.driver, params, index, 1, ...path);
 
     this.setSelection({index: index + length, length: 1});
 
-    await this.request("render");
+    this.request("render");
 
   }
 
@@ -478,13 +478,13 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async deleteSelection() {
+  deleteSelection() {
 
-    await this.delete();
+    this.delete();
 
   }
 
-  async delete() {
+  delete() {
 
     const selection = this.getSelection();
 
@@ -495,17 +495,17 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       const index = selection.index || 0;
       const length = selection.length || 0;
 
-      await this.remove(index, length);
+      this.remove(index, length);
 
       this.removeSelection();
 
-      await this.request("render");
+      this.request("render");
 
     }
 
   }
 
-  async removeIds(ids) {
+  removeIds(ids) {
 
     const driver = this.getDriver();
     const currentItems = KarmaFieldsAlpha.Store.Layer.getItems() || [];
@@ -513,20 +513,20 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     for (let id of ids) {
 
-      await KarmaFieldsAlpha.Store.State.set(["1"], "delta", driver, id, "trash");
+      KarmaFieldsAlpha.Store.Delta.set(["1"], driver, id, "trash");
 
     }
 
-    await KarmaFieldsAlpha.Store.Layer.setItems(filteredItems);
+    KarmaFieldsAlpha.Store.Layer.setItems(filteredItems);
 
   }
 
-  async removeRange(index, length) {
+  removeRange(index, length) {
 
-    await this.remove(index, length);
+    this.remove(index, length);
   }
 
-  async remove(index, length) {
+  remove(index, length) {
 
     const request = this.getItems();
 
@@ -537,7 +537,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       if (ids.length) {
 
-        await this.removeIds(ids);
+        this.removeIds(ids);
 
       }
 
@@ -611,29 +611,71 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async withdraw() {
+  withdraw() {
 
     const content = this.getSelectedItems();
 
     if (!content.loading) {
 
       const items = content.toArray();
-      const ids = items.toArray().filter(item => item.id && !item.loading).map(item => item.id);
+      const ids = items.filter(item => item.id && !item.loading).map(item => item.id);
 
-      await this.save("withdraw", "Insert");
-      await this.request("close");
+      this.save("withdraw", "Insert");
+      // this.request("removeLayer");
+
+      KarmaFieldsAlpha.Store.Layer.close();
 
       if (ids.length) {
 
-        await this.request("dispatch", "insert", ids);
+        this.request("dispatch", "insert", ids);
 
       }
 
-      await this.request("render");
+      this.request("render");
 
     }
 
   }
+
+  selectByIds(ids) {
+
+    const content = this.getItems();
+
+    if (content.loading) {
+
+      KarmaFieldsAlpha.Store.Tasks.add({
+        type: "selectByIds",
+        resolve: () => this.selectByIds(ids)
+      });
+
+    } else {
+
+      const array = content.toArray();
+      let i = 0;
+      let index = array.findIndex(item => item.id === ids[i]);
+      const selection = {length: 0};
+
+      while (index > -1 && i < ids.length) {
+
+        selection.index = index;
+        selection.length++;
+
+        i++;
+        index = array.findIndex(item => item.id === ids[i]);
+
+      }
+
+      if (selection.length === ids.length) { // -> non consecutive ids... dunno how to handle yet :(
+
+        this.setSelection(selection);
+
+      }
+
+    }
+
+  }
+
+
 
 
 
@@ -649,12 +691,14 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
           grid.element.style.width = this.resource.width;
         }
       },
-      update: async grid => {
+      update: grid => {
 
         const content = this.getItems();
 
         grid.element.classList.toggle("loading", Boolean(content.loading));
         grid.element.classList.toggle("active", Boolean(this.hasFocus()));
+
+        // const itemsUnder = this.request("tunnel", -1, "getSelectedItems");
 
         if (!content.loading) {
 
@@ -687,13 +731,13 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
           }
 
-          selector.onSelectionComplete = async () => {
+          selector.onSelectionComplete = () => {
 
             // this.useClipboard();
 
-            await this.setFocus(true);
+            this.setFocus(true);
             // this.request("deferFocus");
-            await this.request("render");
+            this.request("render");
 
           }
 
@@ -745,7 +789,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
                           a.element.onmousedown = event => {
                             event.stopPropagation(); // -> prevent header selection
                           }
-                          a.element.onclick = async event => {
+                          a.element.onclick = event => {
                             // debugger;
                             event.preventDefault();
                             this.toggleOrder(resource.orderby || resource.key, resource.order);
@@ -837,12 +881,6 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
       if (items.length > 1) {
 
-        // const contents = items.map(item => this.getContent(item.id, key));
-        // const content = new KarmaFieldsAlpha.Content(contents);
-        // content.loading = contents.some(content => content.loading);
-        // content.mixed = contents.some((content, index, array) => index > 0 && !content.equals(array[0]));
-
-
         const contents = items.map(item => this.parent.getContent(item.id, key));
 
         const content = new KarmaFieldsAlpha.Content();
@@ -877,7 +915,7 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
   }
 
-  async setContent(value, key) {
+  setContent(value, key) {
 
     const items = this.request("getSelectedItems");
 
@@ -887,7 +925,7 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
         if (item.id) {
 
-          await this.parent.setContent(value, item.id, key);
+          this.parent.setContent(value, item.id, key);
 
         }
 
@@ -970,11 +1008,11 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async setContent(value, key) {
+  setContent(value, key) {
 
     const id = this.getId();
 
-    await this.parent.setContent(value, id, key);
+    this.parent.setContent(value, id, key);
 
   }
 

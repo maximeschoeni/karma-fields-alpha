@@ -127,25 +127,13 @@ KarmaFieldsAlpha.Remote = class {
 
     if (delta) {
 
-			await KarmaFieldsAlpha.Store.Buffer.remove("state", "delta"); // remove database as well but don't add history
+			KarmaFieldsAlpha.Store.Buffer.remove("state", "delta"); // don't update history!
 
       for (let driver in delta) {
 
         for (let id in delta[driver]) {
 
 					await this.update(delta[driver][id], driver, id);
-
-          // const data = Object.fromEntries(Object.entries(delta[driver][id]).map(([key, value]) => [KarmaFieldsAlpha.Store.getAlias(driver, key), value]));
-					//
-          // KarmaFieldsAlpha.Store.remove("vars", driver, id);
-					//
-          // await KarmaFieldsAlpha.Gateway.post(`update/${driver}/${id}`, data);
-					//
-          // for (let key in data) {
-					//
-          //   KarmaFieldsAlpha.Store.set(data[key], "vars", driver, id, key);
-					//
-          // }
 
         }
 
@@ -162,16 +150,10 @@ KarmaFieldsAlpha.Remote = class {
 
 		const data = Object.fromEntries(Object.entries(params).map(([key, value]) => [KarmaFieldsAlpha.Query.getAlias(driver, key), value]));
 
-		// KarmaFieldsAlpha.Store.remove("vars", driver, id);
 		KarmaFieldsAlpha.Store.assign(params, "vars", driver, id);
 
 		await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
 
-		// for (let key in data) {
-		//
-		// 	KarmaFieldsAlpha.Store.set(data[key], "vars", driver, id, key);
-		//
-		// }
 
   }
 
@@ -199,21 +181,10 @@ KarmaFieldsAlpha.Remote = class {
 
 			items[index] = {id};
 
-	    await KarmaFieldsAlpha.Store.Layer.setItems(items);
-
-
-
-
-
-	    // for (let key in params) {
-			//
-	    //   const value = KarmaFieldsAlpha.Type.toArray(params[key]);
-	    //   KarmaFieldsAlpha.Store.updateState(value, "delta", driver, id, key);
-			//
-	    // }
+	    KarmaFieldsAlpha.Store.Layer.setItems(items);
 
 	    KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
-	    await KarmaFieldsAlpha.Store.State.set([], "delta", driver, id, "trash");
+	    KarmaFieldsAlpha.Store.Delta.set([], driver, id, "trash");
 
 		}
 
