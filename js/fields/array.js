@@ -41,7 +41,17 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
     let rowCollection = rowField.export();
 
+    let c = 0;
+
     while (!rowCollection.loading && rowCollection.value.length > 0) {
+
+      if (c > 1000) {
+
+        debugger;
+
+      }
+
+      c++;
 
       // if (rowCollection.loading) {
       //
@@ -106,6 +116,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
   getCell(index, key) {
 
+    const cellContent = new KarmaFieldsAlpha.Content();
     const arrayKey = this.getKey();
 
     if (arrayKey) {
@@ -114,36 +125,70 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       if (content.loading) {
 
-        return new KarmaFieldsAlpha.Content.Request();
+        cellContent.loading = true;
 
       } else {
 
         const array = content.toArray();
-        const row = array[index];
-        const value = row && row[key];
 
-        return new KarmaFieldsAlpha.Content(value, {notFound: value === undefined});
+        if (index < array.length) {
+
+          cellContent.value = array[index] && array[index][key];
+
+        } else {
+
+          cellContent.notFound = true;
+
+        }
+        // const row = array[index];
+        // const value = row && row[key];
+        //
+        // return new KarmaFieldsAlpha.Content(value, {notFound: value === undefined});
 
       }
 
     } else {
 
-      const content = this.getContent(key);
+      const content = this.parent.getContent(key);
 
       if (content.loading) {
 
-        return new KarmaFieldsAlpha.Content.Request();
+        cellContent.loading = true;
 
       } else {
 
         const array = content.toArray();
 
-        return new KarmaFieldsAlpha.Content(array[index], {notFound: array[index] === undefined});
+        if (index < array.length) {
+
+          cellContent.value = array[index];
+
+        } else {
+
+          cellContent.notFound = true;
+
+        }
 
       }
 
+
+
+
+      // if (content.loading) {
+      //
+      //   return new KarmaFieldsAlpha.Content.Request();
+      //
+      // } else {
+      //
+      //   const array = content.toArray();
+      //
+      //   return new KarmaFieldsAlpha.Content(array[index], {notFound: array[index] === undefined});
+      //
+      // }
+
     }
 
+    return cellContent;
   }
 
   setCell(cell, index, key) {

@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
+KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 	isDisabled() {
 
@@ -60,6 +60,8 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 		if (this.resource.request) {
 
 			this.parent.request(...this.resource.request);
+
+			this.request("render");
 
 		} else if (this.resource.action) {
 
@@ -315,139 +317,219 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field.text {
 
 }
 
+// KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
+//
+// 	getFilename() {
+//
+// 		return this.parse(this.resource.filename || "export.csv").toString();
+//
+// 	}
+//
+//
+//
+// 	click() {
+//
+// 		const currentExport = KarmaFieldsAlpha.Store.get("currentExport");
+//
+// 		if (!currentExport) {
+//
+// 			const params = KarmaFieldsAlpha.Store.Layer.getParams();
+//
+// 			// KarmaFieldsAlpha.currentExport = {
+// 			// 	page: 1,
+// 			// 	params: params,
+// 			// 	// string: "",
+// 			// 	rows: [],
+// 			// 	// grid: new KarmaFieldsAlpha.Grid()
+// 			// };
+//
+// 			KarmaFieldsAlpha.Store.set({
+// 				page: 1,
+// 				params: params,
+// 				rows: [],
+// 				grid: new KarmaFieldsAlpha.GridContent()
+// 			}, "currentExport");
+//
+// 			this.render();
+//
+// 		}
+//
+// 	}
+//
+// 	isBusy() {
+//
+// 		const ppp = this.resource.ppp || 1000;
+//
+// 		const object = KarmaFieldsAlpha.Store.get("currentExport");
+//
+// 		if (object) {
+//
+// 			// const saucer = this.getRoot();
+// 			// const table = saucer.getGrid();
+// 			// const count = table.getCount();
+//
+//
+// 			const table = this.request("getGrid");
+//
+// 			// const driver = this.request("getDriver");
+// 			const countContent = this.request("count");
+//
+// 			if (!countContent.loading) {
+//
+// 				const count = countContent.toNumber();
+//
+// 				object.total = Math.ceil(count/ppp);
+//
+// 				while (object.grid.value.length < count) {
+//
+// 					const params = {...object.params, page: object.page, ppp: ppp};
+// 					const ids = KarmaFieldsAlpha.Query.getIds(table.resource.driver, params);
+//
+// 					if (!ids) {
+//
+// 						break;
+//
+// 					}
+//
+// 					// const rows = table.exportData(ids);
+//
+// 					const gridContent = new KarmaFieldsAlpha.Content.Grid();
+//
+// 					table.exportData(gridContent, ids);
+//
+// 					if (gridContent.loading) {
+//
+// 						break;
+//
+// 					}
+//
+// 					// object.rows = [...object.rows, ...gridContent.toArray()];
+// 					object.grid.value = [...object.grid.value, ...gridContent.value];
+// 					object.page++;
+//
+// 				}
+//
+// 				if (object.grid.value.length >= count) {
+//
+//
+// 					// const grid = new KarmaFieldsAlpha.Grid();
+// 					//
+// 					// grid.addRow(...object.rows);
+// 					//
+// 					// const csv = grid.toString();
+//
+// 					const csv = object.grid.toString();
+// 					const filename = this.getFilename();
+//
+// 					const element = document.createElement('a');
+// 					element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
+// 					element.setAttribute("download", filename);
+// 					element.style.display = "none";
+// 					document.body.appendChild(element);
+//
+// 					element.click();
+//
+// 					document.body.removeChild(element);
+//
+// 					// delete KarmaFieldsAlpha.currentExport;
+//
+// 					KarmaFieldsAlpha.Store.remove("currentExport");
+//
+// 					return false;
+//
+// 				}
+//
+// 			}
+//
+// 			// KarmaFieldsAlpha.Store.set(object, "currentExport");
+//
+// 			return true;
+// 		}
+//
+// 		return false;
+// 	}
+//
+// }
+
+
+
 KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
-	getFilename() {
+	download(grid) {
 
-		return this.parse(this.resource.filename || "export.csv").toString();
+		const csv = grid.toString();
+		const filename = this.parse(this.resource.filename || "export.csv").toString();
+
+		const element = document.createElement("a");
+		element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
+		element.setAttribute("download", filename);
+		element.style.display = "none";
+		document.body.appendChild(element);
+
+		element.click();
+
+		document.body.removeChild(element);
 
 	}
-
-
 
 	click() {
 
-		const currentExport = KarmaFieldsAlpha.Store.get("currentExport");
+		const data = new KarmaFieldsAlpha.Content.Grid();
+		let page = 1;
+		const ppp = this.resource.ppp || 4;
+		const params = this.request("body", "getParams");
+		const driver = this.request("body", "getDriver");
 
-		if (!currentExport) {
+		const loop = () => {
 
-			const params = KarmaFieldsAlpha.Store.Layer.getParams();
+			const countContent = this.request("body", "getCount");
 
-			// KarmaFieldsAlpha.currentExport = {
-			// 	page: 1,
-			// 	params: params,
-			// 	// string: "",
-			// 	rows: [],
-			// 	// grid: new KarmaFieldsAlpha.Grid()
-			// };
+			if (countContent.loading) {
 
-			KarmaFieldsAlpha.Store.set({
-				page: 1,
-				params: params,
-				rows: [],
-				grid: new KarmaFieldsAlpha.GridContent()
-			}, "currentExport");
+				this.addTask(() => loop(), "export");
 
-			this.render();
-
-		}
-
-	}
-
-	isBusy() {
-
-		const ppp = this.resource.ppp || 1000;
-
-		const object = KarmaFieldsAlpha.Store.get("currentExport");
-
-		if (object) {
-
-			// const saucer = this.getRoot();
-			// const table = saucer.getGrid();
-			// const count = table.getCount();
-
-
-			const table = this.request("getGrid");
-
-			// const driver = this.request("getDriver");
-			const countContent = this.request("count");
-
-			if (!countContent.loading) {
+			} else {
 
 				const count = countContent.toNumber();
+				const total = Math.ceil(count/ppp);
 
-				object.total = Math.ceil(count/ppp);
+				if (data.value.length < count) {
 
-				while (object.grid.value.length < count) {
+					const idsContent = KarmaFieldsAlpha.Query.getIds(driver, {...params, page: page, ppp: ppp});
 
-					const params = {...object.params, page: object.page, ppp: ppp};
-					const ids = KarmaFieldsAlpha.Query.getIds(table.resource.driver, params);
+					if (!idsContent.loading) {
 
-					if (!ids) {
+						const grid = this.request("body", "exportIds", idsContent.toArray());
 
-						break;
+						if (!grid.loading) {
 
-					}
+							data.value = [...data.value, ...grid.value];
+							page++;
 
-					// const rows = table.exportData(ids);
-
-					const gridContent = new KarmaFieldsAlpha.Content.Grid();
-
-					table.exportData(gridContent, ids);
-
-					if (gridContent.loading) {
-
-						break;
+						}
 
 					}
 
-					// object.rows = [...object.rows, ...gridContent.toArray()];
-					object.grid.value = [...object.grid.value, ...gridContent.value];
-					object.page++;
+					this.addTask(() => loop(), `export (${page}/${total})`);
 
-				}
+				} else {
 
-				if (object.grid.value.length >= count) {
-
-
-					// const grid = new KarmaFieldsAlpha.Grid();
-					//
-					// grid.addRow(...object.rows);
-					//
-					// const csv = grid.toString();
-
-					const csv = object.grid.toString();
-					const filename = this.getFilename();
-
-					const element = document.createElement('a');
-					element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
-					element.setAttribute("download", filename);
-					element.style.display = "none";
-					document.body.appendChild(element);
-
-					element.click();
-
-					document.body.removeChild(element);
-
-					// delete KarmaFieldsAlpha.currentExport;
-
-					KarmaFieldsAlpha.Store.remove("currentExport");
-
-					return false;
+					this.download(data);
 
 				}
 
 			}
 
-			// KarmaFieldsAlpha.Store.set(object, "currentExport");
-
-			return true;
 		}
 
-		return false;
+		loop();
+
+		this.request("render");
+
 	}
 
 }
+
 
 
 KarmaFieldsAlpha.field.submit = class extends KarmaFieldsAlpha.field.button {

@@ -9,26 +9,36 @@ KarmaFieldsAlpha.History = class {
     // KarmaFieldsAlpha.Store.set(index, "history", "index");
     // KarmaFieldsAlpha.Store.set(count - 1, "history", "max");
 
-    await KarmaFieldsAlpha.Database.History.set({}, 0);
+
+
+
+    // await KarmaFieldsAlpha.Database.History.set({}, 0);
 
   }
 
   static async save(id, name) {
 
-    const index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
-    const lastId = KarmaFieldsAlpha.Store.Buffer.get("history", "lastId");
+    // const index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
+    // const lastId = KarmaFieldsAlpha.Store.Buffer.get("history", "lastId");
+    // const recordId = KarmaFieldsAlpha.Store.Buffer.get("recordId");
 
-    if (lastId !== id) {
+    const buffer = KarmaFieldsAlpha.Store.Buffer.get();
+    const index = buffer.index || 0;
 
-      KarmaFieldsAlpha.Store.Buffer.set(id, "history", "lastId");
-      KarmaFieldsAlpha.Store.Buffer.set(index+1, "history", "index");
-      KarmaFieldsAlpha.Store.Buffer.set(index+1, "history", "max");
+    if (buffer.lastId !== id) {
 
-      // await KarmaFieldsAlpha.Database.History.set("", index, "current");
-      //
-      // await KarmaFieldsAlpha.Database.History.deleteFrom(index);
+      KarmaFieldsAlpha.Store.Buffer.set(id, "lastId");
+      KarmaFieldsAlpha.Store.Buffer.set(index+1, "index");
+      KarmaFieldsAlpha.Store.Buffer.set(index+1, "max");
 
-      await KarmaFieldsAlpha.Database.History.add({}, index+1);
+      // KarmaFieldsAlpha.Store.Buffer.set({
+      //   recordId: buffer.recordId,
+      //   lastId: id,
+      //   index: index+1,
+      //   max: index+1,
+      // });
+
+      KarmaFieldsAlpha.Database.History.put({}, buffer.recordId, index+1);
 
     }
 
@@ -36,17 +46,24 @@ KarmaFieldsAlpha.History = class {
 
   static async undo() {
 
-    let index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
+    // let index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
+    // const recordId = KarmaFieldsAlpha.Store.Buffer.get("recordId");
 
-    if (index > 1) {
+    const buffer = KarmaFieldsAlpha.Store.Buffer.get();
 
-      KarmaFieldsAlpha.Store.Buffer.set(index-1, "history", "index");
+    if (!buffer) {
 
-      // await KarmaFieldsAlpha.Database.History.set("", index);
-      //
-      // await KarmaFieldsAlpha.Database.History.set("1", index-1);
+      console.error("Buffer not set");
 
-      const state = await KarmaFieldsAlpha.Database.History.get(index-1);
+    }
+
+    const index = buffer.index || 0;
+
+    if (index > 0) {
+
+      KarmaFieldsAlpha.Store.Buffer.set(index-1, "index");
+
+      const state = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index-1);
 
       KarmaFieldsAlpha.Store.Buffer.merge(state, "state"); // must not update history!
 
@@ -56,18 +73,26 @@ KarmaFieldsAlpha.History = class {
 
   static async redo() {
 
-    let index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
-    let max = KarmaFieldsAlpha.Store.Buffer.get("history", "max") || 0;
+    // let index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
+    // let max = KarmaFieldsAlpha.Store.Buffer.get("history", "max") || 0;
+    // const recordId = KarmaFieldsAlpha.Store.Buffer.get("recordId");
+
+    const buffer = KarmaFieldsAlpha.Store.Buffer.get();
+
+    if (!buffer) {
+
+      console.error("Buffer not set");
+
+    }
+
+    const index = buffer.index || 0;
+    const max = buffer.max || 0;
 
     if (index < max) {
 
-      KarmaFieldsAlpha.Store.Buffer.set(index+1, "history", "index");
+      KarmaFieldsAlpha.Store.Buffer.set(index+1, "index");
 
-      // await KarmaFieldsAlpha.Database.History.set("", index);
-      //
-      // await KarmaFieldsAlpha.Database.History.set("1", index+1);
-
-      const state = await KarmaFieldsAlpha.Database.History.get(index+1);
+      const state = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index+1);
 
       KarmaFieldsAlpha.Store.Buffer.merge(state, "state"); // must not update history!
 
@@ -77,16 +102,16 @@ KarmaFieldsAlpha.History = class {
 
   static hasUndo() {
 
-    const index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
+    const index = KarmaFieldsAlpha.Store.Buffer.get("index") || 0;
 
-    return index > 1;
+    return index > 0;
 
   }
 
   static hasRedo() {
 
-    const index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
-    const max = KarmaFieldsAlpha.Store.Buffer.get("history", "max") || 0;
+    const index = KarmaFieldsAlpha.Store.Buffer.get("index") || 0;
+    const max = KarmaFieldsAlpha.Store.Buffer.get("max") || 0;
 
     return index < max;
 
@@ -134,7 +159,18 @@ KarmaFieldsAlpha.History = class {
 
   static async delta(value, currentValue, ...path) { // path is relative from state
 
-    const index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
+    // const index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
+    // const recordId = KarmaFieldsAlpha.Store.Buffer.get("recordId");
+
+    const buffer = KarmaFieldsAlpha.Store.Buffer.get();
+    const index = buffer.index || 0;
+
+
+    if (!buffer) {
+
+      console.error("Buffer not set");
+
+    }
 
 		if (index > 0) {
 
@@ -144,11 +180,11 @@ KarmaFieldsAlpha.History = class {
 
 			}
 
-			let lastValue = await KarmaFieldsAlpha.Database.History.get(index - 1, ...path);
+			let lastValue = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index - 1, ...path);
 
 			if (lastValue === undefined) {
 
-				await KarmaFieldsAlpha.Database.History.set(currentValue, index - 1, ...path);
+				await KarmaFieldsAlpha.Database.History.set(currentValue, buffer.recordId, index - 1, ...path);
 
 			}
 
@@ -160,7 +196,7 @@ KarmaFieldsAlpha.History = class {
 
     }
 
-		await KarmaFieldsAlpha.Database.History.set(value, index, ...path);
+		await KarmaFieldsAlpha.Database.History.set(value, buffer.recordId, index, ...path);
 
 	}
 

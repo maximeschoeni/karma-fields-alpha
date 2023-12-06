@@ -286,7 +286,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     let index = KarmaFieldsAlpha.Store.Layer.getIndex() || 0;
 
-    this.save(`open-${table}`, `Open ${table}`);
+    // this.save(`open-${table}`, `Open ${table}`);
 
     if (!replace) {
 
@@ -296,18 +296,22 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     }
 
-    const newLayer = {
-      table: table,
-      params: {
-        ...resource.body.params,
-        ...params
-      },
-      focus: ["board", table, "body"],
-    };
+    // const newLayer = {
+    //   table: table,
+    //   params: {
+    //     ...resource.body.params,
+    //     ...params
+    //   },
+    //   focus: ["board", table, "body"],
+    // };
+    //
+    // KarmaFieldsAlpha.Store.Layer.set(newLayer, index);
 
-    KarmaFieldsAlpha.Store.Layer.set(newLayer, index);
+    KarmaFieldsAlpha.Store.Layer.set(table, index, "table");
+    KarmaFieldsAlpha.Store.Layer.set({...resource.body.params, ...params}, index, "params");
+    KarmaFieldsAlpha.Store.Layer.set(["board", table, "body"], index, "focus");
 
-    if (selectedIds.length) {
+    if (selectedIds.length) { // deprecated
 
       KarmaFieldsAlpha.Store.Tasks.add({
         type: "preselect",
@@ -318,7 +322,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     }
 
-    this.render();
+    // this.render();
 
   }
 
@@ -334,12 +338,12 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     if (index) {
 
-      this.save(`close`, `Close`);
+      // this.save(`close`, `Close`);
 
       KarmaFieldsAlpha.Store.State.remove("layers", index);
       KarmaFieldsAlpha.Store.Layer.setIndex(index-1);
 
-      this.render();
+      // this.render();
 
     }
 
@@ -380,8 +384,6 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
         if (task) {
 
-          console.log("resolve task", task);
-
           await task.resolve(task);
 
           // this.addNotice(task.name || "?");
@@ -405,6 +407,23 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     return this.rendering;
 
   }
+
+//   medias(...args) {
+//
+//     const mediaTableResource = this.resource.tables[KarmaFieldsAlpha.mediaTable];
+// debugger;
+//     if (mediaTableResource) {
+//
+//       const table = this.createChild({
+//         ...mediaTableResource,
+//         type: "table"
+//       }, "medias");
+//
+//       table.body(...args);
+//
+//     }
+//
+//   }
 
 
 
@@ -535,24 +554,40 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
           }
         });
 
-        container.element.ondragover = event => {
-          event.preventDefault();
-        }
+        // container.element.ondrop = event => {
+        //   event.preventDefault();
+        //   const files = event.dataTransfer.files;
+        //   if (event.dataTransfer.files.length) {
+        //     this.parent.upload(event.dataTransfer.files);
+        //   }
+        // }
+        //
+        // container.element.ondragover = event => {
+        //   event.preventDefault();
+        // }
 
 
         // Unofficial Graphical User Interface Table API
 
-        if (location.hash === "#karma" && history.state.karma) {
+        // console.log(history.state);
 
-          await KarmaFieldsAlpha.Store.Buffer.load(history.state.karma);
 
-          KarmaFieldsAlpha.Store.Layer.removeItems();
+        const buffer = history.state && history.state.karma && await KarmaFieldsAlpha.Database.Records.get(history.state.karma);
+
+        if (buffer) {
+
+          KarmaFieldsAlpha.Store.set(buffer, "buffer");
 
         } else {
 
-          history.replaceState({karma: Date.now()}, "", "#karma");
+          const recordId = Date.now();
 
-          await KarmaFieldsAlpha.History.init(); // -> empty history
+          history.replaceState({karma: recordId}, "");
+
+          KarmaFieldsAlpha.Store.Buffer.add(recordId);
+
+
+          // await KarmaFieldsAlpha.History.init(); // -> empty history
 
         }
 
@@ -599,7 +634,7 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
               clipboard.element.onpaste = event => {
                 event.preventDefault();
                 const string = event.clipboardData.getData("text/plain").normalize();
-                debugger;
+                // debugger;
                 console.log("PASTE", string);
                 // clipboard.value = string;
                 // this.parent.paste(string);
@@ -751,7 +786,10 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
 
   getChild(index) {
 
-    return this.createChild({...this.resource[index], index: index}, index);
+    return this.createChild({
+      ...this.resource[index],
+      index: index
+    }, index);
 
   }
 
@@ -780,6 +818,26 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
           {
             class: "table-body",
             update: container => {
+
+              // container.element.ondrop = event => {
+              //   event.preventDefault();
+              //   debugger;
+              //   // const files = event.dataTransfer.files;
+              //   // if (event.dataTransfer.files.length) {
+              //   //   this.parent.upload(event.dataTransfer.files);
+              //   // }
+              // }
+              //
+              // container.element.ondragover = event => {
+              //   event.preventDefault();
+              //   container.element.classList.add("drop-active");
+              // }
+              // container.element.ondragleave = event => {
+              //   event.preventDefault();
+              //   container.element.classList.remove("drop-active");
+              // }
+
+
 
 
             },
@@ -847,9 +905,9 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
               footer.element.classList.toggle("loading", Boolean(isLoading));
               if (footerResource !== false) {
                 footer.child = this.createChild({
-                  type: "controls",
+                  type: "footer",
                   ...footerResource,
-                  index: "controls"
+                  index: "footer"
                 }, "footer").build();
               }
             }
@@ -935,7 +993,7 @@ KarmaFieldsAlpha.field.saucer.menu = class extends KarmaFieldsAlpha.field {
 
 
 
-KarmaFieldsAlpha.field.saucer.controls = class extends KarmaFieldsAlpha.field.container {
+KarmaFieldsAlpha.field.saucer.footer = class extends KarmaFieldsAlpha.field.group {
 
   constructor(resource) {
 
@@ -1028,15 +1086,23 @@ KarmaFieldsAlpha.field.saucer.insert = class extends KarmaFieldsAlpha.field.butt
       primary: true,
       text: "Insert",
       // enabled: ["request", "isTableRowSelected"],
-      enabled: ["request", "dispatch", "getSelectedItems"],
+      // enabled: ["request", "dispatch", "getSelectedItems"],
+      enabled: ["request", "body", "getSelectedItems"],
       // visible: ["request", "hasTransfer"],
       // visible: ["request", "insertable"],
-      visible: ["request", "tunnel" -1, "useSocket"],
+      visible: ["request", "tunnel", -1, "useSocket"],
       ...resource
     });
   }
 }
-
+KarmaFieldsAlpha.field.saucer.export = class extends KarmaFieldsAlpha.field.download {
+  constructor(resource) {
+    super({
+      text: "Export",
+      ...resource
+    });
+  }
+}
 
 
 
@@ -1105,7 +1171,7 @@ KarmaFieldsAlpha.field.saucer.close = class extends KarmaFieldsAlpha.field.butto
 }
 
 
-KarmaFieldsAlpha.field.saucer.pagination = class extends KarmaFieldsAlpha.field.container {
+KarmaFieldsAlpha.field.saucer.pagination = class extends KarmaFieldsAlpha.field.group {
 
   constructor(resource) {
 
@@ -1131,7 +1197,7 @@ KarmaFieldsAlpha.field.saucer.pagination = class extends KarmaFieldsAlpha.field.
 KarmaFieldsAlpha.field.saucer.pagination.firstpage = class extends KarmaFieldsAlpha.field.button {
   constructor(resource) {
     super({
-      action: "firstPage",
+      request: ["body", "firstPage"],
       title: "First Page",
       text: "«",
       disabled: ["==", ["request", "body", "getPage"], 1],
@@ -1142,7 +1208,7 @@ KarmaFieldsAlpha.field.saucer.pagination.firstpage = class extends KarmaFieldsAl
 KarmaFieldsAlpha.field.saucer.pagination.prevpage = class extends KarmaFieldsAlpha.field.button {
   constructor(resource) {
     super({
-      action: "prevPage",
+      request: ["body", "prevPage"],
       title: "Previous Page",
       text: "‹",
       disabled: ["==", ["request", "body", "getPage"], 1],
@@ -1153,8 +1219,8 @@ KarmaFieldsAlpha.field.saucer.pagination.prevpage = class extends KarmaFieldsAlp
 KarmaFieldsAlpha.field.saucer.pagination.currentpage = class extends KarmaFieldsAlpha.field.text {
   constructor(resource) {
     super({
-      style: "min-width: 4em;text-align: right;",
-      value: ["replace", "# / #", "#", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
+      style: "font-family: monospace;", //"min-width: 4em;text-align: right;",
+      value: ["replace", "#/#", "#", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
       ...resource
     });
   }
@@ -1162,7 +1228,7 @@ KarmaFieldsAlpha.field.saucer.pagination.currentpage = class extends KarmaFields
 KarmaFieldsAlpha.field.saucer.pagination.nextpage = class extends KarmaFieldsAlpha.field.button {
   constructor(resource) {
     super({
-      action: "nextPage",
+      request: ["body", "nextPage"],
       title: "Next Page",
       text: "›",
       disabled: ["==", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
@@ -1173,7 +1239,7 @@ KarmaFieldsAlpha.field.saucer.pagination.nextpage = class extends KarmaFieldsAlp
 KarmaFieldsAlpha.field.saucer.pagination.lastpage = class extends KarmaFieldsAlpha.field.button {
   constructor(resource) {
     super({
-      action: "lastPage",
+      request: ["body", "lastPage"],
       title: "Last Page",
       text: "»",
       disabled: ["==", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],

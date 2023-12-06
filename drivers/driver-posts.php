@@ -2,7 +2,7 @@
 
 
 
-Class Karma_Fields_Alpha_Driver_Posts {
+class Karma_Fields_Alpha_Driver_Posts {
 
   public function __construct() {
 
@@ -225,6 +225,12 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
           $args['post_type'] = 'trashed-'.$post_type;
 
+          $wpdb->update($wpdb->posts, array(
+            'post_parent' => '0'
+          ), array(
+            'post_parent' => $id
+          ), array('%d'), array('%d'));
+
         } else {
 
           $args['post_type'] = $post_type;
@@ -252,12 +258,15 @@ Class Karma_Fields_Alpha_Driver_Posts {
   /**
 	 * add
 	 */
-  public function add($data, $deprecatednum = 1) {
+  public function add($data) {
     global $wpdb;
 
     add_filter('wp_insert_post_empty_content', '__return_false', 10, 2);
 
     $args = array();
+
+
+
 
     // -> recycle?
 
@@ -311,19 +320,35 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
     }
 
+
+
     if (empty($args['post_type'])) {
 
       $args['post_type'] = 'post';
 
     }
 
-    $args['post_type'] = 'trashed-'.$args['post_type'];
+    // if (empty($args['post_title'])) {
+    //
+    //   $args['post_title'] = '';
+    //
+    // }
+    //
+    // if (empty($args['post_content'])) {
+    //
+    //   $args['post_content'] = '';
+    //
+    // }
+
+    // $args['post_type'] = 'trashed-'.$args['post_type'];
 
 
 
     // var_dump($args, $data);
 
-    return wp_insert_post($args);
+    $id = wp_insert_post($args);
+
+    return $id;
 
 
     // // return $id;
@@ -1313,7 +1338,7 @@ Class Karma_Fields_Alpha_Driver_Posts {
 
       }
 
-      $results = apply_filters('karma_fields_posts_driver_meta_results', $results, $ids);
+      $results = apply_filters('karma_fields_posts_driver_content_results', $results, $ids);
 
       return $results;
 

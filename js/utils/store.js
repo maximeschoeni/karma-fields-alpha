@@ -63,15 +63,15 @@ KarmaFieldsAlpha.Store.Buffer = class {
 
   static async load(pageId) {
 
-    const buffer = await KarmaFieldsAlpha.Database.Options.get(pageId) || {};
-    buffer.loaded = true;
-    await this.set(buffer);
+    // const buffer = await KarmaFieldsAlpha.Database.Options.get(pageId) || {};
+    // buffer.loaded = true;
+    // await this.set(buffer);
 
 	}
 
   static isLoaded() {
 
-    return this.get("loaded") || false;
+    // return this.get("loaded") || false;
 
   }
 
@@ -81,11 +81,27 @@ KarmaFieldsAlpha.Store.Buffer = class {
 
 	}
 
+  static add(recordId) {
+
+    const buffer = {
+      recordId: recordId,
+      index: 0,
+      max: 0
+    };
+
+    KarmaFieldsAlpha.Store.set(buffer, "buffer");
+    KarmaFieldsAlpha.Database.Records.add(buffer);
+
+  }
+
 	static set(value, ...path) {
 
 		KarmaFieldsAlpha.Store.set(value, "buffer", ...path);
 
-		KarmaFieldsAlpha.Database.Options.set(value, "buffer", ...path);
+		// KarmaFieldsAlpha.Database.Options.set(value, "buffer", ...path);
+
+    const recordId = this.get("recordId");
+    KarmaFieldsAlpha.Database.Records.set(value, recordId, ...path);
 
 	}
 
@@ -93,7 +109,10 @@ KarmaFieldsAlpha.Store.Buffer = class {
 
 		KarmaFieldsAlpha.Store.remove("buffer", ...path);
 
-		KarmaFieldsAlpha.Database.Options.remove("buffer", ...path);
+		// KarmaFieldsAlpha.Database.Options.remove("buffer", ...path);
+
+    const recordId = this.get( "recordId");
+    KarmaFieldsAlpha.Database.Records.remove(recordId, ...path);
 
 	}
 
@@ -101,7 +120,10 @@ KarmaFieldsAlpha.Store.Buffer = class {
 
 		KarmaFieldsAlpha.Store.assign(value, "buffer", ...path);
 
-		KarmaFieldsAlpha.Database.Options.assign(value, "buffer", ...path);
+		// KarmaFieldsAlpha.Database.Options.assign(value, "buffer", ...path);
+
+    const recordId = this.get("recordId");
+    KarmaFieldsAlpha.Database.Records.assign(value, recordId, ...path);
 
 	}
 
@@ -369,6 +391,21 @@ KarmaFieldsAlpha.Store.Layer = class {
 		this.removeCurrent("items");
 
 	}
+
+  // static insertItem(item, index, ...path) {
+  //
+  //   const items = this.getItems() || [];
+  //   const newItems = [...items];
+  //
+  //   for (let i = 0; i < length; i++) {
+  //
+  //     KarmaFieldsAlpha.DeepArray.splice(newItems, 0, [item], index, ...path);
+  //
+  //   }
+  //
+  //   this.setItems(newItems);
+  //
+  // }
 
   static close() {
 

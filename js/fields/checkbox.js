@@ -10,15 +10,15 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
 		const key = this.getKey();
 
-		this.parent.getContent(key);
+		return this.parent.getContent(key);
 
 	}
 
-	async setContent(content) {
+	setContent(content) {
 
 		const key = this.getKey();
 
-		await this.parent.setContent(content, key);
+		this.parent.setContent(content, key);
 
 	}
 
@@ -36,19 +36,19 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	initValue() {
-
-		const value = this.getDefault();
-
-		if (value !== undefined && value !== null) {
-
-			this.setValue(value);
-			this.save();
-
-		}
-
-		return value || "";
-	}
+	// initValue() {
+	//
+	// 	const value = this.getDefault();
+	//
+	// 	if (value !== undefined && value !== null) {
+	//
+	// 		this.setValue(value);
+	// 		this.save();
+	//
+	// 	}
+	//
+	// 	return value || "";
+	// }
 
 	export(collection) {
 
@@ -394,7 +394,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 						init: checkbox => {
 							checkbox.element.type = "checkbox";
 							// const id = this.getId();
-							checkbox.element.id = this.uid();
+							checkbox.element.id = this.uid;
 						},
 						update: async checkbox => {
 

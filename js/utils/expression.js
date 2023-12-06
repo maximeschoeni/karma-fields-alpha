@@ -118,6 +118,10 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
         this.concat(...args);
         break;
 
+      case "count":
+        this.getLength(...args);
+        break;
+
       case "concat":
       case "math":
       case "include":
@@ -230,7 +234,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
           break;
 
         case "like":
-          this.value = v1.toSingle().match(new RegExp(v2.toSingle()));
+          this.value = v1.toString().match(new RegExp(v2.toSingle()));
           break;
 
       }
@@ -241,7 +245,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   logic(...args) {
 
-    const values = args.slice(1).map(value => new KarmaFieldsAlpha.Expression(args[1], this.field));
+    const values = args.slice(1).map(value => new KarmaFieldsAlpha.Expression(value, this.field));
 
     if (values.some(value => value.loading)) {
 
@@ -253,16 +257,16 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
       while (values.length) {
 
-        const value = values.shift().toSingle();
+        const value = values.shift();
 
         switch (args[0]) {
 
           case "&&":
-            this.value = this.value.toSingle() && values.shift().toSingle();
+            this.value = this.toSingle() && value.toSingle();
             break;
 
           case "||":
-            this.value = this.value.toSingle() || values.shift().toSingle();
+            this.value = this.toSingle() || value.toSingle();
             break;
 
         }
@@ -279,7 +283,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     if (values.some(value => value.loading)) {
 
-      this.loading = false;
+      this.loading = true;
 
     } else if (Math[args[1]]) {
 
@@ -295,7 +299,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     if (value.loading) {
 
-      this.loading;
+      this.loading = true;
 
     }
 
@@ -489,11 +493,11 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
-  queryValue() {
+  queryValue(...args) {
 
-    const driver = new KarmaFieldsAlpha.Expression(params[1], this.field);
-    const id = new KarmaFieldsAlpha.Expression(params[2], this.field);
-    const key = new KarmaFieldsAlpha.Expression(params[3], this.field);
+    const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
+    const id = new KarmaFieldsAlpha.Expression(args[2], this.field);
+    const key = new KarmaFieldsAlpha.Expression(args[3], this.field);
 
     if (driver.loading || id.loading || key.loading) {
 
@@ -656,9 +660,21 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
-  isMixed() {
+  isMixed(...args) {
 
-    this.value = new KarmaFieldsAlpha.Expression(args[1], this.field).mixed;
+    if (Array.isArray(args[1])) {
+
+      this.value = new KarmaFieldsAlpha.Expression(args[1], this.field).mixed;
+
+    } else {
+
+      const content = this.field.getContent(...args.slice(1));
+
+      this.value = content.mixed;
+
+    }
+
+
 
     // const content = new KarmaFieldsAlpha.Expression(args[1], this.field);
     //

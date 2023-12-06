@@ -27,7 +27,7 @@ KarmaFieldsAlpha.Remote = class {
 
       KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
 
-      KarmaFieldsAlpha.Store.set(["0"], "vars", driver, id, "trash");
+      KarmaFieldsAlpha.Store.set([], "vars", driver, id, "trash");
 
     }
 
@@ -43,7 +43,7 @@ KarmaFieldsAlpha.Remote = class {
       for (let id of ids) {
 
         KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
-        KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
+        KarmaFieldsAlpha.Store.set([], "vars", driver, id, "trash");
 
       }
 
@@ -65,7 +65,7 @@ KarmaFieldsAlpha.Remote = class {
 
         }
 
-        KarmaFieldsAlpha.Store.set(["0"], "vars", driver, id, "trash");
+        KarmaFieldsAlpha.Store.set([], "vars", driver, id, "trash");
 
       }
 
@@ -83,23 +83,57 @@ KarmaFieldsAlpha.Remote = class {
 
       const relations = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${name}?ids=${ids.join(",")}`);
 
-      for (let relation of relations) {
+      // for (let relation of relations) {
+			//
+      //   const id = relation.id.toString();
+      //   const key = relation.key.toString();
+			//
+      //   let value = KarmaFieldsAlpha.Store.get("vars", driver, id, key);
+			//
+      //   if (!value) {
+			//
+      //     value = [];
+			//
+      //     KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
+      //   }
+			//
+      //   value.push(relation.value);
+			//
+      // }
+
+
+			const data = {}; // first create a dataset to avoid same values being inserted multiple times
+
+			for (let relation of relations) {
 
         const id = relation.id.toString();
         const key = relation.key.toString();
 
-        let value = KarmaFieldsAlpha.Store.get("vars", driver, id, key);
+				if (!data[id]) {
 
-        if (!value) {
+					data[id] = {};
 
-          value = [];
+				}
 
-          KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
-        }
+				if (!data[id][key]) {
 
-        value.push(relation.value);
+					data[id][key] = [];
+
+				}
+
+				data[id][key].push(relation.value);
 
       }
+
+			for (let id in data) {
+
+				for (let key in data[id]) {
+
+					KarmaFieldsAlpha.Store.set(data[id][key], "vars", driver, id, key);
+
+				}
+
+			}
 
       for (let id of ids) {
 
@@ -133,6 +167,8 @@ KarmaFieldsAlpha.Remote = class {
 
         for (let id in delta[driver]) {
 
+					// const data = Object.fromEntries(Object.entries(delta[driver][id]).map(([key, value]) => [KarmaFieldsAlpha.Query.getAlias(driver, key), value]));
+
 					await this.update(delta[driver][id], driver, id);
 
         }
@@ -146,49 +182,103 @@ KarmaFieldsAlpha.Remote = class {
 
   }
 
-	static async update(params, driver, id) {
+	static async update(data, driver, id) {
 
-		const data = Object.fromEntries(Object.entries(params).map(([key, value]) => [KarmaFieldsAlpha.Query.getAlias(driver, key), value]));
+		// const data = Object.fromEntries(Object.entries(params).map(([key, value]) => [KarmaFieldsAlpha.Query.getAlias(driver, key), value]));
 
-		KarmaFieldsAlpha.Store.assign(params, "vars", driver, id);
+		KarmaFieldsAlpha.Store.assign(data, "vars", driver, id);
 
 		await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
 
 
   }
 
-	static async add(driver, params, index, length, ...path) {
+	// static async add(driver, params, index, length, ...path) {
+	//
+	// 	for (let i = 0; i < length; i++) {
+	//
+	// 		let id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, params).then(id => id.toString());
+	//
+	// 		if (params) {
+	//
+	// 			// await this.update(params, driver, id);
+	//
+	// 			for (let key in params) {
+	//
+	// 				if (params[key]) {
+	//
+	// 					const values = params[key].split(",");
+	//
+	// 					KarmaFieldsAlpha.Store.Delta.set(values, driver, id, key);
+	//
+	// 				}
+	//
+	// 			}
+	//
+	// 		}
+	//
+	//     // -> save must happen before new (loading) items are first set
+	//
+	//     const items = KarmaFieldsAlpha.Store.Layer.getItems();
+	//
+	// 		if (!items[index].loading) {
+	//
+	// 			console.warn("Replacing wrong item!!!")
+	//
+	// 		}
+	//
+	// 		items[index] = {id};
+	//
+	//     KarmaFieldsAlpha.Store.Layer.setItems(items);
+	//
+	//     KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
+	//     KarmaFieldsAlpha.Store.Delta.set([], driver, id, "trash");
+	//
+	// 	}
+	//
+  // }
 
-		for (let i = 0; i < length; i++) {
+	static async add(driver, params, index, ...path) {
 
-			let id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, params).then(id => id.toString());
+		let id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, params).then(id => id.toString());
 
-			if (params) {
+		if (params) {
 
-				await this.update(params, driver, id);
+			// await this.update(params, driver, id);
+
+			for (let key in params) {
+
+				if (params[key]) {
+
+					const values = params[key].split(",");
+
+					KarmaFieldsAlpha.Store.Delta.set(values, driver, id, key);
+
+				}
 
 			}
-
-	    // -> save must happen before new (loading) items are first set
-
-	    const items = KarmaFieldsAlpha.Store.Layer.getItems();
-
-			if (!items[index].loading) {
-
-				console.warning("Replacing wrong item!!!")
-
-			}
-
-			items[index] = {id};
-
-	    KarmaFieldsAlpha.Store.Layer.setItems(items);
-
-	    KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
-	    KarmaFieldsAlpha.Store.Delta.set([], driver, id, "trash");
 
 		}
 
+    // -> save must happen before new (loading) items are first set
+
+    const items = KarmaFieldsAlpha.Store.Layer.getItems();
+
+		if (!items[index].loading) {
+
+			console.warn("Replacing wrong item!!!")
+
+		}
+
+		items[index] = {id};
+
+    KarmaFieldsAlpha.Store.Layer.setItems(items);
+
+    KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
+    KarmaFieldsAlpha.Store.Delta.set([], driver, id, "trash");
+
   }
+
 
 	static async upload(file, index, params, layer) {
 

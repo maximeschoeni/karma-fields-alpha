@@ -425,7 +425,7 @@ KarmaFieldsAlpha.field.filterLink = class extends KarmaFieldsAlpha.field.text {
 }
 
 
-// deprecated class
+
 KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
 	nav(index = 0) {
@@ -433,56 +433,57 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 		let table = this.parse(this.resource.table);
 		let params = this.parse(this.resource.params);
 
-		if (params !== KarmaFieldsAlpha.loading && table !== KarmaFieldsAlpha.loading) {
+		if (table.loading || params.loading) {
 
-			if (table) {
+			// KarmaFieldsAlpha.Store.Tasks.add({
+			// 	type: "nav",
+			// 	resolve: () => this.nav(index)
+			// });
 
-				table = KarmaFieldsAlpha.Type.toString(table);
+			this.addTask(() => this.nav(index), "nav");
 
-			}
+		} else {
 
-			if (params) {
+			// if (table) {
+			//
+			// 	table = KarmaFieldsAlpha.Type.toString(table);
+			//
+			// }
+			//
+			// if (params) {
+			//
+			// 	params = KarmaFieldsAlpha.Type.toArray(params);
+			//
+			// 	params = params[index];
+			//
+			// }
 
-				params = KarmaFieldsAlpha.Type.toArray(params);
+			// KarmaFieldsAlpha.saucer.open(table.toString(), params.toArray()[index], this.resource.context);
 
-				params = params[index];
+			this.save("nav", "Open link");
 
-			}
-
-			KarmaFieldsAlpha.saucer.open(table, params, this.resource.context);
-
-		}
-
-	}
-
-	getContents() {
-
-		let contents = this.parse(this.resource.content);
-
-		if (contents && contents !== KarmaFieldsAlpha.loading) {
-
-			return KarmaFieldsAlpha.Type.toArray(contents);
-
-		}
-
-		return [];
-	}
-
-	getHrefs() {
-
-		if (this.resource.href) {
-
-			let href = this.parse(this.resource.href);
-
-			if (href !== KarmaFieldsAlpha.loading) {
-
-				return KarmaFieldsAlpha.Type.toArray(href);
-
-			}
+			this.request("open", table.toString(), params.toArray()[index], this.resource.replace);
 
 		}
 
+		this.request("render");
+
 	}
+
+	// getContents() {
+	//
+	// 	let contents = this.parse(this.resource.content);
+	//
+	// 	return contents.toArray();
+	// }
+
+	// getHrefs(index) {
+	//
+	// 	let href = this.parse(this.resource.href);
+	//
+	// 	return href.toArray()[index];
+	//
+	// }
 
 
 	build() {
@@ -493,45 +494,55 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 			update: node => {
 				node.element.classList.toggle("display-inline", this.resource.display === "inline");
 
-				const contents = this.getContents();
-				const hrefs = this.getHrefs();
+				const contents = this.parse(this.resource.content);
 
-				node.children = contents.map((content, index) => {
-					return {
-						tag: "li",
-						child: {
-							tag: "a",
-							update: node => {
+				if (contents.loading) {
 
-								node.element.onmousedown = event => {
-									event.stopPropagation();
-								};
+					node.children = [{
+						tag: "li"
+					}];
 
-								if (this.resource.table || this.resource.params) {
+				} else {
 
-									node.element.onclick = event => {
-										event.preventDefault();
-										this.nav(index);
+					node.children = contents.toArray().map((content, index) => {
+						return {
+							tag: "li",
+							child: {
+								tag: "a",
+								update: node => {
+
+									node.element.onmousedown = event => {
+										event.stopPropagation();
+									};
+
+									if (this.resource.table && this.resource.params) {
+
+										node.element.onclick = event => {
+											event.preventDefault();
+											this.nav(index);
+										}
+
+									} else if (this.resource.href) {
+
+										node.element.href = this.parse(this.resource.href).toArray()[index];
+
 									}
 
-								} else if (hrefs && hrefs[index]) {
+									node.element.innerHTML = content;
 
-									node.element.href = hrefs[index];
+									if (this.resource.target) {
 
-								}
+										node.element.target = this.resource.target;
 
-								node.element.innerHTML = content;
-
-								if (this.resource.target) {
-
-									node.element.target = this.resource.target;
+									}
 
 								}
-
 							}
 						}
-					}
-				});
+					});
+
+				}
+
 			}
 		};
 
@@ -585,29 +596,30 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			return {icon: "uploading", text: ""};
 
-		} else if (id.loading || this.resource.loading) {
+		} else if (this.resource.loading) {
 
 			return {icon: "loading", text: ""};
 
-		} else if (id.mixed) {
+		} else if (this.resource.mixed) {
 
 			return {icon: "mixed", text: "[mixed]"};
-
-		} else if (id.notFound) {
-
-			return {icon: "notfound", text: "Not Found"};
+		//
+		// } else if (id.notFound) {
+		//
+		// 	return {icon: "notfound", text: "Not Found"};
 
 		} else {
 
 			const mimetype = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "mimetype");
 			const filetype = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filetype");
 			const name = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "name");
+			const filename = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filename");
 
 			if (mimetype.loading || filetype.loading) {
 
 				return {icon: "loading", text: ""};
 
-			} else if (filetype.toString() === "folder") {
+			} else if (filetype.toString() !== "file") {
 
 				return {icon: "folder", text: name.toString()};
 
@@ -617,7 +629,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				if (filename.loading) {
 
-					return {icon: "image", text: text};
+					return {icon: "image", text: ""};
 
 				}
 
@@ -625,7 +637,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				if (dir.loading) {
 
-					return {icon: "image", text:text};
+					return {icon: "image", text:""};
 
 				}
 
@@ -652,7 +664,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 						mimetype: mimetype.toString(),
 						filename: filename.toString(),
 						dir: dir.toString(),
-						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString()
 					};
 
 				}
@@ -681,7 +693,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 					mimetype: mimetype.toString(),
 					filename: filename.toString(),
 					dir: dir.toString(),
-					src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+					src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString()
 				};
 
 			} else if (mimetype.toString().startsWith("audio")) {
@@ -707,24 +719,24 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 					mimetype: mimetype.toString(),
 					filename: filename.toString(),
 					dir: dir.toString(),
-					src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+					src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString()
 				};
 
 			} else if (mimetype.toString().startsWith("text")) {
 
-				return {icon: "text", text: name.toString()};
+				return {icon: "text", text: filename.toString()};
 
 			} else if (mimetype.toString() === "application/pdf") {
 
-				return {icon: "document", text: name.toString()};
+				return {icon: "document", text: filename.toString()};
 
 			} else if (mimetype.toString() === "application/zip") {
 
-				return {icon: "zip", text: name.toString()};
+				return {icon: "zip", text: filename.toString()};
 
 			} else {
 
-				return {icon: "default", text: name.toString()};
+				return {icon: "default", text: filename.toString()};
 
 			}
 
@@ -784,6 +796,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 									{
 										class: "filename",
 										update: filename => {
+											filename.element.classList.toggle("hidden", this.resource.caption === false);
 											filename.element.innerHTML = media.text;
 										}
 									}
@@ -845,7 +858,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 									},
 									update: video => {
 										// if (!video.element.src.endsWith(media.filename)) {
-										if (media.filename && media.filename !== img.element.getAttribute("data-src")) {
+										if (media.filename && media.filename !== video.element.getAttribute("data-src")) {
 											video.element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
 											video.element.setAttribute("data-src", media.filename);
 										}

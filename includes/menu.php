@@ -6,7 +6,9 @@
 				links[i].addEventListener("click", function(event) {
 					event.preventDefault();
 					if (KarmaFieldsAlpha.saucer) {
+						KarmaFieldsAlpha.History.save("open", "Open link");
 						KarmaFieldsAlpha.saucer.open(key);
+						KarmaFieldsAlpha.saucer.render();
 					}
 				});
 			}

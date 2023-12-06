@@ -35,7 +35,7 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
 
     if (this.dragging) {
 
-      this.drag();
+      this.drag(index);
 
     } else {
 

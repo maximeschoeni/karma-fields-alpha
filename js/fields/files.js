@@ -21,11 +21,25 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   getTable() {
 
-    return this.resource.driver || "medias";
+    return this.resource.table || "medias";
 
   }
 
-  fetch(table) {
+  // fetch(table) {
+  //
+  //   if (this.resource.uploader === "wp" || this.resource.library === "wp") {
+  //
+  //     this.openMediaLibrary();
+  //
+  //   } else {
+  //
+  //     super.fetch();
+  //
+  //   }
+  //
+  // }
+
+  edit() {
 
     if (this.resource.uploader === "wp" || this.resource.library === "wp") {
 
@@ -33,7 +47,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
     } else {
 
-      super.fetch();
+      super.edit();
 
     }
 
@@ -41,7 +55,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   openMediaLibrary() {
 
-    const rootSelection = KarmaFieldsAlpha.Store.State.getSelection();
+    // const rootSelection = KarmaFieldsAlpha.Store.State.getSelection();
 
     const selection = this.getSelection();
 
@@ -69,23 +83,18 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
       const attachments = frame.state().get("selection").toJSON();
       const attachmentIds = attachments.map(attachment => attachment.id.toString());
 
-      KarmaFieldsAlpha.Store.State.setSelection(rootSelection); // -> restore modal
-
-      if (selection) {
-
-        this.insert(attachmentIds, selection.index, selection.length);
-
-      } else {
-
-        this.append(attachmentIds);
-
-      }
+      this.insert(attachmentIds);
+      this.setFocus(true);
+      this.request("render");
 
     });
     frame.on("open", () => {
       let mediaSelection = frame.state().get("selection");
-      for (let id of this.getSelectedIds()) {
-        mediaSelection.add(wp.media.attachment(id));
+      const ids = this.getSelectedIds();
+      if (!ids.loading) {
+        for (let id of ids.toArray()) {
+          mediaSelection.add(wp.media.attachment(id));
+        }
       }
     });
 
@@ -142,54 +151,52 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
           event.preventDefault(); // needed for ondrop to work!
         }
 
-        // container.element.ondrop = async event => {
-        //   event.preventDefault();
-        //
-        //   data.uploads = event.dataTransfer.files.length;
-        //
-        //   await this.render();
-        //
-        //   for (let file of event.dataTransfer.files) {
-        //
-        //     const response = await this.uploadFile(file);
-        //
-        //     if (response.success) {
-        //
-        //       const id = response.data.id.toString()
-        //       this.append([id]);
-        //
-        //     }
-        //
-        //     data.uploads--;
-        //
-        //     await this.render();
-        //
-        //   }
-        //
-        //   this.parent.request("save");
-        //
-        // }
-
         if (!content.loaded) {
 
           container.children = [
             {
               class: "gallery",
+
               update: gallery => {
+
+                gallery.element.ondrop = event => {
+                  event.preventDefault();
+                  const files = event.dataTransfer.files;
+                  if (files.length) {
+                    this.setFocus(true);
+                    this.save("open", "Open medias");
+                    this.request("open", "medias", {parent: "0"});
+                    this.addTask(() => this.request("dispatch", "upload", files), "upload");
+                    this.request("render");
+                  }
+                  gallery.element.classList.remove("has-selection");
+                }
+                gallery.element.ondragover = event => {
+                  event.preventDefault();
+                  gallery.element.classList.add("has-selection");
+                }
+                gallery.element.ondragleave = event => {
+                  event.preventDefault();
+                  gallery.element.classList.remove("has-selection");
+                }
 
                 const ids = content.toArray();
 
+                let selection = this.getSelection();
+
                 gallery.element.classList.toggle("empty", ids.length === 0);
 
-                gallery.element.classList.toggle("has-selection", Boolean(this.selection));
+                gallery.element.classList.toggle("has-selection", Boolean(this.hasFocus()));
 
                 gallery.element.ondblclick = event => {
 
-                  this.open();
+                  this.edit();
 
                 }
 
-                const sorter = new KarmaFieldsAlpha.ListSorterInline(gallery.element, this.selection);
+
+
+                const sorter = new KarmaFieldsAlpha.ListSorterInline(gallery.element, selection);
 
                 sorter.onSelect = elements => {
 
@@ -206,7 +213,8 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                 sorter.onSelectionComplete = () => {
 
-                  this.request("deferFocus");
+                  // this.request("deferFocus");
+                  this.setFocus(true);
                   this.request("render");
 
                 }
@@ -220,38 +228,64 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                 sorter.onSort = (newSelection, lastSelection) => {
 
-                  KarmaFieldsAlpha.History.save("order", "Reorder");
-                  this.request("deferFocus");
+                  // KarmaFieldsAlpha.History.save("order", "Reorder");
+                  // this.request("deferFocus");
+                  this.setFocus(true);
                   this.request("render");
 
                 }
 
-                gallery.children = ids.map((id, rowIndex) => {
+                if (content.mixed) {
 
-                  return {
-                    class: "frame",
-                    update: frame => {
+                  gallery.children = [
+                    {
+                      class: "frame",
+                      update: frame => {
+                        const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, 0);
+                        frame.element.classList.toggle("selected", Boolean(isSelected));
+                      },
+                      child: this.createChild({
+                        type: "media",
+                        driver: this.getDriver(),
+                        mixed: true,
+                        display: "thumb"
+                      }, "mixed").build()
+                    }
+                  ];
 
-                      const isSelected = this.selection && KarmaFieldsAlpha.Segment.contain(this.selection, rowIndex);
+                } else {
 
-                      frame.element.classList.toggle("selected", Boolean(isSelected));
-                    },
-                    // child: new KarmaFieldsAlpha.field.text.media({
-                    //   driver: this.getDriver(),
-                    //   id: id,
-                    //   uploading: !id,
-                    //   display: "thumb",
-                    //   caption: true
-                    // }).build()
-                    child: this.createChild({
-                      driver: this.getDriver(),
-                      id: id,
-                      uploading: !id,
-                      display: "thumb",
-                      caption: true
-                    }, rowIndex).build()
-                  };
-                });
+                  gallery.children = ids.map((id, rowIndex) => {
+
+                    return {
+                      class: "frame",
+                      update: frame => {
+
+                        const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, rowIndex);
+
+                        frame.element.classList.toggle("selected", Boolean(isSelected));
+                      },
+                      // child: new KarmaFieldsAlpha.field.text.media({
+                      //   driver: this.getDriver(),
+                      //   id: id,
+                      //   uploading: !id,
+                      //   display: "thumb",
+                      //   caption: true
+                      // }).build()
+                      child: this.createChild({
+                        type: "media",
+                        driver: this.getDriver(),
+                        id: id,
+                        // uploading: !id,
+                        display: "thumb"
+                        // caption: true
+                      }, rowIndex).build()
+                    };
+                  });
+
+                }
+
+
               }
             },
             {
@@ -277,7 +311,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
 }
 
-KarmaFieldsAlpha.field.files.controls = class extends KarmaFieldsAlpha.field.container {
+KarmaFieldsAlpha.field.files.controls = class extends KarmaFieldsAlpha.field.group {
 
   constructor(resource) {
 
@@ -309,8 +343,8 @@ KarmaFieldsAlpha.field.files.controls.add = class extends KarmaFieldsAlpha.field
     super({
       title: "Add",
       text: "Add File",
-      action: "open",
-      hidden: [">=", ["count", ["getValue"]], ["request", "getMax"]],
+      action: "add",
+      hidden: ["||", [">=", ["count", ["getContent"]], ["request", "getMax"]], ["isMixed"]],
       ...resource
     });
   }
@@ -321,7 +355,7 @@ KarmaFieldsAlpha.field.files.controls.remove = class extends KarmaFieldsAlpha.fi
       title: "Remove",
       text: "Remove",
       action: "deleteFile",
-      disabled: ["!", ["request", "hasFileSelected"]],
+      disabled: ["!", ["request", "getSelectedIds"]],
       hidden: ["=", ["count", ["getValue"]], 0],
       ...resource
     });
@@ -331,9 +365,9 @@ KarmaFieldsAlpha.field.files.controls.edit = class extends KarmaFieldsAlpha.fiel
   constructor(resource) {
     super({
       text: "Change",
-      action: "open",
-      disabled: ["!", ["request", "hasFileSelected"]],
-      hidden: ["=", ["count", ["getValue"]], 0],
+      action: "edit",
+      disabled: ["!", ["request", "getSelectedIds"]],
+      hidden: ["||", ["=", ["count", ["getValue"]], 0], ["isMixed"]],
       ...resource
     });
   }

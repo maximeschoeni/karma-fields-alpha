@@ -254,7 +254,7 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-handles-list-sort-block', $plugin_url . '/js/utils/handles/list-sort-block.js', array('karma-fields-handles-list-sort-hierarchy'), $this->version, true);
 				wp_enqueue_script('karma-fields-handles-list-sort-block-library', $plugin_url . '/js/utils/handles/list-sort-block-library.js', array('karma-fields-handles-list-sort-block'), $this->version, true);
 				wp_enqueue_script('karma-fields-handles-row-picker', $plugin_url . '/js/utils/handles/row-picker.js', array('karma-fields-handles-list-picker'), $this->version, true);
-
+				wp_enqueue_script('karma-fields-handles-list-drag-and-drop', $plugin_url . '/js/utils/handles/list-drag-and-drop.js', array('karma-fields-handles-list-sorter'), $this->version, true);
 
 
 
@@ -369,7 +369,21 @@ class Karma_Fields_Alpha {
 	 */
 	public function init() {
 
-
+		register_post_type('karma-folder', array(
+      'labels'             => array(
+        'name' => 'Folders',
+        'singular_name' => 'Folder'
+      ),
+      'public'             => true,
+      'show_ui'            => false,
+      'query_var'          => false,
+      'publicly_queryable' => true,
+      'capability_type'    => 'post',
+      'has_archive'        => false,
+      'hierarchical'       => false,
+      'supports'           => array('title'),
+      'show_in_rest' => false
+    ));
 
 		$this->register_driver(
 			'posts',

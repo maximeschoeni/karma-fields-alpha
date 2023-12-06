@@ -156,6 +156,27 @@ KarmaFieldsAlpha.field = class {
 
   }
 
+  addTask(resolve, type) {
+
+    KarmaFieldsAlpha.Store.Tasks.add({
+      type: type,
+      resolve: resolve
+    });
+
+  }
+
+  findTask(callback) {
+
+    const tasks = KarmaFieldsAlpha.Store.Tasks.get();
+
+    if (tasks) {
+
+      return tasks.find(callback);
+
+    }
+
+  }
+
   grind(closure, callback) {
 
     const result = closure();
@@ -224,9 +245,21 @@ KarmaFieldsAlpha.field = class {
 
   }
 
+  getOption(...path) {
+
+    return KarmaFieldsAlpha.Store.State.get("fields", ...this.path, ...path);
+
+  }
+
   setOption(data, ...path) {
 
-    KarmaFieldsAlpha.Store.State.set(data, "fields", ...path);
+    KarmaFieldsAlpha.Store.State.set(data, "fields", ...this.path, ...path);
+
+  }
+
+  removeOption(...path) {
+
+    KarmaFieldsAlpha.Store.State.remove("fields", ...this.path, ...path);
 
   }
 
@@ -281,8 +314,6 @@ KarmaFieldsAlpha.field = class {
   }
 
   getDriver() {
-
-    console.error("deprecated");
 
 		return this.resource.driver || this.parent.getDriver();
 

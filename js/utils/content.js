@@ -85,7 +85,7 @@ KarmaFieldsAlpha.Content = class { // -> Pocket ?
 
       return value;
 
-    } else if (value) {
+    } else if (value || value === 0) {
 
       return JSON.stringify(value);
 

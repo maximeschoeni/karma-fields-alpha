@@ -1,61 +1,75 @@
 KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
-  getDefault(defaults = {}) {
+  getDefault() {
 
-		if (this.resource.default) {
-
-      return this.parse(this.resource.default);
-
-		} else {
-
-      const options = this.getOptions();
-
-      return new KarmaFieldsAlpha.Content.Request(options.toString());
-
-    }
-
-	}
-
-  export(collection) {
-
-    const content = this.getContent();
-
-    if (!content.loading) {
-
-      const options = this.getOptions();
-      const value = content.toString();
-
-      const option = options.toArray().find(option => option.id === value);
-
-      collection.add(new KarmaFieldsAlpha.Content(option.name));
-
-    }
-
-	}
-
-  import(collection) {
-
-    let content = collection.pick();
+    const content = new KarmaFieldsAlpha.Content();
 
     const options = this.getOptions();
 
-    if (!options.loading) {
+    if (options.loading) {
 
-      const value = content.toString();
+      content.loading = true;
 
-      const option = options.toArray().find(option => option.name === value);
+    } else {
 
-      if (option) {
+      if (this.resource.default) {
 
-        content = new KarmaFieldsAlpha.Content(option.id);
+        content.value = this.parse(this.resource.default).toString();
+
+  		}
+
+      if (content.value === undefined || !options.toArray().some(item => item.id === content.value)) {
+
+        content.value = options.toArray()[0].id;// ! allowing default value not in options may lead in infinite loop !
 
       }
 
     }
 
-    this.setContent(content);
+    return content;
 
-  }
+	}
+
+  // export(collection) {
+  //
+  //   const content = this.getContent();
+  //
+  //   if (!content.loading) {
+  //
+  //     const options = this.getOptions();
+  //     const value = content.toString();
+  //
+  //     const option = options.toArray().find(option => option.id === value);
+  //
+  //     collection.add(new KarmaFieldsAlpha.Content(option.name));
+  //
+  //   }
+  //
+	// }
+  //
+  // import(collection) {
+  //
+  //   let content = collection.pick();
+  //
+  //   const options = this.getOptions();
+  //
+  //   if (!options.loading) {
+  //
+  //     const value = content.toString();
+  //
+  //     const option = options.toArray().find(option => option.name === value);
+  //
+  //     if (option) {
+  //
+  //       content = new KarmaFieldsAlpha.Content(option.id);
+  //
+  //     }
+  //
+  //   }
+  //
+  //   this.setContent(content);
+  //
+  // }
 
   isDisabled() {
 
@@ -88,9 +102,19 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		if (this.resource.driver) {
 
-      const moreOptions = KarmaFieldsAlpha.Query.getResult(this.resource.driver, this.resource.params || {});
+      const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
 
-      options.merge(moreOptions);
+      if (moreOptions.loading) {
+
+        options.loading = true;
+
+      } else {
+
+        options.value = [...options.toArray(), ...moreOptions.toArray()]
+
+      }
+
+      // options.merge(moreOptions);
 
 		}
 
@@ -124,6 +148,8 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
               content = this.getDefault();
 
               if (!content.loading) {
+
+                console.log(content);
 
                 this.setContent(content);
 

@@ -663,9 +663,17 @@ body.karma-table-open {
   /* padding: 1em 0; */
   position: relative; /* needed for children offset calculation */
 
-  /* flex-grow: 1; */
-  /* width: 100%; */
-  /* min-height: 100%; */  /* -> for droping files */
+  /* border: 1px solid var(--border-color);
+  padding: var(--gap-width);
+  flex-grow: 1;
+  width: 100%; */
+}
+.karma-field-table ul.media-table.has-selection {
+  /* border-color: var(--theme-color);
+  outline: 1px solid var(--theme-color); */
+}
+.karma-field-table ul.media-table.drop-active {
+  outline: 2px solid var(--theme-color);
 }
 .karma-field-table ul.media-table li {
   margin: 0;
@@ -687,10 +695,10 @@ body.karma-table-open {
 .karma-field-table .media-table .frame.drag {
   z-index: 99999999;
   cursor: grabbing;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 .karma-field-table .media-table .frame.drag.drop-active {
-  opacity: 0.33;
+  /* opacity: 0.33; */
 }
 
 
@@ -700,6 +708,7 @@ body.karma-table-open {
 .karma-field-table .media-table .frame.media-dropzone.drop-active:not(.drag) {
   background-color: var(--inverse-background-color);
   color: var(--inverse-text-color);
+  outline: 2px solid var(--theme-color);
 }
 .karma-field-table .media-table .frame.media-dropzone.drop-active:not(.drag) figure::before {
   color: var(--inverse-text-color);
@@ -842,9 +851,9 @@ ul.karma-breadcrumb li a:hover {
 ----------------------------------- */
 
 .karma-fields .karma-upload {
-  color: var(--text-color);
+  /* color: var(--text-color);
   border: var(--border-width) solid var(--border-color);
-  height: 2.5em;
+  height: 2.5em; */
   min-width: 2.5em;
   border-radius: var(--border-radius);
   overflow: hidden;
@@ -855,7 +864,7 @@ ul.karma-breadcrumb li a:hover {
   border-color: var(--border-color);
 } */
 .karma-fields .karma-upload .label {
-  display: flex;
+  /* display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
@@ -865,18 +874,20 @@ ul.karma-breadcrumb li a:hover {
   line-height: 1.08em;
   border: none;
   cursor: pointer;
-  padding: 0 var(--gap-width);
+  padding: 0 var(--gap-width); */
 
+  font-weight: normal;
+  cursor: pointer;
   margin: 0;
 }
 .karma-fields .karma-upload .label:hover {
-  background-color: var(--active-background-color);
+  /* background-color: var(--active-background-color); */
 }
 /* .karma-fields .dark .karma-upload .label:hover {
   color: var(--text-color);
 } */
 .karma-fields .karma-upload .label:active {
-  background-color: var(--active-background-color);
+  /* background-color: var(--active-background-color); */
 }
 
 
@@ -946,15 +957,14 @@ ul.karma-breadcrumb li a:hover {
   cursor: grab;
 }
 .frame.selected figure {
-  background-color: var(--selected-background-color);
+  /* background-color: var(--selected-background-color); */
+  background-color: var(--theme-color);
 }
 .frame.selected .file-caption {
   background-color: var(--selected-background-color);
   /* color: var(--inverse-text-color); */
 }
-/* .frame.selected figure.dashicons::before {
-  color: var(--inverse-text-color);
-} */
+
 .gallery.dragging {
   z-index: 9999999;
 }
@@ -965,10 +975,6 @@ ul.karma-breadcrumb li a:hover {
   z-index: 99999999;
   cursor: grabbing;
 }
-
-/* .karma-gallery .gallery .frame.selected figure.dashicons::before {
-  color: var(--inverse-text-color);
-} */
 
 .karma-gallery .controls {
   position: absolute;
@@ -1003,7 +1009,7 @@ ul.karma-breadcrumb li a:hover {
 .karma-tags ul li {
   border: var(--border-width) solid #8c8f94;
   border-radius: 1.25em;
-  padding: 0 var(--gap-width);
+  padding: 0.3em var(--gap-width);
   min-height: 2.308em;
   display: flex;
   align-items: center;
@@ -1016,18 +1022,12 @@ ul.karma-breadcrumb li a:hover {
 }
 .karma-tags ul li.selected {
   background-color: var(--selected-background-color);
-  /* color: var(--inverse-text-color); */
 }
 
 .karma-tags ul li .close {
   cursor: pointer;
 }
-.karma-tags ul li.selected .close {
-  /* color: var(--inverse-text-color); */
-}
-.karma-tags ul li.selected .close:hover {
 
-}
 .karma-tags ul li:not(.selected) .close {
   display: none;
 }
@@ -1109,10 +1109,7 @@ ul.tag-links li:not(:last-child)::after {
   color: inherit;
   text-decoration: underline;
 }
-.karma-field-table .table .selected ul.tag-links a,
-.karma-field-table .table .selecting ul.tag-links a {
-  /* color: white; */
-}
+
 
 
 /* Text - Media
@@ -1143,13 +1140,20 @@ ul.tag-links li:not(:last-child)::after {
   flex-grow: 1;
   width: 100%;
   /* border: 1px solid var(--border-color); */
-  background-color: white;
+  /* background-color: white; */
+  background-color: var(--theme-secondary-bg-color);
   flex-direction: column;
+  color: var(--background-color);
 }
 .frame.selected .karma-field-media figure.image,
 .td.selected .karma-field-media figure.image,
 .karma-field-media.greyscale figure.image {
-  background-color: var(--screen-background-color);
+  background-color: var(--theme-color);
+}
+.frame.selected .karma-field-media figure.icon,
+.td.selected .karma-field-media figure.icon,
+.karma-field-media.greyscale figure.icon {
+  /* color: var(--theme-bg-color); */
 }
 .frame.selected .karma-field-media figure.image img,
 .td.selected .karma-field-media figure.image img,
@@ -1167,7 +1171,7 @@ ul.tag-links li:not(:last-child)::after {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: top left;
+  object-position: center;
 }
 .karma-field-media.display-thumb figure img,
 .karma-field-media.display-icon figure img {
@@ -1175,6 +1179,9 @@ ul.tag-links li:not(:last-child)::after {
   height: 100%;
   object-fit: cover;
   object-position: center;
+
+  filter: grayscale(1) contrast(1.3);
+  mix-blend-mode: screen;
 }
 .karma-field-media figure video {
   display: block;
@@ -1183,10 +1190,19 @@ ul.tag-links li:not(:last-child)::after {
   object-fit: contain;
   object-position: center;
 }
-.karma-field-media figure.dashicons::before {
+/* .karma-field-media figure.dashicons::before {
   font-size: 2em;
   color: var(--text-color);
+} */
+.karma-field-media figure.icon .dashicons {
+  font-size: 3em;
+  width: auto;
+  height: auto;
 }
+.karma-field-media.display-medium figure.icon .dashicons {
+  font-size: 6em;
+}
+
 
 /* Text - Media - caption
 --------------------------------------*/
@@ -1206,12 +1222,13 @@ ul.tag-links li:not(:last-child)::after {
   color: var(--text-color); */
 }
 .karma-field-media .filename {
-  padding: var(--gap-width);
+  padding: 0 var(--gap-width);
   width: 100%;
   /* white-space: nowrap; */
-  text-overflow: ellipsis;
-  overflow: hidden;
+  /* text-overflow: ellipsis;
+  overflow: hidden; */
   text-align: center;
+  word-break: break-all;
 }
 
 /* Text - Media - selection
@@ -1410,7 +1427,6 @@ ul.tag-links li:not(:last-child)::after {
 .karma-fields .array .td.selected .td,
 .karma-fields .array .td.selected .th {
   background-color: var(--selected-background-color);
-  /* color: var(--inverse-text-color); */
 }
 
 .array .karma-field-frame {

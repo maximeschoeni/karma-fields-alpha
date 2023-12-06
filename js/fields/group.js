@@ -54,7 +54,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   }
 
-	export(collection) {
+	export() {
 
 		const key = this.getKey();
 
@@ -62,15 +62,14 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
       let content = this.parent.getContent(key);
 
-      collection.add(content);
+      return new KarmaFieldsAlpha.Content.Collection([content.toSingle()]);
 
 		} else {
 
-      super.export(items);
+      return super.export();
 
 		}
 
-    return items;
 	}
 
 	import(collection) {
@@ -93,13 +92,15 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   isHidden(field) {
 
+
+
     if (field.resource.hidden) {
 
-      return this.parse(field.resource.hidden).toBoolean();
+      return field.parse(field.resource.hidden).toBoolean();
 
     } else if (field.resource.visible) {
 
-      return !this.parse(field.resource.visible).toBoolean();
+      return !field.parse(field.resource.visible).toBoolean();
 
     }
 
