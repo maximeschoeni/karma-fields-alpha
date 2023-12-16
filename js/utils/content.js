@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.Content = class { // -> Pocket ?
+KarmaFieldsAlpha.Content = class {
 
   constructor(value, params) {
 
@@ -41,9 +41,18 @@ KarmaFieldsAlpha.Content = class { // -> Pocket ?
 
   }
 
+  isEmpty() {
+
+    return this.toArray().length === 0;
+  }
+
   clone() {
 
-    return new KarmaFieldsAlpha.Content([...this.toArray()]);
+    const clone = new this.constructor();
+
+    Object.assign(clone, this);
+
+    return clone;
 
   }
 

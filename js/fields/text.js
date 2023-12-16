@@ -363,66 +363,67 @@ KarmaFieldsAlpha.field.text.link = class extends KarmaFieldsAlpha.field {
 
 
 
-KarmaFieldsAlpha.field.filterLink = class extends KarmaFieldsAlpha.field.text {
-
-	getChildren() {
-
-		// const key = this.resource.key;
-		const children = [];
-
-		if (!this.resource.driver) {
-
-			console.error("driver is missing");
-
-		}
-
-		const ids = this.getValue();
-
-		if (ids && ids !== KarmaFieldsAlpha.loading) {
-
-			for (let id of ids) {
-
-				const values = KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, "name");
-
-				if (values && values !== KarmaFieldsAlpha.loading) {
-
-					const child = this.createChild({
-						type: "link",
-						content: KarmaFieldsAlpha.Type.toString(values),
-						params: {[this.resource.key]: id}
-					});
-
-					children.push(child);
-
-				}
-
-			}
-
-		}
-
-		return children;
-
-	}
-
-	build() {
-
-		return {
-			tag: "ul",
-			class: "karma-field links",
-			update: node => {
-				node.element.classList.toggle("display-inline", this.resource.display === "inline");
-				node.children = this.getChildren().map(child => {
-					return {
-						tag: "li",
-						child: child.build()
-					}
-				});
-			}
-		};
-
-	}
-
-}
+// KarmaFieldsAlpha.field.filterLink = class extends KarmaFieldsAlpha.field.text {
+//
+// 	getChildren() {
+//
+// 		// const key = this.resource.key;
+// 		const children = [];
+//
+// 		if (!this.resource.driver) {
+//
+// 			console.error("driver is missing");
+//
+// 		}
+//
+// 		const ids = this.getValue();
+//
+// 		if (ids && ids !== KarmaFieldsAlpha.loading) {
+//
+// 			for (let id of ids) {
+//
+// 				// const values = KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, "name");
+// 				const value = new KarmaFieldsAlpha.Content.Value(this.resource.driver, id, "name");
+//
+// 				if (!value.loading) {
+//
+// 					const child = this.createChild({
+// 						type: "link",
+// 						content: value.toString(),
+// 						params: {[this.resource.key]: id}
+// 					});
+//
+// 					children.push(child);
+//
+// 				}
+//
+// 			}
+//
+// 		}
+//
+// 		return children;
+//
+// 	}
+//
+// 	build() {
+//
+// 		return {
+// 			tag: "ul",
+// 			class: "karma-field links",
+// 			update: node => {
+// 				node.element.classList.toggle("display-inline", this.resource.display === "inline");
+// 				node.children = this.getChildren().map(child => {
+// 					return {
+// 						tag: "li",
+// 						child: child.build()
+// 					}
+// 				});
+// 			}
+// 		};
+//
+// 	}
+//
+// }
 
 
 
@@ -435,30 +436,9 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
 		if (table.loading || params.loading) {
 
-			// KarmaFieldsAlpha.Store.Tasks.add({
-			// 	type: "nav",
-			// 	resolve: () => this.nav(index)
-			// });
-
 			this.addTask(() => this.nav(index), "nav");
 
 		} else {
-
-			// if (table) {
-			//
-			// 	table = KarmaFieldsAlpha.Type.toString(table);
-			//
-			// }
-			//
-			// if (params) {
-			//
-			// 	params = KarmaFieldsAlpha.Type.toArray(params);
-			//
-			// 	params = params[index];
-			//
-			// }
-
-			// KarmaFieldsAlpha.saucer.open(table.toString(), params.toArray()[index], this.resource.context);
 
 			this.save("nav", "Open link");
 
@@ -555,14 +535,14 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 
 	constructor(resource) {
 
-		const taxonomy = this.resource.taxonomy || "category";
-		const table = this.resource.table || null; // -> use same table
-		const driver = this.resource.driver || "taxonomy";
+		// const taxonomy = this.resource.taxonomy || "category";
+		// const table = this.resource.table || null; // -> use same table
+		// const driver = this.resource.driver || "taxonomy";
 
 		super({
-			content: ["map", ["getValue", this.resource.taxonomy], ["queryValue", this.resource.driver, ["getItem"], "name"]],
-			params: ["map", ["getValue", this.resource.taxonomy], ["object", this.resource.taxonomy, ["getItem"]]],
-			table: this.resource.table,
+			content: ["map", ["getValue", resource.taxonomy], ["queryValue", resource.driver, ["getItem"], "name"]],
+			params: ["map", ["getValue", resource.taxonomy], ["object", resource.taxonomy, ["getItem"]]],
+			table: resource.table,
 			...resource
 		});
 
@@ -610,10 +590,15 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 		} else {
 
-			const mimetype = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "mimetype");
-			const filetype = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filetype");
-			const name = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "name");
-			const filename = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filename");
+			// const mimetype = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "mimetype");
+			// const filetype = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filetype");
+			// const name = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "name");
+			// const filename = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filename");
+
+			const mimetype = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "mimetype");
+			const filetype = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filetype");
+			const name = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "name");
+			const filename = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filename");
 
 			if (mimetype.loading || filetype.loading) {
 
@@ -625,7 +610,8 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			} else if (mimetype.toString().startsWith("image")) {
 
-				const filename = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filename");
+				// const filename = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filename");
+				const filename = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filename");
 
 				if (filename.loading) {
 
@@ -633,7 +619,8 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				const dir = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "dir");
+				// const dir = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "dir");
+				const dir = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "dir");
 
 				if (dir.loading) {
 
@@ -643,7 +630,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				if (mimetype.toString() === "image/jpeg" || mimetype.toString() === "image/png") {
 
-					const sizes = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "sizes");
+					const sizes = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "sizes");
 
 					return {
 						icon: "image",
@@ -671,7 +658,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			} else if (mimetype.toString().startsWith("video")) {
 
-				const filename = KarmaFieldsAlpha.Query.getValue(driver, id, "filename");
+				const filename = new KarmaFieldsAlpha.Content.Value(driver, id, "filename");
 
 				if (filename.loading) {
 
@@ -679,7 +666,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				const dir = KarmaFieldsAlpha.Query.getValue(driver, id, "dir");
+				const dir = new KarmaFieldsAlpha.Content.Value(driver, id, "dir");
 
 				if (dir.loading) {
 
@@ -698,8 +685,8 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			} else if (mimetype.toString().startsWith("audio")) {
 
-				const filename = KarmaFieldsAlpha.Query.getValue(driver, id, "filename");
-				const dir = KarmaFieldsAlpha.Query.getValue(driver, id, "dir");
+				const filename = new KarmaFieldsAlpha.Content.Value(driver, id, "filename");
+				const dir = new KarmaFieldsAlpha.Content.Value(driver, id, "dir");
 
 				if (dir.loading) {
 

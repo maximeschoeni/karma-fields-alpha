@@ -1,6 +1,6 @@
 KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
-  getContent(...path) {
+  getContent(subkey) {
 
     const key = this.getKey();
 
@@ -8,19 +8,21 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
       const content = this.parent.getContent(key);
 
-      if (content.loading) {
+      // if (content.loading) {
+      //
+      //   return new KarmaFieldsAlpha.Content.Request();
+      //
+      // }
+      //
+      // const value = KarmaFieldsAlpha.DeepObject.get(content.toObject(), subkey);
+      //
+      // return new KarmaFieldsAlpha.Content(value);
 
-        return new KarmaFieldsAlpha.Content.Request();
-
-      }
-
-      const value = KarmaFieldsAlpha.DeepObject.get(content.toObject(), ...path);
-
-      return new KarmaFieldsAlpha.Content(value);
+      return new KarmaFieldsAlpha.Content.Node(content, subkey);
 
     } else if (this.parent) {
 
-      return this.parent.getContent(...path);
+      return this.parent.getContent(subkey);
 
     }
 
@@ -246,8 +248,9 @@ KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
       update: tabs => {
         // const selection = this.getSelection();
 
-        const data = this.getData();
-        const currentIndex = data && data.index || 0;
+        // const data = this.getData();
+        // const currentIndex = data && data.index || 0;
+        const currentIndex = this.getOption("index") || 0;
 
         tabs.children = [
           {
@@ -263,7 +266,8 @@ KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
                   node.element.classList.toggle("active", Boolean(isActive));
                   node.element.onclick = event => {
                     // this.setSelection({child: {}, childId: index});
-                    data.index = index;
+                    // data.index = index;
+                    this.setOption(index, "index");
                     this.render();
                   }
                 }

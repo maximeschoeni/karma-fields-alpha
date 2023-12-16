@@ -12,6 +12,48 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
     // foreach ($data as $id => $item) {
 
+    $trash_prefix = '_trashed_';
+
+
+
+
+    if (isset($data['trash'])) {
+
+      if ($data['trash'] && $data['trash'][0] === '1') {
+
+        $term = get_term($id);
+
+        if ($term) {
+
+          $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => "$trash_prefix$term->taxonomy"), array('term_id' => $id), array('%s'), array('%d'));
+
+        } // else term is probably already trashed...
+
+        return true;
+
+      } else {
+
+        $id = intval($id);
+        $trashed_taxonomy = $wpdb->get_var("SELECT taxonomy FROM $wpdb->term_taxonomy WHERE term_id = $id AND taxonomy LIKE '$trash_prefix%'");
+
+        if ($trashed_taxonomy) {
+
+          $taxonomy = substr($trashed_taxonomy, strlen($trash_prefix));
+
+          $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => $taxonomy), array('term_id' => $id), array('%s'), array('%d'));
+
+        }
+
+      }
+
+    }
+
+    if (isset($data['taxonomy'][0])) {
+
+      $r = $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => $data['taxonomy'][0]), array('term_id' => $id), array('%s'), array('%d'));
+
+    }
+
 
 
       $args = array();
@@ -20,12 +62,24 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
       $term = get_term($id);
 
+      // if (isset($data['name']) && $data['name'] && empty($data['slug']) && preg_match($term->slug, '/-new-term-\d+/')) {
+      //
+      //   $data['slug'] = sanitize_title($data['name']);
+      //
+      // }
+
+
+
       foreach ($data as $key => $value) {
 
         if (apply_filters('karma_fields_taxonomy_driver_update', null, $value, $key, $id, $args) === null) {
 
           switch ($key) {
 
+            case 'trash':
+              break;
+
+            case 'parent':
             case 'name':
             case 'slug':
             case 'description':
@@ -76,9 +130,12 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
       }
 
+
+
+
       if ($args) {
 
-        wp_update_term($id, $term->taxonomy, $args);
+        $r = wp_update_term($id, $term->taxonomy, $args);
 
       }
 
@@ -87,44 +144,70 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
     return true;
   }
 
-
-
-  /** DEPRECATED
-	 * join
+  /**
+	 * add
 	 */
-  public function join($params) {
+  public function add($data) {
     global $wpdb;
 
-    $ids = explode(',', $params['ids']);
-    $ids = array_filter($ids);
-
-    if ($ids) {
-
-      $ids = array_map('intval', $ids);
-      $sql_ids = implode(',', $ids);
-
-      $sql = "SELECT
-        tt.taxonomy AS 'key',
-        tt.term_id AS 'value',
-        tr.object_id AS 'id'
-        FROM $wpdb->term_relationships AS tr
-        INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-        WHERE tr.object_id IN ($sql_ids)";
-
-			$results = $wpdb->get_results($sql);
-
-      return $results;
-
-    } else {
-
-      return array();
-
-    }
+    // $uid = uniqid();
+    // $name = "[new term $uid]";
+    $taxonomy = 'post_tag';
 
 
+    // $results = wp_insert_term($name, $taxonomy);
 
+    $wpdb->insert($wpdb->terms, array('name' => ''), array('%s'));
+
+    $term_id = (int) $wpdb->insert_id;
+
+    $wpdb->insert($wpdb->term_taxonomy, array('taxonomy' => $taxonomy, 'term_id' => $term_id), array('%s', '%d'));
+
+    return $term_id;
+		// return new WP_Error( 'db_insert_error', __( 'Could not insert term into the database.' ), $wpdb->last_error );
+
+    // return $results['term_id'];
 
   }
+
+
+
+  // /** DEPRECATED
+	//  * join
+	//  */
+  // public function join($params) {
+  //   global $wpdb;
+  //
+  //   $ids = explode(',', $params['ids']);
+  //   $ids = array_filter($ids);
+  //
+  //   if ($ids) {
+  //
+  //     $ids = array_map('intval', $ids);
+  //     $sql_ids = implode(',', $ids);
+  //
+  //     $sql = "SELECT
+  //       tt.taxonomy AS 'key',
+  //       tt.term_id AS 'value',
+  //       tr.object_id AS 'id'
+  //       FROM $wpdb->term_relationships AS tr
+  //       INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+  //       WHERE tr.object_id IN ($sql_ids)";
+  //
+	// 		$results = $wpdb->get_results($sql);
+  //
+  //     return $results;
+  //
+  //   } else {
+  //
+  //     return array();
+  //
+  //   }
+  //
+  //
+  //
+  //
+  // }
 
 
   //

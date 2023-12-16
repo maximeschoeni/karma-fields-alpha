@@ -181,6 +181,7 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-medias', $plugin_url . '/js/tables/medias.js', array('karma-fields-alpha-grid'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-hierarchy', $plugin_url . '/js/tables/hierarchy.js', array('karma-fields-alpha-grid'), $this->version, true);
 
+				wp_enqueue_script('karma-fields-alpha-gridfield', $plugin_url . '/js/tables/grid-field.js', array('karma-fields-alpha-grid'), $this->version, true);
 
 
 				// layout fields
@@ -225,7 +226,6 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-selection', $plugin_url . '/js/utils/selection.js', array('karma-fields-utils-segment'), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-tree', $plugin_url . '/js/utils/tree.js', array(), $this->version, true);
 
-        wp_enqueue_script('karma-fields-utils-query', $plugin_url . '/js/utils/query.js', array(), $this->version, true);
         // wp_enqueue_script('karma-fields-utils-delta', $plugin_url . '/js/utils/delta.js', array(), $this->version, true);
         // wp_enqueue_script('karma-fields-utils-terminal', $plugin_url . '/js/utils/terminal.js', array(), $this->version, true);
         // wp_enqueue_script('karma-fields-utils-utils', $plugin_url . '/js/utils/utils.js', array(), $this->version, true);
@@ -238,7 +238,9 @@ class Karma_Fields_Alpha {
 
 				wp_enqueue_script('karma-fields-utils-database', $plugin_url . '/js/utils/database.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-content', $plugin_url . '/js/utils/content.js', array(), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-expression', $plugin_url . '/js/utils/expression.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-expression', $plugin_url . '/js/utils/expression.js', array('karma-fields-utils-content'), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-query', $plugin_url . '/js/utils/query.js', array('karma-fields-utils-content'), $this->version, true);
+
 				wp_enqueue_script('karma-fields-utils-remote', $plugin_url . '/js/utils/remote.js', array(), $this->version, true);
 
 
@@ -623,26 +625,44 @@ class Karma_Fields_Alpha {
 							$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input);
 							$input = json_decode($encoded_input, $associative); // need parsed as array for blocks
 
-							// var_dump($input); die();
-
 							if ($input) {
 
-								$driver = $this->get_driver('posts');
+								foreach ($input as $driver_name => $data) {
 
-								// -> should verify permissions here
+									foreach ($data as $id => $row) {
 
-								if (method_exists($driver, 'update')) {
+										$driver = $this->get_driver($driver_name);
 
-									// echo '<pre>';
-									// var_dump($post_id, $input);
-									// die();
+										if (method_exists($driver, 'update')) {
 
-									$driver->update($input, $post_id);
+											$driver->update($row, $id);
+
+										}
+									}
 
 								}
 
-
 							}
+
+
+							// if ($input) {
+							//
+							// 	$driver = $this->get_driver('posts');
+							//
+							// 	// -> should verify permissions here
+							//
+							// 	if (method_exists($driver, 'update')) {
+							//
+							// 		// echo '<pre>';
+							// 		// var_dump($post_id, $input);
+							// 		// die();
+							//
+							// 		$driver->update($input, $post_id);
+							//
+							// 	}
+							//
+							//
+							// }
 
 						}
 

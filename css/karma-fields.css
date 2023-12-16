@@ -455,7 +455,7 @@ body.karma-table-open {
   background-color: white;
 }
 .karma-fields .table.even {
-  background-color: var(--background-color);
+  /* background-color: var(--background-color); */
 }
 .karma-fields .table.active {
   border-color: var(--theme-color);
@@ -495,6 +495,12 @@ body.karma-table-open {
 .karma-fields .table .td.odd {
   background-color: var(--background-color);
 }
+.karma-fields .table .td.last-row {
+  border-bottom: 1px solid var(--border-color);
+}
+
+
+
 /* .karma-fields .table .td::after {
   font-family: dashicons;
   position: absolute;
@@ -635,6 +641,22 @@ body.karma-table-open {
 }
 
 
+/* Grid Field
+--------------------------------------*/
+.karma-fields .grid-field {
+  position: relative;
+}
+.karma-fields .grid-field .table.grid-field-body {
+  margin: 0;
+  padding-bottom: 3em;
+}
+.grid-field-footer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 0.35em var(--gap-width);
+}
+
 
 /* Table Medias
 --------------------------------------*/
@@ -672,7 +694,11 @@ body.karma-table-open {
   /* border-color: var(--theme-color);
   outline: 1px solid var(--theme-color); */
 }
-.karma-field-table ul.media-table.drop-active {
+.karma-field-table .media-table-container {
+  display: flex;
+  flex-grow: 1;
+}
+.karma-field-table .media-table-container.drop-active {
   outline: 2px solid var(--theme-color);
 }
 .karma-field-table ul.media-table li {

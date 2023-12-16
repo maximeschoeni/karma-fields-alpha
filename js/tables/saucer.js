@@ -7,7 +7,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getGrid(tableId) { // needed for: export button
+  getGrid(tableId) { // deprecated
 
     if (!tableId) {
 
@@ -80,7 +80,13 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     }
 
-    KarmaFieldsAlpha.Store.Layer.removeItems();
+    // KarmaFieldsAlpha.Store.Layer.removeItems();
+
+    // KarmaFieldsAlpha.Store.remove("vars");
+    // KarmaFieldsAlpha.Store.remove("items");
+    // KarmaFieldsAlpha.Store.remove("counts");
+
+    KarmaFieldsAlpha.Store.clear();
 
   }
 
@@ -261,7 +267,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 		if (delta) {
 
-			const vars = KarmaFieldsAlpha.Store.get("vars") || {};
+			const vars = KarmaFieldsAlpha.Store.get() || {};
 
 			return !KarmaFieldsAlpha.DeepObject.include(vars, delta);
 
@@ -271,11 +277,19 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  hasTask() {
+  hasTask(priorityLevel) {
 
     const tasks = KarmaFieldsAlpha.Store.get("tasks");
 
-    return tasks && tasks.length > 0 || false;
+    // if (priorityLevel !== undefined) {
+    //
+    //   return tasks && tasks.some(task => !task.priority || task.priority >)
+    //
+    // }
+    //
+    // return tasks && tasks.length > 0 || false;
+
+    return tasks && tasks.some(task => !task.priority || task.priority >= 0);
 
   }
 
@@ -295,6 +309,10 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
       KarmaFieldsAlpha.Store.Layer.setIndex(index);
 
     }
+
+    // KarmaFieldsAlpha.Store.remove("vars");
+    // KarmaFieldsAlpha.Store.remove("queries");
+    // KarmaFieldsAlpha.Store.remove("counts");
 
     // const newLayer = {
     //   table: table,
@@ -374,19 +392,32 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       // debugger;
 
-      const tasks = KarmaFieldsAlpha.Store.get("tasks");
+      let tasks = KarmaFieldsAlpha.Store.get("tasks");
 
       if (tasks) {
 
-        task = tasks.shift();
+        // if (!tasks.length) {
+        //
+        //   tasks = [{
+        //     type: "tick",
+        //     resolve: async task => {
+        //       await new Promise((resolve) => {
+        //         setTimeout(resolve, 1000);
+        //       });
+        //     }
+        //   }];
+        //
+        // }
 
-        KarmaFieldsAlpha.Store.set(tasks, "tasks");
+        tasks.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+        task = tasks.shift();
 
         if (task) {
 
-          await task.resolve(task);
+          KarmaFieldsAlpha.Store.set(tasks, "tasks");
 
-          // this.addNotice(task.name || "?");
+          await task.resolve(task);
 
         }
 
@@ -574,7 +605,7 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
         const buffer = history.state && history.state.karma && await KarmaFieldsAlpha.Database.Records.get(history.state.karma);
 
-        if (buffer) {
+        if (buffer && false) {
 
           KarmaFieldsAlpha.Store.set(buffer, "buffer");
 

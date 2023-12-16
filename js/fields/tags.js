@@ -295,13 +295,16 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      const clone = content.clone();
+      const clone = new KarmaFieldsAlpha.Content();
 
+      clone.value = [...content.toArray()];
       clone.value.splice(index, length, ...ids);
 
       clone.value = clone.value.slice(0, this.getMax());
 
       this.setContent(clone);
+
+      // content.insert(ids, index, length);
 
       this.setSelection({index, length: ids.length});
 
@@ -561,13 +564,19 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
                         frame.element.classList.toggle("selected", Boolean(isSelected));
 
                         const driver = this.getDriver();
-                        const name = KarmaFieldsAlpha.Query.getValue(driver, id, "name");
+                        // const name = KarmaFieldsAlpha.Query.getValue(driver, id, "name");
+                        const name = new KarmaFieldsAlpha.Content.Value(driver, id, "name");
+
 
                         frame.children = [
                           {
                             tag: "span",
                             update: span => {
-                              span.element.innerHTML = name.toString();
+                              if (name.isEmpty()) {
+                                span.element.innerHTML = "[Deleted]";
+                              } else {
+                                span.element.innerHTML = name.toString();
+                              }
                             }
                           },
                           {

@@ -455,6 +455,15 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
+	constructor(resource) {
+
+		super({
+			text: "Export",
+			...resource
+		});
+
+	}
+
 	download(grid) {
 
 		const csv = grid.toString();
@@ -476,7 +485,7 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 		const data = new KarmaFieldsAlpha.Content.Grid();
 		let page = 1;
-		const ppp = this.resource.ppp || 4;
+		const ppp = this.resource.ppp || 200;
 		const params = this.request("body", "getParams");
 		const driver = this.request("body", "getDriver");
 
@@ -493,13 +502,15 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 				const count = countContent.toNumber();
 				const total = Math.ceil(count/ppp);
 
+				console.log(data.value.length, count);
+
 				if (data.value.length < count) {
 
-					const idsContent = KarmaFieldsAlpha.Query.getIds(driver, {...params, page: page, ppp: ppp});
+					const query = new KarmaFieldsAlpha.Content.Query(driver, {...params, page: page, ppp: ppp});
 
-					if (!idsContent.loading) {
+					if (!query.loading) {
 
-						const grid = this.request("body", "exportIds", idsContent.toArray());
+						const grid = this.request("body", "exportIds", query.toIds());
 
 						if (!grid.loading) {
 

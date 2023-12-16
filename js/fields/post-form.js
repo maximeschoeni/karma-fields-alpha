@@ -24,7 +24,9 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
     const driver = this.getDriver();
     const id = this.getId();
 
-    return KarmaFieldsAlpha.Query.getValue(driver, id, key);
+    // return KarmaFieldsAlpha.Query.getValue(driver, id, key);
+
+    return new KarmaFieldsAlpha.Content.Value(driver, id, key);
 
   }
 
@@ -33,7 +35,10 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
     const driver = this.getDriver();
     const id = this.getId();
 
-    KarmaFieldsAlpha.Store.Delta.set(content.toArray(), driver, id, key);
+    // KarmaFieldsAlpha.Store.Delta.set(content.toArray(), driver, id, key);
+
+    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+    KarmaFieldsAlpha.Store.Delta.set(content.toArray(), "vars", driver, id, key);
 
   }
 
@@ -42,7 +47,8 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
     const driver = this.getDriver();
     const id = this.getId();
 
-    KarmaFieldsAlpha.Store.Delta.set([], driver, id, key);
+    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+    KarmaFieldsAlpha.Store.Delta.set([], "vars", driver, id, key);
 
   }
 
@@ -63,13 +69,15 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
             input.element.name = "karma-fields-items[]";
             if (input.element.form) {
               input.element.form.addEventListener("submit", event => {
-                KarmaFieldsAlpha.Store.Delta.set({}, this.getDriver(), this.getId());
+                // KarmaFieldsAlpha.Store.Delta.set({}, this.getDriver(), this.getId());
+                KarmaFieldsAlpha.Store.Delta.set({});
                 KarmaFieldsAlpha.Store.Layer.removeSelection();
               });
             }
           },
           update: input => {
-            const delta = KarmaFieldsAlpha.Store.Delta.get(this.getDriver(), this.getId());
+            // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", this.getDriver(), this.getId());
+            const delta = KarmaFieldsAlpha.Store.Delta.get("vars");
             if (delta) {
               input.element.value = JSON.stringify(delta);
             }

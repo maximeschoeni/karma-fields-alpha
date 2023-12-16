@@ -10,6 +10,7 @@
     embeds: [],
     drivers: <?php echo json_encode($drivers); ?>,
     useWPMediaUploader: true,
-    restMediaURL: "<?php echo rest_url(); ?>wp/v2/media"
+    restMediaURL: "<?php echo rest_url(); ?>wp/v2/media",
+    base: "<?php echo basename(ABSPATH); ?>"
   };
 </script>

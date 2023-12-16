@@ -50,20 +50,43 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 	// 	return value || "";
 	// }
 
-	export(collection) {
+	// export(collection) {
+	//
+	//   const content = this.getContent();
+	//
+	// 	if (!content.loading) {
+	//
+	// 	}
+	//
+	//   collection.add(content);
+	//
+	// }
+	//
+	// import(collection) {
+	//
+	// 	const content = collection.pick();
+	//
+	// 	this.setContent(content);
+	//
+  // }
 
-	  const content = this.getContent();
+	export() { // -> return array of string
 
-	  collection.add(content);
+    const content = this.getContent();
 
-	}
+		content.value = content.toArray().slice(0, 1);
+
+		return content;
+
+  }
 
 	import(collection) {
 
-		const content = collection.pick();
+    const string = collection.value.shift();
+
+		const content = new KarmaFieldsAlpha.Content(string);
 
 		this.setContent(content);
-
   }
 
 

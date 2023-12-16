@@ -57,6 +57,16 @@ KarmaFieldsAlpha.Store = class {
 
   }
 
+  static clear() {
+
+    this.remove("attempts");
+    this.remove("items");
+    this.remove("vars");
+    this.remove("verifiedVars");
+    this.remove("diff");
+
+  }
+
 }
 
 KarmaFieldsAlpha.Store.Buffer = class {
@@ -206,9 +216,8 @@ KarmaFieldsAlpha.Store.Delta = class {
 
   static set(value, ...path) {
 
-    // KarmaFieldsAlpha.Store.State.set(value, "delta", ...path);
-
-    const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
+    // const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
+    const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get(...path);
 
     KarmaFieldsAlpha.History.delta(value, currentValue, "delta", ...path);
 
@@ -218,7 +227,8 @@ KarmaFieldsAlpha.Store.Delta = class {
 
   static remove(...path) {
 
-    const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
+    // const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
+    const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get(...path);
 
     KarmaFieldsAlpha.History.delta([], currentValue, "delta", ...path);
 
@@ -228,7 +238,7 @@ KarmaFieldsAlpha.Store.Delta = class {
 
   static hasChange() {
 
-		const delta = this.get();
+		const delta = this.get("vars");
 
 		if (delta) {
 
@@ -243,7 +253,7 @@ KarmaFieldsAlpha.Store.Delta = class {
 
 	static modified(...path) {
 
-    const delta = this.get(...path);
+    const delta = this.get("vars", ...path);
 
     if (delta) {
 

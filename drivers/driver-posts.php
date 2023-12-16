@@ -562,6 +562,8 @@ class Karma_Fields_Alpha_Driver_Posts {
 
     $args = $this->get_query_args($params);
 
+
+
     $args['no_found_rows'] = true;
 
     // var_dump($args); die();
@@ -578,6 +580,8 @@ class Karma_Fields_Alpha_Driver_Posts {
 //     });
 
     $query = new WP_Query($args);
+
+    // var_dump($query); die();
 
     $output = array_map(function($post) {
       return array(

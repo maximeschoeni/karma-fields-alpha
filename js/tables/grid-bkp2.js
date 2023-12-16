@@ -13,13 +13,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getContent(id, key) {
+  getContent(...path) {
 
     const driver = this.getDriver();
 
-    // return KarmaFieldsAlpha.Query.getValue(driver, ...path);
-
-    return new KarmaFieldsAlpha.Content.Value(driver, id, key);
+    return KarmaFieldsAlpha.Query.getValue(driver, ...path);
 
   }
 
@@ -27,9 +25,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     const driver = this.getDriver(key);
 
-    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+    key = KarmaFieldsAlpha.Query.getAlias(driver, key);
 
-    KarmaFieldsAlpha.Store.Delta.set(content.toArray(), "vars", driver, id, key);
+    KarmaFieldsAlpha.Store.Delta.set(content.toArray(), driver, id, key);
 
   }
 
@@ -37,9 +35,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     const driver = this.getDriver();
 
-    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+    key = KarmaFieldsAlpha.Query.getAlias(driver, key);
 
-    KarmaFieldsAlpha.Store.Delta.remove("vars", driver, id, key);
+    KarmaFieldsAlpha.Store.Delta.remove(driver, id, key);
 
   }
 
@@ -79,7 +77,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     if (params) {
 
-      return new KarmaFieldsAlpha.Content.Count(driver, params);
+      return KarmaFieldsAlpha.Query.getCount(driver, params);
 
     }
 
@@ -134,22 +132,19 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   getNumPage() {
 
-    const countQuery = this.getCount();
-    const content = new KarmaFieldsAlpha.Content();
+    let request = this.getCount();
 
-    if (countQuery.loading) {
+    if (!request.loading) {
 
-      this.loading = true;
-
-    } else {
-
-      const count = countQuery.toNumber();
+      const count = request.toNumber();
       const ppp = this.getPpp();
-      content.value = Math.max(1, Math.ceil(count/ppp));
+      const numPage = Math.max(1, Math.ceil(count/ppp));
+
+      return new KarmaFieldsAlpha.Content(numPage);
 
     }
 
-    return content;
+    return new KarmaFieldsAlpha.Content.Request();
   }
 
   isFirstPage() {
@@ -161,19 +156,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   isLastPage() {
 
     const numPage = this.getNumPage();
-    const content = new KarmaFieldsAlpha.Content();
 
-    if (numPage.loading) {
-
-      content.loading = true;
-
-    } else {
-
-      content.value = this.getPage() === numPage.toNumber()
-
-    }
-
-    return content;
+    return new KarmaFieldsAlpha.Content(this.getPage() === numPage.toNumber(), numPage.loading);
 
   }
 
@@ -181,14 +165,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     KarmaFieldsAlpha.History.save("changePage", "Change Page");
     KarmaFieldsAlpha.Store.Layer.setParam(page, "page");
-
-    // KarmaFieldsAlpha.Store.remove("vars");
-    // KarmaFieldsAlpha.Store.remove("items");
-    // KarmaFieldsAlpha.Store.remove("counts");
-
-    KarmaFieldsAlpha.Store.clear();
-
-    // KarmaFieldsAlpha.Store.Layer.removeItems();
+    KarmaFieldsAlpha.Store.Layer.removeItems();
+    // this.render();
 
   }
 
@@ -248,9 +226,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     const params = this.getParams();
     const driver = this.getDriver();
 
-    // return KarmaFieldsAlpha.Query.getIds(driver, params);
-
-    return new KarmaFieldsAlpha.Content.Query(driver, params);
+    return KarmaFieldsAlpha.Query.getIds(driver, params);
 
   }
 
@@ -262,54 +238,30 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getQuery() {
-
-    const params = this.getParams();
-    const driver = this.getDriver();
-
-    return new KarmaFieldsAlpha.Content.Query(driver, params);
-
-  }
-
-  setQuery(items) {
-
-    const driver = this.getDriver();
-    const params = this.getParams();
-    const paramstring = KarmaFieldsAlpha.Params.stringify(params);
-
-    return KarmaFieldsAlpha.Store.State.set(items, "deltaItems", driver, paramstring);
-
-  }
-
-
-  setItems(items) {
-
-    this.setQuery(items);
-
-  }
-
-
 
   getItems() {
 
-    return this.getQuery();
+    let items = KarmaFieldsAlpha.Store.Layer.getItems();
 
-    // const content = new KarmaFieldsAlpha.Content();
-    //
-    // const query = this.getQuery();
-    //
-    // if (query.loading) {
-    //
-    //   content.loading = true;
-    //
-    // } else {
-    //
-    //   content.value = query.toItems();
-    //
-    // }
-    //
-    // return content;
+    if (!items) {
 
+      const ids = this.getIds();
+
+      if (ids.loading) {
+
+        return new KarmaFieldsAlpha.Content.Request();
+
+      } else {
+
+        items = ids.toArray().map(id => ({id}));
+
+        KarmaFieldsAlpha.Store.Layer.setItems(items);
+
+      }
+
+    }
+
+    return new KarmaFieldsAlpha.Content(items);
   }
 
 
@@ -444,11 +396,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   selectAll() {
 
-    const query = this.getItems();
+    const items = this.getItems();
 
-    if (!query.loading) {
-
-      const items = query.toArray();
+    if (!items.loading) {
 
       this.setSelection({
         index: 0,
@@ -514,9 +464,10 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       KarmaFieldsAlpha.Store.Tasks.add({
         type: "import",
         resolve: () => {
-          const items = this.getItems();
+          // const items = this.getItems();
+          const items = KarmaFieldsAlpha.Store.Layer.getItems();
           this.setSelection({index: index, length: array.length});
-          const slice = items.toArray().slice(index, index + array.length);
+          const slice = items.slice(index, index + array.length);
           const ids = slice.filter(item => !item.loading && item.id).map(item => item.id);
           this.importIds(grid, ids);
         }
@@ -548,126 +499,62 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   //
   // }
 
-  // insertItem(newItem, index, ...path) {
-  //
-  //   const query = this.getQuery();
-  //   const newQuery = new KarmaFieldsAlpha.Content();
-  //
-  //   newQuery.value = [...query.toArray()];
-  //
-  //   KarmaFieldsAlpha.DeepArray.splice(newQuery.value, 0, [newItem], index, ...path);
-  //
-  //   this.setQuery(newQuery);
-  //
-  // }
-  //
-  // replaceItem(newItem, callback) {
-  //
-  //   const query = this.getQuery();
-  //   const newQuery = new KarmaFieldsAlpha.Content();
-  //
-  //   newQuery.value = [...query.toArray()];
-  //
-  //   const index = newQuery.value.findIndex(callback);
-  //
-  //   if (index > -1) {
-  //
-  //     KarmaFieldsAlpha.DeepArray.splice(newQuery.value, 0, [newItem], index, ...path);
-  //
-  //   }
-  //
-  //
-  //
-  //   this.setQuery(newQuery);
-  //
-  // }
-
 
   add(...path) {
 
     const index = this.getSelection("index") || 0;
     const length = this.getSelection("length") || 0;
 
-    const query = this.getItems();
-
-    if (query.loading) {
-
-      this.addTask(async () => this.add(...path), "adding");
-      return;
-
-    }
-
     KarmaFieldsAlpha.History.save("insert", "Insert");
 
-    // const items = query.toArray();
-    // const newQuery = new KarmaFieldsAlpha.Content();
-    // newQuery.value = [...items];
-    // const newItem = {loading: true};
-    // KarmaFieldsAlpha.DeepArray.splice(newQuery.value, 0, [newItem], index, ...path);
-    // this.setItems(newQuery);
+    const newItem = {loading: true};
+    const items = [...KarmaFieldsAlpha.Store.Layer.getItems()];
 
-    // query.insert({loading: true}, index);
-    //
-    //
-    //
-    // // KarmaFieldsAlpha.Store.Layer.setItems(items);
-    //
-    // this.addTask(async () => {
-    //
-    //   const driver = this.getDriver();
-    //   const params = this.getFilters();
-    //
-    //   const id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, {}).then(id => id.toString());
-    //   const name = "[new Item]";
-    //
-    //   // const items = [...this.getItems()];
-    //   //
-    //   // const newItem = items.find(item => item.loading);
-    //   //
-    //   // delete newItem.loading;
-    //   // newItem.id = id;
-    //   // this.setItems(items);
-    //
-    //   const query = this.getQuery();
-    //
-    //   query.replace({id, name}, item => item.loading);
-    //
-    //
-    //
-    //
-    //   if (params) {
-    //
-    //     const row = new KarmaFieldsAlpha.Content.Row(params, driver, id);
-    //
-    //     row.update();
-    //
-    //     // const entries = Object.entries(params).filter(([key, value]) => value).map(([key, value]) => [KarmaFieldsAlpha.Driver.getAlias(driver, key), params[key].split(",")]);
-    //     //
-    //     // if (entries.length) {
-    //     //
-    //     //   const data = Object.fromEntries(entries);
-    //     //
-    //     //   await KarmaFieldsAlpha.Remote.update(data, driver, id);
-    //     //
-    //     //   KarmaFieldsAlpha.Store.Delta.set(data, driver, id);
-    //     //
-    //     // }
-    //
-    //   }
-    //
-    //   KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
-    //   KarmaFieldsAlpha.Store.Delta.set([], driver, id, "trash");
-    //
-    //   KarmaFieldsAlpha.Store.remove("items", driver);
-    //   KarmaFieldsAlpha.Store.remove("counts", driver);
-    //
-    //   await KarmaFieldsAlpha.Database.Queries.remove("query", driver);
-    //
-    // }, "add");
+    KarmaFieldsAlpha.DeepArray.splice(items, 0, [newItem], index, ...path);
 
-    const params = this.getFilters();
+    KarmaFieldsAlpha.Store.Layer.setItems(items);
 
-    query.add(index, params);
+    this.addTask(async () => {
+
+      const driver = this.getDriver();
+      const params = this.getFilters();
+
+      const id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, {}).then(id => id.toString());
+
+      const items = [...KarmaFieldsAlpha.Store.Layer.getItems()];
+
+      const newItem = items.find(item => item.loading);
+
+      delete newItem.loading;
+      newItem.id = id;
+
+      KarmaFieldsAlpha.Store.Layer.setItems(items);
+
+      // KarmaFieldsAlpha.Store.Layer.removeItems();
+
+      if (params) {
+
+        const entries = Object.entries(params).filter(([key, value]) => value).map(([key, value]) => [KarmaFieldsAlpha.Query.getAlias(driver, key), params[key].split(",")]);
+
+        if (entries.length) {
+
+          const data = Object.fromEntries(entries);
+
+          await KarmaFieldsAlpha.Remote.update(data, driver, id);
+
+          KarmaFieldsAlpha.Store.Delta.set(data, driver, id);
+
+        }
+
+      }
+
+      KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
+      KarmaFieldsAlpha.Store.Delta.set([], driver, id, "trash");
+
+      KarmaFieldsAlpha.Store.remove("queries", driver);
+      KarmaFieldsAlpha.Store.remove("counts", driver);
+
+    }, "add");
 
     this.setSelection({index: index + length, length: 1});
 
@@ -711,12 +598,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  // no more used
   removeIds(ids) {
 
     const driver = this.getDriver();
-    const currentItems = this.getItems();
-    const filteredItems = currentItems.toArray().filter(item => !ids.includes(item.id));
+    const currentItems = KarmaFieldsAlpha.Store.Layer.getItems() || [];
+    const filteredItems = currentItems.filter(item => !ids.includes(item.id));
 
     for (let id of ids) {
 
@@ -724,7 +610,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     }
 
-    this.setItems(filteredItems);
+    KarmaFieldsAlpha.Store.Layer.setItems(filteredItems);
 
   }
 
@@ -735,39 +621,18 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   remove(index, length) {
 
-    const query = this.getQuery();
+    const request = this.getItems();
 
-    if (!query.loading) {
+    if (!request.loading) {
 
-      // const items = query.toArray().slice(index, index + length);
-      // const ids = items.map(item => item.id).filter(id => id);
-      //
-      // if (ids.length) {
-      //
-      //   // this.removeIds(ids);
-      //
-      //   const driver = this.getDriver();
-      //
-      //   for (let id of ids) {
-      //
-      //     // KarmaFieldsAlpha.Store.Delta.set(["1"], driver, id, "trash");
-      //
-      //     const row = new KarmaFieldsAlpha.Content.Row({trash: "1"}, driver, id);
-      //     row.update();
-      //
-      //   }
-      //
-      //
-      //
-      //   // const newItems = [...items.slice(0, index), ...items.slice(index + length)];
-      //   //
-      //   // this.setItems(newItems);
-      //
-      //   query.remove(index, length);
-      //
-      // }
+      const items = request.toArray().slice(index, index + length);
+      const ids = items.map(item => item.id).filter(id => id);
 
-      query.delete(index, length);
+      if (ids.length) {
+
+        this.removeIds(ids);
+
+      }
 
     }
 
@@ -808,11 +673,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   getSelectedItems() {
 
-    const query = this.getItems();
+    const items = this.getItems();
 
     const response = new KarmaFieldsAlpha.Content();
 
-    if (query.loading) {
+    if (items.loading) {
 
       response.loading = true;
 
@@ -825,7 +690,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         const index = selection.index || 0;
         const length = selection.length || 0;
 
-        response.value = query.toArray().slice(index, index + length);
+        response.value = items.toArray().slice(index, index + length);
 
       } else {
 
@@ -921,16 +786,16 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       },
       update: grid => {
 
-        const query = this.getQuery();
+        const content = this.getItems();
 
-        grid.element.classList.toggle("loading", Boolean(query.loading));
+        grid.element.classList.toggle("loading", Boolean(content.loading));
         grid.element.classList.toggle("active", Boolean(this.hasFocus()));
 
         // const itemsUnder = this.request("tunnel", -1, "getSelectedItems");
 
-        if (!query.loading) {
+        if (!content.loading) {
 
-          const items = query.toItems();
+          const items = content.toArray();
 
           const page = this.request("getPage");
           const ppp = this.getPpp();
@@ -1166,33 +1031,24 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.group {
   getIds() {
 
     const items = this.request("getSelectedItems");
-    const content = new KarmaFieldsAlpha.Content();
 
-    if (items.loading) {
+    if (items && !items.some(item => item.loading)) {
 
-      content.loading = true;
-
-    } else {
-
-      content.value = items.toArray().map(item => item.id);
+      return items.map(item => item.id).filter(id => id);
 
     }
-
-    return content;
 
   }
 
   getId() {
 
-    // const ids = this.getIds();
-    //
-    // if (ids) {
-    //
-    //   return ids[0];
-    //
-    // }
+    const ids = this.getIds();
 
-    return this.getIds();
+    if (ids) {
+
+      return ids[0];
+
+    }
 
   }
 

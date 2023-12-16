@@ -1,6 +1,43 @@
 KarmaFieldsAlpha.Remote = class {
 
 
+	// static async query(driver, paramstring) {
+	//
+  //   const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
+	//
+  //   const idAlias = KarmaFieldsAlpha.Query.getAlias(driver, "id");
+	//
+  //   for (let item of results) {
+	//
+  //     const id = item[idAlias].toString();
+	//
+  //     if (idAlias !== "id") {
+	//
+  //       item.id = id;
+	//
+  //     }
+	//
+  //     for (let key in item) {
+	//
+  //       const value = KarmaFieldsAlpha.Type.toArray(item[key]);
+	//
+  //       KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
+	//
+  //     }
+	//
+  //     KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
+	//
+  //     KarmaFieldsAlpha.Store.set([], "vars", driver, id, "trash");
+	//
+  //   }
+	//
+  //   KarmaFieldsAlpha.Store.set(results, "queries", driver, paramstring);
+	//
+  //   return results;
+  // }
+
+	
+
 	static async query(driver, paramstring) {
 
     const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);

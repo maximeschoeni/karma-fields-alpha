@@ -18,7 +18,7 @@ KarmaFieldsAlpha.Database = class {
 
     if (!this.db) {
 
-      this.db = await this.openDB("karma88", 1);
+      this.db = await this.openDB("karma91", 1);
 
     }
 
@@ -47,7 +47,10 @@ KarmaFieldsAlpha.Database = class {
 
         db.createObjectStore("records", {keyPath: "recordId"});
 
-        db.createObjectStore("queries");
+        const queries = db.createObjectStore("queries", {keyPath: ["type", "driver", "paramstring"]});
+        queries.createIndex("driver", "driver");
+
+        const data = db.createObjectStore("vars");
 
 
 
@@ -195,8 +198,11 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
       request.onsuccess = (event) => {
         const value = event.target.result || {id, index};
         KarmaFieldsAlpha.DeepObject.set(value, data, ...path);
-        objectStore.put(value);
-        resolve();
+        const updateRequest = objectStore.put(value);
+
+        updateRequest.onsuccess = (event) => {
+          resolve();
+        }
       }
 
     }));
@@ -511,8 +517,10 @@ KarmaFieldsAlpha.Database.Records = class extends KarmaFieldsAlpha.Database {
         // } else {
           KarmaFieldsAlpha.DeepObject.set(value, data, ...path);
         // }
-        objectStore.put(value);
-        resolve();
+        const updateRequest = objectStore.put(value);
+        updateRequest.onsuccess = (event) => {
+          resolve();
+        }
       }
     }));
   }
@@ -573,14 +581,14 @@ KarmaFieldsAlpha.Database.Records = class extends KarmaFieldsAlpha.Database {
 
 KarmaFieldsAlpha.Database.Queries = class extends KarmaFieldsAlpha.Database {
 
-  static get(paramString) {
+  static get(type, driver, paramstring) {
     return this.getDB().then(db => new Promise((resolve, reject) => {
       const transaction = db.transaction("queries");
       const objectStore = transaction.objectStore("queries");
-      const request = objectStore.get(paramString);
+      const request = objectStore.get([type, driver, paramstring]);
       request.onsuccess = (event) => {
-        const value = event.target.result;
-        resolve(data);
+        const result = event.target.result;
+        resolve(result && result.data);
       };
       request.onerror = (event) => {
         reject(event.target.error);
@@ -588,26 +596,114 @@ KarmaFieldsAlpha.Database.Queries = class extends KarmaFieldsAlpha.Database {
     }));
   }
 
-  static set(data, paramString) {
+  static set(data, type, driver, paramstring) {
     return this.getDB().then(db => new Promise((resolve, reject) => {
       const transaction = db.transaction("queries", "readwrite");
       const objectStore = transaction.objectStore("queries");
-      const request = objectStore.put(data, paramString);
+      const request = objectStore.put({data, type, driver, paramstring});
+      request.onsuccess = (event) => {
+        resolve();
+      }
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    }));
+  }
+
+  // static remove(type, driver, paramstring) {
+  //   return this.getDB().then(db => new Promise((resolve, reject) => {
+  //     const transaction = db.transaction("queries", "readwrite");
+  //     const objectStore = transaction.objectStore("queries");
+  //     const request = objectStore.remove([type, driver, paramstring]);
+  //     request.onsuccess = (event) => {
+  //       resolve();
+  //     }
+  //     request.onerror = (event) => {
+  //       reject(event.target.error);
+  //     };
+  //   }));
+  // }
+
+  static remove(driver) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("queries", "readwrite");
+      const objectStore = transaction.objectStore("queries");
+      const driverIndex = objectStore.index("driver");
+      const request = driverIndex.openCursor(driver);
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          resolve();
+        }
+      }
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    }));
+  }
+
+
+
+
+}
+
+
+
+KarmaFieldsAlpha.Database.Vars = class extends KarmaFieldsAlpha.Database {
+
+  static get(driver, ...path) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("vars");
+      const objectStore = transaction.objectStore("vars");
+      const request = objectStore.get(driver);
+      request.onsuccess = (event) => {
+        const data = event.target.result;
+        const value = KarmaFieldsAlpha.DeepObject.get(data, ...path);
+        resolve(value);
+      };
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    }));
+  }
+
+  static set(data, driver, id, key) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("vars", "readwrite");
+      const objectStore = transaction.objectStore("vars");
+      const request = objectStore.get(driver);
+
+      request.onsuccess = (event) => {
+        const value = event.target.result || {};
+        if (key) {
+          KarmaFieldsAlpha.DeepObject.set(value, data, id, key);
+        } else if (id) {
+          KarmaFieldsAlpha.DeepObject.assign(value, data, id);
+        } else {
+          KarmaFieldsAlpha.DeepObject.merge(value, data);
+        }
+        const updateRequest = objectStore.put(value, driver);
+        updateRequest.onsuccess = (event) => {
+          resolve();
+        }
+      }
+
+    }));
+  }
+
+  static remove(driver) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("vars", "readwrite");
+      const objectStore = transaction.objectStore("vars");
+      const request = objectStore.delete(driver);
       request.onsuccess = (event) => {
         resolve();
       }
     }));
   }
 
-  static remove(paramString) {
-    return this.getDB().then(db => new Promise((resolve, reject) => {
-      const transaction = db.transaction("records", "readwrite");
-      const objectStore = transaction.objectStore("records");
-      const request = objectStore.remove(paramString);
-      request.onsuccess = (event) => {
-        resolve();
-      }
-    }));
-  }
 
 }

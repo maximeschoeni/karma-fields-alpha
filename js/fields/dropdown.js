@@ -102,15 +102,16 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		if (this.resource.driver) {
 
-      const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
+      // const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
+      const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, this.resource.params);
 
-      if (moreOptions.loading) {
+      if (query.loading) {
 
         options.loading = true;
 
       } else {
 
-        options.value = [...options.toArray(), ...moreOptions.toArray()]
+        options.value = [...options.toArray(), ...query.toArray()];
 
       }
 
@@ -143,13 +144,11 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
           } else {
 
-            if (content.notFound || !options.toArray().some(option => option.id === content.toString())) {
+            if (content.notFound) { // || !options.toArray().some(option => option.id === content.toString())) { 
 
               content = this.getDefault();
 
               if (!content.loading) {
-
-                console.log(content);
 
                 this.setContent(content);
 
@@ -207,6 +206,12 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
           }
 
+          dropdown.element.onfocus = event => {
+
+						this.setFocus(content.mixed);
+
+					}
+
           dropdown.element.onmousedown = event => {
 
             event.stopPropagation();
@@ -223,5 +228,39 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		};
 	}
+
+
+  // build() {
+  //
+	// 	return {
+	// 		tag: "select",
+	// 		class: "dropdown karma-field",
+	// 		init: dropdown => {
+  //
+  //       // let content = this.getContent();
+  //       // let options = this.getOptions();
+  //
+  //       let value = "x";
+  //       let options = {
+  //         value: [
+  //           {id: "x", name: "X"},
+  //           {id: "y", name: "Y"},
+  //           {id: "z", name: "Z"},
+  //         ],
+  //         toArray: () => options.value
+  //       };
+  //
+  //       for (let option of options.toArray()) {
+  //
+  //         let optionElement = new Option(option.name, option.id, value === option.id, value === option.id);
+  //
+  //         dropdown.element.add(optionElement);
+  //
+  //       }
+  //
+	// 		}
+  //
+	// 	};
+	// }
 
 }

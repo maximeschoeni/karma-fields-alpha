@@ -474,15 +474,16 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.driver) {
 
-      const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
+      // const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
+			const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, this.resource.params);
 
-      if (moreOptions.loading) {
+      if (query.loading) {
 
         options.loading = true;
 
       } else {
 
-        options.value = [...options.toArray(), ...moreOptions.toArray()]
+        options.value = [...options.toArray(), ...query.toArray()]
 
       }
 

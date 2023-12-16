@@ -1,10 +1,11 @@
 KarmaFieldsAlpha.RowPicker = class extends KarmaFieldsAlpha.ListPicker {
 
-  constructor(container, selection, width, header) {
+  constructor(container, selection, width, header, footer) {
 
     super(container, selection);
 
     this.header = header || 0;
+    this.footer = footer || 0;
     this.width = width || 0;
 
   }
@@ -22,7 +23,7 @@ KarmaFieldsAlpha.RowPicker = class extends KarmaFieldsAlpha.ListPicker {
 
     const children = this.getChildren();
 
-    const rowCount = Math.floor(children.length/this.width);
+    const rowCount = Math.floor(children.length/this.width) - this.footer;
 
     for (let j = this.header; j < rowCount; j++) {
 

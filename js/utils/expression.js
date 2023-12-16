@@ -418,7 +418,8 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
       if (!this.loading) {
 
-        this.value = this.value.map(value => value.toString());
+        // this.value = this.value.map(value => value.toString());
+        this.value = this.value.map(value => value.toSingle());
 
       }
 
@@ -505,7 +506,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     } else {
 
-      const content = KarmaFieldsAlpha.Query.getValue(driver.toString(), id.toString(), key.toString());
+      const content = new KarmaFieldsAlpha.Content.Value(driver.toString(), id.toString(), key.toString());
 
       Object.assign(this, content);
 
@@ -563,7 +564,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     } else {
 
-      this.value = KarmaFieldsAlpha.Query.getResults(driver.toString(), params.toSingle()); // !! getResult return Content or simple Object ??
+      this.value = new KarmaFieldsAlpha.Content.Query(driver.toString(), params.toSingle()); // !! getResult return Content or simple Object ??
 
     }
 
@@ -579,16 +580,18 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   getOptions(...args) {
 
-    const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const params = KarmaFieldsAlpha.parseObject(args[2] || {}, this.field);
+    console.error("deprecated");
 
-    if (driver.loading || params.loading) {
-
-      return new KarmaFieldsAlpha.LoadingContent();
-
-    }
-
-    return KarmaFieldsAlpha.Query.getOptions(driver, params);
+    // const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
+    // const params = KarmaFieldsAlpha.parseObject(args[2] || {}, this.field);
+    //
+    // if (driver.loading || params.loading) {
+    //
+    //   return new KarmaFieldsAlpha.LoadingContent();
+    //
+    // }
+    //
+    // return KarmaFieldsAlpha.Query.getOptions(driver, params);
   }
 
   getParam(...args) {
@@ -613,7 +616,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   getIds() {
 
-    this.value = this.field.getIds("getIds");
+    this.value = this.field.request("getIds");
 
   }
 
