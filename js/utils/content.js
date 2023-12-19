@@ -71,7 +71,8 @@ KarmaFieldsAlpha.Content = class {
 
   toObject() {
 
-    return this.toSingle();
+    return this.toSingle() || {};
+
   }
 
   toString() {

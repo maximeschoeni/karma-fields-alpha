@@ -20,11 +20,11 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
     if (this.resource.disabled) {
 
-      return this.parent.parse(this.resource.disabled).toBoolean();
+      return this.parse(this.resource.disabled).toBoolean();
 
     } else if (this.resource.enabled) {
 
-      return !this.parent.parse(this.resource.enabled).toBoolean();
+      return !this.parse(this.resource.enabled).toBoolean();
 
     }
 

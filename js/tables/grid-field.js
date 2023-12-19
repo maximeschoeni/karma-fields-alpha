@@ -5,15 +5,26 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
 
     // return KarmaFieldsAlpha.Store.Layer.getCurrent("params");
 
-    return this.parse(this.resource.params).toObject();
+
+    const params = this.parse(this.resource.params);
+
+    // console.log(params);
+
+    return params;
 
   }
 
   getParam(key) {
 
-    const params = this.getParams() || {};
+    const params = this.getParams();
 
-    return params[key];
+    if (!params.loading) {
+
+      return params.toObject()[key];
+
+    }
+
+    return "";
 
   }
 
@@ -25,13 +36,13 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
-  getFilters() {
-
-    // const {page, ppp, order, orderby, ...params} = KarmaFieldsAlpha.Store.Layer.getParams() || {};
-
-    return this.getParams();
-
-  }
+  // getFilters() {
+  //
+  //   // const {page, ppp, order, orderby, ...params} = KarmaFieldsAlpha.Store.Layer.getParams() || {};
+  //
+  //   return this.getParams();
+  //
+  // }
 
 
 
@@ -120,6 +131,8 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
                       th.element.tabIndex = -1;
                     },
                     update: th => {
+                      th.element.classList.toggle("first-cell", i === 0);
+                      th.element.classList.toggle("last-cell", i === columns.length - 1);
                       th.children = [
                         {
                           class: "header-cell-content title",
@@ -191,6 +204,8 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
                         td.element.classList.toggle("selected", Boolean(isRowSelected));
                         td.element.classList.toggle("odd", i%2 === 0);
                         td.element.classList.toggle("last-row", i === items.length-1);
+                        td.element.classList.toggle("first-cell", j === 0);
+                        td.element.classList.toggle("last-cell", j === columns.length - 1);
                       },
                       child: field.build()
                     });
@@ -230,12 +245,16 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
         },
         {
           class: "grid-field-footer simple-buttons",
-          child: this.createChild({
-            type: "group",
-            display: "flex",
-            children: ["add", "delete"],
-            ...this.resource.footer
-          }, "footer").build()
+          update: node => {
+            if (this.resource.footer !== false) {
+              node.child = this.createChild({
+                type: "group",
+                display: "flex",
+                children: ["add", "delete"],
+                ...this.resource.footer
+              }, "footer").build();
+            }
+          }
         }
       ]
     };

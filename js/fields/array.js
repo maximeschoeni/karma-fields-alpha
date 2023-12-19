@@ -546,12 +546,19 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
                 if (length && hasHeader) {
 
-                  for (let column of this.resource.children) {
+                  // for (let column of this.resource.children) {
+                  for (let i = 0; i < this.resource.children.length; i++) {
+
+                    const column = this.resource.children[i];
 
                     table.children.push({
                       class: "th",
                       init: th => {
                         th.element.textContent = column.header || column.label || "";
+                      // },
+                      // update: th => {
+                        th.element.classList.toggle("first-cell", i === 0);
+                        th.element.classList.toggle("last-cell", i === this.resource.children.length - 1);
                       }
                     });
 
@@ -586,6 +593,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
                         const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, i) && this.hasFocus();
                         td.element.classList.toggle("selected", Boolean(isSelected));
                         td.element.classList.toggle("odd", i%2 === 0);
+                        td.element.classList.toggle("first-cell", j === 0);
+                        td.element.classList.toggle("last-cell", j === this.resource.children.length - 1);
                         td.child = field.build();
                       }
                     });

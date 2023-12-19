@@ -470,8 +470,8 @@ body.karma-table-open {
   text-align: left;
   /* padding: 0; */
   display: flex;
-  align-items: center; /* -> for texts being align center without having flexbox, to support inline text */
-  padding: calc(1*var(--gap-width)) var(--gap-width);
+  align-items: flex-start; /* -> for texts being align center without having flexbox, to support inline text */
+  padding: var(--gap-width) calc(var(--gap-width)/2);
 }
 .karma-fields .table .th {
   background-color: white;
@@ -497,6 +497,14 @@ body.karma-table-open {
 }
 .karma-fields .table .td.last-row {
   border-bottom: 1px solid var(--border-color);
+}
+.karma-fields .table .th.first-cell,
+.karma-fields .table .td.first-cell {
+  padding-left: var(--gap-width);
+}
+.karma-fields .table .th.last-cell,
+.karma-fields .table .td.last-cell {
+  padding-right: var(--gap-width);
 }
 
 
@@ -645,6 +653,7 @@ body.karma-table-open {
 --------------------------------------*/
 .karma-fields .grid-field {
   position: relative;
+  min-width: 13em;
 }
 .karma-fields .grid-field .table.grid-field-body {
   margin: 0;
@@ -1407,7 +1416,7 @@ ul.tag-links li:not(:last-child)::after {
   display: none;
 }
 .karma-fields .array .th {
-  padding: 5px;
+  /* padding: 5px; */
   font-weight: var(--static-text-weight);
 }
 .karma-fields .array .th,
@@ -1416,7 +1425,7 @@ ul.tag-links li:not(:last-child)::after {
   background-color: white;
   display: flex;
   transition: transform 100ms;
-  padding: var(--gap-width);
+  /* padding: var(--gap-width); */
   /* outline: var(--border-width) solid var(--border-color); */
 }
 .karma-fields .array .td.odd {
@@ -1427,9 +1436,17 @@ ul.tag-links li:not(:last-child)::after {
 }
 .karma-fields .array .td.array-index {
   align-items: flex-start;
-  padding: var(--gap-width);
+  padding: var(--gap-width) calc(var(--gap-width)/2);
   min-width: 3em;
   font-weight: bold;
+}
+.karma-fields .array .td.array-index.first-cell,
+.karma-fields .array .th.array-index.first-cell {
+  padding-left: var(--gap-width);
+}
+.karma-fields .array .td.array-index.last-cell,
+.karma-fields .array .th.array-index.last-cell {
+  padding-right: var(--gap-width);
 }
 
 .karma-fields .array .td.array-delete {
@@ -1682,6 +1699,14 @@ textarea.clipboard {
 	background-color: var(--inverse-background-color);
   color: var(--theme-light-color);
 }
+
+/* Dropdown
+--------------------------------------*/
+.karma-fields select.dropdown {
+  max-width: 100%;
+  margin: 0;
+}
+
 
 /* Hidden field
 --------------------------------------*/

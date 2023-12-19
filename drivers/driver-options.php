@@ -73,9 +73,14 @@ Class Karma_Fields_Alpha_Driver_Options {
 
       if ($option && is_array($option)) {
 
-        $output[] = array_merge(
-          array('id' => $id),
-          $option
+        // $output[] = array_merge(
+        //   array('id' => $id),
+        //   $option
+        // );
+
+        $output[] = array(
+          'id' => $id,
+          'option_value' => $option
         );
 
       }
@@ -92,9 +97,14 @@ Class Karma_Fields_Alpha_Driver_Options {
 
         if ($option && is_array($option)) {
 
-          $output[] = array_merge(
-            array('id' => $id),
-            $option
+          // $output[] = array_merge(
+          //   array('id' => $id),
+          //   $option
+          // );
+
+          $output[] = array(
+            'id' => $id,
+            'option_value' => $option
           );
 
         }
@@ -104,6 +114,15 @@ Class Karma_Fields_Alpha_Driver_Options {
     }
 
     return $output;
+  }
+
+  /**
+   * count
+   */
+  public function count($params) {
+    global $wpdb;
+
+    return get_var("SELECT COUNT(option_id) FROM $wpdb->options");
   }
 
   /**

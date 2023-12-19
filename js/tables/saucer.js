@@ -325,8 +325,23 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     //
     // KarmaFieldsAlpha.Store.Layer.set(newLayer, index);
 
+    const bodyParams = this.parse(resource.body.params);
+
+    if (bodyParams.loading) {
+
+      KarmaFieldsAlpha.Store.Tasks.add({
+        type: "open",
+        resolve: () => {
+          this.open(table, params, replace);
+        }
+      });
+
+      return;
+
+    }
+
     KarmaFieldsAlpha.Store.Layer.set(table, index, "table");
-    KarmaFieldsAlpha.Store.Layer.set({...resource.body.params, ...params}, index, "params");
+    KarmaFieldsAlpha.Store.Layer.set({...bodyParams.toObject(), ...params}, index, "params");
     KarmaFieldsAlpha.Store.Layer.set(["board", table, "body"], index, "focus");
 
     if (selectedIds.length) { // deprecated

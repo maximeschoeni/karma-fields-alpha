@@ -255,13 +255,15 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
                 } else {
 
+                  const hasFocus = this.hasFocus();
+
                   gallery.children = ids.map((id, rowIndex) => {
 
                     return {
                       class: "frame",
                       update: frame => {
 
-                        const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, rowIndex);
+                        const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, rowIndex) && hasFocus;
 
                         frame.element.classList.toggle("selected", Boolean(isSelected));
                       },

@@ -103,17 +103,30 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 		if (this.resource.driver) {
 
       // const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
-      const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, this.resource.params);
 
-      if (query.loading) {
+      const params = this.parse(this.resource.params);
+
+      if (params.loading) {
 
         options.loading = true;
 
       } else {
 
-        options.value = [...options.toArray(), ...query.toArray()];
+        const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, params.toObject() || {});
+
+        if (query.loading) {
+
+          options.loading = true;
+
+        } else {
+
+          options.value = [...options.toArray(), ...query.toArray()];
+
+        }
 
       }
+
+
 
       // options.merge(moreOptions);
 
@@ -144,7 +157,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
           } else {
 
-            if (content.notFound) { // || !options.toArray().some(option => option.id === content.toString())) { 
+            if (content.notFound) { // || !options.toArray().some(option => option.id === content.toString())) {
 
               content = this.getDefault();
 

@@ -530,4 +530,48 @@ KarmaFieldsAlpha.Store.Tasks = class {
 
   }
 
+  static has() {
+
+    const tasks = this.get();
+
+    return tasks && tasks.length > 0 || false;
+
+  }
+
 }
+
+// KarmaFieldsAlpha.Store.Verifications = class {
+//
+//   static get() {
+//
+//     return KarmaFieldsAlpha.Store.get("verifications");
+//
+//   }
+//
+//   static set(verifications) {
+//
+//     KarmaFieldsAlpha.Store.set(verifications, "verifications");
+//
+//   }
+//
+//   static add(verification) {
+//
+//     const verifications = this.get() || [];
+//
+//     this.set([...verifications, verification]);
+//
+//   }
+//
+//   static find(callback) {
+//
+//     const verifications = this.get();
+//
+//     if (verifications) {
+//
+//       return verifications.find(callback);
+//
+//     }
+//
+//   }
+//
+// }

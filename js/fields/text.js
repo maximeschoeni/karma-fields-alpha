@@ -4,13 +4,20 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 		const collection = new KarmaFieldsAlpha.Content.Collection();
 
-		if (this.resource.export) {
+		if (this.resource.export === true) {
+
+			const content = this.parse(this.resource.content);
+
+			collection.merge(content);
+
+		} else if (this.resource.export) {
 
 			const content = this.parse(this.resource.export);
 
 			collection.merge(content);
 
 		}
+
 
 		return collection;
 	}
@@ -563,6 +570,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 		const driver = this.getDriver();
 
 		let id = this.parse(this.resource.id);
+		console.log(driver);
 
 		if (!driver) {
 

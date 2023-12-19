@@ -118,15 +118,14 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
         this.concat(...args);
         break;
 
-      case "count":
-        this.getLength(...args);
-        break;
-
       case "concat":
       case "math":
       case "include":
       case "replace":
       case "date":
+      case "year":
+      case "month":
+      case "day":
       case "request":
       case "getValue": // compat
       case "getContent":
@@ -138,17 +137,39 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       case "map":
       case "getItem":
       case "join":
+      case "sum":
       case "getLength":
+      case "count":
       case "getParam":
       case "isLoading":
       case "isMixed":
       case "getKey":
       case "getIndex":
       case "getIds":
+      case "get":
+      case "debug":
+      case "log":
         this[args[0]](...args);
         break;
 
     }
+
+  }
+
+  debug(...args) {
+
+    debugger;
+
+    return new KarmaFieldsAlpha.Expression(args[1], this.field);
+
+  }
+
+  log(...args) {
+
+    const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
+    console.log(expr.toObject());
+
+    // console.log(args.slice(1).forEach(expr => new KarmaFieldsAlpha.Expression(expr, this.field).toObject()));
 
   }
 
@@ -357,6 +378,22 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
+  sum(...args) {
+
+    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+
+    if (array.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      this.value = array.toArray().reduce((accumulator, item)=> accumulator + Number(item), 0);
+
+    }
+
+  }
+
   include(...args) {
 
     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
@@ -371,6 +408,12 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       this.value = array.toArray().include(value.toSingle());
 
     }
+
+  }
+
+  count(...args) {
+
+    this.getLength(...args);
 
   }
 
@@ -433,11 +476,107 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
+  get(...args) {
+
+    const object = new KarmaFieldsAlpha.Expression(args[1], this.field);
+
+    if (object.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      this.value = KarmaFieldsAlpha.DeepObject.get(object.toObject(), ...args.slice(2));
+
+    }
+
+  }
+
+  year(...args) {
+
+    if (args[1]) {
+
+      this.date(...args, {year: 'numeric'}, args[2]);
+
+    } else {
+
+      this.value = new Date().getFullYear();
+
+    }
+
+  }
+
+  month(...args) {
+
+    if (args[1]) {
+
+      this.date(...args, {month: 'numeric'}, args[2])
+
+    } else {
+
+      this.value = new Date().getMonth() + 1;
+
+    }
+
+  }
+
+  day(...args) {
+
+    if (args[1]) {
+
+      this.date(...args, {day: 'numeric'}, args[2])
+
+    } else {
+
+      this.value = new Date().getDate();
+
+    }
+
+  }
+
+  // now(...args) {
+  //
+  //   const date = new Date();
+  //
+  //   switch (args[1]) {
+  //
+  //     case "year":
+  //       this.value = date.getFullYear();
+  //       break;
+  //
+  //     case "month":
+  //       this.value = date.getMonth() + 1;
+  //       break;
+  //
+  //     case "day":
+  //       this.value = date.getDate();
+  //       break;
+  //
+  //     case "hour":
+  //       this.value = date.getHours();
+  //       break;
+  //
+  //     case "minute":
+  //       this.value = date.getMinutes();
+  //       break;
+  //
+  //     case "second":
+  //       this.value = date.getSeconds();
+  //       break;
+  //
+  //     default:
+  //       this.value = date;
+  //       break;
+  //
+  //   }
+  //
+  // }
+
   date(...args) {
 
     const dateString = new KarmaFieldsAlpha.Expression(args[1], this.field);
     const option = args[2] || {};
-    const locale = args[3] || KarmaFieldsAlpha.locale;
+    const locale = args[3] || KarmaFieldsAlpha.locale || "en";
 
     if (dateString.loading) {
 
@@ -454,6 +593,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       } else {
 
         this.value = dateObj.toLocaleDateString(locale, option);
+        // this.value = dateObj.toLocaleString(locale, option);
 
       }
 
