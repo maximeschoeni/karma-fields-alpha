@@ -130,18 +130,32 @@ Class Karma_Fields_Alpha_Driver_Options {
 	 */
   public function update($item, $id) {
 
-    $option = get_option($id);
+    // $option = get_option($id);
+    //
+    // if (!$option) {
+    //
+    //   $option = array();
+    //
+    // }
+    //
+    // update_option($id, array_merge(
+    //   $option,
+    //   apply_filters('karma_fields_update_options', $item, $id)
+    // ));
 
-    if (!$option) {
 
-      $option = array();
+
+    if (isset($item['option_value'][0])) {
+
+      $options = $item['option_value'][0];
+
+      $options = apply_filters('karma_fields_update_options', $options, $id);
+
+      update_option($id, $options);
 
     }
 
-    update_option($id, array_merge(
-      $option,
-      apply_filters('karma_fields_update_options', $item, $id)
-    ));
+
 
     return true;
   }

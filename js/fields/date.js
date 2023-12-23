@@ -464,18 +464,17 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
                       if (date) {
 
-                        // this.setSelection({date: date});
                         this.setOption(date, "date");
-                        await container.render();
+                        // await container.render();
                         const sqlDate = this.constructor.format(date, this.resource.storeFormat);
-                        // this.setValue(sqlDate);
                         const content = new KarmaFieldsAlpha.Content(sqlDate);
                         this.setContent(content);
 
                       } else {
-                        // this.setValue(input.element.value);
+
                         const content = new KarmaFieldsAlpha.Content(input.element.value);
                         this.setContent(content);
+
                       }
 
                       this.render();
@@ -484,17 +483,22 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                     input.element.onfocus = () => {
                       const date = this.constructor.parse(input.element.value, this.resource.displayFormat) || new Date();
 
-                      // this.setSelection({date: date});
                       this.setOption(date, "date");
 
-                      if (content.mixed) {
-
-          							this.setFocus(true);
-
-          						}
+                      this.setFocus(content.mixed ? true : false);
 
                       container.render();
                     };
+
+                    input.element.onblur = () => {
+
+                      if (this.hasFocus()) {
+
+                        this.removeFocus();
+                        this.render();
+                      }
+
+                    }
 
 
                   }

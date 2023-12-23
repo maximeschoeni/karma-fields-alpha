@@ -8,17 +8,17 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
       const content = this.parent.getContent(key);
 
-      // if (content.loading) {
-      //
-      //   return new KarmaFieldsAlpha.Content.Request();
-      //
-      // }
-      //
-      // const value = KarmaFieldsAlpha.DeepObject.get(content.toObject(), subkey);
-      //
-      // return new KarmaFieldsAlpha.Content(value);
+      if (content.loading) {
 
-      return new KarmaFieldsAlpha.Content.Node(content, subkey);
+        return new KarmaFieldsAlpha.Content.Request();
+
+      }
+
+      const value = KarmaFieldsAlpha.DeepObject.get(content.toObject(), subkey);
+
+      return new KarmaFieldsAlpha.Content(value);
+
+      // return new KarmaFieldsAlpha.Content.Node(content, subkey);
 
     } else if (this.parent) {
 
@@ -38,13 +38,11 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
       if (!groupContent.loading) {
 
-        const object = groupContent.toObject();
+        const newContent = new KarmaFieldsAlpha.Content({...groupContent.toObject()});
 
-        KarmaFieldsAlpha.DeepObject.set(object, content.value, ...path);
+        KarmaFieldsAlpha.DeepObject.set(newContent.value, content.value, ...path);
 
-        content = new KarmaFieldsAlpha.Content(object);
-
-        this.parent.setContent(content, key);
+        this.parent.setContent(newContent, key);
 
       }
 

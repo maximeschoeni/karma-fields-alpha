@@ -22,7 +22,7 @@ KarmaFieldsAlpha.History = class {
     // const lastId = KarmaFieldsAlpha.Store.Buffer.get("history", "lastId");
     // const recordId = KarmaFieldsAlpha.Store.Buffer.get("recordId");
 
-    const buffer = KarmaFieldsAlpha.Store.Buffer.get();
+    const buffer = KarmaFieldsAlpha.Store.Buffer.get() || {};
     const index = buffer.index || 0;
 
     if (buffer.lastId !== id) {

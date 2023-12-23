@@ -185,7 +185,7 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
     }
 
-    return new KarmaFieldsAlpha.Content.Medias(driver, params.toObject());
+    return new KarmaFieldsAlpha.Content.Medias(driver, params);
 
 
 
@@ -1383,36 +1383,36 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 }
 
 
-// KarmaFieldsAlpha.field.saucer.table.footer = class extends KarmaFieldsAlpha.field.group {
-//
-//   constructor(resource) {
-//
-//     super({
-//       display: "flex",
-//       children: [
-//         // "reload",
-//         // "save",
-//         // "add",
-//         // "delete",
-//         // "separator",
-//         // "insert",
-//         // "undo",
-//         // "redo"
-//         "save",
-//         "upload",
-//         "createFolder",
-//         "delete",
-//         "separator",
-//         "undo",
-//         "redo",
-//         "insert"
-//       ],
-//       ...resource
-//     });
-//
-//   }
-//
-// }
+KarmaFieldsAlpha.field.saucer.table.footer = class extends KarmaFieldsAlpha.field.group {
+
+  constructor(resource) {
+
+    super({
+      display: "flex",
+      children: [
+        // "reload",
+        // "save",
+        // "add",
+        // "delete",
+        // "separator",
+        // "insert",
+        // "undo",
+        // "redo"
+        "save",
+        "upload",
+        "createFolder",
+        "delete",
+        "separator",
+        "undo",
+        "redo",
+        "insert"
+      ],
+      ...resource
+    });
+
+  }
+
+}
 
 
 KarmaFieldsAlpha.field.saucer.upload = class extends KarmaFieldsAlpha.field.button {

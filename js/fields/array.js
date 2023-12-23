@@ -201,7 +201,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       if (!content.loading) {
 
-        const clone = content.clone();
+        // const clone = content.clone();
+        const clone = new KarmaFieldsAlpha.Content([...content.value]);
 
         if (!clone.value[index]) {
 
@@ -221,7 +222,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       if (!content.loading) {
 
-        const clone = content.clone();
+        // const clone = content.clone();
+        const clone = new KarmaFieldsAlpha.Content([...content.value]);
 
         clone.value[index] = cell.toSingle();
 
@@ -250,11 +252,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       } else {
 
-        const clone = content.clone();
+        // const clone = content.clone();
+        const clone = new KarmaFieldsAlpha.Content([...content.value]);
 
-        clone[index] = {...clone[index]};
+        // clone[index] = {...clone[index]};
 
-        delete clone[index][key];
+        delete clone.value[index][key];
 
         this.setContent(clone, arrayKey);
 
@@ -266,7 +269,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field {
 
       if (!content.loading) {
 
-        const clone = content.clone();
+        // const clone = content.clone();
+        const clone = new KarmaFieldsAlpha.Content([...content.value]);
 
         clone.value.splice(index, 1);
 

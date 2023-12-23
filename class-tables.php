@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '66';
+	public $version = '68';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -60,8 +60,9 @@ class Karma_Fields_Alpha {
 			add_action('admin_footer', array($this, 'print_nav'));
 
 
-			add_action('save_post', array($this, 'save'), 10, 3);
-			add_action('edit_term', array($this, 'save_term'), 10, 3);
+			// add_action('save_post', array($this, 'save'), 10, 3);
+			add_action('init', array($this, 'save'));
+			// add_action('edit_term', array($this, 'save_term'), 10, 3);
 
       // clipboard
       add_action( 'admin_bar_menu', array($this, 'admin_bar'));
@@ -135,7 +136,7 @@ class Karma_Fields_Alpha {
 				// fields
 				wp_enqueue_script('karma-fields-alpha-field', $plugin_url . '/js/fields/field.js', array('karma-fields-alpha-build'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-container', $plugin_url . '/js/fields/container.js', array('karma-fields-alpha-field'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-group', $plugin_url . '/js/fields/group.js', array('karma-fields-alpha-container'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-group', $plugin_url . '/js/fields/group.js', array('karma-fields-alpha-field'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-form', $plugin_url . '/js/fields/form.js', array('karma-fields-alpha-container'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-input', $plugin_url . '/js/fields/input.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-date', $plugin_url . '/js/fields/date.js', array('karma-fields-alpha-input', 'moment'), $this->version, true);
@@ -161,6 +162,7 @@ class Karma_Fields_Alpha {
 
 				wp_enqueue_script('karma-fields-alpha-editor', $plugin_url . '/js/fields/editor.js', array('karma-fields-alpha-input'), $this->version, true);
 
+				wp_enqueue_script('karma-fields-alpha-form', $plugin_url . '/js/fields/form.js', array('karma-fields-alpha-group'), $this->version, true);
 
 				// table
 				// wp_enqueue_script('karma-fields-alpha-saucer', $plugin_url . '/js/tables/layout.js', array('karma-fields-alpha-field'), $this->version, true);
@@ -429,14 +431,14 @@ class Karma_Fields_Alpha {
       )
 		);
 
-		// for taxonomies dropdown:
-		$this->register_driver(
-			'taxonomies',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-taxonomies.php',
-			'Karma_Fields_Alpha_Driver_Taxonomies',
-      array(),
-      array()
-		);
+		// // for taxonomies dropdown:
+		// $this->register_driver(
+		// 	'taxonomies',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-taxonomies.php',
+		// 	'Karma_Fields_Alpha_Driver_Taxonomies',
+    //   array(),
+    //   array()
+		// );
 
 		// $this->register_driver(
 		// 	'termmeta',
@@ -553,116 +555,100 @@ class Karma_Fields_Alpha {
 
 	}
 
-	/**
-	 *  Save term meta
-   *	@hook edit_term
-   */
-	public function save_term($term_id, $tt_id, $taxonomy) {
-
-		if (current_user_can('manage_categories')) {
-
-			$action = "karma_field-action";
-			$nonce = "karma_field-nonce";
-
-	    if (isset($_REQUEST[$nonce]) && wp_verify_nonce($_POST[$nonce], $action)) {
-
-				if (isset($_REQUEST['karma-fields-items']) && $_REQUEST['karma-fields-items']) {
-
-					foreach ($_REQUEST['karma-fields-items'] as $encoded_input) {
-
-						if ($encoded_input) {
-
-							$encoded_input = stripslashes($encoded_input);
-							$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input);
-							$input = json_decode($encoded_input, $associative);
-
-							if ($input) {
-
-								$driver = $this->get_driver('taxonomy');
-
-								if (method_exists($driver, 'update')) {
-
-									$driver->update($input, $term_id);
-
-								}
-
-							}
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-	}
+// 	/**
+// 	 *  Save term meta
+//    *	@hook edit_term
+//    */
+// 	public function save_term($term_id, $tt_id, $taxonomy) {
+//
+// echo '<pre>'; print_r($_REQUEST); die();
+//
+//
+// 		if (isset($_REQUEST['tag_ID'] && $_REQUEST['karma-fields-items']) && current_user_can('manage_categories')) {
+//
+// 			$action = "karma_field-action";
+// 			$nonce = "karma_field-nonce";
+//
+// 	    if (isset($_REQUEST[$nonce]) && wp_verify_nonce($_POST[$nonce], $action)) {
+//
+// 				if (isset($_REQUEST['karma-fields-items']) && $_REQUEST['karma-fields-items']) {
+//
+// 					foreach ($_REQUEST['karma-fields-items'] as $encoded_input) {
+//
+// 						if ($encoded_input) {
+//
+// 							$this->save_input($encoded_input);
+//
+// 							// $encoded_input = stripslashes($encoded_input);
+// 							// $associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input);
+// 							// $input = json_decode($encoded_input, $associative);
+// 							//
+// 							// if ($input) {
+// 							//
+// 							// 	$driver = $this->get_driver('taxonomy');
+// 							//
+// 							// 	if (method_exists($driver, 'update')) {
+// 							//
+// 							// 		$driver->update($input, $term_id);
+// 							//
+// 							// 	}
+// 							//
+// 							// }
+//
+// 						}
+//
+// 					}
+//
+// 				}
+//
+// 			}
+//
+// 		}
+//
+// 	}
 
 	/**
 	 * Save meta boxes
 	 *
-	 * @hook 'save_post'
+	 * @hook 'init'
 	 */
-	public function save($post_id, $post, $update) {
+	public function save() {
 
-		if (current_user_can('edit_post', $post_id) && (!defined( 'DOING_AUTOSAVE' ) || !DOING_AUTOSAVE )) {
+		// if (isset($_REQUEST['karma-fields-items'])
+		// 	&& (isset($_REQUEST['post_ID']) && current_user_can('edit_post', $_REQUEST['post_ID']) && (!defined( 'DOING_AUTOSAVE' ) || !DOING_AUTOSAVE )
+		// 		|| isset($_REQUEST['tag_ID'] && current_user_can('manage_categories')))) {
+
+		if (isset($_REQUEST['karma-fields-items']) && is_array($_REQUEST['karma-fields-items'])) {
 
 			$action = "karma_field-action";
 			$nonce = "karma_field-nonce";
 
 			if (isset($_REQUEST[$nonce]) && wp_verify_nonce($_POST[$nonce], $action)) {
 
-				if (isset($_REQUEST['karma-fields-items']) && $_REQUEST['karma-fields-items']) {
+				foreach ($_REQUEST['karma-fields-items'] as $encoded_input) { // -> Handle multiple metaboxes
 
-					foreach ($_REQUEST['karma-fields-items'] as $encoded_input) {
+					if ($encoded_input) {
 
-						if ($encoded_input) {
+						$encoded_input = stripslashes($encoded_input);
+						$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input); // -> compat
+						$input = json_decode($encoded_input, $associative); // need parsed as array for blocks
 
-							$encoded_input = stripslashes($encoded_input);
-							// $input = (array) json_decode($encoded_input, false);
-							$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input);
-							$input = json_decode($encoded_input, $associative); // need parsed as array for blocks
+						if ($input) {
 
-							if ($input) {
+							foreach ($input as $driver_name => $data) {
 
-								foreach ($input as $driver_name => $data) {
+								foreach ($data as $id => $row) {
 
-									foreach ($data as $id => $row) {
+									$driver = $this->get_driver($driver_name);
 
-										$driver = $this->get_driver($driver_name);
+									if (method_exists($driver, 'update')) {
 
-										if (method_exists($driver, 'update')) {
+										$driver->update($row, $id);
 
-											$driver->update($row, $id);
-
-										}
 									}
-
 								}
 
 							}
-
-
-							// if ($input) {
-							//
-							// 	$driver = $this->get_driver('posts');
-							//
-							// 	// -> should verify permissions here
-							//
-							// 	if (method_exists($driver, 'update')) {
-							//
-							// 		// echo '<pre>';
-							// 		// var_dump($post_id, $input);
-							// 		// die();
-							//
-							// 		$driver->update($input, $post_id);
-							//
-							// 	}
-							//
-							//
-							// }
 
 						}
 
@@ -675,6 +661,37 @@ class Karma_Fields_Alpha {
 		}
 
 	}
+
+	// /**
+	//  * Save from input
+	//  */
+	// public function save_input($encoded_input) {
+	//
+	// 	$encoded_input = stripslashes($encoded_input);
+	// 	// $input = (array) json_decode($encoded_input, false);
+	// 	$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input);
+	// 	$input = json_decode($encoded_input, $associative); // need parsed as array for blocks
+	//
+	// 	if ($input) {
+	//
+	// 		foreach ($input as $driver_name => $data) {
+	//
+	// 			foreach ($data as $id => $row) {
+	//
+	// 				$driver = $this->get_driver($driver_name);
+	//
+	// 				if (method_exists($driver, 'update')) {
+	//
+	// 					$driver->update($row, $id);
+	//
+	// 				}
+	// 			}
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// }
 
 
 	/**

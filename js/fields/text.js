@@ -570,7 +570,6 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 		const driver = this.getDriver();
 
 		let id = this.parse(this.resource.id);
-		console.log(driver);
 
 		if (!driver) {
 

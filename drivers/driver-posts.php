@@ -77,6 +77,14 @@ class Karma_Fields_Alpha_Driver_Posts {
 
     // foreach ($data as $id => $item) {
 
+    if (!current_user_can('edit_post', $id)) {
+
+      return false;
+
+    }
+
+
+
       $args = array();
 
       $id = intval($id);
@@ -261,6 +269,13 @@ class Karma_Fields_Alpha_Driver_Posts {
   public function add($data) {
     global $wpdb;
 
+    if (!current_user_can('edit_posts')) {
+
+      return false;
+
+    }
+
+
     add_filter('wp_insert_post_empty_content', '__return_false', 10, 2);
 
     $args = array();
@@ -408,7 +423,7 @@ class Karma_Fields_Alpha_Driver_Posts {
 
         case 'driver':
         case 'karma':
-          break;
+          break; // compat
 
         case 'orderby':
 
@@ -472,8 +487,8 @@ class Karma_Fields_Alpha_Driver_Posts {
 
         case 'id':
         case 'ID':
-          $args['p'] = intval($value);
-          break;
+          // $args['p'] = intval($value);
+          // break;
 
         case 'ids':
           $args['post__in'] = array_map('intval', explode(',', $value));

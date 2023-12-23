@@ -12,6 +12,13 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
     // foreach ($data as $id => $item) {
 
+    if (!current_user_can('edit_term', $id)) {
+
+      return false;
+
+    }
+
+
     $trash_prefix = '_trashed_';
 
 
@@ -149,6 +156,12 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 	 */
   public function add($data) {
     global $wpdb;
+
+    if (!current_user_can('edit_terms')) {
+
+      return false;
+
+    }
 
     // $uid = uniqid();
     // $name = "[new term $uid]";

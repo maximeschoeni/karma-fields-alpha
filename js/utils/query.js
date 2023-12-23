@@ -1017,14 +1017,17 @@ KarmaFieldsAlpha.Driver = class {
 
       }
 
-      if (fail && !KarmaFieldsAlpha.Store.Tasks.has()) {
+      if (fail) {
 
-        // KarmaFieldsAlpha.Store.Tasks.add({
-        //   type: "rerender",
-        //   resolve: () => {
-        //
-        //   }
-        // });
+        if (!KarmaFieldsAlpha.Store.Tasks.has()) {
+
+          KarmaFieldsAlpha.Store.Tasks.add({
+            type: "rerender",
+            resolve: () => {
+            }
+          });
+
+        }
 
         KarmaFieldsAlpha.saucer.render();
 
@@ -1579,6 +1582,9 @@ KarmaFieldsAlpha.Content.Query = class extends KarmaFieldsAlpha.Content {
           }
 
         }
+
+        KarmaFieldsAlpha.Store.remove("items", this.driver);
+        KarmaFieldsAlpha.Store.remove("counts", this.driver);
 
         await KarmaFieldsAlpha.Database.Queries.remove(this.driver);
       },

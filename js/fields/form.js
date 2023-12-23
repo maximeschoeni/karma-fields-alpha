@@ -1,9 +1,17 @@
 
-KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
+KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.group {
 
   getId() {
 
-    return this.resource.id;
+    if (this.resource.id) {
+
+      return this.parse(this.resource.id);
+
+    } else {
+
+      return this.parent.getContent('id');
+
+    }
 
   }
 
@@ -14,7 +22,6 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
   }
 
   getContent(key) {
-
     // const driver = this.getDriver();
     //
     // return KarmaFieldsAlpha.Query.getValue(driver, ...path);
@@ -22,7 +29,13 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
     const driver = this.getDriver();
     const id = this.getId();
 
-    return new KarmaFieldsAlpha.Content.Value(driver, id, key);
+    if (id.loading) {
+
+      return new KarmaFieldsAlpha.Content.Request();
+
+    }
+
+    return new KarmaFieldsAlpha.Content.Value(driver, id.toString(), key);
 
   }
   //
@@ -47,10 +60,12 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
     const driver = this.getDriver();
     const id = this.getId();
 
-    // KarmaFieldsAlpha.Store.Delta.set(content.toArray(), driver, id, key);
+    if (!id.loading) {
 
-    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
-    KarmaFieldsAlpha.Store.Delta.set(content.toArray(), driver, id, key);
+      key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+      KarmaFieldsAlpha.Store.Delta.set(content.toArray(), "vars", driver, id.toString(), key);
+
+    }
 
   }
 
@@ -59,8 +74,12 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
     const driver = this.getDriver();
     const id = this.getId();
 
-    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
-    KarmaFieldsAlpha.Store.Delta.set([], driver, id, key);
+    if (!id.loading) {
+
+      key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+      KarmaFieldsAlpha.Store.Delta.set([], "vars", driver, id.toString(), key);
+
+    }
 
   }
 

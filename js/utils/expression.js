@@ -738,7 +738,9 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     const key = args[1];
 
-    this.value = this.field.request("getParam", key);
+    this.value = KarmaFieldsAlpha.Store.Layer.getParam(key);
+
+    // this.value = this.field.request("getParam", key);
 
   }
 

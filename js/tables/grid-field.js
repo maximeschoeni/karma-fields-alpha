@@ -77,15 +77,18 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
               const page = this.request("getPage");
               const ppp = this.getPpp();
               const offset = (page - 1)*ppp;
+              const columns = this.resource.children || [];
 
               let selection = this.getSelection();
+
 
               grid.element.classList.toggle("even", items.length%2 === 0);
               // grid.element.classList.toggle("odd", items.length%2 === 1);
 
               const selector = new KarmaFieldsAlpha.RowPicker(grid.element, selection);
 
-              selector.header = 1;
+              const hasHeader = columns.some(column => column.label);
+              selector.header = hasHeader ? 1 : 0;
               selector.width = this.resource.children.length;
 
               selector.onSelect = elements => {
@@ -114,65 +117,69 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
               if (items.length) {
                 grid.element.classList.add("filled"); // -> draw table borders
 
-                const columns = this.resource.children || [];
+
 
                 grid.children = [];
 
-                for (let i = 0; i < columns.length; i++) {
+                if (hasHeader) {
 
-                  const resource = columns[i];
+                  for (let i = 0; i < columns.length; i++) {
 
-                  grid.children.push({
-                    class: "th table-header-cell",
-                    init: th => {
-                      if (resource.style) {
-                        th.element.style = resource.style;
-                      }
-                      th.element.tabIndex = -1;
-                    },
-                    update: th => {
-                      th.element.classList.toggle("first-cell", i === 0);
-                      th.element.classList.toggle("last-cell", i === columns.length - 1);
-                      th.children = [
-                        {
-                          class: "header-cell-content title",
-                          init: a => {
-                            a.element.textContent = resource.label;
-                          }
-                        },
-                        {
-                          class: "header-cell-content order",
-                          child: {
-                            tag: "span",
-                            class: "dashicons",
-                            update: span => {
-                              const order = this.getOrder() || "asc";
-                              const orderby = this.getOrderby();
-                              const isAsc = orderby === (resource.orderby || resource.key) && order === "asc";
-                              const isDesc = orderby === (resource.orderby || resource.key) && order === "desc";
-                              span.element.classList.toggle("dashicons-arrow-up", isAsc);
-                              span.element.classList.toggle("dashicons-arrow-down", isDesc);
-                              span.element.classList.toggle("dashicons-leftright", !isAsc && !isDesc);
+                    const resource = columns[i];
+
+                    grid.children.push({
+                      class: "th table-header-cell",
+                      init: th => {
+                        if (resource.style) {
+                          th.element.style = resource.style;
+                        }
+                        th.element.tabIndex = -1;
+                      },
+                      update: th => {
+                        th.element.classList.toggle("first-cell", i === 0);
+                        th.element.classList.toggle("last-cell", i === columns.length - 1);
+                        th.children = [
+                          {
+                            class: "header-cell-content title",
+                            init: a => {
+                              a.element.textContent = resource.label;
                             }
                           },
-                          update: a => {
-                            a.element.classList.toggle("hidden", !resource.sortable);
-                            if (resource.sortable) {
-                              a.element.onmousedown = event => {
-                                event.stopPropagation(); // -> prevent header selection
+                          {
+                            class: "header-cell-content order",
+                            child: {
+                              tag: "span",
+                              class: "dashicons",
+                              update: span => {
+                                const order = this.getOrder() || "asc";
+                                const orderby = this.getOrderby();
+                                const isAsc = orderby === (resource.orderby || resource.key) && order === "asc";
+                                const isDesc = orderby === (resource.orderby || resource.key) && order === "desc";
+                                span.element.classList.toggle("dashicons-arrow-up", isAsc);
+                                span.element.classList.toggle("dashicons-arrow-down", isDesc);
+                                span.element.classList.toggle("dashicons-leftright", !isAsc && !isDesc);
                               }
-                              a.element.onclick = event => {
-                                // debugger;
-                                event.preventDefault();
-                                this.toggleOrder(resource.orderby || resource.key, resource.order);
-                                this.select();
-                              };
+                            },
+                            update: a => {
+                              a.element.classList.toggle("hidden", !resource.sortable);
+                              if (resource.sortable) {
+                                a.element.onmousedown = event => {
+                                  event.stopPropagation(); // -> prevent header selection
+                                }
+                                a.element.onclick = event => {
+                                  // debugger;
+                                  event.preventDefault();
+                                  this.toggleOrder(resource.orderby || resource.key, resource.order);
+                                  this.select();
+                                };
+                              }
                             }
                           }
-                        }
-                      ];
-                    }
-                  });
+                        ];
+                      }
+                    });
+                  }
+
                 }
 
                 for (let i = 0; i < items.length; i++) {
