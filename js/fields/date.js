@@ -403,6 +403,12 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
   build() {
     return {
       class: "karma-field karma-field-date",
+      init: container => {
+        container.element.onmousedown = event => {
+          event.stopPropagation();
+          // event.preventDefault();
+        }
+      },
       update: (container) => {
 
           container.children = [

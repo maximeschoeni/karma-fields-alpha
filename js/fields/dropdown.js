@@ -30,22 +30,36 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 	}
 
-  // export(collection) {
-  //
-  //   const content = this.getContent();
-  //
-  //   if (!content.loading) {
-  //
-  //     const options = this.getOptions();
-  //     const value = content.toString();
-  //
-  //     const option = options.toArray().find(option => option.id === value);
-  //
-  //     collection.add(new KarmaFieldsAlpha.Content(option.name));
-  //
-  //   }
-  //
-	// }
+  export() {
+
+    if (this.resource.export === "name") {
+
+      const output = new KarmaFieldsAlpha.Content();
+      const content = this.getContent();
+      const options = this.getOptions();
+
+      if (content.loading || options.loading) {
+
+        output.loading = true;
+
+      } else {
+
+        const value = content.toString();
+        const option = options.toArray().find(option => option.id === value);
+
+        output.value = option && option.name || "";
+
+      }
+
+      return output;
+
+    } else {
+
+      return super.export();
+
+    }
+
+	}
   //
   // import(collection) {
   //
@@ -104,7 +118,8 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
       // const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
 
-      const params = this.parse(this.resource.params);
+
+      const params = this.parse(this.resource.params );
 
       if (params.loading) {
 
@@ -159,15 +174,21 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
             if (content.notFound) { // || !options.toArray().some(option => option.id === content.toString())) {
 
-              content = this.getDefault();
+              if (this.resource.createWhenNotFound) {
 
-              if (!content.loading) {
+  							this.createTask("create");
 
-                this.setContent(content);
+  						}
 
-                KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
-
-              }
+              // content = this.getDefault();
+              //
+              // if (!content.loading) {
+              //
+              //   this.setContent(content);
+              //
+              //   KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
+              //
+              // }
 
             }
 
@@ -175,7 +196,12 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
           const value = content.toString();
 
-          if (dropdown.element.childElementCount !== options.toArray().length) {
+          // if (true || dropdown.element.childElementCount !== options.toArray().length) {
+
+          const optionsArray = options.toArray();
+          const elementOptions = [...dropdown.element.options];
+
+          if (elementOptions.length !== optionsArray.length || elementOptions.some((option, index) => option.value !== optionsArray[index].id)) {
 
             dropdown.element.length = 0;
 
@@ -210,7 +236,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
             const key = this.getKey();
             const content = new KarmaFieldsAlpha.Content(dropdown.element.value);
 
-            KarmaFieldsAlpha.History.save("change", "Change");
+            this.save("change", "Change");
 
             this.parent.setContent(content, key);
 

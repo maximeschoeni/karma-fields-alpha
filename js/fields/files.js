@@ -180,6 +180,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
                   gallery.element.classList.remove("has-selection");
                 }
 
+                // const ids = content.toArray().filter(id => parseInt(id));
                 const ids = content.toArray();
 
                 let selection = this.getSelection();

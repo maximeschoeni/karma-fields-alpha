@@ -170,6 +170,8 @@ class Karma_Fields_Alpha_Driver_Posts {
 
               } else { // -> meta
 
+
+
                 $value = apply_filters('karma_fields_posts_driver_update_meta', $value, $key, $id);
 
                 $value = array_map(function($value) {
@@ -177,7 +179,10 @@ class Karma_Fields_Alpha_Driver_Posts {
                   else return $value;
                 }, $value);
 
+
+
                 $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = %s AND post_id = %d", $key, $id ) );
+
 
                 for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
 
@@ -282,42 +287,6 @@ class Karma_Fields_Alpha_Driver_Posts {
 
 
 
-
-    // -> recycle?
-
-    // $post_id = $wpdb->get_var("SELECT * FROM $wpdb->posts WHERE post_type LIKE 'trashed-%' LIMIT 1");
-    //
-    // if ($post_id) {
-    //
-    //   $args = array_merge(array(
-    //     'ID' => $post_id,
-    //     'post_author' => 0,
-    //     'post_date' => '0000-01-01 00:00:00',
-    //     'post_date_gmt' => '0000-01-01 00:00:00',
-    //     'post_content' => '',
-    //     'post_title' => '',
-    //     'post_excerpt' => '',
-    //     'post_status' => '',
-    //     'comment_status' => '',
-    //     'ping_status' => '',
-    //     'post_password' => '',
-    //     'post_name' => '',
-    //     'to_ping' => '',
-    //     'pinged' => '',
-    //     'post_modified' => '0000-01-01 00:00:00',
-    //     'post_modified_gmt' => '0000-01-01 00:00:00',
-    //     'post_content_filtered' => '',
-    //     'post_parent' => 0,
-    //     'guid' => '',
-    //     'menu_order' => 0,
-    //     'post_type' => '',
-    //     'post_mime_type' => '',
-    //     'comment_count' => 0
-    //   ), $data);
-    //
-    // }
-
-
     foreach ($data as $key => $value) {
 
       switch ($key) {
@@ -343,23 +312,8 @@ class Karma_Fields_Alpha_Driver_Posts {
 
     }
 
-    // if (empty($args['post_title'])) {
-    //
-    //   $args['post_title'] = '';
-    //
-    // }
-    //
-    // if (empty($args['post_content'])) {
-    //
-    //   $args['post_content'] = '';
-    //
-    // }
 
-    // $args['post_type'] = 'trashed-'.$args['post_type'];
-
-
-
-    // var_dump($args, $data);
+    $args = apply_filters("karma_fields_posts_driver_add", $args, $data);
 
     $id = wp_insert_post($args);
 

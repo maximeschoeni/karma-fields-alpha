@@ -177,6 +177,26 @@ KarmaFieldsAlpha.field = class {
 
   }
 
+  getTask() {
+
+    return this.getOption("tasks");
+
+  }
+
+  setTask(task) {
+
+    this.setOption(task, "tasks");
+
+  }
+
+  createTask(...args) {
+
+    this.setOption(args, "tasks");
+
+    KarmaFieldsAlpha.taskflag = true;
+
+  }
+
   grind(closure, callback) {
 
     const result = closure();
@@ -294,6 +314,12 @@ KarmaFieldsAlpha.field = class {
 
   }
 
+  getResources() {
+
+    return this.resource;
+
+  }
+
   getContent(...path) {
 
     return this.parent.getContent(...path);
@@ -319,40 +345,96 @@ KarmaFieldsAlpha.field = class {
 
 	}
 
-  // used for array
-  getKeys(set = new Set()) {
+  // // used for array
+  // getKeys(set = new Set()) {
+  //
+  //   console.log("deprecated");
+  //
+  //   if (this.resource.children) {
+  //
+  //     for (let resource of this.resource.children) {
+  //
+  //       const child = this.createChild(resource);
+  //       const key = child.getKey();
+  //
+  //       if (key) {
+  //
+  //         set.add(key);
+  //
+  //       } else {
+  //
+  //         child.getKeys(set);
+  //
+  //       }
+  //
+  // 		}
+  //
+  //   }
+  //
+  //   return set;
+  // }
 
-    console.log("deprecated");
+  // // used by array
+  // collectKeys() {
+  //
+  //   let keys = [];
+  //
+  //   if (this.resource.children) {
+  //
+  //     for (let resource of this.resource.children) {
+  //
+  //       const child = this.createChild(resource);
+  //       const key = child.getKey();
+  //
+  //       if (key) {
+  //
+  //         keys.push(key);
+  //
+  //       } else {
+  //
+  //         keys.push(...child.collectKeys());
+  //
+  //       }
+  //
+  // 		}
+  //
+  //   }
+  //
+  //   return keys;
+  // }
 
-    if (this.resource.children) {
+  // used by array
+  getKeys() {
+
+    const key = this.getKey();
+    let keys = [];
+
+    if (key) {
+
+      keys.push(key);
+
+    } else if (this.resource.children) {
 
       for (let resource of this.resource.children) {
 
         const child = this.createChild(resource);
-        const key = child.getKey();
 
-        if (key) {
-
-          set.add(key);
-
-        } else {
-
-          child.getKeys(set);
-
-        }
+        keys.push(...child.getKeys());
 
   		}
 
     }
 
-    return set;
+    return keys;
+
   }
+
 
   export() { // -> return collection (array of strings)
 
     let collection = new KarmaFieldsAlpha.Content.Collection();
 
-    if (this.resource.children) {
+    if (this.resource.children && this.resource.export !== false) {
 
       for (let i = 0; i < this.resource.children.length; i++) {
 
@@ -367,7 +449,7 @@ KarmaFieldsAlpha.field = class {
 
         } else {
 
-          collection.value = [...collection.value, ...content.value];
+          collection.value = [...collection.toArray(), ...content.toArray()];
 
         }
 
@@ -477,7 +559,33 @@ KarmaFieldsAlpha.field = class {
 
 	}
 
+  create() {
 
+    if (this.resource.children) {
+
+      for (let i = 0; i < this.resource.children.length; i++) {
+
+        const resource = this.resource.children[i];
+        const child = this.createChild(resource, i);
+
+        child.create();
+
+      }
+
+    }
+
+  }
+
+  createToken() {
+
+    let token = KarmaFieldsAlpha.Store.State.get("token") || 0;
+
+    token++;
+
+    KarmaFieldsAlpha.Store.State.set(token, "token");
+
+    return token;
+  }
 
 
 

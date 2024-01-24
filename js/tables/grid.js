@@ -13,35 +13,184 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getContent(id, key) {
+  getContent(index, key) {
 
     const driver = this.getDriver();
+    const query = this.getItems();
+    const items = query.toArray();
+
+    if (query.loading) {
+
+      return  new KarmaFieldsAlpha.Content.Request();
+
+    } else if (index === "modal") {
+
+
+
+      const selection = this.getSelection();
+      const index = selection.index || 0;
+      const length = selection.length || 0;
+
+      if (length > 1) {
+
+        const slice = items.slice(index, index + length);
+        const contents = slice.map((item, i) => this.getContent(index + i, key));
+        const content = new KarmaFieldsAlpha.Content();
+
+        if (contents.some(content => content.loading)) {
+
+          content.loading = true;
+
+        } else if (contents.some((content, index, array) => index > 0 && !content.equals(array[0]))) {
+
+          content.mixed = true;
+
+          // content.value = contents.map(content => content.value);
+
+        } else {
+
+          content.value = contents[0].toArray();
+
+        }
+
+        return content;
+
+      } else if (length === 1) {
+
+        return this.getContent(index, key);
+
+      }
+
+    } else if (items[index]) {
+
+      if (items[index][key] !== undefined) {
+
+        return new KarmaFieldsAlpha.Content(items[index][key]);
+
+      } else if (items[index].id) {
+
+        // if (key === "id") {
+        //
+        //   return new KarmaFieldsAlpha.Content(items[index].id);
+        //
+        // } else {
+
+          const value = new KarmaFieldsAlpha.Content.Value(driver, items[index].id, key);
+
+          return value;
+
+        // }
+
+      } else if (items[index].token) {
+
+        const value = KarmaFieldsAlpha.Store.get("tokens", driver, items[index].token, key);
+
+        return new KarmaFieldsAlpha.Content(value);
+
+        // let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.token === items[index].token);
+        //
+        // if (task) {
+        //
+        //   const value = KarmaFieldsAlpha.DeepObject.get(task, key, "delta");
+        //
+        //   return new KarmaFieldsAlpha.Content(value);
+        //
+        // } else {
+        //
+        //   return  new KarmaFieldsAlpha.Content.Request();
+        //
+        //   // console.error("No task!!??");
+        //
+        // }
+
+      }
+
+    }
+
+    return  new KarmaFieldsAlpha.Content.Request();
 
     // return KarmaFieldsAlpha.Query.getValue(driver, ...path);
 
-    return new KarmaFieldsAlpha.Content.Value(driver, id, key);
+    // return new KarmaFieldsAlpha.Content.Value(driver, id, key);
 
   }
 
-  setContent(content, id, key) {
+  setContent(content, index, key) {
 
     const driver = this.getDriver(key);
+    const query = this.getItems();
+    const items = query.toArray();
 
-    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+    if (!query.loading) {
 
-    KarmaFieldsAlpha.Store.Delta.set(content.toArray(), "vars", driver, id, key);
+      if (index === "modal") {
+
+        const selection = this.getSelection();
+        const index = selection.index || 0;
+        const length = selection.length || 0;
+
+        for (let i = 0; i < length; i++) {
+
+          this.setContent(content, index + i, key);
+
+        }
+
+      } else {
+
+        key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+
+        if (items[index]) {
+
+          if (items[index].id) {
+
+            const id = items[index].id;
+            const current = new KarmaFieldsAlpha.Content.Value(driver, id, key);
+
+            if (!current.loading && !KarmaFieldsAlpha.DeepObject.equal(current.toArray(), content.toArray())) {
+
+              KarmaFieldsAlpha.Store.Delta.set(content.toArray(), "vars", driver, id, key);
+
+            }
+
+          } else if (items[index].token) {
+
+            // let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.token === this.resource.token);
+            //
+            // console.log("setContent", content.toArray(), index, key, task);
+            //
+            // if (task) {
+            //
+            //
+            //
+            //   KarmaFieldsAlpha.DeepObject.set(task, content.toArray(), key, "delta");
+            //
+            //   task.driver = driver;
+            //
+            // }
+
+            // KarmaFieldsAlpha.Store.set(content.toArray(), key, driver, items[index].token, "tokens", "delta");
+
+            KarmaFieldsAlpha.Store.set(content.toArray(), "tokens", driver, items[index].token, key);
+
+          }
+
+        }
+
+      }
+
+    }
 
   }
 
-  removeContent(id, key) {
-
-    const driver = this.getDriver();
-
-    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
-
-    KarmaFieldsAlpha.Store.Delta.remove("vars", driver, id, key);
-
-  }
+  // removeContent(id, key) {
+  //
+  //   const driver = this.getDriver();
+  //
+  //   key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+  //
+  //   KarmaFieldsAlpha.Store.Delta.remove("vars", driver, id, key);
+  //
+  // }
 
   getParams() {
 
@@ -256,18 +405,32 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   }
 
 
-  getIds() {
-
-    // const params = this.getParams();
-    // const driver = this.getDriver();
-    //
-    // // return KarmaFieldsAlpha.Query.getIds(driver, params);
-    //
-    // return new KarmaFieldsAlpha.Content.Query(driver, params);
-
-    return this.getQuery();
-
-  }
+  // getIds() {
+  //
+  //   // const params = this.getParams();
+  //   // const driver = this.getDriver();
+  //   //
+  //   // // return KarmaFieldsAlpha.Query.getIds(driver, params);
+  //   //
+  //   // return new KarmaFieldsAlpha.Content.Query(driver, params);
+  //
+  //   // return this.getQuery();
+  //
+  //
+  //   // const items = this.request("getSelectedItems");
+  //   // const content = new KarmaFieldsAlpha.Content();
+  //   //
+  //   // if (items.loading) {
+  //   //
+  //   //   content.loading = true;
+  //   //
+  //   // } else {
+  //   //
+  //   //   content.value = items.toArray().map(item => item.id);
+  //   //
+  //   // }
+  //
+  // }
 
   isCurrentLayer() {
 
@@ -292,7 +455,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  setQuery(items) {
+  async setQuery(items) {
 
     const driver = this.getDriver();
     const params = this.getParams();
@@ -301,7 +464,28 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
 
-      return KarmaFieldsAlpha.Store.State.set(items, "deltaItems", driver, paramstring);
+      KarmaFieldsAlpha.Store.Delta.set(items.toArray(), "items", driver, paramstring);
+
+
+      await KarmaFieldsAlpha.Database.Queries.remove(driver); // -> actually just need to remove count...
+
+      await KarmaFieldsAlpha.Database.Queries.set(items.toArray(), "query", driver, paramstring);
+
+
+      // KarmaFieldsAlpha.Store.remove("items", query.driver);
+      // KarmaFieldsAlpha.Store.remove("counts", query.driver);
+      //
+      // await KarmaFieldsAlpha.Database.Queries.remove(query.driver);
+      //
+      // if (task.delta) {
+      //
+      //   for (let key in task.delta) {
+      //
+      //     KarmaFieldsAlpha.Store.Delta.set(task.delta[key], "vars", query.driver, task.id, key);
+      //
+      //   }
+      //
+      // }
 
     }
 
@@ -310,7 +494,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   setItems(items) {
 
-    this.setQuery(items);
+    return this.setQuery(items);
 
   }
 
@@ -340,7 +524,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 
   exportIds(ids) { // used for export button
-
+console.error("deprecated");
     const gridContent = new KarmaFieldsAlpha.Content.Grid();
 
     const columns = this.getExportableColumns();
@@ -388,21 +572,77 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  export(index = 0, length = 999999) {
+  // export(index = 0, length = 999999) {
+  //
+  //   const request = this.getSelectedItems();
+  //
+  //   if (!request.loading) {
+  //
+  //     const ids = request.toArray().map(item => item.id);
+  //
+  //     return this.exportIds(ids);
+  //
+  //   }
+  //
+  // }
 
-    const request = this.getSelectedItems();
+  slice(index = 0, length = 999999) {
 
-    if (!request.loading) {
+    // const request = this.getSelectedItems();
+    //
+    // if (!request.loading) {
+    //
+    //   const ids = request.toArray().map(item => item.id);
+    //
+    //   return this.exportIds(ids);
+    //
+    // }
 
-      const ids = request.toArray().map(item => item.id);
+    const gridContent = new KarmaFieldsAlpha.Content.Grid();
 
-      return this.exportIds(ids);
+    const query = this.getQuery();
+
+    if (query.loading) {
+
+      gridContent.loading = true;
+
+    } else {
+
+      const columns = this.getExportableColumns();
+
+      length = Math.min(length, query.toArray().length);
+
+      for (let i = 0; i < length; i++) {
+
+        const rowField = this.createChild({
+          type: "row",
+          index: i + index,
+          children: columns
+        }, i + index);
+
+        const collection = rowField.export();
+
+        if (collection.loading) {
+
+          gridContent.loading = true;
+
+        } else {
+
+          gridContent.value.push(collection.toArray());
+
+        }
+
+      }
 
     }
 
+    return gridContent;
+
   }
 
-  importIds(grid, ids) {
+
+
+  importIds(grid, ids) { // deprecated
 
     if (grid.value.length === ids.length) {
 
@@ -426,6 +666,40 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     }
 
   }
+
+  insert(grid, index, length) {
+
+    const array = grid.toArray();
+
+    if (array.length < length) {
+
+      this.remove(index + array.length, length - array.length);
+
+    } else if (array.length > length) {
+
+      this.addAt(index + length, array.length - length);
+
+    }
+
+    const columns = this.getExportableColumns();
+
+
+    for (let i = 0; i < array.length; i++) {
+
+      const child = this.createChild({
+        children: columns,
+        type: "row",
+      }, i + index);
+
+      const content = new KarmaFieldsAlpha.Content.Collection(array[i]);
+
+      child.import(content);
+
+    }
+
+  }
+
+
 
   getModal() {
 
@@ -488,65 +762,83 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   copy() {
 
-    const items = this.getSelectedItems();
+    const selection = this.getSelection();
+    const index = selection.index || 0;
+    const length = selection.length || 0;
 
-    if (!items.loading) {
+    const grid = this.slice(index, length);
 
-      const ids = items.toArray().filter(item => item.id && !item.loading).map(item => item.id);
+    if (grid.loading) {
 
-      const content = this.exportIds(ids);
+      return "loading";
 
-      if (!content.loading) {
+    } else {
 
-        return content.toString();
-
-      }
+      return grid.toString();
 
     }
 
-    return "loading...";
+    // const items = this.getSelectedItems();
+    //
+    // if (!items.loading) {
+    //
+    //   const ids = items.toArray().filter(item => item.id && !item.loading).map(item => item.id);
+    //
+    //   const content = this.exportIds(ids);
+    //
+    //   if (!content.loading) {
+    //
+    //     return content.toString();
+    //
+    //   }
+    //
+    // }
+    //
+    // return "loading...";
   }
 
   paste(value) {
-
+    debugger;
     const grid = new KarmaFieldsAlpha.Content.Grid(value);
 
     // const items = this.getItems();
     //
     // if (!items.loading) {
 
-      // this.save("paste", "Paste");
+      this.save("paste", "Paste");
 
       const index = this.getSelection("index") || 0;
       const length = this.getSelection("length") || 0;
 
-      const array = grid.toArray();
+      this.insert(grid, index, length);
 
-      if (array.length < length) {
-
-        this.remove(index + array.length, length - array.length);
-
-      } else if (array.length > length) {
-
-        for (let i = 0; i < array.length - length; i++) {
-
-          this.add();
-
-        }
-        // KarmaFieldsAlpha.Query.add(this.resource.driver, params, index + length, array.length - length, ...path);
-
-      }
-
-      KarmaFieldsAlpha.Store.Tasks.add({
-        type: "import",
-        resolve: () => {
-          const items = this.getItems();
-          this.setSelection({index: index, length: array.length});
-          const slice = items.toArray().slice(index, index + array.length);
-          const ids = slice.filter(item => !item.loading && item.id).map(item => item.id);
-          this.importIds(grid, ids);
-        }
-      });
+      // const array = grid.toArray();
+      //
+      // if (array.length < length) {
+      //
+      //   this.remove(index + array.length, length - array.length);
+      //
+      // } else if (array.length > length) {
+      //
+      //   for (let i = 0; i < array.length - length; i++) {
+      //
+      //     this.add();
+      //
+      //   }
+      //   // KarmaFieldsAlpha.Query.add(this.resource.driver, params, index + length, array.length - length, ...path);
+      //
+      // }
+      //
+      // KarmaFieldsAlpha.Store.Tasks.add({
+      //   type: "import",
+      //   resolve: () => {
+      //     const items = this.getItems();
+      //     this.setSelection({index: index, length: array.length});
+      //     const slice = items.toArray().slice(index, index + array.length);
+      //     const ids = slice.filter(item => !item.loading && item.id).map(item => item.id);
+      //     this.importIds(grid, ids);
+      //   }
+      // });
 
       this.request("render");
 
@@ -625,143 +917,477 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  // add(...path) {
+  //
+  //   const query = this.getItems();
+  //
+  //   const defaults = this.parse(this.resource.defaults || {});
+  //
+  //   const filters = this.getFilters();
+  //
+  //   // const position = this.getPosition();
+  //
+  //   if (query.loading || defaults.loading || filters.loading) {
+  //
+  //     this.addTask(async () => this.add(...path), "adding");
+  //     return;
+  //
+  //   }
+  //
+  //   this.save("insert", "Insert");
+  //
+  //   let index = this.resource.insertAt;
+  //
+  //   if (index === undefined) {
+  //
+  //     index = query.toArray().length;
+  //
+  //   }
+  //
+  //   const params = {...filters.toObject(), ...defaults.toObject()};
+  //
+  //   const token = this.createToken();
+  //
+  //   const items = [...query.toArray()];
+  //
+  //   items.splice(index, 0, {token});
+  //
+  //   KarmaFieldsAlpha.Store.Delta.set(items, "items", this.driver, this.paramstring);
+  //
+  //
+  //
+  //   query.add(index, params, token);
+  //
+  //   const row = this.createChild({
+  //     loading: true,
+  //     token: token,
+  //     type: "row",
+  //     children: this.resource.children
+  //   }, );
+  //
+  //   row.create();
+  //
+  //   this.setSelection({index: index, length: 1});
+  //
+  //   this.request("render");
+  // }
+
+  getDefaultIndex() {
+
+    let index = this.resource.insertAt;
+
+    if (index === undefined) {
+
+      const query = this.getItems();
+
+      index = query.toArray().length;
+
+    }
+
+    return index;
+  }
+
   add(...path) {
 
-    // const index = this.getSelection("index") || 0;
-    // const length = this.getSelection("length") || 0;
+    this.save("insert", "Insert");
+
+    let index = this.getDefaultIndex();
+
+    this.addAt(index, 1);
+
+    this.setSelection({index, length: 1});
+
+    this.request("render");
+  }
+
+
+  addAt(index, length) {
 
     const query = this.getItems();
 
-    const defaults = this.parse(this.resource.defaults || {});
+    if (query.loading) {
 
-    const filters = this.getFilters();
-
-    const position = this.getPosition();
-
-    if (query.loading || defaults.loading || position.loading || filters.loading) {
-
-      this.addTask(async () => this.add(...path), "adding");
       return;
 
     }
 
+    const tokens = [];
 
+    for (let i = 0; i < length; i++) {
 
-    KarmaFieldsAlpha.History.save("insert", "Insert");
+      const token = this.createToken();
 
-    // const items = query.toArray();
-    // const newQuery = new KarmaFieldsAlpha.Content();
-    // newQuery.value = [...items];
-    // const newItem = {loading: true};
-    // KarmaFieldsAlpha.DeepArray.splice(newQuery.value, 0, [newItem], index, ...path);
-    // this.setItems(newQuery);
+      tokens.push(token);
 
-    // query.insert({loading: true}, index);
-    //
-    //
-    //
-    // // KarmaFieldsAlpha.Store.Layer.setItems(items);
-    //
-    // this.addTask(async () => {
-    //
-    //   const driver = this.getDriver();
-    //   const params = this.getFilters();
-    //
-    //   const id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, {}).then(id => id.toString());
-    //   const name = "[new Item]";
-    //
-    //   // const items = [...this.getItems()];
-    //   //
-    //   // const newItem = items.find(item => item.loading);
-    //   //
-    //   // delete newItem.loading;
-    //   // newItem.id = id;
-    //   // this.setItems(items);
-    //
-    //   const query = this.getQuery();
-    //
-    //   query.replace({id, name}, item => item.loading);
-    //
-    //
-    //
-    //
-    //   if (params) {
-    //
-    //     const row = new KarmaFieldsAlpha.Content.Row(params, driver, id);
-    //
-    //     row.update();
-    //
-    //     // const entries = Object.entries(params).filter(([key, value]) => value).map(([key, value]) => [KarmaFieldsAlpha.Driver.getAlias(driver, key), params[key].split(",")]);
-    //     //
-    //     // if (entries.length) {
-    //     //
-    //     //   const data = Object.fromEntries(entries);
-    //     //
-    //     //   await KarmaFieldsAlpha.Remote.update(data, driver, id);
-    //     //
-    //     //   KarmaFieldsAlpha.Store.Delta.set(data, driver, id);
-    //     //
-    //     // }
-    //
-    //   }
-    //
-    //   KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
-    //   KarmaFieldsAlpha.Store.Delta.set([], driver, id, "trash");
-    //
-    //   KarmaFieldsAlpha.Store.remove("items", driver);
-    //   KarmaFieldsAlpha.Store.remove("counts", driver);
-    //
-    //   await KarmaFieldsAlpha.Database.Queries.remove("query", driver);
-    //
-    // }, "add");
+    }
 
-    // const defaults = this.resource.defaults && this.parse(this.resource.defaults) || this.getFilters();
-    //
-    // if (defaults.loading) {
-    //
-    //   this.addTask(async () => this.add(...path), "adding");
-    //
-    //   return;
-    //
-    // }
+    const items = [...query.toArray()];
 
-    // if (this.resource.defaults) {
-    //
-    //   const defaults = this.parse(this.resource.defaults);
-    //
-    //   if (defaults.loading) {
-    //
-    //     this.addTask(async () => this.add(...path), "adding");
-    //
-    //     return;
-    //
-    //   } else {
-    //
-    //     params = {...params, ...defaults};
-    //
-    //   }
-    //
-    // } else {
-    //
-    //   params = {...params, ...this.getFilters()};
-    //
-    // }
+    items.splice(index, 0, ...tokens.map(token => ({token})));
 
-    // const params = this.getFilters();
-    // const defaults = this.getDefaults();
+    // KarmaFieldsAlpha.Store.Delta.set(items, "items", query.driver, query.paramstring);
 
-    const index = position.toNumber();
+    this.setItems(new KarmaFieldsAlpha.Content(items));
 
-    const params = {...filters.toObject(), ...defaults.toObject()};
+    // const params = {...filters.toObject(), ...defaults.toObject()};
 
-    query.add(index, params);
+    for (let i = 0; i < length; i++) {
+
+      // this.add(tokens[i], params);
+
+      KarmaFieldsAlpha.Store.Tasks.add({
+        resolve: async task => {
+
+          const defaults = this.parse(this.resource.defaults || {});
+          const filters = this.getFilters();
+
+          if (defaults.loading || filters.loading || query.loading) {
+
+            KarmaFieldsAlpha.Store.Tasks.add(task);
+
+          } else {
+
+            const params = {...filters.toObject(), ...defaults.toObject()};
+
+            if (!task.id) {
+
+              task.id = await this.createItem(params);
+
+            }
+
+            const query = this.getItems();
+
+            if (query.loading) {
+
+              KarmaFieldsAlpha.Store.Tasks.add(task);
+
+            } else {
+
+              let index = query.toArray().findIndex(item => item.token === task.token);
+
+              // const newQuery = new KarmaFieldsAlpha.Content(query.toArray().map(item => {
+              //
+              //   if (item.token === task.token) {
+              //
+              //     return {id: task.id, name: "[new Item]"};
+              //
+              //   }
+              //
+              //   return item;
+              // }));
+
+              if (index > -1) {
+
+                const newQuery = new KarmaFieldsAlpha.Content(query.toArray().slice());
+
+                newQuery.value[index] = {id: task.id, name: "[new Item]"};
+
+                await this.setItems(newQuery);
+
+                const driver = this.getDriver();
+                //
+                const delta = KarmaFieldsAlpha.Store.get("tokens", driver, task.token);
 
 
 
-    this.setSelection({index: index, length: 1});
 
-    this.request("render");
+                // KarmaFieldsAlpha.Store.remove("items", query.driver);
+                // KarmaFieldsAlpha.Store.remove("counts", query.driver);
+                //
+                // await KarmaFieldsAlpha.Database.Queries.remove(query.driver);
+                //
+
+                if (delta) {
+
+                  for (let key in delta) {
+
+                    KarmaFieldsAlpha.Store.Delta.set(delta[key], "vars", driver, task.id, key);
+
+                  }
+
+                  KarmaFieldsAlpha.Store.remove("tokens", driver, task.token);
+
+                }
+
+              }
+
+
+
+            }
+
+          }
+
+        },
+        token: tokens[i],
+        type: "addItem"
+      });
+
+      const row = this.createChild({
+        type: "row",
+        children: this.resource.children
+      }, index);
+
+      row.create();
+
+    }
+
+    // this.setSelection({index, length});
+
+    // this.request("render");
   }
+
+  // createItem(token, driver, params) {
+  //
+  //   KarmaFieldsAlpha.Store.Tasks.add({
+  //     resolve: async task => {
+  //
+  //       const query = this.getItems();
+  //
+  //       const data = {};
+  //
+  //       for (let key in params) {
+  //
+  //         const keyAlias = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+  //         const value = params[key].split(",");
+  //
+  //         data[keyAlias] = value;
+  //
+  //       }
+  //
+  //       let id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, data);
+  //       id = id.toString();
+  //
+  //       const name = "[new Item]";
+  //
+  //       // const deltaItems = KarmaFieldsAlpha.Store.Delta.get("items", query.driver, query.paramstring);
+  //
+  //       const items = query.toArray();
+  //
+  //       const index = items.findIndex(item => item.token === task.token);
+  //
+  //       if (index > -1) {
+  //
+  //         const newItems = [...deltaItems];
+  //         newItems[index] = {id, name};
+  //
+  //         // KarmaFieldsAlpha.Store.Delta.set(newDeltaItems, "items", this.driver, this.paramstring);
+  //
+  //         this.setItems(newItems);
+  //
+  //       }
+  //
+  //       for (let key in params) {
+  //
+  //         const value = params[key].split(",");
+  //
+  //         KarmaFieldsAlpha.Store.set(value, "vars", query.driver, id, key);
+  //         // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, key);
+  //         KarmaFieldsAlpha.Store.remove("diff", "vars", query.driver, id, key);
+  //         KarmaFieldsAlpha.Store.Delta.set(value, "vars", query.driver, id, key);
+  //
+  //       }
+  //
+  //
+  //       if (Object.values(data).length) {
+  //
+  //         // const data = {};
+  //
+  //         await KarmaFieldsAlpha.HTTP.post(`update/${query.driver}/${id}`, data);
+  //
+  //       }
+  //
+  //       KarmaFieldsAlpha.Store.set(["1"], "vars", query.driver, id, "trash");
+  //       KarmaFieldsAlpha.Store.Delta.set([], "vars", query.driver, id, "trash");
+  //
+  //       KarmaFieldsAlpha.Store.remove("items", query.driver);
+  //       KarmaFieldsAlpha.Store.remove("counts", query.driver);
+  //
+  //       await KarmaFieldsAlpha.Database.Queries.remove(query.driver);
+  //
+  //       if (task.data) {
+  //
+  //         for (let key in task.data) {
+  //
+  //           KarmaFieldsAlpha.Store.Delta.set(task.data[key], "vars", query.driver, id, key);
+  //
+  //         }
+  //
+  //       }
+  //
+  //     },
+  //     type: "add",
+  //     token: token
+  //   });
+  //
+  //
+  // }
+
+
+
+  async createItem(params) {
+
+    const driver = this.getDriver();
+    const data = {};
+
+    for (let key in params) {
+
+      const keyAlias = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+      const value = params[key].split(",");
+
+      data[keyAlias] = value;
+
+    }
+
+    let id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, data);
+    id = id.toString();
+
+    for (let key in params) {
+
+      const value = params[key].split(",");
+
+      KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
+      // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, key);
+      KarmaFieldsAlpha.Store.remove("diff", "vars", driver, id, key);
+      KarmaFieldsAlpha.Store.Delta.set(value, "vars", driver, id, key);
+
+    }
+
+    if (Object.values(data).length) {
+
+      await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
+
+    }
+
+    KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
+    KarmaFieldsAlpha.Store.Delta.set([], "vars", driver, id, "trash");
+
+    // KarmaFieldsAlpha.Store.remove("items", driver);
+    // KarmaFieldsAlpha.Store.remove("counts", driver);
+    //
+    // await KarmaFieldsAlpha.Database.Queries.remove(driver);
+
+    return id;
+
+  }
+
+
+
+
+
+
+
+
+  // addNEW() {
+  //
+  //   const query = this.getItems();
+  //   const defaults = this.parse(this.resource.defaults || {});
+  //   const filters = this.getFilters();
+  //   const position = this.getPosition();
+  //
+  //   if (query.loading || defaults.loading || position.loading || filters.loading) {
+  //
+  //     this.addTask(async () => this.add(...path), "adding");
+  //
+  //   } else {
+  //
+  //     KarmaFieldsAlpha.History.save("insert", "Insert");
+  //
+  //     const index = position.toNumber();
+  //     const params = {...filters.toObject(), ...defaults.toObject()};
+  //     const items = [...query.toArray()];
+  //
+  //     items.splice(index, 0, {loading: true});
+  //
+  //     KarmaFieldsAlpha.Store.Delta.set(items, "items", this.driver, this.paramstring);
+  //
+  //     KarmaFieldsAlpha.Store.Tasks.add({
+  //       resolve: async () => {
+  //
+  //         const data = {};
+  //
+  //         for (let key in params) {
+  //
+  //           const keyAlias = KarmaFieldsAlpha.Driver.getAlias(this.driver, key);
+  //           const value = params[key].split(",");
+  //
+  //           data[keyAlias] = value;
+  //
+  //         }
+  //
+  //         let id = await KarmaFieldsAlpha.HTTP.post(`add/${this.driver}`, data);
+  //         id = id.toString();
+  //
+  //         const name = "[new Item]";
+  //
+  //         const deltaItems = KarmaFieldsAlpha.Store.Delta.get("items", this.driver, this.paramstring);
+  //
+  //         const index = deltaItems.findIndex(item => item.loading);
+  //
+  //         if (index > -1) {
+  //
+  //           const newDeltaItems = [...deltaItems];
+  //           newDeltaItems[index] = {id, name};
+  //
+  //           KarmaFieldsAlpha.Store.Delta.set(newDeltaItems, "items", this.driver, this.paramstring);
+  //
+  //         }
+  //
+  //         for (let key in params) {
+  //
+  //           // const keyAlias = KarmaFieldsAlpha.Driver.getAlias(this.driver, key);
+  //           // const value = params[key].split(",");
+  //           //
+  //           // data[keyAlias] = value;
+  //
+  //           const value = params[key].split(",");
+  //
+  //           KarmaFieldsAlpha.Store.set(value, "vars", this.driver, id, key);
+  //           KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, key);
+  //           KarmaFieldsAlpha.Store.remove("diff", "vars", this.driver, id, key);
+  //           KarmaFieldsAlpha.Store.Delta.set(value, "vars", this.driver, id, key);
+  //
+  //         }
+  //
+  //
+  //         if (Object.values(data).length) {
+  //
+  //           // const data = {};
+  //
+  //           await KarmaFieldsAlpha.HTTP.post(`update/${this.driver}/${id}`, data);
+  //
+  //         }
+  //
+  //         KarmaFieldsAlpha.Store.set(["1"], "vars", this.driver, id, "trash");
+  //         KarmaFieldsAlpha.Store.Delta.set([], "vars", this.driver, id, "trash");
+  //
+  //         KarmaFieldsAlpha.Store.remove("items", this.driver);
+  //         KarmaFieldsAlpha.Store.remove("counts", this.driver);
+  //
+  //         await KarmaFieldsAlpha.Database.Queries.remove(this.driver);
+  //
+  //         console.log("done");
+  //
+  //       },
+  //       type: "add"
+  //     });
+  //
+  //
+  //
+  //
+  //
+  //
+  //   }
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  // }
 
 
 
@@ -805,7 +1431,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     const driver = this.getDriver();
     const currentItems = this.getItems();
-    const filteredItems = currentItems.toArray().filter(item => !ids.includes(item.id));
+    const filteredItems = new KarmaFieldsAlpha.Content(currentItems.toArray().filter(item => !ids.includes(item.id)));
+
 
     for (let id of ids) {
 
@@ -824,39 +1451,35 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   remove(index, length) {
 
+    const driver = this.getDriver();
     const query = this.getQuery();
 
     if (!query.loading) {
 
-      // const items = query.toArray().slice(index, index + length);
-      // const ids = items.map(item => item.id).filter(id => id);
-      //
-      // if (ids.length) {
-      //
-      //   // this.removeIds(ids);
-      //
-      //   const driver = this.getDriver();
-      //
-      //   for (let id of ids) {
-      //
-      //     // KarmaFieldsAlpha.Store.Delta.set(["1"], driver, id, "trash");
-      //
-      //     const row = new KarmaFieldsAlpha.Content.Row({trash: "1"}, driver, id);
-      //     row.update();
-      //
-      //   }
-      //
-      //
-      //
-      //   // const newItems = [...items.slice(0, index), ...items.slice(index + length)];
-      //   //
-      //   // this.setItems(newItems);
-      //
-      //   query.remove(index, length);
-      //
-      // }
+      const items = [...query.toArray()];
+      const itemsToDelete = items.splice(index, length);
 
-      query.delete(index, length);
+      this.setItems(new KarmaFieldsAlpha.Content(items));
+
+      for (let item of itemsToDelete) {
+
+        if (item.id) {
+
+          KarmaFieldsAlpha.Store.set([], "vars", driver, item.id, "trash");
+          // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, item.id, "trash");
+          KarmaFieldsAlpha.Store.remove("diff", "vars", driver, item.id, "trash");
+          KarmaFieldsAlpha.Store.Delta.set(["1"], "vars", driver, item.id, "trash");
+
+          KarmaFieldsAlpha.HTTP.post(`update/${driver}/${item.id}`, {trash: ["1"]});
+
+        }
+
+      }
+
+      KarmaFieldsAlpha.Store.remove("items", driver);
+      KarmaFieldsAlpha.Store.remove("counts", driver);
+
+      KarmaFieldsAlpha.Database.Queries.remove(driver);
 
     }
 
@@ -865,9 +1488,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   duplicate(index, length = 1) {
 
-    const items = this.export(index, length);
+    const items = this.slice(index, length);
 
-    this.import(items, index + length, 0);
+    this.insert(items, index + length, 0);
 
   }
 
@@ -1006,6 +1629,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         }
         if (this.resource.width) {
           grid.element.style.width = this.resource.width;
+        }
+        if (this.resource.align) {
+          grid.element.classList.add(`align-${this.resource.align}`);
         }
       },
       update: grid => {
@@ -1203,100 +1829,108 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.group {
 
   getContent(key) {
 
-    const request = this.request("getSelectedItems");
+    return this.parent.getContent(this.id, key);
 
-    if (!request.loading && !request.toArray().some(item => item.loading)) {
-
-      const items = request.toArray();
-
-      if (items.length > 1) {
-
-        const contents = items.map(item => this.parent.getContent(item.id, key));
-
-        const content = new KarmaFieldsAlpha.Content();
-
-        if (contents.some(content => content.loading)) {
-
-          content.loading = true;
-
-        } else if (contents.some((content, index, array) => index > 0 && !content.equals(array[0]))) {
-
-          content.mixed = true;
-
-          content.value = contents.map(content => content.value);
-
-        } else {
-
-          content.value = contents[0].toArray();
-
-        }
-
-        return content;
-
-      } else if (items.length === 1) {
-
-        return this.parent.getContent(items[0].id, key);
-
-      }
-
-    }
-
-    return new KarmaFieldsAlpha.Content.Request();
+    // const request = this.request("getSelectedItems");
+    //
+    // if (!request.loading && !request.toArray().some(item => item.loading)) {
+    //
+    //   const items = request.toArray();
+    //
+    //   if (items.length > 1) {
+    //
+    //     const contents = items.map(item => this.parent.getContent(item.id, key));
+    //
+    //     const content = new KarmaFieldsAlpha.Content();
+    //
+    //     if (contents.some(content => content.loading)) {
+    //
+    //       content.loading = true;
+    //
+    //     } else if (contents.some((content, index, array) => index > 0 && !content.equals(array[0]))) {
+    //
+    //       content.mixed = true;
+    //
+    //       content.value = contents.map(content => content.value);
+    //
+    //     } else {
+    //
+    //       content.value = contents[0].toArray();
+    //
+    //     }
+    //
+    //     return content;
+    //
+    //   } else if (items.length === 1) {
+    //
+    //     return this.parent.getContent(items[0].id, key);
+    //
+    //   }
+    //
+    // }
+    //
+    // return new KarmaFieldsAlpha.Content.Request();
 
   }
 
   setContent(value, key) {
 
-    const items = this.request("getSelectedItems");
+    this.parent.setContent(value, this.id, key);
 
-    if (!items.loading) {
-
-      for (let item of items.toArray()) {
-
-        if (item.id) {
-
-          this.parent.setContent(value, item.id, key);
-
-        }
-
-      }
-
-    }
-
-  }
-
-  getIds() {
-
-    const items = this.request("getSelectedItems");
-    const content = new KarmaFieldsAlpha.Content();
-
-    if (items.loading) {
-
-      content.loading = true;
-
-    } else {
-
-      content.value = items.toArray().map(item => item.id);
-
-    }
-
-    return content;
-
-  }
-
-  getId() {
-
-    // const ids = this.getIds();
+    // const items = this.request("getSelectedItems");
     //
-    // if (ids) {
+    // if (!items.loading) {
     //
-    //   return ids[0];
+    //   for (let item of items.toArray()) {
+    //
+    //     if (item.id) {
+    //
+    //       this.parent.setContent(value, item.id, key);
+    //
+    //     }
+    //
+    //   }
     //
     // }
 
-    return this.getIds();
-
   }
+
+  // getIds() {
+  //
+  //   console.error("Deprecated");
+  //
+  //   const items = this.request("getSelectedItems");
+  //   const content = new KarmaFieldsAlpha.Content();
+  //
+  //   if (items.loading) {
+  //
+  //     content.loading = true;
+  //
+  //   } else {
+  //
+  //     content.value = items.toArray().map(item => item.id);
+  //
+  //   }
+  //
+  //   return content;
+  //
+  // }
+
+  // getId() {
+  //
+  //   console.error("Deprecated");
+  //
+  //   // const ids = this.getIds();
+  //   //
+  //   // if (ids) {
+  //   //
+  //   //   return ids[0];
+  //   //
+  //   // }
+  //
+  //   return this.getIds();
+  //
+  // }
 
   // setSelection(selection) {
   //
@@ -1329,29 +1963,62 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field {
 
   getContent(key) {
 
-    const id = this.getId();
+    // if (this.resource.token) {
+    //
+    //   let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.token === this.resource.token);
+    //
+    //   if (task) {
+    //
+    //     return KarmaFieldsAlpha.DeepObject.get(task, key, "data");
+    //
+    //   } else {
+    //
+    //     console.error("No task!!??");
+    //
+    //   }
+    //
+    // }
+    //
+    // const id = this.getId();
+    //
+    // if (this.resource.loading || !id) {
+    //
+    //   return new KarmaFieldsAlpha.Content.Request();
+    //
+    // }
+    //
+    // if (key === "id") {
+    //
+    //   return new KarmaFieldsAlpha.Content(id);
+    //
+    // }
 
-    if (this.resource.loading || !id) {
-
-      return new KarmaFieldsAlpha.Content.Request();
-
-    }
-
-    if (key === "id") {
-
-      return new KarmaFieldsAlpha.Content(id);
-
-    }
-
-    return this.parent.getContent(id, key);
+    return this.parent.getContent(this.id, key);
 
   }
 
   setContent(value, key) {
 
-    const id = this.getId();
+    // if (this.resource.token) {
+    //
+    //   let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.token === this.resource.token);
+    //
+    //   if (task) {
+    //
+    //     KarmaFieldsAlpha.DeepObject.set(task, value, key, "data");
+    //
+    //   }
+    //
+    // } else {
+    //
+    //   const id = this.getId();
+    //
+    //   this.parent.setContent(value, id, key);
+    //
+    // }
 
-    this.parent.setContent(value, id, key);
+
+    this.parent.setContent(value, this.id, key);
 
   }
 
@@ -1361,11 +2028,12 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getId() {
-
-    return this.resource.id;
-
-  }
+  //
+  // getId() {
+  //
+  //   return this.resource.id;
+  //
+  // }
 
 }
 

@@ -23,15 +23,21 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 					if (content.notFound) {
 
-						content = this.getDefault();
+						if (this.resource.createWhenNotFound) {
 
-						if (!content.loading) {
-
-							this.setContent(content);
-
-							KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
+							this.createTask("create");
 
 						}
+
+						// content = this.getDefault();
+						//
+						// if (!content.loading) {
+						//
+						// 	this.setContent(content);
+						//
+						// 	KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
+						//
+						// }
 
 					}
 
@@ -69,53 +75,57 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 					// 	console.log("onpaste", event);
 					// }
 
-					const value = content.toString();
-
-          input.element.oninput = event => {
-
-						const newValue = input.element.value.normalize();
-
-						if (newValue !== value) {
-
-							this.save(newValue.length < value.length);
-
-							const content = new KarmaFieldsAlpha.Content(newValue);
-
-							this.setContent(content);
-
-							if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
-
-								this.debounce(() => void this.request("render"), this.resource.debounce || 300);
-
-							} else {
-
-								this.request("render");
-
-							}
-
-						}
-
-          }
-
-					input.element.onfocus = event => {
-
-						this.setFocus(content.mixed);
-
-						this.request("render"); // update clipboard textarea, unselect other stuffs
-
-					}
-
-					input.element.onmousedown = event => {
-
-						event.stopPropagation(); // -> prevent selecting parent stuffs
-
-					}
-
-        } else {
+				} else {
 
 					input.element.value = "";
 
 				}
+
+				const value = content.toString();
+
+        input.element.oninput = event => {
+
+					this.write(input.element.value, content);
+
+					// const newValue = input.element.value.normalize();
+					//
+					// if (newValue !== value) {
+					//
+					// 	this.save(newValue.length < value.length);
+					//
+					// 	const content = new KarmaFieldsAlpha.Content(newValue);
+					//
+					// 	this.setContent(content);
+					//
+					// 	if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
+					//
+					// 		this.debounce(() => void this.request("render"), this.resource.debounce || 300);
+					//
+					// 	} else {
+					//
+					// 		this.request("render");
+					//
+					// 	}
+					//
+					// }
+
+        }
+
+				input.element.onfocus = event => {
+
+					this.setFocus(content.mixed);
+
+					this.request("render"); // update clipboard textarea, unselect other stuffs
+
+				}
+
+				input.element.onmousedown = event => {
+
+					event.stopPropagation(); // -> prevent selecting parent stuffs
+
+				}
+
+
 
 				this.resource.disabled = this.isDisabled();
 

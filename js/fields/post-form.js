@@ -68,10 +68,23 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.container
             input.element.type = "hidden";
             input.element.name = "karma-fields-items[]";
             if (input.element.form) {
-              input.element.form.addEventListener("submit", event => {
+              input.element.form.addEventListener("submit", async event => {
+
+                event.preventDefault();
+
+                const delta = KarmaFieldsAlpha.Store.Delta.get("vars");
+
+                for (let driver in delta) {
+
+                  await KarmaFieldsAlpha.Database.Vars.set(delta[driver], driver);
+
+                }
+
                 // KarmaFieldsAlpha.Store.Delta.set({}, this.getDriver(), this.getId());
                 KarmaFieldsAlpha.Store.Delta.set({});
                 KarmaFieldsAlpha.Store.Layer.removeSelection();
+
+                input.element.form.submit();
               });
             }
           },

@@ -16,13 +16,41 @@ KarmaFieldsAlpha.Database = class {
 
   static async getDB() {
 
+    const dbName = "karma92";
+
     if (!this.db) {
 
-      this.db = await this.openDB("karma91", 1);
+      const databases = await indexedDB.databases();
+
+      for (let database of databases) {
+
+        if (database.name !== dbName) {
+
+          await this.closeDB(database.name);
+
+        }
+
+      }
+
+      this.db = await this.openDB("karma92", 1);
 
     }
 
     return this.db;
+  }
+
+  static closeDB(dbName) {
+
+    return new Promise((resolve, reject) => {
+
+      const request = indexedDB.deleteDatabase(dbName);
+
+      request.onsuccess = (event) => {
+        resolve();
+      };
+
+    });
+
   }
 
 
@@ -37,12 +65,22 @@ KarmaFieldsAlpha.Database = class {
         const db = event.target.result;
 
 
+//         console.log("onupgradeneeded");
+// debugger;
+//
+//
+//         db.deleteObjectStore("history");
+//         db.deleteObjectStore("records");
+//         db.deleteObjectStore("queries");
+//         db.deleteObjectStore("vars");
+
+
         // const store = db.createObjectStore("vars");
         // store.createIndex("driver", "driver");
 
         const history = db.createObjectStore("history", {keyPath: ["index", "id"]});
         // history.createIndex("index", "index");
-        // history.createIndex("id", "id");
+        history.createIndex("id", "id");
 
 
         db.createObjectStore("records", {keyPath: "recordId"});
@@ -208,6 +246,28 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
     }));
   }
 
+  static backup(data, id, index, ...path) { // like set but only if value does not exist
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("history", "readwrite");
+      const objectStore = transaction.objectStore("history");
+      const request = objectStore.get([index, id]);
+
+      request.onsuccess = (event) => {
+        const value = event.target.result || {id, index};
+        if (KarmaFieldsAlpha.DeepObject.get(value, ...path) === undefined) {
+          KarmaFieldsAlpha.DeepObject.set(value, data, ...path);
+          const updateRequest = objectStore.put(value);
+          updateRequest.onsuccess = (event) => {
+            resolve();
+          }
+        } else {
+          resolve();
+        }
+      }
+
+    }));
+  }
+
   // static assign(data, index, ...path) {
   //   return this.getDB().then(db => new Promise((resolve, reject) => {
   //     const transaction = db.transaction("history", "readwrite");
@@ -253,6 +313,28 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
       const request = objectStore.delete([index, id]);
       request.onsuccess = (event) => {
         resolve();
+      };
+    }));
+  }
+
+  static deleteBefore(timestamp) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("history", "readwrite");
+      const objectStore = transaction.objectStore("history");
+      const index = objectStore.index("id");
+
+      const range = IDBKeyRange.upperBound(timestamp, true);
+      const request = index.openCursor(range, "prev");
+
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          resolve();
+        }
+
       };
     }));
   }
@@ -561,6 +643,26 @@ KarmaFieldsAlpha.Database.Records = class extends KarmaFieldsAlpha.Database {
       request.onsuccess = (event) => {
         objectStore.delete(id);
         resolve();
+      };
+    }));
+  }
+
+  static deleteBefore(timestamp) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("records", "readwrite");
+      const objectStore = transaction.objectStore("records");
+      const range = IDBKeyRange.upperBound(timestamp, true);
+      const request = objectStore.openCursor(range, "prev");
+
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          resolve();
+        }
+
       };
     }));
   }

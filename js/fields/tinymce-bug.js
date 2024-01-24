@@ -50,41 +50,89 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	}
 
+	registerEditor(element) {
 
+		const editor = this.getEditor();
 
-  getEditor() {
+		if (editor.loading) {
 
-		if (!this.editor) {
+			let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "editor" && task.id === this.uid);
 
-			this.editor = new KarmaFieldsAlpha.tinymce();
+			if (task) {
 
-			this.editor.onUpdateContent = (text, context) => {
+				task.element = element;
 
-				const content = new KarmaFieldsAlpha.Content(text);
-				// this.setValue(content);
-				this.save("input");
-				this.setContent(content);
-				this.request("render");
-
-			}
-
-			this.editor.onUpdateSelection = (selection) => {
-				this.setSelection(selection);
-				this.setFocus();
-				this.request("render"); // -> shouldn't be local render ?
-			}
-
-			this.editor.onFetchImage = () => {
-				this.fetchImage();
-			}
-
-			this.editor.onRender = () => {
-				this.request("render"); // -> shouldn't be local render ?
 			}
 
 		}
 
-		return this.editor;
+	}
+
+  getEditor() {
+
+		const content = new KarmaFieldsAlpha.Content();
+
+		content.editor = KarmaFieldsAlpha.Store.get("fields", ...this.path, "editor");
+
+		if (!content.editor) {
+
+			let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "editor" && task.id === this.uid);
+
+			if (!task) {
+
+				task = {
+					type: "editor",
+					id: this.uid,
+					resolve: async task => {
+						if (task.element) {
+							const editor = await this.createEditor(task.element, this.resource.element);
+							KarmaFieldsAlpha.Store.set(editor, "fields", ...this.path, "editor");
+						}
+					}
+				};
+
+				KarmaFieldsAlpha.Store.Tasks.add(task);
+
+			}
+
+			content.loading = true;
+
+		}
+
+		return content;
+
+
+		// if (!this.editor) {
+		//
+		// 	this.editor = new KarmaFieldsAlpha.tinymce();
+		//
+		// 	this.editor.onUpdateContent = (text, context) => {
+		//
+		// 		const content = new KarmaFieldsAlpha.Content(text);
+		// 		// this.setValue(content);
+		// 		this.save("input");
+		// 		this.setContent(content);
+		// 		this.request("render");
+		//
+		// 	}
+		//
+		// 	this.editor.onUpdateSelection = (selection) => {
+		// 		this.setSelection(selection);
+		// 		this.setFocus();
+		// 		this.request("render"); // -> shouldn't be local render ?
+		// 	}
+		//
+		// 	this.editor.onFetchImage = () => {
+		// 		this.fetchImage();
+		// 	}
+		//
+		// 	this.editor.onRender = () => {
+		// 		this.request("render"); // -> shouldn't be local render ?
+		// 	}
+		//
+		// }
+		//
+		// return this.editor;
 
   }
 
@@ -251,16 +299,23 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 	// 	// return editor;
 	// }
 
+	updateContent() {
 
+		const request = this.getEditor();
 
+    if (!request.loading) {
 
+			const text = request.editor.getContent();
+			const content = new KarmaFieldsAlpha.Content(text);
+			this.save("input");
+			this.setContent(content);
+			this.request("render");
 
+		}
 
+	}
 
-
-
-	// DEPRECATED
-	async createEditor(element, params, container) {
+	async createEditor(element, params = {}) {
 
 		const [editor] = await tinyMCE.init({
 			target: element,
@@ -273,9 +328,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// theme_url: "tinymce/themes/modern/theme.js",
 	    // paste_as_text: true,
 			paste_word_valid_elements: 'b,strong,i,em,ul,ol',
+
+
+
 			// plugins: "link lists table paste",
 			// image_caption: true,
-
 			plugins: "link lists paste image",
 			convert_urls: false,
       entity_encoding : "raw", // -> don't encode diacritics
@@ -285,183 +342,293 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// paste_preprocess: (plugin, args) => {
 		  //   console.log(args.content);
 		  // }
+
+
+			// external_plugins: {
+		  //   "placeholder": KarmaFieldsAlpha.pluginURL+"/js/vendor/mce.placeholder.js"
+		  // },
+
+			// placeholder: "sdfasdf",
+
+
+			// placeholder: "JKHglgh",
+
       ...params
 		});
 
-		// if (!editors.length) {
-		// 	console.warn("editor not created", editors, editor, element);
-		// }
-		//
-		// editor = editors.pop();
-
-		// if (!editor) {
-		// 	editor = tinymce.get(element.id);
-		// 	console.log("!!", editor);
-		// }
 
 		// unactivate history
 		editor.on("BeforeAddUndo", event => {
 			event.preventDefault();
-
-			// console.log("save", event);
-			// this.save("input");
 		});
 
 		editor.on("input", event => {
-			const content = editor.getContent();
-			this.setValue(content);
-			this.save("input");
+			this.updateContent();
 		});
 		editor.on("paste", event => {
-			const content = editor.getContent();
-			this.setValue(content);
-			this.save("paste");
+			// if (this.onUpdateContent) {
+			// 	const content = editor.getContent();
+			// 	this.onUpdateContent(content, "paste");
+			// }
+			this.updateContent();
 		});
 		editor.on("cut", event => {
-			const content = editor.getContent();
-			this.setValue(content);
-			this.save("cut");
+			// if (this.onUpdateContent) {
+			// 	const content = editor.getContent();
+			// 	this.onUpdateContent(content, "paste");
+			// }
+			this.updateContent();
 		});
 
 		// -> input event does not seem to capture line break (single or double) or delete line break !
 		editor.on("keyup", event => {
 			if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
-				const content = editor.getContent();
-				if (content !== this.getSingleValue()) {
-          this.setValue(content);
-					this.save("delete");
-        }
+				this.updateContent();
 			}
+
+			if ((event.key === "Enter" || event.key === "ArrowLeft" || event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "ArrowRight") && this.onRender) { // event.key = " " do weird things
+
+				this.render();
+
+			}
+
 		});
 
-		// editor.on("NodeChange", event => {
-		// 	if (event.selectionChange) {
-    //     const data = this.getData();
-		// 		// console.log("NodeChange", data.activeModal, event.element !== data.activeNode);
-		//
-		//
-		// 		if (data.activeModal && event.element !== data.activeNode) {
-    //       data.activeNode = null;
-    //       data.activeModal = null;
-		//
-		//
-		// 			this.renderPopover();
-		// 		}
-		// 	}
-		// 	if (this.renderToolbar) {
-    //     this.renderToolbar();
-    //   }
-		// });
-		//
-		// editor.on("focusout", event => {
-    //   const data = this.getData();
-		// 	if (data.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
-		// 		data.activeNode = null;
-		// 		data.activeModal = null;
-		// 		this.renderPopover();
-		// 	}
-    //   if (this.renderToolbar) {
-    //     this.renderToolbar();
-    //   }
-		// });
-
 		editor.on("focus", event => {
-
-			this.setSelection({final: true});
-			this.render();
-
+			// this.render();
 		});
 
 		editor.on("click", event => {
-
-			const node = editor.selection.getNode();
-      const data = this.getData();
-			const selection = this.getSelection();
-			const a = node.closest("a");
-
-			// if (node.matches("a")) {
-			if (a) {
-
-				// data.activeNode = node;
-				// data.activeModal = "linkForm";
-				// const containerBox = element.parentNode.getBoundingClientRect();
-				// const box = node.getBoundingClientRect();
-
-				// const range = editor.selection.getRng();
-				// const sel = editor.selection.getSel();
-
-				const range = new Range();
-				range.selectNode(a);
-				// console.log(range);
-
-
-
-				this.setSelection({
-					linkForm: {final: true},
-
-					// anchorPath: KarmaFieldsAlpha.field.tinymce.getPath(element, sel.anchorNode),
-					// anchorOffset: sel.anchorOffset,
-					// focusPath: KarmaFieldsAlpha.field.tinymce.getPath(element, sel.focusNode),
-					// focusOffset: sel.focusOffset,
-
-
-					startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
-					startOffset: range.startOffset,
-					endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
-					endOffset: range.endOffset
-
-				});
-
-				editor.selection.setRng(range);
-
-
-			} else if (node.matches("img")) {
-				// data.activeNode = node;
-
-				// this.setSelection({imgForm: {}});
-				// this.request("editmedia");
-
-				// const range = new Range();
-				// range.selectNode(node);
-				//
-				// this.setSelection({
-				// 	imageForm: {final: true},
-				// 	startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
-				// 	startOffset: range.startOffset,
-				// 	endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
-				// 	endOffset: range.endOffset
-				//
-				// });
-
-			} else {
-
-				this.setSelection({final: true});
-
-			}
-
 			this.render();
-
 		});
 
-		editor.on("dblclick", event => {
-			const node = editor.selection.getNode();
-
-			// console.log(node);
-			if (node.matches("img") || node.matches("figure")) {
-				this.fetchImage();
-				// this.request("addmedia");
-			}
-		});
+		// editor.on("dblclick", event => {
+		// 	const node = editor.selection.getNode();
+		// 	if (node.matches("img") || node.matches("figure")) {
+		// 		if (this.onFetchImage) {
+		// 			this.onFetchImage()
+		// 		}
+		// 	}
+		// });
 
 		editor.on("ObjectResized", event => {
-
-			const content = editor.getContent();
-			this.setValue(content);
-			this.save("resize");
+			// if (this.onUpdateContent) {
+			// 	const content = editor.getContent();
+			// 	this.onUpdateContent(content, "paste");
+			// }
 		});
 
-		container.tinymce = editor;
+		return editor;
+
 	}
+
+
+	//
+	//
+	//
+	// // DEPRECATED
+	// async createEditor(element, params, container) {
+	//
+	// 	const [editor] = await tinyMCE.init({
+	// 		target: element,
+	// 		hidden_input: false,
+	// 		inline: true,
+	// 		menubar: false,
+	// 		contextmenu: false,
+	// 		toolbar: false,
+	// 		skin: false,
+	// 		// theme_url: "tinymce/themes/modern/theme.js",
+	//     // paste_as_text: true,
+	// 		paste_word_valid_elements: 'b,strong,i,em,ul,ol',
+	// 		// plugins: "link lists table paste",
+	// 		// image_caption: true,
+	//
+	// 		plugins: "link lists paste image",
+	// 		convert_urls: false,
+  //     entity_encoding : "raw", // -> don't encode diacritics
+  //     // placeholder: "hjhlo",
+	// 		// entity_encoding: "named",
+	// 		// image_caption: true,
+	// 		// paste_preprocess: (plugin, args) => {
+	// 	  //   console.log(args.content);
+	// 	  // }
+  //     ...params
+	// 	});
+	//
+	// 	// if (!editors.length) {
+	// 	// 	console.warn("editor not created", editors, editor, element);
+	// 	// }
+	// 	//
+	// 	// editor = editors.pop();
+	//
+	// 	// if (!editor) {
+	// 	// 	editor = tinymce.get(element.id);
+	// 	// 	console.log("!!", editor);
+	// 	// }
+	//
+	// 	// unactivate history
+	// 	editor.on("BeforeAddUndo", event => {
+	// 		event.preventDefault();
+	//
+	// 		// console.log("save", event);
+	// 		// this.save("input");
+	// 	});
+	//
+	// 	editor.on("input", event => {
+	// 		const content = editor.getContent();
+	// 		this.setValue(content);
+	// 		this.save("input");
+	// 	});
+	// 	editor.on("paste", event => {
+	// 		const content = editor.getContent();
+	// 		this.setValue(content);
+	// 		this.save("paste");
+	// 	});
+	// 	editor.on("cut", event => {
+	// 		const content = editor.getContent();
+	// 		this.setValue(content);
+	// 		this.save("cut");
+	// 	});
+	//
+	// 	// -> input event does not seem to capture line break (single or double) or delete line break !
+	// 	editor.on("keyup", event => {
+	// 		if (event.key === "Backspace" || event.key === "Enter" || event.key === "Meta") {
+	// 			const content = editor.getContent();
+	// 			if (content !== this.getSingleValue()) {
+  //         this.setValue(content);
+	// 				this.save("delete");
+  //       }
+	// 		}
+	// 	});
+	//
+	// 	// editor.on("NodeChange", event => {
+	// 	// 	if (event.selectionChange) {
+  //   //     const data = this.getData();
+	// 	// 		// console.log("NodeChange", data.activeModal, event.element !== data.activeNode);
+	// 	//
+	// 	//
+	// 	// 		if (data.activeModal && event.element !== data.activeNode) {
+  //   //       data.activeNode = null;
+  //   //       data.activeModal = null;
+	// 	//
+	// 	//
+	// 	// 			this.renderPopover();
+	// 	// 		}
+	// 	// 	}
+	// 	// 	if (this.renderToolbar) {
+  //   //     this.renderToolbar();
+  //   //   }
+	// 	// });
+	// 	//
+	// 	// editor.on("focusout", event => {
+  //   //   const data = this.getData();
+	// 	// 	if (data.activeModal && (!event.relatedTarget || !this.popoverContainer.contains(event.relatedTarget))) {
+	// 	// 		data.activeNode = null;
+	// 	// 		data.activeModal = null;
+	// 	// 		this.renderPopover();
+	// 	// 	}
+  //   //   if (this.renderToolbar) {
+  //   //     this.renderToolbar();
+  //   //   }
+	// 	// });
+	//
+	// 	editor.on("focus", event => {
+	//
+	// 		this.setSelection({final: true});
+	// 		this.render();
+	//
+	// 	});
+	//
+	// 	editor.on("click", event => {
+	//
+	// 		const node = editor.selection.getNode();
+  //     const data = this.getData();
+	// 		const selection = this.getSelection();
+	// 		const a = node.closest("a");
+	//
+	// 		// if (node.matches("a")) {
+	// 		if (a) {
+	//
+	// 			// data.activeNode = node;
+	// 			// data.activeModal = "linkForm";
+	// 			// const containerBox = element.parentNode.getBoundingClientRect();
+	// 			// const box = node.getBoundingClientRect();
+	//
+	// 			// const range = editor.selection.getRng();
+	// 			// const sel = editor.selection.getSel();
+	//
+	// 			const range = new Range();
+	// 			range.selectNode(a);
+	// 			// console.log(range);
+	//
+	//
+	//
+	// 			this.setSelection({
+	// 				linkForm: {final: true},
+	//
+	// 				// anchorPath: KarmaFieldsAlpha.field.tinymce.getPath(element, sel.anchorNode),
+	// 				// anchorOffset: sel.anchorOffset,
+	// 				// focusPath: KarmaFieldsAlpha.field.tinymce.getPath(element, sel.focusNode),
+	// 				// focusOffset: sel.focusOffset,
+	//
+	//
+	// 				startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
+	// 				startOffset: range.startOffset,
+	// 				endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
+	// 				endOffset: range.endOffset
+	//
+	// 			});
+	//
+	// 			editor.selection.setRng(range);
+	//
+	//
+	// 		} else if (node.matches("img")) {
+	// 			// data.activeNode = node;
+	//
+	// 			// this.setSelection({imgForm: {}});
+	// 			// this.request("editmedia");
+	//
+	// 			// const range = new Range();
+	// 			// range.selectNode(node);
+	// 			//
+	// 			// this.setSelection({
+	// 			// 	imageForm: {final: true},
+	// 			// 	startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
+	// 			// 	startOffset: range.startOffset,
+	// 			// 	endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
+	// 			// 	endOffset: range.endOffset
+	// 			//
+	// 			// });
+	//
+	// 		} else {
+	//
+	// 			this.setSelection({final: true});
+	//
+	// 		}
+	//
+	// 		this.render();
+	//
+	// 	});
+	//
+	// 	editor.on("dblclick", event => {
+	// 		const node = editor.selection.getNode();
+	//
+	// 		// console.log(node);
+	// 		if (node.matches("img") || node.matches("figure")) {
+	// 			this.fetchImage();
+	// 			// this.request("addmedia");
+	// 		}
+	// 	});
+	//
+	// 	editor.on("ObjectResized", event => {
+	//
+	// 		const content = editor.getContent();
+	// 		this.setValue(content);
+	// 		this.save("resize");
+	// 	});
+	//
+	// 	container.tinymce = editor;
+	// }
 
 
 	// addTask(callback) {
@@ -941,6 +1108,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     if (!request.loading) {
 
+
 			request.editor.execCommand("mceInsertLink", false, {
 				"href": "nolink"
 			});
@@ -1354,34 +1522,30 @@ console.error("deprecated");
 
     const request = this.getEditor();
 
-		if (!request.loading) {
+		const attachments = this.getFiles(ids);
 
-			const attachments = this.getFiles(ids);
+		if (request.loading || request.loading || attachments.loading) {
 
-			if (request.loading || attachments.loading) {
+			this.addTask(() => this.insert(ids), "insert-file");
 
-				this.addTask(() => this.insert(ids), "insert-file");
+		} else {
 
-			} else {
+			const html = this.printAttachments(attachments.toArray());
 
-				const html = this.printAttachments(attachments.toArray());
+			request.editor.insertContent(html);
 
-				request.editor.insertContent(html);
+			request.editor.selection.collapse(true);
 
-				request.editor.selection.collapse(true);
+			const node = request.editor.selection.getNode();
 
-				const node = request.editor.selection.getNode();
+			request.editor.selection.select(node);
 
-				request.editor.selection.select(node);
-
-				const text = request.editor.getContent();
-				const content = new KarmaFieldsAlpha.Content(text);
-				this.save("insert-image", "Insert Image");
-				this.setFocus();
-				this.setContent(content);
-				this.render();
-
-	    }
+			const text = request.editor.getContent();
+			const content = new KarmaFieldsAlpha.Content(text);
+			this.save("insert-image", "Insert Image");
+			this.setFocus();
+			this.setContent(content);
+			this.render();
 
 		}
 
@@ -1544,7 +1708,7 @@ console.error("deprecated");
 
 				} else {
 
-					content.value.sizes = caption.toArray();
+					content.value.sizes = sizes.toArray();
 
 				}
 
@@ -1569,7 +1733,7 @@ console.error("deprecated");
 
 		for (let id of ids) {
 
-			const file = this.getFile();
+			const file = this.getFile(id);
 
 			if (file.loading) {
 
@@ -1750,7 +1914,7 @@ console.error("deprecated");
 
 				const request = this.getEditor();
 
-				request.init(null, container.element); // -> preinit before header render
+				// request.init(null, container.element); // -> preinit before header render
 
 
 				const selection = this.getSelection() || {};
@@ -1867,7 +2031,7 @@ console.error("deprecated");
                         },
                         child: this.createChild({
                           type: "buttons",
-                          ...(this.resource.buttons || this.resource.header || this.resource.toolbar)
+                          ...(this.resource.buttons || this.resource.header)
                         }).build()
                       }
                     ]
@@ -1880,7 +2044,7 @@ console.error("deprecated");
 											// debugger;
 											// const instance = this.getEditor();
 
-
+											// node.element.placeholder = "JIGghgP";
 
 
 
@@ -1892,7 +2056,9 @@ console.error("deprecated");
 											// });
 
 											node.element.onmousedown = event => {
-											  event.stopPropagation(); // -> prevent re-rendering (moved to text field)
+											  // event.stopPropagation(); // -> prevent re-rendering (moved to text field)
+
+												console.log("xxx");
 											}
 
 										},
@@ -1900,7 +2066,9 @@ console.error("deprecated");
 
 											const request = this.getEditor();
 
-											request.init(node.element, container.element, this.resource.mceinit);
+											this.registerEditor(node.element);
+
+											// request.init(node.element, container.element, this.resource.mceinit);
 
 											if (request.loading) {
 
@@ -1917,6 +2085,8 @@ console.error("deprecated");
 											let text = request.editor.getContent();
 
 											if (text !== content.toString()) {
+
+												console.log(text, content.toString());
 
 												request.editor.setContent(content.toString());
 
@@ -1936,6 +2106,36 @@ console.error("deprecated");
 
                     }
                   },
+									// {
+									// 	class: "placeholder editor-body",
+									// 	update: node => {
+									//
+									// 		if (this.resource.placeholder) {
+									//
+									// 			const request = this.getEditor();
+									// 			const placeholder = this.parse(this.resource.placeholder);
+									//
+									// 			if (!request.loading && !placeholder.loading) {
+									//
+									// 				let text = request.editor.getContent();
+									//
+									// 				if (text) {
+									//
+									// 					node.element.innerHTML = "";
+									//
+									// 				} else {
+									//
+									// 					node.element.innerHTML = placeholder.toString();
+									//
+									// 				}
+									//
+									// 			}
+									//
+									// 		}
+									//
+									// 	}
+									//
+									// },
                   {
                     class: "karma-popover-container",
                     update: container => {

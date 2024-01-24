@@ -2,24 +2,60 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 	export() {
 
-		const collection = new KarmaFieldsAlpha.Content.Collection();
+		// const collection = new KarmaFieldsAlpha.Content.Collection();
+		//
+		//
+		//
+		// if (this.resource.export === true) {
+		//
+		// 	const content = this.parse(this.resource.content);
+		//
+		// 	collection.merge(content);
+		//
+		// } else if (this.resource.export) {
+		//
+		// 	const content = this.parse(this.resource.export);
+		//
+		// 	collection.merge(content);
+		//
+		// }
+		//
+		//
+		// return collection;
 
-		if (this.resource.export === true) {
 
-			const content = this.parse(this.resource.content);
+		const output = new KarmaFieldsAlpha.Content();
+		let content;
 
-			collection.merge(content);
+		if (this.resource.export) {
 
-		} else if (this.resource.export) {
+			if (this.resource.export === true) {
 
-			const content = this.parse(this.resource.export);
+				content = this.getContent();
 
-			collection.merge(content);
+			} else if (this.resource.export) {
+
+				content = this.parse(this.resource.export);
+
+			} else {
+
+				content = new KarmaFieldsAlpha.Content();
+
+			}
+
+			if (content.loading) {
+
+				output.loading = true;
+
+			} else {
+
+				output.value = content.toArray();
+
+			}
 
 		}
 
-
-		return collection;
+		return output;
 	}
 
 	import(collection) {
@@ -73,6 +109,16 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 						node.children = [];
 
+					} else if (content.mixed) {
+
+						node.children = [
+							{
+								update: node => {
+									node.element.innerHTML = "[mixed content]";
+								}
+							}
+						];
+
 					} else {
 
 						// content = KarmaFieldsAlpha.Type.toArray(content);
@@ -81,7 +127,8 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 						node.children = content.toArray().map(value => {
 							return {
-								class:"text-item",
+								// class:"text-item",
+								// tag: "li",
 								update: node => {
 									node.element.innerHTML = value.toString();
 								}
@@ -583,17 +630,17 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			return {icon: "uploading", text: ""};
 
-		} else if (this.resource.loading) {
+		} else if (id.loading || this.resource.loading) {
 
 			return {icon: "loading", text: ""};
 
 		} else if (this.resource.mixed) {
 
 			return {icon: "mixed", text: "[mixed]"};
-		//
-		// } else if (id.notFound) {
-		//
-		// 	return {icon: "notfound", text: "Not Found"};
+
+		} else if (!id.toString()) {
+
+			return {icon: "notfound", text: "No ID"};
 
 		} else {
 

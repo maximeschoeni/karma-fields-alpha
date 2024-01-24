@@ -252,6 +252,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     KarmaFieldsAlpha.Query.sync();
 
+    // KarmaFieldsAlpha.Store.Buffer.remove("state", "fields"); // remove grid selection (overkill?)
+
     this.render();
   }
 
@@ -263,13 +265,35 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   delta() {
 
-    const delta = KarmaFieldsAlpha.Store.Delta.get();
+    const delta = KarmaFieldsAlpha.Store.Delta.get("vars");
 
 		if (delta) {
 
-			const vars = KarmaFieldsAlpha.Store.get() || {};
+			// const vars = KarmaFieldsAlpha.Store.get() || {};
+      //
+			// return !KarmaFieldsAlpha.DeepObject.include(vars, delta);
 
-			return !KarmaFieldsAlpha.DeepObject.include(vars, delta);
+
+      for (let driver in delta) {
+
+        for (let id in delta[driver]) {
+
+          for (let key in delta[driver][id]) {
+
+            const deltaValue = delta[driver][id][key];
+            const refValue = KarmaFieldsAlpha.Store.get(driver, id, key);
+
+            if (!KarmaFieldsAlpha.DeepObject.equal(deltaValue, refValue)) {
+
+              return true;
+
+            }
+
+          }
+
+        }
+
+      }
 
 		}
 
@@ -574,16 +598,19 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
         document.addEventListener("keydown", event => {
           if (event.key === "s" && event.metaKey) {
             event.preventDefault();
-            this.parent.send();
+            // this.parent.send();
+            this.request("send");
           } else if (event.key === "z" && event.metaKey) {
             event.preventDefault();
             if (event.shiftKey) {
               // console.log("redo");
-              this.parent.redo();
+              // this.parent.redo();
+              this.request("redo");
             } else {
               // console.log("undo");
               // debugger;
-              this.parent.undo();
+              // this.parent.undo();
+              this.request("undo");
             }
           }
         });
@@ -594,8 +621,14 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
         });
 
         window.addEventListener("mousedown", event => {
-          if (KarmaFieldsAlpha.Store.Layer.getSelection()) {
+
+          // console.log("mousedown", KarmaFieldsAlpha.Store.Layer.getCurrent("focus"));
+
+
+
+          if (KarmaFieldsAlpha.Store.Layer.getSelection() || KarmaFieldsAlpha.Store.Layer.getCurrent("focus")) {
             KarmaFieldsAlpha.Store.Layer.removeSelection();
+            KarmaFieldsAlpha.Store.Layer.removeCurrent("focus");
             this.request("render");
           }
         });
@@ -618,6 +651,9 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
         // console.log(history.state);
 
 
+
+
+
         const buffer = history.state && history.state.karma && await KarmaFieldsAlpha.Database.Records.get(history.state.karma);
 
         if (buffer && false) {
@@ -627,6 +663,13 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
         } else {
 
           const recordId = Date.now();
+          // const day = 1*24*60*60*1000;
+          //
+          // await KarmaFieldsAlpha.Database.Records.deleteBefore(recordId - day);
+          // await KarmaFieldsAlpha.Database.History.deleteBefore(recordId - day);
+
+          await KarmaFieldsAlpha.Database.Records.deleteBefore(recordId);
+          await KarmaFieldsAlpha.Database.History.deleteBefore(recordId);
 
           history.replaceState({karma: recordId}, "");
 
@@ -708,7 +751,8 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
               clipboard.element.onblur = event => {
                 // KarmaFieldsAlpha.Store.State.set(false, "focus");
-                this.removeFocus();
+
+                // this.removeFocus();
               }
 
             }

@@ -167,21 +167,48 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
   export() {
 
-    const collection = new KarmaFieldsAlpha.Content.Collection();
+    const output = new KarmaFieldsAlpha.Content();
 
-    const content = this.getContent();
+    if (this.resource.export !== false) {
 
-    if (!content.notFound) {
+      const content = this.getContent();
 
-      const ids = content.toArray();
+      if (content.loading) {
 
-      // const collection = new KarmaFieldsAlpha.Content.Collection([ids.join(",")]);
+        output.loading = true;
 
-      collection.value = [ids.join(",")];
+      } else {
 
-      collection.loading = content.loading;
+        // const ids = content.toArray();
+
+        // const collection = new KarmaFieldsAlpha.Content.Collection([ids.join(",")]);
+
+
+        if (this.resource.export === "name") {
+
+          const driver = this.getDriver();
+          const names = content.toArray().map(id => new KarmaFieldsAlpha.Content.Value(driver, id, "name"));
+
+          if (names.some(name => name.loading)) {
+
+            output.loading = true;
+
+          } else {
+
+            output.value = names.map(name => name.toString()).join(", ");
+
+          }
+
+        } else {
+
+          output.value = content.toArray().join(",");
+
+        }
+
+      }
 
     }
+
 
     // const ids = content.toArray();
     //
@@ -189,7 +216,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
     //
     // collection.loading = content.loading;
 
-    return collection;
+    return output;
 
 	}
 
@@ -257,7 +284,11 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field {
 
     const key = this.getKey();
 
-    return this.parent.getContent(key);
+    const content = this.parent.getContent(key);
+
+    content.value = content.toArray().filter(value => parseInt(value));
+
+    return content;
 
   }
 

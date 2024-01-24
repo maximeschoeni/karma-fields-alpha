@@ -96,8 +96,6 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       case "*":
       case "/":
       case "%":
-      case "max":
-      case "min":
         this.compute(...args);
         break;
 
@@ -147,8 +145,11 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       case "getIndex":
       case "getIds":
       case "get":
+      case "array":
       case "debug":
       case "log":
+      case "max":
+      case "min":
         this[args[0]](...args);
         break;
 
@@ -394,6 +395,38 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
+  min(...args) {
+
+    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+
+    if (array.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      this.value = array.toArray().reduce((accumulator, item) => Math.min(accumulator, Number(item)), Number.MAX_SAFE_INTEGER);
+
+    }
+
+  }
+
+  max(...args) {
+
+    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+
+    if (array.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      this.value = array.toArray().reduce((accumulator, item) => Math.max(accumulator, Number(item)), 0);
+
+    }
+
+  }
+
   include(...args) {
 
     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
@@ -510,11 +543,12 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     if (args[1]) {
 
-      this.date(...args, {month: 'numeric'}, args[2])
+      this.date(...args, {month: '2-digit'}, args[2])
 
     } else {
 
-      this.value = new Date().getMonth() + 1;
+      // this.value = new Date().getMonth() + 1;
+      this.value = new Date().toLocaleDateString(KarmaFieldsAlpha.locale, {month: "2-digit"});
 
     }
 
@@ -524,11 +558,12 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     if (args[1]) {
 
-      this.date(...args, {day: 'numeric'}, args[2])
+      this.date(...args, {day: '2-digit'}, args[2])
 
     } else {
 
-      this.value = new Date().getDate();
+      // this.value = new Date().getDate();
+      this.value = new Date().toLocaleDateString(KarmaFieldsAlpha.locale, {day: "2-digit"});
 
     }
 
@@ -644,11 +679,21 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
       this.loading = true;
 
-    } else {
+    } else if (driver.notFound || id.notFound || key.notFound) {
+
+      this.notFound = true;
+
+    } else if (driver.mixed || id.mixed || key.mixed) {
+
+      this.mixed = true;
+
+    } else if (driver.toString() && id.toString() && key.toString()) {
 
       const content = new KarmaFieldsAlpha.Content.Value(driver.toString(), id.toString(), key.toString());
 
-      Object.assign(this, content);
+      this.value = content.value;
+      this.loading = content.loading;
+      this.notFound = content.notFound;
 
     }
 
@@ -758,7 +803,9 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   getIds() {
 
-    this.value = this.field.request("getIds");
+    // deprecated ?
+
+    this.value = this.field.parent.getContent("id");
 
   }
 
@@ -780,19 +827,34 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   replace(...args) {
 
-    const string = args[1];
+    const string = new KarmaFieldsAlpha.Expression(args[1], this.field);
     const wildcard = args[2];
 
     const replacements = args.slice(3).map(replacement => new KarmaFieldsAlpha.Expression(replacement, this.field));
 
-    if (replacements.some(value => value.loading)) {
+    if (string.loading || replacements.some(value => value.loading)) {
 
       this.loading = true;
 
     } else {
 
-      this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string);
+      this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string.toString());
 
+    }
+
+  }
+
+  array(...args) {
+
+    const items = args.slice(1).map(arg => new KarmaFieldsAlpha.Expression(arg, this.field));
+
+    if (items.loading) {
+
+      this.loading;
+
+    } else {
+
+      this.value = items.map(item => item.toSingle());
     }
 
   }

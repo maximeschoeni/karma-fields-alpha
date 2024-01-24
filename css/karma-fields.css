@@ -473,6 +473,10 @@ body.karma-table-open {
   align-items: flex-start; /* -> for texts being align center without having flexbox, to support inline text */
   padding: var(--gap-width) calc(var(--gap-width)/2);
 }
+.karma-fields .table.align-center .th,
+.karma-fields .table.align-center .td {
+  align-items: center;
+}
 .karma-fields .table .th {
   background-color: white;
   font-weight: bold;
@@ -860,7 +864,7 @@ ul.karma-breadcrumb li a:hover {
 
 }
 .karma-fields .simple-buttons .button.active {
-  background-color: var(--theme-bg-color);
+  background-color: var(--theme-color);
   color: var(--background-color);
   box-shadow: none;
 }
@@ -1074,9 +1078,16 @@ ul.karma-breadcrumb li a:hover {
 /* Text
 --------------------------------------*/
 
-/* .karma-field-frame .text {
-  font-weight: var(--static-text-weight);
-} */
+
+.karma-field-frame .text.display-inline {
+  display: block;
+}
+.karma-field-frame .text.display-inline div {
+  display: inline;
+}
+.karma-field-frame .text.display-inline div:not(:last-child)::after {
+  content: ", ";
+}
 .karma-field-frame.ellipsis {
   overflow: hidden;
 }
@@ -1376,7 +1387,9 @@ ul.tag-links li:not(:last-child)::after {
 .karma-fields .array {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-width);
+  /* gap: var(--gap-width); */
+
+  border: 1px solid var(--border-color);
 
 }
 
@@ -1385,7 +1398,7 @@ ul.tag-links li:not(:last-child)::after {
   display: grid;
   /* background-color: var(--inverse-background-color); */
   /* border-radius: 2px; */
-  min-height: 2em;
+  /* min-height: 2em; */
 
   grid-auto-flow: row dense;
 
@@ -1393,10 +1406,10 @@ ul.tag-links li:not(:last-child)::after {
 
   /* padding: var(--border-width); */
   /* gap: var(--border-width); */
-  border: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
   /* border-radius: 4px; */
 }
-.karma-fields .array .array-body.active {
+.karma-fields .array.active {
   outline: 1px solid var(--theme-color);
   border-color: var(--theme-color);
 }
@@ -1406,7 +1419,7 @@ ul.tag-links li:not(:last-child)::after {
   flex-shrink: 0;
   flex-grow: 1;
   display: flex;
-  /* padding: var(--gap-width) 0; */
+  padding: var(--gap-width);
 }
 .karma-fields .array .array-footer .array-footer-content {
   display: flex;
@@ -1425,7 +1438,7 @@ ul.tag-links li:not(:last-child)::after {
   background-color: white;
   display: flex;
   transition: transform 100ms;
-  /* padding: var(--gap-width); */
+  padding: var(--gap-width);
   /* outline: var(--border-width) solid var(--border-color); */
 }
 .karma-fields .array .td.odd {
@@ -1485,6 +1498,11 @@ ul.tag-links li:not(:last-child)::after {
 
 /* Checkbox
 --------------------------------------*/
+
+.karma-field input[type=checkbox],
+.karma-field input[type=radio] {
+  margin: 0; /* reset wp defaults */
+}
 
 .karma-field.checkboxes ul {
   margin: 2px 0;
@@ -1780,17 +1798,24 @@ textarea.clipboard {
 }
 .karma-tinymce {
   position: relative;
+  background-color: white;
 }
 
 .karma-tinymce .editor-header {
   position: absolute;
   width: 100%;
   height: calc(100% + 0px);
+
 }
 .karma-tinymce .mode {
   display: flex;
   flex-direction: column;
 }
+.karma-tinymce .mode-edit.active {
+  border-color: var(--theme-color);
+  outline: 1px solid var(--theme-color);
+}
+
 .karma-tinymce .editor-body {
   position: relative;
 
@@ -1798,12 +1823,28 @@ textarea.clipboard {
   /* border-top: none; */
   min-height: 8em;
   border-radius: 0;
-  margin: 2.5em 0 0;
-  background-color: var(--background-color);
+  margin: 2.55em 0 0;
+  /* background-color: var(--background-color); */
   color: var(--text-color);
   cursor: text;
   line-height: 1.2em;
+
+  /* max-width: 640px; */
 }
+
+.karma-tinymce .editor-body.placeholder {
+  position: absolute;
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.karma-tinymce .editor-body.tinymce.mce-edit-focus {
+  /* outline: 2px solid var(--theme-color); */
+  /* border-color: var(--theme-color); */
+}
+
+
 .karma-tinymce .editor-body ::selection {
   /* color: var(--inverse-text-color); */
 }
@@ -1818,13 +1859,15 @@ textarea.clipboard {
 }
 
 .karma-tinymce .editor-body:focus {
-  background-color: var(--active-background-color);
-  color: var(--active-text-color);
+  /* background-color: var(--active-background-color);
+  color: var(--active-text-color); */
 }
+
 .karma-tinymce .editor-body a {
-  text-decoration: underline;
+  /* text-decoration: underline;
   text-decoration-thickness: 2px;
-  text-underline-offset: 0.1em;
+  text-underline-offset: 0.1em; */
+  cursor: text;
 }
 .karma-tinymce .editor-body img {
   max-width: 100%;
@@ -1832,15 +1875,17 @@ textarea.clipboard {
 }
 .karma-tinymce .editor-body figure {
   display: inline-block;
+  margin: calc(var(--gap-width)*0.5) 0;
 }
 .karma-tinymce .editor-body figure figcaption {
-  padding: 0 var(--gap-width);
+  /* padding: 0 var(--gap-width); */
   padding: calc(var(--gap-width)*0.5) 0;
   font-size: 0.875em;
-  color: var(--text-color);
+  /* color: var(--text-color); */
   min-height: 1em;
   box-sizing: content-box;
   text-align: center;
+  border: 1px solid #8c8f94;
 }
 .karma-tinymce .editor-body.mce-content-body img[data-mce-selected],
 .karma-tinymce .editor-body.mce-content-body hr[data-mce-selected]{
@@ -1874,9 +1919,9 @@ textarea.clipboard {
 .karma-tinymce .editor-header .toolbar {
   position: sticky;
   top: calc(-1 * var(--gap-width));
-  background-color: white;
+  background-color: var(--background-color);
   z-index: 2;
-  padding: 0;
+  padding: 0.5em var(--gap-width);
 
   border-bottom: var(--border-width) solid var(--border-color);
   display: flex;
@@ -1911,10 +1956,22 @@ textarea.clipboard {
 
 .karma-tinymce .editor-header .toolbar select {
   border: none;
+  line-height: inherit;
+  min-height: 0;
+  background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%232271b1'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
+  background-size: 16px;
+  padding: 0 25px 0 0;
+  color: var(--theme-color);
 }
-.karma-tinymce .editor-header .toolbar select:focus {
-  outline: none;
+.karma-tinymce .editor-header .toolbar select:hover {
+  background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%230a4b78'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
+  background-size: 16px;
+  color: #0a4b78;;
+}
 
+.karma-tinymce .editor-header .toolbar select:focus {
+  box-shadow: none;
+  outline: none;
 }
 
 

@@ -21,7 +21,7 @@ KarmaFieldsAlpha.Content = class {
 
   }
 
-  set(content) {
+  set(content) { // deprecated
 
     if (content.loading) {
 

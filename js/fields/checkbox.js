@@ -1,26 +1,26 @@
 
-KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
+KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 
 	// static mousedown = false;
 	// static state = false;
 	// static selected = [];
 
 
-	getContent() {
-
-		const key = this.getKey();
-
-		return this.parent.getContent(key);
-
-	}
-
-	setContent(content) {
-
-		const key = this.getKey();
-
-		this.parent.setContent(content, key);
-
-	}
+	// getContent() {
+	//
+	// 	const key = this.getKey();
+	//
+	// 	return this.parent.getContent(key);
+	//
+	// }
+	//
+	// setContent(content) {
+	//
+	// 	const key = this.getKey();
+	//
+	// 	this.parent.setContent(content, key);
+	//
+	// }
 
 	true() {
 		return this.resource.true || "1";
@@ -32,7 +32,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
 	getDefault() {
 
-		return this.parse(this.resource.default);
+		return this.parse(this.resource.default || this.false());
 
 	}
 
@@ -70,25 +70,49 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 	//
   // }
 
-	export() { // -> return array of string
+	// export() { // -> return array of string
+	//
+  //   const content = this.getContent();
+	//
+	// 	content.value = content.toArray().slice(0, 1);
+	//
+	// 	return content;
+	//
+  // }
 
-    const content = this.getContent();
-
-		content.value = content.toArray().slice(0, 1);
-
-		return content;
-
-  }
-
-	import(collection) {
-
-    const string = collection.value.shift();
-
-		const content = new KarmaFieldsAlpha.Content(string);
-
-		this.setContent(content);
-  }
-
+	// export() { // -> return array of string
+	//
+	// 	const output = new KarmaFieldsAlpha.Content();
+	//
+	// 	if (this.resource.export !== false) {
+	//
+	// 		const content = this.getContent();
+	//
+	// 		if (content.loading) {
+	//
+	// 			output.loading = true;
+	//
+	// 		} else {
+	//
+	// 			output.value = content.toString() || "";
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	return output;
+	//
+  // }
+	//
+	// import(collection) {
+	//
+  //   const string = collection.value.shift();
+	//
+	// 	const content = new KarmaFieldsAlpha.Content(string);
+	//
+	// 	this.setContent(content);
+  // }
+	//
 
 	//
   // setValue(value) {
@@ -385,20 +409,20 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 //
 // }
 
-	isDisabled() {
-
-		if (this.resource.disabled) {
-
-			return this.parent.parse(this.resource.disabled).toBoolean();
-
-		} else if (this.resource.enabled) {
-
-			return !this.parent.parse(this.resource.enabled).toBoolean();
-
-		}
-
-		return false;
-	}
+	// isDisabled() {
+	//
+	// 	if (this.resource.disabled) {
+	//
+	// 		return this.parent.parse(this.resource.disabled).toBoolean();
+	//
+	// 	} else if (this.resource.enabled) {
+	//
+	// 		return !this.parent.parse(this.resource.enabled).toBoolean();
+	//
+	// 	}
+	//
+	// 	return false;
+	// }
 
 	build() {
 
@@ -423,53 +447,73 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
 							let content = this.getContent();
 
+
 							if (!content.loading) {
 
 								// -> set default
-								if (content.notFound) {
-
-									// const defaultValue = this.getDefault();
-									//
-									// if (defaultValue !== undefined && defaultValue !== null) {
-									//
-									// 	this.setValue(defaultValue);
-									//
-									// }
-
-									content = this.getDefault();
-
-									if (!content.loading) {
-
-										this.setContent(content);
-
-										KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
-
-									}
-
-								}
+								// if (content.notFound) {
+								//
+								// 	// const defaultValue = this.getDefault();
+								// 	//
+								// 	// if (defaultValue !== undefined && defaultValue !== null) {
+								// 	//
+								// 	// 	this.setValue(defaultValue);
+								// 	//
+								// 	// }
+								//
+								// 	// content = this.getDefault();
+								// 	//
+								// 	// if (!content.loading) {
+								// 	//
+								// 	// 	this.setContent(content);
+								// 	//
+								// 	// 	KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
+								// 	//
+								// 	// }
+								//
+								// 	if (this.resource.createWhenNotFound) {
+								//
+								// 		this.createTask("create");
+								//
+								// 	}
+								//
+								// }
 
 								checkbox.element.classList.toggle("mixed", Boolean(content.mixed));
 								checkbox.element.checked = content.toString() === this.true();
 
 								checkbox.element.onchange = () => {
 
+									let value;
+
 									if (content.mixed || content.toString() === this.true()) {
 
-										const content = new KarmaFieldsAlpha.Content(this.false());
+										value = this.false();
 
-										this.setContent(content);
-										this.request("render");
-										KarmaFieldsAlpha.History.save("uncheck", "Uncheck");
+										// const content = new KarmaFieldsAlpha.Content(this.false());
+										//
+										// this.save("uncheck", "Uncheck");
+										// this.setContent(content);
+										// this.request("render");
 
 									} else {
 
-										const content = new KarmaFieldsAlpha.Content(this.true());
+										value = this.true();
 
-										this.setContent(content);
-										this.request("render");
-										KarmaFieldsAlpha.History.save("check", "Check");
+										// const content = new KarmaFieldsAlpha.Content(this.true());
+										//
+										// this.save("check", "Check");
+										// this.setContent(content);
+										// this.request("render");
+
 
 									}
+
+									const newContent = new KarmaFieldsAlpha.Content(value);
+
+									this.save("check", "Check");
+									this.setContent(newContent);
+									this.request("render");
 
 								}
 

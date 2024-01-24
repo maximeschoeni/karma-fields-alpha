@@ -401,11 +401,13 @@ KarmaFieldsAlpha.Query = class { // class Driver ?
 
                 KarmaFieldsAlpha.Store.assign(data, "vars", driver, id);
 
-                for (let key in data) {
+                await KarmaFieldsAlpha.Database.Vars.set(data, driver, id);
 
-                  KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
-
-                }
+                // for (let key in data) {
+                //
+                //   KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
+                //
+                // }
 
             		await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
 
@@ -1332,11 +1334,11 @@ KarmaFieldsAlpha.Content.Query = class extends KarmaFieldsAlpha.Content {
     // const diff = KarmaFieldsAlpha.Store.get("diffItems", driver, paramstring);
 
     this.value = delta || query;
-    this.loading = !query;
+    this.loading = !this.value;
     this.diff = KarmaFieldsAlpha.Store.get("diff", "items", driver, paramstring);
     this.warning = Boolean(delta && this.diff);
 
-    if (!query) {
+    if (!this.value) {
 
       let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "query" && task.driver === driver && task.paramstring === paramstring);
 
@@ -1514,6 +1516,44 @@ KarmaFieldsAlpha.Content.Query = class extends KarmaFieldsAlpha.Content {
 
   }
 
+  async change(items) {
+
+    if (!this.loading) {
+
+      let length = this.values.length;
+
+      KarmaFieldsAlpha.Store.Delta.set(items, "items", this.driver, this.paramstring);
+
+      // KarmaFieldsAlpha.Store.remove("counts", this.driver);
+
+      await KarmaFieldsAlpha.Database.Queries.remove(this.driver); // -> actually just need to remove count...
+
+      await KarmaFieldsAlpha.Database.Queries.set(items, "query", this.driver, this.paramstring);
+
+      // KarmaFieldsAlpha.Store.Delta.set(length, "count", this.driver, this.paramstring);
+
+    }
+
+
+
+    // KarmaFieldsAlpha.Store.remove("items", query.driver);
+    // KarmaFieldsAlpha.Store.remove("counts", query.driver);
+    //
+    // await KarmaFieldsAlpha.Database.Queries.remove(query.driver);
+    //
+    // if (task.delta) {
+    //
+    //   for (let key in task.delta) {
+    //
+    //     KarmaFieldsAlpha.Store.Delta.set(task.delta[key], "vars", query.driver, task.id, key);
+    //
+    //   }
+    //
+    // }
+
+
+  }
+
 
   // insertItem(newItem, index, ...path) {
   //
@@ -1662,11 +1702,99 @@ KarmaFieldsAlpha.Content.Query = class extends KarmaFieldsAlpha.Content {
 
         await KarmaFieldsAlpha.Database.Queries.remove(this.driver);
 
+        console.log("done");
+
       },
       type: "add"
     });
 
   }
+
+
+
+  async createItem(params) {
+
+
+    // const defaults = this.parse(this.resource.defaults || {});
+    // const filters = this.getFilters();
+    //
+    // // const position = this.getPosition();
+    //
+    // if (this.loading || defaults.loading || filters.loading) {
+    //
+    //   return; // !!!
+    //
+    // }
+    //
+    // const params = {...filters.toObject(), ...defaults.toObject()};
+    //
+    // const data = {};
+
+    for (let key in params) {
+
+      const keyAlias = KarmaFieldsAlpha.Driver.getAlias(this.driver, key);
+      const value = params[key].split(",");
+
+      data[keyAlias] = value;
+
+    }
+
+    let id = await KarmaFieldsAlpha.HTTP.post(`add/${this.driver}`, data);
+    id = id.toString();
+
+    // const name = "[new Item]";
+    // const items = query.toArray();
+    // const index = items.findIndex(item => item.token === task.token);
+    //
+    // if (index > -1) {
+    //
+    //   const newItems = [...deltaItems];
+    //   newItems[index] = {id, name};
+    //
+    //   this.setItems(newItems);
+    //
+    // }
+
+    for (let key in params) {
+
+      const value = params[key].split(",");
+
+      KarmaFieldsAlpha.Store.set(value, "vars", this.driver, id, key);
+      // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.this.driver, id, key);
+      KarmaFieldsAlpha.Store.remove("diff", "vars", this.driver, id, key);
+      KarmaFieldsAlpha.Store.Delta.set(value, "vars", this.driver, id, key);
+
+    }
+
+
+    if (Object.values(data).length) {
+
+      await KarmaFieldsAlpha.HTTP.post(`update/${this.driver}/${id}`, data);
+
+    }
+
+    KarmaFieldsAlpha.Store.set(["1"], "vars", this.driver, id, "trash");
+    KarmaFieldsAlpha.Store.Delta.set([], "vars", this.driver, id, "trash");
+
+    KarmaFieldsAlpha.Store.remove("items", this.driver);
+    KarmaFieldsAlpha.Store.remove("counts", this.driver);
+
+    await KarmaFieldsAlpha.Database.Queries.remove(this.driver);
+
+    return id;
+
+    // if (delta) {
+    //
+    //   for (let key in delta) {
+    //
+    //     KarmaFieldsAlpha.Store.Delta.set(delta[key], "vars", this.driver, id, key);
+    //
+    //   }
+    //
+    // }
+
+  }
+
 
 
 
@@ -1710,6 +1838,11 @@ KarmaFieldsAlpha.Content.Value = class extends KarmaFieldsAlpha.Content {
     this.warning = Boolean(delta && this.diff);
     this.loading = !value;
 
+    if (!id) {
+      console.log(driver, id, key);
+      console.trace();
+    }
+
     if (!value) { // -> create a task to fetch it
 
       const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id);
@@ -1739,8 +1872,6 @@ KarmaFieldsAlpha.Content.Value = class extends KarmaFieldsAlpha.Content {
                   KarmaFieldsAlpha.Driver.verify(driver, null, id);
 
                 }
-
-
 
               } else if (attempt === "query") {
 
@@ -2341,6 +2472,7 @@ KarmaFieldsAlpha.Content.Medias = class extends KarmaFieldsAlpha.Content.Query {
             for (let key in params) {
 
               const keyAlias = KarmaFieldsAlpha.Driver.getAlias(this.driver, key);
+
               const value = params[key].split(",");
 
               data[keyAlias] = value;

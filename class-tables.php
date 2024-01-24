@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '68';
+	public $version = '74';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -95,6 +95,10 @@ class Karma_Fields_Alpha {
 
 			wp_dequeue_script('wp-emoji-release'); // wp-emoji-release.min.js?ver=6.0
 
+			// wp_dequeue_script( 'jquery');
+			// wp_deregister_script( 'jquery');
+
+
 			// wp_enqueue_style('karma-styles-date-field', $plugin_url . '/css/date-field.css', array(), $this->version);
 			// wp_enqueue_style('multimedia-styles', $plugin_url . '/css/multimedia.css', array(), $this->version);
 			// wp_enqueue_style('karma-styles-alpha-grid', $plugin_url . '/css/grid.css', array(), $this->version);
@@ -127,6 +131,9 @@ class Karma_Fields_Alpha {
 			// 	wp_enqueue_script('karma-fields-alpha', $plugin_url . '/js/all.js', array('karma-fields'), $this->version, true);
 			//
 			// } else {
+
+				// wp_enqueue_script('tinymce6', $plugin_url . '/js/vendor/tinymce.min.js', array(), $this->version, true);
+
 
 
 
@@ -431,6 +438,15 @@ class Karma_Fields_Alpha {
       )
 		);
 
+
+		$this->register_driver(
+			'postdate',
+			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postdate.php',
+			'Karma_Fields_Alpha_Driver_Postdate',
+      array(),
+      array()
+		);
+
 		// // for taxonomies dropdown:
 		// $this->register_driver(
 		// 	'taxonomies',
@@ -552,6 +568,10 @@ class Karma_Fields_Alpha {
 
 
     do_action('karma_fields_init', $this);
+
+		// remove custom fields because it does weird things (even if hidden)
+		remove_post_type_support('post', 'custom-fields');
+		remove_post_type_support('page', 'custom-fields');
 
 	}
 
@@ -1368,3 +1388,16 @@ add_action( 'admin_print_footer_scripts', function() {
 add_action('admin_init', function() {
 	remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
 });
+
+
+
+
+// add_filter( 'mce_external_plugins', function( $plugins ) {
+//
+// 	$plugin_url = trim(plugin_dir_url(__FILE__), '/');
+//
+// 	// This assumes you placed mce.placeholder.js in root of child theme directory
+// 	$plugins['placeholder'] = $plugin_url . '/js/vendor/mce.placeholder.js';
+//
+// 	return $plugins;
+// });

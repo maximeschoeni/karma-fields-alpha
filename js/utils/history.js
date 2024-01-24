@@ -180,13 +180,18 @@ KarmaFieldsAlpha.History = class {
 
 			}
 
-			let lastValue = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index - 1, ...path);
+			// let lastValue = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index - 1, ...path);
+      //
+			// if (lastValue === undefined) {
+      //
+      //   console.log(lastValue, currentValue, path);
+      //
+			// 	await KarmaFieldsAlpha.Database.History.set(currentValue, buffer.recordId, index - 1, ...path);
+      //
+			// }
 
-			if (lastValue === undefined) {
-
-				await KarmaFieldsAlpha.Database.History.set(currentValue, buffer.recordId, index - 1, ...path);
-
-			}
+      // -> set only if last value is undefined
+      await KarmaFieldsAlpha.Database.History.backup(currentValue, buffer.recordId, index - 1, ...path);
 
 		}
 

@@ -7,6 +7,7 @@
     locale: "<?php echo str_replace('_', '-', get_locale()); ?>",
     adminURL: "<?php echo admin_url(); ?>",
     assetsURL: "<?php echo dirname(plugin_dir_url( __FILE__ )); ?>/assets",
+    pluginURL: "<?php echo dirname(plugin_dir_url( __FILE__ )); ?>",
     embeds: [],
     drivers: <?php echo json_encode($drivers); ?>,
     useWPMediaUploader: true,

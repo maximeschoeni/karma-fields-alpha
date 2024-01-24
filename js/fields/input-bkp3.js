@@ -92,39 +92,49 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	getContent() {
 
+		// if (this.resource.value) {
+		//
+		// 	const key = this.getKey();
+		//
+		// 	const content = this.parent.getContent(key);
+		//
+		// 	if (!content.loading) {
+		//
+		// 		const value = this.parse(this.resource.value);
+		//
+		// 		return value;
+		//
+		// 		// if (!value.loading && !KarmaFieldsAlpha.DeepObject.equal(value.toSingle(), content.toSingle())) {
+		// 		//
+		// 		// 	this.setContent(value);
+		// 		//
+		// 		// 	input.element.value = value.toString();
+		// 		//
+		// 		// }
+		//
+		// 	}
+		//
+		// 	return content;
+		//
+		// 	//
+		// 	// const value = this.parse(this.resource.value);
+		// 	//
+		// 	// console.log(value);
+		// 	//
+		// 	// return value;
+		//
+		// } else {
+		//
+		// 	const key = this.getKey();
+		//
+		// 	return this.parent.getContent(key);
+		//
+		// }
+
 		const key = this.getKey();
 
-		let content = this.parent.getContent(key);
+		return this.parent.getContent(key);
 
-		if (this.resource.value && !content.mixed) {
-
-			const value = this.parse(this.resource.value);
-
-			if (!value.loading && !value.equals(content)) {
-
-				this.parent.setContent(value, key);
-
-				content = value;
-
-			}
-
-		}
-
-		if (content.notFound) {
-
-			const value = this.getDefault();
-
-			if (!value.loading) {
-
-				this.setContent(value);
-
-			}
-
-			content = value;
-
-		}
-
-		return content;
 	}
 
 	setContent(content) {
@@ -138,25 +148,17 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	export() { // -> return array of string
 
-		const output = new KarmaFieldsAlpha.Content();
+    const content = this.getContent();
 
-		if (this.resource.export !== false) {
+		if (!content.loading) {
 
-			const content = this.getContent();
-
-			if (content.loading) {
-
-				output.loading = true;
-
-			} else {
-
-				output.value = content.toString() || "";
-
-			}
+			content.value = content.toArray().slice(0, 1);
 
 		}
 
-		return output;
+
+
+		return content;
 
   }
 
@@ -307,24 +309,24 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					if (content.notFound) {
 
-						if (this.resource.createWhenNotFound) {
+						if (this.resource.notFound) {
 
 							this.createTask("create");
 
 						}
 
 
-						// const defaultContent = this.getDefault();
-						//
-						// input.element.value = defaultContent.toString();
-						//
-						// if (defaultContent.value !== null) {
-						//
-						// 	this.setContent(defaultContent);
-						//
-						// 	KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
-						//
-						// }
+						const defaultContent = this.getDefault();
+
+						input.element.value = defaultContent.toString();
+
+						if (defaultContent.value !== null) {
+
+							this.setContent(defaultContent);
+
+							KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
+
+						}
 
 					} else {
 
