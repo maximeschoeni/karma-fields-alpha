@@ -386,18 +386,22 @@ class Karma_Fields_Alpha_Driver_Posts {
           switch ($value) {
 
             case 'post_name':
+            case 'name':
               $args['orderby'] = array('name' => $order, 'date' => 'DESC');
               break;
 
             case 'post_title':
+            case 'title':
               $args['orderby'] = array('title' => $order, 'date' => 'DESC');
               break;
 
             case 'post_date':
+            case 'date':
               $args['orderby'] = array('date' => $order, 'title' => 'ASC');
               break;
 
             case 'post_author':
+            case 'author':
               $args['orderby'] = array('author' => $order, 'title' => 'ASC', 'date' => 'DESC');
               break;
 

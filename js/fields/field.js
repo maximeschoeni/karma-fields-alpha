@@ -191,13 +191,37 @@ KarmaFieldsAlpha.field = class {
 
   createTask(...args) {
 
-    this.setOption(args, "tasks");
+    // this.setOption(args, "tasks");
 
     KarmaFieldsAlpha.taskflag = true;
+
+    // const tasks = this.getOption("tasks") || [];
+    //
+    // tasks.push(args);
+
+    this.setOption(args, "tasks");
+
+  }
+
+  doTask() {
+
+    const task = this.getOption("tasks");
+
+    if (task) {
+
+      const [methodName, ...args] = task;
+
+      this.removeOption("tasks");
+
+      this[methodName](...args);
+
+    }
 
   }
 
   grind(closure, callback) {
+
+    console.log("deprecated");
 
     const result = closure();
 

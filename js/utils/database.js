@@ -90,6 +90,9 @@ KarmaFieldsAlpha.Database = class {
 
         const data = db.createObjectStore("vars");
 
+        // const cache = db.createObjectStore("cache", {keyPath: ["driver", "paramstring"]});
+        // queries.createIndex("driver", "driver");
+
 
 
       };
@@ -712,21 +715,21 @@ KarmaFieldsAlpha.Database.Queries = class extends KarmaFieldsAlpha.Database {
     }));
   }
 
-  // static remove(type, driver, paramstring) {
-  //   return this.getDB().then(db => new Promise((resolve, reject) => {
-  //     const transaction = db.transaction("queries", "readwrite");
-  //     const objectStore = transaction.objectStore("queries");
-  //     const request = objectStore.remove([type, driver, paramstring]);
-  //     request.onsuccess = (event) => {
-  //       resolve();
-  //     }
-  //     request.onerror = (event) => {
-  //       reject(event.target.error);
-  //     };
-  //   }));
-  // }
+  static remove(type, driver, paramstring) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("queries", "readwrite");
+      const objectStore = transaction.objectStore("queries");
+      const request = objectStore.delete([type, driver, paramstring]);
+      request.onsuccess = (event) => {
+        resolve();
+      }
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    }));
+  }
 
-  static remove(driver) {
+  static removeDriver(driver) {
     return this.getDB().then(db => new Promise((resolve, reject) => {
       const transaction = db.transaction("queries", "readwrite");
       const objectStore = transaction.objectStore("queries");
@@ -806,6 +809,85 @@ KarmaFieldsAlpha.Database.Vars = class extends KarmaFieldsAlpha.Database {
       }
     }));
   }
+
+
+}
+
+KarmaFieldsAlpha.Database.Cache = class extends KarmaFieldsAlpha.Database {
+
+  static get(driver, paramstring) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("cache");
+      const objectStore = transaction.objectStore("cache");
+      const request = objectStore.get([driver, paramstring]);
+      request.onsuccess = (event) => {
+        const result = event.target.result;
+        resolve(result && result.data);
+        db.close();
+      };
+      request.onerror = (event) => {
+        reject(event.target.error);
+        db.close();
+      };
+    }));
+  }
+
+  static set(data, driver, paramstring) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("cache", "readwrite");
+      const objectStore = transaction.objectStore("cache");
+      const request = objectStore.put({data, driver, paramstring});
+      request.onsuccess = (event) => {
+        resolve();
+        db.close();
+      }
+      request.onerror = (event) => {
+        reject(event.target.error);
+        db.close();
+      };
+    }));
+  }
+
+  static remove(driver, paramstring) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("cache", "readwrite");
+      const objectStore = transaction.objectStore("cache");
+      const request = objectStore.delete([driver, paramstring]);
+      request.onsuccess = (event) => {
+        resolve();
+        db.close();
+      }
+      request.onerror = (event) => {
+        reject(event.target.error);
+        db.close();
+      };
+    }));
+  }
+
+  static removeDriver(driver) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("cache", "readwrite");
+      const objectStore = transaction.objectStore("cache");
+      const driverIndex = objectStore.index("driver");
+      const request = driverIndex.openCursor(driver);
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          resolve();
+          db.close();
+        }
+      }
+      request.onerror = (event) => {
+        reject(event.target.error);
+        db.close();
+      };
+    }));
+  }
+
+
 
 
 }

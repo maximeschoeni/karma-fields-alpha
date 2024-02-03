@@ -367,6 +367,8 @@ KarmaFieldsAlpha.Query = class { // class Driver ?
 
   static sync() {
 
+    console.error("deprecated");
+
     const tasks = KarmaFieldsAlpha.Store.get("tasks") || [];
 
     let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "sync");
@@ -512,7 +514,7 @@ KarmaFieldsAlpha.Query = class { // class Driver ?
 
 
   static init() {
-
+console.error("deprecated");
     // const tasks = KarmaFieldsAlpha.Store.get("tasks") || [];
     //
     // let task = tasks.find(task => task.type === "init");
@@ -719,28 +721,30 @@ KarmaFieldsAlpha.Driver = class {
 
   }
 
-  static createQueryDataset(results, driver) {
+  // static createQueryDataset(results, driver) {
+  //
+  //   const data = {};
+  //
+  //   const idAlias = this.getAlias(driver, "id");
+  //
+  //   for (let item of results) {
+  //
+  //     const id = item[idAlias];
+  //
+  //     data[id] = {};
+  //
+  //     for (let key in item) {
+  //
+  //       data[id][key] = [item[key]];
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return data;
+  // }
 
-    const data = {};
 
-    const idAlias = this.getAlias(driver, "id");
-
-    for (let item of results) {
-
-      const id = item[idAlias];
-
-      data[id] = {};
-
-      for (let key in item) {
-
-        data[id][key] = [item[key]];
-
-      }
-
-    }
-
-    return data;
-  }
 
   // static parseResults(results, driver) {
   //
@@ -764,14 +768,52 @@ KarmaFieldsAlpha.Driver = class {
   //
   // }
 
-  static createQuery(results, driver) {
+  // static createQuery(results, driver) {
+  //
+  //   const idAlias = this.getAlias(driver, "id");
+  //   const nameAlias = this.getAlias(driver, "name");
+  //
+  //   return results.map(item => ({id: item[idAlias], name: item[nameAlias]}));
+  //
+  // }
 
-    const idAlias = this.getAlias(driver, "id");
-    const nameAlias = this.getAlias(driver, "name");
 
-    return results.map(item => ({id: item[idAlias], name: item[nameAlias]}));
-
-  }
+  // static async getItems(driver, paramstring) {
+  //
+  //   let items = await KarmaFieldsAlpha.Database.Queries.get("query", driver, paramstring);
+  //
+  //   if (items) {
+  //
+  //     this.verify(driver, paramstring);
+  //
+  //   } else {
+  //
+  //     const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
+  //
+  //     items = this.createQuery(results, driver);
+  //
+  //     await KarmaFieldsAlpha.Database.Queries.set(items, "query", driver, paramstring);
+  //
+  //     const dataset = this.createQueryDataset(results, driver);
+  //
+  //     await KarmaFieldsAlpha.Database.Vars.set(dataset, driver);
+  //
+  //     for (let id in dataset) {
+  //
+  //       for (let key in dataset[id]) {
+  //
+  //         KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
+  //
+  //       }
+  //
+  //       KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return items;
+  // }
 
   // static async cacheQuery(results, driver, paramstring) {
   //
@@ -902,180 +944,180 @@ KarmaFieldsAlpha.Driver = class {
   // }
 
 
-  static async testQueries(driver, paramstrings, ids) {
-
-    let fail = false;
-
-    for (let paramstring of paramstrings) {
-
-      const localQuery = KarmaFieldsAlpha.Store.get("items", driver, paramstring);
-
-      if (localQuery) {
-
-        const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
-
-        const remoteQuery = this.createQuery(results, driver);
-
-        if (localQuery.length !== remoteQuery.length || localQuery.some((item, index) => item.id !== remoteQuery[index].id)) {
-
-          KarmaFieldsAlpha.Store.set(remoteQuery, "items", driver, paramstring);
-          KarmaFieldsAlpha.Store.set(true, "diff", "items", driver, paramstring);
-
-          await KarmaFieldsAlpha.Database.Queries.set(remoteQuery, "query", driver, paramstring);
-
-          fail = true;
-
-        }
-
-      }
-
-    }
-
-    if (ids.length) {
-
-      const relations = this.getRelations(driver);
-      const idsParamstring = `ids=${ids.join(",")}`;
-
-      const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}?${idsParamstring}`);
-
-      const dataset = KarmaFieldsAlpha.Driver.createQueryDataset(results, driver);
-      const delta = {};
-
-      for (let id in dataset) {
-
-        for (let key in dataset[id]) {
-
-          const localValue = KarmaFieldsAlpha.Store.get("vars", driver, id, key);
-          const remoteValue = dataset[id][key];
-
-          if (localValue && !KarmaFieldsAlpha.DeepObject.compare(remoteValue, localValue)) {
-
-            KarmaFieldsAlpha.Store.set(remoteValue, "vars", driver, id, key);
-            KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
-
-            // await KarmaFieldsAlpha.Database.Vars.set(dataset[id][key], driver, id, key);
-            KarmaFieldsAlpha.DeepObject.set(delta, remoteValue, id, key);
-
-            fail = true;
-
-          }
-
-        }
-
-      }
-
-      if (Object.keys(delta).length) {
-
-        await KarmaFieldsAlpha.Database.Vars.set(delta, driver);
-
-      }
-
-      for (let attempt of relations) {
-
-        const relations = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${attempt}?${idsParamstring}`);
-
-        const dataset = KarmaFieldsAlpha.Driver.createRelationDataset(relations);
-        const delta = {};
-
-        for (let id in dataset) {
-
-          for (let key in dataset[id]) {
-
-            const remoteValue = dataset[id][key];
-            const localValue = KarmaFieldsAlpha.Store.get("vars", driver, id, key);
-
-            if (localValue && !KarmaFieldsAlpha.DeepObject.compare(remoteValue, localValue)) {
-
-              KarmaFieldsAlpha.Store.set(remoteValue, "vars", driver, id, key);
-              KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
-
-              KarmaFieldsAlpha.DeepObject.set(delta, remoteValue, id, key);
-
-              fail = true;
-
-            }
-
-            // if (localValue) {
-            //
-            //
-            //
-            // } else {
-            //
-            //   KarmaFieldsAlpha.DeepObject.set(delta, dataset[id][key], id, key);
-            //
-            // }
-
-
-
-          }
-
-        }
-
-        if (Object.keys(delta).length) {
-
-          await KarmaFieldsAlpha.Database.Vars.set(delta, driver);
-
-        }
-
-      }
-
-      if (fail) {
-
-        if (!KarmaFieldsAlpha.Store.Tasks.has()) {
-
-          KarmaFieldsAlpha.Store.Tasks.add({
-            type: "rerender",
-            resolve: () => {
-            }
-          });
-
-        }
-
-        KarmaFieldsAlpha.saucer.render();
-
-      }
-
-    }
-
-  }
-
-
-  static verify(driver, paramstring, id) {
-
-    // const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
-
-    let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "verify" && task.driver === driver);
-
-    if (!task) {
-
-      task = {
-        type: "verify",
-        paramstrings: new Set(),
-        ids: new Set(),
-        keys: new Set(),
-        driver: driver,
-        priority: -1,
-        resolve: task => {
-          this.testQueries(driver, [...task.paramstrings], [...task.ids])
-        }
-      };
-
-      KarmaFieldsAlpha.Store.Tasks.add(task);
-    }
-
-    if (paramstring) {
-
-      task.paramstrings.add(paramstring);
-
-    }
-
-    if (id) {
-
-      task.ids.add(id);
-
-    }
-
-  }
+  // static async testQueries(driver, paramstrings, ids) {
+  //
+  //   let fail = false;
+  //
+  //   for (let paramstring of paramstrings) {
+  //
+  //     const localQuery = KarmaFieldsAlpha.Store.get("items", driver, paramstring);
+  //
+  //     if (localQuery) {
+  //
+  //       const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
+  //
+  //       const remoteQuery = this.createQuery(results, driver);
+  //
+  //       if (localQuery.length !== remoteQuery.length || localQuery.some((item, index) => item.id !== remoteQuery[index].id)) {
+  //
+  //         KarmaFieldsAlpha.Store.set(remoteQuery, "items", driver, paramstring);
+  //         KarmaFieldsAlpha.Store.set(true, "diff", "items", driver, paramstring);
+  //
+  //         await KarmaFieldsAlpha.Database.Queries.set(remoteQuery, "query", driver, paramstring);
+  //
+  //         fail = true;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //   if (ids.length) {
+  //
+  //     const relations = this.getRelations(driver);
+  //     const idsParamstring = `ids=${ids.join(",")}`;
+  //
+  //     const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}?${idsParamstring}`);
+  //
+  //     const dataset = KarmaFieldsAlpha.Driver.createQueryDataset(results, driver);
+  //     const delta = {};
+  //
+  //     for (let id in dataset) {
+  //
+  //       for (let key in dataset[id]) {
+  //
+  //         const localValue = KarmaFieldsAlpha.Store.get("vars", driver, id, key);
+  //         const remoteValue = dataset[id][key];
+  //
+  //         if (localValue && !KarmaFieldsAlpha.DeepObject.compare(remoteValue, localValue)) {
+  //
+  //           KarmaFieldsAlpha.Store.set(remoteValue, "vars", driver, id, key);
+  //           KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
+  //
+  //           // await KarmaFieldsAlpha.Database.Vars.set(dataset[id][key], driver, id, key);
+  //           KarmaFieldsAlpha.DeepObject.set(delta, remoteValue, id, key);
+  //
+  //           fail = true;
+  //
+  //         }
+  //
+  //       }
+  //
+  //     }
+  //
+  //     if (Object.keys(delta).length) {
+  //
+  //       await KarmaFieldsAlpha.Database.Vars.set(delta, driver);
+  //
+  //     }
+  //
+  //     for (let attempt of relations) {
+  //
+  //       const relations = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${attempt}?${idsParamstring}`);
+  //
+  //       const dataset = KarmaFieldsAlpha.Driver.createRelationDataset(relations);
+  //       const delta = {};
+  //
+  //       for (let id in dataset) {
+  //
+  //         for (let key in dataset[id]) {
+  //
+  //           const remoteValue = dataset[id][key];
+  //           const localValue = KarmaFieldsAlpha.Store.get("vars", driver, id, key);
+  //
+  //           if (localValue && !KarmaFieldsAlpha.DeepObject.compare(remoteValue, localValue)) {
+  //
+  //             KarmaFieldsAlpha.Store.set(remoteValue, "vars", driver, id, key);
+  //             KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
+  //
+  //             KarmaFieldsAlpha.DeepObject.set(delta, remoteValue, id, key);
+  //
+  //             fail = true;
+  //
+  //           }
+  //
+  //           // if (localValue) {
+  //           //
+  //           //
+  //           //
+  //           // } else {
+  //           //
+  //           //   KarmaFieldsAlpha.DeepObject.set(delta, dataset[id][key], id, key);
+  //           //
+  //           // }
+  //
+  //
+  //
+  //         }
+  //
+  //       }
+  //
+  //       if (Object.keys(delta).length) {
+  //
+  //         await KarmaFieldsAlpha.Database.Vars.set(delta, driver);
+  //
+  //       }
+  //
+  //     }
+  //
+  //     if (fail) {
+  //
+  //       if (!KarmaFieldsAlpha.Store.Tasks.has()) {
+  //
+  //         KarmaFieldsAlpha.Store.Tasks.add({
+  //           type: "rerender",
+  //           resolve: () => {
+  //           }
+  //         });
+  //
+  //       }
+  //
+  //       KarmaFieldsAlpha.saucer.render();
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+  //
+  //
+  // static verify(driver, paramstring, id) {
+  //
+  //   // const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
+  //
+  //   let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "verify" && task.driver === driver);
+  //
+  //   if (!task) {
+  //
+  //     task = {
+  //       type: "verify",
+  //       paramstrings: new Set(),
+  //       ids: new Set(),
+  //       keys: new Set(),
+  //       driver: driver,
+  //       priority: -1,
+  //       resolve: task => {
+  //         this.testQueries(driver, [...task.paramstrings], [...task.ids])
+  //       }
+  //     };
+  //
+  //     KarmaFieldsAlpha.Store.Tasks.add(task);
+  //   }
+  //
+  //   if (paramstring) {
+  //
+  //     task.paramstrings.add(paramstring);
+  //
+  //   }
+  //
+  //   if (id) {
+  //
+  //     task.ids.add(id);
+  //
+  //   }
+  //
+  // }
 
   // static parseDiff(driver, results, paramstring) {
   //
@@ -1124,33 +1166,33 @@ KarmaFieldsAlpha.Driver = class {
   //
   // }
 
-  static createRelationDataset(relations) {
-
-    const data = {};
-
-    for (let relation of relations) {
-
-      const id = relation.id.toString();
-      const key = relation.key.toString();
-
-      if (!data[id]) {
-
-        data[id] = {};
-
-      }
-
-      if (!data[id][key]) {
-
-        data[id][key] = [];
-
-      }
-
-      data[id][key].push(relation.value);
-
-    }
-
-    return data;
-  }
+  // static createRelationDataset(relations) {
+  //
+  //   const data = {};
+  //
+  //   for (let relation of relations) {
+  //
+  //     const id = relation.id.toString();
+  //     const key = relation.key.toString();
+  //
+  //     if (!data[id]) {
+  //
+  //       data[id] = {};
+  //
+  //     }
+  //
+  //     if (!data[id][key]) {
+  //
+  //       data[id][key] = [];
+  //
+  //     }
+  //
+  //     data[id][key].push(relation.value);
+  //
+  //   }
+  //
+  //   return data;
+  // }
 
   // static parseRelations(driver, relations, ids) {
   //
@@ -1226,25 +1268,41 @@ KarmaFieldsAlpha.Driver = class {
 
   }
 
-  static getAttempt(driver, id) {
+  // static getAttempt(driver, id) {
+  //
+  //   if (!KarmaFieldsAlpha.Store.get("attempts", driver, id, "query")) {
+  //
+  //     return "query";
+  //
+  //   }
+  //
+  //   const relations = this.getRelations(driver);
+  //
+  //   if (relations) {
+  //
+  //     for (let relation of relations) {
+  //
+  //       if (!KarmaFieldsAlpha.Store.get("attempts", driver, id, relation)) {
+  //
+  //         return relation;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
-    if (!KarmaFieldsAlpha.Store.get("attempts", driver, id, "query")) {
+  static getAttempt(driver, id, ...path) {
 
-      return "query";
+    const relations = ["query", ...this.getRelations(driver)];
 
-    }
+    for (let relation of relations) {
 
-    const relations = this.getRelations(driver);
+      if (!KarmaFieldsAlpha.Store.get("attempts", ...path, driver, id, relation)) {
 
-    if (relations) {
-
-      for (let relation of relations) {
-
-        if (!KarmaFieldsAlpha.Store.get("attempts", driver, id, relation)) {
-
-          return relation;
-
-        }
+        return relation;
 
       }
 
@@ -1254,56 +1312,348 @@ KarmaFieldsAlpha.Driver = class {
 
 
 
-  static async updateParams(params) {
+  // static async updateParams(params) {
+  //
+  //   console.error("deprecated");
+  //
+  //   const entries = Object.entries(params).filter(([key, value]) => value).map(([key, value]) => [this.getAlias(driver, key), params[key].split(",")]);
+  //
+  //   if (entries.length) {
+  //
+  //     const data = Object.fromEntries(entries);
+  //
+  //     // await KarmaFieldsAlpha.Remote.update(data, driver, id);
+  //
+  //     KarmaFieldsAlpha.Store.assign(data, "vars", driver, id);
+  //
+  // 		await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
+  //
+  //     KarmaFieldsAlpha.Store.Delta.set(data, driver, id);
+  //
+  //   }
+  //
+  // }
 
-    const entries = Object.entries(params).filter(([key, value]) => value).map(([key, value]) => [this.getAlias(driver, key), params[key].split(",")]);
+  // static async saveData(data, driver) {
+  //
+  //   await KarmaFieldsAlpha.HTTP.post(`sync/${driver}`, data);
+  //
+  //   for (let row of data) {
+  //
+  //     for (let key in row) {
+  //
+  //       KarmaFieldsAlpha.Store.set(row[key], "vars", driver, row.id, key);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
-    if (entries.length) {
+  // static async save(driver, paramstring, index = 0, length = 999999) {
+  //
+  //   const deltaItems = KarmaFieldsAlpha.Store.Delta.get("items", driver, paramstring);
+  //
+  //   const data = deltaItems.slice(index, index + length);
+  //
+  //   // await KarmaFieldsAlpha.HTTP.post(`sync/${driver}`, data);
+  //
+  //   for (let row of data) {
+  //
+  //     for (let key in row) {
+  //
+  //       KarmaFieldsAlpha.Store.set(row[key], "vars", driver, row.id, key);
+  //
+  //     }
+  //
+  //   }
+  //
+  //   await KarmaFieldsAlpha.Database.Queries.remove("query", driver, paramstring);
+  //   await KarmaFieldsAlpha.Database.Queries.remove("count", driver, paramstring);
+  //
+  // }
+  //
+  // static async saveAll() {
+  //
+  //   // const delta = KarmaFieldsAlpha.Store.Delta.get("items");
+  //   //
+  //   // if (delta) {
+  //   //
+  //   //   for (let driver in delta) {
+  //   //
+  //   //     for (let paramstring in delta[driver]) {
+  //   //
+  //   //       await this.save(driver, paramstring);
+  //   //
+  //   //     }
+  //   //
+  //   //   }
+  //   //
+  //   //   KarmaFieldsAlpha.Store.Delta.remove("items");
+  //   //
+  //   // }
+  //   //
+  //   // KarmaFieldsAlpha.Store.remove("items");
+  //
+  // }
 
-      const data = Object.fromEntries(entries);
+  // static remove(driver, paramstring, index = 0, length = 999999) {
+  //
+  //   // const items = KarmaFieldsAlpha.Store.Delta.get("items", driver, paramstring) || [];
+  //   // const clones = [...items];
+  //   //
+  //   // const data = clones.splice(index, length).filter(row => row.id).map(row => ({...row, trash: ["1"]}));
+  //   //
+  //   // KarmaFieldsAlpha.Store.Delta.set(clones, "items", driver, paramstring);
+  //   //
+  //   // await KarmaFieldsAlpha.HTTP.post(`sync/${driver}`, data);
+  //   //
+  //   // await KarmaFieldsAlpha.Database.Queries.remove("query", driver, paramstring);
+  //   // await KarmaFieldsAlpha.Database.Queries.remove("count", driver, paramstring);
+  //
+  //   const clones = [...query.toArray()];
+  //
+  //   const data = clones.splice(index, length); //.map(row => ({id: row.id, trash: ["1"]}));
+  //
+  //   KarmaFieldsAlpha.Store.Delta.set(clones, "items", query.driver, query.paramstring);
+  //
+  //   const deletedIds = KarmaFieldsAlpha.Store.Delta.get("trash", query.driver) || [];
+  //
+  //   deletedIds = [...deletedIds, data.filter(item => item.id).map(item => item.id)];
+  //
+  //   KarmaFieldsAlpha.Store.Delta.set(deletedIds, "trash", query.driver);
+  //
+  // }
 
-      // await KarmaFieldsAlpha.Remote.update(data, driver, id);
+  static delta() {
 
-      KarmaFieldsAlpha.Store.assign(data, "vars", driver, id);
+    const delta = KarmaFieldsAlpha.Store.Delta.get("items");
 
-  		await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
+    if (delta) {
 
-      KarmaFieldsAlpha.Store.Delta.set(data, driver, id);
+      for (let driver in delta) {
+
+        for (let paramstring in delta[driver]) {
+
+          for (let item of delta[driver][paramstring]) {
+
+            if (item.id) {
+
+              if (item.delta) {
+
+                for (let key in item) {
+
+                  const remote = KarmaFieldsAlpha.Store.get("vars", "remote", driver, item.id, key);
+
+                  if (!KarmaFieldsAlpha.DeepObject.equal(item.delta[key], remote)) {
+
+                    return true;
+
+                  }
+
+                }
+
+              }
+
+            } else {
+
+              return true;
+
+            }
+
+          }
+
+        }
+
+      }
 
     }
 
+    const trash = KarmaFieldsAlpha.Store.Delta.get("trash");
+
+    if (trash) {
+
+      for (let driver in trash) {
+
+        if (trash[driver] && trash[driver].length) {
+
+          return true;
+
+        }
+
+      }
+
+    }
+
+    return false;
   }
 
-
-
-  // static cacheResults(driver, results) {
+  // static async fetchQuery(driver, paramstring) {
   //
-  //   const idAlias = this.getAlias(driver, "id");
+  //   const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
   //
-  //   for (let item of results) {
+  //   const items = this.createQuery(results, driver);
   //
-  //     const id = item[idAlias].toString();
+  //   await KarmaFieldsAlpha.Database.Queries.set(items, "query", driver, paramstring);
   //
-  //     for (let key in item) {
+  //   const dataset = this.createQueryDataset(results, driver);
   //
-  //       const value = KarmaFieldsAlpha.Type.toArray(item[key]);
+  //   await KarmaFieldsAlpha.Database.Vars.set(dataset, driver);
   //
-  //       // KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
+  //   for (let id in dataset) {
   //
+  //     for (let key in dataset[id]) {
   //
-  //       await KarmaFieldsAlpha.Database.Vars.set(value, driver, id, key);
-  //
-  //
+  //       KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
   //
   //     }
   //
   //     KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
   //
-  //     KarmaFieldsAlpha.Store.set([], "vars", driver, id, "trash");
+  //   }
+  //
+  //   return items;
+  // }
+
+  // static async writeData(driver, dataset, ...path) {
+  //
+  //   for (let id in dataset) {
+  //
+  //     for (let key in dataset[id]) {
+  //
+  //       KarmaFieldsAlpha.Store.set(dataset[id][key], ...path, "vars", driver, id, key);
+  //
+  //     }
   //
   //   }
   //
   // }
+
+
+  static getQuery(driver, paramstring) {
+
+    const query = new KarmaFieldsAlpha.Content();
+
+    query.driver = driver;
+    query.paramstring = paramstring;
+
+    query.value = KarmaFieldsAlpha.Store.get("items", "remote", driver, paramstring);
+
+    if (!query.value) {
+
+      let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "query" && task.driver === driver && task.paramstring === paramstring);
+
+      if (!task) {
+
+        task = new KarmaFieldsAlpha.Task.QueryRemoteItems(driver, paramstring);
+
+        KarmaFieldsAlpha.Store.Tasks.add(task);
+
+      }
+
+      query.value = KarmaFieldsAlpha.Store.get("items", "cache", driver, paramstring);
+
+      if (query.value) {
+
+        query.cache = true;
+
+      } else {
+
+        task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "database-query" && task.driver === driver && task.paramstring === paramstring);
+
+        if (!task) {
+
+          task = new KarmaFieldsAlpha.Task.QueryCacheItems(driver, paramstring);
+
+          KarmaFieldsAlpha.Store.Tasks.add(task);
+
+        }
+
+        query.loading = true;
+
+      }
+
+    }
+
+    return query;
+  }
+
+  static getValue(driver, id, key) {
+
+    const content = new KarmaFieldsAlpha.Content();
+
+    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+
+    content.value = KarmaFieldsAlpha.Store.get("vars", "remote", driver, id, key);
+
+    if (!content.value) { // -> create a task to fetch it
+
+      const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, "remote", id);
+
+      if (attempt) {
+
+        // let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "vars" && task.driver === driver && task.attempt === attempt);
+        let task = KarmaFieldsAlpha.Task.find(task => task.type === "vars" && task.driver === driver && task.attempt === attempt);
+
+        if (!task) {
+
+          task = new KarmaFieldsAlpha.Task.QueryRemoteValue(driver, attempt);
+
+          KarmaFieldsAlpha.Store.Tasks.add(task);
+
+        }
+
+        task.ids.add(id);
+
+      } else { // -> not found
+
+        query.notFound = true;
+
+        KarmaFieldsAlpha.Store.set([], "vars", "remote", driver, id, key);
+
+      }
+
+      content.value = KarmaFieldsAlpha.Store.get("vars", "cache", driver, id, key);
+
+      if (content.value) {
+
+        content.cache = true;
+
+      } else {
+
+        const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id, "cache");
+
+        if (attempt) {
+
+          let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "cache-vars" && task.driver === driver && task.attempt === attempt);
+
+          if (!task) {
+
+            task = new KarmaFieldsAlpha.Task.QueryCacheValue(driver, attempt);
+
+            KarmaFieldsAlpha.Store.Tasks.add(task);
+
+          }
+
+          task.ids.add(id);
+
+        } else { // no more attempts -> not found
+
+          KarmaFieldsAlpha.Store.set([], "vars", "cache", driver, id, key);
+
+        }
+
+        content.loading = true;
+
+      }
+
+
+    }
+
+    return content;
+
+  }
+
 
 }
 
@@ -1312,107 +1662,116 @@ KarmaFieldsAlpha.Driver = class {
 
 KarmaFieldsAlpha.Content.Query = class extends KarmaFieldsAlpha.Content {
 
+  // compat
   constructor(driver, params) {
-
-    super();
-
     this.driver = driver;
     this.params = params;
-
-    // const paramstring = KarmaFieldsAlpha.Params.stringify({
-    //   page: 1,
-    //   ppp: 100,
-    //   ...params
-    // });
-
     const paramstring = KarmaFieldsAlpha.Params.stringify(params);
-
-    this.paramstring = paramstring;
-
-    let query = KarmaFieldsAlpha.Store.get("items", driver, paramstring);
-    const delta = KarmaFieldsAlpha.Store.Delta.get("items", driver, paramstring);
-    // const diff = KarmaFieldsAlpha.Store.get("diffItems", driver, paramstring);
-
-    this.value = delta || query;
-    this.loading = !this.value;
-    this.diff = KarmaFieldsAlpha.Store.get("diff", "items", driver, paramstring);
-    this.warning = Boolean(delta && this.diff);
-
-    if (!this.value) {
-
-      let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "query" && task.driver === driver && task.paramstring === paramstring);
-
-      if (!task) {
-
-        KarmaFieldsAlpha.Store.Tasks.add({
-          name: `Loading Data`,
-          type: "query",
-          driver: driver,
-          paramstring: paramstring,
-          resolve: async task => {
-
-            query = await KarmaFieldsAlpha.Database.Queries.get("query", driver, paramstring);
-
-            if (query) {
-
-              // KarmaFieldsAlpha.Driver.verifyResults(driver, paramstring);
-              KarmaFieldsAlpha.Driver.verify(driver, paramstring);
-
-              // KarmaFieldsAlpha.Store.set(query, "items", driver, paramstring);
-
-              // KarmaFieldsAlpha.Driver.parseQuery(query, driver, paramstring);
-
-            } else {
-
-              const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
-
-              // await KarmaFieldsAlpha.Database.Queries.set(query, "query", driver, paramstring);
-
-              // const data = KarmaFieldsAlpha.Driver.createQueryDataset(query);
-              //
-              // await KarmaFieldsAlpha.Database.Vars.set(data, driver);
-
-              // KarmaFieldsAlpha.Driver.parseResults(driver, results);
-
-
-              query = KarmaFieldsAlpha.Driver.createQuery(results, driver);
-
-              // KarmaFieldsAlpha.Store.set(query, "items", driver, paramstring);
-
-              // query = KarmaFieldsAlpha.Driver.parseResults(driver, results, paramstring);
-
-              await KarmaFieldsAlpha.Database.Queries.set(query, "query", driver, paramstring);
-
-              const dataset = KarmaFieldsAlpha.Driver.createQueryDataset(results, driver);
-
-              await KarmaFieldsAlpha.Database.Vars.set(dataset, driver);
-
-              for (let id in dataset) {
-
-                for (let key in dataset[id]) {
-
-                  KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
-                  KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
-
-                }
-
-                KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
-
-              }
-
-            }
-
-            KarmaFieldsAlpha.Store.set(query, "items", driver, paramstring);
-
-          }
-
-        });
-
-      }
-
-    }
-
+    const content = KarmaFieldsAlpha.Driver.getQuery(driver, paramstring);
+    Object.assign(this, content);
   }
+
+  // constructor(driver, params) {
+  //
+  //   super();
+  //
+  //   this.driver = driver;
+  //   this.params = params;
+  //
+  //   // const paramstring = KarmaFieldsAlpha.Params.stringify({
+  //   //   page: 1,
+  //   //   ppp: 100,
+  //   //   ...params
+  //   // });
+  //
+  //   const paramstring = KarmaFieldsAlpha.Params.stringify(params);
+  //
+  //   this.paramstring = paramstring;
+  //
+  //   let query = KarmaFieldsAlpha.Store.get("items", driver, paramstring);
+  //   const delta = KarmaFieldsAlpha.Store.Delta.get("items", driver, paramstring);
+  //   // const diff = KarmaFieldsAlpha.Store.get("diffItems", driver, paramstring);
+  //
+  //   this.value = delta || query;
+  //   this.loading = !this.value;
+  //   this.diff = KarmaFieldsAlpha.Store.get("diff", "items", driver, paramstring);
+  //   this.warning = Boolean(delta && this.diff);
+  //
+  //   if (!this.value) {
+  //
+  //     let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "query" && task.driver === driver && task.paramstring === paramstring);
+  //
+  //     if (!task) {
+  //
+  //       KarmaFieldsAlpha.Store.Tasks.add({
+  //         name: `Loading Data`,
+  //         type: "query",
+  //         driver: driver,
+  //         paramstring: paramstring,
+  //         resolve: async task => {
+  //
+  //           query = await KarmaFieldsAlpha.Database.Queries.get("query", driver, paramstring);
+  //
+  //           if (query) {
+  //
+  //             // KarmaFieldsAlpha.Driver.verifyResults(driver, paramstring);
+  //             KarmaFieldsAlpha.Driver.verify(driver, paramstring);
+  //
+  //             // KarmaFieldsAlpha.Store.set(query, "items", driver, paramstring);
+  //
+  //             // KarmaFieldsAlpha.Driver.parseQuery(query, driver, paramstring);
+  //
+  //           } else {
+  //
+  //             const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}${paramstring ? `?${paramstring}` : ""}`);
+  //
+  //             // await KarmaFieldsAlpha.Database.Queries.set(query, "query", driver, paramstring);
+  //
+  //             // const data = KarmaFieldsAlpha.Driver.createQueryDataset(query);
+  //             //
+  //             // await KarmaFieldsAlpha.Database.Vars.set(data, driver);
+  //
+  //             // KarmaFieldsAlpha.Driver.parseResults(driver, results);
+  //
+  //
+  //             query = KarmaFieldsAlpha.Driver.createQuery(results, driver);
+  //
+  //             // KarmaFieldsAlpha.Store.set(query, "items", driver, paramstring);
+  //
+  //             // query = KarmaFieldsAlpha.Driver.parseResults(driver, results, paramstring);
+  //
+  //             await KarmaFieldsAlpha.Database.Queries.set(query, "query", driver, paramstring);
+  //
+  //             const dataset = KarmaFieldsAlpha.Driver.createQueryDataset(results, driver);
+  //
+  //             await KarmaFieldsAlpha.Database.Vars.set(dataset, driver);
+  //
+  //             for (let id in dataset) {
+  //
+  //               for (let key in dataset[id]) {
+  //
+  //                 KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
+  //                 KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
+  //
+  //               }
+  //
+  //               KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
+  //
+  //             }
+  //
+  //           }
+  //
+  //           KarmaFieldsAlpha.Store.set(query, "items", driver, paramstring);
+  //
+  //         }
+  //
+  //       });
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
   // static getAlias(driver, key) {
   //
@@ -1526,9 +1885,9 @@ KarmaFieldsAlpha.Content.Query = class extends KarmaFieldsAlpha.Content {
 
       // KarmaFieldsAlpha.Store.remove("counts", this.driver);
 
-      await KarmaFieldsAlpha.Database.Queries.remove(this.driver); // -> actually just need to remove count...
-
-      await KarmaFieldsAlpha.Database.Queries.set(items, "query", this.driver, this.paramstring);
+      // await KarmaFieldsAlpha.Database.Queries.remove(this.driver); // -> actually just need to remove count...
+      //
+      // await KarmaFieldsAlpha.Database.Queries.set(items, "query", this.driver, this.paramstring);
 
       // KarmaFieldsAlpha.Store.Delta.set(length, "count", this.driver, this.paramstring);
 
@@ -1808,291 +2167,299 @@ KarmaFieldsAlpha.Content.Query = class extends KarmaFieldsAlpha.Content {
 
 KarmaFieldsAlpha.Content.Value = class extends KarmaFieldsAlpha.Content {
 
+  // compat
   constructor(driver, id, key) {
-
-    super();
-
-    this.driver = driver;
-    this.id = id;
-    this.key = key;
-
-    this.fetch();
-
+    const content = KarmaFieldsAlpha.Driver.getValue(driver, id, key);
+    Object.assign(this, content);
   }
 
-  fetch() {
 
-    let driver = this.driver;
-    let id = this.id;
-    let key = this.key;
-
-    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
-
-    const delta = KarmaFieldsAlpha.Store.Delta.get("vars", driver, id, key);
-    const value = KarmaFieldsAlpha.Store.get("vars", driver, id, key);
-    // const diff = KarmaFieldsAlpha.Store.get("diffVars", driver, id, key);
-
-    this.value = delta || value;
-    this.modified = delta && KarmaFieldsAlpha.DeepObject.differ(delta, value);
-    this.diff = KarmaFieldsAlpha.Store.get("diff", "vars", driver, id, key);
-    this.warning = Boolean(delta && this.diff);
-    this.loading = !value;
-
-    if (!id) {
-      console.log(driver, id, key);
-      console.trace();
-    }
-
-    if (!value) { // -> create a task to fetch it
-
-      const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id);
-
-      if (attempt) {
-
-        let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "vars" && task.driver === driver && task.attempt === attempt);
-
-        if (!task) {
-
-          task = {
-            name: `Loading Content...`,
-            type: "vars",
-            driver: driver,
-            ids: new Set(),
-            attempt: attempt,
-            resolve: async task => {
-
-              const data = await KarmaFieldsAlpha.Database.Vars.get(driver);
-
-              if (data && data[id] && data[id][key]) {
-
-                for (let id of task.ids) {
-
-                  KarmaFieldsAlpha.Store.assign(data[id], "vars", driver, id);
-
-                  KarmaFieldsAlpha.Driver.verify(driver, null, id);
-
-                }
-
-              } else if (attempt === "query") {
-
-                const paramstring = `ids=${[...task.ids].join(",")}`;
-
-                const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}?${paramstring}`);
-
-                const dataset = KarmaFieldsAlpha.Driver.createQueryDataset(results, driver);
-
-                await KarmaFieldsAlpha.Database.Vars.set(dataset, driver);
-
-                for (let id in dataset) {
-
-                  for (let key in dataset[id]) {
-
-                    KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
-                    KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
-
-                  }
-
-                }
-
-                for (let id of task.ids) {
-
-                  KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
-
-                }
-
-              } else {
-
-                const paramstring = `ids=${[...task.ids].join(",")}`;
-
-                const relations = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${attempt}?${paramstring}`);
-
-                const dataset = KarmaFieldsAlpha.Driver.createRelationDataset(relations);
-
-                await KarmaFieldsAlpha.Database.Vars.set(dataset, driver);
-
-                for (let id in dataset) {
-
-                  for (let key in dataset[id]) {
-
-                    KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
-                    KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
-
-                  }
-
-                }
-
-                for (let id of task.ids) {
-
-                  KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, attempt);
-
-                }
-
-              }
-
-            }
-
-          };
-
-          KarmaFieldsAlpha.Store.Tasks.add(task);
-
-        }
-
-        task.ids.add(id);
-
-      } else { // -> not found
-
-        // value = [];
-        this.loading = false;
-        this.notFound = true;
-
-        KarmaFieldsAlpha.Store.set([], "vars", driver, id, key);
-
-        let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "varnotfound" && task.driver === driver);
-
-        if (!task) {
-
-          task = {
-            type: "varnotfound",
-            driver: driver,
-            data: {},
-            resolve: async task => {
-              await KarmaFieldsAlpha.Database.Vars.set(task.data, task.driver);
-            }
-          };
-
-          KarmaFieldsAlpha.Store.Tasks.add(task);
-
-        }
-
-        KarmaFieldsAlpha.DeepObject.set(task.data, [], id, key);
-
-      }
-
-    } else {
-
-      // KarmaFieldsAlpha.Driver.verify(driver, null, id);
-
-    }
-
-
-
-    // } else if (!KarmaFieldsAlpha.Store.get("verifiedVars", driver, id, key)) {
-    //
-    //   const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id);
-    //
-    //   if (attempt) {
-    //
-    //     let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "verify-vars" && task.driver === driver && task.attempt === attempt);
-    //
-    //     if (!task) {
-    //
-    //       task = {
-    //         name: `Loading Content...`,
-    //         type: "verify-vars",
-    //         driver: driver,
-    //         ids: new Set(),
-    //         priority: -1,
-    //         attempt: attempt,
-    //         resolve: async task => {
-    //
-    //           if (attempt === "query") {
-    //
-    //             const paramstring = `ids=${[...task.ids].join(",")}`;
-    //
-    //             const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}?${paramstring}`);
-    //
-    //             const dataset = KarmaFieldsAlpha.Driver.createQueryDataset(results, driver);
-    //
-    //             for (let id in dataset) {
-    //
-    //               for (let key in dataset[id]) {
-    //
-    //                 const localValue = KarmaFieldsAlpha.Store.get("var", driver, id, key);
-    //                 const remoteValue = dataset[id][key];
-    //
-    //                 if (!KarmaFieldsAlpha.DeepObject.compare(remoteValue, localValue)) {
-    //
-    //                   KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
-    //                   KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
-    //
-    //                   await KarmaFieldsAlpha.Database.Vars.set(dataset[id][key], driver, id, key);
-    //
-    //                 }
-    //
-    //                 KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
-    //
-    //               }
-    //
-    //             }
-    //
-    //             for (let id of task.ids) {
-    //
-    //               KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, attempt);
-    //
-    //             }
-    //
-    //           } else if (attempt) {
-    //
-    //             const paramstring = `ids=${[...task.ids].join(",")}`;
-    //
-    //             const relations = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${attempt}?${paramstring}`);
-    //
-    //             const dataset = KarmaFieldsAlpha.Driver.createRelationDataset(relations);
-    //
-    //             for (let id in dataset) {
-    //
-    //               for (let key in dataset[id]) {
-    //
-    //                 const localValue = KarmaFieldsAlpha.Store.get("var", driver, id, key);
-    //                 const remoteValue = dataset[id][key];
-    //
-    //                 if (!KarmaFieldsAlpha.DeepObject.compare(remoteValue, localValue)) {
-    //
-    //                   KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
-    //                   KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
-    //
-    //                   await KarmaFieldsAlpha.Database.Vars.set(dataset[id][key], driver, id, key);
-    //
-    //                 }
-    //
-    //                 KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
-    //
-    //               }
-    //
-    //             }
-    //
-    //             for (let id of task.ids) {
-    //
-    //               KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, attempt);
-    //
-    //             }
-    //
-    //           }
-    //
-    //         }
-    //       }
-    //
-    //       KarmaFieldsAlpha.Store.Tasks.add(task);
-    //
-    //     }
-    //
-    //     task.ids.add(id);
-    //
-    //   } else { // not found -> consider as empty
-    //
-    //     KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
-    //
-    //     if (!KarmaFieldsAlpha.DeepObject.compare(value, [])) {
-    //
-    //       KarmaFieldsAlpha.Store.set([], "vars", driver, id, key);
-    //       KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
-    //
-    //     }
-    //
-    //   }
-
-
-  }
+  //
+  // constructor(driver, id, key) {
+  //
+  //   super();
+  //
+  //   this.driver = driver;
+  //   this.id = id;
+  //   this.key = key;
+  //
+  //   this.fetch();
+  //
+  // }
+  //
+  // fetch() {
+  //
+  //   let driver = this.driver;
+  //   let id = this.id;
+  //   let key = this.key;
+  //
+  //   key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+  //
+  //   const delta = KarmaFieldsAlpha.Store.Delta.get("vars", driver, id, key);
+  //   const value = KarmaFieldsAlpha.Store.get("vars", driver, id, key);
+  //   // const diff = KarmaFieldsAlpha.Store.get("diffVars", driver, id, key);
+  //
+  //   this.value = delta || value;
+  //   this.modified = delta && KarmaFieldsAlpha.DeepObject.differ(delta, value);
+  //   this.diff = KarmaFieldsAlpha.Store.get("diff", "vars", driver, id, key);
+  //   this.warning = Boolean(delta && this.diff);
+  //   this.loading = !value;
+  //
+  //   if (!id) {
+  //     console.log(driver, id, key);
+  //     console.trace();
+  //   }
+  //
+  //   if (!value) { // -> create a task to fetch it
+  //
+  //     const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id);
+  //
+  //     if (attempt) {
+  //
+  //       let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "vars" && task.driver === driver && task.attempt === attempt);
+  //
+  //       if (!task) {
+  //
+  //         task = {
+  //           name: `Loading Content...`,
+  //           type: "vars",
+  //           driver: driver,
+  //           ids: new Set(),
+  //           attempt: attempt,
+  //           resolve: async task => {
+  //
+  //             const data = await KarmaFieldsAlpha.Database.Vars.get(driver);
+  //
+  //             if (data && data[id] && data[id][key]) {
+  //
+  //               for (let id of task.ids) {
+  //
+  //                 KarmaFieldsAlpha.Store.assign(data[id], "vars", driver, id);
+  //
+  //                 KarmaFieldsAlpha.Driver.verify(driver, null, id);
+  //
+  //               }
+  //
+  //             } else if (attempt === "query") {
+  //
+  //               const paramstring = `ids=${[...task.ids].join(",")}`;
+  //
+  //               const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}?${paramstring}`);
+  //
+  //               const dataset = KarmaFieldsAlpha.Driver.createQueryDataset(results, driver);
+  //
+  //               await KarmaFieldsAlpha.Database.Vars.set(dataset, driver);
+  //
+  //               for (let id in dataset) {
+  //
+  //                 for (let key in dataset[id]) {
+  //
+  //                   KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
+  //                   KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
+  //
+  //                 }
+  //
+  //               }
+  //
+  //               for (let id of task.ids) {
+  //
+  //                 KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, "query");
+  //
+  //               }
+  //
+  //             } else {
+  //
+  //               const paramstring = `ids=${[...task.ids].join(",")}`;
+  //
+  //               const relations = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${attempt}?${paramstring}`);
+  //
+  //               const dataset = KarmaFieldsAlpha.Driver.createRelationDataset(relations);
+  //
+  //               await KarmaFieldsAlpha.Database.Vars.set(dataset, driver);
+  //
+  //               for (let id in dataset) {
+  //
+  //                 for (let key in dataset[id]) {
+  //
+  //                   KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
+  //                   KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
+  //
+  //                 }
+  //
+  //               }
+  //
+  //               for (let id of task.ids) {
+  //
+  //                 KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, attempt);
+  //
+  //               }
+  //
+  //             }
+  //
+  //           }
+  //
+  //         };
+  //
+  //         KarmaFieldsAlpha.Store.Tasks.add(task);
+  //
+  //       }
+  //
+  //       task.ids.add(id);
+  //
+  //     } else { // -> not found
+  //
+  //       // value = [];
+  //       this.loading = false;
+  //       this.notFound = true;
+  //
+  //       KarmaFieldsAlpha.Store.set([], "vars", driver, id, key);
+  //
+  //       let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "varnotfound" && task.driver === driver);
+  //
+  //       if (!task) {
+  //
+  //         task = {
+  //           type: "varnotfound",
+  //           driver: driver,
+  //           data: {},
+  //           resolve: async task => {
+  //             await KarmaFieldsAlpha.Database.Vars.set(task.data, task.driver);
+  //           }
+  //         };
+  //
+  //         KarmaFieldsAlpha.Store.Tasks.add(task);
+  //
+  //       }
+  //
+  //       KarmaFieldsAlpha.DeepObject.set(task.data, [], id, key);
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     // KarmaFieldsAlpha.Driver.verify(driver, null, id);
+  //
+  //   }
+  //
+  //
+  //
+  //   // } else if (!KarmaFieldsAlpha.Store.get("verifiedVars", driver, id, key)) {
+  //   //
+  //   //   const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id);
+  //   //
+  //   //   if (attempt) {
+  //   //
+  //   //     let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "verify-vars" && task.driver === driver && task.attempt === attempt);
+  //   //
+  //   //     if (!task) {
+  //   //
+  //   //       task = {
+  //   //         name: `Loading Content...`,
+  //   //         type: "verify-vars",
+  //   //         driver: driver,
+  //   //         ids: new Set(),
+  //   //         priority: -1,
+  //   //         attempt: attempt,
+  //   //         resolve: async task => {
+  //   //
+  //   //           if (attempt === "query") {
+  //   //
+  //   //             const paramstring = `ids=${[...task.ids].join(",")}`;
+  //   //
+  //   //             const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}?${paramstring}`);
+  //   //
+  //   //             const dataset = KarmaFieldsAlpha.Driver.createQueryDataset(results, driver);
+  //   //
+  //   //             for (let id in dataset) {
+  //   //
+  //   //               for (let key in dataset[id]) {
+  //   //
+  //   //                 const localValue = KarmaFieldsAlpha.Store.get("var", driver, id, key);
+  //   //                 const remoteValue = dataset[id][key];
+  //   //
+  //   //                 if (!KarmaFieldsAlpha.DeepObject.compare(remoteValue, localValue)) {
+  //   //
+  //   //                   KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
+  //   //                   KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
+  //   //
+  //   //                   await KarmaFieldsAlpha.Database.Vars.set(dataset[id][key], driver, id, key);
+  //   //
+  //   //                 }
+  //   //
+  //   //                 KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
+  //   //
+  //   //               }
+  //   //
+  //   //             }
+  //   //
+  //   //             for (let id of task.ids) {
+  //   //
+  //   //               KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, attempt);
+  //   //
+  //   //             }
+  //   //
+  //   //           } else if (attempt) {
+  //   //
+  //   //             const paramstring = `ids=${[...task.ids].join(",")}`;
+  //   //
+  //   //             const relations = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${attempt}?${paramstring}`);
+  //   //
+  //   //             const dataset = KarmaFieldsAlpha.Driver.createRelationDataset(relations);
+  //   //
+  //   //             for (let id in dataset) {
+  //   //
+  //   //               for (let key in dataset[id]) {
+  //   //
+  //   //                 const localValue = KarmaFieldsAlpha.Store.get("var", driver, id, key);
+  //   //                 const remoteValue = dataset[id][key];
+  //   //
+  //   //                 if (!KarmaFieldsAlpha.DeepObject.compare(remoteValue, localValue)) {
+  //   //
+  //   //                   KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", driver, id, key);
+  //   //                   KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
+  //   //
+  //   //                   await KarmaFieldsAlpha.Database.Vars.set(dataset[id][key], driver, id, key);
+  //   //
+  //   //                 }
+  //   //
+  //   //                 KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
+  //   //
+  //   //               }
+  //   //
+  //   //             }
+  //   //
+  //   //             for (let id of task.ids) {
+  //   //
+  //   //               KarmaFieldsAlpha.Store.set(true, "attempts", driver, id, attempt);
+  //   //
+  //   //             }
+  //   //
+  //   //           }
+  //   //
+  //   //         }
+  //   //       }
+  //   //
+  //   //       KarmaFieldsAlpha.Store.Tasks.add(task);
+  //   //
+  //   //     }
+  //   //
+  //   //     task.ids.add(id);
+  //   //
+  //   //   } else { // not found -> consider as empty
+  //   //
+  //   //     KarmaFieldsAlpha.Store.set(true, "verifiedVars", driver, id, key);
+  //   //
+  //   //     if (!KarmaFieldsAlpha.DeepObject.compare(value, [])) {
+  //   //
+  //   //       KarmaFieldsAlpha.Store.set([], "vars", driver, id, key);
+  //   //       KarmaFieldsAlpha.Store.set(true, "diff", "vars", driver, id, key);
+  //   //
+  //   //     }
+  //   //
+  //   //   }
+  //
+  //
+  // }
 
   update(value) {
 

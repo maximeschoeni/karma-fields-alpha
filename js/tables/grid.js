@@ -1,6 +1,17 @@
 
 KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
+
+  constructor(resource) {
+
+    super(resource);
+
+    // this.query = this.queryItems();
+
+
+  }
+
+
   getDriver() {
 
     if (!this.resource.driver) {
@@ -13,17 +24,98 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  getQuery() {
+
+    // return this.query;
+
+    return this.queryItems();
+
+  }
+
+  queryItems() {
+
+    const params = this.getParams();
+    const driver = this.getDriver();
+
+    // console.log(driver, params);
+
+    const query = new KarmaFieldsAlpha.Content();
+
+    // query.driver = driver;
+
+    if (params.loading) {
+
+      query.loading = true;
+
+    } else {
+
+      const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+
+      return KarmaFieldsAlpha.Driver.getQuery(driver, paramstring);
+
+      // query.paramstring = paramstring;
+      //
+      // query.value = KarmaFieldsAlpha.Store.Delta.get("items", driver, paramstring);
+      //
+      // if (query.value) {
+      //
+      //   query.modified = true;
+      //
+      // } else {
+      //
+      //   query.value = KarmaFieldsAlpha.Store.get("items", driver, paramstring);
+      //
+      //   if (!query.value) {
+      //
+      //     query.loading = true;
+      //
+      //
+      //
+      //     let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "query" && task.driver === driver && task.paramstring === paramstring);
+      //
+      //     if (!task) {
+      //
+      //       KarmaFieldsAlpha.Store.Tasks.add({
+      //         name: `Loading Data`,
+      //         type: "query",
+      //         driver: driver,
+      //         paramstring: paramstring,
+      //         resolve: async task => {
+      //           const items = await KarmaFieldsAlpha.Driver.getItems(driver, paramstring);
+      //           KarmaFieldsAlpha.Store.set(items, "items", driver, paramstring);
+      //         }
+      //       });
+      //
+      //     }
+      //
+      //   }
+      //
+      // }
+
+    }
+
+    return query;
+
+  }
+
   getContent(index, key) {
 
-    const driver = this.getDriver();
-    const query = this.getItems();
-    const items = query.toArray();
+    // const driver = this.getDriver();
+    // const query = this.getItems();
+    // const items = query.toArray();
+
+    const content = new KarmaFieldsAlpha.Content();
+
+    debugger;
+    const query = this.getQuery();
 
     if (query.loading) {
 
-      return  new KarmaFieldsAlpha.Content.Request();
+      // return  new KarmaFieldsAlpha.Content.Request();
 
-    } else if (index === "modal") {
+      content.loading = true;
+
+    } else if (index === "modal" || index === "*") {
 
 
 
@@ -33,9 +125,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       if (length > 1) {
 
-        const slice = items.slice(index, index + length);
+        const slice = query.toArray().slice(index, index + length);
         const contents = slice.map((item, i) => this.getContent(index + i, key));
-        const content = new KarmaFieldsAlpha.Content();
+        // const content = new KarmaFieldsAlpha.Content();
 
         if (contents.some(content => content.loading)) {
 
@@ -53,7 +145,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
         }
 
-        return content;
+        // return content;
 
       } else if (length === 1) {
 
@@ -61,69 +153,61 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       }
 
-    } else if (items[index]) {
+    } else {
 
-      if (items[index][key] !== undefined) {
+      key = KarmaFieldsAlpha.Driver.getAlias(query.driver, key);
 
-        return new KarmaFieldsAlpha.Content(items[index][key]);
+      const items = query.toArray();
+
+      if (!items[index]) {
+
+        content.outOfBounds = true;
+
+      } else if (key === "id" && items[index].id) { // id or name
+
+        content.value = items[index].id;
+
+      } else if (items[index].delta && items[index].delta[key]) { // id or name
+
+        content.value = items[index].delta[key];
+
+        content.modified = true;
 
       } else if (items[index].id) {
 
-        // if (key === "id") {
+        // const value = new KarmaFieldsAlpha.Content.Value(query.driver, items[index].id, key);
         //
-        //   return new KarmaFieldsAlpha.Content(items[index].id);
-        //
-        // } else {
+        // return value;
 
-          const value = new KarmaFieldsAlpha.Content.Value(driver, items[index].id, key);
+        return KarmaFieldsAlpha.Driver.getValue(query.driver, items[index].id, key);
 
-          return value;
+      } else {
 
-        // }
+        content.loading = true;
 
-      } else if (items[index].token) {
-
-        const value = KarmaFieldsAlpha.Store.get("tokens", driver, items[index].token, key);
-
-        return new KarmaFieldsAlpha.Content(value);
-
-        // let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.token === items[index].token);
-        //
-        // if (task) {
-        //
-        //   const value = KarmaFieldsAlpha.DeepObject.get(task, key, "delta");
-        //
-        //   return new KarmaFieldsAlpha.Content(value);
-        //
-        // } else {
-        //
-        //   return  new KarmaFieldsAlpha.Content.Request();
-        //
-        //   // console.error("No task!!??");
-        //
-        // }
+        console.warn("getting value from item without index", index, key);
 
       }
 
     }
 
-    return  new KarmaFieldsAlpha.Content.Request();
-
-    // return KarmaFieldsAlpha.Query.getValue(driver, ...path);
-
-    // return new KarmaFieldsAlpha.Content.Value(driver, id, key);
+    return content;
 
   }
 
   setContent(content, index, key) {
 
-    const driver = this.getDriver(key);
-    const query = this.getItems();
-    const items = query.toArray();
+    // const driver = this.getDriver(key);
+    const query = this.getQuery();
+    // const items = query.toArray();
 
-    if (!query.loading) {
+    if (query.loading) {
 
-      if (index === "modal") {
+      console.error("setting content while query not loaded!");
+
+    } else {
+
+      if (index === "modal" || index === "*") {
 
         const selection = this.getSelection();
         const index = selection.index || 0;
@@ -137,42 +221,23 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       } else {
 
-        key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+        key = KarmaFieldsAlpha.Driver.getAlias(query.driver, key);
+
+        const items = query.toArray();
 
         if (items[index]) {
 
-          if (items[index].id) {
+          const newItems = [...items];
 
-            const id = items[index].id;
-            const current = new KarmaFieldsAlpha.Content.Value(driver, id, key);
+          newItems[index] = {...items[index], [key]: content.toArray()};
 
-            if (!current.loading && !KarmaFieldsAlpha.DeepObject.equal(current.toArray(), content.toArray())) {
+          newItems[index].delta = {...items[index].delta, [key]: content.toArray()};
 
-              KarmaFieldsAlpha.Store.Delta.set(content.toArray(), "vars", driver, id, key);
+          KarmaFieldsAlpha.Store.Delta.set(newItems, "items", query.driver, query.paramstring);
 
-            }
+        } else {
 
-          } else if (items[index].token) {
-
-            // let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.token === this.resource.token);
-            //
-            // console.log("setContent", content.toArray(), index, key, task);
-            //
-            // if (task) {
-            //
-            //
-            //
-            //   KarmaFieldsAlpha.DeepObject.set(task, content.toArray(), key, "delta");
-            //
-            //   task.driver = driver;
-            //
-            // }
-
-            // KarmaFieldsAlpha.Store.set(content.toArray(), key, driver, items[index].token, "tokens", "delta");
-
-            KarmaFieldsAlpha.Store.set(content.toArray(), "tokens", driver, items[index].token, key);
-
-          }
+          console.error("index out of bounds", index, key);
 
         }
 
@@ -440,23 +505,10 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getQuery() {
 
-    const params = this.getParams();
-    const driver = this.getDriver();
-
-    if (params.loading) {
-
-      return new KarmaFieldsAlpha.Content.Request();
-
-    }
-
-    return new KarmaFieldsAlpha.Content.Query(driver, params.toObject());
-
-  }
 
   async setQuery(items) {
-
+console.error("deprecated");
     const driver = this.getDriver();
     const params = this.getParams();
 
@@ -494,6 +546,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   setItems(items) {
 
+    console.error("deprecated");
     return this.setQuery(items);
 
   }
@@ -502,24 +555,22 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   getItems() {
 
-    return this.getQuery();
+    console.error("deprecated");
 
-    // const content = new KarmaFieldsAlpha.Content();
-    //
-    // const query = this.getQuery();
-    //
-    // if (query.loading) {
-    //
-    //   content.loading = true;
-    //
-    // } else {
-    //
-    //   content.value = query.toItems();
-    //
-    // }
-    //
-    // return content;
+    const items = new KarmaFieldsAlpha.Content();
+    const query = this.getQuery();
 
+    if (query.loading) {
+
+      items.loading;
+
+    } else {
+
+      items.value = query.toArray().filter(item => !(new KarmaFieldsAlpha.Content(item.trash).toBoolean()));
+
+    }
+
+    return items;
   }
 
 
@@ -600,6 +651,7 @@ console.error("deprecated");
 
     const gridContent = new KarmaFieldsAlpha.Content.Grid();
 
+    // const query = this.getQuery();
     const query = this.getQuery();
 
     if (query.loading) {
@@ -644,6 +696,7 @@ console.error("deprecated");
 
   importIds(grid, ids) { // deprecated
 
+    console.error("deprecated");
     if (grid.value.length === ids.length) {
 
       const columns = this.getExportableColumns();
@@ -723,18 +776,18 @@ console.error("deprecated");
 
     } else {
 
-      const items = this.getItems();
-      const item = !items.loading && items.toArray()[index];
+      const query = this.getQuery();
+      // const item = !items.loading && items.toArray()[index];
 
-      if (item) {
+      if (!query.loading && index < query.toArray().length) {
 
         return this.createChild({
-          id: item.id,
+          // id: item.id,
           type: "row",
           children: this.resource.children,
-          loading: item.loading,
-          index: index
-        });
+          // loading: item.loading,
+          // index: index
+        }, index);
 
       }
 
@@ -744,15 +797,13 @@ console.error("deprecated");
 
   selectAll() {
 
-    const query = this.getItems();
+    const query = this.getQuery();
 
     if (!query.loading) {
 
-      const items = query.toArray();
-
       this.setSelection({
         index: 0,
-        length: items.length
+        length: query.toArray().length
       });
 
       this.request("render");
@@ -798,7 +849,7 @@ console.error("deprecated");
   }
 
   paste(value) {
-    debugger;
+
     const grid = new KarmaFieldsAlpha.Content.Grid(value);
 
     // const items = this.getItems();
@@ -974,13 +1025,13 @@ console.error("deprecated");
 
   getDefaultIndex() {
 
-    let index = this.resource.insertAt;
+    let index = this.resource.insertAt || this.resource.insertPosition;
 
     if (index === undefined) {
 
-      const query = this.getItems();
+      const items = this.getQuery();
 
-      index = query.toArray().length;
+      index = items.toArray().length;
 
     }
 
@@ -1001,135 +1052,238 @@ console.error("deprecated");
   }
 
 
-  addAt(index, length) {
+  addAt(index, length = 1) {
 
-    const query = this.getItems();
+    const query = this.getQuery();
+    const defaults = this.parse(this.resource.defaults || {});
+    const filters = this.getFilters();
 
-    if (query.loading) {
+    if (query.loading || defaults.loading || filters.loading) {
 
-      return;
+      // KarmaFieldsAlpha.Store.Tasks.add({
+      //   type: "addAt",
+      //   resolve: async task => this.addAt(length, position)
+      // });
 
-    }
+      this.createTask("addAt", length, position);
 
-    const tokens = [];
+    } else {
 
-    for (let i = 0; i < length; i++) {
+      let items = [...query.toArray()];
+      const params = {...filters.toObject(), ...defaults.toObject()};
+      const newItems = [];
 
-      const token = this.createToken();
+      for (let i = 0; i < length; i++) {
 
-      tokens.push(token);
+        newItems.push(params);
 
-    }
+      }
 
-    const items = [...query.toArray()];
+      items.splice(index, 0, ...newItems);
 
-    items.splice(index, 0, ...tokens.map(token => ({token})));
+      // if (this.resource.insertPosition === "end") {
+      //
+      //   items = [...query.toArray(), ...newItems];
+      //
+      //   items.sort((a, b) => new KarmaFieldsAlpha.Content(a.trash).toNumber() - new KarmaFieldsAlpha.Content(b.trash).toNumber());
+      //
+      // } else {
+      //
+      //   items = [...newItems, ...query.toArray()];
+      //
+      // }
 
-    // KarmaFieldsAlpha.Store.Delta.set(items, "items", query.driver, query.paramstring);
+      KarmaFieldsAlpha.Store.Delta.set(items, "items", query.driver, query.paramstring);
 
-    this.setItems(new KarmaFieldsAlpha.Content(items));
+      for (let i = 0; i < length; i++) {
 
-    // const params = {...filters.toObject(), ...defaults.toObject()};
+        const field = this.createChild({
+          type: "row",
+          children: this.resource.children,
+        }, index + i);
 
-    for (let i = 0; i < length; i++) {
+        field.create();
 
-      // this.add(tokens[i], params);
+        if (this.resource.modal) {
 
-      KarmaFieldsAlpha.Store.Tasks.add({
-        resolve: async task => {
+          const field = this.createChild({
+            type: "row",
+            children: this.resource.modal.children,
+          }, index + i);
 
-          const defaults = this.parse(this.resource.defaults || {});
-          const filters = this.getFilters();
+          field.create();
 
-          if (defaults.loading || filters.loading || query.loading) {
+        }
 
-            KarmaFieldsAlpha.Store.Tasks.add(task);
+      }
 
-          } else {
+      // -> save
 
-            const params = {...filters.toObject(), ...defaults.toObject()};
+      // const deltaItems = KarmaFieldsAlpha.Store.Delta.get("items", driver, paramstring);
+      //
+      // const data = deltaItems.slice(index, index + length);
+      //
+      // // await KarmaFieldsAlpha.HTTP.post(`sync/${driver}`, data);
+      //
+      // for (let row of data) {
+      //
+      //   for (let key in row) {
+      //
+      //     KarmaFieldsAlpha.Store.set(row[key], "vars", driver, row.id, key);
+      //
+      //   }
+      //
+      // }
+      //
+      // await KarmaFieldsAlpha.Database.Queries.remove("query", driver, paramstring);
+      // await KarmaFieldsAlpha.Database.Queries.remove("count", driver, paramstring);
+      //
+      //
+      // KarmaFieldsAlpha.Driver.save(query.driver, query.paramstring, index, length);
 
-            if (!task.id) {
-
-              task.id = await this.createItem(params);
-
-            }
-
-            const query = this.getItems();
-
-            if (query.loading) {
-
-              KarmaFieldsAlpha.Store.Tasks.add(task);
-
-            } else {
-
-              let index = query.toArray().findIndex(item => item.token === task.token);
-
-              // const newQuery = new KarmaFieldsAlpha.Content(query.toArray().map(item => {
-              //
-              //   if (item.token === task.token) {
-              //
-              //     return {id: task.id, name: "[new Item]"};
-              //
-              //   }
-              //
-              //   return item;
-              // }));
-
-              if (index > -1) {
-
-                const newQuery = new KarmaFieldsAlpha.Content(query.toArray().slice());
-
-                newQuery.value[index] = {id: task.id, name: "[new Item]"};
-
-                await this.setItems(newQuery);
-
-                const driver = this.getDriver();
-                //
-                const delta = KarmaFieldsAlpha.Store.get("tokens", driver, task.token);
-
-
-
-
-                // KarmaFieldsAlpha.Store.remove("items", query.driver);
-                // KarmaFieldsAlpha.Store.remove("counts", query.driver);
-                //
-                // await KarmaFieldsAlpha.Database.Queries.remove(query.driver);
-                //
-
-                if (delta) {
-
-                  for (let key in delta) {
-
-                    KarmaFieldsAlpha.Store.Delta.set(delta[key], "vars", driver, task.id, key);
-
-                  }
-
-                  KarmaFieldsAlpha.Store.remove("tokens", driver, task.token);
-
-                }
-
-              }
+      // const deltaItems = KarmaFieldsAlpha.Store.Delta.get("items", query.driver, query.paramstring);
+      //
+      // const data = deltaItems.slice(index, length);
+      //
+      // KarmaFieldsAlpha.HTTP.post(`sync/${query.driver}`, data);
+      //
+      // for (let index in data) {
+      //
+      //   for (let key in data[index]) {
+      //
+      //     KarmaFieldsAlpha.Store.set(data[index][key], "vars", query.driver, data[index].id, key);
+      //
+      //   }
+      //
+      // }
+      //
+      // KarmaFieldsAlpha.Database.Queries.remove("query", query.driver, query.paramstring);
+      // KarmaFieldsAlpha.Database.Queries.remove("count", query.driver, query.paramstring);
 
 
-
-            }
-
-          }
-
-        },
-        token: tokens[i],
-        type: "addItem"
-      });
-
-      const row = this.createChild({
-        type: "row",
-        children: this.resource.children
-      }, index);
-
-      row.create();
+      // query.change(items);
 
     }
+    //
+    // const tokens = [];
+    //
+    // for (let i = 0; i < length; i++) {
+    //
+    //   const token = this.createToken();
+    //
+    //   tokens.push(token);
+    //
+    // }
+
+
+
+    // items.splice(index, 0, ...tokens.map(token => ({token})));
+    //
+    // // KarmaFieldsAlpha.Store.Delta.set(items, "items", query.driver, query.paramstring);
+    //
+    // this.setItems(new KarmaFieldsAlpha.Content(items));
+    //
+    // // const params = {...filters.toObject(), ...defaults.toObject()};
+    //
+    // for (let i = 0; i < length; i++) {
+    //
+    //   // this.add(tokens[i], params);
+    //
+    //   KarmaFieldsAlpha.Store.Tasks.add({
+    //     resolve: async task => {
+    //
+    //       const defaults = this.parse(this.resource.defaults || {});
+    //       const filters = this.getFilters();
+    //
+    //       if (defaults.loading || filters.loading || query.loading) {
+    //
+    //         KarmaFieldsAlpha.Store.Tasks.add(task);
+    //
+    //       } else {
+    //
+    //         const params = {...filters.toObject(), ...defaults.toObject()};
+    //
+    //         if (!task.id) {
+    //
+    //           task.id = await this.createItem(params);
+    //
+    //         }
+    //
+    //         const query = this.getItems();
+    //
+    //         if (query.loading) {
+    //
+    //           KarmaFieldsAlpha.Store.Tasks.add(task);
+    //
+    //         } else {
+    //
+    //           let index = query.toArray().findIndex(item => item.token === task.token);
+    //
+    //           // const newQuery = new KarmaFieldsAlpha.Content(query.toArray().map(item => {
+    //           //
+    //           //   if (item.token === task.token) {
+    //           //
+    //           //     return {id: task.id, name: "[new Item]"};
+    //           //
+    //           //   }
+    //           //
+    //           //   return item;
+    //           // }));
+    //
+    //           if (index > -1) {
+    //
+    //             const newQuery = new KarmaFieldsAlpha.Content(query.toArray().slice());
+    //
+    //             newQuery.value[index] = {id: task.id, name: "[new Item]"};
+    //
+    //             await this.setItems(newQuery);
+    //
+    //             const driver = this.getDriver();
+    //             //
+    //             const delta = KarmaFieldsAlpha.Store.get("tokens", driver, task.token);
+    //
+    //
+    //
+    //
+    //             // KarmaFieldsAlpha.Store.remove("items", query.driver);
+    //             // KarmaFieldsAlpha.Store.remove("counts", query.driver);
+    //             //
+    //             // await KarmaFieldsAlpha.Database.Queries.remove(query.driver);
+    //             //
+    //
+    //             if (delta) {
+    //
+    //               for (let key in delta) {
+    //
+    //                 KarmaFieldsAlpha.Store.Delta.set(delta[key], "vars", driver, task.id, key);
+    //
+    //               }
+    //
+    //               KarmaFieldsAlpha.Store.remove("tokens", driver, task.token);
+    //
+    //             }
+    //
+    //           }
+    //
+    //
+    //
+    //         }
+    //
+    //       }
+    //
+    //     },
+    //     token: tokens[i],
+    //     type: "addItem"
+    //   });
+    //
+    //   const row = this.createChild({
+    //     type: "row",
+    //     children: this.resource.children
+    //   }, index);
+    //
+    //   row.create();
+    //
+    // }
 
     // this.setSelection({index, length});
 
@@ -1224,51 +1378,51 @@ console.error("deprecated");
 
 
 
-  async createItem(params) {
-
-    const driver = this.getDriver();
-    const data = {};
-
-    for (let key in params) {
-
-      const keyAlias = KarmaFieldsAlpha.Driver.getAlias(driver, key);
-      const value = params[key].split(",");
-
-      data[keyAlias] = value;
-
-    }
-
-    let id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, data);
-    id = id.toString();
-
-    for (let key in params) {
-
-      const value = params[key].split(",");
-
-      KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
-      // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, key);
-      KarmaFieldsAlpha.Store.remove("diff", "vars", driver, id, key);
-      KarmaFieldsAlpha.Store.Delta.set(value, "vars", driver, id, key);
-
-    }
-
-    if (Object.values(data).length) {
-
-      await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
-
-    }
-
-    KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
-    KarmaFieldsAlpha.Store.Delta.set([], "vars", driver, id, "trash");
-
-    // KarmaFieldsAlpha.Store.remove("items", driver);
-    // KarmaFieldsAlpha.Store.remove("counts", driver);
-    //
-    // await KarmaFieldsAlpha.Database.Queries.remove(driver);
-
-    return id;
-
-  }
+  // async createItem(params) {
+  //
+  //   const driver = this.getDriver();
+  //   const data = {};
+  //
+  //   for (let key in params) {
+  //
+  //     const keyAlias = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+  //     const value = params[key].split(",");
+  //
+  //     data[keyAlias] = value;
+  //
+  //   }
+  //
+  //   let id = await KarmaFieldsAlpha.HTTP.post(`add/${driver}`, data);
+  //   id = id.toString();
+  //
+  //   for (let key in params) {
+  //
+  //     const value = params[key].split(",");
+  //
+  //     KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
+  //     // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, key);
+  //     KarmaFieldsAlpha.Store.remove("diff", "vars", driver, id, key);
+  //     KarmaFieldsAlpha.Store.Delta.set(value, "vars", driver, id, key);
+  //
+  //   }
+  //
+  //   if (Object.values(data).length) {
+  //
+  //     await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
+  //
+  //   }
+  //
+  //   KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
+  //   KarmaFieldsAlpha.Store.Delta.set([], "vars", driver, id, "trash");
+  //
+  //   // KarmaFieldsAlpha.Store.remove("items", driver);
+  //   // KarmaFieldsAlpha.Store.remove("counts", driver);
+  //   //
+  //   // await KarmaFieldsAlpha.Database.Queries.remove(driver);
+  //
+  //   return id;
+  //
+  // }
 
 
 
@@ -1426,60 +1580,123 @@ console.error("deprecated");
 
   }
 
-  // no more used
-  removeIds(ids) {
+  // // no more used
+  // removeIds(ids) {
+  //
+  //   const driver = this.getDriver();
+  //   const currentItems = this.getItems();
+  //   const filteredItems = new KarmaFieldsAlpha.Content(currentItems.toArray().filter(item => !ids.includes(item.id)));
+  //
+  //
+  //   for (let id of ids) {
+  //
+  //     KarmaFieldsAlpha.Store.Delta.set(["1"], driver, id, "trash");
+  //
+  //   }
+  //
+  //   this.setItems(filteredItems);
+  //
+  // }
 
-    const driver = this.getDriver();
-    const currentItems = this.getItems();
-    const filteredItems = new KarmaFieldsAlpha.Content(currentItems.toArray().filter(item => !ids.includes(item.id)));
+  // removeRange(index, length) {
+  //
+  //   this.remove(index, length);
+  // }
 
+  // remove(index, length) {
+  //
+  //   const driver = this.getDriver();
+  //   const query = this.getQuery();
+  //
+  //   if (!query.loading) {
+  //
+  //     const items = [...query.toArray()];
+  //     const itemsToDelete = items.splice(index, length);
+  //
+  //     this.setItems(new KarmaFieldsAlpha.Content(items));
+  //
+  //     for (let item of itemsToDelete) {
+  //
+  //       if (item.id) {
+  //
+  //         KarmaFieldsAlpha.Store.set([], "vars", driver, item.id, "trash");
+  //         // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, item.id, "trash");
+  //         KarmaFieldsAlpha.Store.remove("diff", "vars", driver, item.id, "trash");
+  //         KarmaFieldsAlpha.Store.Delta.set(["1"], "vars", driver, item.id, "trash");
+  //
+  //         KarmaFieldsAlpha.HTTP.post(`update/${driver}/${item.id}`, {trash: ["1"]});
+  //
+  //       }
+  //
+  //     }
+  //
+  //     KarmaFieldsAlpha.Store.remove("items", driver);
+  //     KarmaFieldsAlpha.Store.remove("counts", driver);
+  //
+  //     KarmaFieldsAlpha.Database.Queries.remove(driver);
+  //
+  //   }
+  //
+  // }
 
-    for (let id of ids) {
+  async remove(index, length) {
 
-      KarmaFieldsAlpha.Store.Delta.set(["1"], driver, id, "trash");
-
-    }
-
-    this.setItems(filteredItems);
-
-  }
-
-  removeRange(index, length) {
-
-    this.remove(index, length);
-  }
-
-  remove(index, length) {
-
-    const driver = this.getDriver();
     const query = this.getQuery();
 
-    if (!query.loading) {
+    if (query.loading) {
 
-      const items = [...query.toArray()];
-      const itemsToDelete = items.splice(index, length);
+      // KarmaFieldsAlpha.Store.Tasks.add({
+      //   type: "remove",
+      //   resolve: async task => this.remove(index, length)
+      // });
 
-      this.setItems(new KarmaFieldsAlpha.Content(items));
+      this.createTask("remove", index, length);
 
-      for (let item of itemsToDelete) {
+    } else {
 
-        if (item.id) {
+      // KarmaFieldsAlpha.Driver.remove(query.driver, query.paramstring, index, length);
 
-          KarmaFieldsAlpha.Store.set([], "vars", driver, item.id, "trash");
-          // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, item.id, "trash");
-          KarmaFieldsAlpha.Store.remove("diff", "vars", driver, item.id, "trash");
-          KarmaFieldsAlpha.Store.Delta.set(["1"], "vars", driver, item.id, "trash");
+      // const items = KarmaFieldsAlpha.Store.Delta.get("items", query.driver, query.paramstring) || [];
+      const clones = [...query.toArray()];
 
-          KarmaFieldsAlpha.HTTP.post(`update/${driver}/${item.id}`, {trash: ["1"]});
+      const data = clones.splice(index, length); //.map(row => ({id: row.id, trash: ["1"]}));
 
-        }
+      KarmaFieldsAlpha.Store.Delta.set(clones, "items", query.driver, query.paramstring);
 
-      }
+      const deletedIds = KarmaFieldsAlpha.Store.Delta.get("trash", query.driver) || [];
 
-      KarmaFieldsAlpha.Store.remove("items", driver);
-      KarmaFieldsAlpha.Store.remove("counts", driver);
+      deletedIds = [...deletedIds, data.filter(item => item.id).map(item => item.id)];
 
-      KarmaFieldsAlpha.Database.Queries.remove(driver);
+      KarmaFieldsAlpha.Store.Delta.set(deletedIds, "trash", query.driver);
+
+
+
+      // await KarmaFieldsAlpha.HTTP.post(`sync/${query.driver}`, data);
+      //
+      // await KarmaFieldsAlpha.Database.Queries.remove("query", query.driver, query.paramstring);
+      // await KarmaFieldsAlpha.Database.Queries.remove("count", query.driver, query.paramstring);
+      //
+      //
+      //
+      // const task = new KarmaFieldsAlpha.Task.Remove(query.driver, query.paramstring, data);
+      //
+      // KarmaFieldsAlpha.Store.Tasks.add(task);
+
+
+
+      // const items = [...query.toArray()];
+      //
+      // for (let i = 0; i < length; i++) {
+      //
+      //   items[index + i] = {...items[index + i], trash: "1"};
+      //
+      // }
+      //
+      // // items.sort((a, b) => new KarmaFieldsAlpha.Content(a.trash).toNumber() - new KarmaFieldsAlpha.Content(b.trash).toNumber());
+      //
+      // KarmaFieldsAlpha.Store.Delta.set(items, "items", query.driver, query.paramstring);
+      //
+      // KarmaFieldsAlpha.Driver.save(query.driver, query.paramstring, index, length);
 
     }
 
@@ -1520,7 +1737,8 @@ console.error("deprecated");
 
   getSelectedItems() {
 
-    const query = this.getItems();
+    // const query = this.getItems();
+    const query = this.getQuery();
 
     const response = new KarmaFieldsAlpha.Content();
 
@@ -1645,7 +1863,7 @@ console.error("deprecated");
 
         if (!query.loading) {
 
-          const items = query.toItems();
+          const items = query.toArray();
 
           const page = this.request("getPage");
           const ppp = this.getPpp();
@@ -1759,8 +1977,8 @@ console.error("deprecated");
             for (let i = 0; i < items.length; i++) {
 
               const row = this.createChild({
-                id: items[i].id,
-                loading: items[i].loading,
+                // id: items[i].id,
+                // loading: items[i].loading,
                 type: "row",
                 children: columns,
                 index: offset + i,

@@ -509,6 +509,23 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
+  getItemAt(...args) {
+
+    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+    const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
+
+    if (array.loading || index.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      this.value = array[index];
+
+    }
+
+  }
+
   get(...args) {
 
     const object = new KarmaFieldsAlpha.Expression(args[1], this.field);
@@ -749,7 +766,21 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     } else {
 
-      this.value = new KarmaFieldsAlpha.Content.Query(driver.toString(), params.toSingle()); // !! getResult return Content or simple Object ??
+      const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+      const query = KarmaFieldsAlpha.Driver.getQuery(driver.toString(), paramstring);
+
+      if (query.loading) {
+
+        this.loading = true;
+
+      } else {
+
+        this.value = query.value;
+
+      }
+
+
+      // this.value = new KarmaFieldsAlpha.Content.Query(driver.toString(), params.toSingle()); // !! getResult return Content or simple Object ??
 
     }
 

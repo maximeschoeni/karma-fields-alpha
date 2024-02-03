@@ -252,6 +252,9 @@ class Karma_Fields_Alpha {
 
 				wp_enqueue_script('karma-fields-utils-remote', $plugin_url . '/js/utils/remote.js', array(), $this->version, true);
 
+				wp_enqueue_script('karma-fields-utils-task', $plugin_url . '/js/utils/task.js', array(), $this->version, true);
+
+
 
 				// handles
 
@@ -761,6 +764,20 @@ class Karma_Fields_Alpha {
 	    )
 		));
 
+		register_rest_route('karma-fields-alpha/v1', '/sync/(?P<driver>[^/]+)/?', array(
+			'methods' => 'POST',
+			'callback' => array($this, 'rest_sync'),
+			'permission_callback' => '__return_true',
+			'args' => array(
+				'driver' => array(
+					'required' => true
+				),
+				'data' => array(
+					'required' => true
+				)
+	    )
+		));
+
 		// register_rest_route('karma-fields-alpha/v1', '/fetch/(?P<driver>[^/]+)', array(
 		// 	'methods' => 'GET',
 		// 	'callback' => array($this, 'rest_fetch'),
@@ -1022,6 +1039,43 @@ class Karma_Fields_Alpha {
 			return "karma fields error: driver has no method 'add'";
 
 		}
+
+	}
+
+
+	/**
+	 *	@rest 'wp-json/karma-fields/v1/sync/{driver}'
+	 */
+	public function rest_sync($request) {
+
+		$driver_name = $request->get_param('driver');
+		$data = $request->get_param('data');
+		$driver = $this->get_driver($driver_name);
+
+		foreach ($data as $row) {
+
+			$delta = isset($row['delta']) ? $row['delta'] : array();
+
+			if (empty($row['id']) && method_exists($driver, 'add')) {
+
+				$id = $driver->add($delta);
+
+			}
+			// else {
+			//
+			// 	$id = $row['id'];
+			//
+			// }
+
+			if (isset($id) && $delta && method_exists($driver, 'update')) {
+
+				$driver->update($delta, $id);
+
+			}
+
+		}
+
+		return true;
 
 	}
 

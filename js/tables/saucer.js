@@ -250,11 +250,28 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   submit() {
 
-    KarmaFieldsAlpha.Query.sync();
+    KarmaFieldsAlpha.Driver.sync();
 
-    // KarmaFieldsAlpha.Store.Buffer.remove("state", "fields"); // remove grid selection (overkill?)
+    let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "save");
 
-    this.render();
+    if (!task) {
+
+      task = new KarmaFieldsAlpha.Task.Save();
+
+      KarmaFieldsAlpha.Task.add(task);
+
+      this.render();
+
+    }
+
+
+
+  }
+
+  isSaving() {
+
+    return Boolean(KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "save"));
+
   }
 
   // submit() {
@@ -265,39 +282,41 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   delta() {
 
-    const delta = KarmaFieldsAlpha.Store.Delta.get("vars");
+    return KarmaFieldsAlpha.Driver.delta();
 
-		if (delta) {
-
-			// const vars = KarmaFieldsAlpha.Store.get() || {};
-      //
-			// return !KarmaFieldsAlpha.DeepObject.include(vars, delta);
-
-
-      for (let driver in delta) {
-
-        for (let id in delta[driver]) {
-
-          for (let key in delta[driver][id]) {
-
-            const deltaValue = delta[driver][id][key];
-            const refValue = KarmaFieldsAlpha.Store.get(driver, id, key);
-
-            if (!KarmaFieldsAlpha.DeepObject.equal(deltaValue, refValue)) {
-
-              return true;
-
-            }
-
-          }
-
-        }
-
-      }
-
-		}
-
-		return false;
+    // const delta = KarmaFieldsAlpha.Store.Delta.get("vars");
+    //
+		// if (delta) {
+    //
+		// 	// const vars = KarmaFieldsAlpha.Store.get() || {};
+    //   //
+		// 	// return !KarmaFieldsAlpha.DeepObject.include(vars, delta);
+    //
+    //
+    //   for (let driver in delta) {
+    //
+    //     for (let id in delta[driver]) {
+    //
+    //       for (let key in delta[driver][id]) {
+    //
+    //         const deltaValue = delta[driver][id][key];
+    //         const refValue = KarmaFieldsAlpha.Store.get(driver, id, key);
+    //
+    //         if (!KarmaFieldsAlpha.DeepObject.equal(deltaValue, refValue)) {
+    //
+    //           return true;
+    //
+    //         }
+    //
+    //       }
+    //
+    //     }
+    //
+    //   }
+    //
+		// }
+    //
+		// return false;
 
   }
 
@@ -408,6 +427,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
   async loop() {
+
+
 
     const embeds = KarmaFieldsAlpha.embeds;
 
@@ -938,6 +959,8 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
                 update: div => {
 
                   const body = this.getChild("body");
+
+
 
                   // -> unselect
                   div.element.onmousedown = event => {
