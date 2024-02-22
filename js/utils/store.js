@@ -58,7 +58,7 @@ KarmaFieldsAlpha.Store = class {
   }
 
   static clear() {
-
+console.error("deprecated");
     this.remove("attempts");
     this.remove("items");
     this.remove("vars");
@@ -214,6 +214,14 @@ KarmaFieldsAlpha.Store.Delta = class {
 
   }
 
+  // static change(value, currentValue, ...path) {
+  //
+  //   KarmaFieldsAlpha.History.delta(value, currentValue, "delta", ...path);
+  //
+  //   KarmaFieldsAlpha.Store.Buffer.set(value, "state", "delta", ...path);
+  //
+  // }
+
   static set(value, ...path) {
 
     // const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
@@ -224,6 +232,14 @@ KarmaFieldsAlpha.Store.Delta = class {
     KarmaFieldsAlpha.Store.Buffer.set(value, "state", "delta", ...path);
 
   }
+
+  // static backup(value, ...path) {
+  //
+  //   KarmaFieldsAlpha.History.backup(value, "delta", ...path);
+  //
+  //   KarmaFieldsAlpha.Store.Buffer.set(value, "state", "delta", ...path);
+  //
+  // }
 
   static remove(...path) {
 

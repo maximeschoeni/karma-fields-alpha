@@ -1530,7 +1530,7 @@ console.error("deprecated");
   // }
 
 
-  static getQuery(driver, paramstring, keys = []) {
+  static getQuery(driver, paramstring) {
 
     const query = new KarmaFieldsAlpha.Content();
 
@@ -1541,39 +1541,37 @@ console.error("deprecated");
 
     if (!query.value) {
 
-      let task = KarmaFieldsAlpha.Task.QueryItems.find(driver, paramstring);
+      const task = KarmaFieldsAlpha.Task.QueryRemoteValue.getOrCreate(driver, paramstring);
+
+      let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "remote-query" && task.driver === driver && task.paramstring === paramstring);
 
       if (!task) {
 
-        task = KarmaFieldsAlpha.Task.QueryItems.create(driver, paramstring);
+        task = new KarmaFieldsAlpha.Task.QueryRemoteItems(driver, paramstring);
+
+        KarmaFieldsAlpha.Store.Tasks.add(task);
 
       }
 
-      if (KarmaFieldsAlpha.Store.get("items", "notFound", "cache", driver, paramstring)) {
+      query.value = KarmaFieldsAlpha.Store.get("items", "cache", driver, paramstring);
 
-        query.loading = true;
+      if (query.value) {
+
+        query.cache = true;
 
       } else {
 
-        query.value = KarmaFieldsAlpha.Store.get("items", "cache", driver, paramstring);
+        task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "cache-query" && task.driver === driver && task.paramstring === paramstring);
 
-        if (query.value) {
+        if (!task) {
 
-          query.cache = true;
+          task = new KarmaFieldsAlpha.Task.QueryCacheItems(driver, paramstring);
 
-        } else {
-
-          let task = KarmaFieldsAlpha.Task.QueryItemsCache.find(driver, paramstring);
-
-          if (!task) {
-
-             task = KarmaFieldsAlpha.Task.QueryItemsCache.create(driver, paramstring);
-
-          }
-
-          query.loading = true;
+          KarmaFieldsAlpha.Store.Tasks.add(task);
 
         }
+
+        query.loading = true;
 
       }
 
@@ -1581,91 +1579,6 @@ console.error("deprecated");
 
     return query;
   }
-
-  // static getValue(driver, id, key) {
-  //
-  //   const content = new KarmaFieldsAlpha.Content();
-  //
-  //   key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
-  //
-  //   content.value = KarmaFieldsAlpha.Store.get("vars", "remote", driver, id, key);
-  //
-  //   if (!content.value) { // -> create a task to fetch it
-  //
-  //     const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id, "remote");
-  //
-  //     if (attempt) {
-  //
-  //       // let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "vars" && task.driver === driver && task.attempt === attempt);
-  //       let task = KarmaFieldsAlpha.Task.find(task => task.type === "remote-query" && task.driver === driver && task.attempt === attempt);
-  //
-  //       if (!task) {
-  //
-  //         task = new KarmaFieldsAlpha.Task.QueryRemoteValue(driver, attempt);
-  //
-  //         KarmaFieldsAlpha.Store.Tasks.add(task);
-  //
-  //       }
-  //
-  //       // if (attempt !== "query") {
-  //
-  //         task.ids.add(id);
-  //
-  //       // }
-  //
-  //     } else { // -> not found
-  //
-  //       query.notFound = true;
-  //
-  //       KarmaFieldsAlpha.Store.set([], "vars", "remote", driver, id, key);
-  //
-  //     }
-  //
-  //     content.value = KarmaFieldsAlpha.Store.get("vars", "cache", driver, id, key);
-  //
-  //     if (content.value) {
-  //
-  //       content.cache = true;
-  //
-  //     } else {
-  //
-  //       const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id, "cache");
-  //
-  //       if (attempt) {
-  //
-  //         let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "cache-query" && task.driver === driver && task.attempt === attempt);
-  //
-  //         if (!task) {
-  //
-  //           task = new KarmaFieldsAlpha.Task.QueryCacheValue(driver, attempt);
-  //
-  //           KarmaFieldsAlpha.Store.Tasks.add(task);
-  //
-  //         }
-  //
-  //         // if (attempt !== "query") {
-  //
-  //           task.ids.add(id);
-  //
-  //         // }
-  //
-  //       } else { // no more attempts -> not found
-  //
-  //         KarmaFieldsAlpha.Store.set([], "vars", "cache", driver, id, key);
-  //
-  //       }
-  //
-  //       content.loading = true;
-  //
-  //     }
-  //
-  //
-  //   }
-  //
-  //   return content;
-  //
-  // }
-
 
   static getValue(driver, id, key) {
 
@@ -1677,49 +1590,137 @@ console.error("deprecated");
 
     if (!content.value) { // -> create a task to fetch it
 
-      if (KarmaFieldsAlpha.Store.get("vars", "notFound", "remote", driver, id, key)) {
+      const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id, "remote");
 
-        content.notFound = true;
+      if (attempt) {
 
-      } else {
-
-        let task = KarmaFieldsAlpha.Task.QueryValue.find(driver);
+        // let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "vars" && task.driver === driver && task.attempt === attempt);
+        let task = KarmaFieldsAlpha.Task.find(task => task.type === "remote-query" && task.driver === driver && task.attempt === attempt);
 
         if (!task) {
 
-          task = KarmaFieldsAlpha.Task.QueryValue.create(driver);
+          task = new KarmaFieldsAlpha.Task.QueryRemoteValue(driver, attempt);
+
+          KarmaFieldsAlpha.Store.Tasks.add(task);
 
         }
+
+        // if (attempt !== "query") {
+
+          task.ids.add(id);
+
+        // }
+
+      } else { // -> not found
+
+        query.notFound = true;
+
+        KarmaFieldsAlpha.Store.set([], "vars", "remote", driver, id, key);
+
+      }
+
+      content.value = KarmaFieldsAlpha.Store.get("vars", "cache", driver, id, key);
+
+      if (content.value) {
+
+        content.cache = true;
+
+      } else {
+
+        const attempt = KarmaFieldsAlpha.Driver.getAttempt(driver, id, "cache");
+
+        if (attempt) {
+
+          let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "cache-query" && task.driver === driver && task.attempt === attempt);
+
+          if (!task) {
+
+            task = new KarmaFieldsAlpha.Task.QueryCacheValue(driver, attempt);
+
+            KarmaFieldsAlpha.Store.Tasks.add(task);
+
+          }
+
+          // if (attempt !== "query") {
+
+            task.ids.add(id);
+
+          // }
+
+        } else { // no more attempts -> not found
+
+          KarmaFieldsAlpha.Store.set([], "vars", "cache", driver, id, key);
+
+        }
+
+        content.loading = true;
+
+      }
+
+
+    }
+
+    return content;
+
+  }
+
+
+  static getValueNEXT(driver, id, key) {
+
+    const content = new KarmaFieldsAlpha.Content();
+
+    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+
+    content.value = KarmaFieldsAlpha.Store.get("vars", "remote", driver, id, key);
+
+    if (!content.value) { // -> create a task to fetch it
+
+      const task = KarmaFieldsAlpha.Task.QueryRemoteValue.getOrCreate(driver);
+
+      // let task = KarmaFieldsAlpha.Task.QueryRemoteValue.find(driver) || new KarmaFieldsAlpha.Task.QueryRemoteValue(driver);
+
+      // let task = KarmaFieldsAlpha.Task.find(task => task.type === "query" && task.driver === driver && target = "remote");
+      //
+      // if (!task) {
+      //
+      //   task = new KarmaFieldsAlpha.Task.QueryRemoteValue(driver);
+      //
+      //   KarmaFieldsAlpha.Store.Tasks.add(task);
+      //
+      // }
+
+      task.ids.add(id);
+      task.keys.add(key);
+
+
+      content.value = KarmaFieldsAlpha.Store.get("vars", "cache", driver, id, key);
+
+      if (content.value) {
+
+        content.cache = true;
+
+      } else {
+
+        const task = KarmaFieldsAlpha.Task.QueryRemoteValue.getOrCreate(driver);
+
+        // let task = KarmaFieldsAlpha.Task.QueryCacheValue.find(driver) || new KarmaFieldsAlpha.Task.QueryCacheValue(driver);
+
+        // let task = KarmaFieldsAlpha.Task.find(task => task.type === "query" && task.driver === driver && target = "cache");
+        //
+        //
+        //
+        // if (!task) {
+        //
+        //   task = new KarmaFieldsAlpha.Task.QueryCacheValue(driver);
+        //
+        //   KarmaFieldsAlpha.Store.Tasks.add(task);
+        //
+        // }
 
         task.ids.add(id);
         task.keys.add(key);
 
-        content.value = KarmaFieldsAlpha.Store.get("vars", "cache", driver, id, key);
-
-        if (content.value) {
-
-          content.cache = true;
-
-        } else {
-
-          if (!KarmaFieldsAlpha.Store.get("vars", "notFound", "cache", driver, id, key)) {
-
-            let task = KarmaFieldsAlpha.Task.QueryValueCache.find(driver);
-
-            if (!task) {
-
-              task = KarmaFieldsAlpha.Task.QueryValueCache.create(driver);
-
-            }
-
-            task.ids.add(id);
-            task.keys.add(key);
-
-          }
-
-          content.loading = true;
-
-        }
+        content.loading = true;
 
       }
 
@@ -1739,40 +1740,32 @@ KarmaFieldsAlpha.Content.Query = class extends KarmaFieldsAlpha.Content {
 
   // compat (still used e.g. by dropdown)
   constructor(driver, params) {
-
-    super();
-
     this.driver = driver;
     this.params = params;
 
     const paramstring = KarmaFieldsAlpha.Params.stringify(params);
-    const collection = new KarmaFieldsAlpha.Model.Collection(driver, paramstring);
-    const query = collection.queryItems();
 
-    this.value = query.value;
-    this.loading = query.loading;
+    const items = KarmaFieldsAlpha.Store.Delta.get("items", driver, paramstring);
 
-    // const items = KarmaFieldsAlpha.Store.Delta.get("items", driver, paramstring);
-    //
-    // if (items) {
-    //
-    //   this.value = items;
-    //
-    // } else {
-    //
-    //   const query = KarmaFieldsAlpha.Driver.getQuery(driver, paramstring);
-    //
-    //   if (query.loading) {
-    //
-    //     this.loading = true;
-    //
-    //   } else {
-    //
-    //     this.value = content.value;
-    //
-    //   }
-    //
-    // }
+    if (items) {
+
+      this.value = items;
+
+    } else {
+
+      const query = KarmaFieldsAlpha.Driver.getQuery(driver, paramstring);
+
+      if (query.loading) {
+
+        this.loading = true;
+
+      } else {
+
+        this.value = content.value;
+
+      }
+
+    }
 
   }
 
@@ -2274,19 +2267,8 @@ KarmaFieldsAlpha.Content.Value = class extends KarmaFieldsAlpha.Content {
 
   // compat
   constructor(driver, id, key) {
-
-    super();
-    
-    this.driver = driver;
-    this.id = id;
-    this.key = key;
-
-    const collection = new KarmaFieldsAlpha.Model(driver);
-    const query = collection.queryValue(id, key);
-
-    this.value = query.value;
-    this.loading = query.loading;
-
+    const content = KarmaFieldsAlpha.Driver.getValue(driver, id, key);
+    Object.assign(this, content);
   }
 
 

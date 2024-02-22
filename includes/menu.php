@@ -5,9 +5,14 @@
 			for (var i = 0; i < links.length; i++) {
 				links[i].addEventListener("click", function(event) {
 					event.preventDefault();
+
 					if (KarmaFieldsAlpha.saucer) {
-						KarmaFieldsAlpha.History.save("open", "Open link");
-						KarmaFieldsAlpha.saucer.open(key);
+						KarmaFieldsAlpha.Task.add({
+							resolve: () => {
+								KarmaFieldsAlpha.History.save("open", "Open link");
+								KarmaFieldsAlpha.saucer.open(key);
+							}
+						});
 						KarmaFieldsAlpha.saucer.render();
 					}
 				});

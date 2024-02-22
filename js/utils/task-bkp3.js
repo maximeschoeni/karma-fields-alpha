@@ -94,18 +94,12 @@ KarmaFieldsAlpha.Task.QueryItems = class extends KarmaFieldsAlpha.Task.Query {
 
     if (results) {
 
-      // for (let item of results) {
-      for (let i = 0; i < results.length; i++) {
-
-        const item = results[i];
+      for (let item of results) {
 
         items.push({
-
           id: item[idAlias],
           name: item[nameAlias]
         });
-
-        // KarmaFieldsAlpha.Store.Delta.set(i, "vars", "remote", this.driver, item[idAlias], "order");
 
       }
 
@@ -214,17 +208,11 @@ KarmaFieldsAlpha.Task.QueryItemsCache = class extends KarmaFieldsAlpha.Task.Quer
 
 KarmaFieldsAlpha.Task.QueryValue = class extends KarmaFieldsAlpha.Task.QueryItems {
 
-  // static find(driver) {
-  //
-  //   return KarmaFieldsAlpha.Task.find(task => task.constructor === this && task.driver === driver);
-  //
-  // }
+  static find(driver) {
 
-  // static find(driver, paramstring) {
-  //
-  //   return KarmaFieldsAlpha.Task.find(task => task.constructor === this && task.driver === driver && task.paramstring === paramstring);
-  //
-  // }
+    return KarmaFieldsAlpha.Task.find(task => task.constructor === this && task.driver === driver);
+
+  }
 
   constructor(driver, paramstring, context = "remote", priority = 0) {
 
@@ -349,11 +337,7 @@ KarmaFieldsAlpha.Task.QueryValue = class extends KarmaFieldsAlpha.Task.QueryItem
 
           for (let key of this.keys) {
 
-            if (!KarmaFieldsAlpha.Store.get("vars", this.context, this.driver, id, key)) {
-
-              KarmaFieldsAlpha.Store.set([], "vars", this.context, this.driver, id, key);
-
-            }
+            KarmaFieldsAlpha.Store.set([], "vars", this.context, this.driver, id, key);
 
           }
 
@@ -402,48 +386,22 @@ KarmaFieldsAlpha.Task.Add = class {
 
   }
 
-  create(id, state = "adding") {
+  create(id) {
 
-    const items = KarmaFieldsAlpha.Store.Delta.get("items", "remote", this.driver, this.paramstring) || [];
-    // const index = items.findIndex(item => item.adding);
-    //
-    // if (index > -1) {
-    //
-    //   const lobby = KarmaFieldsAlpha.Store.get("lobby", this.driver, this.paramstring, index);
-    //
-    //   for (let key in lobby) {
-    //
-    //     KarmaFieldsAlpha.Store.Delta.set(lobby[key], "vars", "remote", this.driver, id, key);
-    //
-    //   }
-    //
-    //   const newItems = [...items];
-    //   newItems[index] = {id};
-    //
-    //   KarmaFieldsAlpha.Store.Delta.set(newItems, "items", "remote", this.driver, this.paramstring);
-    //   KarmaFieldsAlpha.Store.remove("lobby", this.driver, this.paramstring, id);
-    //
-    // }
+    const items = KarmaFieldsAlpha.Store.get("items", "remote", this.driver, this.paramstring) || [];
+    const index = items.findIndex(item => item.adding);
 
-    const item = items.find(item => item[state]);
+    if (index > -1) {
 
-    if (item) {
+      for (let key in items[index]) {
 
-      delete item[state];
-
-      for (let key in item) {
-
-        KarmaFieldsAlpha.Store.Delta.set(item[key], "vars", "remote", this.driver, id, key);
-
-        delete item[key];
+        KarmaFieldsAlpha.Store.Delta.set(items[index][key], "vars", "remote", this.driver, id, key);
 
       }
 
-      item.id = id;
+      items[index] = {id};
 
     }
-
-    KarmaFieldsAlpha.Store.Delta.set(items, "items", "remote", this.driver, this.paramstring);
 
     KarmaFieldsAlpha.Store.set(["1"], "vars", "remote", this.driver, id, "trash");
     KarmaFieldsAlpha.Store.Delta.set(["0"], "vars", "remote", this.driver, id, "trash");
@@ -462,7 +420,7 @@ KarmaFieldsAlpha.Task.Add = class {
 
     }
 
-    this.create(id, "adding");
+    this.create(id);
 
     // KarmaFieldsAlpha.Store.set(["1"], "vars", "remote", this.driver, id, "trash");
     // KarmaFieldsAlpha.Store.Delta.set(["0"], "vars", "remote", this.driver, id, "trash");
@@ -590,21 +548,9 @@ KarmaFieldsAlpha.Task.Upload = class extends KarmaFieldsAlpha.Task.Add {
 
   async resolve() {
 
-    let id = await KarmaFieldsAlpha.HTTP.upload(this.file); // -> parent and params are not going anywhere!
+    let id = await KarmaFieldsAlpha.HTTP.upload(this.file); // -> parent is not going to be saved!
 
     id = id.toString();
-
-    if (this.params) {
-
-      await KarmaFieldsAlpha.HTTP.post(`update/${this.driver}`, {[id]: this.params});
-
-    }
-
-    // clean items result or file data will not load
-    KarmaFieldsAlpha.Store.remove("items", "remote", this.driver, this.paramstring);
-    KarmaFieldsAlpha.Store.remove("relations", "remote", this.driver, this.paramstring);
-
-
 
     if (!this.paramstring) {
 
@@ -612,7 +558,7 @@ KarmaFieldsAlpha.Task.Upload = class extends KarmaFieldsAlpha.Task.Add {
 
     }
 
-    this.create(id, "uploading");
+    this.create(id);
 
     // KarmaFieldsAlpha.Store.set(["1"], "vars", "remote", this.driver, id, "trash");
     // KarmaFieldsAlpha.Store.Delta.set(["0"], "vars", "remote", this.driver, id, "trash");
@@ -932,43 +878,78 @@ KarmaFieldsAlpha.Task.Upload = class extends KarmaFieldsAlpha.Task.Add {
 
 KarmaFieldsAlpha.Task.Save = class {
 
+  // static create() {
+  //
+  //   if (KarmaFieldsAlpha.Task.find(task => task.constructor === this)) {
+  //
+  //     const task = new this();
+  //
+  //     KarmaFieldsAlpha.Task.add(task);
+  //
+  //   }
+  //
+  // }
+
+  constructor() {
+    //
+    // this.driver = driver;
+    // this.ids = ids;
+    // this.keys = keys;
+
+  }
 
   getDelta() {
 
-    const output = {};
+    // const output = {};
     const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
 
-    // return KarmaFieldsAlpha.DeepObject.filter(delta, (item, driver, id, key) => this.isModified(item, driver, id, key), 3);
+    return KarmaFieldsAlpha.DeepObject.filter(delta, (item, driver, id, key) => this.isModified(item, driver, id, key), 3);
 
-    if (delta) {
-
-      for (let driver in delta) {
-
-        for (let id in delta[driver]) {
-
-          for (let key in delta[driver][id]) {
-
-            if (this.isModified(delta[driver][id][key], driver, id, key)) {
-
-              KarmaFieldsAlpha.DeepObject.set(output, delta[driver][id][key], driver, id, key);
-
-            }
-
-          }
-
-        }
-
-      }
-
-    }
-
-    return output;
+    // if (delta) {
+    //
+    //
+    //
+    //   for (let driver in delta) {
+    //
+    //     for (let id in delta[driver]) {
+    //
+    //       for (let key in delta[driver][id]) {
+    //
+    //         if (this.isModified(delta[driver][id][key], driver, id, key)) {
+    //
+    //           return true;
+    //
+    //         }
+    //
+    //       }
+    //
+    //     }
+    //
+    //   }
+    //
+    // }
+    //
+    // return false;
 
   }
 
   isModified(value, driver, id, key) {
 
     let current = KarmaFieldsAlpha.Store.get("vars", "remote", driver, id, key);
+
+    if (key === "trash" && !current) {
+
+      if (KarmaFieldsAlpha.Store.get("vars", "remote", driver, id)) {
+
+        current = ["0"];
+
+      } else {
+
+        current = ["1"];
+
+      }
+
+    }
 
     return !KarmaFieldsAlpha.DeepObject.equal(value, current);
 
@@ -978,9 +959,9 @@ KarmaFieldsAlpha.Task.Save = class {
 
     const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
 
-    // return delta && KarmaFieldsAlpha.DeepObject.some(delta, (item, driver, id, key) => {
-    //   return this.isModified(item, driver, id, key);
-    // }, 3);
+    return delta && KarmaFieldsAlpha.DeepObject.some(delta, (item, driver, id, key) => {
+      return this.isModified(item, driver, id, key);
+    }, 3);
 
     if (delta) {
 
@@ -990,6 +971,9 @@ KarmaFieldsAlpha.Task.Save = class {
 
           for (let key in delta[driver][id]) {
 
+            // const current = KarmaFieldsAlpha.Store.get("vars", "remote", driver, id, key);
+
+            // if (!KarmaFieldsAlpha.DeepObject.equal(delta[driver][id][key], current)) {
             if (this.isModified(delta[driver][id][key], driver, id, key)) {
 
               return true;
@@ -1008,64 +992,223 @@ KarmaFieldsAlpha.Task.Save = class {
 
   }
 
-  async resolve() {
-
-    const delta = this.getDelta();
-
-    for (let driver in delta) {
-
-      await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, delta[driver]);
-
-      await this.cleanDriver(driver, delta[driver]);
-
-    }
-
-  }
-
-  // async cleanDriver(driver, delta) {
-  //
-  //   const vars = KarmaFieldsAlpha.Store.get("vars", "remote", driver);
-  //
-  //   KarmaFieldsAlpha.Store.set(vars, "vars", "cache", driver);
-  //
-  //   KarmaFieldsAlpha.Store.remove("vars", "remote", driver);
+  // getDelta() {
   //
   //
-  //   for (let id in delta) {
   //
-  //     for (let key in delta[id]) {
   //
-  //       KarmaFieldsAlpha.Store.set(delta[id][key], "vars", "cache", driver, id, key);
+  //
+  //
+  //
+  //   if (delta) {
+  //
+  //     for (let driver in driverItems) {
+  //
+  //       const driverItems = [];
+  //
+  //       for (let paramstring in deltaItems[driver]) {
+  //
+  //         const data = deltaItems[driver][paramstring];
+  //
+  //         for (let row of data) {
+  //
+  //           if (!row.id || row.delta) {
+  //
+  //             const newItem = {};
+  //
+  //             for (let key in row.delta) {
+  //
+  //               if (!row.id || !KarmaFieldsAlpha.DeepObject.equal(row.delta[key], KarmaFieldsAlpha.Store.get("vars", "remote", driver, row.id, key))) {
+  //
+  //                 newItem[key] = row.delta[key];
+  //
+  //               }
+  //
+  //             }
+  //
+  //             if (Object.keys(newItem) || !row.id) {
+  //
+  //               if (!delta[driver]) {
+  //
+  //                 delta[driver] = [];
+  //
+  //               }
+  //
+  //               delta[driver].push({
+  //                 id: row.id,
+  //                 delta: newItem
+  //               });
+  //
+  //             }
+  //
+  //           }
+  //
+  //         }
+  //
+  //       }
   //
   //     }
   //
   //   }
   //
-  //   KarmaFieldsAlpha.Store.Buffer.remove("state", "delta", "vars", "remote", driver); // do not update history !
+  //   const trash = KarmaFieldsAlpha.Store.Delta.get("trash");
   //
-  //   const queries = KarmaFieldsAlpha.Store.Delta.get("items", "remote", driver);
+  //   if (trash) {
   //
-  //   for (let paramstring in queries) {
+  //     for (let driver in trash) {
   //
-  //     KarmaFieldsAlpha.Store.set(queries[paramstring], "items", "cache", driver, paramstring);
+  //       const ids = trash[driver];
+  //
+  //       for (let id of ids) {
+  //
+  //         if (ids && ids.length) {
+  //
+  //           if (!delta[driver]) {
+  //
+  //             delta[driver] = [];
+  //
+  //           }
+  //
+  //           delta[driver].push({
+  //             id: id,
+  //             delta: {trash: ["1"]}
+  //           });
+  //
+  //         }
+  //
+  //       }
+  //
+  //     }
   //
   //   }
   //
-  //   KarmaFieldsAlpha.Store.remove("items", "remote", driver);
-  //   KarmaFieldsAlpha.Store.remove("relations", "remote", driver);
-  //
-  //   KarmaFieldsAlpha.Store.Delta.remove("items", "remote", driver); // update history ?
-  //
-  //   await KarmaFieldsAlpha.Database.Queries.removeDriver(driver);
+  //   return delta;
   // }
+
+  update() {
+    return this.clean();
+  }
+
+  async clean() {
+
+    const delta = KarmaFieldsAlpha.Store.Delta.get("items", "remote");
+
+    if (delta) {
+
+      for (let driver in delta) {
+
+        for (let paramstring in delta[driver]) {
+
+          const items = delta[driver][paramstring];
+
+          KarmaFieldsAlpha.Store.set(items, "items", "cache", driver, paramstring);
+          KarmaFieldsAlpha.Store.remove("items", "remote", driver, paramstring);
+          KarmaFieldsAlpha.Store.remove("relations", "remote", driver, paramstring);
+
+        }
+
+        // await KarmaFieldsAlpha.Database.Queries.removeDriver(driver);
+
+      }
+
+      KarmaFieldsAlpha.Store.Buffer.remove("state", "delta", "items", "remote"); // do not update history !
+      KarmaFieldsAlpha.Store.remove("temp");
+
+    }
+
+    const deltaVars = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
+
+    if (deltaVars) {
+
+      for (let driver in deltaVars) {
+
+        await KarmaFieldsAlpha.Database.Queries.removeDriver(driver);
+
+      }
+
+    }
+
+  }
+
+  async resolve() {
+
+    // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
+    const delta = this.getDelta();
+
+    if (this.driver && this.ids && this.keys) {
+
+      const set = {};
+
+      if (delta[this.driver]) {
+
+        for (let id of this.ids) {
+
+          if (delta[this.driver][id]) {
+
+            for (let key of this.keys) {
+
+              if (delta[this.driver][id][key]) {
+
+                KarmaFieldsAlpha.Store.set(delta[this.driver][id][key], "vars", "remote", this.driver, id, key);
+                KarmaFieldsAlpha.Store.Buffer.remove("state", "delta", "vars", "remote", this.driver, id, key); // do not update history !
+
+                KarmaFieldsAlpha.DeepObject.set(set, delta[this.driver][id][key], id, key);
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+      if (Object.keys(set)) {
+
+        await KarmaFieldsAlpha.HTTP.post(`update/${this.driver}`, set);
+
+      }
+
+    } else {
+
+
+
+      for (let driver in delta) {
+
+        await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, delta[driver]);
+
+        await this.cleanDriver(driver, delta[driver]);
+
+      }
+
+      // KarmaFieldsAlpha.Store.Delta.remove("vars", "remote");
+
+    }
+
+  }
 
   async cleanDriver(driver, delta) {
 
+    // const queries = KarmaFieldsAlpha.Store.Delta.get("items", "remote", driver);
+    // KarmaFieldsAlpha.Store.assign(queries, "items", "cache", driver);
+    //
+    //
+    // // KarmaFieldsAlpha.Store.set(items, "items", "cache", driver, paramstring);
+    // KarmaFieldsAlpha.Store.remove("items", "remote", driver);
+    // KarmaFieldsAlpha.Store.remove("relations", "remote", driver);
+    //
     // const vars = KarmaFieldsAlpha.Store.get("vars", "remote", driver);
-    //
-    // KarmaFieldsAlpha.Store.set(vars, "vars", "cache", driver);
-    //
     // KarmaFieldsAlpha.Store.remove("vars", "remote", driver);
+    // KarmaFieldsAlpha.Store.assign(vars, "vars", "cache", driver);
+    //
+    // KarmaFieldsAlpha.Store.Buffer.remove("state", "delta", "items", "remote", driver); // do not update history !
+    // KarmaFieldsAlpha.Store.remove("temp", driver);
+    //
+    // await KarmaFieldsAlpha.Database.Queries.removeDriver(driver);
+
+
+
 
 
     for (let id in delta) {
@@ -1078,21 +1221,26 @@ KarmaFieldsAlpha.Task.Save = class {
 
     }
 
-    KarmaFieldsAlpha.Store.Buffer.remove("state", "delta", "vars", "remote", driver); // do not update history !
+    // KarmaFieldsAlpha.Store.Buffer.remove("state", "delta", "vars", "remote", driver); // do not update history !
 
-    const queries = KarmaFieldsAlpha.Store.Delta.get("items", "remote", driver);
+    KarmaFieldsAlpha.Store.Delta.remove("vars", "remote", driver); // update history ?
 
-    for (let paramstring in queries) {
+    // KarmaFieldsAlpha.Store.Buffer.remove("state", "delta", "items", "remote", driver); // do not update history !
 
-      KarmaFieldsAlpha.Store.set(queries[paramstring], "items", "cache", driver, paramstring);
-
-    }
-
-    KarmaFieldsAlpha.Store.remove("items", "remote", driver);
-    KarmaFieldsAlpha.Store.remove("relations", "remote", driver);
 
     KarmaFieldsAlpha.Store.Delta.remove("items", "remote", driver); // update history ?
 
+    KarmaFieldsAlpha.Store.remove("items", "remote", driver);
+    KarmaFieldsAlpha.Store.remove("relations", "remote", driver);
+    KarmaFieldsAlpha.Store.remove("temp", driver);
+
+
+
+
+
+
+    KarmaFieldsAlpha.Store.remove("vars", "cache", driver);
+    KarmaFieldsAlpha.Store.remove("items", "cache", driver);
     await KarmaFieldsAlpha.Database.Queries.removeDriver(driver);
   }
 
@@ -1104,46 +1252,13 @@ KarmaFieldsAlpha.Task.SaveData = class {
   constructor(driver, data) {
 
     this.driver = driver;
-    // this.data = Object.fromEntries(Object.entries(data).map(([key, value]) => [KarmaFieldsAlpha.Driver.getAlias(this.driver, key), new KarmaFieldsAlpha.Content(value).toArray()]));
-    this.data = {};
-
-    for (let id in data) {
-
-      for (let key in data[id]) {
-
-        const value = new KarmaFieldsAlpha.Content(data[id][key]).toArray();
-
-        KarmaFieldsAlpha.DeepObject.set(this.data, value, id, KarmaFieldsAlpha.Driver.getAlias(this.driver, key));
-
-      }
-
-    }
-
+    this.data = Object.fromEntries(Object.entries(data).map(([key, value]) => [KarmaFieldsAlpha.Driver.getAlias(this.driver, key), new KarmaFieldsAlpha.Content(value).toArray()]));
 
   }
 
   async resolve() {
 
-    for (let id in this.data) {
-
-      for (let key in this.data[id]) {
-
-        KarmaFieldsAlpha.Store.set(KarmaFieldsAlpha.Store.Delta.get("vars", "remote", this.driver, id, key), "vars", "remote", this.driver, id, key);
-
-        KarmaFieldsAlpha.Store.Delta.remove("vars", "remote", this.driver, id, key);
-
-      }
-
-    }
-
-    await KarmaFieldsAlpha.HTTP.post(`update/${this.driver}`, this.data);
-
-    await KarmaFieldsAlpha.Database.Queries.removeDriver(this.driver);
-
-    // KarmaFieldsAlpha.Store.set(KarmaFieldsAlpha.Store.get("items", "remote", this.driver), "items", "cache", this.driver);
-    //
-    // KarmaFieldsAlpha.Store.remove("items", "remote", this.driver);
-    // KarmaFieldsAlpha.Store.remove("relations", "remote", this.driver);
+    await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, this.data);
 
   }
 

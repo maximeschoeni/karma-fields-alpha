@@ -612,11 +612,35 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 	}
 
+	getContent(key) {
+
+		if (this.resource.driver && this.resource.id) {
+
+			let query = this.parse(this.resource.id);
+
+			if (!query.loading) {
+
+				const collection = new KarmaFieldsAlpha.Model(this.resource.driver);
+
+		    query = collection.queryValue(query.toString(), key);
+
+			}
+
+			return query;
+
+		} else {
+
+			return this.parent.getContent(key);
+
+		}
+
+	}
+
 	getMedia() {
 
 		const driver = this.getDriver();
 
-		let id = this.parse(this.resource.id);
+		// let id = this.parse(this.resource.id);
 
 		if (!driver) {
 
@@ -630,7 +654,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			return {icon: "uploading", text: ""};
 
-		} else if (id.loading || this.resource.loading) {
+		} else if (this.resource.loading) {
 
 			return {icon: "loading", text: ""};
 
@@ -638,9 +662,9 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			return {icon: "mixed", text: "[mixed]"};
 
-		} else if (!id.toString()) {
-
-			return {icon: "notfound", text: "No ID"};
+		// } else if (!id.toString()) {
+		//
+		// 	return {icon: "notfound", text: "No ID"};
 
 		} else {
 
@@ -649,14 +673,23 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 			// const name = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "name");
 			// const filename = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filename");
 
-			const mimetype = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "mimetype");
-			const filetype = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filetype");
-			const name = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "name");
-			const filename = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filename");
+			// const mimetype = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "mimetype");
+			// const filetype = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filetype");
+			// const name = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "name");
+			// const filename = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filename");
+
+			const mimetype = this.getContent("mimetype");
+			const filetype = this.getContent("filetype");
+			const name = this.getContent("name");
+			const filename = this.getContent("filename");
 
 			if (mimetype.loading || filetype.loading) {
 
 				return {icon: "loading", text: ""};
+
+			} else if (filetype.toString() === "exit") {
+
+				return {icon: "exit", text: ".."};
 
 			} else if (filetype.toString() !== "file") {
 
@@ -664,8 +697,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			} else if (mimetype.toString().startsWith("image")) {
 
-				// const filename = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filename");
-				const filename = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filename");
+				const filename = this.getContent("filename");
 
 				if (filename.loading) {
 
@@ -673,8 +705,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				// const dir = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "dir");
-				const dir = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "dir");
+				const dir = this.getContent("dir");
 
 				if (dir.loading) {
 
@@ -682,20 +713,71 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				if (mimetype.toString() === "image/jpeg" || mimetype.toString() === "image/png") {
+				if (mimetype.toString() === "image/jpeg" || mimetype.toString() === "image/png" || this.resource.display === "full") {
 
-					const sizes = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "sizes");
+					// if (this.resource.display === "full") {
+					//
+					// 	return {
+					// 		text: name.toString(),
+					// 		mimetype: mimetype.toString(),
+					// 		filename: filename.toString(),
+					// 		src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+					// 		image: true
+					// 	};
+					//
+					// } else {
 
-					return {
-						icon: "image",
-						text: name.toString(),
-						mimetype: mimetype.toString(),
-						filename: filename.toString(),
-						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-						sizes: sizes.toArray(),
-						dir: dir.toString() || ""
-						// srcset: sizes.filter(size => size.width).map(size => `${KarmaFieldsAlpha.uploadURL}${dir}/${encodeURI(size.filename)} ${size.width}w`)
-					};
+						const sizes = this.getContent("sizes");
+
+						if (sizes.loading) {
+
+							return {
+								icon: "loading",
+								text: name.toString(),
+								mimetype: mimetype.toString(),
+								filename: filename.toString(),
+							};
+
+						} else {
+
+							const sizeName = this.resource.display !== "thumb" && this.resource.display || "thumbnail"; // compat
+							const size = sizes.toArray().find(size => sizeName === size.name && size.filename);
+
+							if (size) {
+
+								return {
+									text: name.toString(),
+									mimetype: mimetype.toString(),
+									filename: filename.toString(),
+									src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+size.filename.toString(),
+									image: true
+								};
+
+							} else {
+
+								return {
+									icon: "image",
+									text: name.toString(),
+									mimetype: mimetype.toString(),
+									filename: filename.toString(),
+								};
+
+							}
+
+						}
+
+					// }
+
+					// return {
+					// 	icon: "image",
+					// 	text: name.toString(),
+					// 	mimetype: mimetype.toString(),
+					// 	filename: filename.toString(),
+					// 	src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+					// 	sizes: sizes.toArray(),
+					// 	dir: dir.toString() || ""
+					// 	// srcset: sizes.filter(size => size.width).map(size => `${KarmaFieldsAlpha.uploadURL}${dir}/${encodeURI(size.filename)} ${size.width}w`)
+					// };
 
 				} else {
 
@@ -704,15 +786,16 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 						text: name.toString(),
 						mimetype: mimetype.toString(),
 						filename: filename.toString(),
-						dir: dir.toString(),
-						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString()
+						// dir: dir.toString(),
+						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+						image: true
 					};
 
 				}
 
 			} else if (mimetype.toString().startsWith("video")) {
 
-				const filename = new KarmaFieldsAlpha.Content.Value(driver, id, "filename");
+				const filename = this.getContent("filename");
 
 				if (filename.loading) {
 
@@ -720,7 +803,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				const dir = new KarmaFieldsAlpha.Content.Value(driver, id, "dir");
+				const dir = this.getContent("dir");
 
 				if (dir.loading) {
 
@@ -728,19 +811,31 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				return {
-					icon: "video",
-					text: name.toString(),
-					mimetype: mimetype.toString(),
-					filename: filename.toString(),
-					dir: dir.toString(),
-					src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString()
-				};
+				if (this.resource.display === "video") {
+
+					return {
+						text: name.toString(),
+						mimetype: mimetype.toString(),
+						filename: filename.toString(),
+						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+						video: true
+					};
+
+				} else {
+
+					return {
+						icon: "video",
+						text: name.toString(),
+						mimetype: mimetype.toString(),
+						filename: filename.toString(),
+					};
+
+				}
 
 			} else if (mimetype.toString().startsWith("audio")) {
 
-				const filename = new KarmaFieldsAlpha.Content.Value(driver, id, "filename");
-				const dir = new KarmaFieldsAlpha.Content.Value(driver, id, "dir");
+				const filename = this.getContent("filename");
+				const dir = this.getContent("dir");
 
 				if (dir.loading) {
 
@@ -754,14 +849,26 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				return {
-					icon: "audio",
-					text: name.toString(),
-					mimetype: mimetype.toString(),
-					filename: filename.toString(),
-					dir: dir.toString(),
-					src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString()
-				};
+				if (this.resource.display === "audio") {
+
+					return {
+						text: name.toString(),
+						mimetype: mimetype.toString(),
+						filename: filename.toString(),
+						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+						audio: true
+					};
+
+				} else {
+
+					return {
+						icon: "audio",
+						text: name.toString(),
+						mimetype: mimetype.toString(),
+						filename: filename.toString(),
+					};
+
+				}
 
 			} else if (mimetype.toString().startsWith("text")) {
 
@@ -812,13 +919,13 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 						class: "icon",
 						tag: "figure",
 						update: node => {
-							const visible = media.icon && (!media.src || this.resource.display === "icon" || (this.resource.display === "thumb" && (media.icon === "video" || media.icon === "audio")));
-							node.element.classList.toggle("hidden", !visible);
-							if (visible) {
+							// const visible = media.icon && (!media.src || this.resource.display === "icon" || (this.resource.display === "thumb" && (media.icon === "video" || media.icon === "audio")));
+							node.element.classList.toggle("hidden", !media.icon);
+							// if (media.icon) {
 								node.children = [
 									{
 										update: node => {
-											node.element.classList.toggle("dashicons", Boolean(visible));
+											node.element.classList.toggle("dashicons", Boolean(media.icon));
 											node.element.classList.toggle("dashicons-category", media.icon === "folder");
 											node.element.classList.toggle("dashicons-format-image", media.icon === "image");
 											node.element.classList.toggle("dashicons-media-video", media.icon === "video");
@@ -842,43 +949,43 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 										}
 									}
 								];
-							}
+							// }
 						}
 					},
 					{
 						class: "image",
 						tag: "figure",
 						update: node => {
-							const visible = media.icon === "image" && media.filename && this.resource.display !== "icon";
-							node.element.classList.toggle("hidden", !visible);
-							if (visible) {
+							// const visible = media.icon === "image" && media.filename && this.resource.display !== "icon";
+							node.element.classList.toggle("hidden", !media.image);
+							if (media.image) {
 								node.child = {
 									tag: "img",
 									init: img => {
 										img.element.draggable = false;
 									},
 									update: img => {
-										let src;
-										const thumb = this.resource.display === "thumb" && media.sizes && media.sizes.find(size => size.name === "thumbnail" && size.filename);
-
-										if (thumb) {
-											src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(thumb.filename)}`;
-										} else {
-											const large = this.resource.display === "large" && media.sizes && media.sizes.find(size => size.name === "medium" && size.filename);
-											if (large) {
-												src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(large.filename)}`;
-											} else {
-												const medium = media.sizes && media.sizes.find(size => size.name === "medium" && size.filename);
-												if (medium) {
-													src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(medium.filename)}`;
-												} else {
-													src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(media.filename)}`;
-												}
-											}
-										}
-										if (src && src !== img.element.getAttribute("data-src")) {
-											img.element.src = src;
-											img.element.setAttribute("data-src", src);
+										// let src;
+										// const thumb = this.resource.display === "thumb" && media.sizes && media.sizes.find(size => size.name === "thumbnail" && size.filename);
+										//
+										// if (thumb) {
+										// 	src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(thumb.filename)}`;
+										// } else {
+										// 	const large = this.resource.display === "large" && media.sizes && media.sizes.find(size => size.name === "medium" && size.filename);
+										// 	if (large) {
+										// 		src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(large.filename)}`;
+										// 	} else {
+										// 		const medium = media.sizes && media.sizes.find(size => size.name === "medium" && size.filename);
+										// 		if (medium) {
+										// 			src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(medium.filename)}`;
+										// 		} else {
+										// 			src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(media.filename)}`;
+										// 		}
+										// 	}
+										// }
+										if (media.src && media.src !== img.element.getAttribute("data-src")) {
+											img.element.src = media.src;
+											img.element.setAttribute("data-src", media.src);
 										}
 									}
 								}
@@ -889,9 +996,9 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 						class: "video",
 						tag: "figure",
 						update: node => {
-							const visible = media.icon === "video" && media.filename && this.resource.display !== "icon" && this.resource.display !== "thumb";
-							node.element.classList.toggle("hidden", !visible);
-							if (visible) {
+							// const visible = media.icon === "video" && media.filename && this.resource.display !== "icon" && this.resource.display !== "thumb";
+							node.element.classList.toggle("hidden", !media.video);
+							if (media.video) {
 								node.child = {
 									tag: "video",
 									init: video => {
@@ -912,9 +1019,9 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 						class: "audio",
 						tag: "figure",
 						update: node => {
-							const visible = media.icon === "audio" && media.filename && this.resource.display !== "icon" && this.resource.display !== "thumb";
-							node.element.classList.toggle("hidden", !visible);
-							if (visible) {
+							// const visible = media.icon === "audio" && media.filename && this.resource.display !== "icon" && this.resource.display !== "thumb";
+							node.element.classList.toggle("hidden", !media.audio);
+							if (media.audio) {
 								node.child = {
 									tag: "audio",
 									init: audio => {

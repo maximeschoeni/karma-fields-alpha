@@ -85,6 +85,7 @@ class Karma_Fields_Alpha_Driver_Posts {
 
 
 
+
       $args = array();
 
       $id = intval($id);
@@ -258,6 +259,9 @@ class Karma_Fields_Alpha_Driver_Posts {
 
         $args = array_merge($post_arr, $args);
 
+        remove_action( 'post_updated', 'wp_save_post_revision' );
+        // remove_action('pre_post_update', 'wp_save_post_revision');// stop revisions
+
         wp_insert_post($args);
 
       }
@@ -360,7 +364,8 @@ class Karma_Fields_Alpha_Driver_Posts {
       'posts_per_page' => -1,
       'cache_results' => false,
       'update_post_term_cache' => false,
-      'update_post_meta_cache' => false
+      'update_post_meta_cache' => false,
+      'ignore_sticky_posts' => 1
     );
 
     foreach ($params as $key => $value) {
@@ -466,9 +471,7 @@ class Karma_Fields_Alpha_Driver_Posts {
 
         case 'post_status':
         case 'post_type':
-          if (!is_array($value)) {
-            $value = explode(',', $value);
-          }
+          $value = explode(',', $value);
           $args[$key] = $value;
           break;
 
@@ -1092,7 +1095,7 @@ class Karma_Fields_Alpha_Driver_Posts {
         meta_key AS 'key',
         post_id AS 'id'
         FROM $wpdb->postmeta
-        WHERE post_id IN ($ids_string) AND meta_key NOT LIKE '\_%'";
+        WHERE post_id IN ($ids_string) AND meta_key NOT LIKE '\_%' AND meta_key != 'trash'";
 
       $sql = apply_filters('karma_fields_posts_meta_sql', $sql, $ids, $ids_string);
 

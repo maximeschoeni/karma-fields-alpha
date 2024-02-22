@@ -86,7 +86,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     // KarmaFieldsAlpha.Store.remove("items");
     // KarmaFieldsAlpha.Store.remove("counts");
 
-    KarmaFieldsAlpha.Store.clear();
+    // KarmaFieldsAlpha.Store.clear();
 
   }
 
@@ -248,25 +248,33 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  submit() {
-
-    KarmaFieldsAlpha.Driver.sync();
-
-    let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "save");
-
-    if (!task) {
-
-      task = new KarmaFieldsAlpha.Task.Save();
-
-      KarmaFieldsAlpha.Task.add(task);
-
-      this.render();
-
-    }
-
-
-
-  }
+  // submit() {
+  //
+  //   // KarmaFieldsAlpha.Driver.sync();
+  //   //
+  //   // let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "save");
+  //   //
+  //   // if (!task) {
+  //   //
+  //   //   task = new KarmaFieldsAlpha.Task.Save();
+  //   //
+  //   //   KarmaFieldsAlpha.Task.add(task);
+  //   //
+  //   //   this.render();
+  //   //
+  //   // }
+  //
+  //
+  //
+  //   const task = new KarmaFieldsAlpha.Task.Save();
+  //
+  //   KarmaFieldsAlpha.Task.add(task);
+  //
+  //   this.dispatch("deferSelection");
+  //
+  //   this.render();
+  //
+  // }
 
   isSaving() {
 
@@ -282,7 +290,11 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   delta() {
 
-    return KarmaFieldsAlpha.Driver.delta();
+    const task = new KarmaFieldsAlpha.Task.Save();
+
+    return task.hasDelta();
+
+    // return KarmaFieldsAlpha.Driver.delta();
 
     // const delta = KarmaFieldsAlpha.Store.Delta.get("vars");
     //
@@ -451,6 +463,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
       }
 
       // debugger;
+
+
+
 
       let tasks = KarmaFieldsAlpha.Store.get("tasks");
 
@@ -909,6 +924,18 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
     super.setContent(content, ...path);
 
     this.body("removeSelection");
+
+  }
+
+  submit() {
+
+    const task = new KarmaFieldsAlpha.Task.Save();
+
+    KarmaFieldsAlpha.Task.add(task);
+
+    this.lift(["body"], "deferSelection");
+
+    this.render();
 
   }
 

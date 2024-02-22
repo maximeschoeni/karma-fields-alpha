@@ -1101,6 +1101,7 @@ ul.karma-breadcrumb li a:hover {
   font-size: 1em;
   display: flex;
   align-items: center;
+  align-self: center;
   flex-wrap: wrap;
 }
 .karma-field-table .table .text.display-block {
@@ -1799,6 +1800,7 @@ textarea.clipboard {
 .karma-tinymce {
   position: relative;
   background-color: white;
+  border-radius: 4px;
 }
 
 .karma-tinymce .editor-header {
@@ -1810,6 +1812,7 @@ textarea.clipboard {
 .karma-tinymce .mode {
   display: flex;
   flex-direction: column;
+  border-radius: 4px;
 }
 .karma-tinymce .mode-edit.active {
   border-color: var(--theme-color);
@@ -1910,7 +1913,7 @@ textarea.clipboard {
   /* display: flex; */
 }
 .karma-tinymce .mode {
-  border: var(--border-width) solid var(--border-color);
+  border: var(--border-width) solid #8c8f94;
   position: relative;
 }
 
@@ -1923,8 +1926,12 @@ textarea.clipboard {
   z-index: 2;
   padding: 0.5em var(--gap-width);
 
-  border-bottom: var(--border-width) solid var(--border-color);
+  border-bottom: var(--border-width) solid #8c8f94;
   display: flex;
+
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+
 }
 .karma-tinymce .editor-header .toolbar .karma-field-container {
   /* gap: 0; */

@@ -81,6 +81,7 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
       update: grid => {
 
         const id = this.parent.getContent("id");
+
         const isMixed = Boolean(id.mixed);
 
         grid.children = [
@@ -116,7 +117,8 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
                     },
                     update: grid => {
 
-                      const query = this.getQuery();
+                      // const query = this.getQuery();
+                      const query = this.queryItems();
 
                       grid.element.classList.toggle("loading", Boolean(query.loading));
                       grid.element.classList.toggle("active", Boolean(this.hasFocus()));
@@ -125,7 +127,7 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
 
                       if (!query.loading) {
 
-                        const items = query.toItems();
+                        const items = query.toArray();
 
                         const page = this.request("getPage");
                         const ppp = this.getPpp();
@@ -238,13 +240,13 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
                           for (let i = 0; i < items.length; i++) {
 
                             const row = this.createChild({
-                              id: items[i].id,
-                              loading: items[i].loading,
+                              // id: items[i].id,
+                              // loading: items[i].loading,
                               type: "row",
                               children: columns,
                               index: offset + i,
                               rowIndex: offset + i
-                            }, i);
+                            }, items[i].index);
 
                             const isRowSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, i);
 

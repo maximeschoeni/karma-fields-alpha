@@ -13,6 +13,7 @@
 
 <script>
 
+
 	KarmaFieldsAlpha.embeds.push({
 		driver: "<?php echo $driver; ?>",
 		id: "<?php echo $id; ?>",

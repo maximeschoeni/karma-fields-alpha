@@ -9,48 +9,85 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
-  getFileType(id) {
-
-    // return this.getSingleValue(id, "filetype");
-
-    return this.getContent(id, "filetype");
-
-  }
+  // getFileType(index) {
+  //
+  //   // return this.getSingleValue(id, "filetype");
+  //
+  //   return this.getContent(index, "filetype");
+  //
+  // }
 
   getContent(index, key) {
 
-    if (index === 0) {
+    if (index === "exit") {
 
-      const query = this.getItems();
+      switch (key) {
+        case "id":
+          return this.queryUpperFolderId()
 
-      if (query.loading){
+        case "filetype":
+          return new KarmaFieldsAlpha.Content("exit");
 
-        return new KarmaFieldsAlpha.Content.Request();
+        case "filename":
+        case "name":
+          return new KarmaFieldsAlpha.Content("..");
 
-      } else {
-
-        const item = query.toSingle();
-
-        if (item && item.exit) {
-
-          switch (key) {
-            case "filetype":
-              return new KarmaFieldsAlpha.Content("folder");
-
-            case "filename":
-            case "name":
-              return new KarmaFieldsAlpha.Content("..");
-
-            default:
-              return new KarmaFieldsAlpha.Content("");
-
-          }
-
-        }
+        default:
+          return new KarmaFieldsAlpha.Content("");
 
       }
 
+    } else {
+
+      return super.getContent(index, key);
+
     }
+
+    // if (!this.isRoot()) {
+    //
+    //
+    //
+    // } else {
+    //
+    //   return super.getContent(index, key);
+    //
+    // }
+
+
+
+
+    // if (index === 0) {
+    //
+    //   const query = this.getItems();
+    //
+    //   if (query.loading){
+    //
+    //     return new KarmaFieldsAlpha.Content.Request();
+    //
+    //   } else {
+    //
+    //     const item = query.toSingle();
+    //
+    //     if (item && item.exit) {
+    //
+    //       switch (key) {
+    //         case "filetype":
+    //           return new KarmaFieldsAlpha.Content("folder");
+    //
+    //         case "filename":
+    //         case "name":
+    //           return new KarmaFieldsAlpha.Content("..");
+    //
+    //         default:
+    //           return new KarmaFieldsAlpha.Content("");
+    //
+    //       }
+    //
+    //     }
+    //
+    //   }
+    //
+    // }
 
     // if (!id || id === "0") {
     //
@@ -69,9 +106,161 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
     //
     // }
 
-    return super.getContent(index, key);
+    // return super.getContent(index, key);
 
   }
+
+  setValue(content, index, value) {
+
+    if (index !== "exit") {
+
+      super.setContent(content, index, key);
+
+    }
+
+    // if (!this.isRoot()) {
+    //
+    //   if (index > 0) {
+    //
+    //     super.setContent(content, index - 1, key);
+    //   }
+    //
+    // } else {
+    //
+    //   super.setContent(content, index, key);
+    //
+    // }
+
+  }
+
+
+  // queryItems() {
+  //
+  //   const collection = this.getCollection();
+  //
+  //   const itemQuery = collection.queryItems();
+  //
+  //   if (!itemQuery.loading) {
+  //
+  //     if (!this.isRoot()) {
+  //
+  //       itemQuery.value = [
+  //         {
+  //           index: "exit"
+  //         },
+  //         ...itemQuery.toArray().map((item, index) => {
+  //           return {...item, index};
+  //         })
+  //       ];
+  //
+  //     } else {
+  //
+  //       itemQuery.value = itemQuery.toArray().map((item, index) => ({...item, index}));
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  //   return itemQuery;
+  //
+  // }
+
+  queryItems() {
+
+    const query = super.queryItems();
+    const parent = this.parent.getContent("parent").toString() || "0";
+
+    if (!query.loading) {
+
+      query.value = query.toArray().map(item => {
+
+        const parent = this.getContent(item.index, "parent").toString() || "0";
+        const filetype = this.getContent(item.index, "filetype").toString();
+        let order;
+
+        if (item.uploading) {
+
+          order = 3;
+
+        } else if (item.adding) {
+
+          order = 1;
+
+        } else if (filetype === "folder") {
+
+          order = 2;
+
+        } else if (filetype === "file") {
+
+          order = 4;
+
+        } else {
+
+          order = 2;
+
+        }
+
+        return {...item, parent, filetype, order};
+      });
+
+      query.value = query.toArray().filter(item => item.parent === parent);
+
+      query.value.sort((a, b) => a.order - b.order);
+
+      if (!this.isRoot()) {
+
+        const grandParent = this.queryUpperFolderId();
+
+        query.value = [
+          {
+            index: "exit",
+            id: grandParent.toString() || "0",
+            order: 0
+          },
+          ...query.toArray()
+        ];
+
+      }
+
+    }
+
+    return query;
+
+  }
+
+
+  // slice(index, length) {
+  //
+  //   const collection = this.getCollection();
+  //   let itemsQuery = collection.queryItems();
+  //
+  //   if (!itemsQuery.loading) {
+  //
+  //     if (!this.isRoot()) {
+  //
+  //       index = Math.max(0, index - 1);
+  //
+  //     }
+  //
+  //     const items = itemsQuery.toArray().slice(index, index + length);
+  //
+  //     itemsQuery = new KarmaFieldsAlpha.Content(items);
+  //
+  //   }
+  //
+  //   return itemsQuery;
+  // }
+  //
+  // sliceSelection() {
+  //
+  //   const selection = this.getSelection();
+  //   const index = selection && selection.index || 0;
+  //   const length = selection && selection.length || 0;
+  //
+  //   return this.slice(index, length);
+  //
+  // }
 
   // getItems() {
   //
@@ -159,18 +348,23 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
   selectAll() {
 
-    const query = this.getItems();
+    const query = this.queryItems();
 
     if (!query.loading) {
 
-      const items = query.toArray();
+      const index = query.toArray().findIndex(item => item.index !== "exit");
 
-      this.setSelection({
-        index: items[0].exit ? 1 : 0,
-        length: items.length
-      });
+      if (index > -1) {
 
-      this.request("render");
+        this.setSelection({
+          index: index,
+          length: query.toArray().length - index
+        });
+
+        this.request("render");
+
+      }
+
     }
 
   }
@@ -207,34 +401,34 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
 
   // getItems() {
-  getQuery() {
-
-    const params = this.getParams();
-    const driver = this.getDriver();
-
-    if (params.loading) {
-
-      return new KarmaFieldsAlpha.Content.Request();
-
-    }
-
-    return new KarmaFieldsAlpha.Content.Medias(driver, params.toObject());
-
-  }
+  // getQuery() {
+  //
+  //   const params = this.getParams();
+  //   const driver = this.getDriver();
+  //
+  //   if (params.loading) {
+  //
+  //     return new KarmaFieldsAlpha.Content.Request();
+  //
+  //   }
+  //
+  //   return new KarmaFieldsAlpha.Content.Medias(driver, params.toObject());
+  //
+  // }
 
   // setItems(items) {
-  setQuery(query) {
-
-    const items = query.toArray();
-
-    if (items[0] && items[0].exit) {
-
-      query.value = query.value.slice(1);
-
-    }
-
-    super.setQuery(query);
-  }
+  // setQuery(query) {
+  //
+  //   const items = query.toArray();
+  //
+  //   if (items[0] && items[0].exit) {
+  //
+  //     query.value = query.value.slice(1);
+  //
+  //   }
+  //
+  //   super.setQuery(query);
+  // }
 
 
 
@@ -297,40 +491,56 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
   // }
 
 
-  add() {
+  // add() {
+  //
+  //
+  //
+  //   // const content = this.getItems();
+  //   //
+  //   // if (!content.loading) {
+  //   //
+  //   //   const items = content.toArray();
+  //   //   const firstFolderIndex = items.findIndex(item => this.isFolder(item));
+  //   //   const maxIndex = Math.max(firstFolderIndex, 0);
+  //   //   const firstIndex = items[0].exit ? 1 : 0;
+  //
+  //     // let index = this.getSelection("index") || 0;
+  //     //
+  //     // index = Math.min(Math.max(index, firstIndex), maxIndex);
+  //     //
+  //     // super.add();
+  //     //
+  //     // this.setSelection({
+  //     //   index: index,
+  //     //   length: 0
+  //     // });
+  //
+  //     this.save("insert", "Insert");
+  //
+  //     let index = 1
+  //
+  //     this.addAt(index, 1);
+  //
+  //     this.setSelection({index, length: 1});
+  //
+  //     this.request("render");
+  //
+  //   // }
+  //
+  // }
 
+  getDefaultIndex() {
 
+    return 0;
 
-    // const content = this.getItems();
+    // if (this.isRoot()) {
     //
-    // if (!content.loading) {
+    //   return 0;
     //
-    //   const items = content.toArray();
-    //   const firstFolderIndex = items.findIndex(item => this.isFolder(item));
-    //   const maxIndex = Math.max(firstFolderIndex, 0);
-    //   const firstIndex = items[0].exit ? 1 : 0;
-
-      // let index = this.getSelection("index") || 0;
-      //
-      // index = Math.min(Math.max(index, firstIndex), maxIndex);
-      //
-      // super.add();
-      //
-      // this.setSelection({
-      //   index: index,
-      //   length: 0
-      // });
-
-      this.save("insert", "Insert");
-
-      let index = 1
-
-      this.addAt(index, 1);
-
-      this.setSelection({index, length: 1});
-
-      this.request("render");
-
+    // } else {
+    //
+    //   return 1;
+    //
     // }
 
   }
@@ -478,66 +688,156 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
   //
   // }
 
-  openFolder(item) {
+  // openFolder(item) {
+  //
+  //   let id;
+  //
+  //   if (item.exit) {
+  //
+  //     const parent = KarmaFieldsAlpha.Store.Layer.getParam("parent") || "0";
+  //
+  //     const grandParent = this.getContent(parent, "parent");
+  //
+  //     if (grandParent.loading) {
+  //
+  //       KarmaFieldsAlpha.Store.Tasks.add({
+  //         type: "upperfolder",
+  //         resolve: () => this.openFolder(item)
+  //       });
+  //
+  //     } else {
+  //
+  //       id = grandParent.toString() || "0";
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     id = item.id;
+  //
+  //   }
+  //
+  //   if (id) {
+  //
+  //     const content = new KarmaFieldsAlpha.Content(id);
+  //
+  //     this.save(`open-${id}`, "Enter Directory");
+  //
+  //     this.parent.setContent(content, "parent");
+  //
+  //   }
+  //
+  //   this.request("render");
+  // }
 
-    let id;
 
-    if (item.exit) {
+  // openFolder(index) {
+  //
+  //   // const filetypeQuery = this.getContent(index, "filetype");
+  //   const idQuery = this.getContent(index, "id"); // if index === 0 (exit) will return grandparent id
+  //
+  //   // if (!query.loading) {
+  //   //
+  //   //   const filetype = query.toString();
+  //   //
+  //   //   if (filetype === "exit" || filetype === "folder") {
+  //   //
+  //   //   //   query = this.queryUpperFolderId();
+  //   //   //
+  //   //   // } else if (filetype === "folder") {
+  //   //
+  //   //     query = this.getContent(index, "id");
+  //   //
+  //   //   }
+  //   //
+  //   // }
+  //
+  //   if (idQuery.loading) {
+  //
+  //     let task = KarmaFieldsAlpha.Task.find(task => task.type === "open-directory");
+  //
+  //     if (!task) {
+  //
+  //       task = {
+  //         type: "open-directory",
+  //         resolve: task => this.openFolder(task.index)
+  //       };
+  //
+  //       KarmaFieldsAlpha.Task.add(task);
+  //     }
+  //
+  //     task.index = index;
+  //
+  //   } else {
+  //
+  //     this.save(`open-${idQuery.toString()}`, "Open Directory");
+  //
+  //     this.parent.setContent(idQuery, "parent");
+  //
+  //   }
+  //
+  //   this.request("render");
+  // }
 
-      const parent = KarmaFieldsAlpha.Store.Layer.getParam("parent") || "0";
+  openFolder(index) {
 
-      const grandParent = this.getContent(parent, "parent");
+    const idQuery = this.getContent(index, "id"); // if index === 0 (exit) will return grandparent id
 
-      if (grandParent.loading) {
+    if (idQuery.loading) {
 
-        KarmaFieldsAlpha.Store.Tasks.add({
-          type: "upperfolder",
-          resolve: () => this.openFolder(item)
-        });
-
-      } else {
-
-        id = grandParent.toString() || "0";
-
-      }
+      this.procrastinate("openFolder", index);
 
     } else {
 
-      id = item.id;
+      this.save(`open-${idQuery.toString()}`, "Open Directory");
 
-    }
+      const id = idQuery.toString() || "0";
 
-    if (id) {
-
-      const content = new KarmaFieldsAlpha.Content(id);
-
-      this.save(`open-${id}`, "Enter Directory");
-
-      this.parent.setContent(content, "parent");
+      this.parent.setContent(new KarmaFieldsAlpha.Content(id), "parent");
 
     }
 
     this.request("render");
   }
 
-  upperFolder() {
+  queryUpperFolderId() {
 
-    const parent = KarmaFieldsAlpha.Store.Layer.getParam("parent") || "0";
+    let content = this.parent.getContent("parent");
 
-    const grandParent = this.getParent(parent);
+    if (!content.loading) {
 
-    if (grandParent.loading) {
+      const driver = this.getDriver();
+      const model = new KarmaFieldsAlpha.Model(driver);
 
-      KarmaFieldsAlpha.Store.Tasks.add({
-        type: "upperfolder",
-        resolve: () => this.upperFolder()
-      });
-
-    } else {
-
-      this.openFolder(grandParent.toString() || "0");
+      content = model.queryValue(content.toString(), "parent");
 
     }
+
+    return content;
+  }
+
+  upperFolder() {
+console.error("deprecated");
+
+    this.openFolder(0);
+
+
+    // const parent = KarmaFieldsAlpha.Store.Layer.getParam("parent") || "0";
+    //
+    // const grandParent = this.getParent(parent);
+    //
+    // if (grandParent.loading) {
+    //
+    //   KarmaFieldsAlpha.Store.Tasks.add({
+    //     type: "upperfolder",
+    //     resolve: () => this.upperFolder()
+    //   });
+    //
+    // } else {
+    //
+    //   this.openFolder(grandParent.toString() || "0");
+    //
+    // }
 
   }
 
@@ -573,6 +873,14 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
     }
 
+  }
+
+  isRoot() {
+
+    // const parent = KarmaFieldsAlpha.Store.Layer.getParam("parent");
+    const parent = this.parent.getContent("parent");
+
+    return (parent.toString() === "0");
   }
 
   // move(items, target) {
@@ -641,54 +949,34 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
   //
   // }
 
-  move(index, length, target) {
+  moveAt(index, length, target) {
 
-    let targetId;
+    // const targetQuery = this.queryItem(target);
 
-    if (target.exit) {
+    this.save("move", "Move");
 
-      const parentId = KarmaFieldsAlpha.Store.Layer.getParam("parent");
-      const grandParent = this.getContent(parentId, "parent");
+    const collection = this.getCollection();
+    const targetIdQuery = this.getContentAt(target, "id"); // exit folder return grandparent id
+    const itemsQuery = this.queryItems();
 
-      if (grandParent.loading) {
+    if (itemsQuery.loading || targetIdQuery.loading) {
 
-        KarmaFieldsAlpha.Store.Tasks.add({
-          type: "move",
-          resolve: () => this.move(index, length, target)
-        });
-
-      } else {
-
-        targetId = grandParent.toString() || "0";
-
-      }
+      this.procrastinate("move", index, length, target);
 
     } else {
 
-      targetId = target.id;
+      const items = itemsQuery.toArray().slice(index, index + length);
 
-    }
+      for (let item of items) {
 
-    if (targetId) {
-
-      const query = this.getItems();
-
-      if (query.loading) {
-
-        KarmaFieldsAlpha.Store.Tasks.add({
-          type: "move",
-          resolve: () => this.move(index, length, target)
-        });
-
-      } else {
-
-        this.save(`move-${targetId}`, "Move");
-
-        query.move(index, length, targetId);
-
-        this.setSelection({index: 0, length: 0});
+        this.setContent(targetIdQuery, item.index, "parent");
 
       }
+
+      // const data = Object.fromEntries(itemsQuery.slice(index, length).map(item => [item.id, {parent: targetIdQuery.toString()}]));
+      // const task = new KarmaFieldsAlpha.Task.SaveData(collection.driver, data);
+      //
+      // KarmaFieldsAlpha.Task.add(task);
 
     }
 
@@ -1059,231 +1347,399 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
   getUploadIndex() {
 
-    const content = this.getItems();
+    // const collection = this.getCollection();
+    // let query = collection.queryItems();
+    let index = 0;
 
-    let index = content.toArray().findIndex(item => !this.isFolder(item));
+    // if (!query.loading) {
 
-    if (index === -1) {
+      // const items = query.toArray();
 
-      index = content.toArray().length;
+      let query = this.getContentAt(index, "filetype");
 
-    }
+      while (!query.loading && !query.outOfBounds && query.toString() !== "folder" && query.toString() !== "exit") {
 
-    return Math.max(index, this.getSelection("index") || 0);
+        index++;
+        query = this.getContentAt(index, "filetype");
+
+      }
+
+    // }
+
+    return index;
+
+    // const content = this.getItems();
+    //
+    // let index = content.toArray().findIndex(item => !this.isFolder(item));
+    //
+    // if (index === -1) {
+    //
+    //   index = content.toArray().length;
+    //
+    // }
+    //
+    // return Math.max(index, this.getSelection("index") || 0);
 
   }
 
   upload(files) {
 
-    if (!this.isCurrentLayer()) {
+    // if (!this.isCurrentLayer()) {
+    //
+    //   console.error("cannot upload files from another layer");
+    //
+    // }
 
-      console.error("cannot upload files from another layer");
+    const index = this.getUploadIndex();
+
+    this.save("upload", "Upload");
+
+    this.uploadAt(files, index);
+
+
+    const uploadedIndex = this.queryItems().toArray().findLastIndex(item => item.uploading);
+
+    if (uploadedIndex > -1) {
+
+      this.setSelection({index: uploadedIndex, length: 1});
 
     }
 
-    // const content = this.getItems();
-    // // const params = this.getFilters();
-    //
-    // if (content.loading || params.loading) {
-    //
-    //   this.addTask(() => this.upload(files), "upload");
-    //
-    // } else {
 
 
 
-      // let fileIndex = content.toArray().findIndex(item => !this.isFolder(item));
-      //
-      // if (fileIndex === -1) {
-      //
-      //   fileIndex = content.toArray().length;
-      //
-      // }
-      //
-      // let index = Math.max(fileIndex, this.getSelection("index") || 0);
-
-      const index = this.getUploadIndex();
-
-      this.save("upload", "Upload");
-
-      this.uploadAt(files, index);
-
-      this.setSelection({index: index, length: files.length});
-
-    // }
 
     this.request("render");
 
   }
 
+  uploadAt(files, index) { // index is relative to collection !
+
+    const collection = this.getCollection();
+    const defaults = this.parse(this.resource.defaults || {});
+    const filters = this.getFilters();
 
 
 
-  uploadAt(files, index) {
+    if (defaults.loading || filters.loading) {
 
-    const query = this.getItems();
+      console.warn("procrastinating uploadAt");
 
-    if (query.loading) {
+      this.procrastinate("uploadAt", files, index);
 
-      return;
+    } else {
 
-    }
+      const params = {...filters.toObject(), ...defaults.toObject()};
 
-    const tokens = [];
+      // const collectionIndex = collectionIndexQuery.toNumber();
+      // let itemQuery = this.queryItemAt(index);
+      //
+      // while (!itemQuery.loading && !itemQuery.outOfBounds && isNaN(itemQuery.toObject().index)) {
+      //
+      //   index++;
+      //   itemQuery = this.queryItemAt(index);
+      //
+      // }
 
-    for (let i = 0; i < files.length; i++) {
+      collection.upload(files, params, index);
 
-      const token = this.createToken();
+      let query = this.queryItems();
 
-      tokens.push(token);
-
-    }
-
-    const items = [...query.toArray()];
-
-    items.splice(index, 0, ...tokens.map(token => ({token, upload: true})));
-
-    // KarmaFieldsAlpha.Store.Delta.set(items, "items", query.driver, query.paramstring);
-
-    this.setItems(new KarmaFieldsAlpha.Content(items));
-
-    // const params = {...filters.toObject(), ...defaults.toObject()};
-
-    for (let i = 0; i < files.length; i++) {
-
-      // this.add(tokens[i], params);
-
-      KarmaFieldsAlpha.Store.Tasks.add({
-        resolve: async task => {
-
-          const defaults = this.parse(this.resource.defaults || {});
-          const filters = this.getFilters();
-
-          if (filters.loading) {
-
-            KarmaFieldsAlpha.Store.Tasks.add(task);
-
-          } else {
-
-            const id = await this.createMedia(files[i], filters);
-
-            const query = this.getItems();
-            const items = query.toArray();
+      let items = query.toArray().filter(item => item.index >= index && item.index < index + files.length);
 
 
+      // items = query.toArray().slice(index, index + length);
 
-            // const index = items.findIndex(item => item.token === task.token);
-            //
-            // if (index > -1) {
-            //
-            //   const newItems = [...deltaItems];
-            //   newItems[index] = {id, name: "[new Item]"};
-            //
-            //   this.setItems(newItems);
-            //
-            // }
+      for (let item of items) {
 
-            // const newItems = items.map(item => item.token === task.token && {id, name: "[new Item]"} || item);
+        const field = this.createChild({
+          type: "row",
+          children: this.resource.children,
+        }, item.index);
 
-            this.setItems(query.toArray().map(item => {
+        field.create();
 
-              if (item.token === task.token) {
+        if (this.resource.modal) {
 
-                 return {id, name: "[new Item]"};
+          const field = this.createChild({
+            type: "row",
+            children: this.resource.modal.children,
+          }, item.index);
 
-              }
+          field.create();
 
-              return item;
-            }));
-
-            if (task.delta) {
-
-              for (let key in task.delta) {
-
-                KarmaFieldsAlpha.Store.Delta.set(task.delta[key], "vars", this.driver, id, key);
-
-              }
-
-            }
-
-          }
-
-        },
-        token: tokens[i],
-        type: "addItem"
-      });
-
-      const row = this.createChild({
-        type: "row",
-        children: this.resource.children
-      }, index);
-
-      row.create();
-
-    }
-
-    // this.setSelection({index, length});
-
-    // this.request("render");
-  }
-
-
-  async createMedia(file, params) {
-
-    const driver = this.getDriver();
-
-    let id = await KarmaFieldsAlpha.HTTP.upload(file); // -> parent is not going to be saved!
-
-    id = id.toString();
-
-    // const deltaItems = KarmaFieldsAlpha.Store.Delta.get("items", this.driver, this.paramstring);
-    //
-    // const index = deltaItems.findIndex(item => item.uploading);
-    //
-    // if (index > -1) {
-    //
-    //   const newDeltaItems = [...deltaItems];
-    //   newDeltaItems[index] = {id, name: file.name};
-    //
-    //   KarmaFieldsAlpha.Store.Delta.set(newDeltaItems, "items", this.driver, this.paramstring);
-    //
-    // }
-
-    if (params && Object.values(params).length) {
-
-      const data = {};
-
-      for (let key in params) {
-
-        const keyAlias = KarmaFieldsAlpha.Driver.getAlias(driver, key);
-
-        const value = params[key].split(",");
-
-        data[keyAlias] = value;
-
-        KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
-        // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, key);
-        KarmaFieldsAlpha.Store.remove("diff", "vars", driver, id, key);
-        KarmaFieldsAlpha.Store.Delta.set(value, "vars", driver, id, key);
+        }
 
       }
 
-      await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
+    }
+
+  }
+
+
+
+
+  // delete() {
+  //
+  //   const itemsQuery = this.querySelectedItems();
+  //
+  //   if (!itemsQuery.loading && itemsQuery.toArray().length > 0) {
+  //
+  //     KarmaFieldsAlpha.History.save("delete", "Delete");
+  //
+  //     // const index = selection.index || 0;
+  //     // const length = selection.length || 0;
+  //
+  //     for (let item of itemsQuery.toArray()) {
+  //
+  //       if (item.index !== "exit") {
+  //
+  //         this.remove(item.index, 1);
+  //
+  //       }
+  //
+  //     }
+  //
+  //     this.removeSelection();
+  //
+  //     this.request("render");
+  //
+  //   }
+  //
+  //
+  // }
+
+  remove(collectionIndex, length = 1) {
+
+    if (collectionIndex !== "exit") {
+
+      super.remove(collectionIndex, length);
 
     }
 
-    KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
-    // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, "trash");
-    KarmaFieldsAlpha.Store.remove("diff", "vars", driver, id, "trash");
-    KarmaFieldsAlpha.Store.Delta.set([], "vars", driver, id, "trash");
-
-    // KarmaFieldsAlpha.Store.remove("items", this.driver);
-    // KarmaFieldsAlpha.Store.remove("counts", this.driver);
-
-    await KarmaFieldsAlpha.Database.Queries.remove(driver);
-
-
   }
+
+
+
+
+  // addAt(files, index) {
+  //
+  //   const collection = this.getCollection();
+  //   const query = collection.queryItems();
+  //   const defaults = this.parse(this.resource.defaults || {});
+  //   const filters = this.getFilters();
+  //
+  //   if (query.loading || defaults.loading || filters.loading) {
+  //
+  //     console.warn("adding items while collection not loaded");
+  //
+  //   } else {
+  //
+  //     const params = {...filters.toObject(), ...defaults.toObject()};
+  //     const newItems = [];
+  //
+  //     // for (let i = 0; i < files.length; i++) {
+  //     //
+  //     //   // collection.add(params, index);
+  //     //
+  //     //   collection.upload(files[i], params, index + i);
+  //     //
+  //     // }
+  //
+  //     collection.upload(files, params, index);
+  //
+  //     for (let i = 0; i < length; i++) {
+  //
+  //       const field = this.createChild({
+  //         type: "row",
+  //         children: this.resource.children,
+  //       }, index + i);
+  //
+  //       field.create();
+  //
+  //       if (this.resource.modal) {
+  //
+  //         const field = this.createChild({
+  //           type: "row",
+  //           children: this.resource.modal.children,
+  //         }, index + i);
+  //
+  //         field.create();
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+
+
+  // uploadAt(files, index) {
+  //
+  //   const query = this.getItems();
+  //
+  //   if (query.loading) {
+  //
+  //     return;
+  //
+  //   }
+  //
+  //   const tokens = [];
+  //
+  //   for (let i = 0; i < files.length; i++) {
+  //
+  //     const token = this.createToken();
+  //
+  //     tokens.push(token);
+  //
+  //   }
+  //
+  //   const items = [...query.toArray()];
+  //
+  //   items.splice(index, 0, ...tokens.map(token => ({token, upload: true})));
+  //
+  //   // KarmaFieldsAlpha.Store.Delta.set(items, "items", query.driver, query.paramstring);
+  //
+  //   this.setItems(new KarmaFieldsAlpha.Content(items));
+  //
+  //   // const params = {...filters.toObject(), ...defaults.toObject()};
+  //
+  //   for (let i = 0; i < files.length; i++) {
+  //
+  //     // this.add(tokens[i], params);
+  //
+  //     KarmaFieldsAlpha.Store.Tasks.add({
+  //       resolve: async task => {
+  //
+  //         const defaults = this.parse(this.resource.defaults || {});
+  //         const filters = this.getFilters();
+  //
+  //         if (filters.loading) {
+  //
+  //           KarmaFieldsAlpha.Store.Tasks.add(task);
+  //
+  //         } else {
+  //
+  //           const id = await this.createMedia(files[i], filters);
+  //
+  //           const query = this.getItems();
+  //           const items = query.toArray();
+  //
+  //
+  //
+  //           // const index = items.findIndex(item => item.token === task.token);
+  //           //
+  //           // if (index > -1) {
+  //           //
+  //           //   const newItems = [...deltaItems];
+  //           //   newItems[index] = {id, name: "[new Item]"};
+  //           //
+  //           //   this.setItems(newItems);
+  //           //
+  //           // }
+  //
+  //           // const newItems = items.map(item => item.token === task.token && {id, name: "[new Item]"} || item);
+  //
+  //           this.setItems(query.toArray().map(item => {
+  //
+  //             if (item.token === task.token) {
+  //
+  //                return {id, name: "[new Item]"};
+  //
+  //             }
+  //
+  //             return item;
+  //           }));
+  //
+  //           if (task.delta) {
+  //
+  //             for (let key in task.delta) {
+  //
+  //               KarmaFieldsAlpha.Store.Delta.set(task.delta[key], "vars", this.driver, id, key);
+  //
+  //             }
+  //
+  //           }
+  //
+  //         }
+  //
+  //       },
+  //       token: tokens[i],
+  //       type: "addItem"
+  //     });
+  //
+  //     const row = this.createChild({
+  //       type: "row",
+  //       children: this.resource.children
+  //     }, index);
+  //
+  //     row.create();
+  //
+  //   }
+  //
+  //   // this.setSelection({index, length});
+  //
+  //   // this.request("render");
+  // }
+
+
+  // async createMedia(file, params) {
+  //
+  //   const driver = this.getDriver();
+  //
+  //   let id = await KarmaFieldsAlpha.HTTP.upload(file); // -> parent is not going to be saved!
+  //
+  //   id = id.toString();
+  //
+  //   // const deltaItems = KarmaFieldsAlpha.Store.Delta.get("items", this.driver, this.paramstring);
+  //   //
+  //   // const index = deltaItems.findIndex(item => item.uploading);
+  //   //
+  //   // if (index > -1) {
+  //   //
+  //   //   const newDeltaItems = [...deltaItems];
+  //   //   newDeltaItems[index] = {id, name: file.name};
+  //   //
+  //   //   KarmaFieldsAlpha.Store.Delta.set(newDeltaItems, "items", this.driver, this.paramstring);
+  //   //
+  //   // }
+  //
+  //   if (params && Object.values(params).length) {
+  //
+  //     const data = {};
+  //
+  //     for (let key in params) {
+  //
+  //       const keyAlias = KarmaFieldsAlpha.Driver.getAlias(driver, key);
+  //
+  //       const value = params[key].split(",");
+  //
+  //       data[keyAlias] = value;
+  //
+  //       KarmaFieldsAlpha.Store.set(value, "vars", driver, id, key);
+  //       // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, key);
+  //       KarmaFieldsAlpha.Store.remove("diff", "vars", driver, id, key);
+  //       KarmaFieldsAlpha.Store.Delta.set(value, "vars", driver, id, key);
+  //
+  //     }
+  //
+  //     await KarmaFieldsAlpha.HTTP.post(`update/${driver}/${id}`, data);
+  //
+  //   }
+  //
+  //   KarmaFieldsAlpha.Store.set(["1"], "vars", driver, id, "trash");
+  //   // KarmaFieldsAlpha.Store.set(true, "verifiedVars", this.driver, id, "trash");
+  //   KarmaFieldsAlpha.Store.remove("diff", "vars", driver, id, "trash");
+  //   KarmaFieldsAlpha.Store.Delta.set([], "vars", driver, id, "trash");
+  //
+  //   // KarmaFieldsAlpha.Store.remove("items", this.driver);
+  //   // KarmaFieldsAlpha.Store.remove("counts", this.driver);
+  //
+  //   await KarmaFieldsAlpha.Database.Queries.remove(driver);
+  //
+  //
+  // }
 
 
 
@@ -1369,25 +1825,30 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
 
 
-  isFolder(item) {
+  isFolderAt(index) {
 
-    if (item.exit) {
+    const query = this.getContentAt(index, "filetype");
 
-      return true;
+    return (query.toString() === "folder" || query.toString() === "exit");
 
-    } else if (item.id) {
-
-      const driver = this.getDriver();
-
-      const content = new KarmaFieldsAlpha.Content.Value(driver, item.id, "filetype");
-
-      // const content = this.getContent(item.id, "filetype");
-
-      return content.toString() === "folder";
-
-    }
-
-    return false;
+    //
+    // if (item.exit) {
+    //
+    //   return true;
+    //
+    // } else if (item.id) {
+    //
+    //   const driver = this.getDriver();
+    //
+    //   const content = new KarmaFieldsAlpha.Content.Value(driver, item.id, "filetype");
+    //
+    //   // const content = this.getContent(item.id, "filetype");
+    //
+    //   return content.toString() === "folder";
+    //
+    // }
+    //
+    // return false;
 
   }
 
@@ -1429,13 +1890,15 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
         },
         update: grid => {
 
-          const request = this.getItems();
+          // const request = this.getItems();
 
-          grid.element.classList.toggle("loading", Boolean(request.loading));
+          const query = this.queryItems();
 
-          if (!request.loading) {
+          grid.element.classList.toggle("loading", Boolean(query.loading));
 
-            const items = request.toArray();
+          if (!query.loading) {
+
+            const items = query.toArray();
 
             const page = this.getPage();
             const ppp = this.getPpp();
@@ -1445,7 +1908,7 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
             const selection = this.getSelection();
 
-            const dropZones = items.map((item, index) => index).filter((index) => this.isFolder(items[index]));
+            const dropZones = items.map((item, index) => index).filter(index => this.isFolderAt(index));
 
             const selector = new KarmaFieldsAlpha.Handler.DragAndDrop(grid.element, selection, dropZones);
 
@@ -1482,9 +1945,9 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
             };
 
             selector.ondrop = (index, selection) => {
-              const target = items[index];
+              // const target = items[index].index;
               // const selectedItems = items.slice(selector.state.selection.index, selector.state.selection.index + selector.state.selection.length);
-              this.move(selector.state.selection.index, selector.state.selection.length, target);
+              this.moveAt(selector.state.selection.index, selector.state.selection.length, index);
             };
 
             selector.onCancelDrag = () => {
@@ -1501,12 +1964,17 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
 
                   li.element.classList.remove("drop-active");
                   li.element.classList.toggle("selected", KarmaFieldsAlpha.Segment.contain(selection, index));
-                  li.element.classList.toggle("media-dropzone", Boolean(item.exit || this.isFolder(item)));
+                  li.element.classList.toggle("media-dropzone", Boolean(item.exit || this.isFolderAt(index)));
 
                   li.element.ondblclick = event => {
-                    if (!item.loading && this.isFolder(item)) {
-                      this.openFolder(item);
+                    const query = this.getContent(item.index, "filetype");
+                    if (query.toString() === "folder" || query.toString() === "exit") {
+                      this.openFolder(item.index);
                     }
+
+                    // if (!item.loading && this.isFolder(item)) {
+                    //   this.openFolder(item);
+                    // }
                   }
 
                   // const media = new KarmaFieldsAlpha.field.text.media({
@@ -1518,15 +1986,19 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.grid {
                   //   loading: item.loading
                   // });
 
-                  const media = this.createChild({
+                  const row = this.createChild({
+                    type: "row",
+                  }, item.index);
+
+                  const media = row.createChild({
                     type: "media",
-                    id: item.id,
-                    driver: this.getDriver(),
+                    // id: item.id,
+                    // driver: this.getDriver(),
                     display: "thumb",
-                    exit: item.exit,
+                    exit: item.index === "exit",
                     loading: item.loading,
                     uploading: item.uploading
-                  }, index);
+                  }, item.index);
 
                   li.child = media.build();
 
@@ -1633,14 +2105,27 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
       class: "karma-field karma-field-container media-description display-flex",
       update: container => {
 
-        const items = this.request("getSelectedItems");
-        const item = items.toSingle();
-        const loading = items.loading || item && item.loading;
-        const mixed = items.toArray().length > 1;
-        const exit = item && item.exit;
-        const id = item && item.id;
-        const uploading = item && item.uploading;
-        const token = item && item.token; //
+        // const items = this.request("querySelectedItems");
+        // const item = items.toSingle();
+        // const loading = items.loading || item && item.loading;
+        // const mixed = items.toArray().length > 1;
+        // const exit = item && item.exit;
+        // const id = item && item.id;
+        // const uploading = item && item.uploading;
+        // const token = item && item.token; //
+
+
+        const query = this.request("querySelectedItems");
+
+        // const item = items.toSingle();
+        const loading = query.loading;
+        const mixed = query.toArray().length > 1;
+        // const exit = item && item.exit;
+        // const id = item && item.id;
+        const uploading = query.toObject().uploading;
+        const adding = query.toObject().adding;
+
+        // const token = item && item.token; //
 
         container.children = [
 
@@ -1650,10 +2135,10 @@ KarmaFieldsAlpha.field.medias.description = class extends KarmaFieldsAlpha.field
             height: "15em",
             loading: loading,
             uploading: uploading,
-            token: token, // not implemented
+            // token: token, // not implemented
             mixed: mixed,
-            exit: exit,
-            id: id,
+            // exit: exit,
+            // id: id,
             caption: false,
             display: "medium" // = default
           }, "media").build(),

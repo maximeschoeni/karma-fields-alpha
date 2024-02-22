@@ -83,25 +83,17 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.grid {
               if (input.element.form) {
                 input.element.form.addEventListener("submit", async event => {
 
-                  event.preventDefault();
+                  // event.preventDefault();
 
-                  // const delta = KarmaFieldsAlpha.Store.Delta.get("vars");
-                  //
-                  // for (let driver in delta) {
-                  //
-                  //   await KarmaFieldsAlpha.Database.Vars.set(delta[driver], driver);
-                  //
-                  // }
-                  //
-                  // // KarmaFieldsAlpha.Store.Delta.set({}, this.getDriver(), this.getId());
-                  // KarmaFieldsAlpha.Store.Delta.set({});
-                  // KarmaFieldsAlpha.Store.Layer.removeSelection();
 
                   const task = new KarmaFieldsAlpha.Task.Save();
+                  const driver = this.getDriver();
 
-                  await task.update();
+                  await task.cleanDriver(driver);
 
-                  input.element.form.submit();
+                  // KarmaFieldsAlpha.Store.Delta.remove("items");
+
+                  // input.element.form.submit();
                 });
               }
             },
@@ -109,11 +101,12 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.grid {
               // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", this.getDriver(), this.getId());
               // const delta = KarmaFieldsAlpha.Store.Delta.get("vars");
 
-              const task = new KarmaFieldsAlpha.Task.Save();
-              const delta = task.getDelta();
+              const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
 
               if (delta) {
                 input.element.value = JSON.stringify(delta);
+              } else {
+                input.element.value = "";
               }
             }
           }
@@ -177,6 +170,7 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.grid {
 KarmaFieldsAlpha.field.single = class extends KarmaFieldsAlpha.field.group {
 
   getContent(key) {
+
 
     return this.parent.getContent(this.id, key);
 

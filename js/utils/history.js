@@ -157,6 +157,51 @@ KarmaFieldsAlpha.History = class {
   //
 	// }
 
+  // change previous history step
+  // static async backup(value, ...path) { // path is relative from state
+  //
+  //   const buffer = KarmaFieldsAlpha.Store.Buffer.get();
+  //   const index = buffer.index || 0;
+  //
+  //   if (!buffer) {
+  //
+  //     console.error("Buffer not set");
+  //
+  //   }
+  //
+	// 	if (index > 0) {
+  //
+  //     await KarmaFieldsAlpha.Database.History.set(value, buffer.recordId, index - 1, ...path);
+  //
+	// 	}
+  //
+	// }
+
+  // -> get state before
+  // static async getBackup(...path) { // path is relative from state
+  //
+  //   const buffer = KarmaFieldsAlpha.Store.Buffer.get();
+  //   const index = buffer.index || 0;
+  //
+  //   if (!buffer) {
+  //
+  //     console.error("Buffer not set");
+  //
+  //   }
+  //
+  //   let value;
+  //
+	// 	if (index > 0) {
+  //
+  //     // -> set only if last value is undefined
+  //     value = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index - 1, ...path);
+  //
+	// 	}
+  //
+  //   return value;
+	// }
+
+
   static async delta(value, currentValue, ...path) { // path is relative from state
 
     // const index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;

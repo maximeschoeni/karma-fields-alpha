@@ -145,6 +145,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       case "getIndex":
       case "getIds":
       case "get":
+      case "getAt":
       case "array":
       case "debug":
       case "log":
@@ -395,6 +396,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
+
   min(...args) {
 
     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
@@ -537,6 +539,22 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
     } else {
 
       this.value = KarmaFieldsAlpha.DeepObject.get(object.toObject(), ...args.slice(2));
+
+    }
+
+  }
+
+  getAt(...args) {
+
+    const object = new KarmaFieldsAlpha.Expression(args[1], this.field);
+
+    if (object.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      this.value = KarmaFieldsAlpha.DeepObject.get(object.toArray(), ...args.slice(2));
 
     }
 

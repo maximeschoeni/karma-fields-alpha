@@ -219,26 +219,13 @@ KarmaFieldsAlpha.field = class {
 
   }
 
-  grind(closure, callback) {
+  procrastinate(functionName, ...args) {
 
-    console.log("deprecated");
+    KarmaFieldsAlpha.Task.add({
+      type: "grind",
+      resolve: () => this[functionName](...args)
+    });
 
-    const result = closure();
-
-    if (result && result.loading) {
-
-      KarmaFieldsAlpha.Store.Task.add({
-        type: "grind",
-        resolve: () => this.grind(closure, callback)
-      });
-
-      this.request("render");
-
-    } else {
-
-      callback(result);
-
-    }
   }
 
   getChildren() {
@@ -304,6 +291,24 @@ KarmaFieldsAlpha.field = class {
   removeOption(...path) {
 
     KarmaFieldsAlpha.Store.State.remove("fields", ...this.path, ...path);
+
+  }
+
+  getData(...path) {
+
+    return KarmaFieldsAlpha.Store.get("fields", ...this.path, ...path);
+
+  }
+
+  setData(data, ...path) {
+
+    KarmaFieldsAlpha.Store.set(data, "fields", ...this.path, ...path);
+
+  }
+
+  removeData(...path) {
+
+    KarmaFieldsAlpha.Store.remove("fields", ...this.path, ...path);
 
   }
 

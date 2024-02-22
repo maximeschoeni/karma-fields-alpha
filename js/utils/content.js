@@ -41,6 +41,13 @@ KarmaFieldsAlpha.Content = class {
 
   }
 
+  assign(content) {
+
+    this.value = content.value;
+    this.loading = content.loading;
+
+  }
+
   isEmpty() {
 
     return this.toArray().length === 0;
@@ -53,6 +60,12 @@ KarmaFieldsAlpha.Content = class {
     Object.assign(clone, this);
 
     return clone;
+
+  }
+
+  slice(index = 0, length = this.toArray().length) {
+
+    return this.toArray().slice(index, index + length);
 
   }
 

@@ -110,19 +110,19 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		}
 
-		if (content.notFound) {
-
-			const value = this.getDefault();
-
-			if (!value.loading) {
-
-				this.setContent(value);
-
-			}
-
-			content = value;
-
-		}
+		// if (content.notFound) {
+		//
+		// 	const value = this.getDefault();
+		//
+		// 	if (!value.loading) {
+		//
+		// 		this.setContent(value);
+		//
+		// 	}
+		//
+		// 	content = value;
+		//
+		// }
 
 		return content;
 	}
@@ -206,49 +206,53 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 	//
 	// }
 
-	write(value, content) {
 
-		if (!content) {
 
-			content = this.getContent();
+	write(value) {
 
-		}
+		// if (!content) {
+		//
+		//
+		//
+		// }
+
+		const current = this.getContent();
 
 		// const content = this.getContent();
 
-		if (content.loading) {
-
-			// return; // does not work because getContent() continuely return a query made when row field is set as loading
-
-			// let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "writing" && task.id === this.uid);
-			//
-			// if (task) {
-			//
-			// 	task.value = value;
-			//
-			// } else {
-			//
-			// 	task = {
-	    //     type: "writing",
-			// 		id: this.uid,
-			// 		value: value,
-			// 		proority: -1,
-	    //     resolve: () => this.write(task.value)
-	    //   };
-			//
-			// 	KarmaFieldsAlpha.Store.Tasks.add(task);
-			//
-			// }
-
-			this.setOption(value, "writing");
-
-		} else {
+		// if (content.loading) {
+		//
+		// 	// return; // does not work because getContent() continuely return a query made when row field is set as loading
+		//
+		// 	// let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "writing" && task.id === this.uid);
+		// 	//
+		// 	// if (task) {
+		// 	//
+		// 	// 	task.value = value;
+		// 	//
+		// 	// } else {
+		// 	//
+		// 	// 	task = {
+	  //   //     type: "writing",
+		// 	// 		id: this.uid,
+		// 	// 		value: value,
+		// 	// 		proority: -1,
+	  //   //     resolve: () => this.write(task.value)
+	  //   //   };
+		// 	//
+		// 	// 	KarmaFieldsAlpha.Store.Tasks.add(task);
+		// 	//
+		// 	// }
+		//
+		// 	this.setOption(value, "writing");
+		//
+		// } else {
 
 			const normalizedValue = value.normalize();
 
 			this.debounce(() => {
 
-				if (normalizedValue.length < content.toString().length) {
+				if (normalizedValue.length < current.toString().length) {
 
 					this.save(`${this.uid}-delete`, "Delete");
 
@@ -262,11 +266,15 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				this.setContent(newContent);
 
+				this.setData(false, "embargo");
+
 				this.request("render");
 
 			}, this.resource.debounce || 300);
 
-		}
+			this.setData(true, "embargo");
+
+		// }
 
 	}
 
@@ -307,11 +315,11 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					if (content.notFound) {
 
-						if (this.resource.createWhenNotFound) {
-
-							this.createTask("create");
-
-						}
+						// if (this.resource.createWhenNotFound) {
+						//
+						// 	this.createTask("create");
+						//
+						// }
 
 
 						// const defaultContent = this.getDefault();
@@ -344,7 +352,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 							const value = content.toString();
 
-	            if (input.element.value.normalize() !== value) { // -> replacing same value still reset caret position
+	            if (input.element.value.normalize() !== value && !this.getData("embargo")) { // -> replacing same value still reset caret position
 
 	              input.element.value = value || "";
 

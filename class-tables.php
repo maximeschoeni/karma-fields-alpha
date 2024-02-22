@@ -253,6 +253,7 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-remote', $plugin_url . '/js/utils/remote.js', array(), $this->version, true);
 
 				wp_enqueue_script('karma-fields-utils-task', $plugin_url . '/js/utils/task.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-model', $plugin_url . '/js/utils/model.js', array(), $this->version, true);
 
 
 
@@ -658,18 +659,57 @@ class Karma_Fields_Alpha {
 
 						if ($input) {
 
+							// echo '<pre>';
+							// var_dump($input);
+							// die();
+
 							foreach ($input as $driver_name => $data) {
 
-								foreach ($data as $id => $row) {
+								$driver = $this->get_driver($driver_name);
 
-									$driver = $this->get_driver($driver_name);
+								if (isset($driver) && $driver && method_exists($driver, 'update')) {
 
-									if (method_exists($driver, 'update')) {
+									foreach ($data as $id => $row) {
 
 										$driver->update($row, $id);
 
 									}
+
 								}
+
+								// foreach ($data as $row) {
+								//
+								// 	$delta = isset($row['delta']) ? $row['delta'] : array();
+								//
+								// 	if (empty($row['id'])) {
+								//
+								// 		if (method_exists($driver, 'add')) {
+								//
+								// 			$id = $driver->add($delta);
+								//
+								// 		}
+								//
+								// 	} else {
+								//
+								// 		$id = $row['id'];
+								//
+								// 	}
+								//
+								//
+								//
+								// }
+
+
+								// foreach ($data as $row) {
+								//
+								// 	$driver = $this->get_driver($driver_name);
+								//
+								// 	if (method_exists($driver, 'update')) {
+								//
+								// 		$driver->update($row, $id);
+								//
+								// 	}
+								// }
 
 							}
 
@@ -736,15 +776,12 @@ class Karma_Fields_Alpha {
 	    )
 		));
 
-		register_rest_route('karma-fields-alpha/v1', '/update/(?P<driver>[^/]+)/(?P<id>[^/]+)/?', array(
+		register_rest_route('karma-fields-alpha/v1', '/update/(?P<driver>[^/]+)/?', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_update'),
 			'permission_callback' => '__return_true',
 			'args' => array(
 				'driver' => array(
-					'required' => true
-				),
-				'id' => array(
 					'required' => true
 				),
 				'data' => array(
@@ -764,19 +801,19 @@ class Karma_Fields_Alpha {
 	    )
 		));
 
-		register_rest_route('karma-fields-alpha/v1', '/sync/(?P<driver>[^/]+)/?', array(
-			'methods' => 'POST',
-			'callback' => array($this, 'rest_sync'),
-			'permission_callback' => '__return_true',
-			'args' => array(
-				'driver' => array(
-					'required' => true
-				),
-				'data' => array(
-					'required' => true
-				)
-	    )
-		));
+		// register_rest_route('karma-fields-alpha/v1', '/sync/(?P<driver>[^/]+)/?', array(
+		// 	'methods' => 'POST',
+		// 	'callback' => array($this, 'rest_sync'),
+		// 	'permission_callback' => '__return_true',
+		// 	'args' => array(
+		// 		'driver' => array(
+		// 			'required' => true
+		// 		),
+		// 		'data' => array(
+		// 			'required' => true
+		// 		)
+	  //   )
+		// ));
 
 		// register_rest_route('karma-fields-alpha/v1', '/fetch/(?P<driver>[^/]+)', array(
 		// 	'methods' => 'GET',
@@ -991,12 +1028,11 @@ class Karma_Fields_Alpha {
 
 
 	/**
-	 *	@rest 'wp-json/karma-fields/v1/update/{middleware}'
+	 *	@rest 'wp-json/karma-fields/v1/update/{driver}'
 	 */
 	public function rest_update($request) {
 
 		$driver_name = $request->get_param('driver');
-		$id = $request->get_param('id');
 		$data = $request->get_param('data');
 		$driver = $this->get_driver($driver_name);
 
@@ -1004,7 +1040,13 @@ class Karma_Fields_Alpha {
 
 			if (method_exists($driver, 'update')) {
 
-				return $driver->update($data, $id);
+				foreach ($data as $id => $row) {
+
+					$driver->update($row, $id);
+
+				}
+
+				return true;
 
 			} else {
 
@@ -1043,7 +1085,7 @@ class Karma_Fields_Alpha {
 	}
 
 
-	/**
+	/** DEPRECATED
 	 *	@rest 'wp-json/karma-fields/v1/sync/{driver}'
 	 */
 	public function rest_sync($request) {
@@ -1056,16 +1098,19 @@ class Karma_Fields_Alpha {
 
 			$delta = isset($row['delta']) ? $row['delta'] : array();
 
-			if (empty($row['id']) && method_exists($driver, 'add')) {
+			if (empty($row['id'])) {
 
-				$id = $driver->add($delta);
+				if (method_exists($driver, 'add')) {
+
+					$id = $driver->add($delta);
+
+				}
+
+			} else {
+
+				$id = $row['id'];
 
 			}
-			// else {
-			//
-			// 	$id = $row['id'];
-			//
-			// }
 
 			if (isset($id) && $delta && method_exists($driver, 'update')) {
 

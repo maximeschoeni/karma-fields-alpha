@@ -20,17 +20,17 @@ KarmaFieldsAlpha.Database = class {
 
     if (!this.db) {
 
-      const databases = await indexedDB.databases();
-
-      for (let database of databases) {
-
-        if (database.name !== dbName) {
-
-          await this.closeDB(database.name);
-
-        }
-
-      }
+      // const databases = await indexedDB.databases();
+      //
+      // for (let database of databases) {
+      //
+      //   if (database.name !== dbName) {
+      //
+      //     await this.deleteDB(database.name);
+      //
+      //   }
+      //
+      // }
 
       this.db = await this.openDB("karma92", 1);
 
@@ -39,7 +39,16 @@ KarmaFieldsAlpha.Database = class {
     return this.db;
   }
 
-  static closeDB(dbName) {
+  static async close() {
+
+    const db = await this.getDB();
+
+    db.close();
+
+  }
+
+
+  static deleteDB(dbName) {
 
     return new Promise((resolve, reject) => {
 
@@ -221,10 +230,12 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
         const data = event.target.result;
         const value = KarmaFieldsAlpha.DeepObject.get(data, ...path);
         resolve(value);
+        // db.close();
       };
 
       request.onerror = (event) => {
         reject(event.target.error);
+        // db.close();
       };
     }));
   }
@@ -243,6 +254,7 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
 
         updateRequest.onsuccess = (event) => {
           resolve();
+          // db.close();
         }
       }
 
@@ -262,9 +274,11 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
           const updateRequest = objectStore.put(value);
           updateRequest.onsuccess = (event) => {
             resolve();
+            // db.close();
           }
         } else {
           resolve();
+          // db.close();
         }
       }
 
@@ -294,6 +308,7 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
       const request = objectStore.add({id, index, ...data});
       request.onsuccess = (event) => {
         resolve();
+        // db.close();
       }
     }));
   }
@@ -316,6 +331,7 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
       const request = objectStore.delete([index, id]);
       request.onsuccess = (event) => {
         resolve();
+        // db.close();
       };
     }));
   }
@@ -336,6 +352,7 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
           cursor.continue();
         } else {
           resolve();
+          // db.close();
         }
 
       };
@@ -458,10 +475,12 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
         // } else {
         //   resolve();
         // }
+        db.close();
       };
 
       request.onerror = (event) => {
         reject(event.target.error);
+        db.close();
       };
     }));
   }
@@ -582,10 +601,12 @@ KarmaFieldsAlpha.Database.Records = class extends KarmaFieldsAlpha.Database {
         const value = event.target.result;
         const data = KarmaFieldsAlpha.DeepObject.get(value, ...path);
         resolve(data);
+        // db.close();
       };
 
       request.onerror = (event) => {
         reject(event.target.error);
+        // db.close();
       };
     }));
   }
@@ -605,6 +626,7 @@ KarmaFieldsAlpha.Database.Records = class extends KarmaFieldsAlpha.Database {
         const updateRequest = objectStore.put(value);
         updateRequest.onsuccess = (event) => {
           resolve();
+          // db.close();
         }
       }
     }));
@@ -620,6 +642,7 @@ KarmaFieldsAlpha.Database.Records = class extends KarmaFieldsAlpha.Database {
         KarmaFieldsAlpha.DeepObject.assign(value, data, ...path);
         objectStore.put(value);
         resolve();
+        // console.warn("indexedDB operation not complete");
       }
     }));
   }
@@ -634,6 +657,7 @@ KarmaFieldsAlpha.Database.Records = class extends KarmaFieldsAlpha.Database {
         KarmaFieldsAlpha.DeepObject.remove(value, ...path);
         objectStore.put(value);
         resolve();
+        // console.warn("indexedDB operation not complete");
       }
     }));
   }
@@ -646,6 +670,7 @@ KarmaFieldsAlpha.Database.Records = class extends KarmaFieldsAlpha.Database {
       request.onsuccess = (event) => {
         objectStore.delete(id);
         resolve();
+        // console.warn("indexedDB operation not complete");
       };
     }));
   }
@@ -694,9 +719,11 @@ KarmaFieldsAlpha.Database.Queries = class extends KarmaFieldsAlpha.Database {
       request.onsuccess = (event) => {
         const result = event.target.result;
         resolve(result && result.data);
+        // db.close();
       };
       request.onerror = (event) => {
         reject(event.target.error);
+        // db.close();
       };
     }));
   }
@@ -708,9 +735,11 @@ KarmaFieldsAlpha.Database.Queries = class extends KarmaFieldsAlpha.Database {
       const request = objectStore.put({data, type, driver, paramstring});
       request.onsuccess = (event) => {
         resolve();
+        // db.close();
       }
       request.onerror = (event) => {
         reject(event.target.error);
+        // db.close();
       };
     }));
   }
@@ -722,9 +751,11 @@ KarmaFieldsAlpha.Database.Queries = class extends KarmaFieldsAlpha.Database {
       const request = objectStore.delete([type, driver, paramstring]);
       request.onsuccess = (event) => {
         resolve();
+        // db.close();
       }
       request.onerror = (event) => {
         reject(event.target.error);
+        // db.close();
       };
     }));
   }
@@ -742,10 +773,12 @@ KarmaFieldsAlpha.Database.Queries = class extends KarmaFieldsAlpha.Database {
           cursor.continue();
         } else {
           resolve();
+          // db.close();
         }
       }
       request.onerror = (event) => {
         reject(event.target.error);
+        // db.close();
       };
     }));
   }
@@ -813,81 +846,81 @@ KarmaFieldsAlpha.Database.Vars = class extends KarmaFieldsAlpha.Database {
 
 }
 
-KarmaFieldsAlpha.Database.Cache = class extends KarmaFieldsAlpha.Database {
-
-  static get(driver, paramstring) {
-    return this.getDB().then(db => new Promise((resolve, reject) => {
-      const transaction = db.transaction("cache");
-      const objectStore = transaction.objectStore("cache");
-      const request = objectStore.get([driver, paramstring]);
-      request.onsuccess = (event) => {
-        const result = event.target.result;
-        resolve(result && result.data);
-        db.close();
-      };
-      request.onerror = (event) => {
-        reject(event.target.error);
-        db.close();
-      };
-    }));
-  }
-
-  static set(data, driver, paramstring) {
-    return this.getDB().then(db => new Promise((resolve, reject) => {
-      const transaction = db.transaction("cache", "readwrite");
-      const objectStore = transaction.objectStore("cache");
-      const request = objectStore.put({data, driver, paramstring});
-      request.onsuccess = (event) => {
-        resolve();
-        db.close();
-      }
-      request.onerror = (event) => {
-        reject(event.target.error);
-        db.close();
-      };
-    }));
-  }
-
-  static remove(driver, paramstring) {
-    return this.getDB().then(db => new Promise((resolve, reject) => {
-      const transaction = db.transaction("cache", "readwrite");
-      const objectStore = transaction.objectStore("cache");
-      const request = objectStore.delete([driver, paramstring]);
-      request.onsuccess = (event) => {
-        resolve();
-        db.close();
-      }
-      request.onerror = (event) => {
-        reject(event.target.error);
-        db.close();
-      };
-    }));
-  }
-
-  static removeDriver(driver) {
-    return this.getDB().then(db => new Promise((resolve, reject) => {
-      const transaction = db.transaction("cache", "readwrite");
-      const objectStore = transaction.objectStore("cache");
-      const driverIndex = objectStore.index("driver");
-      const request = driverIndex.openCursor(driver);
-      request.onsuccess = (event) => {
-        const cursor = event.target.result;
-        if (cursor) {
-          cursor.delete();
-          cursor.continue();
-        } else {
-          resolve();
-          db.close();
-        }
-      }
-      request.onerror = (event) => {
-        reject(event.target.error);
-        db.close();
-      };
-    }));
-  }
-
-
-
-
-}
+// KarmaFieldsAlpha.Database.Cache = class extends KarmaFieldsAlpha.Database {
+//
+//   static get(driver, paramstring) {
+//     return this.getDB().then(db => new Promise((resolve, reject) => {
+//       const transaction = db.transaction("cache");
+//       const objectStore = transaction.objectStore("cache");
+//       const request = objectStore.get([driver, paramstring]);
+//       request.onsuccess = (event) => {
+//         const result = event.target.result;
+//         resolve(result && result.data);
+//         db.close();
+//       };
+//       request.onerror = (event) => {
+//         reject(event.target.error);
+//         db.close();
+//       };
+//     }));
+//   }
+//
+//   static set(data, driver, paramstring) {
+//     return this.getDB().then(db => new Promise((resolve, reject) => {
+//       const transaction = db.transaction("cache", "readwrite");
+//       const objectStore = transaction.objectStore("cache");
+//       const request = objectStore.put({data, driver, paramstring});
+//       request.onsuccess = (event) => {
+//         resolve();
+//         db.close();
+//       }
+//       request.onerror = (event) => {
+//         reject(event.target.error);
+//         db.close();
+//       };
+//     }));
+//   }
+//
+//   static remove(driver, paramstring) {
+//     return this.getDB().then(db => new Promise((resolve, reject) => {
+//       const transaction = db.transaction("cache", "readwrite");
+//       const objectStore = transaction.objectStore("cache");
+//       const request = objectStore.delete([driver, paramstring]);
+//       request.onsuccess = (event) => {
+//         resolve();
+//         db.close();
+//       }
+//       request.onerror = (event) => {
+//         reject(event.target.error);
+//         db.close();
+//       };
+//     }));
+//   }
+//
+//   static removeDriver(driver) {
+//     return this.getDB().then(db => new Promise((resolve, reject) => {
+//       const transaction = db.transaction("cache", "readwrite");
+//       const objectStore = transaction.objectStore("cache");
+//       const driverIndex = objectStore.index("driver");
+//       const request = driverIndex.openCursor(driver);
+//       request.onsuccess = (event) => {
+//         const cursor = event.target.result;
+//         if (cursor) {
+//           cursor.delete();
+//           cursor.continue();
+//         } else {
+//           resolve();
+//           db.close();
+//         }
+//       }
+//       request.onerror = (event) => {
+//         reject(event.target.error);
+//         db.close();
+//       };
+//     }));
+//   }
+//
+//
+//
+//
+// }
