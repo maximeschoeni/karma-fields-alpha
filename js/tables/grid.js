@@ -412,19 +412,23 @@ console.error("deprecated");
 
   getCount() {
 
-    const driver = this.getDriver();
+    const collection = this.getCollection();
 
-    const params = this.getFilters();
+    return collection.count();
 
-    if (!params.loading) {
-
-      return new KarmaFieldsAlpha.Content.Count(driver, params.toObject());
-
-    } else {
-
-      return new KarmaFieldsAlpha.Content.Request();
-
-    }
+    // const driver = this.getDriver();
+    //
+    // const params = this.getFilters();
+    //
+    // if (!params.loading) {
+    //
+    //   return new KarmaFieldsAlpha.Content.Count(driver, params.toObject());
+    //
+    // } else {
+    //
+    //   return new KarmaFieldsAlpha.Content.Request();
+    //
+    // }
 
   }
 
@@ -1753,13 +1757,21 @@ console.error("deprecated");
 
     if (!query.loading) {
 
-      const items = query.toArray().slice(index, index + length);
+      const item = query.toArray()[index];
 
-      for (let item of items) {
+      if (item) {
 
-        this.remove(item.index);
+        this.remove(item.index, length);
 
       }
+
+      // const items = query.toArray().slice(index, index + length);
+      //
+      // for (let item of items) {
+      //
+      //   this.remove(item.index);
+      //
+      // }
 
     }
 
@@ -2346,12 +2358,12 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field {
 
   }
 
-  //
-  // getId() {
-  //
-  //   return this.resource.id;
-  //
-  // }
+
+  getId() {
+
+    return this.parent.getContent(this.id, "id");
+
+  }
 
 }
 

@@ -100,7 +100,6 @@ KarmaFieldsAlpha.Task.QueryItems = class extends KarmaFieldsAlpha.Task.Query {
         const item = results[i];
 
         items.push({
-
           id: item[idAlias],
           name: item[nameAlias]
         });
@@ -175,18 +174,35 @@ KarmaFieldsAlpha.Task.QueryItems = class extends KarmaFieldsAlpha.Task.Query {
 
     if (results) {
 
-      const items = this.createQuery(results);
       const dataset = this.createQueryDataset(results);
 
       this.writeData(dataset);
 
-      KarmaFieldsAlpha.Store.set(items, "items", this.context, this.driver, this.paramstring);
+      // KarmaFieldsAlpha.Store.set(items, "items", this.context, this.driver, this.paramstring);
+      // KarmaFieldsAlpha.Store.State.set(items, "items", this.driver, this.paramstring);
+
+    // } else {
+
+      // KarmaFieldsAlpha.Store.set([], "items", this.context, this.driver, this.paramstring);
+      // KarmaFieldsAlpha.Store.State.set([], "items", this.driver, this.paramstring);
+
+    }
+
+    if (this.context === "cache") {
+
+      const items = this.createQuery(results) || [];
+
+      KarmaFieldsAlpha.Store.set(items, "items", this.driver, this.paramstring);
 
     } else {
 
-      KarmaFieldsAlpha.Store.set([], "items", this.context, this.driver, this.paramstring);
+      const items = this.createQuery(results) || [];
+
+      KarmaFieldsAlpha.Store.State.set(items, "items", this.driver, this.paramstring);
 
     }
+
+    KarmaFieldsAlpha.Store.set(true, "relations", this.context, this.driver, this.paramstring, "query");
 
   }
 
@@ -225,6 +241,12 @@ KarmaFieldsAlpha.Task.QueryValue = class extends KarmaFieldsAlpha.Task.QueryItem
   //   return KarmaFieldsAlpha.Task.find(task => task.constructor === this && task.driver === driver && task.paramstring === paramstring);
   //
   // }
+
+  static find(driver, paramstring, id) {
+
+    return KarmaFieldsAlpha.Task.find(task => task.constructor === this && task.driver === driver && (task.paramstring === paramstring || !task.paramstring && !paramstring || !paramstring && task.ids.has(id)));
+
+  }
 
   constructor(driver, paramstring, context = "remote", priority = 0) {
 
@@ -286,6 +308,201 @@ KarmaFieldsAlpha.Task.QueryValue = class extends KarmaFieldsAlpha.Task.QueryItem
 
   }
 
+  // async *generator(driver, paramstring) {
+  //
+  //   let results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}?${paramstring}`);
+  //
+  //   await KarmaFieldsAlpha.Database.Queries.set(results || [], "query", driver, paramstring);
+  //
+  //   const items = this.createQuery(results);
+  //
+  //   const dataset = this.createQueryDataset(results);
+  //
+  //   this.writeData(dataset);
+  //
+  //   KarmaFieldsAlpha.Store.State.set(items, "items", driver, paramstring);
+  //
+  //   yield;
+  //
+  //   const relations = KarmaFieldsAlpha.Driver.getRelations(driver);
+  //
+  //   if (relations) {
+  //
+  //     const ids = items.map(item => item.id);
+  //
+  //     paramstring = `ids=${ids.join(",")}`;
+  //
+  //     for (let relation of relations) {
+  //
+  //       const results = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${relation}?${paramstring}`);
+  //
+  //       await KarmaFieldsAlpha.Database.Queries.set(results || [], relation, this.driver, paramstring);
+  //
+  //       if (results) {
+  //
+  //         const dataset = this.createRelationDataset(results);
+  //
+  //         this.writeData(dataset);
+  //
+  //         yield;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  // }
+  //
+  //
+  // async *cache(driver, paramstring) {
+  //
+  //   let results = await KarmaFieldsAlpha.Database.Queries.get("query", driver, paramstring);
+  //
+  //   const items = this.createQuery(results);
+  //
+  //   const dataset = this.createQueryDataset(results);
+  //
+  //   this.writeData(dataset);
+  //
+  //   KarmaFieldsAlpha.Store.set(items, "items", driver, paramstring);
+  //
+  //   yield;
+  //
+  //   const relations = KarmaFieldsAlpha.Driver.getRelations(driver);
+  //
+  //   if (relations) {
+  //
+  //     const ids = items.map(item => item.id);
+  //
+  //     paramstring = `ids=${ids.join(",")}`;
+  //
+  //     for (let relation of relations) {
+  //
+  //       const results = KarmaFieldsAlpha.Database.Queries.get(relation, driver, `ids=${ids.join(",")}`);
+  //
+  //       if (results) {
+  //
+  //         const dataset = this.createRelationDataset(results);
+  //
+  //         this.writeData(dataset);
+  //
+  //         yield;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  // }
+  //
+  //
+  //
+  //
+  // async *cache(driver, paramstring) {
+  //
+  //   let results = await KarmaFieldsAlpha.Database.Queries.get("query", driver, paramstring) || [];
+  //
+  //   const idAlias = KarmaFieldsAlpha.Driver.getAlias(driver, "id");
+  //   const nameAlias = KarmaFieldsAlpha.Driver.getAlias(driver, "name");
+  //
+  //   const items = results.map(item => ({
+  //     id: item[idAlias],
+  //     name: item[nameAlias]
+  //   }));
+  //
+  //   // const data = results.reduce((accumulator, item) => ({...accumulator, [item[idAlias]]: Object.fromEntries(Object.entries(item).map(([key, value]) => [key, [value]]))}), {});
+  //
+  //   const data = results.reduce((data, item) => {
+  //
+  //     const id = item[idAlias];
+  //
+  //     data[id] = {};
+  //
+  //     for (let key in item) {
+  //
+  //       data[id][key] = [item[key]];
+  //
+  //     }
+  //
+  //     return data;
+  //
+  //   }, {});
+  //
+  //
+  //   for (let id in data) {
+  //
+  //     for (let key in dataset[id]) {
+  //
+  //       KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", "cache", driver, id, key);
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  //   KarmaFieldsAlpha.Store.set(items, "items", driver, paramstring);
+  //
+  //   yield;
+  //
+  //   const relations = KarmaFieldsAlpha.Driver.getRelations(driver);
+  //
+  //   if (relations) {
+  //
+  //     const ids = items.map(item => item.id);
+  //
+  //     paramstring = `ids=${ids.join(",")}`;
+  //
+  //     for (let relation of relations) {
+  //
+  //       const results = KarmaFieldsAlpha.Database.Queries.get(relation, driver, `ids=${ids.join(",")}`) || [];
+  //
+  //       const data = results.reduce((data, item) => {
+  //
+  //         const id = item.id.toString();
+  //         const key = item.key.toString();
+  //
+  //         if (!data[id]) {
+  //
+  //           data[id] = {};
+  //
+  //         }
+  //
+  //         if (!data[id][key]) {
+  //
+  //           data[id][key] = [];
+  //
+  //         }
+  //
+  //         data[id][key].push(item.value);
+  //
+  //         return data;
+  //       }, {});
+  //
+  //       for (let id in data) {
+  //
+  //         for (let key in dataset[id]) {
+  //
+  //           KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", "cache", driver, id, key);
+  //
+  //         }
+  //
+  //       }
+  //
+  //       yield;
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  // }
+
+
+
 
   async fetchRelation(relation, ids) {
 
@@ -303,13 +520,26 @@ KarmaFieldsAlpha.Task.QueryValue = class extends KarmaFieldsAlpha.Task.QueryItem
 
     if (!this.paramstring) {
 
+      this.genericQuery = true;
+
       this.paramstring = `ids=${[...this.ids].join(",")}`;
 
     }
 
-    // const paramstring = this.paramstring || `ids=${[...this.ids].join(",")}`;
+    // const items = KarmaFieldsAlpha.Store.get("items", this.context, this.driver, this.paramstring);
+    // const items = KarmaFieldsAlpha.Store.State.get("items", this.driver, this.paramstring);
 
-    const items = KarmaFieldsAlpha.Store.get("items", this.context, this.driver, this.paramstring);
+    let items;
+
+    if (this.context === "cache") {
+
+      items = KarmaFieldsAlpha.Store.get("items", this.driver, this.paramstring);
+
+    } else {
+
+      items = KarmaFieldsAlpha.Store.State.get("items", this.driver, this.paramstring);
+
+    }
 
     if (!items) {
 
@@ -319,9 +549,35 @@ KarmaFieldsAlpha.Task.QueryValue = class extends KarmaFieldsAlpha.Task.QueryItem
 
       this.writeData(dataset);
 
-      const items = this.createQuery(results);
+      let items = this.createQuery(results);
 
-      KarmaFieldsAlpha.Store.set(items, "items", this.context, this.driver, this.paramstring);
+      // KarmaFieldsAlpha.Store.set(items, "items", this.context, this.driver, this.paramstring);
+      // KarmaFieldsAlpha.Store.State.set(items, "items", this.driver, this.paramstring);
+
+      if (this.context === "cache") {
+
+        KarmaFieldsAlpha.Store.set(items, "items", this.driver, this.paramstring);
+
+      } else {
+
+        KarmaFieldsAlpha.Store.State.set(items, "items", this.driver, this.paramstring);
+
+      }
+
+
+      KarmaFieldsAlpha.Store.set(true, "relations", this.context, this.driver, this.paramstring, "query");
+
+    } else if (!KarmaFieldsAlpha.Store.get("relations", this.context, this.driver, this.paramstring, "query")) {
+
+      const results = await this.fetch();
+
+      const dataset = this.createQueryDataset(results);
+
+      this.writeData(dataset);
+
+      // do not update items order!
+
+      KarmaFieldsAlpha.Store.set(true, "relations", this.context, this.driver, this.paramstring, "query");
 
     } else {
 
@@ -404,26 +660,9 @@ KarmaFieldsAlpha.Task.Add = class {
 
   create(id, state = "adding") {
 
-    const items = KarmaFieldsAlpha.Store.Delta.get("items", "remote", this.driver, this.paramstring) || [];
-    // const index = items.findIndex(item => item.adding);
-    //
-    // if (index > -1) {
-    //
-    //   const lobby = KarmaFieldsAlpha.Store.get("lobby", this.driver, this.paramstring, index);
-    //
-    //   for (let key in lobby) {
-    //
-    //     KarmaFieldsAlpha.Store.Delta.set(lobby[key], "vars", "remote", this.driver, id, key);
-    //
-    //   }
-    //
-    //   const newItems = [...items];
-    //   newItems[index] = {id};
-    //
-    //   KarmaFieldsAlpha.Store.Delta.set(newItems, "items", "remote", this.driver, this.paramstring);
-    //   KarmaFieldsAlpha.Store.remove("lobby", this.driver, this.paramstring, id);
-    //
-    // }
+    // const items = KarmaFieldsAlpha.Store.Delta.get("items", "remote", this.driver, this.paramstring) || [];
+    const items = KarmaFieldsAlpha.Store.State.get("items", this.driver, this.paramstring) || [];
+
 
     const item = items.find(item => item[state]);
 
@@ -443,10 +682,15 @@ KarmaFieldsAlpha.Task.Add = class {
 
     }
 
-    KarmaFieldsAlpha.Store.Delta.set(items, "items", "remote", this.driver, this.paramstring);
+    // KarmaFieldsAlpha.Store.Delta.set(items, "items", "remote", this.driver, this.paramstring);
+    KarmaFieldsAlpha.Store.State.set(items, "items", this.driver, this.paramstring);
 
     KarmaFieldsAlpha.Store.set(["1"], "vars", "remote", this.driver, id, "trash");
     KarmaFieldsAlpha.Store.Delta.set(["0"], "vars", "remote", this.driver, id, "trash");
+
+
+    // clean items relations to force reload
+    KarmaFieldsAlpha.Store.remove("relations", "remote", this.driver, this.paramstring);
 
   }
 
@@ -601,7 +845,9 @@ KarmaFieldsAlpha.Task.Upload = class extends KarmaFieldsAlpha.Task.Add {
     }
 
     // clean items result or file data will not load
-    KarmaFieldsAlpha.Store.remove("items", "remote", this.driver, this.paramstring);
+    // KarmaFieldsAlpha.Store.remove("items", "remote", this.driver, this.paramstring);
+
+    // clean items relations or file data will not load
     KarmaFieldsAlpha.Store.remove("relations", "remote", this.driver, this.paramstring);
 
 
@@ -930,6 +1176,46 @@ KarmaFieldsAlpha.Task.Upload = class extends KarmaFieldsAlpha.Task.Add {
 // }
 
 
+KarmaFieldsAlpha.Task.Count = class {
+
+  constructor(driver, paramstring, context = "cache") {
+
+    this.type = "count";
+    this.driver = driver;
+    this.paramstring = paramstring;
+    this.context = context;
+
+  }
+
+  async resolve() {
+
+    let count;
+
+    if (this.context === "cache") {
+
+      count = await KarmaFieldsAlpha.Database.Queries.get("count", this.driver, this.paramstring);
+
+      const task = new this.constructor(this.driver, this.paramstring, "remote");
+
+      KarmaFieldsAlpha.Task.add(task);
+
+    } else {
+
+      count = await KarmaFieldsAlpha.HTTP.get(`count/${this.driver}${this.paramstring ? `?${this.paramstring}` : ""}`);
+
+      await KarmaFieldsAlpha.Database.Queries.set(count, "count", this.driver, this.paramstring);
+
+    }
+
+    KarmaFieldsAlpha.Store.State.set(count, "count", this.driver, this.paramstring);
+
+  }
+
+}
+
+
+
+
 KarmaFieldsAlpha.Task.Save = class {
 
 
@@ -1080,18 +1366,22 @@ KarmaFieldsAlpha.Task.Save = class {
 
     KarmaFieldsAlpha.Store.Buffer.remove("state", "delta", "vars", "remote", driver); // do not update history !
 
-    const queries = KarmaFieldsAlpha.Store.Delta.get("items", "remote", driver);
+    // const queries = KarmaFieldsAlpha.Store.Delta.get("items", "remote", driver);
+    //
+    // for (let paramstring in queries) {
+    //
+    //   KarmaFieldsAlpha.Store.set(queries[paramstring], "items", "cache", driver, paramstring);
+    //
+    // }
 
-    for (let paramstring in queries) {
 
-      KarmaFieldsAlpha.Store.set(queries[paramstring], "items", "cache", driver, paramstring);
+    KarmaFieldsAlpha.Store.set(KarmaFieldsAlpha.Store.State.get("items", driver), "items", driver);
 
-    }
+    KarmaFieldsAlpha.Store.State.remove("items", driver);
 
-    KarmaFieldsAlpha.Store.remove("items", "remote", driver);
     KarmaFieldsAlpha.Store.remove("relations", "remote", driver);
 
-    KarmaFieldsAlpha.Store.Delta.remove("items", "remote", driver); // update history ?
+    // KarmaFieldsAlpha.Store.Delta.remove("items", "remote", driver); // update history ?
 
     await KarmaFieldsAlpha.Database.Queries.removeDriver(driver);
   }

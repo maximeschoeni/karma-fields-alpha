@@ -130,11 +130,13 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       // case "hasValue":
       case "queryValue":
       case "query":
+      case "queryCount":
       case "parseParams":
       case "getOptions":
       case "map":
       case "getItem":
       case "join":
+      case "indexOf":
       case "sum":
       case "getLength":
       case "count":
@@ -148,6 +150,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       case "getAt":
       case "array":
       case "debug":
+      case "dump":
       case "log":
       case "max":
       case "min":
@@ -169,9 +172,21 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
   log(...args) {
 
     const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    console.log(expr.toObject());
+    console.log(expr);
+    // console.trace();
+
+    this.value = expr.value;
+    this.loading = expr.loading;
 
     // console.log(args.slice(1).forEach(expr => new KarmaFieldsAlpha.Expression(expr, this.field).toObject()));
+
+  }
+
+  dump(...args) {
+
+    const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
+
+    this.value = JSON.stringify(expr.value);
 
   }
 
@@ -380,6 +395,23 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
+  indexOf(...args) {
+
+    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+    const value = new KarmaFieldsAlpha.Expression(args[2], this.field);
+
+    if (array.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      this.value = array.toArray().indexOf(value.toSingle());
+
+    }
+
+  }
+
   sum(...args) {
 
     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
@@ -546,15 +578,16 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   getAt(...args) {
 
-    const object = new KarmaFieldsAlpha.Expression(args[1], this.field);
+    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+    const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
 
-    if (object.loading) {
+    if (array.loading || index.loading) {
 
       this.loading = true;
 
     } else {
 
-      this.value = KarmaFieldsAlpha.DeepObject.get(object.toArray(), ...args.slice(2));
+      this.value = array.toArray()[index.toNumber()];
 
     }
 
@@ -724,7 +757,14 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     } else if (driver.toString() && id.toString() && key.toString()) {
 
-      const content = new KarmaFieldsAlpha.Content.Value(driver.toString(), id.toString(), key.toString());
+      // const content = new KarmaFieldsAlpha.Content.Value(driver.toString(), id.toString(), key.toString());
+
+      const model = new KarmaFieldsAlpha.Model(driver.toString());
+
+
+      // console.log("queryValue", id.toString(), key.toString());
+
+      const content = model.queryValue(id.toString(), key.toString());
 
       this.value = content.value;
       this.loading = content.loading;
@@ -785,7 +825,12 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
     } else {
 
       const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
-      const query = KarmaFieldsAlpha.Driver.getQuery(driver.toString(), paramstring);
+      // const query = KarmaFieldsAlpha.Driver.getQuery(driver.toString(), paramstring);
+
+
+      const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString(), paramstring);
+      const query = collection.queryItems();
+
 
       if (query.loading) {
 
@@ -799,6 +844,30 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
 
       // this.value = new KarmaFieldsAlpha.Content.Query(driver.toString(), params.toSingle()); // !! getResult return Content or simple Object ??
+
+    }
+
+  }
+
+  queryCount(...args) {
+
+    const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
+    const params = new KarmaFieldsAlpha.Expression(args[2] || {}, this.field);
+
+    if (params.loading || driver.loading) {
+
+      this.loading;
+
+    } else {
+
+      const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString());
+
+      collection.paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+
+      const count = collection.count();
+
+      this.loading = count.loading;
+      this.value = count.value;
 
     }
 

@@ -268,6 +268,7 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
                                   td.element.classList.toggle("last-row", i === items.length-1);
                                   td.element.classList.toggle("first-cell", j === 0);
                                   td.element.classList.toggle("last-cell", j === columns.length - 1);
+
                                 },
                                 child: field.build()
                               });

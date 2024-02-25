@@ -24,9 +24,11 @@ KarmaFieldsAlpha.Model = class {
 
       if (!content.value) { // -> create a task to fetch it
 
-        let task = KarmaFieldsAlpha.Task.QueryValue.find(this.driver, this.paramstring);
+        let task = KarmaFieldsAlpha.Task.QueryValue.find(this.driver, this.paramstring, id);
 
         if (!task) {
+
+          // console.log(this.driver, this.paramstring, id, key);
 
           task = KarmaFieldsAlpha.Task.QueryValue.create(this.driver, this.paramstring);
 
@@ -43,7 +45,7 @@ KarmaFieldsAlpha.Model = class {
 
         } else {
 
-          let task = KarmaFieldsAlpha.Task.QueryValueCache.find(this.driver, this.paramstring);
+          let task = KarmaFieldsAlpha.Task.QueryValueCache.find(this.driver, this.paramstring, id);
 
           if (!task) {
 
@@ -130,6 +132,62 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
     return content;
   }
 
+  // queryItems() {
+  //
+  //   const content = new KarmaFieldsAlpha.Content();
+  //
+  //   if (this.loading) {
+  //
+  //     content.loading = true;
+  //
+  //   } else {
+  //
+  //     content.value = KarmaFieldsAlpha.Store.Delta.get("items", "remote", this.driver, this.paramstring);
+  //
+  //     if (!content.value) {
+  //
+  //       content.value = KarmaFieldsAlpha.Store.get("items", "remote", this.driver, this.paramstring);
+  //
+  //       if (!content.value) {
+  //
+  //         let task = KarmaFieldsAlpha.Task.QueryItems.find(this.driver, this.paramstring);
+  //
+  //         if (!task) {
+  //
+  //           task = KarmaFieldsAlpha.Task.QueryItems.create(this.driver, this.paramstring);
+  //
+  //         }
+  //
+  //         content.value = KarmaFieldsAlpha.Store.get("items", "cache", this.driver, this.paramstring);
+  //
+  //         if (content.value) {
+  //
+  //           content.cache = true;
+  //
+  //         } else {
+  //
+  //           let task = KarmaFieldsAlpha.Task.QueryItemsCache.find(this.driver, this.paramstring);
+  //
+  //           if (!task) {
+  //
+  //              task = KarmaFieldsAlpha.Task.QueryItemsCache.create(this.driver, this.paramstring);
+  //
+  //           }
+  //
+  //           content.loading = true;
+  //
+  //         }
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return content;
+  //
+  // }
+
   queryItems() {
 
     const content = new KarmaFieldsAlpha.Content();
@@ -140,41 +198,35 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
 
     } else {
 
-      content.value = KarmaFieldsAlpha.Store.Delta.get("items", "remote", this.driver, this.paramstring);
+      content.value = KarmaFieldsAlpha.Store.State.get("items", this.driver, this.paramstring);
 
       if (!content.value) {
 
-        content.value = KarmaFieldsAlpha.Store.get("items", "remote", this.driver, this.paramstring);
+        let task = KarmaFieldsAlpha.Task.QueryItems.find(this.driver, this.paramstring);
 
-        if (!content.value) {
+        if (!task) {
 
-          let task = KarmaFieldsAlpha.Task.QueryItems.find(this.driver, this.paramstring);
+          task = KarmaFieldsAlpha.Task.QueryItems.create(this.driver, this.paramstring);
+
+        }
+
+        content.value = KarmaFieldsAlpha.Store.get("items", this.driver, this.paramstring);
+
+        if (content.value) {
+
+          content.cache = true;
+
+        } else {
+
+          let task = KarmaFieldsAlpha.Task.QueryItemsCache.find(this.driver, this.paramstring);
 
           if (!task) {
 
-            task = KarmaFieldsAlpha.Task.QueryItems.create(this.driver, this.paramstring);
+             task = KarmaFieldsAlpha.Task.QueryItemsCache.create(this.driver, this.paramstring);
 
           }
 
-          content.value = KarmaFieldsAlpha.Store.get("items", "cache", this.driver, this.paramstring);
-
-          if (content.value) {
-
-            content.cache = true;
-
-          } else {
-
-            let task = KarmaFieldsAlpha.Task.QueryItemsCache.find(this.driver, this.paramstring);
-
-            if (!task) {
-
-               task = KarmaFieldsAlpha.Task.QueryItemsCache.create(this.driver, this.paramstring);
-
-            }
-
-            content.loading = true;
-
-          }
+          content.loading = true;
 
         }
 
@@ -185,6 +237,44 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
     return content;
 
   }
+
+  // queryItems() {
+  //
+  //   const content = new KarmaFieldsAlpha.Content();
+  //
+  //   if (this.loading) {
+  //
+  //     content.loading = true;
+  //
+  //   } else {
+  //
+  //     content.value = KarmaFieldsAlpha.Store.State.get("items", this.driver, this.paramstring);
+  //
+  //     if (!content.value) {
+  //
+  //       let remoteTask = KarmaFieldsAlpha.Task.QueryItems.find(this.driver, this.paramstring);
+  //
+  //       if (!remoteTask) {
+  //
+  //         remoteTask = KarmaFieldsAlpha.Task.QueryItems.create(this.driver, this.paramstring);
+  //
+  //       }
+  //
+  //       let cacheTask = KarmaFieldsAlpha.Task.QueryItemsCache.find(this.driver, this.paramstring);
+  //
+  //       if (!cacheTask) {
+  //
+  //          cacheTask = KarmaFieldsAlpha.Task.QueryItemsCache.create(this.driver, this.paramstring);
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return content;
+  //
+  // }
 
   queryValueAt(index, key) {
 
@@ -202,9 +292,11 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
 
       if (!items[index]) {
 
-        content.outOfBounds = true;
+        // content.outOfBounds = true;
+        //
+        // content.loading = itemsQuery.cache;
 
-        content.loading = itemsQuery.cache;
+        content.loading = true;
 
         // if (!itemsQuery.cache) {
         //
@@ -322,7 +414,14 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
 
   setItems(items) {
 
-    KarmaFieldsAlpha.Store.Delta.set(items, "items", "remote", this.driver, this.paramstring);
+    // KarmaFieldsAlpha.Store.Delta.set(items, "items", "remote", this.driver, this.paramstring);
+    KarmaFieldsAlpha.Store.State.set(items, "items", this.driver, this.paramstring);
+
+  }
+
+  setCount(count) {
+
+    KarmaFieldsAlpha.Store.State.set(count, "count", this.driver, this.paramstring);
 
   }
 
@@ -339,6 +438,12 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
       splicedItems = newItems.splice(index, length, ...items);
 
       this.setItems(newItems);
+
+      let count = KarmaFieldsAlpha.Store.State.get("count", this.driver, this.paramstring) || 0;
+
+      count += items.length - length;
+
+      KarmaFieldsAlpha.Store.State.set(count, "count", this.driver, this.paramstring);
 
     } else {
 
@@ -434,6 +539,9 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
         }
 
       }
+
+
+
 
 
 
@@ -577,6 +685,38 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
 
   }
 
+  count() {
 
+    const content = new KarmaFieldsAlpha.Content();
+
+    if (this.loading) {
+
+      content.loading = true;
+
+    } else {
+
+      content.value = KarmaFieldsAlpha.Store.State.get("count", this.driver, this.paramstring);
+
+      if (content.value === undefined) { // may be 0
+
+        content.loading = true;
+
+        let task = KarmaFieldsAlpha.Task.find(task => task.driver === this.driver && task.paramstring === this.paramstring);
+
+        if (!task) {
+
+          task = new KarmaFieldsAlpha.Task.Count(this.driver, this.paramstring);
+
+          KarmaFieldsAlpha.Task.add(task);
+
+        }
+
+      }
+
+    }
+
+    return content;
+
+  }
 
 }

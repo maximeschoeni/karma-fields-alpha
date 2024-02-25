@@ -622,7 +622,9 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				const collection = new KarmaFieldsAlpha.Model(this.resource.driver);
 
-		    query = collection.queryValue(query.toString(), key);
+				const id = query.toString();
+
+		    query = collection.queryValue(id, key);
 
 			}
 
@@ -683,7 +685,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 			const name = this.getContent("name");
 			const filename = this.getContent("filename");
 
-			if (mimetype.loading || filetype.loading) {
+			if (mimetype.loading || filetype.loading || name.loading || filename.loading || !filetype.toString()) {
 
 				return {icon: "loading", text: ""};
 
@@ -691,7 +693,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				return {icon: "exit", text: ".."};
 
-			} else if (filetype.toString() !== "file") {
+			} else if (filetype.toString() === "folder") {
 
 				return {icon: "folder", text: name.toString()};
 

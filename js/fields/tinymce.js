@@ -1896,6 +1896,13 @@ console.error("deprecated");
 				...this.resource.linkForm,
 			}, "linkForm");
 
+		} else if (type === "textarea") { // mixed
+
+			return this.createChild({
+				type: "textarea",
+				key: "raw"
+			}, "textarea");
+
 		}
 
 	}
@@ -1939,6 +1946,8 @@ console.error("deprecated");
 					this.setFocus(content.mixed);
 				}
 
+				const hasFocus = this.hasFocus();
+
 				// if (content.notFound) {
 				//
 				// 	const defaultContent = KarmaFieldsAlpha.field.input.prototype.getDefault.call(this);
@@ -1956,10 +1965,29 @@ console.error("deprecated");
 
 				container.element.classList.toggle("loading", Boolean(content.loading));
 
-        const mode = content.mixed && "code" || this.getOption("mode") || this.resource.mode || "edit";
+        const mode = content.mixed && "mixed" || this.getOption("mode") || this.resource.mode || "edit";
         // const mode = value === KarmaFieldsAlpha.mixed && "code" || action.mode || this.resource.mode || "edit";
 
         container.children = [
+					{
+            class: "mode mode-mixed",
+            update: node => {
+              node.element.classList.toggle("hidden", mode !== "mixed");
+              if (mode === "mixed") {
+                node.children = [
+                  {
+                    class: "textarea",
+                    update: node => {
+											node.child = this.createChild({
+												type: "textarea",
+												key: "raw"
+											}, "textarea").build()
+                    }
+                  }
+                ];
+              }
+            }
+          },
           {
             class: "mode mode-code",
             update: node => {
@@ -2118,7 +2146,7 @@ console.error("deprecated");
 												if (text !== content.toString()) {
 
 													this.setContent(new KarmaFieldsAlpha.Content(text));
-													
+
 												}
 
 
@@ -2216,13 +2244,20 @@ console.error("deprecated");
 
 
 
-																const node = request.editor.selection.getNode();
-																const targetElement = node && node.closest(field.resource.selector);
+																let node = request.editor.selection.getNode();
+
+																node = request.editor.getBody().contains(node) && node; // target node may be outside editor !!
+
+																// const targetElement = node && node.closest(field.resource.selector);
+																const targetElement = node && node.matches(field.resource.selector);
+
 
 																popover.element.classList.toggle("hidden", !targetElement);
 																popover.element.classList.toggle("active", Boolean(targetElement));
 
 																if (targetElement) {
+
+																	console.log(node, targetElement, request.editor.getContainer(), request.editor.getBody());
 
 																	popover.children = [field.build()];
 

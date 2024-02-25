@@ -1917,6 +1917,14 @@ textarea.clipboard {
   position: relative;
 }
 
+.karma-tinymce .mode.mode-mixed {
+  border: none;
+}
+.karma-tinymce .mode.mode-mixed textarea {
+  display: block;
+  width: 100%;
+}
+
 
 /* TOOLBAR */
 .karma-tinymce .editor-header .toolbar {
