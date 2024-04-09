@@ -375,21 +375,27 @@ console.error("deprecated");
 
   getParams() {
 
-    const params = KarmaFieldsAlpha.Store.Layer.getCurrent("params");
+    return this.parent.getParams();
 
-    return new KarmaFieldsAlpha.Content(params);
+    // const params = KarmaFieldsAlpha.Store.Layer.getCurrent("params");
+    //
+    // return new KarmaFieldsAlpha.Content(params);
 
   }
 
   getParam(key) {
 
-    return KarmaFieldsAlpha.Store.Layer.getParam(key);
+    return this.parent.getParam(key);
+
+    // return KarmaFieldsAlpha.Store.Layer.getParam(key);
 
   }
 
   setParam(value, key) {
 
-    KarmaFieldsAlpha.Store.Layer.setParam(value, key);
+    // KarmaFieldsAlpha.Store.Layer.setParam(value, key);
+
+    this.parent.setParam(value, key);
 
     this.request("render");
 
@@ -436,7 +442,9 @@ console.error("deprecated");
 
     const page = this.getParam("page");
 
-    return Number(page || 1);
+
+
+    return Number(page.value || 1);
 
   }
 
@@ -444,18 +452,20 @@ console.error("deprecated");
 
     const ppp = this.getParam("ppp");
 
-    return Number(ppp || 100);
+    return Number(ppp.value || 100);
   }
 
   getOrder() {
 
-    return this.getParam("order");
+    const order = this.getParam("order");
+
+    return order.value;
 
   }
 
   getOrderby() {
 
-    return this.getParam("orderby");
+    return this.getParam("orderby").value;
 
   }
 
@@ -533,7 +543,7 @@ console.error("deprecated");
     // KarmaFieldsAlpha.Store.remove("items");
     // KarmaFieldsAlpha.Store.remove("counts");
 
-    KarmaFieldsAlpha.Store.clear();
+    // KarmaFieldsAlpha.Store.clear();
 
     // KarmaFieldsAlpha.Store.Layer.removeItems();
 
@@ -802,7 +812,7 @@ console.error("deprecated");
   //
   // }
 
-  slice(index = 0, length = 999999) {
+  slice(index = 0, length = 999999, columns = null) {
 
     const gridContent = new KarmaFieldsAlpha.Content.Grid();
 
@@ -814,9 +824,13 @@ console.error("deprecated");
 
     } else {
 
-      const columns = this.getExportableColumns();
+      if (!columns) {
 
-      const items = query.toArray().slice(index, length);
+        columns = this.getExportableColumns();
+
+      }
+
+      const items = query.toArray().slice(index, index + length);
 
       // length = Math.min(length, query.toArray().length);
 
@@ -911,19 +925,11 @@ console.error("deprecated");
 
 
 
-  insert(grid, index = 0, length = 0) {
-
-
-
-
-
-
-
-
+  insert(grid, index = 0, length = 0, columns = null) {
 
     const array = grid.toArray();
 
-    length = Mathquery.toArray().length - index;
+    // length = this.queryItems().toArray().length - index;
 
     if (array.length < length) {
 
@@ -939,7 +945,11 @@ console.error("deprecated");
 
     if (!query.loading) {
 
-      const columns = this.getExportableColumns();
+      if (!columns) {
+
+        columns = this.getExportableColumns();
+
+      }
 
       const items = query.toArray();
 
@@ -2029,6 +2039,8 @@ console.error("deprecated");
 
                 const resource = columns[i];
 
+                const field = new KarmaFieldsAlpha.field.text(resource);
+
                 grid.children.push({
                   class: "th table-header-cell",
                   init: th => {
@@ -2043,8 +2055,9 @@ console.error("deprecated");
                     th.children = [
                       {
                         class: "header-cell-content title",
-                        init: a => {
+                        update: a => {
                           a.element.textContent = resource.label;
+                          // a.element.textContent = field.getLabel();
                         }
                       },
                       {

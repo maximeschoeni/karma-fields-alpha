@@ -125,11 +125,13 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 						// node.element.innerHTML = content.toArray().map(value => `<div class="text-item">${value.toString()}</div>`).join("");
 
+
 						node.children = content.toArray().map(value => {
 							return {
 								// class:"text-item",
 								// tag: "li",
 								update: node => {
+
 									node.element.innerHTML = value.toString();
 								}
 							}
@@ -716,6 +718,9 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 				}
 
 				if (mimetype.toString() === "image/jpeg" || mimetype.toString() === "image/png" || this.resource.display === "full") {
+
+
+
 
 					// if (this.resource.display === "full") {
 					//

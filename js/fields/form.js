@@ -8,10 +8,21 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.grid {
   // }
 
   build() {
+    // return this.createChild({
+    //   type: "single",
+    //   children: this.resource.children
+    // }, 0).build();
+
+    return this.getChild(0).build();
+  }
+
+  getChild(index) {
+
     return this.createChild({
       type: "single",
       children: this.resource.children
-    }, 0).build();
+    }, index);
+
   }
 
 }

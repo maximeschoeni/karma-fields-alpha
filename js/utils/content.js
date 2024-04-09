@@ -1,6 +1,20 @@
 
 KarmaFieldsAlpha.Content = class {
 
+  static loading() {
+
+    return new this(undefined, {loading: true});
+
+
+  }
+
+  static mixed() {
+
+    return new this(undefined, {mixed: true});
+
+
+  }
+
   constructor(value, params) {
 
     if (value instanceof KarmaFieldsAlpha.Content) {
@@ -19,6 +33,71 @@ KarmaFieldsAlpha.Content = class {
 
     }
 
+  }
+
+  // state(state) {
+  //
+  //   Object.assign(this, state);
+  //
+  //   return this;
+  //
+  // }
+
+  loading() {
+
+    this.loading = true;
+
+    return this;
+
+  }
+
+  mixed() {
+
+    this.mixed = true;
+
+    return this;
+
+  }
+
+  value(value) {
+
+    this.value = value;
+
+    return this;
+  }
+
+  getAt(index) {
+
+    const content = new KarmaFieldsAlpha.Content();
+
+    if (this.loading) {
+
+      content.loading = true;
+
+    } else {
+
+      content.value = this.toArray()[index];
+
+    }
+
+    return content;
+  }
+
+  get(key) {
+
+    const content = new KarmaFieldsAlpha.Content();
+
+    if (this.loading) {
+
+      content.loading = true;
+
+    } else {
+
+      content.value = this.toObject()[key];
+
+    }
+
+    return content;
   }
 
   set(content) { // deprecated
@@ -158,7 +237,15 @@ KarmaFieldsAlpha.Content = class {
 
   }
 
+  do() {
 
+    if (this.task) {
+
+      KarmaFieldsAlpha.Jobs.add(this.value);
+
+    }
+    
+  }
 
 }
 

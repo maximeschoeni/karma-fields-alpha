@@ -441,13 +441,13 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
                   if (content.notFound) {
 
-        						const defaultContent = this.getDefault();
+        						// const defaultContent = this.getDefault();
+                    //
+        						// value = defaultContent.toString();
+                    //
+                    // this.setContent(defaultContent);
 
-        						value = defaultContent.toString();
-
-                    this.setContent(defaultContent);
-
-                    KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
+                    // KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
 
                   }
 

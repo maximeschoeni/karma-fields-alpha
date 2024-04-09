@@ -12,6 +12,35 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.grid {
     return new KarmaFieldsAlpha.Content({ids: this.resource.id});
 
   }
+
+  submit() {
+
+    const task = new KarmaFieldsAlpha.Task.Save();
+
+    KarmaFieldsAlpha.Task.add(task);
+
+    this.render();
+
+  }
+
+  getContent(index, key) {
+
+    // if the post status is "auto-draft" -> post is not going to be found when queried by id
+
+    if (key === "id" && index === 0) {
+
+      const content = new KarmaFieldsAlpha.Content();
+
+      content.value = this.resource.id;
+
+      return content;
+
+    }
+
+    return super.getContent(index, key);
+  }
+
+
   //
   // getId() {
   //

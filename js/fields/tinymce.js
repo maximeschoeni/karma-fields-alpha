@@ -325,7 +325,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			const content = new KarmaFieldsAlpha.Content(text);
 			this.save("input");
 			this.setContent(content);
-			this.request("render");
+			// this.request("render");
+
+			this.debounce(() => {
+				this.request("render");
+			}, 400);
 
 		}
 

@@ -264,6 +264,10 @@ class Karma_Fields_Alpha_Driver_Posts {
 
         wp_insert_post($args);
 
+      } else {
+
+        do_action('karma_fields_post_updated', $id);
+
       }
 
 
@@ -359,7 +363,7 @@ class Karma_Fields_Alpha_Driver_Posts {
   public function get_query_args($params) {
 
     $args = array(
-      'post_status' => array('publish', 'pending', 'draft', 'future', 'inherit'),
+      'post_status' => array('publish', 'pending', 'draft', 'future', 'inherit', 'auto-draft'),
       'post_type' => 'any',
       'posts_per_page' => -1,
       'cache_results' => false,

@@ -296,7 +296,9 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
         //
         // content.loading = itemsQuery.cache;
 
-        content.loading = true;
+        // content.loading = true;
+
+        content.notFound = true; // setting loading true cause infinite loops!
 
         // if (!itemsQuery.cache) {
         //
@@ -352,6 +354,14 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
 
         const items = query.toArray();
 
+        if (!items[index]) {
+
+          items[index] = {};
+
+          this.setItems(items);
+
+        }
+
         if (items[index]) {
 
           if (items[index].id) {
@@ -375,6 +385,12 @@ KarmaFieldsAlpha.Model.Collection = class extends KarmaFieldsAlpha.Model {
           }
 
         } else {
+
+          // let item = {[key]: content.toArray()};
+
+          // items[index] = {[key]: content.toArray()};
+
+
 
           console.error("Index out of bound", index, key, content.value);
 

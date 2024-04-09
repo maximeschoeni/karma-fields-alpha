@@ -17,14 +17,19 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
   getParam(key) {
 
     const params = this.getParams();
+    const content = new KarmaFieldsAlpha.Content();
 
-    if (!params.loading) {
+    if (params.loading) {
 
-      return params.toObject()[key];
+      content.value = params.toObject()[key];
+
+    } else {
+
+      content.loading = true;
 
     }
 
-    return "";
+    return content;
 
   }
 
@@ -82,6 +87,7 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
 
         const id = this.parent.getContent("id");
 
+
         const isMixed = Boolean(id.mixed);
 
         grid.children = [
@@ -119,6 +125,8 @@ KarmaFieldsAlpha.field.gridField = class extends KarmaFieldsAlpha.field.grid {
 
                       // const query = this.getQuery();
                       const query = this.queryItems();
+
+                      // console.log(query);
 
                       grid.element.classList.toggle("loading", Boolean(query.loading));
                       grid.element.classList.toggle("active", Boolean(this.hasFocus()));

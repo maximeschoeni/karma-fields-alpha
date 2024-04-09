@@ -47,15 +47,30 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
     return false;
   }
 
+	// debounce(callback, duration = 500) {
+	//
+	// 	if (this.debounceTimer) {
+	//
+	// 		clearTimeout(this.debounceTimer);
+	//
+	// 	}
+	//
+	// 	this.debounceTimer = setTimeout(() => void callback(), duration);
+	// }
+
 	debounce(callback, duration = 500) {
 
-		if (this.debounceTimer) {
+		let timer = this.getData("timer");
 
-			clearTimeout(this.debounceTimer);
+		if (timer) {
+
+			clearTimeout(timer);
 
 		}
 
-		this.debounceTimer = setTimeout(() => void callback(), duration);
+		timer = setTimeout(() => void callback(), duration);
+
+		this.setData(timer, "timer");
 	}
 
 	copy() {
@@ -279,6 +294,8 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 	}
 
 
+
+
 	build() {
 		return {
 			tag: "input", // tag: this.resource.type   ! -> Fail when extending class!
@@ -352,7 +369,8 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 							const value = content.toString();
 
-	            if (input.element.value.normalize() !== value && !this.getData("embargo")) { // -> replacing same value still reset caret position
+	            // if (input.element.value.normalize() !== value && !this.getData("embargo")) { // -> replacing same value still reset caret position
+							if (input.element.value.normalize() !== value) { // -> replacing same value still reset caret position
 
 	              input.element.value = value || "";
 
@@ -381,29 +399,31 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
         input.element.oninput = event => {
 
-					this.write(input.element.value, content);
+					// this.write(input.element.value, content);
 
-					// const content = this.getContent();
-					//
-					// let value = content.toString();
-					//
-					// const newValue = input.element.value.normalize();
-					//
-					// this.save(newValue.length < value.length);
-					//
-					// const content = new KarmaFieldsAlpha.Content(newValue);
-					//
-					// this.setContent(content);
-					//
-					// if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
-					//
-					// 	this.debounce(() => void this.request("render"), this.resource.debounce || 300);
-					//
-					// } else {
-					//
-					// 	this.request("render");
-					//
-					// }
+
+					const newValue = input.element.value;
+					const normalizedValue = newValue.normalize();
+
+					if (normalizedValue.length < content.toString().length) {
+
+						this.save(`${this.uid}-delete`, "Delete");
+
+					} else {
+
+						this.save(`${this.uid}-insert`, "Insert");
+
+					}
+
+					const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
+
+					this.setContent(newContent);
+
+					this.debounce(() => {
+						this.request("render");
+					}, 400);
+
+
 
         }
 

@@ -26,6 +26,12 @@ KarmaFieldsAlpha.field = class {
 
   getLabel() {
 
+    if (Array.isArray(this.resource.label)) {
+
+      return this.parse(this.resource.label).toString();
+
+    }
+
     return this.resource.label;
 
   }
@@ -71,11 +77,23 @@ KarmaFieldsAlpha.field = class {
 
     child.parent = this;
     child.id = id;
-    child.uid = `${this.uid}-${id}`;
-    child.path = [...this.path, id];
-    child.options = this.options && this.options[id];
+    // child.uid = `${this.uid}-${id}`;
+    // child.path = [...this.path, id];
+    // child.options = this.options && this.options[id];
+
+    child.init();
 
     return child;
+  }
+
+  init() {
+
+    this.uid = `${this.parent.uid}-${this.id}`;
+    this.path = [...this.parent.path, this.id];
+    // this.options = this.parent.options && this.parent.options[this.id];
+    this.states = this.parent.states && this.parent.states[this.id];
+    this.data = this.parent.data && this.parent.data[this.id];
+
   }
 
   useClipboard() {
@@ -108,6 +126,18 @@ KarmaFieldsAlpha.field = class {
     const focus = KarmaFieldsAlpha.Store.Layer.getCurrent("focus");
 
     return focus && focus.length === this.path.length && this.path.every((id, index) => id === focus[index]);
+
+  }
+
+  getRelativeFocus() {
+
+    const focus = this.getFocus();
+
+    if (this.path.every((id, index) => id === focus[index])) {
+
+      return focus.slice(this.path.length);
+
+    }
 
   }
 
@@ -203,21 +233,21 @@ KarmaFieldsAlpha.field = class {
 
   }
 
-  doTask() {
-
-    const task = this.getOption("tasks");
-
-    if (task) {
-
-      const [methodName, ...args] = task;
-
-      this.removeOption("tasks");
-
-      this[methodName](...args);
-
-    }
-
-  }
+  // doTask() {
+  //
+  //   const task = this.getOption("tasks");
+  //
+  //   if (task) {
+  //
+  //     const [methodName, ...args] = task;
+  //
+  //     this.removeOption("tasks");
+  //
+  //     this[methodName](...args);
+  //
+  //   }
+  //
+  // }
 
   procrastinate(functionName, ...args) {
 
@@ -227,6 +257,22 @@ KarmaFieldsAlpha.field = class {
     });
 
   }
+
+  // doTask(generator, ...args) {
+  //
+  //   if (this[generator]) {
+  //
+  //     const work = this[generator](...args);
+  //
+  //     KarmaFieldsAlpha.Jobs.add(work);
+  //
+  //   } else if (this.parent) {
+  //
+  //     return this.parent.do(jobName, ...args);
+  //
+  //   }
+  //
+  // }
 
   getChildren() {
 
@@ -289,6 +335,24 @@ KarmaFieldsAlpha.field = class {
   }
 
   removeOption(...path) {
+
+    KarmaFieldsAlpha.Store.State.remove("fields", ...this.path, ...path);
+
+  }
+
+  getState(...path) {
+
+    return KarmaFieldsAlpha.Store.State.get("fields", ...this.path, ...path);
+
+  }
+
+  setState(data, ...path) {
+
+    KarmaFieldsAlpha.Store.State.set(data, "fields", ...this.path, ...path);
+
+  }
+
+  removeState(...path) {
 
     KarmaFieldsAlpha.Store.State.remove("fields", ...this.path, ...path);
 

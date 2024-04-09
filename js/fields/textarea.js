@@ -85,29 +85,33 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
         input.element.oninput = event => {
 
-					this.write(input.element.value, content);
+					// this.write(input.element.value, content);
 
-					// const newValue = input.element.value.normalize();
-					//
-					// if (newValue !== value) {
-					//
-					// 	this.save(newValue.length < value.length);
-					//
-					// 	const content = new KarmaFieldsAlpha.Content(newValue);
-					//
-					// 	this.setContent(content);
-					//
-					// 	if (event.inputType === "insertText" || event.inputType === "deleteContentBackward") {
-					//
-					// 		this.debounce(() => void this.request("render"), this.resource.debounce || 300);
-					//
-					// 	} else {
-					//
-					// 		this.request("render");
-					//
-					// 	}
-					//
-					// }
+
+					const newValue = input.element.value;
+					const normalizedValue = newValue.normalize();
+
+					if (normalizedValue.length < content.toString().length) {
+
+						this.save(`${this.uid}-delete`, "Delete");
+
+					} else {
+
+						this.save(`${this.uid}-insert`, "Insert");
+
+					}
+
+					const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
+
+					this.setContent(newContent);
+
+					this.debounce(() => {
+						this.request("render");
+					}, 400);
+
+
+
+
 
         }
 

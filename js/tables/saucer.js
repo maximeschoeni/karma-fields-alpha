@@ -332,9 +332,15 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
+  hasChange() {
+
+    return this.delta();
+
+  }
+
   hasTask(priorityLevel) {
 
-    const tasks = KarmaFieldsAlpha.Store.get("tasks");
+    const tasks = KarmaFieldsAlpha.Store.get("tasks") || [];
 
     // if (priorityLevel !== undefined) {
     //
@@ -344,7 +350,13 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     //
     // return tasks && tasks.length > 0 || false;
 
-    return tasks && tasks.some(task => !task.priority || task.priority >= 0);
+    // return tasks && tasks.some(task => !task.priority || task.priority >= 0);
+
+
+    const works = KarmaFieldsAlpha.Store.get("works") || [];
+
+
+    return tasks.length > 0 || works.some(work => !work.done);
 
   }
 
@@ -437,6 +449,26 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
+  async abduct() {
+
+    const embeds = KarmaFieldsAlpha.embeds;
+
+    if (embeds) {
+
+      for (let resource of embeds) {
+
+        const element = document.getElementById(resource.index);
+
+        const child = this.createChild(resource, resource.index);
+
+        await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+
+      }
+
+    }
+
+  }
+
 
   async loop() {
 
@@ -446,9 +478,67 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     let task;
 
-
+    let works;
 
     do {
+
+      // const jobs = KarmaFieldsAlpha.Store.get("jobs");
+      //
+      // if (jobs && jobs.length) {
+      //
+      //   job = jobs.shift();
+      //
+      //   await job();
+      //
+      //   // KarmaFieldsAlpha.Store.set(jobs, "jobs");
+      // }
+
+
+
+      const jobs = KarmaFieldsAlpha.Jobs.get();
+
+      if (jobs && jobs.length) {
+
+        const incompleteJobs = [];
+
+        for (let job of jobs) {
+
+          const result = await job.next();
+
+          if (!result.done) {
+
+            incompleteJobs.push(job);
+
+          }
+
+        }
+
+         KarmaFieldsAlpha.Jobs.set(incompleteJobs);
+      }
+
+
+
+
+
+
+      works = KarmaFieldsAlpha.Store.get("works") || [];
+
+      if (works) {
+
+        for (let work of works) {
+
+          if (!work.done) {
+
+            const result = await work.gen.next();
+
+            work.done = result.done;
+
+          }
+
+        }
+
+      }
+
 
       if (embeds) {
 
@@ -500,7 +590,28 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
       }
 
-    } while (task);
+
+
+
+
+
+    } while (task || works.some(work => !work.done) || KarmaFieldsAlpha.Jobs.has());
+
+  }
+
+
+
+  async *generator() {
+
+    let works = KarmaFieldsAlpha.Store.get("works");
+
+    for (work of works) {
+
+      yield* work;
+
+    }
+
+    KarmaFieldsAlpha.Store.remove("works");
 
   }
 
@@ -900,6 +1011,50 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
   //
   // }
 
+  getLayerIndex() {
+
+    const layers = KarmaFieldsAlpha.Store.State.get("layers");
+
+    for (let index in layers) {
+
+      if (layers[index].table === this.id) {
+
+        return index;
+
+      }
+
+    }
+
+  }
+
+  getParams() {
+
+    const index = this.getLayerIndex();
+
+    const params = KarmaFieldsAlpha.Store.State.get("layers", index, "params");
+
+    return new KarmaFieldsAlpha.Content(params);
+
+  }
+
+  getParam(key) {
+
+    const index = this.getLayerIndex();
+
+    const params = KarmaFieldsAlpha.Store.State.get("layers", index, "params", key);
+
+    return new KarmaFieldsAlpha.Content(params);
+
+  }
+
+  setParam(value, key) {
+
+    const index = this.getLayerIndex();
+
+    KarmaFieldsAlpha.Store.State.set(value.toString(), "layers", index, "params", key);
+
+  }
+
   getBody() {
 
     return this.getChild("body");
@@ -1133,9 +1288,23 @@ KarmaFieldsAlpha.field.saucer.menu = class extends KarmaFieldsAlpha.field {
 
 }
 
-
+// console.log("saucer!!!!");
 
 KarmaFieldsAlpha.field.saucer.footer = class extends KarmaFieldsAlpha.field.group {
+
+  // static defaults = {
+  //   display: "flex",
+  //   children: [
+  //     // "reload",
+  //     "save",
+  //     "add",
+  //     "delete",
+  //     "separator",
+  //     "insert",
+  //     "undo",
+  //     "redo"
+  //   ]
+  // };
 
   constructor(resource) {
 
@@ -1153,6 +1322,11 @@ KarmaFieldsAlpha.field.saucer.footer = class extends KarmaFieldsAlpha.field.grou
       ],
       ...resource
     });
+
+    // super({
+    //   ...KarmaFieldsAlpha.field.saucer.footer.defaults,
+    //   ...resource
+    // });
 
   }
 

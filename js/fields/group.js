@@ -170,6 +170,9 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 				if (this.resource.wrap === false) {
 					group.element.style.flexWrap = "nowrap";
 				}
+        if (this.resource.align) {
+          group.element.style.alignItems = this.resource.align;
+        }
 			},
 			update: group => {
 

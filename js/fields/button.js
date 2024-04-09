@@ -53,6 +53,22 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 		return false;
 	}
 
+	*doTask() {
+
+		let task = this.parse(this.resource.task);
+
+		while (task.loading) {
+
+			yield;
+
+			task = this.parse(this.resource.task);
+
+		}
+
+		// yield* this.request(task.toString());
+
+	}
+
 	click() {
 
 		if (this.resource.request) {
@@ -66,6 +82,42 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 			this.request(...this.resource.request);
 
 			this.request("render");
+
+		} else if (this.resource.generate) {
+
+			const [value, key] = this.resource.set;
+
+			this.parent.setValue(value, key);
+
+		} else if (this.resource.task) {
+
+			// if (typeof this.resource.task === "string") {
+			//
+			// 	this.doTask(this.resource.task);
+			//
+			// } else if (Array.isArray(this.resource.task)) {
+			//
+			// 	const [action, ...args] = this.resource.task;
+			//
+			// 	this.doTask(action, ...args);
+			//
+			// }
+
+			// this.doTask(this.resource.task);
+
+			const work = this.parse(this.resource.task);
+
+			// const task = this.doTask();
+
+			if (work.task) {
+
+				work.do();
+				
+			}
+
+
+
+			this.render();
 
 		} else if (this.resource.action) {
 
@@ -244,7 +296,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 				if (this.resource.primary) {
 
-					button.element.classList.toggle("primary", this.parse(this.resource.primary).toBoolean());
+					button.element.classList.toggle("button-primary", this.parse(this.resource.primary).toBoolean());
 
 				}
 

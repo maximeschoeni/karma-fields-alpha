@@ -71,19 +71,16 @@ Class Karma_Fields_Alpha_Driver_Options {
 
       $option = apply_filters('karma_fields_query_options', $option, $id, $params);
 
-      if ($option && is_array($option)) {
+      if (!$option) {
 
-        // $output[] = array_merge(
-        //   array('id' => $id),
-        //   $option
-        // );
-
-        $output[] = array(
-          'id' => $id,
-          'option_value' => $option
-        );
+        $option = array();
 
       }
+
+      $output[] = array(
+        'id' => $id,
+        'option_value' => $option
+      );
 
     } else if (isset($params['ids'])) {
 
@@ -95,19 +92,18 @@ Class Karma_Fields_Alpha_Driver_Options {
         $option = get_option($id);
         $option = apply_filters('karma_fields_query_options', $option, $id, $params);
 
-        if ($option && is_array($option)) {
+        if (!$option) {
 
-          // $output[] = array_merge(
-          //   array('id' => $id),
-          //   $option
-          // );
-
-          $output[] = array(
-            'id' => $id,
-            'option_value' => $option
-          );
+          $option = array();
 
         }
+
+
+
+        $output[] = array(
+          'id' => $id,
+          'option_value' => $option
+        );
 
       }
 

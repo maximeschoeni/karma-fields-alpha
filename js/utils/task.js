@@ -1,4 +1,38 @@
 
+KarmaFieldsAlpha.Jobs = class {
+
+  static get() {
+
+    return KarmaFieldsAlpha.Store.get("jobs");
+
+  }
+
+  static set(tasks) {
+
+    KarmaFieldsAlpha.Store.set(tasks, "jobs");
+
+  }
+
+  static add(task) {
+
+    const tasks = this.get() || [];
+
+    this.set([...tasks, task]);
+
+  }
+
+  static has() {
+
+    const jobs = this.get();
+
+    return jobs && jobs.length > 0 || false;
+
+  }
+
+}
+
+
+
 KarmaFieldsAlpha.Task = class {
 
   static get() {
@@ -518,7 +552,7 @@ KarmaFieldsAlpha.Task.QueryValue = class extends KarmaFieldsAlpha.Task.QueryItem
 
   async resolve() {
 
-    if (!this.paramstring) {
+    if (this.paramstring === undefined) {
 
       this.genericQuery = true;
 
@@ -700,7 +734,7 @@ KarmaFieldsAlpha.Task.Add = class {
 
     id = id.toString();
 
-    if (!this.paramstring) {
+    if (this.paramstring === undefined) {
 
       this.paramstring = `ids=${id}`;
 
@@ -852,7 +886,7 @@ KarmaFieldsAlpha.Task.Upload = class extends KarmaFieldsAlpha.Task.Add {
 
 
 
-    if (!this.paramstring) {
+    if (this.paramstring === undefined) {
 
       this.paramstring = `ids=${id}`;
 
