@@ -101,9 +101,9 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 					}
 
-					const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
+					// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
 
-					this.setContent(newContent);
+					this.setValue(normalizedValue);
 
 					this.debounce(() => {
 						this.request("render");

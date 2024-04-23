@@ -1,5 +1,37 @@
 KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
+  // getConstructor(type) {
+  //
+  //   if (this.constructor[type] && typeof this.constructor[type] === "function") {
+  //     return this.constructor[type];
+  //   }
+  //
+  //   if (this.parent) {
+  //     return this.parent.getConstructor(type);
+  //   }
+  //
+  // }
+
+  newChild(index) {
+
+    let resource = this.resources[index];
+
+    if (resource) {
+
+      if (typeof resource === "string") {
+
+        resource = {type: resource};
+
+      }
+
+      const constructor = getConstructor(resource.type);
+
+      return new constructor(resource, index, this);
+
+    }
+
+  }
+
   getContent(subkey) {
 
     const key = this.getKey();
@@ -28,7 +60,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   }
 
-  setContent(content, ...path) {
+  setValue(value, ...path) {
 
     const key = this.getKey();
 
@@ -38,17 +70,17 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
       if (!groupContent.loading) {
 
-        const newContent = new KarmaFieldsAlpha.Content({...groupContent.toObject()});
+        const newValue = {...groupContent.toObject()};
 
-        KarmaFieldsAlpha.DeepObject.set(newContent.value, content.value, ...path);
+        KarmaFieldsAlpha.DeepObject.set(newValue, value, ...path);
 
-        this.parent.setContent(newContent, key);
+        this.parent.setValue(newValue, key);
 
       }
 
     } else {
 
-      this.parent.setContent(content, ...path);
+      this.parent.setValue(value, ...path);
 
     }
 
@@ -72,7 +104,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	import(collection) {
+	async *import(collection) {
 
 		const key = this.getKey();
 
@@ -80,11 +112,11 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
       const content = collection.pick();
 
-      this.parent.setContent(content, key);
+      this.parent.setValue(content.value, key);
 
 		} else {
 
-      super.import(collection);
+      yield* super.import(collection);
 
 		}
 
@@ -105,6 +137,11 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
     }
 
     return false;
+  }
+
+  inline() {
+
+    return this.resource.display === "flex";
   }
 
   buildLabel() {
@@ -200,7 +237,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 					return {
 						tag: labelable ? "label" : "div",
-						class: "karma-field-frame karma-field-"+field.resource.type,
+						class: `karma-field-frame karma-field-${field.resource.type} field-container`,
 						init: (container) => {
 							if (field.resource.style) {
 								container.element.style = field.resource.style;
@@ -208,12 +245,54 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 							if (field.resource.class) {
 								field.resource.class.split(" ").forEach(name => container.element.classList.add(name));
 							}
-							if (field.resource.flex) {
+              if (field.resource.classes) {
+								container.element.classList.add(...field.resource.classes);
+							}
+							if (field.resource.flex) { // deprecated
 								container.element.style.flex = field.resource.flex;
 							}
 							if (field.resource.width) {
-								container.element.style.maxWidth = field.resource.width;
+                if (this.inline()) { // -> flex-direction: row
+                  const fr = field.resource.width.match(/(.*)fr/);
+                  if (fr) {
+                    container.element.style.flexGrow = fr[1];
+                  } else {
+                    container.element.style.width = field.resource.width;
+                  }
+                } else { // -> flex-direction: column
+                  if (field.resource.width === "auto") {
+                    container.element.style.alignSelf = "flex-start";
+                  } else if (!field.resource.width.match(/(.*)fr/)) {
+                    container.element.style.width = field.resource.width;
+                  }
+                }
 							}
+
+              // if (field.resource.width) {
+              //   if (this.inline()) { // -> flex-direction: row
+              //     if (field.resource.width) {
+              //       const fr = field.resource.width.match(/(.*)fr/);
+              //       if (fr) {
+              //         container.element.style.flexGrow = fr[1];
+              //       } else {
+              //         container.element.style.width = field.resource.width;
+              //       }
+              //     } else {
+              //       container.element.style.flexGrow = fr[1];
+              //
+              //     }
+              //
+              //   } else { // -> flex-direction: column
+              //     if (field.resource.width === "auto") {
+              //       container.element.style.alignSelf = "flex-start";
+              //     } else if (!field.resource.width.match(/(.*)fr/)) {
+              //       container.element.style.width = field.resource.width;
+              //     }
+              //   }
+							// }
+              // if (field.resource.align) {
+							// 	container.element.style.alignItems = field.resource.align;
+							// }
 						},
 						update: (container) => {
 							container.children = [];

@@ -1,9 +1,27 @@
 
 KarmaFieldsAlpha.DeepObject = class {
 
-  static get(object, key, ...path) {
+  // static get(object, key, ...path) {
+  //
+  //   if (key === undefined) {
+  //
+  //     return object;
+  //
+  // 	} else {
+  //
+  //     if (object) {
+  //
+  // 			return this.get(object[key], ...path);
+  //
+  // 		}
+  //
+  // 	}
+  //
+  // };
 
-    if (key === undefined) {
+  static get(object, ...path) {
+
+    if (path.length === 0) {
 
       return object;
 
@@ -11,7 +29,7 @@ KarmaFieldsAlpha.DeepObject = class {
 
       if (object) {
 
-  			return this.get(object[key], ...path);
+  			return this.get(object[path[0]], ...path.slice(1));
 
   		}
 
@@ -19,9 +37,27 @@ KarmaFieldsAlpha.DeepObject = class {
 
   };
 
+  // static get(object, key, ...path) {
+  //
+  //   if (object) {
+  //
+  //     if (path.length) {
+  //
+  //   		return this.get(object[key], ...path);
+  //
+  //   	} else {
+  //
+  //       return object[key];
+  //
+  //   	}
+  //
+  //   }
+  //
+  // };
+
   static set(object, value, key, ...path) {
 
-    if (key !== undefined) {
+    // if (key !== undefined) {
 
       if (path.length > 0) {
 
@@ -39,7 +75,7 @@ KarmaFieldsAlpha.DeepObject = class {
 
       }
 
-    }
+    // }
 
   }
 

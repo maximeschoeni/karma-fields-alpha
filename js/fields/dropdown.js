@@ -116,10 +116,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		if (this.resource.driver) {
 
-      // const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
-
-
-      const params = this.parse(this.resource.params );
+      const params = this.parse(this.resource.params);
 
       if (params.loading) {
 
@@ -127,23 +124,30 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
       } else {
 
-        const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, params.toObject() || {});
+        // const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, params.toObject() || {});
 
-        if (query.loading) {
+        // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+        // const shuttle = KarmaFieldsAlpha.Shuttle.get(this.resource.driver, paramstring);
+        // const query = shuttle.getOptions();
+
+        const table = new KarmaFieldsAlpha.field.table({
+          driver: this.resource.driver,
+          params: this.resource.params
+        }, "options", this);
+
+        const set = table.getOptionsList();
+
+        if (set.loading) {
 
           options.loading = true;
 
         } else {
 
-          options.value = [...options.toArray(), ...query.toArray()];
+          options.value = [...options.toArray(), ...set.toArray()];
 
         }
 
       }
-
-
-
-      // options.merge(moreOptions);
 
 		}
 
@@ -234,11 +238,11 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
           dropdown.element.onchange = event => {
 
             const key = this.getKey();
-            const content = new KarmaFieldsAlpha.Content(dropdown.element.value);
+            // const content = new KarmaFieldsAlpha.Content(dropdown.element.value);
 
             this.save("change", "Change");
 
-            this.parent.setContent(content, key);
+            this.parent.setValue(dropdown.element.value, key);
 
 
             this.request("render");

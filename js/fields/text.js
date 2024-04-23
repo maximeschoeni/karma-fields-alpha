@@ -58,11 +58,11 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 		return output;
 	}
 
-	import(collection) {
+	async *import(collection) {
 
 		if (this.resource.export) {
 
-			collection.pick();
+			collection.value.shift();
 
 		}
 
@@ -620,17 +620,27 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			let query = this.parse(this.resource.id);
 
-			if (!query.loading) {
+			if (query.loading) {
 
-				const collection = new KarmaFieldsAlpha.Model(this.resource.driver);
+				return query;
 
-				const id = query.toString();
+			} else {
 
-		    query = collection.queryValue(id, key);
+				// const collection = new KarmaFieldsAlpha.Model(this.resource.driver);
+				//
+				// const id = query.toString();
+				//
+		    // query = collection.queryValue(id, key);
+
+				// const driver = this.getDriver();
+
+				const form = new KarmaFieldsAlpha.field.form({
+	        driver: this.resource.driver
+	      });
+
+	      return form.getValueById(query.toString(), key);
 
 			}
-
-			return query;
 
 		} else {
 

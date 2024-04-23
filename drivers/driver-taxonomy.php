@@ -11,12 +11,27 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
     global $wpdb;
 
     // foreach ($data as $id => $item) {
+                        //
+                        //
+    										// var_dump($id, get_current_user_id(), current_user_can('edit_term', $id));
+    										// die();
+
 
     if (!current_user_can('edit_term', $id)) {
 
       return false;
 
     }
+
+    // var_dump(current_user_can('edit_term', $id)); die();
+
+    // var_dump(current_user_can('manage_categories')); die();
+//
+    // if (!current_user_can('edit_posts')) {
+    //
+    //   return false;
+    //
+    // }
 
 
     $trash_prefix = '_trashed_';
@@ -55,12 +70,6 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
     }
 
-    if (isset($data['taxonomy'][0])) {
-
-      $r = $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => $data['taxonomy'][0]), array('term_id' => $id), array('%s'), array('%d'));
-
-    }
-
 
 
       $args = array();
@@ -69,11 +78,6 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
       $term = get_term($id);
 
-      // if (isset($data['name']) && $data['name'] && empty($data['slug']) && preg_match($term->slug, '/-new-term-\d+/')) {
-      //
-      //   $data['slug'] = sanitize_title($data['name']);
-      //
-      // }
 
 
 
@@ -95,41 +99,27 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
             default:
 
-              // if (post_type_exists($key)) { // -> posttype. Todo: check if taxonomy is attached to posttype
-              //
-              //   $value = array_filter(array_map('intval', $value));
-              //
-              //   foreach ($value as $post_id) {
-              //
-              //     wp_set_post_terms($post_id, array($id), $term->taxonomy, true);
-              //
-              //   }
-              //
-              // } else { // -> meta
+              $value = apply_filters('karma_fields_taxonomy_driver_update_meta', $value, $key, $id);
 
-                $value = apply_filters('karma_fields_taxonomy_driver_update_meta', $value, $key, $id);
+              $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->termmeta WHERE meta_key = %s AND term_id = %d", $key, $id ) );
 
-                $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->termmeta WHERE meta_key = %s AND term_id = %d", $key, $id ) );
+              for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
 
-                for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
+                if (isset($value[$i], $meta_ids[$i])) {
 
-                  if (isset($value[$i], $meta_ids[$i])) {
+                  update_metadata_by_mid( 'term', $meta_ids[$i], $value[$i]);
 
-                    update_metadata_by_mid( 'term', $meta_ids[$i], $value[$i]);
+                } else if (isset($value[$i])) {
 
-                  } else if (isset($value[$i])) {
+                  add_metadata( 'term', $id, $key, $value[$i] );
 
-                    add_metadata( 'term', $id, $key, $value[$i] );
+                } else if (isset($meta_ids[$i])) {
 
-                  } else if (isset($meta_ids[$i])) {
-
-                    delete_metadata_by_mid( 'term', $meta_ids[$i] );
-
-                  }
+                  delete_metadata_by_mid( 'term', $meta_ids[$i] );
 
                 }
 
-              // }
+              }
 
           }
 
@@ -137,16 +127,18 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
       }
 
-
-
-
       if ($args) {
 
         $r = wp_update_term($id, $term->taxonomy, $args);
 
       }
 
-    // }
+    // wp_update_term() doesn't work if this is placed before !
+    if (isset($data['taxonomy'][0])) {
+
+      $r = $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => $data['taxonomy'][0]), array('term_id' => $id), array('%s'), array('%d'));
+
+    }
 
     return true;
   }
@@ -157,7 +149,7 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
   public function add($data) {
     global $wpdb;
 
-    if (!current_user_can('edit_terms')) {
+    if (!current_user_can('manage_categories')) {
 
       return false;
 
@@ -169,6 +161,8 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
 
     // $results = wp_insert_term($name, $taxonomy);
+
+
 
     $wpdb->insert($wpdb->terms, array('name' => ''), array('%s'));
 
@@ -371,7 +365,8 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
           break;
 
         case 'ids':
-          $args['ids'] = explode(',', $value);
+        case 'id':
+          $args['include'] = explode(',', $value);
           break;
 
         default:
@@ -407,7 +402,8 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
 
 
-    
+
+
 
     $terms = get_terms($args);
 

@@ -7,14 +7,31 @@ KarmaFieldsAlpha.field = class {
   static fieldId = 0;
   static uniqueId = 1;
 
-  constructor(resource = {}) {
+  constructor(resource = {}, id, parent) {
 
     this.id = 0;
     this.uid = 0;
     this.path = [];
 		this.resource = resource || {};
 
+
+
+
 		this.fieldId = KarmaFieldsAlpha.field.fieldId++;
+
+
+
+    this.id = id || 0;
+
+    if (parent) {
+
+      this.parent = parent;
+      this.uid = `${parent.uid}-${this.id}`;
+      this.path = [...parent.path, this.id];
+      // this.states = parent.states && parent.states[this.id];
+      // this.data = parent.data && parent.data[this.id];
+
+    }
 
   }
 
@@ -50,7 +67,25 @@ KarmaFieldsAlpha.field = class {
       return this.parent.getConstructor(type);
     }
 
-    console.error("Field type does not exist", type);
+    // console.log(type, this.constructor, Object.keys(this.constructor));
+    // console.error("Field type does not exist", type);
+
+  }
+
+  // createChildField(type = "group", resource = {}) {
+  //
+  //   const child = new constructor[type](resource);
+  //
+  //   this.registerChild(child);
+  //
+  //   return child;
+  // }
+
+  registerChild(field, id) {
+
+    field.parent = this;
+    field.id = id;
+    field.init();
 
   }
 
@@ -73,6 +108,14 @@ KarmaFieldsAlpha.field = class {
     }
 
     const constructor = this.getConstructor(resource.type || "group");
+
+    if (!constructor) {
+
+      debugger;
+      this.getConstructor(resource.type || "group");
+
+    }
+
     const child = new constructor(resource);
 
     child.parent = this;
@@ -104,28 +147,42 @@ KarmaFieldsAlpha.field = class {
 
   getFocus() {
 
-    return KarmaFieldsAlpha.Store.Layer.getCurrent("focus");
+    // return KarmaFieldsAlpha.Store.Layer.getCurrent("focus");
+
+    return KarmaFieldsAlpha.Store.State.get("focus");
 
   }
 
   setFocus(useClipboard = false) {
 
     KarmaFieldsAlpha.Store.State.set(useClipboard, "clipboard");
-    KarmaFieldsAlpha.Store.Layer.setCurrent(this.path, "focus");
+    // KarmaFieldsAlpha.Store.Layer.setCurrent(this.path, "focus");
+    KarmaFieldsAlpha.Store.State.set(this.path, "focus");
 
   }
 
   removeFocus() {
 
-    KarmaFieldsAlpha.Store.Layer.removeCurrent("focus");
+    // KarmaFieldsAlpha.Store.Layer.removeCurrent("focus");
+    KarmaFieldsAlpha.Store.State.remove("focus");
 
   }
 
   hasFocus() {
 
-    const focus = KarmaFieldsAlpha.Store.Layer.getCurrent("focus");
+    // const focus = KarmaFieldsAlpha.Store.Layer.getCurrent("focus");
+    const focus = this.getFocus();
 
     return focus && focus.length === this.path.length && this.path.every((id, index) => id === focus[index]);
+
+  }
+
+  hasFocusInside() {
+
+    // const focus = KarmaFieldsAlpha.Store.Layer.getCurrent("focus");
+    const focus = this.getFocus();
+
+    return focus && this.path.every((id, index) => id === focus[index]);
 
   }
 
@@ -419,10 +476,15 @@ KarmaFieldsAlpha.field = class {
 
   }
 
+  // setContent(content, ...path) {
+  //
+  //   this.setValue(content.value || content, ...path);
+  //
+  // }
 
-  setContent(content, ...path) {
+  setValue(value, ...path) {
 
-    this.parent.setContent(content, ...path);
+    this.parent.setValue(value, ...path);
 
   }
 
@@ -553,7 +615,7 @@ KarmaFieldsAlpha.field = class {
 		return collection;
   }
 
-  import(collection) {
+  async *import(collection) {
 
     if (this.resource.children) {
 
@@ -562,7 +624,7 @@ KarmaFieldsAlpha.field = class {
         const resource = this.resource.children[i];
 				const child = this.createChild(resource, i);
 
-        child.import(collection);
+        yield* child.import(collection);
 
 			}
 
@@ -593,11 +655,11 @@ KarmaFieldsAlpha.field = class {
 
   }
 
-  submit() {
-
-    this.parent.submit();
-
-  }
+  // async *submit() {
+  //
+  //   yield* this.parent.submit();
+  //
+  // }
 
   parse(expression) {
 
@@ -652,7 +714,7 @@ KarmaFieldsAlpha.field = class {
 
 	}
 
-  create() {
+  *create() {
 
     if (this.resource.children) {
 
@@ -661,7 +723,7 @@ KarmaFieldsAlpha.field = class {
         const resource = this.resource.children[i];
         const child = this.createChild(resource, i);
 
-        child.create();
+        yield* child.create();
 
       }
 
@@ -681,5 +743,55 @@ KarmaFieldsAlpha.field = class {
   }
 
 
+  getParam(key) { // overrided by table field
+
+    return this.parent.getParam(key);
+
+  }
+
+  setParam(value, key) { // overrided by table field
+
+    this.parent.setParam(value, key);
+
+  }
+
+
+  // add(...args) {
+  //
+  //   return this.parent.add(...args);
+  //
+  // }
+  //
+  // delete(...args) {
+  //
+  //   return this.parent.delete(...args);
+  //
+  // }
+
+  getChildByPath(childId, ...path) {
+
+    const child = this.getChild(childId);
+
+    if (child) {
+
+      if (path.length) {
+
+        return child.getChildByPath(...path);
+
+      } else {
+
+        return child;
+
+      }
+
+    }
+
+  }
+
+  getField(...path) {
+
+    return this.parent.getField(...path);
+
+  }
 
 };

@@ -370,9 +370,8 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                               a.element.onmouseup = async event => {
                                 event.preventDefault();
                                 const sqlDate = this.constructor.format(day.date, this.resource.storeFormat);
-                                const content = new KarmaFieldsAlpha.Content(sqlDate);
                                 this.save("date", "Select Date");
-                                this.setContent(content);
+                                this.setValue(sqlDate);
                                 this.removeOption("date");
                                 await container.render();
                                 this.render();
@@ -473,13 +472,12 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                         this.setOption(date, "date");
                         // await container.render();
                         const sqlDate = this.constructor.format(date, this.resource.storeFormat);
-                        const content = new KarmaFieldsAlpha.Content(sqlDate);
-                        this.setContent(content);
+                        // const content = new KarmaFieldsAlpha.Content(sqlDate);
+                        this.setValue(sqlDate);
 
                       } else {
 
-                        const content = new KarmaFieldsAlpha.Content(input.element.value);
-                        this.setContent(content);
+                        this.setValue(input.element.value);
 
                       }
 

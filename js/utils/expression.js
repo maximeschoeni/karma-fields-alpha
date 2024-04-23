@@ -144,7 +144,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       case "isLoading":
       case "isMixed":
       case "getKey":
-      case "getIndex":
+      case "getIndex":// deprec
       case "getIds":
       case "get":
       case "getAt":
@@ -154,13 +154,14 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       case "log":
       case "max":
       case "min":
+      case "resource":
         this[args[0]](...args);
         break;
 
-      case "set":
+      // case "set":
       case "submit":
-      case "add":
-      case "delete":
+      // case "add":
+      // case "delete":
         // this.doTask(...args);
         this.task = true;
         this.value = this[args[0]](...args);
@@ -691,7 +692,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
   date(...args) {
 
     const dateString = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const option = args[2] || {};
+    const option = args[2] || {}; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
     const locale = args[3] || KarmaFieldsAlpha.locale || "en";
 
     if (dateString.loading) {
@@ -772,30 +773,50 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       this.loading = true;
       this.value = "";
 
-    } else if (driver.notFound || id.notFound || key.notFound) {
-
-      this.notFound = true;
-      this.value = "";
-
-    } else if (driver.mixed || id.mixed || key.mixed) {
-
-      this.mixed = true;
-      this.value = "[mixed]";
-
     } else if (driver.toString() && id.toString() && key.toString()) {
 
       // const content = new KarmaFieldsAlpha.Content.Value(driver.toString(), id.toString(), key.toString());
 
-      const model = new KarmaFieldsAlpha.Model(driver.toString());
+      // const model = new KarmaFieldsAlpha.Model(driver.toString());
+      //
+      //
+      // // console.log("queryValue", id.toString(), key.toString());
+      //
+      // const content = model.queryValue(id.toString(), key.toString());
+      //
+      // this.value = content.value;
+      // this.loading = content.loading;
+      // this.notFound = content.notFound;
+
+      // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString());
+      // const value = shuttle.getValue(id, key);
+      //
+      // if (value.loading) {
+      //
+      //   this.loading = true;
+      //
+      // } else {
+      //
+      //   this.value = value.value;
+      //
+      // }
 
 
-      // console.log("queryValue", id.toString(), key.toString());
+      const form = new KarmaFieldsAlpha.field.form({
+        driver: driver.toString()
+      });
 
-      const content = model.queryValue(id.toString(), key.toString());
+      const content = form.getValueById(id.toString(), key.toString());
 
-      this.value = content.value;
-      this.loading = content.loading;
-      this.notFound = content.notFound;
+      if (content.loading) {
+
+        this.loading = true;
+
+      } else {
+
+        this.value = content.value;
+
+      }
 
     } else {
 
@@ -832,22 +853,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
   query(...args) {
 
     const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
     const params = new KarmaFieldsAlpha.Expression(args[2] || {}, this.field);
-
-    // if (Array.isArray(args[2])) { // -> expression
-    //
-    //   params = new KarmaFieldsAlpha.Expression(args[2] || {}, this.field);
-    //
-    // } else if (args[2] && typeof args[2] === "object") { // -> just an object
-    //
-    //   params = KarmaFieldsAlpha.parseObject(args[2], this.field);
-    //
-    // } else {
-    //
-    //   params = new KarmaFieldsAlpha.Content({});
-    //
-    // }
 
     if (driver.loading || params.loading) {
 
@@ -855,26 +861,48 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     } else {
 
-      const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
-      // const query = KarmaFieldsAlpha.Driver.getQuery(driver.toString(), paramstring);
+      // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+      // // const query = KarmaFieldsAlpha.Driver.getQuery(driver.toString(), paramstring);
+      //
+      //
+      // const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString(), paramstring);
+      // const query = collection.queryItems();
+      //
+      //
+      // if (query.loading) {
+      //
+      //   this.loading = true;
+      //
+      // } else {
+      //
+      //   this.value = query.value;
+      //
+      // }
 
 
-      const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString(), paramstring);
-      const query = collection.queryItems();
+      // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+      // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString(), paramstring);
+      // const ids = shuttle.getIds();
+      //
 
 
-      if (query.loading) {
+      const table = new KarmaFieldsAlpha.field.table({
+        driver: driver.toString(),
+        params: params.toObject()
+      });
+
+      const ids = table.getIds();
+
+      if (ids.loading) {
 
         this.loading = true;
 
       } else {
 
-        this.value = query.value;
+        this.value = ids.toArray();
 
       }
 
-
-      // this.value = new KarmaFieldsAlpha.Content.Query(driver.toString(), params.toSingle()); // !! getResult return Content or simple Object ??
 
     }
 
@@ -891,19 +919,58 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
     } else {
 
-      const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString());
+      // const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString());
+      //
+      // collection.paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+      //
+      // const count = collection.count();
+      //
+      // this.loading = count.loading;
+      // this.value = count.value;
 
-      collection.paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+      // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+      // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString(), paramstring);
+      // const count = shuttle.getCount();
 
-      const count = collection.count();
+      const table = new KarmaFieldsAlpha.field.table({
+        driver: driver.toString(),
+        params: params.toObject()
+      });
 
-      this.loading = count.loading;
-      this.value = count.value;
+      const count = table.getCount();
+
+      if (count.loading) {
+
+        this.loading = true;
+
+      } else {
+
+        this.value = count.toNumber();
+
+      }
 
     }
 
   }
 
+  resource(...args) {
+
+    const key = new KarmaFieldsAlpha.Expression(args[1], this.field);
+
+    if (key.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      this.value = this.field.getResource(key.toString());
+
+    }
+
+  }
+
+
+  // deprecated
   parseParams(...args) {
 
     let params = args[1];
@@ -1039,56 +1106,57 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
   }
 
 
-  *submit(...args) {
+  async *submit(...args) {
 
     yield* this.field.request("submit");
 
   }
 
-  *add(...args) {
-
-    const num = new KarmaFieldsAlpha.Expression(args[1] || 1, this.field);
-    const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-    while (num.loading || index.loading) {
-
-      yield;
-
-    }
-
-    yield* this.field.request("add", num.toNumber(), index.value);
-
-  }
-
-  *delete(...args) {
-
-    const index = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const num = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-    while (num.loading || index.loading) {
-
-      yield;
-
-    }
-
-    yield* this.field.request("delete", index.value, num.value);
-
-  }
-
-  *set(...args) {
-
-    const value = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const key = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-    while (value.loading || key.loading) {
-
-      yield;
-
-    }
-
-    this.field.setContent(value, key.toString());
-
-  }
+  // *add(...args) {
+  //
+  //   const num = new KarmaFieldsAlpha.Expression(args[1] || 1, this.field);
+  //   const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
+  //   const params = new KarmaFieldsAlpha.Expression(args[3] || {}, this.field);
+  //
+  //   while (num.loading || index.loading || params.loading) {
+  //
+  //     // yield;
+  //
+  //   }
+  //
+  //   yield* this.field.request("add", num.toNumber(), index.value, params.toObject());
+  //
+  // }
+  //
+  // *delete(...args) {
+  //
+  //   const index = new KarmaFieldsAlpha.Expression(args[1], this.field);
+  //   const num = new KarmaFieldsAlpha.Expression(args[2], this.field);
+  //
+  //   while (num.loading || index.loading) {
+  //
+  //     // yield;
+  //
+  //   }
+  //
+  //   yield* this.field.request("delete", index.value, num.value);
+  //
+  // }
+  //
+  // *set(...args) {
+  //
+  //   const value = new KarmaFieldsAlpha.Expression(args[1], this.field);
+  //   const key = new KarmaFieldsAlpha.Expression(args[2], this.field);
+  //
+  //   while (value.loading || key.loading) {
+  //
+  //     // yield;
+  //
+  //   }
+  //
+  //   this.field.setContent(value, key.toString());
+  //
+  // }
 
 }
 

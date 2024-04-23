@@ -1,16 +1,19 @@
 KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
-	create() {
+	*create() {
 
-		const value = this.getDefault();
+		let value = this.getDefault();
 
-		if (value.loading) {
+		if (value) {
 
-			this.createTask("create");
+			while (value.loading) {
 
-		} else {
+				yield;
+				value = this.getDefault();
 
-			this.setContent(value);
+			}
+
+			this.setValue(value.toString());
 
 		}
 
@@ -89,25 +92,68 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	paste(string) {
 
-		const content = new KarmaFieldsAlpha.Content(string);
+		// const content = new KarmaFieldsAlpha.Content(string);
 		KarmaFieldsAlpha.History.save("paste", "Paste");
-		this.setContent(content);
+		this.setValue(string);
 		this.request("render");
 
 	}
 
-	delete() {
+	*delete() { // -> for mixed values
 
-		const content = new KarmaFieldsAlpha.Content("");
-		KarmaFieldsAlpha.History.save("delete", "Delete");
-		this.setContent(content);
-		this.request("render");
+		// const content = new KarmaFieldsAlpha.Content("");
+		// KarmaFieldsAlpha.History.save("delete", "Delete");
+		// this.setContent(content);
+		// this.request("render");
+
+		this.setValue("");
 
 	}
 
-	getContent() {
+	// getContent() {
+	//
+	// 	const key = this.getKey();
+	//
+	// 	let content = this.parent.getContent(key);
+	//
+	// 	if (this.resource.value && !content.mixed) {
+	//
+	// 		const value = this.parse(this.resource.value);
+	//
+	// 		if (!value.loading && !value.equals(content)) {
+	//
+	// 			this.parent.setValue(value, key);
+	//
+	// 			content = value;
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	// if (content.notFound) {
+	// 	//
+	// 	// 	const value = this.getDefault();
+	// 	//
+	// 	// 	if (!value.loading) {
+	// 	//
+	// 	// 		this.setContent(value);
+	// 	//
+	// 	// 	}
+	// 	//
+	// 	// 	content = value;
+	// 	//
+	// 	// }
+	//
+	// 	return content;
+	// }
 
-		const key = this.getKey();
+	getContent(key) {
+
+		if (!key) {
+
+			key = this.getKey();
+
+		}
 
 		let content = this.parent.getContent(key);
 
@@ -117,7 +163,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 			if (!value.loading && !value.equals(content)) {
 
-				this.parent.setContent(value, key);
+				this.parent.setValue(value, key);
 
 				content = value;
 
@@ -125,28 +171,18 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		}
 
-		// if (content.notFound) {
-		//
-		// 	const value = this.getDefault();
-		//
-		// 	if (!value.loading) {
-		//
-		// 		this.setContent(value);
-		//
-		// 	}
-		//
-		// 	content = value;
-		//
-		// }
-
 		return content;
 	}
 
-	setContent(content) {
+	setValue(value, key) {
 
-		const key = this.getKey();
+		if (!key) {
 
-		this.parent.setContent(content, key);
+			key = this.getKey();
+
+		}
+
+		this.parent.setValue(value, key);
 
 	}
 
@@ -175,13 +211,13 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
   }
 
-	import(collection) {
+	async *import(collection) {
 
     const string = collection.value.shift();
 
-		const content = new KarmaFieldsAlpha.Content(string);
+		// const content = new KarmaFieldsAlpha.Content(string);
 
-		this.setContent(content);
+		this.setValue(string);
   }
 
 	getPlaceholder() {
@@ -277,9 +313,9 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
+				// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
 
-				this.setContent(newContent);
+				this.setValue(normalizedValue);
 
 				this.setData(false, "embargo");
 
@@ -415,9 +451,9 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					}
 
-					const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
+					// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
 
-					this.setContent(newContent);
+					this.setValue(normalizedValue);
 
 					this.debounce(() => {
 						this.request("render");

@@ -322,9 +322,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
     if (!request.loading) {
 
 			const text = request.editor.getContent();
-			const content = new KarmaFieldsAlpha.Content(text);
+			// const content = new KarmaFieldsAlpha.Content(text);
 			this.save("input");
-			this.setContent(content);
+			this.setValue(text);
 			// this.request("render");
 
 			this.debounce(() => {
@@ -689,10 +689,10 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
       request.editor.execCommand(key);
 
 			const text = request.editor.getContent();
-			const content = new KarmaFieldsAlpha.Content(text);
+			// const content = new KarmaFieldsAlpha.Content(text);
 
 			this.save(key, key);
-			this.setContent(content);
+			this.setValue(text);
 			this.request("render");
 
     }
@@ -746,9 +746,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
       // this.saveContent();
 			const text = request.editor.getContent();
-			const content = new KarmaFieldsAlpha.Content(text);
+			// const content = new KarmaFieldsAlpha.Content(text);
 			this.save("ul", "ul");
-			this.setContent(content);
+			this.setValue(text);
 			this.render();
 
     }
@@ -776,9 +776,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
       // this.saveContent();
 
 			const text = request.editor.getContent();
-			const content = new KarmaFieldsAlpha.Content(text);
+			// const content = new KarmaFieldsAlpha.Content(text);
 			this.save("ol", "ol");
-			this.setContent(content);
+			this.setValue(text);
 			this.render();
 
     }
@@ -819,9 +819,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// this.save("format");
 
 			const text = request.editor.getContent();
-			const content = new KarmaFieldsAlpha.Content(text);
+			// const content = new KarmaFieldsAlpha.Content(text);
 			this.save("format", "format");
-			this.setContent(content);
+			this.setValue(text);
 			this.render();
 
     }
@@ -870,9 +870,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			// this.save("unlink");
 
 			const text = request.editor.getContent();
-			const content = new KarmaFieldsAlpha.Content(text);
+			// const content = new KarmaFieldsAlpha.Content(text);
 			this.save("unlink", "unlink");
-			this.setContent(content);
+			this.setValue(text);
 			this.render();
 
     }
@@ -1035,11 +1035,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				// this.save("link");
 
 				const text = request.editor.getContent();
-				const content = new KarmaFieldsAlpha.Content(text);
+				// const content = new KarmaFieldsAlpha.Content(text);
 				this.save("link", "link");
 				// this.removeSelection();
 				this.setFocus();
-				this.setContent(content);
+				this.setValue(text);
 				this.render();
 
 			// }
@@ -1092,9 +1092,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 					request.editor.execCommand("Unlink");
 
 					const text = request.editor.getContent();
-					const content = new KarmaFieldsAlpha.Content(text);
+					// const content = new KarmaFieldsAlpha.Content(text);
 					this.save("link", "link");
-					this.setContent(content);
+					this.setValue(text);
 
 				} else {
 
@@ -1135,10 +1135,10 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			request.editor.selection.select(node);
 
 			const text = request.editor.getContent();
-			const content = new KarmaFieldsAlpha.Content(text);
+			// const content = new KarmaFieldsAlpha.Content(text);
 			this.save("link", "link");
 			this.setFocus();
-			this.setContent(content);
+			this.setValue(text);
 			this.render();
 
     }
@@ -1332,14 +1332,14 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
   //   }
   // }
 
-	setContent(content, key) {
+	setValue(value, key) {
 
     switch (key) {
 
       case "format":
 				// const request = new KarmaFieldsAlpha.Content();
 				// request.value = content.value;
-        this.setFormat(content.value);
+        this.setFormat(value);
 				break;
 
       case "unlink":
@@ -1359,7 +1359,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
       case "linkform": {
         // this.setLinkForm(value);
-				this.setLinkForm(content.value);
+				this.setLinkForm(value);
         break;
       }
 
@@ -1401,12 +1401,12 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 			case "raw":
 				// this.parent.setValue(value, this.getKey());
-				this.parent.setContent(content, this.getKey());
+				this.parent.setValue(value, this.getKey());
 				break;
 
       default:
         // super.setValue(value);
-				super.setContent(content);
+				super.setValue(value);
         break;
 
 
@@ -1556,10 +1556,9 @@ console.error("deprecated");
 			request.editor.selection.select(node);
 
 			const text = request.editor.getContent();
-			const content = new KarmaFieldsAlpha.Content(text);
 			this.save("insert-image", "Insert Image");
 			this.setFocus();
-			this.setContent(content);
+			this.setValue(text);
 			this.render();
 
 		}
@@ -2149,7 +2148,7 @@ console.error("deprecated");
 
 												if (text !== content.toString()) {
 
-													this.setContent(new KarmaFieldsAlpha.Content(text));
+													this.setValue(text);
 
 												}
 
@@ -2374,7 +2373,7 @@ console.error("deprecated");
 
 }
 
-KarmaFieldsAlpha.field.tinymce.buttons = class extends KarmaFieldsAlpha.field.container {
+KarmaFieldsAlpha.field.tinymce.buttons = class extends KarmaFieldsAlpha.field.group {
 
 	constructor(resource) {
 
@@ -2701,10 +2700,10 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 	//
 	// }
 
-	setContent(content, subkey) {
+	setValue(value, subkey) {
 
 
-		this.setOption(content.value, subkey);
+		this.setOption(value, subkey);
 
 			// const data = this.getData() || {};
 			//
@@ -2783,15 +2782,15 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 
 		const content = new KarmaFieldsAlpha.Content();
 
-		content.value = this.getOption();
+		const value = this.getOption();
 
 
 
-		if (content.value) {
+		if (value) {
 
 			const key = this.getKey();
 
-			this.parent.setContent(content, key);
+			this.setValue(content, key);
 
 			// this.render();
 
@@ -3285,11 +3284,10 @@ KarmaFieldsAlpha.field.tinymce.linkForm.attachFile = class extends KarmaFieldsAl
 
 			} else {
 
-				const href = new KarmaFieldsAlpha.Content();
 
-				href.value = KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString();
+				const href = KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString();
 
-				this.parent.setContent(href, "href");
+				this.parent.setValue(href, "href");
 
 			}
 

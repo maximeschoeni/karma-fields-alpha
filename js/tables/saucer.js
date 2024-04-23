@@ -1,9 +1,15 @@
 
 KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
-  constructor(resource) {
+  // constructor(resource, id, parent) {
+  //
+  //   super(resource, id, parent);
+  //
+  // }
 
-    super(resource);
+  getField(...path) {
+
+    return this.getChildByPath(...path);
 
   }
 
@@ -340,28 +346,47 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   hasTask(priorityLevel) {
 
-    const tasks = KarmaFieldsAlpha.Store.get("tasks") || [];
-
-    // if (priorityLevel !== undefined) {
+    // const tasks = KarmaFieldsAlpha.Store.get("tasks") || [];
     //
-    //   return tasks && tasks.some(task => !task.priority || task.priority >)
+    // // if (priorityLevel !== undefined) {
+    // //
+    // //   return tasks && tasks.some(task => !task.priority || task.priority >)
+    // //
+    // // }
+    // //
+    // // return tasks && tasks.length > 0 || false;
     //
-    // }
+    // // return tasks && tasks.some(task => !task.priority || task.priority >= 0);
     //
-    // return tasks && tasks.length > 0 || false;
+    //
+    // const works = KarmaFieldsAlpha.Store.get("works") || [];
+    //
+    //
+    // return tasks.length > 0 || works.some(work => !work.done);
 
-    // return tasks && tasks.some(task => !task.priority || task.priority >= 0);
+
+    return KarmaFieldsAlpha.Jobs.has();
+
+  }
+
+  // hasEvent(...path) {
+  //
+  //   return KarmaFieldsAlpha.Store.has("events", ...path);
+  //   // return KarmaFieldsAlpha.Store.get("events", "close", this.id);
+  //
+  // }
 
 
-    const works = KarmaFieldsAlpha.Store.get("works") || [];
 
 
-    return tasks.length > 0 || works.some(work => !work.done);
+  popup(tableName, params) {
+
+    return this.lift(["board", tableName], "open", params);
 
   }
 
 
-  open(table, params, replace = false, selectedIds = []) {
+  openBKP(table, params) {
 
     const resource = this.getTableResource(table);
 
@@ -392,7 +417,7 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     //
     // KarmaFieldsAlpha.Store.Layer.set(newLayer, index);
 
-    const bodyParams = this.parse(resource.body.params);
+    const bodyParams = this.parse(resource.params || resource.body.params);
 
     if (bodyParams.loading) {
 
@@ -426,28 +451,29 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
+
   removeLayer() {
 
     KarmaFieldsAlpha.Store.Layer.close();
 
   }
 
-  close() {
-
-    let index = KarmaFieldsAlpha.Store.Layer.getIndex();
-
-    if (index) {
-
-      // this.save(`close`, `Close`);
-
-      KarmaFieldsAlpha.Store.State.remove("layers", index);
-      KarmaFieldsAlpha.Store.Layer.setIndex(index-1);
-
-      // this.render();
-
-    }
-
-  }
+  // close() {
+  //
+  //   let index = KarmaFieldsAlpha.Store.Layer.getIndex();
+  //
+  //   if (index) {
+  //
+  //     // this.save(`close`, `Close`);
+  //
+  //     KarmaFieldsAlpha.Store.State.remove("layers", index);
+  //     KarmaFieldsAlpha.Store.Layer.setIndex(index-1);
+  //
+  //     // this.render();
+  //
+  //   }
+  //
+  // }
 
   async abduct() {
 
@@ -468,6 +494,36 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
     }
 
   }
+
+  // async *loopTEST(embeds, renderEvents) {
+  //
+  //   while (true) {
+  //
+  //     if (embeds) {
+  //
+  //       for (let resource of embeds) {
+  //
+  //         const element = document.getElementById(resource.index);
+  //
+  //         const child = this.createChild(resource, resource.index);
+  //
+  //         await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+  //
+  //       }
+  //
+  //     }
+  //
+  //     if (renderEvents) {
+  //
+  //       yield* renderEvents();
+  //
+  //     }
+  //
+  //     yield;
+  //
+  //   }
+  //
+  // }
 
 
   async loop() {
@@ -495,11 +551,32 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
 
+      // const jobs = KarmaFieldsAlpha.Jobs.get();
+      //
+      // if (jobs && jobs.length) {
+      //
+      //   const incompleteJobs = [];
+      //
+      //   for (let job of jobs) {
+      //
+      //     const result = await job.next();
+      //
+      //     if (!result.done) {
+      //
+      //       incompleteJobs.push(job);
+      //
+      //     }
+      //
+      //   }
+      //
+      //    KarmaFieldsAlpha.Jobs.set(incompleteJobs);
+      // }
+
       const jobs = KarmaFieldsAlpha.Jobs.get();
 
       if (jobs && jobs.length) {
 
-        const incompleteJobs = [];
+        KarmaFieldsAlpha.Jobs.set([]);
 
         for (let job of jobs) {
 
@@ -507,15 +584,13 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
           if (!result.done) {
 
-            incompleteJobs.push(job);
+            KarmaFieldsAlpha.Jobs.add(job);
 
           }
 
         }
 
-         KarmaFieldsAlpha.Jobs.set(incompleteJobs);
       }
-
 
 
 
@@ -648,97 +723,235 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 
 
-  isMediaTable(tableId) {
+  // isMediaTable(tableId) {
+  //
+  //   return this.resource.tables[tableId] && this.resource.tables[tableId].body && this.resource.tables[tableId].body.type === "medias";
+  // }
+  //
+  // getMediaTable() {
+  //
+  //   for (let tableId in this.resource.tables) {
+  //
+  //     if (this.isMediaTable(tableId)) {
+  //
+  //       return tableId;
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+  //
+  // async upload(files, index = 0, length = 0) {
+  //
+  //
+  //   let tableId = this.getTable();
+  //
+  //   if (!this.isMediaTable(tableId)) {
+  //
+  //     tableId = this.getMediaTable();
+  //
+  //     if (tableId) {
+  //
+  //       this.setTable(tableId);
+  //
+  //       await this.render();
+  //
+  //     }
+  //
+  //
+  //   }
+  //
+  //   if (tableId) {
+  //
+  //     let grid = this.getGrid(tableId);
+  //
+  //     grid.upload(files);
+  //
+  //   } else {
+  //
+  //     console.warn("No medias table found to upload file");
+  //
+  //   }
+  //
+  // }
 
-    return this.resource.tables[tableId] && this.resource.tables[tableId].body && this.resource.tables[tableId].body.type === "medias";
-  }
 
-  getMediaTable() {
-
-    for (let tableId in this.resource.tables) {
-
-      if (this.isMediaTable(tableId)) {
-
-        return tableId;
-
-      }
-
-    }
-
-  }
-
-  async upload(files, index = 0, length = 0) {
-
-
-    let tableId = this.getTable();
-
-    if (!this.isMediaTable(tableId)) {
-
-      tableId = this.getMediaTable();
-
-      if (tableId) {
-
-        this.setTable(tableId);
-
-        await this.render();
-
-      }
-
-
-    }
-
-    if (tableId) {
-
-      let grid = this.getGrid(tableId);
-
-      grid.upload(files);
-
-    } else {
-
-      console.warn("No medias table found to upload file");
-
-    }
-
-  }
 
 }
 
 
 KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
-  getGrid(tableId) {
+  // getGrid(tableId) {
+  //
+  //   const table = this.createChild({
+  //     type: "table",
+  //     ...this.resource.tables[tableId],
+  //     index: tableId
+  //   });
+  //
+  //   return table.getGrid();
+  //
+  // }
 
-    const table = this.createChild({
-      type: "table",
-      ...this.resource.tables[tableId],
-      index: tableId
-    });
+  // getChild(layerName) {
+  //
+  //   if (this.resource.tables[layerName]) {
+  //
+  //     return this.createChild({
+  //       type: "popup",
+  //       ...this.resource.tables[layerName]
+  //     }, layerName);
+  //
+  //   }
+  //
+  // }
+  //
+  // *buildLayers() {
+  //
+  //   const layers = KarmaFieldsAlpha.Store.get("layers");
+  //
+  //   if (layers) {
+  //
+  //     for (let layer of layers) {
+  //
+  //       const popup = this.getChild(layer.name);
+  //
+  //       if (popup) {
+  //
+  //         yield popup.build();
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
-    return table.getGrid();
 
-  }
-
-  getChild(index) {
+  getChild(index, ...path) {
 
     if (index === "menu") {
 
-      return this.createChild({
-        ...this.resource.navigation,
-        type: "menu",
-        index: "menu"
-      }, "menu");
+      // return this.createChild({
+      //   ...this.resource.navigation,
+      //   type: "menu",
+      //   index: "menu"
+      // }, "menu");
+
+      const nav = new KarmaFieldsAlpha.field.menu(this.resource.navigation, "menu", this);
+      // nav.id = "menu";
+      // nav.parent = this;
+
+      if (path.length) {
+
+        return nav.getChild(...path);
+
+      }
+
+      return nav;
 
     } else if (this.resource.tables[index]) {
 
-      return this.createChild({
-        type: "table",
-        ...this.resource.tables[index],
-        index: index
-      }, index);
+      const popup = new KarmaFieldsAlpha.field.popup(this.resource.tables[index], index, this);
+      // popup.id = index;
+      // popup.parent = this;
+
+      if (path.length) {
+
+        return popup.getChild(...path);
+
+      }
+
+      return popup;
+
+      // return this.createChild({
+      //   ...this.resource.tables[index],
+      //   type: "popup"
+      // }, index);
 
     }
 
   }
+
+  *buildNavigation() {
+
+    if (this.resource.navigation) {
+
+      yield this.createChild({
+        ...this.resource.navigation,
+        type: "menu"
+      }, "menu").build();
+
+    }
+
+  }
+
+  *buildPopups() {
+
+    for (let key in this.resource.tables) {
+
+      // const popup = new KarmaFieldsAlpha.field.popup(this.resource.tables[key]);
+      // popup.id = key;
+      // popup.parent = this;
+      //
+      // yield.popup.build();
+
+      yield this.getChild(key).build();
+
+      // const popup = this.createChild({
+      //   ...this.resource.tables[key],
+      //   type: "popup"
+      // }, key);
+      //
+      // yield popup.build();
+
+    }
+
+  }
+
+  hasActivePopup() {
+
+    for (let key in this.resource.tables) {
+
+      const popup = this.createChild({
+        ...this.resource.tables[key],
+        type: "popup"
+      }, key);
+
+      if (popup.isActive()) {
+
+        return true;
+
+      }
+
+    }
+
+    return false;
+  }
+
+  // build() {
+  //
+  //   return {
+  //     class: "popup-content",
+  //     children: [
+  //       {
+  //         class: "navigation karma-field-frame",
+  //         update: navigation => {
+  //           navigation.element.classList.toggle("hidden", !this.resource.navigation);
+  //         },
+  //         children: [...this.buildNavigation()]
+  //       },
+  //       {
+  //         class: "tables",
+  //         children: [...this.buildPopups()]
+  //       }
+  //     ]
+  //   };
+  //
+  // }
 
   build() {
     return {
@@ -775,9 +988,17 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
 
 
-          if (KarmaFieldsAlpha.Store.Layer.getSelection() || KarmaFieldsAlpha.Store.Layer.getCurrent("focus")) {
-            KarmaFieldsAlpha.Store.Layer.removeSelection();
-            KarmaFieldsAlpha.Store.Layer.removeCurrent("focus");
+          // if (KarmaFieldsAlpha.Store.Layer.getSelection() || KarmaFieldsAlpha.Store.Layer.getCurrent("focus")) {
+          //   KarmaFieldsAlpha.Store.Layer.removeSelection();
+          //   KarmaFieldsAlpha.Store.Layer.removeCurrent("focus");
+          //   this.request("render");
+          // }
+
+
+          if (this.getFocus()) {
+            // KarmaFieldsAlpha.Store.Layer.removeSelection();
+            // KarmaFieldsAlpha.Store.Layer.removeCurrent("focus");
+            this.removeFocus();
             this.request("render");
           }
         });
@@ -853,14 +1074,17 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
                 if (event.key === "a" && event.metaKey) {
                   event.preventDefault();
-                  // this.parent.selectAll();
-                  this.request("dispatch", "selectAll");
+                  const work = this.request("dispatch", "selectAll");
+                  KarmaFieldsAlpha.Jobs.add(work);
+                  this.render();
                 }
 
                 if (event.key === "Delete" || event.key === "Backspace") {
                   event.preventDefault();
-                  // this.parent.delete();
-                  this.request("dispatch", "delete");
+                  const work = this.request("dispatch", "delete");
+                  KarmaFieldsAlpha.Jobs.add(work);
+                  this.render();
+
                 } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
                   event.preventDefault();
 
@@ -876,23 +1100,28 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
                 console.log("PASTE", string);
                 // clipboard.value = string;
                 // this.parent.paste(string);
-                this.request("dispatch", "paste", string);
+
+
+
+                const work = this.request("dispatch", "paste", string);
+                KarmaFieldsAlpha.Jobs.add(work);
+                this.request("render");
               }
 
               clipboard.element.oncut = event => {
                 event.preventDefault();
-                // const value = this.parent.copy();
-                const value = this.request("copy");
+                const value = this.request("dispatch", "copy");
                 console.log("CUT", value);
                 event.clipboardData.setData("text/plain", value || "");
-                // clipboard.value = "";
-                // this.parent.paste("");
-                this.request("paste", "");
+
+                const work = this.request("dispatch", "paste", "");
+                KarmaFieldsAlpha.Jobs.add(work);
+                this.request("render");
               }
 
               clipboard.element.oncopy = event => {
                 event.preventDefault();
-                // const value = this.parent.copy();
+
                 const value = this.request("dispatch", "copy");
                 console.log("COPY", value);
                 event.clipboardData.setData("text/plain", value || "");
@@ -910,303 +1139,77 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
             class: "popup",
             update: popup => {
 
-              let currentTableId = KarmaFieldsAlpha.Store.Layer.getTable();
-
-              document.body.classList.toggle("karma-table-open", Boolean(currentTableId));
-              popup.element.classList.toggle("hidden", !currentTableId && !this.resource.navigation);
-
-              if (currentTableId || this.resource.navigation) {
-                popup.children = [
-                  {
-                    class: "popup-content",
-                    children: [
-                      {
-                        class: "navigation karma-field-frame",
-                        update: navigation => {
-                          navigation.element.classList.toggle("hidden", !this.resource.navigation);
-                          if (this.resource.navigation) {
-                            navigation.child = this.getChild("menu").build();
-                          }
-                        }
-                      },
-
-                      {
-                        class: "tables",
-                        update: container => {
-
-                          currentTableId = KarmaFieldsAlpha.Store.Layer.getTable();
-
-                          container.children = Object.keys(this.resource.tables).map((tableId, index) => {
-                            return {
-                              class: "table-container",
-                              update: container => {
-
-                                container.element.classList.toggle("hidden", tableId !== currentTableId);
-
-                                if (tableId === currentTableId) {
-
-                                  container.children = [this.getChild(tableId).build()];
-
-                                } else {
-
-                                  container.children = [];
-
-                                }
-                              }
-                            };
-                          });
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          }
-        ];
-      }
-    };
-
-  }
-
-}
-
-
-
-KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
-
-  constructor(resource) {
-
-    // compat
-
-    if (resource.filters) {
-
-      resource.header = {
-        type: "group",
-        children: [
-          {
-            type: "header"
-          },
-          {
-            type: "group",
-            display: "flex",
-            ...resource.filters
-          }
-        ]
-      }
-
-    }
-
-    super(resource);
-
-  }
-
-
-  // getGrid(tableId) {
-  //
-  //   return this.createChild({
-  //     ...this.resource.body,
-  //     index: "body"
-  //   });
-  //
-  // }
-
-  getLayerIndex() {
-
-    const layers = KarmaFieldsAlpha.Store.State.get("layers");
-
-    for (let index in layers) {
-
-      if (layers[index].table === this.id) {
-
-        return index;
-
-      }
-
-    }
-
-  }
-
-  getParams() {
-
-    const index = this.getLayerIndex();
-
-    const params = KarmaFieldsAlpha.Store.State.get("layers", index, "params");
-
-    return new KarmaFieldsAlpha.Content(params);
-
-  }
-
-  getParam(key) {
-
-    const index = this.getLayerIndex();
-
-    const params = KarmaFieldsAlpha.Store.State.get("layers", index, "params", key);
-
-    return new KarmaFieldsAlpha.Content(params);
-
-  }
-
-  setParam(value, key) {
-
-    const index = this.getLayerIndex();
-
-    KarmaFieldsAlpha.Store.State.set(value.toString(), "layers", index, "params", key);
-
-  }
-
-  getBody() {
-
-    return this.getChild("body");
-
-  }
-
-  body(functionName, ...args) {
-
-    return this.lift(["body"], functionName, ...args);
-
-  }
-
-  getChild(index) {
-
-    return this.createChild({
-      ...this.resource[index],
-      index: index
-    }, index);
-
-  }
-
-  setContent(content, ...path) {
-
-    super.setContent(content, ...path);
-
-    this.body("removeSelection");
-
-  }
-
-  submit() {
-
-    const task = new KarmaFieldsAlpha.Task.Save();
-
-    KarmaFieldsAlpha.Task.add(task);
-
-    this.lift(["body"], "deferSelection");
-
-    this.render();
-
-  }
-
-  build() {
-
-    return {
-      class: "karma-field-table",
-      update: div => {
-
-        let index = 0;
-
-        div.children = [
-          {
-            class: "karma-header table-header table-main-header simple-buttons",
-
-            child: this.getChild("header").build()
-          },
-          {
-            class: "table-body",
-            update: container => {
-
-              // container.element.ondrop = event => {
-              //   event.preventDefault();
-              //   debugger;
-              //   // const files = event.dataTransfer.files;
-              //   // if (event.dataTransfer.files.length) {
-              //   //   this.parent.upload(event.dataTransfer.files);
-              //   // }
-              // }
+              // let currentTableId = KarmaFieldsAlpha.Store.Layer.getTable();
+
+              const hasPopup = this.hasActivePopup();
+
+              document.body.classList.toggle("karma-table-open", Boolean(hasPopup));
+              popup.element.classList.toggle("hidden", !hasPopup && !this.resource.navigation);
+
+
+
+              // if (currentTableId || this.resource.navigation) {
+              //   popup.children = [
+              //     {
+              //       class: "popup-content",
+              //       children: [
+              //         {
+              //           class: "navigation karma-field-frame",
+              //           update: navigation => {
+              //             navigation.element.classList.toggle("hidden", !this.resource.navigation);
+              //             if (this.resource.navigation) {
+              //               navigation.child = this.getChild("menu").build();
+              //             }
+              //           }
+              //         },
               //
-              // container.element.ondragover = event => {
-              //   event.preventDefault();
-              //   container.element.classList.add("drop-active");
+              //         {
+              //           class: "tables",
+              //           update: container => {
+              //
+              //             currentTableId = KarmaFieldsAlpha.Store.Layer.getTable();
+              //
+              //             container.children = Object.keys(this.resource.tables).map((tableId, index) => {
+              //               return {
+              //                 class: "table-container",
+              //                 update: container => {
+              //
+              //                   container.element.classList.toggle("hidden", tableId !== currentTableId);
+              //
+              //                   if (tableId === currentTableId) {
+              //
+              //                     container.children = [this.getChild(tableId).build()];
+              //
+              //                   } else {
+              //
+              //                     container.children = [];
+              //
+              //                   }
+              //                 }
+              //               };
+              //             });
+              //           }
+              //         }
+              //       ]
+              //     }
+              //   ]
               // }
-              // container.element.ondragleave = event => {
-              //   event.preventDefault();
-              //   container.element.classList.remove("drop-active");
-              // }
-
-
-
-
             },
-            children: [
-
-              {
-                class: "table-body-columns",
-                update: div => {
-
-                  const body = this.getChild("body");
-
-
-
-                  // -> unselect
-                  div.element.onmousedown = event => {
-                    event.stopPropagation();
-                    event.preventDefault();
-
-                    this.setFocus(true);
-                    this.request("render");
-                  };
-
-                  div.children = [
-                    {
-                      class: "karma-field-table-grid-container karma-field-frame karma-field-group final scroll-container table-body-column table-body-main-column",
-                      child: body.build()
-                    },
-                    {
-                      class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
-                      update: div => {
-
-                        div.element.classList.toggle("hidden", !body.resource.modal);
-
-                        if (body.resource.modal) {
-
-                          const modal = body.getModal();
-
-                          div.element.style.width = body.resource.modal.width || "30em";
-                          div.element.onmousedown = event => {
-                            event.stopPropagation(); // -> prevent unselecting
-
-                            this.setFocus(true);
-                            this.request("render");
-                          };
-
-                          if (modal) {
-                            div.child = modal.build();
-                          } else {
-                            div.children = [];
-                          }
-                          div.element.classList.toggle("active", Boolean(modal));
-                        }
-                      }
-                    }
-                  ];
-
+            child: {
+              class: "popup-content",
+              children: [
+                {
+                  class: "navigation karma-field-frame",
+                  update: navigation => {
+                    navigation.element.classList.toggle("hidden", !this.resource.navigation);
+                  },
+                  children: [...this.buildNavigation()]
+                },
+                {
+                  class: "tables",
+                  children: [...this.buildPopups()]
                 }
-              }
-            ]
-          },
-          {
-            class: "table-footer table-control",
-            update: footer => {
-              const isLoading = this.request("hasTask");
-              const footerResource = this.resource.controls || this.resource.footer; // compat
-              footer.element.classList.toggle("hidden", footerResource === false);
-              footer.element.classList.toggle("loading", Boolean(isLoading));
-              if (footerResource !== false) {
-                footer.child = this.createChild({
-                  type: "footer",
-                  ...footerResource,
-                  index: "footer"
-                }, "footer").build();
-              }
+              ]
             }
           }
         ];
@@ -1214,7 +1217,254 @@ KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
     };
 
   }
+
 }
+
+
+
+
+// KarmaFieldsAlpha.field.saucer.table = class extends KarmaFieldsAlpha.field {
+//
+//   constructor(resource) {
+//
+//     // compat
+//
+//     if (resource.filters) {
+//
+//       resource.header = {
+//         type: "group",
+//         children: [
+//           {
+//             type: "header"
+//           },
+//           {
+//             type: "group",
+//             display: "flex",
+//             ...resource.filters
+//           }
+//         ]
+//       }
+//
+//     }
+//
+//     super(resource);
+//
+//   }
+//
+//
+//   // getGrid(tableId) {
+//   //
+//   //   return this.createChild({
+//   //     ...this.resource.body,
+//   //     index: "body"
+//   //   });
+//   //
+//   // }
+//
+//   getLayerIndex() {
+//
+//     const layers = KarmaFieldsAlpha.Store.State.get("layers");
+//
+//     for (let index in layers) {
+//
+//       if (layers[index].table === this.id) {
+//
+//         return index;
+//
+//       }
+//
+//     }
+//
+//   }
+//
+//   getParams() {
+//
+//     const index = this.getLayerIndex();
+//
+//     const params = KarmaFieldsAlpha.Store.State.get("layers", index, "params");
+//
+//     return new KarmaFieldsAlpha.Content(params);
+//
+//   }
+//
+//   getParam(key) {
+//
+//     const index = this.getLayerIndex();
+//
+//     const params = KarmaFieldsAlpha.Store.State.get("layers", index, "params", key);
+//
+//     return new KarmaFieldsAlpha.Content(params);
+//
+//   }
+//
+//   setParam(value, key) {
+//
+//     const index = this.getLayerIndex();
+//
+//     KarmaFieldsAlpha.Store.State.set(value.toString(), "layers", index, "params", key);
+//
+//   }
+//
+//   getBody() {
+//
+//     return this.getChild("body");
+//
+//   }
+//
+//   body(functionName, ...args) {
+//
+//     return this.lift(["body"], functionName, ...args);
+//
+//   }
+//
+//   getChild(index) {
+//
+//     return this.createChild({
+//       ...this.resource[index],
+//       index: index
+//     }, index);
+//
+//   }
+//
+//   setContent(content, ...path) {
+//
+//     super.setContent(content, ...path);
+//
+//     this.body("removeSelection");
+//
+//   }
+//
+//   submit() {
+//
+//     const task = new KarmaFieldsAlpha.Task.Save();
+//
+//     KarmaFieldsAlpha.Task.add(task);
+//
+//     this.lift(["body"], "deferSelection");
+//
+//     this.render();
+//
+//   }
+//
+//   build() {
+//
+//     return {
+//       class: "karma-field-table",
+//       update: div => {
+//
+//         let index = 0;
+//
+//         div.children = [
+//           {
+//             class: "karma-header table-header table-main-header simple-buttons",
+//
+//             child: this.getChild("header").build()
+//           },
+//           {
+//             class: "table-body",
+//             update: container => {
+//
+//               // container.element.ondrop = event => {
+//               //   event.preventDefault();
+//               //   debugger;
+//               //   // const files = event.dataTransfer.files;
+//               //   // if (event.dataTransfer.files.length) {
+//               //   //   this.parent.upload(event.dataTransfer.files);
+//               //   // }
+//               // }
+//               //
+//               // container.element.ondragover = event => {
+//               //   event.preventDefault();
+//               //   container.element.classList.add("drop-active");
+//               // }
+//               // container.element.ondragleave = event => {
+//               //   event.preventDefault();
+//               //   container.element.classList.remove("drop-active");
+//               // }
+//
+//
+//
+//
+//             },
+//             children: [
+//
+//               {
+//                 class: "table-body-columns",
+//                 update: div => {
+//
+//                   const body = this.getChild("body");
+//
+//
+//
+//                   // -> unselect
+//                   div.element.onmousedown = event => {
+//                     event.stopPropagation();
+//                     event.preventDefault();
+//
+//                     this.setFocus(true);
+//                     this.request("render");
+//                   };
+//
+//                   div.children = [
+//                     {
+//                       class: "karma-field-table-grid-container karma-field-frame karma-field-group final scroll-container table-body-column table-body-main-column",
+//                       child: body.build()
+//                     },
+//                     {
+//                       class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
+//                       update: div => {
+//
+//                         div.element.classList.toggle("hidden", !body.resource.modal);
+//
+//                         if (body.resource.modal) {
+//
+//                           const modal = body.getModal();
+//
+//                           div.element.style.width = body.resource.modal.width || "30em";
+//                           div.element.onmousedown = event => {
+//                             event.stopPropagation(); // -> prevent unselecting
+//
+//                             this.setFocus(true);
+//                             this.request("render");
+//                           };
+//
+//                           if (modal) {
+//                             div.child = modal.build();
+//                           } else {
+//                             div.children = [];
+//                           }
+//                           div.element.classList.toggle("active", Boolean(modal));
+//                         }
+//                       }
+//                     }
+//                   ];
+//
+//                 }
+//               }
+//             ]
+//           },
+//           {
+//             class: "table-footer table-control",
+//             update: footer => {
+//               const isLoading = this.request("hasTask");
+//               const footerResource = this.resource.controls || this.resource.footer; // compat
+//               footer.element.classList.toggle("hidden", footerResource === false);
+//               footer.element.classList.toggle("loading", Boolean(isLoading));
+//               if (footerResource !== false) {
+//                 footer.child = this.createChild({
+//                   type: "footer",
+//                   ...footerResource,
+//                   index: "footer"
+//                 }, "footer").build();
+//               }
+//             }
+//           }
+//         ];
+//       }
+//     };
+//
+//   }
+// }
 
 
 
@@ -1290,276 +1540,278 @@ KarmaFieldsAlpha.field.saucer.menu = class extends KarmaFieldsAlpha.field {
 
 // console.log("saucer!!!!");
 
-KarmaFieldsAlpha.field.saucer.footer = class extends KarmaFieldsAlpha.field.group {
+// KarmaFieldsAlpha.field.saucer.footer = class extends KarmaFieldsAlpha.field.group {
+//
+//   // static defaults = {
+//   //   display: "flex",
+//   //   children: [
+//   //     // "reload",
+//   //     "save",
+//   //     "add",
+//   //     "delete",
+//   //     "separator",
+//   //     "insert",
+//   //     "undo",
+//   //     "redo"
+//   //   ]
+//   // };
+//
+//   constructor(resource) {
+//
+//     super({
+//       display: "flex",
+//       children: [
+//         // "reload",
+//         "save",
+//         "add",
+//         "delete",
+//         "separator",
+//         "insert",
+//         "undo",
+//         "redo"
+//       ],
+//       ...resource
+//     });
+//
+//     // super({
+//     //   ...KarmaFieldsAlpha.field.saucer.footer.defaults,
+//     //   ...resource
+//     // });
+//
+//   }
+//
+// }
 
-  // static defaults = {
-  //   display: "flex",
-  //   children: [
-  //     // "reload",
-  //     "save",
-  //     "add",
-  //     "delete",
-  //     "separator",
-  //     "insert",
-  //     "undo",
-  //     "redo"
-  //   ]
-  // };
-
-  constructor(resource) {
-
-    super({
-      display: "flex",
-      children: [
-        // "reload",
-        "save",
-        "add",
-        "delete",
-        "separator",
-        "insert",
-        "undo",
-        "redo"
-      ],
-      ...resource
-    });
-
-    // super({
-    //   ...KarmaFieldsAlpha.field.saucer.footer.defaults,
-    //   ...resource
-    // });
-
-  }
-
-}
-
-KarmaFieldsAlpha.field.saucer.save = class extends KarmaFieldsAlpha.field.button {
-
-  constructor(resource) {
-    super({
-      // action: "send",
-      request: ["submit"],
-      title: "Save",
-      text: "Save",
-      enabled: ["request", "delta"],
-      primary: true,
-      ...resource
-    });
-  }
-
-}
-
-KarmaFieldsAlpha.field.saucer.add = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
-    super({
-      // action: "request",
-      request: ["body", "add"],
-      title: "Add",
-      text: "Add",
-      ...resource
-    });
-  }
-}
-
-KarmaFieldsAlpha.field.saucer.delete = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
-    super({
-      request: ["body", "deleteSelection"],
-      // action: "delete",
-      title: "Delete",
-      text: "Delete",
-      // enabled: ["request", "canDelete"],
-      enabled: ["request", "body", "getSelectedItems"],
-      ...resource
-    });
-  }
-
-}
+// KarmaFieldsAlpha.field.saucer.save = class extends KarmaFieldsAlpha.field.button {
+//
+//   constructor(resource) {
+//     super({
+//       // action: "send",
+//       request: ["submit"],
+//       title: "Save",
+//       text: "Save",
+//       enabled: ["request", "delta"],
+//       primary: true,
+//       ...resource
+//     });
+//   }
+//
+// }
+//
+// KarmaFieldsAlpha.field.saucer.add = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource) {
+//     super({
+//       // action: "request",
+//       request: ["body", "add"],
+//       title: "Add",
+//       text: "Add",
+//       ...resource
+//     });
+//   }
+// }
+//
+// KarmaFieldsAlpha.field.saucer.delete = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource) {
+//     super({
+//       request: ["body", "deleteSelection"],
+//       // action: "delete",
+//       title: "Delete",
+//       text: "Delete",
+//       // enabled: ["request", "canDelete"],
+//       enabled: ["request", "body", "getSelectedItems"],
+//       ...resource
+//     });
+//   }
+//
+// }
 
 KarmaFieldsAlpha.field.saucer.undo = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
+  constructor(resource, id, parent) {
     super({
-      action: "undo",
+      // action: "undo",
+      request: ["undo"],
       dashicon: "undo",
       disabled: ["!", ["request", "hasUndo"]],
       ...resource
-    });
+    }, id, parent);
   }
 }
 KarmaFieldsAlpha.field.saucer.redo = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
+  constructor(resource, id, parent) {
     super({
-      action: "redo",
+      // action: "redo",
+      request:[ "redo"],
       dashicon: "redo",
       disabled: ["!", ["request", "hasRedo"]],
       ...resource
-    });
+    }, id, parent);
   }
 }
-KarmaFieldsAlpha.field.saucer.insert = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
-    super({
-      request: ["body", "withdraw"],
-      primary: true,
-      text: "Insert",
-      // enabled: ["request", "isTableRowSelected"],
-      // enabled: ["request", "dispatch", "getSelectedItems"],
-      enabled: ["request", "body", "getSelectedItems"],
-      // visible: ["request", "hasTransfer"],
-      // visible: ["request", "insertable"],
-      visible: ["request", "tunnel", -1, "useSocket"],
-      ...resource
-    });
-  }
-}
-KarmaFieldsAlpha.field.saucer.export = class extends KarmaFieldsAlpha.field.download {
-  constructor(resource) {
-    super({
-      text: "Export",
-      ...resource
-    });
-  }
-}
+// KarmaFieldsAlpha.field.saucer.insert = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource) {
+//     super({
+//       request: ["body", "withdraw"],
+//       primary: true,
+//       text: "Insert",
+//       // enabled: ["request", "isTableRowSelected"],
+//       // enabled: ["request", "dispatch", "getSelectedItems"],
+//       enabled: ["request", "body", "getSelectedItems"],
+//       // visible: ["request", "hasTransfer"],
+//       // visible: ["request", "insertable"],
+//       visible: ["request", "tunnel", -1, "useSocket"],
+//       ...resource
+//     });
+//   }
+// }
+// KarmaFieldsAlpha.field.saucer.export = class extends KarmaFieldsAlpha.field.download {
+//   constructor(resource) {
+//     super({
+//       text: "Export",
+//       ...resource
+//     });
+//   }
+// }
 
 
 
-KarmaFieldsAlpha.field.saucer.header = class extends KarmaFieldsAlpha.field.group {
+// KarmaFieldsAlpha.field.saucer.header = class extends KarmaFieldsAlpha.field.group {
+//
+//   constructor(resource) {
+//
+//     super({
+//       display: "flex",
+//       children: [
+//         "title",
+//         "count",
+//         "pagination",
+//         "close"
+//       ],
+//       ...resource
+//     });
+//
+//   }
+//
+// }
 
-  constructor(resource) {
-
-    super({
-      display: "flex",
-      children: [
-        "title",
-        "count",
-        "pagination",
-        "close"
-      ],
-      ...resource
-    });
-
-  }
-
-}
-
-KarmaFieldsAlpha.field.saucer.title = class extends KarmaFieldsAlpha.field.text {
-
-
-  constructor(resource) {
-
-    super({
-      tag: "h1",
-      style: "flex-grow:1",
-      class: "ellipsis",
-      content: "Title",
-      ...resource
-    });
-
-  }
-
-  getContent() {
-
-    const content = this.getResource("title");
-
-    return this.parse(content || this.resource.content);
-
-  }
-
-}
-
-KarmaFieldsAlpha.field.saucer.count = class extends KarmaFieldsAlpha.field.text {
-  constructor(resource) {
-    super({
-      style: "justify-content:center;white-space: nowrap;",
-      value: ["replace", "# elements", "#", ["request", "body", "getCount"]],
-      ...resource
-    });
-  }
-}
-KarmaFieldsAlpha.field.saucer.close = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
-    super({
-      dashicon: "no",
-      title: "Close",
-      request: ["close"],
-      ...resource
-    });
-  }
-}
+// KarmaFieldsAlpha.field.saucer.title = class extends KarmaFieldsAlpha.field.text {
+//
+//
+//   constructor(resource) {
+//
+//     super({
+//       tag: "h1",
+//       style: "flex-grow:1",
+//       class: "ellipsis",
+//       content: "Title",
+//       ...resource
+//     });
+//
+//   }
+//
+//   getContent() {
+//
+//     const content = this.getResource("title");
+//
+//     return this.parse(content || this.resource.content);
+//
+//   }
+//
+// }
+//
+// KarmaFieldsAlpha.field.saucer.count = class extends KarmaFieldsAlpha.field.text {
+//   constructor(resource) {
+//     super({
+//       style: "justify-content:center;white-space: nowrap;",
+//       value: ["replace", "# elements", "#", ["request", "body", "getCount"]],
+//       ...resource
+//     });
+//   }
+// }
+// KarmaFieldsAlpha.field.saucer.close = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource) {
+//     super({
+//       dashicon: "no",
+//       title: "Close",
+//       request: ["close"],
+//       ...resource
+//     });
+//   }
+// }
 
 
-KarmaFieldsAlpha.field.saucer.pagination = class extends KarmaFieldsAlpha.field.group {
-
-  constructor(resource) {
-
-    super({
-      type: "group",
-      display: "flex",
-      style: "flex: 0 1 auto;min-width:0",
-      // visible: [">", ["request", "body", "getNumPage"], 1],
-      hidden: ["=", ["request", "body", "getNumPage"], 1],
-      children: [
-        "firstpage",
-        "prevpage",
-        "currentpage",
-        "nextpage",
-        "lastpage"
-      ],
-      ...resource
-    });
-  }
-
-}
-
-KarmaFieldsAlpha.field.saucer.pagination.firstpage = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
-    super({
-      request: ["body", "firstPage"],
-      title: "First Page",
-      text: "«",
-      disabled: ["==", ["request", "body", "getPage"], 1],
-      ...resource
-    });
-  }
-}
-KarmaFieldsAlpha.field.saucer.pagination.prevpage = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
-    super({
-      request: ["body", "prevPage"],
-      title: "Previous Page",
-      text: "‹",
-      disabled: ["==", ["request", "body", "getPage"], 1],
-      ...resource
-    });
-  }
-}
-KarmaFieldsAlpha.field.saucer.pagination.currentpage = class extends KarmaFieldsAlpha.field.text {
-  constructor(resource) {
-    super({
-      style: "font-family: monospace;", //"min-width: 4em;text-align: right;",
-      value: ["replace", "#/#", "#", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
-      ...resource
-    });
-  }
-}
-KarmaFieldsAlpha.field.saucer.pagination.nextpage = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
-    super({
-      request: ["body", "nextPage"],
-      title: "Next Page",
-      text: "›",
-      disabled: ["==", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
-      ...resource
-    });
-  }
-}
-KarmaFieldsAlpha.field.saucer.pagination.lastpage = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource) {
-    super({
-      request: ["body", "lastPage"],
-      title: "Last Page",
-      text: "»",
-      disabled: ["==", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
-      ...resource
-    });
-  }
-}
+// KarmaFieldsAlpha.field.saucer.pagination = class extends KarmaFieldsAlpha.field.group {
+//
+//   constructor(resource) {
+//
+//     super({
+//       type: "group",
+//       display: "flex",
+//       style: "flex: 0 1 auto;min-width:0",
+//       // visible: [">", ["request", "body", "getNumPage"], 1],
+//       hidden: ["=", ["request", "body", "getNumPage"], 1],
+//       children: [
+//         "firstpage",
+//         "prevpage",
+//         "currentpage",
+//         "nextpage",
+//         "lastpage"
+//       ],
+//       ...resource
+//     });
+//   }
+//
+// }
+//
+// KarmaFieldsAlpha.field.saucer.pagination.firstpage = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource) {
+//     super({
+//       request: ["body", "firstPage"],
+//       title: "First Page",
+//       text: "«",
+//       disabled: ["==", ["request", "body", "getPage"], 1],
+//       ...resource
+//     });
+//   }
+// }
+// KarmaFieldsAlpha.field.saucer.pagination.prevpage = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource) {
+//     super({
+//       request: ["body", "prevPage"],
+//       title: "Previous Page",
+//       text: "‹",
+//       disabled: ["==", ["request", "body", "getPage"], 1],
+//       ...resource
+//     });
+//   }
+// }
+// KarmaFieldsAlpha.field.saucer.pagination.currentpage = class extends KarmaFieldsAlpha.field.text {
+//   constructor(resource) {
+//     super({
+//       style: "font-family: monospace;", //"min-width: 4em;text-align: right;",
+//       value: ["replace", "#/#", "#", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
+//       ...resource
+//     });
+//   }
+// }
+// KarmaFieldsAlpha.field.saucer.pagination.nextpage = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource) {
+//     super({
+//       request: ["body", "nextPage"],
+//       title: "Next Page",
+//       text: "›",
+//       disabled: ["==", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
+//       ...resource
+//     });
+//   }
+// }
+// KarmaFieldsAlpha.field.saucer.pagination.lastpage = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource) {
+//     super({
+//       request: ["body", "lastPage"],
+//       title: "Last Page",
+//       text: "»",
+//       disabled: ["==", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
+//       ...resource
+//     });
+//   }
+// }

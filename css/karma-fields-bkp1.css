@@ -163,8 +163,6 @@ body.karma-table-open {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-
-  align-items: flex-start;
 }
 .karma-field-frame.hidden {
   display: none !important;
@@ -280,7 +278,6 @@ body.karma-table-open {
   min-width: 0;
   min-height: 0;
   flex-grow: 1;
-  width: 100%;
 }
 .karma-fields .field-container .table-field .karma-field-table {
   border: 1px solid var(--border-color);
@@ -475,8 +472,6 @@ body.karma-table-open {
   align-content: start;
   flex-grow: 1;
   background-color: white;
-
-  width: 100%;
 }
 .karma-fields .table.even {
   /* background-color: var(--background-color); */
@@ -1405,16 +1400,11 @@ ul.tag-links li:not(:last-child)::after {
   flex-direction: column;
   flex-grow: 1;
   /* align-items: flex-start; stretch or flex-start ? */
-
-  width: 100%;
-
 }
 .karma-field-container.display-flex {
   flex-direction: row;
   /* align-items: flex-end; */
   /* align-items: baseline;  -> for header /// NO ALIGNMENT */
-
-  width: 100%;
 }
 .karma-field-container.display-block {
   flex-wrap: nowrap;
@@ -1614,19 +1604,17 @@ ul.tag-links li:not(:last-child)::after {
 
 /* Grid + Table Input */
 
-.karma-fields input[type=text],
-.karma-fields textarea {
-  /* flex-grow: 0; */
-  min-width: 0;
-  width: 100%;
+.karma-fields .karma-field-input input[type=text],
+.karma-fields .karma-field-input textarea {
+  flex-grow: 0;
 }
 
 /* Table Input */
 
 .karma-fields .table input[type=text],
 .karma-fields .table textarea {
-  /* min-width: 0;
-  width: 100%; */
+  min-width: 0;
+  width: 100%;
 }
 
 /*
@@ -1884,9 +1872,6 @@ textarea.clipboard {
   position: relative;
   background-color: white;
   border-radius: 4px;
-
-  width: 100%;
-  min-width: 20em;
 }
 
 .karma-tinymce .editor-header {

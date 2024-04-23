@@ -1,29 +1,29 @@
 
 KarmaFieldsAlpha.Jobs = class {
 
-  static get() {
+  static get(def = "render", ...path) {
 
-    return KarmaFieldsAlpha.Store.get("jobs");
-
-  }
-
-  static set(tasks) {
-
-    KarmaFieldsAlpha.Store.set(tasks, "jobs");
+    return KarmaFieldsAlpha.Store.get("jobs", def, ...path);
 
   }
 
-  static add(task) {
+  static set(tasks, def = "render", ...path) {
 
-    const tasks = this.get() || [];
+    KarmaFieldsAlpha.Store.set(tasks, "jobs", def, ...path);
+
+  }
+
+  static add(task, ...path) {
+
+    const tasks = this.get(...path) || [];
 
     this.set([...tasks, task]);
 
   }
 
-  static has() {
+  static has(...path) {
 
-    const jobs = this.get();
+    const jobs = this.get(...path);
 
     return jobs && jobs.length > 0 || false;
 

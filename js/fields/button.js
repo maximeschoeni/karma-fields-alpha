@@ -53,19 +53,46 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 		return false;
 	}
 
-	*doTask() {
+	async *doTask() {
 
-		let task = this.parse(this.resource.task);
+		let params = [];
 
-		while (task.loading) {
+		if (this.resource.params) {
 
-			yield;
+			for (let param of this.resource.params) {
 
-			task = this.parse(this.resource.task);
+				let result = this.parse(param);
+
+				while (result.loading) {
+
+					yield;
+					result = this.parse(param);
+
+				}
+
+				params.push(result.value);
+
+			}
 
 		}
 
-		// yield* this.request(task.toString());
+		if (this.resource.action || this.resource.task) {
+
+			yield* this.request(this.resource.action || this.resource.task, ...params);
+
+		}
+		//
+		// let task = this.parse(this.resource.task);
+		//
+		// while (task.loading) {
+		//
+		// 	yield;
+		//
+		// 	task = this.parse(this.resource.task);
+		//
+		// }
+		//
+		// // yield* this.request(task.toString());
 
 	}
 
@@ -81,7 +108,17 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 			this.request(...this.resource.request);
 
-			this.request("render");
+
+
+			const work = this.request(...this.resource.request);
+
+			if (work) {
+
+				KarmaFieldsAlpha.Jobs.add(work);
+
+			}
+
+			this.render();
 
 		} else if (this.resource.generate) {
 
@@ -112,25 +149,18 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 			if (work.task) {
 
 				work.do();
-				
+
 			}
-
-
 
 			this.render();
 
 		} else if (this.resource.action) {
 
-			// compat
-			if (this.resource.value) {
+			const work = this.doTask();
 
-				this.resource.values = [this.resource.value];
+			KarmaFieldsAlpha.Jobs.add(work);
 
-			}
-
-			const values = this.resource.values || [];
-
-			this.parent.request(this.resource.action, ...values);
+			this.render();
 
 		}
 

@@ -1,19 +1,6 @@
 
 KarmaFieldsAlpha.Content = class {
 
-  static loading() {
-
-    return new this(undefined, {loading: true});
-
-
-  }
-
-  static mixed() {
-
-    return new this(undefined, {mixed: true});
-
-
-  }
 
   constructor(value, params) {
 
@@ -43,21 +30,21 @@ KarmaFieldsAlpha.Content = class {
   //
   // }
 
-  loading() {
-
-    this.loading = true;
-
-    return this;
-
-  }
-
-  mixed() {
-
-    this.mixed = true;
-
-    return this;
-
-  }
+  // loading() {
+  //
+  //   this.loading = true;
+  //
+  //   return this;
+  //
+  // }
+  //
+  // mixed() {
+  //
+  //   this.mixed = true;
+  //
+  //   return this;
+  //
+  // }
 
   value(value) {
 
@@ -83,7 +70,7 @@ KarmaFieldsAlpha.Content = class {
     return content;
   }
 
-  get(key) {
+  getChild(key) {
 
     const content = new KarmaFieldsAlpha.Content();
 
@@ -244,10 +231,23 @@ KarmaFieldsAlpha.Content = class {
       KarmaFieldsAlpha.Jobs.add(this.value);
 
     }
-    
+
   }
 
 }
+
+KarmaFieldsAlpha.Content.Loading = class extends KarmaFieldsAlpha.Content {
+
+  constructor() {
+
+    super();
+
+    this.loading = true;
+
+  }
+
+}
+
 
 KarmaFieldsAlpha.Content.Request = class extends KarmaFieldsAlpha.Content {
 
