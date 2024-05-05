@@ -756,17 +756,23 @@ KarmaFieldsAlpha.field = class {
   }
 
 
-  // add(...args) {
-  //
-  //   return this.parent.add(...args);
-  //
-  // }
-  //
-  // delete(...args) {
-  //
-  //   return this.parent.delete(...args);
-  //
-  // }
+  add(...args) {
+
+    return this.parent.add(...args);
+
+  }
+
+  delete(...args) { // needed eg. when deleting tag by delete key
+
+    return this.parent.delete(...args);
+
+  }
+
+  paste(...args) {
+
+    return this.parent.paste(...args);
+
+  }
 
   getChildByPath(childId, ...path) {
 

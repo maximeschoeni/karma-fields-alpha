@@ -19,7 +19,8 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field {
     return this.createChild({
       type: "single",
       id: this.resource.id,
-      children: this.resource.children
+      children: this.resource.children,
+      display: this.resource.display
     }, index);
 
   }

@@ -1685,6 +1685,7 @@ textarea.clipboard {
   flex-direction: column;
   position: relative;
 }
+
 .karma-field-date .date-popup-container {
 	/* position: absolute;
 	z-index: 100;
@@ -1709,6 +1710,9 @@ textarea.clipboard {
 }
 .karma-field-date .date-popup .calendar {
   /* padding-bottom: 10px; */
+}
+.karma-field-date .date-popup-container.open-down {
+  order: 2;
 }
 .karma-field-date .date-popup-container.open-down .calendar {
   top: calc(100% + 2px);

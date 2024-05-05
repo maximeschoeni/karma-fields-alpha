@@ -161,42 +161,72 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.form {
 
   }
 
+  *buildHidden() {
+
+    if (this.resource.hiddenfield !== false) {
+
+      yield {
+        tag: "input",
+        init: input => {
+          input.element.type = "hidden";
+          input.element.name = "karma-fields-items[]";
+          if (input.element.form) {
+            input.element.form.addEventListener("submit", async event => {
+            });
+          }
+        },
+        update: input => {
+          // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
+          const delta = this.getDelta();
+          if (delta) {
+            input.element.value = JSON.stringify(delta);
+          } else {
+            input.element.value = "";
+          }
+        }
+      };
+
+    }
+
+  }
+
   build() {
     return {
       class: "post-form",
       children: [
         super.build(),
-        {
-          tag: "input",
-          init: input => {
-            input.element.type = "hidden";
-            input.element.name = "karma-fields-items[]";
-            if (input.element.form) {
-              input.element.form.addEventListener("submit", async event => {
-                // const task = new KarmaFieldsAlpha.Task.Save();
-                // const driver = this.getDriver();
-                // await task.cleanDriver(driver);
-
-                // event.preventDefault();
-                // await this.clean();
-                //
-                // // console.log(input.element.form.querySelector("[type=submit]"));
-                //
-                // input.element.form.querySelector("[type=submit]").click();
-
-              });
-            }
-          },
-          update: input => {
-            // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
-            const delta = this.getDelta();
-            if (delta) {
-              input.element.value = JSON.stringify(delta);
-            } else {
-              input.element.value = "";
-            }
-          }
-        }
+        ...this.buildHidden()
+        // {
+        //   tag: "input",
+        //   init: input => {
+        //     input.element.type = "hidden";
+        //     input.element.name = "karma-fields-items[]";
+        //     if (input.element.form) {
+        //       input.element.form.addEventListener("submit", async event => {
+        //         // const task = new KarmaFieldsAlpha.Task.Save();
+        //         // const driver = this.getDriver();
+        //         // await task.cleanDriver(driver);
+        //
+        //         // event.preventDefault();
+        //         // await this.clean();
+        //         //
+        //         // // console.log(input.element.form.querySelector("[type=submit]"));
+        //         //
+        //         // input.element.form.querySelector("[type=submit]").click();
+        //
+        //       });
+        //     }
+        //   },
+        //   update: input => {
+        //     // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
+        //     const delta = this.getDelta();
+        //     if (delta) {
+        //       input.element.value = JSON.stringify(delta);
+        //     } else {
+        //       input.element.value = "";
+        //     }
+        //   }
+        // }
       ]
     };
 

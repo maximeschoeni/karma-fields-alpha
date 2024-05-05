@@ -132,7 +132,54 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
   }
 
-	setContent(subcontent, subkey) {
+	// setContent(subcontent, subkey) {
+	//
+	// 	if (subkey) {
+	//
+	// 		const key = this.getKey();
+	// 		let content = super.getContent(key);
+	//
+	// 		if (!content.loading) {
+	//
+	// 			const array = content.toArray();
+	//
+	// 			if (subcontent.toString() === "1") {
+	//
+	// 				if (!array.includes(subkey)) {
+	//
+	// 					// this.setValue([...array, key]);
+	// 					content = content.clone();
+	// 					content.value = [...array, subkey];
+	// 					this.parent.setContent(content, key);
+	//
+	// 				}
+	//
+	// 			} else {
+	//
+	// 				if (array.includes(subkey)) {
+	//
+	// 					// this.setValue(array.filter(item => item !== key));
+	// 					content = content.clone();
+	// 					content.value = array.filter(item => item !== subkey);
+	// 					this.parent.setContent(content, key);
+	//
+	// 				}
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	} else {
+	//
+	// 		const key = this.getKey();
+	//
+	// 		this.parent.setContent(subcontent, key);
+	//
+	// 	}
+	//
+	// }
+
+	setValue(subvalue, subkey) {
 
 		if (subkey) {
 
@@ -143,14 +190,16 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 				const array = content.toArray();
 
-				if (subcontent.toString() === "1") {
+				if (subvalue === "1") {
 
 					if (!array.includes(subkey)) {
 
 						// this.setValue([...array, key]);
-						content = content.clone();
-						content.value = [...array, subkey];
-						this.parent.setContent(content, key);
+						// content = content.clone();
+						// content.value = [...array, subkey];
+						// this.parent.setContent(content, key);
+
+						this.parent.setValue([...array, subkey], key);
 
 					}
 
@@ -159,9 +208,12 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 					if (array.includes(subkey)) {
 
 						// this.setValue(array.filter(item => item !== key));
-						content = content.clone();
-						content.value = array.filter(item => item !== subkey);
-						this.parent.setContent(content, key);
+
+						// content = content.clone();
+						// content.value = array.filter(item => item !== subkey);
+						// this.parent.setContent(content, key);
+
+						this.parent.setValue(array.filter(item => item !== subkey), key);
 
 					}
 
@@ -173,47 +225,11 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 			const key = this.getKey();
 
-			this.parent.setContent(subcontent, key);
+			this.parent.setValue(value, key);
 
 		}
 
 	}
-
-	// setValue(value, key) {
-	//
-	// 	if (key) {
-	//
-	// 		const array = this.getValue();
-	//
-	// 		if (array) {
-	//
-	// 			if (value === "1") {
-	//
-	// 				if (!array.includes(key)) {
-	//
-	// 					this.setValue([...array, key]);
-	//
-	// 				}
-	//
-	// 			} else {
-	//
-	// 				if (array.includes(key)) {
-	//
-	// 					this.setValue(array.filter(item => item !== key));
-	//
-	// 				}
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 	} else {
-	//
-	// 		super.setValue(value);
-	//
-	// 	}
-	//
-	// }
 
 
 	// getDefault() {
@@ -460,36 +476,38 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 	// as dropdown
 	getOptions() {
 
-		let options;
+		return KarmaFieldsAlpha.field.dropdown.prototype.getOptions.call(this);
 
-		if (this.resource.options) {
-
-			options = this.parse(this.resource.options);
-
-		} else {
-
-      options = new KarmaFieldsAlpha.Content([]);
-
-    }
-
-		if (this.resource.driver) {
-
-      // const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
-			const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, this.resource.params);
-
-      if (query.loading) {
-
-        options.loading = true;
-
-      } else {
-
-        options.value = [...options.toArray(), ...query.toArray()]
-
-      }
-
-		}
-
-		return options;
+		// let options;
+		//
+		// if (this.resource.options) {
+		//
+		// 	options = this.parse(this.resource.options);
+		//
+		// } else {
+		//
+    //   options = new KarmaFieldsAlpha.Content([]);
+		//
+    // }
+		//
+		// if (this.resource.driver) {
+		//
+    //   // const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
+		// 	const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, this.resource.params);
+		//
+    //   if (query.loading) {
+		//
+    //     options.loading = true;
+		//
+    //   } else {
+		//
+    //     options.value = [...options.toArray(), ...query.toArray()]
+		//
+    //   }
+		//
+		// }
+		//
+		// return options;
 
 	}
 
@@ -523,10 +541,8 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 										text: option.name,
 										tag: "label",
 										false: "",
-										true: "1",
-										index: index,
-										uid: `${this.resource.uid}-${index}`
-									}).build()
+										true: "1"
+									}, index).build()
 								}
 							});
 						}

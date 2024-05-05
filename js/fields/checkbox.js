@@ -509,10 +509,10 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 
 									}
 
-									const newContent = new KarmaFieldsAlpha.Content(value);
+									// const newContent = new KarmaFieldsAlpha.Content(value);
 
 									this.save("check", "Check");
-									this.setContent(newContent);
+									this.setValue(value);
 									this.request("render");
 
 								}

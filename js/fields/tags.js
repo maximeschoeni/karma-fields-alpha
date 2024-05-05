@@ -60,6 +60,31 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form {
 
   }
 
+  getDriver() {
+
+    if (this.resource.driver) {
+
+      return this.resource.driver;
+
+    } else {
+
+      const table = this.resource.table;
+      const resource = KarmaFieldsAlpha.saucer.resource.tables[table];
+
+      if (resource) {
+
+        return resource.driver;
+
+      } else {
+
+        console.error("Table resource not found:", table);
+
+      }
+
+    }
+
+  }
+
   hasSelection() {
 
     if (this.resource.body) {
@@ -786,6 +811,7 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
 
   }
 
+  
   getLength() {
 
     return this.parent.getLength();
@@ -837,7 +863,9 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
             },
             update: close => {
               close.element.onclick = event => {
-                this.delete();
+                const work = this.request("delete");
+                KarmaFieldsAlpha.Jobs.add(work);
+                this.render();
               }
             }
           }
@@ -875,7 +903,7 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
               },
               update: close => {
                 close.element.onclick = event => {
-                  const work = this.delete(i, 1);
+                  const work = this.request("delete", i, 1);
                   KarmaFieldsAlpha.Jobs.add(work);
                   this.render();
                 }

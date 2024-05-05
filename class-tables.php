@@ -637,7 +637,7 @@ class Karma_Fields_Alpha {
 
 			if (isset($_REQUEST[$nonce]) && wp_verify_nonce($_POST[$nonce], $action)) {
 
-				foreach ($_REQUEST['karma-fields-items'] as $encoded_input) { // -> Handle multiple metaboxes
+				foreach ($_REQUEST['karma-fields-items'] as $encoded_input) { // -> Handle multiple metaboxes !!! ALL metabox have same output !!!
 
 					if ($encoded_input) {
 
@@ -704,6 +704,8 @@ class Karma_Fields_Alpha {
 						}
 
 					}
+
+					break; // -> just need one: every metabox have same data !
 
 				}
 

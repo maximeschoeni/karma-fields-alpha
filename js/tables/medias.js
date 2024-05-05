@@ -799,7 +799,6 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
-
   // selectAll() {
   //
   //   const query = this.queryItems();

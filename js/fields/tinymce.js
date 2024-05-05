@@ -680,7 +680,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
   }
 
-  execCommand(key) {
+  *execCommand(key) {
 
     const request = this.getEditor();
 
@@ -693,7 +693,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 			this.save(key, key);
 			this.setValue(text);
-			this.request("render");
+			// this.request("render");
 
     }
 
@@ -2415,7 +2415,8 @@ KarmaFieldsAlpha.field.tinymce.buttons.bold = class extends KarmaFieldsAlpha.fie
 			dashicon: "editor-bold",
 			title: "Bold",
 			action: "execCommand",
-			value: "bold",
+			params: ["bold"],
+			// value: "bold",
 			active: ["request", "queryCommand", "bold"],
 			...resource
 		});
@@ -2428,7 +2429,8 @@ KarmaFieldsAlpha.field.tinymce.buttons.italic = class extends KarmaFieldsAlpha.f
 			dashicon: "editor-italic",
 			title: "Italic",
 			action: "execCommand",
-			value: "italic",
+			// value: "italic",
+			params: ["italic"],
 			active: ["request", "queryCommand", "italic"],
 			...resource
 		});

@@ -124,16 +124,24 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
       } else {
 
+
+
         // const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, params.toObject() || {});
 
         // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
         // const shuttle = KarmaFieldsAlpha.Shuttle.get(this.resource.driver, paramstring);
         // const query = shuttle.getOptions();
 
+        // const table = new KarmaFieldsAlpha.field.table({
+        //   driver: this.resource.driver,
+        //   params: this.resource.params
+        // }, "options", this);
+
         const table = new KarmaFieldsAlpha.field.table({
           driver: this.resource.driver,
-          params: this.resource.params
+          params: params.toObject()
         }, "options", this);
+
 
         const set = table.getOptionsList();
 

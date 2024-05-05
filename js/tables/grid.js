@@ -692,18 +692,27 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     return {
       class: "karma-field-table-grid-container karma-field-frame karma-field-group final scroll-container table-body-column table-body-main-column",
+      init: grid => {
+        if (this.resource.height) {
+          node.element.style.minHeight = this.resource.height;
+        }
+        if (this.resource.style) {
+          grid.element.style = this.resource.style;
+        }
+        if (this.resource.width) {
+          grid.element.style.width = this.resource.width;
+        }
+      },
       child: {
         class: "table grid grid-field-body",
         init: grid => {
-          if (this.resource.style) {
-            grid.element.style = this.resource.style;
-          }
-          if (this.resource.width) {
-            grid.element.style.width = this.resource.width;
-          }
-          if (this.resource.align) {
-            grid.element.classList.add(`align-${this.resource.align}`);
-          }
+          // if (this.resource.style) {
+          //   grid.element.style = this.resource.style;
+          // }
+
+          // if (this.resource.align) {
+          //   grid.element.classList.add(`align-${this.resource.align}`);
+          // }
         },
         children: [...this.buildRows()],
         update: grid => {
@@ -811,6 +820,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     return {
       class: "table-body-columns",
+      init: node => {
+
+      },
       update: div => {
         // -> unselect
         // div.element.onmousedown = event => {

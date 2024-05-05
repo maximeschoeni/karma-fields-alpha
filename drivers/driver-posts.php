@@ -182,7 +182,7 @@ class Karma_Fields_Alpha_Driver_Posts {
 
 
 
-                $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = %s AND post_id = %d", $key, $id ) );
+                $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = %s AND post_id = %d ORDER BY meta_id", $key, $id ) );
 
 
                 for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
@@ -511,7 +511,7 @@ class Karma_Fields_Alpha_Driver_Posts {
             $args['tax_query'][] = array(
               'taxonomy' => $key,
               'field'    => 'term_id',
-              'terms'    => intval($value)
+              'terms'    => explode(',', $value)
             );
 
           } else {
@@ -1099,7 +1099,7 @@ class Karma_Fields_Alpha_Driver_Posts {
         meta_key AS 'key',
         post_id AS 'id'
         FROM $wpdb->postmeta
-        WHERE post_id IN ($ids_string) AND meta_key NOT LIKE '\_%' AND meta_key != 'trash'";
+        WHERE post_id IN ($ids_string) AND meta_key NOT LIKE '\_%' AND meta_key != 'trash' ORDER BY meta_id";
 
       $sql = apply_filters('karma_fields_posts_meta_sql', $sql, $ids, $ids_string);
 

@@ -255,7 +255,8 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
                 if (this.inline()) { // -> flex-direction: row
                   const fr = field.resource.width.match(/(.*)fr/);
                   if (fr) {
-                    container.element.style.flexGrow = fr[1];
+                    // container.element.style.flexGrow = fr[1];
+                    container.element.style.flex = `1 ${fr[1]} 0`;
                   } else {
                     container.element.style.width = field.resource.width;
                   }
