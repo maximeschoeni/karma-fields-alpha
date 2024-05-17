@@ -485,24 +485,53 @@ KarmaFieldsAlpha.field.text.link = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
-	nav(index = 0) {
+	// nav(index = 0) {
+	//
+	// 	let table = this.parse(this.resource.table);
+	// 	let params = this.parse(this.resource.params);
+	//
+	// 	if (table.loading || params.loading) {
+	//
+	// 		this.addTask(() => this.nav(index), "nav");
+	//
+	// 	} else {
+	//
+	// 		this.save("nav", "Open link");
+	//
+	// 		this.request("open", table.toString(), params.toArray()[index], this.resource.replace);
+	//
+	// 	}
+	//
+	// 	this.request("render");
+	//
+	// }
+
+
+
+	*nav(index = 0) {
 
 		let table = this.parse(this.resource.table);
 		let params = this.parse(this.resource.params);
 
-		if (table.loading || params.loading) {
+		while (table.loading || params.loading) {
 
-			this.addTask(() => this.nav(index), "nav");
-
-		} else {
-
-			this.save("nav", "Open link");
-
-			this.request("open", table.toString(), params.toArray()[index], this.resource.replace);
+			yield;
 
 		}
 
-		this.request("render");
+		this.save("open", "Open link");
+
+		// KarmaFieldsAlpha.saucer.open(key);
+
+		const popup = this.getField("board", table.toString());
+
+    popup.open();
+
+    const tableField = popup.getChild("table");
+
+		console.log(params.toObject());
+
+    tableField.setState(params.toObject(), "params");
 
 	}
 
@@ -555,7 +584,19 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
 										node.element.onclick = event => {
 											event.preventDefault();
-											this.nav(index);
+											// this.nav(index);
+
+											const work = this.nav(index);
+											KarmaFieldsAlpha.Jobs.add(work);;
+											this.render();
+											// KarmaFieldsAlpha.Task.add({
+											// 	resolve: () => {
+											// 		KarmaFieldsAlpha.History.save("open", "Open link");
+											// 		KarmaFieldsAlpha.saucer.open(key);
+											// 	}
+											// });
+
+
 										}
 
 									} else if (this.resource.href) {

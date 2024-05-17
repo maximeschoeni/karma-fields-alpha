@@ -116,7 +116,7 @@ KarmaFieldsAlpha.field = class {
 
     }
 
-    const child = new constructor(resource);
+    const child = new constructor(resource, id, this);
 
     child.parent = this;
     child.id = id;

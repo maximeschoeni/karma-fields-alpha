@@ -316,7 +316,7 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
               const body = this.getChild("body");
               if (body) {
                 body.setFocus(true);
-                body.select(0, 0);
+                if (body.select) body.select(0, 0); // !!
                 this.render();
               }
             }
@@ -1178,6 +1178,11 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
 KarmaFieldsAlpha.field.table.footer = class extends KarmaFieldsAlpha.field.group {
 
   constructor(resource, id, parent) {
+
+    // console.log(id, parent);
+    // if (parent === undefined) {
+    //   console.trace();
+    // }
 
     super({
       display: "flex",

@@ -120,7 +120,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
       },
       library: {
         // post__in: this.getSelectedIds(),
-        posts_per_page: 20,
+        posts_per_page: 100,
         type: this.resource.file && (this.resource.file.type || this.resource.file.types)
           || this.resource.mime_types
           || this.resource.mimeTypes

@@ -1,29 +1,160 @@
 
 KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field {
 
+  newChild(id) {
+
+    if  (id === "header") {
+
+      if (this.resource.header && this.resource.header.type === "header") {
+
+        return new KarmaFieldsAlpha.field.table.header(this.resource.header, "header", this);
+
+      } else {
+
+        return new KarmaFieldsAlpha.field.group(this.resource.header, "header", this);
+
+      }
+
+    } else if (id === "footer") {
+
+      return new KarmaFieldsAlpha.field.table.footer(this.resource.footer, "footer", this);
+
+    } else if (id === "body") {
+
+      // return new KarmaFieldsAlpha.field[this.resource.body.type]({
+      //   sortable: this.resource.sortable,
+      //   ...this.resource.body
+      // }, "body", this);
+
+      return this.getBody();
+
+    }
+
+  }
+
+  getBody(index) {
+
+    return new KarmaFieldsAlpha.field.form.single({
+      id: this.resource.id,
+      children: this.resource.children,
+      display: this.resource.display,
+      ...this.resource.body
+    }, "body", this);
+
+  }
+
+  getChild(index, ...path) {
+
+    let child = this.newChild(index);
+
+    if (child && path.length) {
+
+      return child.getChild(...path);
+
+    }
+
+    return child;
+
+  }
+
+  *buildParts() {
+
+    if (this.resource.header) {
+
+      yield {
+        class: "karma-header table-header table-main-header simple-buttons",
+        child: this.getChild("header").build()
+      };
+
+    }
+
+    yield {
+      class: "table-body",
+      child: this.getChild("body").build()
+    };
+
+    if (this.resource.footer) {
+
+      yield {
+        class: "table-footer table-control",
+        child: this.getChild("footer").build(),
+        update: footer => {
+          const isLoading = this.request("hasTask");
+          footer.element.classList.toggle("loading", Boolean(isLoading));
+        }
+      };
+
+    }
+
+  }
+
+
+
+  build() {
+
+    return {
+      class: "table-field",
+      children: [
+        {
+          class: "mixed-content",
+          init: node => {
+            node.element.innerHTML = "[mixed content]";
+          },
+          update: node => {
+            node.element.classList.toggle("hidden", !this.getContent().mixed);
+          }
+        },
+        {
+          class: "karma-field-table",
+          init: node => {
+            node.element.style.width = this.resource.width || "100%";
+          },
+          update: node => {
+            // node.element.classList.toggle("hidden", Boolean(this.getLength().mixed));
+            // node.element.classList.toggle("has-selection", Boolean(this.hasFocusInside()));
+            //
+            // node.element.onmousedown = event => {
+            //   event.stopPropagation();
+            //   const body = this.getChild("body");
+            //   if (body) {
+            //     body.setFocus(true);
+            //     if (body.select) body.select(0, 0); // !!
+            //     this.render();
+            //   }
+            // }
+          },
+          children: [
+            ...this.buildParts()
+          ]
+        }
+      ]
+    };
+
+  }
+
   getDriver() {
 
     return this.resource.driver || this.resource.body && this.resource.body.driver; // compat
 
   }
 
-  build() {
+  // build() {
+  //
+  //   return this.getChild("single").build();
+  //
+  // }
 
-    return this.getChild("single").build();
 
-  }
-
-
-  getChild(index) {
-
-    return this.createChild({
-      type: "single",
-      id: this.resource.id,
-      children: this.resource.children,
-      display: this.resource.display
-    }, index);
-
-  }
+  // getChild(index) {
+  //
+  //   return this.createChild({
+  //     type: "single",
+  //     id: this.resource.id,
+  //     children: this.resource.children,
+  //     display: this.resource.display
+  //   }, index);
+  //
+  // }
 
   getShuttle() {
 
@@ -186,7 +317,9 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field {
 
   getContent(key) {
 
-    return this.getContentById(this.resource.id, key);
+    // return this.getContentById(this.resource.id, key);
+
+    return this.getState(key);
 
     // const content = new KarmaFieldsAlpha.Content();
     // const shuttle = this.getShuttle();
@@ -205,13 +338,13 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field {
 
   }
 
-  setValue(value, key) { // deprecated. Use setValue.
-
-    // this.setValue(content.value || content, key);
-
-    this.setContentById(value, this.resource.id, key);
-
-  }
+  // setValue(value, key) { // deprecated. Use setValue.
+  //
+  //   // this.setValue(content.value || content, key);
+  //
+  //   this.setContentById(value, this.resource.id, key);
+  //
+  // }
 
   setValue(value, key) {
 
@@ -221,7 +354,7 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field {
 
   getParam(key) {
 
-    return this.getContent(key);
+    return this.getState(key);
 
   }
 
@@ -388,6 +521,8 @@ KarmaFieldsAlpha.field.form.single = class extends KarmaFieldsAlpha.field.group 
 
   getContent(key) {
 
+    console.log(this.resource.id, key, this.parent.getContent("id"));
+
     return this.parent.getContentById(this.resource.id, key);
 
   }
@@ -408,42 +543,89 @@ KarmaFieldsAlpha.field.form.single = class extends KarmaFieldsAlpha.field.group 
 }
 
 
-//
-//
-//
-// KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.grid {
-//
-//   // getParams() {
-//   //
-//   //   return new KarmaFieldsAlpha.Content({ids: this.resource.id});
-//   //
-//   // }
-//
-//   build() {
-//     // return this.createChild({
-//     //   type: "single",
-//     //   children: this.resource.children
-//     // }, 0).build();
-//
-//     return this.getChild(0).build();
-//   }
-//
-//
-//
-// }
-//
-// KarmaFieldsAlpha.field.single = class extends KarmaFieldsAlpha.field.group {
-//
-//   getContent(key) {
-//
-//
-//     return this.parent.getContent(this.id, key);
-//
-//   }
-//
-//   setContent(value, key) {
-//
-//     this.parent.setContent(value, this.id, key);
-//
-//   }
-// }
+
+KarmaFieldsAlpha.field.form.header = class extends KarmaFieldsAlpha.field.group {
+
+  constructor(resource, id, parent) {
+
+    super({
+      display: "flex",
+      children: [
+        "title",
+        "close"
+      ],
+      ...resource
+    }, id, parent);
+
+  }
+
+
+}
+
+KarmaFieldsAlpha.field.form.title = class extends KarmaFieldsAlpha.field.text {
+
+  constructor(resource, id, parent) {
+
+    super({
+      tag: "h1",
+      style: "flex-grow:1",
+      class: "ellipsis",
+      content: "Title",
+      ...resource
+    }, id, parent);
+
+  }
+
+  getContent() {
+
+    const content = this.getResource("title");
+
+    return this.parse(content || this.resource.content);
+
+  }
+
+}
+
+KarmaFieldsAlpha.field.form.close = class extends KarmaFieldsAlpha.field.button {
+  constructor(resource, id, parent) {
+    super({
+      dashicon: "no",
+      title: "Close",
+      request: ["close"],
+      ...resource
+    }, id, parent);
+  }
+}
+
+
+
+KarmaFieldsAlpha.field.form.footer = class extends KarmaFieldsAlpha.field.group {
+
+  constructor(resource, id, parent) {
+
+    super({
+      display: "flex",
+      children: [
+        "save"
+      ],
+      ...resource
+    }, id, parent);
+
+  }
+
+}
+
+KarmaFieldsAlpha.field.form.save = class extends KarmaFieldsAlpha.field.button {
+
+  constructor(resource, id, parent) {
+    super({
+      task: ["submit"],
+      title: "Save",
+      text: "Save",
+      enabled: ["request", "hasDelta"],
+      primary: true,
+      ...resource
+    }, id, parent);
+  }
+
+}
