@@ -13,11 +13,12 @@
 
 <script>
 
+
 	KarmaFieldsAlpha.embeds.push({
 		driver: "<?php echo $driver; ?>",
 		id: "<?php echo $id; ?>",
 		...<?php echo json_encode($args); ?>,
-    type: "postform",
+	  type: "postform",
 		index: "karma-fields-embed-<?php echo $index; ?>"
 	});
 

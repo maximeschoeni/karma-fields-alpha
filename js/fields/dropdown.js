@@ -1,215 +1,163 @@
 KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
-  getDefault(defaults = {}) {
+  getDefault() {
 
-		if (this.resource.default) {
+    const content = new KarmaFieldsAlpha.Content();
 
-      return this.parse(this.resource.default);
+    const options = this.getOptions();
 
-		} else {
+    if (options.loading) {
 
-      const options = this.fetchOptions();
+      content.loading = true;
 
-      if (options && options.length > 0) {
+    } else {
 
-        return options[0].id;
+      if (this.resource.default) {
+
+        content.value = this.parse(this.resource.default).toString();
+
+  		}
+
+      if (content.value === undefined || !options.toArray().some(item => item.id === content.value)) {
+
+        content.value = options.toArray()[0].id;// ! allowing default value not in options may lead in infinite loop !
 
       }
+
+    }
+
+    return content;
+
+	}
+
+  export() {
+
+    if (this.resource.export === "name") {
+
+      const output = new KarmaFieldsAlpha.Content();
+      const content = this.getContent();
+      const options = this.getOptions();
+
+      if (content.loading || options.loading) {
+
+        output.loading = true;
+
+      } else {
+
+        const value = content.toString();
+        const option = options.toArray().find(option => option.id === value);
+
+        output.value = option && option.name || "";
+
+      }
+
+      return output;
+
+    } else {
+
+      return super.export();
 
     }
 
 	}
-
-  initValue() {
-
-    // let value = "";
-    // const options = this.fetchOptions();
-    //
-    //
-    //
-    // if (options !== KarmaFieldsAlpha.loading && options.length) {
-    //
-    //   value = options[0].id;
-    //
-    //   this.setValue(value);
-    //   this.save();
-    //
-    // }
-
-    let value = this.getDefault();
-
-    if (value !== KarmaFieldsAlpha.loading) {
-
-      this.setValue(value);
-      this.save();
-
-    }
-
-    return value;
-  }
-
-
-//   getDefault(defaults = {}) {
-// console.error("deprecated");
-// 		const key = this.getKey();
-//     const options = this.fetchOptions();
-//
-// 		if (key && this.resource.default !== null) {
-//
-// 			defaults[key] = this.parse(this.resource.default || "");
-//
-// 		} else if (options.length > 0) {
-//
-//       defaults[key] = options[0].id;
-//
-//     }
-//
-// 		return defaults;
-// 	}
-
-
-  // getDefault(defaults = {}) {
   //
-	// 	const key = this.getKey();
-  //   const options = this.fetchOptions();
+  // import(collection) {
   //
-	// 	if (key && this.resource.default !== null) {
+  //   let content = collection.pick();
   //
-	// 		defaults[key] = this.parse(this.resource.default || "");
+  //   const options = this.getOptions();
   //
-	// 	} else if (options.length > 0) {
+  //   if (!options.loading) {
   //
-  //     defaults[key] = options[0].id;
+  //     const value = content.toString();
+  //
+  //     const option = options.toArray().find(option => option.name === value);
+  //
+  //     if (option) {
+  //
+  //       content = new KarmaFieldsAlpha.Content(option.id);
+  //
+  //     }
   //
   //   }
   //
-	// 	return defaults;
-	// }
-
-  // export(items = []) {
+  //   this.setContent(content);
   //
-  //   const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
-  //
-  //   items.push(value.toString());
-  //
-	// }
+  // }
 
-  import(items) {
+  isDisabled() {
 
-    const value = items.shift() || "";
+    if (this.resource.disabled) {
 
-    const options = this.fetchOptions();
+      return this.parent.parse(this.resource.disabled).toBoolean();
 
-    if (options) {
+    } else if (this.resource.enabled) {
 
-      const option = options.find(option => option.name === value);
-
-      if (option) {
-
-        this.setValue(option.id);
-
-      }
+      return !this.parent.parse(this.resource.enabled).toBoolean();
 
     }
 
+    return false;
   }
 
-	getOptions(driver, params) {
+  getOptions() {
 
-    return KarmaFieldsAlpha.Query.getOptions(driver, params);
-
-    // if (!KarmaFieldsAlpha.Query.get(driver)) {
-    //
-    //   console.error("Driver not found", driver);
-    //
-    // }
-
-
-    // const results = KarmaFieldsAlpha.Query.getResults(driver, params);
-    //
-    // if (results) {
-    //
-    //   const options = [];
-    //   // const alias = KarmaFieldsAlpha.drivers[driver].alias;
-    //   // const idAlias = alias.id || "id";
-    //   // const nameAlias = alias.name || "name";
-    //   const idAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "id") || "id";
-    //   const nameAlias = KarmaFieldsAlpha.Query.get(driver, "alias", "name") || "name";
-    //
-    //
-    //
-    //   for (let item of results) {
-    //
-    //     let name = item[nameAlias];
-    //
-    //     if (name === undefined) {
-    //
-    //       name = KarmaFieldsAlpha.Type.toString(KarmaFieldsAlpha.Query.getValue(driver, item[idAlias], nameAlias) || ["..."])
-    //
-    //     }
-    //
-    //     options.push({
-    //       id: item[idAlias],
-    //       name: name
-    //     });
-    //
-    //   }
-    //
-    //   return options;
-    //
-    // }
-
-  }
-
-	fetchOptions() {
-
-		let options = [];
+		let options;
 
 		if (this.resource.options) {
 
-			const results = this.parse(this.resource.options);
+			options = this.parse(this.resource.options);
 
-      if (results !== KarmaFieldsAlpha.loading) {
+		} else {
 
-        options = results;
+      options = new KarmaFieldsAlpha.Content([]);
 
-      } else {
-
-        return;
-
-      }
-
-		}
-
-    let moreOptions;
+    }
 
 		if (this.resource.driver) {
 
-      moreOptions = this.getOptions(this.resource.driver, this.resource.params || {});
+      const params = this.parse(this.resource.params);
 
-		} else if (this.resource.table) {
+      if (params.loading) {
 
-      const grid = this.request("getGrid", this.resource.table);
+        options.loading = true;
 
-      if (grid && grid.resource.table) {
+      } else {
 
-        moreOptions = this.getOptions(grid.resource.driver, grid.resource.params || {});
+
+
+        // const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, params.toObject() || {});
+
+        // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+        // const shuttle = KarmaFieldsAlpha.Shuttle.get(this.resource.driver, paramstring);
+        // const query = shuttle.getOptions();
+
+        // const table = new KarmaFieldsAlpha.field.table({
+        //   driver: this.resource.driver,
+        //   params: this.resource.params
+        // }, "options", this);
+
+        const table = new KarmaFieldsAlpha.field.table({
+          driver: this.resource.driver,
+          params: params.toObject()
+        }, "options", this);
+
+
+        const set = table.getOptionsList();
+
+        if (set.loading) {
+
+          options.loading = true;
+
+        } else {
+
+          options.value = [...options.toArray(), ...set.toArray()];
+
+        }
 
       }
 
 		}
-
-    if (moreOptions) {
-
-      if (moreOptions === KarmaFieldsAlpha.loading) {
-
-        return KarmaFieldsAlpha.loading;
-
-      }
-
-      options = [...options, ...moreOptions];
-
-    }
 
 		return options;
 
@@ -223,44 +171,53 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 			class: "dropdown karma-field",
 			update: dropdown => {
 
-        let value = this.getSingleValue();
-        let options = this.fetchOptions();
+        let content = this.getContent();
+        let options = this.getOptions();
 
-        dropdown.element.classList.toggle("loading", value === KarmaFieldsAlpha.loading);
+        dropdown.element.classList.toggle("loading", Boolean(content.loading));
 
-        if (options && options.length > 0 && value !== KarmaFieldsAlpha.loading) {
+        if (!options.loading && !content.loading) {
 
-          if (value === KarmaFieldsAlpha.mixed) {
+          if (content.mixed) {
 
-            // const mixedOption = new Option("[mixed value]", "xxx", true, true);
-            // mixedOption.disabled = true;
-
-            options = [...options, {id: value, name: "[mixed value]"}];
-
-            // dropdown.element.length = 0;
-            // dropdown.element.add(new Option("–", "", false, false));
-            // dropdown.element.add(mixedOption);
+            options.value = [...options.value, {id: content.toString(), name: "[mixed value]"}]
 
           } else {
 
-            if (!options.some(option => option.id === value)) {
+            if (content.notFound) { // || !options.toArray().some(option => option.id === content.toString())) {
 
-              // value = options[0].id;
+              if (this.resource.createWhenNotFound) {
+
+  							this.createTask("create");
+
+  						}
+
+              // content = this.getDefault();
               //
-              // this.setValue(value);
-              // this.save();
-
-              value = this.initValue();
+              // if (!content.loading) {
+              //
+              //   this.setContent(content);
+              //
+              //   KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
+              //
+              // }
 
             }
 
           }
 
-          if (dropdown.element.childElementCount !== options.length) {
+          const value = content.toString();
+
+          // if (true || dropdown.element.childElementCount !== options.toArray().length) {
+
+          const optionsArray = options.toArray();
+          const elementOptions = [...dropdown.element.options];
+
+          if (elementOptions.length !== optionsArray.length || elementOptions.some((option, index) => option.value !== optionsArray[index].id)) {
 
             dropdown.element.length = 0;
 
-            for (let option of options) {
+            for (let option of options.toArray()) {
 
               let optionElement;
 
@@ -279,23 +236,32 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
             }
 
-          } else if (value !== dropdown.element.value && value !== KarmaFieldsAlpha.mixed) {
+          } else if (value !== dropdown.element.value && !content.mixed) {
 
             dropdown.element.value = value || "";
 
           }
 
 
-
-
-
           dropdown.element.onchange = event => {
 
-            this.setValue(dropdown.element.value);
-            this.render();
-            this.save("change", "Change dropdown value");
+            const key = this.getKey();
+            // const content = new KarmaFieldsAlpha.Content(dropdown.element.value);
+
+            this.save("change", "Change");
+
+            this.parent.setValue(dropdown.element.value, key);
+
+
+            this.request("render");
 
           }
+
+          dropdown.element.onfocus = event => {
+
+						this.setFocus(content.mixed);
+
+					}
 
           dropdown.element.onmousedown = event => {
 
@@ -303,22 +269,9 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
           }
 
+          dropdown.element.disabled = this.isDisabled();
 
-          if (this.resource.disabled) {
-
-            dropdown.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parent.parse(this.resource.disabled));
-
-          }
-
-          if (this.resource.enabled) {
-
-            dropdown.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parent.parse(this.resource.enabled));
-
-          }
-
-          const modified = this.modified();
-
-          dropdown.element.parentNode.classList.toggle("modified", Boolean(modified));
+          dropdown.element.parentNode.classList.toggle("modified", Boolean(content.modified));
 
         }
 
@@ -326,5 +279,39 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		};
 	}
+
+
+  // build() {
+  //
+	// 	return {
+	// 		tag: "select",
+	// 		class: "dropdown karma-field",
+	// 		init: dropdown => {
+  //
+  //       // let content = this.getContent();
+  //       // let options = this.getOptions();
+  //
+  //       let value = "x";
+  //       let options = {
+  //         value: [
+  //           {id: "x", name: "X"},
+  //           {id: "y", name: "Y"},
+  //           {id: "z", name: "Z"},
+  //         ],
+  //         toArray: () => options.value
+  //       };
+  //
+  //       for (let option of options.toArray()) {
+  //
+  //         let optionElement = new Option(option.name, option.id, value === option.id, value === option.id);
+  //
+  //         dropdown.element.add(optionElement);
+  //
+  //       }
+  //
+	// 		}
+  //
+	// 	};
+	// }
 
 }

@@ -15,7 +15,7 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
   start(index) {
 
     // if (index > -1 && this.selection && KarmaFieldsAlpha.Segment.contain(this.selection, index)) {
-    if (index > -1 && KarmaFieldsAlpha.Segment.contain(this.selection, index)) {
+    if (index > -1 && this.state.selection && KarmaFieldsAlpha.Segment.contain(this.state.selection, index)) {
 
       this.dragging = true;
 
@@ -35,7 +35,7 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
 
     if (this.dragging) {
 
-      this.drag();
+      this.drag(index);
 
     } else {
 
@@ -69,12 +69,19 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
     this.originX = this.x;
     this.originY = this.y;
 
-    const elements = this.slice(this.selection.index, this.selection.length);
+    if (this.onDragBegin) {
+
+      this.onDragBegin(index); // -> for block library
+
+    }
+
+    const elements = this.slice(this.state.selection.index, this.state.selection.length);
 
     this.originPosition = this.getPosition(elements);
+    this.lastPosition = this.originPosition;
 
-    this.originSelection = this.selection;
-    this.lastSelection = this.selection;
+    this.originState = this.state;
+    this.lastState = this.state;
 
     // this.originIndex = this.selection.index;
     // this.lastIndex = this.selection.index;
@@ -99,7 +106,8 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
 
 
     let children = this.getChildren();
-    let elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+    // let elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
+    let elements = this.slice(this.state.selection.index, this.state.selection.length, children);
 
     if (!elements.length) {
 
@@ -121,17 +129,20 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
 
         // this.onSwap(this.lastIndex, this.selection.index, this.selection.length, this.lastPath, this.path);
 
-        this.onSwap(this.selection, this.lastSelection);
+        this.onSwap(this.state, this.lastState);
 
       }
+
+      // debugger;
 
       // this.lastIndex = this.selection.index;
       // this.lastPath = this.path;
 
-      this.lastSelection = this.selection;
+      this.lastState = this.state;
 
       children = this.getChildren();
-      elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      // elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
+      elements = this.slice(this.state.selection.index, this.state.selection.length, children);
 
       translate = this.getTranslate(elements);
 
@@ -149,19 +160,21 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
 
   swapAbove (children, translateX, translateY) {
 
-    const pivot = children[this.selection.index - 1];
+    const pivot = children[this.state.selection.index - 1];
 
     if (pivot) {
 
-      const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      const elements = this.slice(this.state.selection.index, this.state.selection.length);
 
       if (this.clientDiffY < 0 && elements[0].offsetTop + translateY < pivot.offsetTop + pivot.clientHeight/2) {
 
         this.insertElements(this.container, elements, pivot);
 
-        this.selection = {
-          index: this.selection.index - 1,
-          length: this.selection.length
+        this.state = {
+          selection: {
+            index: this.state.selection.index - 1,
+            length: this.state.selection.length
+          }
         };
 
         return true;
@@ -175,19 +188,21 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
   swapBelow (children, translateX, translateY) {
 
 
-    const pivot = children[this.selection.index + this.selection.length];
+    const pivot = children[this.state.selection.index + this.state.selection.length];
 
     if (pivot) {
 
-      const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      const elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
 
       if (this.clientDiffY > 0 && elements[elements.length-1].offsetTop + elements[elements.length-1].clientHeight + translateY > pivot.offsetTop + pivot.clientHeight/2) {
 
         this.insertElements(this.container, elements, pivot.nextElementSibling);
 
-        this.selection = {
-          index: this.selection.index + 1,
-          length: this.selection.length
+        this.state = {
+          selection: {
+            index: this.state.selection.index + 1,
+            length: this.state.selection.length
+          }
         };
 
         return true;
@@ -200,7 +215,7 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
 
   endDrag() {
 
-    const elements = this.slice(this.selection.index, this.selection.length);
+    const elements = this.slice(this.state.selection.index, this.state.selection.length);
 
     elements.forEach(element => {
       element.classList.remove("drag");
@@ -211,8 +226,8 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
 
     if (this.onSort) {
 
-      // this.onSort(this.originIndex, this.selection.index, this.selection.length);
-      this.onSort(this.selection, this.originSelection);
+      // this.onSort(this.originIndex, this.state.index, this.selection.length);
+      this.onSort(this.state, this.originState);
 
     }
 
@@ -272,6 +287,8 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
       }
 
     }
+
+    this.children = null;
 
   }
 

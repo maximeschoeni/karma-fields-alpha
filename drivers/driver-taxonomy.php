@@ -11,6 +11,64 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
     global $wpdb;
 
     // foreach ($data as $id => $item) {
+                        //
+                        //
+    										// var_dump($id, get_current_user_id(), current_user_can('edit_term', $id));
+    										// die();
+
+
+    if (!current_user_can('edit_term', $id)) {
+
+      return false;
+
+    }
+
+    // var_dump(current_user_can('edit_term', $id)); die();
+
+    // var_dump(current_user_can('manage_categories')); die();
+//
+    // if (!current_user_can('edit_posts')) {
+    //
+    //   return false;
+    //
+    // }
+
+
+    $trash_prefix = '_trashed_';
+
+
+
+
+    if (isset($data['trash'])) {
+
+      if ($data['trash'] && $data['trash'][0] === '1') {
+
+        $term = get_term($id);
+
+        if ($term) {
+
+          $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => "$trash_prefix$term->taxonomy"), array('term_id' => $id), array('%s'), array('%d'));
+
+        } // else term is probably already trashed...
+
+        return true;
+
+      } else {
+
+        $id = intval($id);
+        $trashed_taxonomy = $wpdb->get_var("SELECT taxonomy FROM $wpdb->term_taxonomy WHERE term_id = $id AND taxonomy LIKE '$trash_prefix%'");
+
+        if ($trashed_taxonomy) {
+
+          $taxonomy = substr($trashed_taxonomy, strlen($trash_prefix));
+
+          $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => $taxonomy), array('term_id' => $id), array('%s'), array('%d'));
+
+        }
+
+      }
+
+    }
 
 
 
@@ -20,12 +78,19 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
       $term = get_term($id);
 
+
+
+
       foreach ($data as $key => $value) {
 
         if (apply_filters('karma_fields_taxonomy_driver_update', null, $value, $key, $id, $args) === null) {
 
           switch ($key) {
 
+            case 'trash':
+              break;
+
+            case 'parent':
             case 'name':
             case 'slug':
             case 'description':
@@ -34,41 +99,27 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
             default:
 
-              // if (post_type_exists($key)) { // -> posttype. Todo: check if taxonomy is attached to posttype
-              //
-              //   $value = array_filter(array_map('intval', $value));
-              //
-              //   foreach ($value as $post_id) {
-              //
-              //     wp_set_post_terms($post_id, array($id), $term->taxonomy, true);
-              //
-              //   }
-              //
-              // } else { // -> meta
+              $value = apply_filters('karma_fields_taxonomy_driver_update_meta', $value, $key, $id);
 
-                $value = apply_filters('karma_fields_taxonomy_driver_update_meta', $value, $key, $id);
+              $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->termmeta WHERE meta_key = %s AND term_id = %d", $key, $id ) );
 
-                $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->termmeta WHERE meta_key = %s AND term_id = %d", $key, $id ) );
+              for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
 
-                for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
+                if (isset($value[$i], $meta_ids[$i])) {
 
-                  if (isset($value[$i], $meta_ids[$i])) {
+                  update_metadata_by_mid( 'term', $meta_ids[$i], $value[$i]);
 
-                    update_metadata_by_mid( 'term', $meta_ids[$i], $value[$i]);
+                } else if (isset($value[$i])) {
 
-                  } else if (isset($value[$i])) {
+                  add_metadata( 'term', $id, $key, $value[$i] );
 
-                    add_metadata( 'term', $id, $key, $value[$i] );
+                } else if (isset($meta_ids[$i])) {
 
-                  } else if (isset($meta_ids[$i])) {
-
-                    delete_metadata_by_mid( 'term', $meta_ids[$i] );
-
-                  }
+                  delete_metadata_by_mid( 'term', $meta_ids[$i] );
 
                 }
 
-              // }
+              }
 
           }
 
@@ -78,53 +129,92 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
 
       if ($args) {
 
-        wp_update_term($id, $term->taxonomy, $args);
+        $r = wp_update_term($id, $term->taxonomy, $args);
 
       }
 
-    // }
+    // wp_update_term() doesn't work if this is placed before !
+    if (isset($data['taxonomy'][0])) {
+
+      $r = $wpdb->update($wpdb->term_taxonomy, array('taxonomy' => $data['taxonomy'][0]), array('term_id' => $id), array('%s'), array('%d'));
+
+    }
 
     return true;
   }
 
-
-
-  /** DEPRECATED
-	 * join
+  /**
+	 * add
 	 */
-  public function join($params) {
+  public function add($data) {
     global $wpdb;
 
-    $ids = explode(',', $params['ids']);
-    $ids = array_filter($ids);
+    if (!current_user_can('manage_categories')) {
 
-    if ($ids) {
-
-      $ids = array_map('intval', $ids);
-      $sql_ids = implode(',', $ids);
-
-      $sql = "SELECT
-        tt.taxonomy AS 'key',
-        tt.term_id AS 'value',
-        tr.object_id AS 'id'
-        FROM $wpdb->term_relationships AS tr
-        INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
-        WHERE tr.object_id IN ($sql_ids)";
-
-			$results = $wpdb->get_results($sql);
-
-      return $results;
-
-    } else {
-
-      return array();
+      return false;
 
     }
 
+    // $uid = uniqid();
+    // $name = "[new term $uid]";
+    $taxonomy = 'post_tag';
 
 
+    // $results = wp_insert_term($name, $taxonomy);
+
+
+
+    $wpdb->insert($wpdb->terms, array('name' => ''), array('%s'));
+
+    $term_id = (int) $wpdb->insert_id;
+
+    $wpdb->insert($wpdb->term_taxonomy, array('taxonomy' => $taxonomy, 'term_id' => $term_id), array('%s', '%d'));
+
+    return $term_id;
+		// return new WP_Error( 'db_insert_error', __( 'Could not insert term into the database.' ), $wpdb->last_error );
+
+    // return $results['term_id'];
 
   }
+
+
+
+  // /** DEPRECATED
+	//  * join
+	//  */
+  // public function join($params) {
+  //   global $wpdb;
+  //
+  //   $ids = explode(',', $params['ids']);
+  //   $ids = array_filter($ids);
+  //
+  //   if ($ids) {
+  //
+  //     $ids = array_map('intval', $ids);
+  //     $sql_ids = implode(',', $ids);
+  //
+  //     $sql = "SELECT
+  //       tt.taxonomy AS 'key',
+  //       tt.term_id AS 'value',
+  //       tr.object_id AS 'id'
+  //       FROM $wpdb->term_relationships AS tr
+  //       INNER JOIN $wpdb->term_taxonomy AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id
+  //       WHERE tr.object_id IN ($sql_ids)";
+  //
+	// 		$results = $wpdb->get_results($sql);
+  //
+  //     return $results;
+  //
+  //   } else {
+  //
+  //     return array();
+  //
+  //   }
+  //
+  //
+  //
+  //
+  // }
 
 
   //
@@ -275,7 +365,8 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
           break;
 
         case 'ids':
-          $args['ids'] = explode(',', $value);
+        case 'id':
+          $args['include'] = explode(',', $value);
           break;
 
         default:
@@ -308,6 +399,11 @@ Class Karma_Fields_Alpha_Driver_Taxonomy {
     $args = $this->get_args($params);
 
     // $args['update_term_meta_cache'] = false;
+
+
+
+
+
 
     $terms = get_terms($args);
 

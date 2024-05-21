@@ -2,18 +2,22 @@
 KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
 
 
-  constructor(container, selection, path) {
+  constructor(container, selection, hierarchical, ...path) {
 
     super(container, selection);
 
-    this.selection.path = path || [];
+    this.state.path = path || [];
 
-    this.swapers = [
-      this.swapInAbove,
-      this.swapInBelow,
-      this.swapOutAbove,
-      this.swapOutBelow
-    ];
+    if (hierarchical) {
+
+      this.swapers = [
+        this.swapInAbove,
+        this.swapInBelow,
+        this.swapOutAbove,
+        this.swapOutBelow
+      ];
+
+    }
 
     this.trespass = 10;
 
@@ -21,11 +25,11 @@ KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
 
   swapInAbove(children, tx, ty) {
 
-    const pivot = children[this.selection.index - 1];
+    const pivot = children[this.state.selection.index - 1];
 
     if (this.clientDiffY < 0 && pivot) {
 
-      const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      const elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
       const child = this.findChild(pivot);
 
       if (elements[0].offsetTop + ty < pivot.offsetTop + pivot.clientHeight - this.trespass) {
@@ -33,9 +37,15 @@ KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
         this.container = child;
 
         const index = child.childElementCount;
-        const path = [...this.selection.path, this.selection.index -1]
+        const path = [...this.state.path, this.state.selection.index -1]
 
-        this.selection = {index: index, length: this.selection.length, path: path};
+        this.state = {
+          selection: {
+            index: index,
+            length: this.state.selection.length
+          },
+          path: path
+        };
 
         this.insertElements(this.container, elements);
 
@@ -49,11 +59,12 @@ KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
 
   swapInBelow(children, tx, ty) {
 
-    const pivot = children[this.selection.index + 1];
+    // const pivot = children[this.state.selection.index + 1];
+    const pivot = children[this.state.selection.index + this.state.selection.length];
 
     if (this.clientDiffY > 0 && pivot) {
 
-      const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      const elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
       const child = this.findChild(pivot);
       const last = elements[elements.length - 1];
 
@@ -64,9 +75,17 @@ KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
         this.container = child;
 
         const index = 0;
-        const path = [...this.selection.path, this.selection.index];
+        const path = [...this.state.path, this.state.selection.index];
 
-        this.selection = {index: 0, length: this.selection.length, path: path};
+        this.state = {
+          selection: {
+            index: 0,
+            length: this.state.selection.length
+          },
+          path: path
+        };
+
+        // debugger;
 
         this.insertElements(child, elements, child.firstElementChild);
 
@@ -80,22 +99,28 @@ KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
 
   swapOutAbove(children, tx, ty) {
 
-    if (this.clientDiffY < 0 && this.selection.index === 0) {
+    if (this.clientDiffY < 0 && this.state.selection.index === 0) {
 
-      const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      const elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
 
       const parent = this.container.parentNode.closest(".dropzone");
 
       if (parent && elements[0].offsetTop + ty < -this.trespass) {
 
-        const index = this.selection.path[this.selection.path.length-1];
-        const path = this.selection.path.slice(0, -1);
+        const index = this.state.path[this.state.path.length-1];
+        const path = this.state.path.slice(0, -1);
 
         this.container = parent;
 
         this.insertElements(this.container, elements, this.container.children[index]);
 
-        this.selection = {...this.selection, index: index, path: path};
+        this.state = {
+          selection: {
+            index: index,
+            length: this.state.selection.length
+          },
+          path: path
+        };
 
         return true;
 
@@ -107,22 +132,28 @@ KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
 
   swapOutBelow(children, tx, ty) {
 
-    if (this.clientDiffY > 0 && this.selection.index + this.selection.length === children.length) {
+    if (this.clientDiffY > 0 && this.state.selection.index + this.state.selection.length === children.length) {
 
-      const elements = children.slice(this.selection.index, this.selection.index + this.selection.length);
+      const elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
       const last = elements[elements.length - 1];
       const parent = this.container.parentNode.closest(".dropzone"); // -> should not search below root
 
       if (parent && last.offsetTop + last.clientHeight + ty > this.container.clientHeight + this.trespass) {
 
-        let newIndex = this.selection.path[this.selection.path.length-1] + 1;
-        let path = this.selection.path.slice(0, -1);
+        let newIndex = this.state.path[this.state.path.length-1] + 1;
+        let path = this.state.path.slice(0, -1);
 
         this.container = parent;
 
         this.insertElements(this.container, elements, this.container.children[newIndex]);
 
-        this.selection = {...this.selection, index: newIndex, path: path};
+        this.state = {
+          selection: {
+            index: newIndex,
+            length: this.state.selection.length
+          },
+          path: path
+        }
 
         return true;
 
@@ -131,6 +162,67 @@ KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
     }
 
   }
+
+
+  swapAbove (children, translateX, translateY) {
+
+    const pivot = children[this.state.selection.index - 1];
+
+    if (pivot) {
+
+      const elements = this.slice(this.state.selection.index, this.state.selection.length);
+
+      if (this.clientDiffY < 0 && elements[0].offsetTop + translateY < pivot.offsetTop + pivot.clientHeight/2) {
+
+        this.insertElements(this.container, elements, pivot);
+
+        this.state = {
+          path: [...this.state.path],
+          selection: {
+            index: this.state.selection.index - 1,
+            length: this.state.selection.length
+          }
+        };
+
+        return true;
+
+      }
+
+    }
+
+  }
+
+  swapBelow (children, translateX, translateY) {
+
+
+    const pivot = children[this.state.selection.index + this.state.selection.length];
+
+    if (pivot) {
+
+      const elements = children.slice(this.state.selection.index, this.state.selection.index + this.state.selection.length);
+
+      if (this.clientDiffY > 0 && elements[elements.length-1].offsetTop + elements[elements.length-1].clientHeight + translateY > pivot.offsetTop + pivot.clientHeight/2) {
+
+        this.insertElements(this.container, elements, pivot.nextElementSibling);
+
+        this.state = {
+          path: [...this.state.path],
+          selection: {
+            index: this.state.selection.index + 1,
+            length: this.state.selection.length
+          }
+        };
+
+        return true;
+
+      }
+
+    }
+
+  }
+
+
+
 
   //
   //
@@ -428,7 +520,7 @@ KarmaFieldsAlpha.ListSortHierarchy = class extends KarmaFieldsAlpha.ListSorter {
     const position = super.getPosition(elements);
 
     let container = this.container;
-    let depth = this.selection.path.length;
+    let depth = this.state.path.length;
 
     while (depth > 0 && container) {
 

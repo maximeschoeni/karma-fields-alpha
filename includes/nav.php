@@ -5,7 +5,7 @@
 		--border-radius: 3px;
   }
 	.karma-fields .karma-field-table h1 {
-		color: var(--text-color);
+		/* color: var(--text-color); */
 	}
 </style>
 <div id="board" class="karma-fields"></div>
@@ -24,12 +24,20 @@
 			// uid: index.toString()
 		});
 
+		field.uid = "saucer";
+		field.id = "saucer";
+
 		KarmaFieldsAlpha.embeds.push({
 			...resource,
 			index: "board",
 			type: "board"
-			// uid: index.toString()
 		});
+
+		// KarmaFieldsAlpha.Store.set({
+		// 	...resource,
+		// 	index: "board",
+		// 	type: "board"
+		// }, "embeds", index);
 
 
 

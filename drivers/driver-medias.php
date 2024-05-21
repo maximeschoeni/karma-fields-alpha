@@ -5,7 +5,7 @@
 
 require_once KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-posts.php';
 
-Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
+class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
 
 
   /**
@@ -16,62 +16,103 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
 
     $args = $this->get_query_args($params);
 
-    if (isset($params['parent'])) {
-
-      $parent_id = intval($params['parent']);
-
-      $folder_ids = $wpdb->get_col(
-        "SELECT p.ID FROM $wpdb->posts AS p
-        INNER JOIN $wpdb->posts AS a ON (a.post_parent = p.ID)
-        WHERE a.post_type = 'attachment' AND p.post_status = 'publish' AND p.post_parent = $parent_id
-        GROUP BY p.ID"
-      );
-
-
-      $attachment_ids = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status = 'inherit' AND post_parent = $parent_id");
-
-      $args['post__in'] = array_merge(
-        $folder_ids,
-        $attachment_ids
-      );
-
-    } else if (empty($params['ids'])) {
-
-      $args['post_type'] = 'attachment'; // -> only if parent and ids are not set
-
-    }
-
-
+    // if (isset($params['parent'])) {
+    //
+    //   $parent_id = intval($params['parent']);
+    //
+    //   $uncanonical_folder_ids = $wpdb->get_col(
+    //     "SELECT p.ID FROM $wpdb->posts AS p
+    //     INNER JOIN $wpdb->posts AS a ON (a.post_parent = p.ID)
+    //     WHERE a.post_type = 'attachment' AND p.post_status = 'publish' AND p.post_parent = $parent_id
+    //     GROUP BY p.ID
+    //     ORDER BY p.post_title"
+    //   );
+    //
+    //   if ($uncanonical_folder_ids) {
+    //
+    //     $uncanonical_folder_ids_string = implode(',', array_map('intval', $uncanonical_folder_ids));
+    //
+    //     $folder_ids = $wpdb->get_col(
+    //       "SELECT ID FROM $wpdb->posts
+    //       WHERE ID IN ($uncanonical_folder_ids_string) OR (post_type = 'karma-folder' AND post_status = 'publish' AND post_parent = $parent_id)
+    //       ORDER BY post_title"
+    //     );
+    //
+    //   } else {
+    //
+    //     $folder_ids = $wpdb->get_col(
+    //       "SELECT ID FROM $wpdb->posts
+    //       WHERE post_type = 'karma-folder' AND post_status = 'publish' AND post_parent = $parent_id
+    //       ORDER BY post_title"
+    //     );
+    //
+    //   }
+    //
+    //   $attachment_ids = $wpdb->get_col(
+    //     "SELECT ID FROM $wpdb->posts
+    //     WHERE post_type = 'attachment' AND post_status = 'inherit' AND post_parent = $parent_id
+    //     ORDER BY post_title"
+    //   );
+    //
+    //   $args['post__in'] = array_merge(
+    //     $folder_ids,
+    //     $attachment_ids
+    //   );
+    //
+    //   $args['orderby'] = 'post__in';
+    //
+    // } else if (empty($params['ids'])) {
+    //
+    //   $args['post_type'] = 'attachment'; // -> only if parent and ids are not set
+    //
+    // }
 
     $args['no_found_rows'] = true;
-    $args['cache_results'] = false;
 
 
 
+    $files_args = $args;
+    $files_args['post_type'] = 'attachment';
+    $files_args['post_status'] = 'inherit';
 
-    // var_dump(get_post_types(array( 'exclude_from_search' => false )), $args);
+    $files_query = new WP_Query($files_args);
 
-    $query = new WP_Query($args);
-
-    // var_dump($query->request); die();
-
-    return array_map(function($post) {
+    $files = array_map(function($post) {
       return array(
-        // 'id' => (string) $post->ID,
         'ID' => (string) $post->ID,
         'post_date' => $post->post_date,
-        // 'parent' => (string) $post->post_parent,
         'post_parent' => (string) $post->post_parent,
-        // 'name' => $post->post_title,
         'post_title' => $post->post_title,
-        // 'caption' => $post->post_excerpt,
         'post_excerpt' => $post->post_excerpt,
         'post_content' => $post->post_content,
-        // 'mimetype' => $post->post_mime_type,
         'post_mime_type' => $post->post_mime_type,
-        'filetype' => $post->post_type === 'attachment' ? 'file' : 'folder'
+        'filetype' => 'file'
       );
-    }, $query->posts);
+    }, $files_query->posts);
+
+
+    $folders_args = $args;
+    $folders_args['post_status'] = 'publish';
+    $folders_args['post_type'] = apply_filters("karma_fields_medias_driver_folder_post_types", array('karma-folder'), $params);
+    $folders_args['orderby'] = 'title';
+    $folders_args['order'] = 'asc';
+
+    $folder_query = new WP_Query($folders_args);
+
+    $folders = array_map(function($post) {
+      return array(
+        'ID' => (string) $post->ID,
+        'post_date' => $post->post_date,
+        'post_parent' => (string) $post->post_parent,
+        'post_title' => $post->post_title,
+        'post_excerpt' => $post->post_excerpt,
+        'post_content' => $post->post_content,
+        'post_mime_type' => $post->post_mime_type,
+        'filetype' => 'folder'
+      );
+    }, $folder_query->posts);
+
+    return array_merge($folders, $files);
 
   }
 
@@ -123,6 +164,37 @@ Class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
     $query = new WP_Query($args);
 
     return apply_filters('karma_fields_posts_driver_query_count', $query->found_posts, $query, $args);
+
+  }
+
+
+  /**
+	 * add
+	 */
+  public function add($data) {
+    global $wpdb;
+
+
+    $data = (array) $data;
+
+    $data['post_type'] = 'karma-folder';
+    $data['post_status'] = 'publish';
+
+    return parent::add($data);
+
+  }
+
+  /**
+	 * update
+	 */
+  public function update($data, $id) {
+    global $wpdb;
+
+    $data = (array) $data;
+
+    unset($data['filetype']);
+
+    return parent::update($data, $id);
 
   }
 

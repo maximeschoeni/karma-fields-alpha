@@ -3,50 +3,118 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 	getDefault() {
 
-		if (this.resource.default) {
+		return this.parse(this.resource.default);
 
-			return this.parse(this.resource.default);
-
-		}
-
-		return [];
 	}
 
-	getValue(key) {
+	// getValue(key) {
+	//
+	// 	if (key) {
+	//
+	// 		const array = this.getValue();
+	//
+	// 		if (array) {
+	//
+	// 			if (array[0] === KarmaFieldsAlpha.mixed) {
+	//
+	// 				const mixedValues = this.getMixedValues();
+	//
+	// 				if (mixedValues.every(array => array.includes(key))) {
+	//
+	// 					return ["1"];
+	//
+	// 				} else if (!mixedValues.some(array => array.includes(key))) {
+	//
+	// 					return [""];
+	//
+	// 				} else {
+	//
+	// 					return [KarmaFieldsAlpha.mixed];
+	//
+	// 				}
+	//
+	// 		 	} else {
+	//
+	// 				if (array.includes(key)) {
+	//
+	// 					return ["1"];
+	//
+	// 				} else {
+	//
+	// 					return [""];
+	//
+	// 				}
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	} else {
+	//
+	// 		let array = super.getValue();
+	//
+	// 		if (array) {
+	//
+	// 			if (array.length === 0) {
+	//
+	// 				array = this.getDefault();
+	//
+	// 				if (array && array.length) {
+	//
+	// 					this.setValue(array);
+	//
+	// 				}
+	//
+	// 			}
+	//
+	// 			return array;
+	//
+	// 		}
+	//
+	// 	}
+	//
+  // }
 
-		if (key) {
+	getContent(subkey) {
 
-			const array = this.getValue();
+		if (subkey) {
 
-			if (array) {
+			const key = this.getKey();
+			const content = this.parent.getContent(key);
 
-				if (array[0] === KarmaFieldsAlpha.mixed) {
+			if (!content.loading) {
 
-					const mixedValues = this.getMixedValues();
+				const array = content.toArray();
 
-					if (mixedValues.every(array => array.includes(key))) {
+				if (content.mixed) {
 
-						return ["1"];
+					// const mixedValues = this.getMixedValues();
+					//
+					// if (mixedValues.every(array => array.includes(key))) {
+					//
+					// 	return ["1"];
+					//
+					// } else if (!mixedValues.some(array => array.includes(key))) {
+					//
+					// 	return [""];
+					//
+					// } else {
+					//
+					// 	return [KarmaFieldsAlpha.mixed];
+					//
+					// }
 
-					} else if (!mixedValues.some(array => array.includes(key))) {
-
-						return [""];
-
-					} else {
-
-						return [KarmaFieldsAlpha.mixed];
-
-					}
+					return content.mixed;
 
 			 	} else {
 
-					if (array.includes(key)) {
+					if (array.includes(subkey)) {
 
-						return ["1"];
+						return new KarmaFieldsAlpha.Content("1");
 
 					} else {
 
-						return [""];
+						return new KarmaFieldsAlpha.Content("");
 
 					}
 
@@ -56,51 +124,96 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 		} else {
 
-			let array = super.getValue();
+			const key = this.getKey();
 
-			if (array) {
-
-				if (array.length === 0) {
-
-					array = this.getDefault();
-
-					if (array && array.length) {
-
-						this.setValue(array);
-
-					}
-
-				}
-
-				return array;
-
-			}
+			return this.parent.getContent(key);
 
 		}
 
   }
 
-	setValue(value, key) {
+	// setContent(subcontent, subkey) {
+	//
+	// 	if (subkey) {
+	//
+	// 		const key = this.getKey();
+	// 		let content = super.getContent(key);
+	//
+	// 		if (!content.loading) {
+	//
+	// 			const array = content.toArray();
+	//
+	// 			if (subcontent.toString() === "1") {
+	//
+	// 				if (!array.includes(subkey)) {
+	//
+	// 					// this.setValue([...array, key]);
+	// 					content = content.clone();
+	// 					content.value = [...array, subkey];
+	// 					this.parent.setContent(content, key);
+	//
+	// 				}
+	//
+	// 			} else {
+	//
+	// 				if (array.includes(subkey)) {
+	//
+	// 					// this.setValue(array.filter(item => item !== key));
+	// 					content = content.clone();
+	// 					content.value = array.filter(item => item !== subkey);
+	// 					this.parent.setContent(content, key);
+	//
+	// 				}
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	} else {
+	//
+	// 		const key = this.getKey();
+	//
+	// 		this.parent.setContent(subcontent, key);
+	//
+	// 	}
+	//
+	// }
 
-		if (key) {
+	setValue(subvalue, subkey) {
 
-			const array = this.getValue();
+		if (subkey) {
 
-			if (array) {
+			const key = this.getKey();
+			let content = super.getContent(key);
 
-				if (value === "1") {
+			if (!content.loading) {
 
-					if (!array.includes(key)) {
+				const array = content.toArray();
 
-						this.setValue([...array, key]);
+				if (subvalue === "1") {
+
+					if (!array.includes(subkey)) {
+
+						// this.setValue([...array, key]);
+						// content = content.clone();
+						// content.value = [...array, subkey];
+						// this.parent.setContent(content, key);
+
+						this.parent.setValue([...array, subkey], key);
 
 					}
 
 				} else {
 
-					if (array.includes(key)) {
+					if (array.includes(subkey)) {
 
-						this.setValue(array.filter(item => item !== key));
+						// this.setValue(array.filter(item => item !== key));
+
+						// content = content.clone();
+						// content.value = array.filter(item => item !== subkey);
+						// this.parent.setContent(content, key);
+
+						this.parent.setValue(array.filter(item => item !== subkey), key);
 
 					}
 
@@ -110,7 +223,9 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 		} else {
 
-			super.setValue(value);
+			const key = this.getKey();
+
+			this.parent.setValue(value, key);
 
 		}
 
@@ -330,32 +445,71 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 
 
-	export(items = []) {
+	// export(items = []) {
+	//
+	// 	const array = this.getValue() || [];
+	// 	const grid = new KarmaFieldsAlpha.Grid();
+	//
+	// 	grid.addColumn(array);
+	//
+	// 	const csv = grid.toString();
+	//
+	// 	items.push(csv);
+	//
+  //   return items;
+	// }
+	//
+  // import(items) {
+	//
+	// 	const value = items.shift() || "";
+	//
+	// 	const grid = new KarmaFieldsAlpha.Grid(value);
+	//
+	// 	const array = grid.getColumn(0);
+	//
+	// 	this.setValue(array);
+	//
+	//
+  // }
 
-		const array = this.getValue() || [];
-		const grid = new KarmaFieldsAlpha.Grid();
 
-		grid.addColumn(array);
+	// as dropdown
+	getOptions() {
 
-		const csv = grid.toString();
+		return KarmaFieldsAlpha.field.dropdown.prototype.getOptions.call(this);
 
-		items.push(csv);
+		// let options;
+		//
+		// if (this.resource.options) {
+		//
+		// 	options = this.parse(this.resource.options);
+		//
+		// } else {
+		//
+    //   options = new KarmaFieldsAlpha.Content([]);
+		//
+    // }
+		//
+		// if (this.resource.driver) {
+		//
+    //   // const moreOptions = KarmaFieldsAlpha.Query.getResults(this.resource.driver, this.resource.params || {});
+		// 	const query = new KarmaFieldsAlpha.Content.Query(this.resource.driver, this.resource.params);
+		//
+    //   if (query.loading) {
+		//
+    //     options.loading = true;
+		//
+    //   } else {
+		//
+    //     options.value = [...options.toArray(), ...query.toArray()]
+		//
+    //   }
+		//
+		// }
+		//
+		// return options;
 
-    return items;
 	}
-
-  import(items) {
-
-		const value = items.shift() || "";
-
-		const grid = new KarmaFieldsAlpha.Grid(value);
-
-		const array = grid.getColumn(0);
-
-		this.setValue(array);
-
-
-  }
 
 	build() {
 		return {
@@ -363,11 +517,12 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 			update: dropdown => {
 
 				const options = this.getOptions();
-				let array = this.getValue();
+				// let array = this.getValue();
+				let content = this.getContent();
 
-				dropdown.element.classList.toggle("loading", !array);
+				dropdown.element.classList.toggle("loading", Boolean(content.loading || options.loading));
 
-				if (array && options) {
+				if (!content.loading && !options.loading) {
 
 					dropdown.child = {
 						tag: "ul",
@@ -377,7 +532,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 							}
 						},
 						update: ul => {
-							ul.children = options.map((option, index) => {
+							ul.children = options.toArray().map((option, index) => {
 								return {
 									tag: "li",
 									child: this.createChild({
@@ -386,10 +541,8 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 										text: option.name,
 										tag: "label",
 										false: "",
-										true: "1",
-										index: index,
-										uid: `${this.resource.uid}-${index}`
-									}).build()
+										true: "1"
+									}, index).build()
 								}
 							});
 						}

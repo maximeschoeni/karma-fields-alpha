@@ -1,9 +1,27 @@
 
 KarmaFieldsAlpha.DeepObject = class {
 
-  static get(object, key, ...path) {
+  // static get(object, key, ...path) {
+  //
+  //   if (key === undefined) {
+  //
+  //     return object;
+  //
+  // 	} else {
+  //
+  //     if (object) {
+  //
+  // 			return this.get(object[key], ...path);
+  //
+  // 		}
+  //
+  // 	}
+  //
+  // };
 
-    if (key === undefined) {
+  static get(object, ...path) {
+
+    if (path.length === 0) {
 
       return object;
 
@@ -11,7 +29,7 @@ KarmaFieldsAlpha.DeepObject = class {
 
       if (object) {
 
-  			return this.get(object[key], ...path);
+  			return this.get(object[path[0]], ...path.slice(1));
 
   		}
 
@@ -19,9 +37,27 @@ KarmaFieldsAlpha.DeepObject = class {
 
   };
 
+  // static get(object, key, ...path) {
+  //
+  //   if (object) {
+  //
+  //     if (path.length) {
+  //
+  //   		return this.get(object[key], ...path);
+  //
+  //   	} else {
+  //
+  //       return object[key];
+  //
+  //   	}
+  //
+  //   }
+  //
+  // };
+
   static set(object, value, key, ...path) {
 
-    if (key !== undefined) {
+    // if (key !== undefined) {
 
       if (path.length > 0) {
 
@@ -39,7 +75,7 @@ KarmaFieldsAlpha.DeepObject = class {
 
       }
 
-    }
+    // }
 
   }
 
@@ -53,15 +89,17 @@ KarmaFieldsAlpha.DeepObject = class {
 
       } else {
 
-        if (Array.isArray(object)) {
+        // if (Array.isArray(object)) {
+        //
+        //   object.splice(key, 1);
+        //
+        // } else if (object) {
+        //
+        //   delete object[key];
+        //
+        // }
 
-          object.splice(key, 1);
-
-        } else if (object) {
-
-          delete object[key];
-
-        }
+        delete object[key];
 
       }
 
@@ -625,12 +663,19 @@ console.error("deprecated");
   //   });
   // }
 
-  static some(object, callback, ...path) {
-console.error("deprecated");
-    if (Array.isArray(object)) {
-      return object.some((object, index) => this.some(object, callback, ...path, index));
-    } else if (object && typeof object === "object") {
-      return Object.some(object).some(([key, value]) => this.some(value, callback, ...path, key));
+  static some(object, callback, maxDepth = 999999, ...path) {
+// console.error("deprecated");
+    // if (Array.isArray(object)) {
+    //   return object.some((object, index) => this.some(object, callback, ...path, index));
+    // } else
+    if (object && typeof object === "object" && maxDepth > 0) {
+      // return Object.entries(object).some(([key, value]) => this.some(value, callback, maxDepth - 1));
+      for (let key in object) {
+        if (this.some(object[key], callback, maxDepth - 1, ...path, key)) {
+          return true;
+        }
+      }
+      return false;
     } else {
       return callback(object, ...path);
     }
@@ -750,14 +795,12 @@ console.error("deprecated");
   //   return typeof item === "string";
   // });
 
-  static filter(object, callback) {
-console.error("deprecated");
-    if (Array.isArray(object)) {
-      return object.filter(object => this.filter(object, callback) !== undefined);
-    } else if (object && typeof object === "object") {
-      let output = undefined;
+  static filter(object, callback, maxDepth = 999999, ...path) {
+// console.error("deprecated");
+    if (object && typeof object === "object" && maxDepth > 0) {
+      let output;
       for (let key in object) {
-        const child = this.filter(object[key], callback);
+        const child = this.filter(object[key], callback, maxDepth - 1, ...path, key);
         if (child !== undefined) {
           if (!output) {
             output = {};
@@ -766,7 +809,7 @@ console.error("deprecated");
         }
       }
       return output;
-    } else if (callback(object)) {
+    } else if (callback(object, ...path)) {
       return object;
     }
   }

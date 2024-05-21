@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '60';
+	public $version = '78';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -22,6 +22,8 @@ class Karma_Fields_Alpha {
 	 *	constructor
 	 */
 	public function __construct() {
+
+
 
 		// require KARMA_FIELDS_ALPHA_PATH . '/class-posts.php';
 		// require KARMA_FIELDS_ALPHA_PATH . '/class-medias.php';
@@ -49,7 +51,7 @@ class Karma_Fields_Alpha {
 			// add_action('karma_fields_alpha', array($this, 'print_field'));
 
 			add_action('karma_fields_post_field', array($this, 'print_post_field'), 10, 2);
-			add_action('karma_fields_term_field', array($this, 'print_term_field'), 10, 2);
+			add_action('karma_fields_term_field', array($this, 'print_term_field'), 10, 3);
 
 			add_action('karma_fields_option_field', array($this, 'print_option_field'), 10, 2);
 
@@ -60,7 +62,8 @@ class Karma_Fields_Alpha {
 			add_action('admin_footer', array($this, 'print_nav'));
 
 
-			add_action('save_post', array($this, 'save'), 10, 3);
+			add_action('save_post', array($this, 'save_post'), 10, 3);
+			// add_action('init', array($this, 'save'));
 			add_action('edit_term', array($this, 'save_term'), 10, 3);
 
       // clipboard
@@ -94,6 +97,10 @@ class Karma_Fields_Alpha {
 
 			wp_dequeue_script('wp-emoji-release'); // wp-emoji-release.min.js?ver=6.0
 
+			// wp_dequeue_script( 'jquery');
+			// wp_deregister_script( 'jquery');
+
+
 			// wp_enqueue_style('karma-styles-date-field', $plugin_url . '/css/date-field.css', array(), $this->version);
 			// wp_enqueue_style('multimedia-styles', $plugin_url . '/css/multimedia.css', array(), $this->version);
 			// wp_enqueue_style('karma-styles-alpha-grid', $plugin_url . '/css/grid.css', array(), $this->version);
@@ -110,6 +117,9 @@ class Karma_Fields_Alpha {
 			// wp_enqueue_style('karma-fields-alpha-navigation', $plugin_url . '/css/navigation.css', array(), $this->version);
 
 			wp_enqueue_style('karma-fields-alpha-styles', $plugin_url . '/css/karma-fields.css', array(), $this->version);
+			// wp_enqueue_style('karma-fields-alpha-theme-blue-styles', $plugin_url . '/css/karma-fields-theme-blue.css', array(), $this->version);
+
+			wp_enqueue_editor();
 
 			wp_enqueue_media();
 
@@ -117,12 +127,14 @@ class Karma_Fields_Alpha {
 			// var_dump($plugin_path.'/js/all.min.js', file_exists($plugin_path));
 			// die('asdf');
 
-			if (false) {
+			// if (false) {
+			//
+			// 	// wp_enqueue_script('karma-fields', $plugin_url . '/js/media.js', array(), $this->version, true);
+			// 	wp_enqueue_script('karma-fields-alpha', $plugin_url . '/js/all.js', array('karma-fields'), $this->version, true);
+			//
+			// } else {
 
-				// wp_enqueue_script('karma-fields', $plugin_url . '/js/media.js', array(), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha', $plugin_url . '/js/all.js', array('karma-fields'), $this->version, true);
-
-			} else {
+				// wp_enqueue_script('tinymce6', $plugin_url . '/js/vendor/tinymce.min.js', array(), $this->version, true);
 
 
 
@@ -131,8 +143,8 @@ class Karma_Fields_Alpha {
 
 				// fields
 				wp_enqueue_script('karma-fields-alpha-field', $plugin_url . '/js/fields/field.js', array('karma-fields-alpha-build'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-container', $plugin_url . '/js/fields/container.js', array('karma-fields-alpha-field'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-group', $plugin_url . '/js/fields/group.js', array('karma-fields-alpha-container'), $this->version, true);
+				// wp_enqueue_script('karma-fields-alpha-container', $plugin_url . '/js/fields/container.js', array('karma-fields-alpha-field'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-group', $plugin_url . '/js/fields/group.js', array('karma-fields-alpha-field'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-form', $plugin_url . '/js/fields/form.js', array('karma-fields-alpha-container'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-input', $plugin_url . '/js/fields/input.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-date', $plugin_url . '/js/fields/date.js', array('karma-fields-alpha-input', 'moment'), $this->version, true);
@@ -142,14 +154,8 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-textarea', $plugin_url . '/js/fields/textarea.js', array('karma-fields-alpha-input'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-text', $plugin_url . '/js/fields/text.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-button', $plugin_url . '/js/fields/button.js', array('karma-fields-alpha-text'), $this->version, true);
-				// wp_enqueue_script('karma-fields-alpha-submit', $plugin_url . '/js/fields/submit.js', array('karma-fields-alpha-button'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-array', $plugin_url . '/js/fields/array.js', array('karma-fields-alpha-field'), $this->version, true);
-				// wp_enqueue_script('karma-fields-alpha-link', $plugin_url . '/js/fields/link.js', array('karma-fields-alpha-text'), $this->version, true);
+				// wp_enqueue_script('karma-fields-alpha-array', $plugin_url . '/js/fields/array.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-separator', $plugin_url . '/js/fields/separator.js', array('karma-fields-alpha-field'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-tags', $plugin_url . '/js/fields/tags.js', array('karma-fields-alpha-field'), $this->version, true);
-				// wp_enqueue_script('karma-fields-alpha-tag-links', $plugin_url . '/js/fields/tag-links.js', array('karma-fields-alpha-field'), $this->version, true);
-				// wp_enqueue_script('karma-fields-alpha-gallery', $plugin_url . '/js/fields/gallery.js', array('karma-fields-alpha-field'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-files', $plugin_url . '/js/fields/files.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-hidden', $plugin_url . '/js/fields/hidden.js', array('karma-fields-alpha-field'), $this->version, true);
 
 				// beta
@@ -175,8 +181,26 @@ class Karma_Fields_Alpha {
 
 				wp_enqueue_script('karma-fields-alpha-grid', $plugin_url . '/js/tables/grid.js', array('karma-fields-alpha-field'), $this->version, true);
 				// wp_enqueue_script('karma-fields-alpha-grid-modal', $plugin_url . '/js/tables/modal.js', array('karma-fields-alpha-grid'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-medias', $plugin_url . '/js/tables/medias.js', array('karma-fields-alpha-grid'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-hierarchy', $plugin_url . '/js/tables/hierarchy.js', array('karma-fields-alpha-grid'), $this->version, true);
+
+				// wp_enqueue_script('karma-fields-alpha-hierarchy', $plugin_url . '/js/tables/hierarchy.js', array('karma-fields-alpha-grid'), $this->version, true);
+
+				// wp_enqueue_script('karma-fields-alpha-gridfield', $plugin_url . '/js/tables/grid-field.js', array('karma-fields-alpha-grid'), $this->version, true);
+
+
+				wp_enqueue_script('karma-fields-alpha-form', $plugin_url . '/js/fields/form.js', array('karma-fields-alpha-field'), $this->version, true);
+
+				wp_enqueue_script('karma-fields-alpha-table', $plugin_url . '/js/tables/table-field.js', array('karma-fields-alpha-form'), $this->version, true);
+
+				wp_enqueue_script('karma-fields-alpha-medias', $plugin_url . '/js/tables/medias.js', array('karma-fields-alpha-table', 'karma-fields-alpha-grid'), $this->version, true);
+
+
+				wp_enqueue_script('karma-fields-alpha-array', $plugin_url . '/js/fields/array.js', array('karma-fields-alpha-table'), $this->version, true);
+
+				wp_enqueue_script('karma-fields-alpha-tags', $plugin_url . '/js/fields/tags.js', array('karma-fields-alpha-form'), $this->version, true);
+
+				wp_enqueue_script('karma-fields-alpha-files', $plugin_url . '/js/fields/files.js', array('karma-fields-alpha-tags'), $this->version, true);
+
+				wp_enqueue_script('karma-fields-alpha-popup', $plugin_url . '/js/tables/popup.js', array('karma-fields-alpha-table'), $this->version, true);
 
 
 
@@ -188,7 +212,7 @@ class Karma_Fields_Alpha {
 
 
         // embed
-        wp_enqueue_script('karma-fields-alpha-post-form', $plugin_url . '/js/fields/post-form.js', array(), $this->version, true);
+        wp_enqueue_script('karma-fields-alpha-post-form', $plugin_url . '/js/fields/post-form.js', array('karma-fields-alpha-form'), $this->version, true);
 
 
 
@@ -201,10 +225,10 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-segment', $plugin_url . '/js/utils/segment.js', array(), $this->version, true);
 				// wp_enqueue_script('karma-fields-utils-buffer', $plugin_url . '/js/utils/buffer.js', array('karma-fields-utils-deep-object'), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-params', $plugin_url . '/js/utils/params.js', array(), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-expression', $plugin_url . '/js/utils/expression.js', array(), $this->version, true);
+
 				wp_enqueue_script('karma-fields-utils-type', $plugin_url . '/js/utils/type.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-history', $plugin_url . '/js/utils/history.js', array(), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-clipboard', $plugin_url . '/js/utils/clipboard.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-clipboard', $plugin_url . '/js/utils/clipboard.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-grid', $plugin_url . '/js/utils/grid.js', array(), $this->version, true);
 
 				// wp_enqueue_script('karma-fields-utils-selection-manager', $plugin_url . '/js/utils/manager-selection.js', array(), $this->version, true);
@@ -222,16 +246,29 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-utils-selection', $plugin_url . '/js/utils/selection.js', array('karma-fields-utils-segment'), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-tree', $plugin_url . '/js/utils/tree.js', array(), $this->version, true);
 
-        wp_enqueue_script('karma-fields-utils-query', $plugin_url . '/js/utils/query.js', array(), $this->version, true);
         // wp_enqueue_script('karma-fields-utils-delta', $plugin_url . '/js/utils/delta.js', array(), $this->version, true);
         // wp_enqueue_script('karma-fields-utils-terminal', $plugin_url . '/js/utils/terminal.js', array(), $this->version, true);
         // wp_enqueue_script('karma-fields-utils-utils', $plugin_url . '/js/utils/utils.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-store', $plugin_url . '/js/utils/store.js', array(), $this->version, true);
 				// wp_enqueue_script('karma-fields-utils-timing', $plugin_url . '/js/utils/timing.js', array(), $this->version, true);
 
-				wp_enqueue_script('karma-fields-utils-backup', $plugin_url . '/js/utils/backup.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-backup', $plugin_url . '/js/utils/backup.js', array(), $this->version, true);
 
 				wp_enqueue_script('karma-fields-utils-embed', $plugin_url . '/js/utils/embed.js', array(), $this->version, true);
+
+				wp_enqueue_script('karma-fields-utils-database', $plugin_url . '/js/utils/database.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-content', $plugin_url . '/js/utils/content.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-expression', $plugin_url . '/js/utils/expression.js', array('karma-fields-utils-content'), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-query', $plugin_url . '/js/utils/query.js', array('karma-fields-utils-content'), $this->version, true);
+
+				wp_enqueue_script('karma-fields-utils-remote', $plugin_url . '/js/utils/remote.js', array(), $this->version, true);
+
+				wp_enqueue_script('karma-fields-utils-task', $plugin_url . '/js/utils/task.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-model', $plugin_url . '/js/utils/model.js', array(), $this->version, true);
+
+
+				wp_enqueue_script('karma-fields-utils-shuttle', $plugin_url . '/js/utils/shuttle.js', array(), $this->version, true);
+
 
 
 				// handles
@@ -242,7 +279,11 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-handles-list-sorter', $plugin_url . '/js/utils/handles/list-sorter.js', array('karma-fields-handles-list-picker'), $this->version, true);
 				wp_enqueue_script('karma-fields-handles-list-sorter-inline', $plugin_url . '/js/utils/handles/list-sorter-inline.js', array('karma-fields-handles-list-sorter'), $this->version, true);
 				wp_enqueue_script('karma-fields-handles-list-sort-hierarchy', $plugin_url . '/js/utils/handles/list-sort-hierarchy.js', array('karma-fields-handles-list-sorter'), $this->version, true);
-
+				wp_enqueue_script('karma-fields-handles-list-sort-grid', $plugin_url . '/js/utils/handles/list-sort-grid.js', array('karma-fields-handles-list-sorter'), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-sort-block', $plugin_url . '/js/utils/handles/list-sort-block.js', array('karma-fields-handles-list-sort-hierarchy'), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-sort-block-library', $plugin_url . '/js/utils/handles/list-sort-block-library.js', array('karma-fields-handles-list-sort-block'), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-row-picker', $plugin_url . '/js/utils/handles/row-picker.js', array('karma-fields-handles-list-picker'), $this->version, true);
+				wp_enqueue_script('karma-fields-handles-list-drag-and-drop', $plugin_url . '/js/utils/handles/list-drag-and-drop.js', array('karma-fields-handles-list-sorter'), $this->version, true);
 
 
 
@@ -265,7 +306,7 @@ class Karma_Fields_Alpha {
 
 				wp_enqueue_script('karma-fields-alpha', $plugin_url . '/js/noop.js', array(), $this->version, true);
 
-			}
+			// }
 
 		}
 
@@ -357,7 +398,21 @@ class Karma_Fields_Alpha {
 	 */
 	public function init() {
 
-
+		register_post_type('karma-folder', array(
+      'labels'             => array(
+        'name' => 'Folders',
+        'singular_name' => 'Folder'
+      ),
+      'public'             => true,
+      'show_ui'            => false,
+      'query_var'          => false,
+      'publicly_queryable' => true,
+      'capability_type'    => 'post',
+      'has_archive'        => false,
+      'hierarchical'       => false,
+      'supports'           => array('title'),
+      'show_in_rest' => false
+    ));
 
 		$this->register_driver(
 			'posts',
@@ -401,14 +456,23 @@ class Karma_Fields_Alpha {
       )
 		);
 
-		// for taxonomies dropdown:
+
 		$this->register_driver(
-			'taxonomies',
-			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-taxonomies.php',
-			'Karma_Fields_Alpha_Driver_Taxonomies',
+			'postdate',
+			KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-postdate.php',
+			'Karma_Fields_Alpha_Driver_Postdate',
       array(),
       array()
 		);
+
+		// // for taxonomies dropdown:
+		// $this->register_driver(
+		// 	'taxonomies',
+		// 	KARMA_FIELDS_ALPHA_PATH.'/drivers/driver-taxonomies.php',
+		// 	'Karma_Fields_Alpha_Driver_Taxonomies',
+    //   array(),
+    //   array()
+		// );
 
 		// $this->register_driver(
 		// 	'termmeta',
@@ -523,6 +587,22 @@ class Karma_Fields_Alpha {
 
     do_action('karma_fields_init', $this);
 
+		// remove custom fields because it does weird things (even if hidden)
+		remove_post_type_support('post', 'custom-fields');
+		remove_post_type_support('page', 'custom-fields');
+
+	}
+
+	/**
+	 *  Save term meta
+   *	@hook edit_term
+   */
+	public function save_post($post_id, $post, $update) {
+
+		remove_action('save_post', array($this, 'save_post'), 10);
+
+		$this->save();
+
 	}
 
 	/**
@@ -531,93 +611,101 @@ class Karma_Fields_Alpha {
    */
 	public function save_term($term_id, $tt_id, $taxonomy) {
 
-		if (current_user_can('manage_categories')) {
+		remove_action('edit_term', array($this, 'save_term'), 10);
 
-			$action = "karma_field-action";
-			$nonce = "karma_field-nonce";
-
-	    if (isset($_REQUEST[$nonce]) && wp_verify_nonce($_POST[$nonce], $action)) {
-
-				if (isset($_REQUEST['karma-fields-items']) && $_REQUEST['karma-fields-items']) {
-
-					foreach ($_REQUEST['karma-fields-items'] as $encoded_input) {
-
-						if ($encoded_input) {
-
-							$encoded_input = stripslashes($encoded_input);
-							$input = json_decode($encoded_input, false);
-
-							if ($input) {
-
-								$driver = $this->get_driver('taxonomy');
-
-								if (method_exists($driver, 'update')) {
-
-									$driver->update($input, $term_id);
-
-								}
-
-							}
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
+		$this->save();
 
 	}
 
 	/**
 	 * Save meta boxes
 	 *
-	 * @hook 'save_post'
+	 * @hook 'init' // Capability ('edit_term') is not set on init hook!
 	 */
-	public function save($post_id, $post, $update) {
+	public function save() {
 
-		if (current_user_can('edit_post', $post_id) && (!defined( 'DOING_AUTOSAVE' ) || !DOING_AUTOSAVE )) {
+
+
+		// if (isset($_REQUEST['karma-fields-items'])
+		// 	&& (isset($_REQUEST['post_ID']) && current_user_can('edit_post', $_REQUEST['post_ID']) && (!defined( 'DOING_AUTOSAVE' ) || !DOING_AUTOSAVE )
+		// 		|| isset($_REQUEST['tag_ID'] && current_user_can('manage_categories')))) {
+
+		if (isset($_REQUEST['karma-fields-items']) && is_array($_REQUEST['karma-fields-items'])) {
 
 			$action = "karma_field-action";
 			$nonce = "karma_field-nonce";
 
 			if (isset($_REQUEST[$nonce]) && wp_verify_nonce($_POST[$nonce], $action)) {
 
-				if (isset($_REQUEST['karma-fields-items']) && $_REQUEST['karma-fields-items']) {
+				foreach ($_REQUEST['karma-fields-items'] as $encoded_input) { // -> Handle multiple metaboxes !!! ALL metabox have same output !!!
 
-					foreach ($_REQUEST['karma-fields-items'] as $encoded_input) {
+					if ($encoded_input) {
 
-						if ($encoded_input) {
+						$encoded_input = stripslashes($encoded_input);
+						$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input); // -> compat
+						$input = json_decode($encoded_input, $associative); // need parsed as array for blocks
 
-							$encoded_input = stripslashes($encoded_input);
-							$input = (array) json_decode($encoded_input, false);
+						if ($input) {
 
-							// var_dump($input); die();
+							// echo '<pre>';
+							// var_dump($input);
+							// die();
 
-							if ($input) {
+							foreach ($input as $driver_name => $data) {
 
-								$driver = $this->get_driver('posts');
+								$driver = $this->get_driver($driver_name);
 
-								// -> should verify permissions here
+								if (isset($driver) && $driver && method_exists($driver, 'update')) {
 
-								if (method_exists($driver, 'update')) {
+									foreach ($data as $id => $row) {
 
-									// echo '<pre>';
-									// var_dump($post_id, $input);
-									// die();
+										$driver->update($row, $id);
 
-									$driver->update($input, $post_id);
+									}
 
 								}
 
+								// foreach ($data as $row) {
+								//
+								// 	$delta = isset($row['delta']) ? $row['delta'] : array();
+								//
+								// 	if (empty($row['id'])) {
+								//
+								// 		if (method_exists($driver, 'add')) {
+								//
+								// 			$id = $driver->add($delta);
+								//
+								// 		}
+								//
+								// 	} else {
+								//
+								// 		$id = $row['id'];
+								//
+								// 	}
+								//
+								//
+								//
+								// }
+
+
+								// foreach ($data as $row) {
+								//
+								// 	$driver = $this->get_driver($driver_name);
+								//
+								// 	if (method_exists($driver, 'update')) {
+								//
+								// 		$driver->update($row, $id);
+								//
+								// 	}
+								// }
 
 							}
 
 						}
 
 					}
+
+					break; // -> just need one: every metabox have same data !
 
 				}
 
@@ -627,11 +715,43 @@ class Karma_Fields_Alpha {
 
 	}
 
+	// /**
+	//  * Save from input
+	//  */
+	// public function save_input($encoded_input) {
+	//
+	// 	$encoded_input = stripslashes($encoded_input);
+	// 	// $input = (array) json_decode($encoded_input, false);
+	// 	$associative = apply_filters('karma_fields_json_decode_associative', true, $encoded_input);
+	// 	$input = json_decode($encoded_input, $associative); // need parsed as array for blocks
+	//
+	// 	if ($input) {
+	//
+	// 		foreach ($input as $driver_name => $data) {
+	//
+	// 			foreach ($data as $id => $row) {
+	//
+	// 				$driver = $this->get_driver($driver_name);
+	//
+	// 				if (method_exists($driver, 'update')) {
+	//
+	// 					$driver->update($row, $id);
+	//
+	// 				}
+	// 			}
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// }
+
 
 	/**
 	 *	@hook 'rest_api_init'
 	 */
 	public function rest_api_init() {
+
 
 		register_rest_route('karma-fields-alpha/v1', '/get/(?P<driver>[^/]+)/(?P<id>\d+)', array(
 			'methods' => 'GET',
@@ -647,15 +767,12 @@ class Karma_Fields_Alpha {
 	    )
 		));
 
-		register_rest_route('karma-fields-alpha/v1', '/update/(?P<driver>[^/]+)/(?P<id>[^/]+)/?', array(
+		register_rest_route('karma-fields-alpha/v1', '/update/(?P<driver>[^/]+)/?', array(
 			'methods' => 'POST',
 			'callback' => array($this, 'rest_update'),
 			'permission_callback' => '__return_true',
 			'args' => array(
 				'driver' => array(
-					'required' => true
-				),
-				'id' => array(
 					'required' => true
 				),
 				'data' => array(
@@ -674,6 +791,20 @@ class Karma_Fields_Alpha {
 				)
 	    )
 		));
+
+		// register_rest_route('karma-fields-alpha/v1', '/sync/(?P<driver>[^/]+)/?', array(
+		// 	'methods' => 'POST',
+		// 	'callback' => array($this, 'rest_sync'),
+		// 	'permission_callback' => '__return_true',
+		// 	'args' => array(
+		// 		'driver' => array(
+		// 			'required' => true
+		// 		),
+		// 		'data' => array(
+		// 			'required' => true
+		// 		)
+	  //   )
+		// ));
 
 		// register_rest_route('karma-fields-alpha/v1', '/fetch/(?P<driver>[^/]+)', array(
 		// 	'methods' => 'GET',
@@ -782,7 +913,7 @@ class Karma_Fields_Alpha {
 
 			} else {
 
-				return "karma fields error: driver has no method 'query'";
+				return "karma fields error: driver ($driver_name) has no method 'query'";
 
 			}
 
@@ -888,12 +1019,11 @@ class Karma_Fields_Alpha {
 
 
 	/**
-	 *	@rest 'wp-json/karma-fields/v1/update/{middleware}'
+	 *	@rest 'wp-json/karma-fields/v1/update/{driver}'
 	 */
 	public function rest_update($request) {
 
 		$driver_name = $request->get_param('driver');
-		$id = $request->get_param('id');
 		$data = $request->get_param('data');
 		$driver = $this->get_driver($driver_name);
 
@@ -901,7 +1031,13 @@ class Karma_Fields_Alpha {
 
 			if (method_exists($driver, 'update')) {
 
-				return $driver->update($data, $id);
+				foreach ($data as $id => $row) {
+
+					$driver->update($row, $id);
+
+				}
+
+				return true;
 
 			} else {
 
@@ -936,6 +1072,46 @@ class Karma_Fields_Alpha {
 			return "karma fields error: driver has no method 'add'";
 
 		}
+
+	}
+
+
+	/** DEPRECATED
+	 *	@rest 'wp-json/karma-fields/v1/sync/{driver}'
+	 */
+	public function rest_sync($request) {
+
+		$driver_name = $request->get_param('driver');
+		$data = $request->get_param('data');
+		$driver = $this->get_driver($driver_name);
+
+		foreach ($data as $row) {
+
+			$delta = isset($row['delta']) ? $row['delta'] : array();
+
+			if (empty($row['id'])) {
+
+				if (method_exists($driver, 'add')) {
+
+					$id = $driver->add($delta);
+
+				}
+
+			} else {
+
+				$id = $row['id'];
+
+			}
+
+			if (isset($id) && $delta && method_exists($driver, 'update')) {
+
+				$driver->update($delta, $id);
+
+			}
+
+		}
+
+		return true;
 
 	}
 
@@ -1302,3 +1478,16 @@ add_action( 'admin_print_footer_scripts', function() {
 add_action('admin_init', function() {
 	remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
 });
+
+
+
+
+// add_filter( 'mce_external_plugins', function( $plugins ) {
+//
+// 	$plugin_url = trim(plugin_dir_url(__FILE__), '/');
+//
+// 	// This assumes you placed mce.placeholder.js in root of child theme directory
+// 	$plugins['placeholder'] = $plugin_url . '/js/vendor/mce.placeholder.js';
+//
+// 	return $plugins;
+// });

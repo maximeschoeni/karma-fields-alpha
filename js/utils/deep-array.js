@@ -1,3 +1,17 @@
+KarmaFieldsAlpha.Array = class {
+
+  concat(array, index, ...items) {
+
+    const clones = [...array];
+
+    clones.splice(index, 0, ...items);
+
+    return clones;
+
+  }
+
+}
+
 
 KarmaFieldsAlpha.DeepArray = class {
 

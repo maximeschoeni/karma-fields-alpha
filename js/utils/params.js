@@ -5,7 +5,8 @@ KarmaFieldsAlpha.Params = class {
 	// }
 
 	static parse(string) {
-		return Object.fromEntries(string.split("&").map(param => param.split("=").map(string => decodeURIComponent(string))));
+		// return Object.fromEntries(string.split("&").map(param => param.split("=").map(string => decodeURIComponent(string))));
+		return Object.fromEntries(string.split("&").map(param => param.split("=").map(string => decodeURI(string))));
 	}
 
   static stringify(object) {
@@ -18,7 +19,8 @@ KarmaFieldsAlpha.Params = class {
       else return 0;
     });
 
-    entries = entries.map(entries => entries[0]+"="+encodeURIComponent(entries[1]));
+    // entries = entries.map(entries => entries[0]+"="+encodeURIComponent(entries[1]));
+		entries = entries.map(entries => entries[0]+"="+encodeURI(entries[1]));
 
     return entries.join("&");
 	}

@@ -1,9 +1,26 @@
 
-KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
+KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 
 	// static mousedown = false;
 	// static state = false;
 	// static selected = [];
+
+
+	// getContent() {
+	//
+	// 	const key = this.getKey();
+	//
+	// 	return this.parent.getContent(key);
+	//
+	// }
+	//
+	// setContent(content) {
+	//
+	// 	const key = this.getKey();
+	//
+	// 	this.parent.setContent(content, key);
+	//
+	// }
 
 	true() {
 		return this.resource.true || "1";
@@ -15,46 +32,87 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 
 	getDefault() {
 
-		let value = this.resource.default || "";
-
-		if (value) {
-
-			value = this.parse(defaultValue);
-
-		}
-
-		return value;
-	}
-
-	initValue() {
-
-		const value = this.getDefault();
-
-		if (value !== undefined && value !== null) {
-
-			this.setValue(value);
-			this.save();
-
-		}
-
-		return value || "";
-	}
-
-	export(items = []) {
-
-	  const [value] = this.getValue() || [KarmaFieldsAlpha.loading];
-
-	  items.push(value.toString());
+		return this.parse(this.resource.default || this.false());
 
 	}
 
-	import(items) {
+	// initValue() {
+	//
+	// 	const value = this.getDefault();
+	//
+	// 	if (value !== undefined && value !== null) {
+	//
+	// 		this.setValue(value);
+	// 		this.save();
+	//
+	// 	}
+	//
+	// 	return value || "";
+	// }
 
-		const value = items.shift() || "";
-		this.setValue(value);
+	// export(collection) {
+	//
+	//   const content = this.getContent();
+	//
+	// 	if (!content.loading) {
+	//
+	// 	}
+	//
+	//   collection.add(content);
+	//
+	// }
+	//
+	// import(collection) {
+	//
+	// 	const content = collection.pick();
+	//
+	// 	this.setContent(content);
+	//
+  // }
 
-  }
+	// export() { // -> return array of string
+	//
+  //   const content = this.getContent();
+	//
+	// 	content.value = content.toArray().slice(0, 1);
+	//
+	// 	return content;
+	//
+  // }
 
+	// export() { // -> return array of string
+	//
+	// 	const output = new KarmaFieldsAlpha.Content();
+	//
+	// 	if (this.resource.export !== false) {
+	//
+	// 		const content = this.getContent();
+	//
+	// 		if (content.loading) {
+	//
+	// 			output.loading = true;
+	//
+	// 		} else {
+	//
+	// 			output.value = content.toString() || "";
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	return output;
+	//
+  // }
+	//
+	// import(collection) {
+	//
+  //   const string = collection.value.shift();
+	//
+	// 	const content = new KarmaFieldsAlpha.Content(string);
+	//
+	// 	this.setContent(content);
+  // }
+	//
 
 	//
   // setValue(value) {
@@ -351,6 +409,21 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 //
 // }
 
+	// isDisabled() {
+	//
+	// 	if (this.resource.disabled) {
+	//
+	// 		return this.parent.parse(this.resource.disabled).toBoolean();
+	//
+	// 	} else if (this.resource.enabled) {
+	//
+	// 		return !this.parent.parse(this.resource.enabled).toBoolean();
+	//
+	// 	}
+	//
+	// 	return false;
+	// }
+
 	build() {
 
 		return {
@@ -368,62 +441,83 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field {
 						init: checkbox => {
 							checkbox.element.type = "checkbox";
 							// const id = this.getId();
-							checkbox.element.id = this.getUid();
+							checkbox.element.id = this.uid;
 						},
 						update: async checkbox => {
 
-							let [value] = this.getValue() || [KarmaFieldsAlpha.loading];
+							let content = this.getContent();
 
-							if (value !== KarmaFieldsAlpha.loading) {
+
+							if (!content.loading) {
 
 								// -> set default
-								if (value === undefined) {
+								// if (content.notFound) {
+								//
+								// 	// const defaultValue = this.getDefault();
+								// 	//
+								// 	// if (defaultValue !== undefined && defaultValue !== null) {
+								// 	//
+								// 	// 	this.setValue(defaultValue);
+								// 	//
+								// 	// }
+								//
+								// 	// content = this.getDefault();
+								// 	//
+								// 	// if (!content.loading) {
+								// 	//
+								// 	// 	this.setContent(content);
+								// 	//
+								// 	// 	KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
+								// 	//
+								// 	// }
+								//
+								// 	if (this.resource.createWhenNotFound) {
+								//
+								// 		this.createTask("create");
+								//
+								// 	}
+								//
+								// }
 
-									// const defaultValue = this.getDefault();
-									//
-									// if (defaultValue !== undefined && defaultValue !== null) {
-									//
-									// 	this.setValue(defaultValue);
-									//
-									// }
-
-									value = this.initValue();
-
-								}
-
-								checkbox.element.classList.toggle("mixed", value === KarmaFieldsAlpha.mixed);
-								checkbox.element.checked = value === this.true();
-
+								checkbox.element.classList.toggle("mixed", Boolean(content.mixed));
+								checkbox.element.checked = content.toString() === this.true();
 
 								checkbox.element.onchange = () => {
 
-									if (value === KarmaFieldsAlpha.mixed || value === this.true()) {
+									let value;
 
-										this.setValue(this.false());
-										this.render();
-										this.save("uncheck");
+									if (content.mixed || content.toString() === this.true()) {
+
+										value = this.false();
+
+										// const content = new KarmaFieldsAlpha.Content(this.false());
+										//
+										// this.save("uncheck", "Uncheck");
+										// this.setContent(content);
+										// this.request("render");
 
 									} else {
 
-										this.setValue(this.true());
-										this.render();
-										this.save("check");
+										value = this.true();
+
+										// const content = new KarmaFieldsAlpha.Content(this.true());
+										//
+										// this.save("check", "Check");
+										// this.setContent(content);
+										// this.request("render");
+
 
 									}
 
-								}
+									// const newContent = new KarmaFieldsAlpha.Content(value);
 
-								if (this.resource.disabled) {
-
-									checkbox.element.disabled = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.disabled));
-
-								}
-
-								if (this.resource.enabled) {
-
-									checkbox.element.disabled = !KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.enabled));
+									this.save("check", "Check");
+									this.setValue(value);
+									this.request("render");
 
 								}
+
+								checkbox.element.disabled = this.isDisabled();
 
 							}
 
