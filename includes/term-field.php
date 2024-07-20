@@ -1,7 +1,19 @@
 <tr class="form-field">
 	<th scope="row"><label for="start"><?php echo $label; ?></label></th>
 	<td>
-		<?php $this->print_embed('taxonomy', $term_id, $args); ?>
+		<?php
+			// $this->print_embed('taxonomy', $term_id, $args);
+
+			$this->print_embed_table(array(
+				'driver' => 'taxonomy',
+				'params' => array(
+					'id' => $term_id
+				),
+			  'type' => "postform",
+				'class' => "embed-form",
+				'body' => $args
+			));
+		?>
 	</td>
 </tr>
 

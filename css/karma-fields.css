@@ -54,6 +54,8 @@
   --selected-background-color: #BDD0E1;
   --screen-background-color: #BDD0E1;
   --text-color: var(--theme-bg-color);
+  --loading-color: #a7aaad;
+
   --border-width: 1px;
 
   --admin-bar-width: 32px;
@@ -62,6 +64,8 @@
 
 
   line-height: 1.08em;
+
+  padding-top: 1.5em; /* -> when embeding a custom menu page */
 }
 
 .dark {
@@ -86,6 +90,10 @@
   color: var(--inverse-text-color); */
 }
 
+.loading {
+  --text-color: var(--loading-color);
+}
+
 .saucer {
   position: fixed;
   top: 0;
@@ -107,7 +115,7 @@
 /* WP Admin Bar: clipboard textarea
 --------------------------------------*/
 
-#karma-fields-alpha-clipboard {
+/* #karma-fields-alpha-clipboard {
   width: 1px;
   height: 1px;
   display: block;
@@ -124,7 +132,7 @@
   position: fixed;
   z-index: 999999999999;
   padding: 0.75em;
-}
+} */
 
 /* WP Layout
 --------------------------------------*/
@@ -293,18 +301,20 @@ body.karma-table-open {
   /* width: 100%; */
 }
 
-.karma-fields .karma-field-table .table-body {
+.karma-field-table .table-body {
   flex-grow: 1;
   display: flex;
   position: relative;
   flex-direction: column;
   min-height: 0;
+  /* z-index: 1; ! --> cause problem with popups inside */
 }
 
-.karma-fields .karma-field-table h1 {
+.karma-fields .karma-field-table h1.text {
   margin: 0;
   font-size: 1.5em;
   line-height: 1.15em;
+  padding: 0; /* overwrite wp defaults */
 }
 .karma-fields button.hidden {
   display: none;
@@ -328,10 +338,16 @@ body.karma-table-open {
   background-color: white;
 }
 
-.karma-fields .field-container .karma-field-table .table-header {
+
+.karma-fields .karma-field-table .table-header {
   position: sticky;
-  top: var(--admin-bar-width);
+  /* top: var(--admin-bar-width); */
+  top: 0;
   z-index: 2;
+}
+
+.karma-fields .popup .karma-field-table .table-header {
+  top: 0;
 }
 
 .karma-field-header .karma-field-container {
@@ -348,6 +364,10 @@ body.karma-table-open {
   flex-grow: 1;
   min-width: 0;
   min-height: 0;
+  align-items: flex-start; /* -> for modals (not inside popup) being sticky */
+}
+.karma-fields .karma-field-table .table-body-columns.stretch-columns {
+  align-items: stretch;
 }
 .karma-fields .karma-field-table .table-body-columns .table-body-column.table-content {
   flex-grow: 1;
@@ -364,11 +384,13 @@ body.karma-table-open {
   flex-direction: column;
   overflow: auto;
   /* min-width: 0; */
-  padding: var(--gap-width);
+  padding: 0 var(--gap-width); /* -> top padding cause problem whith tinymce sticky toobar */
 
   border-left: 1px solid var(--border-color);
 }
-
+.karma-fields .table-body-side-column.sticky-modal {
+  position: sticky;
+}
 
 /* Table Control */
 .karma-field-table .table-footer {
@@ -478,6 +500,9 @@ body.karma-table-open {
 
   width: 100%;
 }
+.karma-fields .table.loading {
+  --text-color: var(--loading-color);
+}
 .karma-fields .table.even {
   /* background-color: var(--background-color); */
 }
@@ -497,7 +522,8 @@ body.karma-table-open {
   text-align: left;
   /* padding: 0; */
   display: flex;
-  align-items: flex-start; /* -> for texts being align center without having flexbox, to support inline text */
+  /* align-items: flex-start; */ /* -> for texts being align center without having flexbox, to support inline text */
+  align-items: center; /* -> should use a group encapsulation to align top instead */
   padding: var(--gap-width) calc(var(--gap-width)/2);
 }
 .karma-fields .table.align-center .th,
@@ -705,6 +731,19 @@ body.karma-table-open {
 }
 .karma-fields .table .th .header-cell-content.order .dashicons-leftright {
   /* transform: rotate(90deg); */
+}
+
+
+
+
+
+/* Forms
+--------------------------------------*/
+.karma-fields .form-single {
+  padding: 0 var(--gap-width);
+}
+.karma-fields .embed-form>.table-body>.form-single {
+  padding: 0;
 }
 
 
@@ -935,7 +974,7 @@ ul.karma-breadcrumb li a:hover {
   justify-content: center; */
   border: none;
   background-color: transparent;
-  padding: 0.1em 0;
+  padding: 0.1em 0.1em;
 
 }
 .karma-fields .simple-buttons .button.active {
@@ -1154,7 +1193,9 @@ ul.karma-breadcrumb li a:hover {
 /* Text
 --------------------------------------*/
 
-
+.karma-field.text {
+  color: var(--text-color);
+}
 .karma-field-frame .text.display-inline {
   display: block;
 }
@@ -1173,11 +1214,11 @@ ul.karma-breadcrumb li a:hover {
   text-overflow: ellipsis;
 }
 .karma-field-table .table .text {
-  /* padding: 0 var(--gap-width); */
+
   font-size: 1em;
   display: flex;
   align-items: center;
-  align-self: center;
+  /* align-self: center; --> ! this is going to apply to every text inside popups */
   flex-wrap: wrap;
 }
 .karma-field-table .table .text.display-block {
@@ -1420,23 +1461,38 @@ ul.tag-links li:not(:last-child)::after {
   flex-wrap: nowrap;
 }
 .karma-field-container.display-table {
-  display: table;
-  table-layout: auto;
-  border-spacing: 0 var(--gap-width);
+  /* display: table; */
+  /* table-layout: auto; */
+  /* border-spacing: 0 var(--gap-width); */
+
+  display: grid !important;
+  grid-template-columns: min-content 1fr;
 }
 .karma-field-container.display-table>* {
-  display: table-row;
+  /* display: table-row; */
+  /* display: flex;
+  flex-direction: row;
+  align-items: flex-start; */
+
+  display: grid;
+  flex-direction: row;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  grid-column: 1 / span 2;
+  align-items: baseline;
 }
 .karma-field-container.display-table>*>* {
-  display: table-cell;
-  /* padding: 0 0 0.75em; */
+  /* display: table-cell; */
+  /* flex: 1 1 0; */
 }
 .karma-field-container.display-table>*>:first-child {
-  padding-right: 0.75em;
+  /* padding-right: var(--gap-width);
+  flex: 0 0 10rem; */
+  margin: 0;
 }
 .karma-field-container.display-table>*>.label {
-  display: table-cell;
-  padding: 0 var(--gap-width) var(--gap-width) 0;
+  /* display: table-cell; */
+  /* padding: 0 var(--gap-width) var(--gap-width) 0; */
 }
 /* .karma-field-container.display-table>.karma-field-frame {
   flex-direction: row;
@@ -1463,13 +1519,18 @@ ul.tag-links li:not(:last-child)::after {
 /* Array
 --------------------------------------*/
 
+
+.karma-field-table-grid-container.array>.table>.td {
+  align-items: flex-start;
+}
+
+/*
 .karma-field-array {
   flex-grow: 1;
 }
 .karma-fields .array {
   display: flex;
   flex-direction: column;
-  /* gap: var(--gap-width); */
 
   border: 1px solid var(--border-color);
 
@@ -1478,18 +1539,12 @@ ul.tag-links li:not(:last-child)::after {
 
 .karma-fields .array .array-body {
   display: grid;
-  /* background-color: var(--inverse-background-color); */
-  /* border-radius: 2px; */
-  /* min-height: 2em; */
 
   grid-auto-flow: row dense;
 
   position: relative;
 
-  /* padding: var(--border-width); */
-  /* gap: var(--border-width); */
   border-bottom: 1px solid var(--border-color);
-  /* border-radius: 4px; */
 }
 .karma-fields .array.active {
   outline: 1px solid var(--theme-color);
@@ -1511,7 +1566,6 @@ ul.tag-links li:not(:last-child)::after {
   display: none;
 }
 .karma-fields .array .th {
-  /* padding: 5px; */
   font-weight: var(--static-text-weight);
 }
 .karma-fields .array .th,
@@ -1521,7 +1575,6 @@ ul.tag-links li:not(:last-child)::after {
   display: flex;
   transition: transform 100ms;
   padding: var(--gap-width);
-  /* outline: var(--border-width) solid var(--border-color); */
 }
 .karma-fields .array .td.odd {
   background-color: var(--background-color);
@@ -1552,7 +1605,6 @@ ul.tag-links li:not(:last-child)::after {
   cursor: grab;
 }
 .karma-fields .array .td.drag {
-  /* outline: 1px solid var(--disabled-color); */
   transition: none;
   cursor: grabbing;
 }
@@ -1574,7 +1626,7 @@ ul.tag-links li:not(:last-child)::after {
 .karma-fields .array .mixed {
   display: flex;
   flex-direction: column;
-}
+} */
 
 
 
@@ -1619,6 +1671,8 @@ ul.tag-links li:not(:last-child)::after {
   /* flex-grow: 0; */
   min-width: 0;
   width: 100%;
+  margin: 0;
+  color: var(--text-color);
 }
 
 /* Table Input */
@@ -1809,10 +1863,15 @@ textarea.clipboard {
 /* Dropdown
 --------------------------------------*/
 .karma-fields select.dropdown {
-  max-width: 100%;
+  /* max-width: 100%; */
+  width: 100%;
   margin: 0;
+  color: var(--text-color);
+  min-width: 0;
 }
-
+.karma-fields .loading select.dropdown {
+  background: none;
+}
 
 /* Hidden field
 --------------------------------------*/
@@ -1828,8 +1887,10 @@ textarea.clipboard {
 .karma-field .tabs {
   display: flex;
   flex-direction: column;
-  margin: calc(var(--gap-width)*-1);
+  margin: 0 calc(var(--gap-width)*-1);
   flex-grow: 1;
+  /* width: 100%; */
+  align-self: stretch;
 }
 .karma-field .tabs .tabs-header {
   display: flex;
@@ -1882,7 +1943,7 @@ textarea.clipboard {
 --------------------------------------*/
 
 .karma-field-tinymce .label {
-  z-index: 3;
+  /* z-index: 3; Why? --> this cause field label to display over the footer bar */
 }
 .karma-tinymce {
   position: relative;
@@ -1894,11 +1955,22 @@ textarea.clipboard {
 }
 
 .karma-tinymce .editor-header {
-  position: absolute;
+  /* position: absolute;
   width: 100%;
-  height: calc(100% + 0px);
+  height: calc(100% + 0px); */
+
+  position: sticky;
+  top: 32px; /* toolbar height */
+  z-index: 2;
+  /* z-index: 10; Why? --> this cause header to display over the footer bar */
 
 }
+
+.scroll-container .karma-tinymce .editor-header {
+  top: 0;
+}
+
+
 .karma-tinymce .mode {
   display: flex;
   flex-direction: column;
@@ -1916,7 +1988,7 @@ textarea.clipboard {
   /* border-top: none; */
   min-height: 8em;
   border-radius: 0;
-  margin: 2.55em 0 0;
+  /* margin: 2.55em 0 0; */
   /* background-color: var(--background-color); */
   color: var(--text-color);
   cursor: text;
@@ -1930,6 +2002,10 @@ textarea.clipboard {
   z-index: 0;
   opacity: 0.5;
   pointer-events: none;
+}
+
+.karma-field-tinymce {
+  max-width: 100%; /* prevent long word to stretch editor outside container */
 }
 
 .karma-tinymce .editor-body.tinymce.mce-edit-focus {
@@ -2018,8 +2094,8 @@ textarea.clipboard {
 
 /* TOOLBAR */
 .karma-tinymce .editor-header .toolbar {
-  position: sticky;
-  top: calc(-1 * var(--gap-width));
+  /* position: sticky;
+  top: calc(-1 * var(--gap-width)); */
   background-color: var(--background-color);
   z-index: 2;
   padding: 0.5em var(--gap-width);
@@ -2067,6 +2143,7 @@ textarea.clipboard {
   background-size: 16px;
   padding: 0 25px 0 0;
   color: var(--theme-color);
+  font-size: 1em;
 }
 .karma-tinymce .editor-header .toolbar select:hover {
   background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%230a4b78'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
@@ -2092,7 +2169,7 @@ textarea.clipboard {
   background-color: var(--background-color);
   top: 0;
   left: 100px;
-  z-index: 1;
+  z-index: 4;
   border-radius: var(--border-radius);
 
   transition: transform 150ms;

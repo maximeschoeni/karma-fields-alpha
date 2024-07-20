@@ -6,10 +6,11 @@
 
 	KarmaFieldsAlpha.embeds.push({
 		driver: "<?php echo $driver; ?>",
-		id: "<?php echo $id; ?>",
+		// id: "<?php echo $id; ?>",
+		params: {id: "<?php echo $id; ?>"},
 		...<?php echo json_encode($args); ?>,
 	  type: "form",
-		index: "karma-fields-embed-<?php echo $index; ?>"
-	});
+		// index: "karma-fields-embed-<?php echo $index; ?>"
+	}, "karma-fields-embed-<?php echo $index; ?>");
 
 </script>

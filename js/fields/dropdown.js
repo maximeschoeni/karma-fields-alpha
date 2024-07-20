@@ -20,7 +20,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
       if (content.value === undefined || !options.toArray().some(item => item.id === content.value)) {
 
-        content.value = options.toArray()[0].id;// ! allowing default value not in options may lead in infinite loop !
+        content.value = options.toArray()[0].id; // ! allowing default value not in options may lead in infinite loop !
 
       }
 
@@ -171,8 +171,9 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 			class: "dropdown karma-field",
 			update: dropdown => {
 
-        let content = this.getContent();
+
         let options = this.getOptions();
+        let content = this.getContent();
 
         dropdown.element.classList.toggle("loading", Boolean(content.loading));
 
@@ -207,6 +208,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
           }
 
           const value = content.toString();
+
 
           // if (true || dropdown.element.childElementCount !== options.toArray().length) {
 

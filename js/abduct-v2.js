@@ -5,12 +5,36 @@
 async function abduct(element, implants) {
 
 	async function spawn(implant, element, child) {
-		if (!child) {
-			child = document.createElement(implant.tag || "div");
+		// if (!child) {
+		// 	child = document.createElement(implant.tag || "div");
+		// 	if (implant.class) {
+		// 		child.className = implant.class;
+		// 	}
+		// 	element.appendChild(child);
+		// 	if (implant.init) {
+		// 		await implant.init(child, implant, () => spawn(implant, element, child));
+		// 	}
+		// } else if ((implant.tag || "div") !== child.localName) {
+		// 	const newchild = document.createElement(implant.tag || "div");
+		// 	if (implant.class) {
+		// 		newchild.className = implant.class;
+		// 	}
+		// 	child.replaceWith(newchild);
+		// 	if (implant.init) {
+		// 		await implant.init(newchild, implant, () => spawn(implant, element, child));
+		// 	}
+		// }
+		if (!child || (implant.tag || "div") !== child.localName) {
+			const newChild = document.createElement(implant.tag || "div");
 			if (implant.class) {
-				child.className = implant.class;
+				newChild.className = implant.class;
 			}
-			element.appendChild(child);
+			if (child) {
+				child.replaceWith(newchild);
+			} else {
+				element.appendChild(newchild);
+			}
+			child = newchild;
 			if (implant.init) {
 				await implant.init(child, implant, () => spawn(implant, element, child));
 			}

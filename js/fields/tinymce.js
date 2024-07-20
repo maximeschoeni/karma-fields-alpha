@@ -327,9 +327,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			this.setValue(text);
 			// this.request("render");
 
-			this.debounce(() => {
+			// this.debounce(() => {
 				this.request("render");
-			}, 400);
+			// }, 400);
 
 		}
 
@@ -858,8 +858,6 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 			}
 
-
-
       request.editor.execCommand("Unlink");
 
 			// this.saveContent();
@@ -930,218 +928,157 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
   // }
 
 
-  getLinkForm() {
+  // getLinkForm() {
+	// 	console.error("deprecated");
+	//
+  //   const request = this.getEditor();
+	//
+  //   if (!request.loading) {
+	//
+  //     const node = request.editor.selection.getNode();
+	// 		const a = node && node.closest("a");
+	//
+  //     if (a) {
+	//
+	// 			let href = node.getAttribute("href");
+	//
+	// 			if (href === "nolink") {
+	//
+	// 				href = "";
+	//
+	// 			}
+	//
+  //       return [
+  //         {
+  //           href: href || "",
+  //           target: node.getAttribute("target") === "_blank" ? "1" : ""
+  //         }
+  //       ];
+	//
+  //     }
+	//
+  //   }
+	//
+  //   return [];
+	//
+  // }
+	//
+  // setLinkForm(value) {
+	// 	console.error("deprecated");
+	//
+  //   const request = this.getEditor();
+	//
+  //   if (!request.loading) {
+	//
+  //     if (value.href === "") {
+	//
+	// 			request.editor.execCommand("Unlink");
+	//
+  //     } else {
+	//
+	// 			let href = value.href;
+	//
+	// 			if (!href) {
+	//
+	// 				const node = request.editor.selection.getNode();
+	// 				const a = node && node.closest("a");
+	//
+	// 				if (a) {
+	//
+	// 					href = a.getAttribute("href") || "";
+	//
+	// 				}
+	//
+	// 			}
+	//
+	// 			request.editor.execCommand("mceInsertLink", false, {
+  //         "href": href,
+  //         "target": value.target ? "_blank" : null
+  //       });
+	//
+  //     }
+	//
+	// 		const text = request.editor.getContent();
+	//
+	// 		this.save("link", "link");
+	// 		// this.removeSelection();
+	// 		this.setFocus();
+	// 		this.setValue(text);
+	// 		// this.render();
+	//
+  //   }
+	//
+  // }
+	//
+  // closelink() {
+	// 	console.error("deprecated");
+	//
+	// 	const request = this.getEditor();
+	//
+  //   if (!request.loading) {
+	//
+	// 		const node = request.editor.selection.getNode();
+	// 		const a = node && node.closest("a");
+	//
+	// 		if (a) {
+	//
+	// 			if (a.getAttribute("href") === "nolink") {
+	//
+	// 				request.editor.execCommand("Unlink");
+	//
+	// 				const text = request.editor.getContent();
+	// 				// const content = new KarmaFieldsAlpha.Content(text);
+	// 				// this.save("link", "link");
+	// 				this.setValue(text);
+	//
+	// 			} else {
+	//
+	// 				// -> set caret after node (https://stackoverflow.com/a/9829634/2086505)
+	// 				const range = request.editor.selection.getRng();
+	// 				range.setStartAfter(a);
+	// 				range.setEndAfter(a);
+	//
+	// 				request.editor.selection.setRng(range);
+	//
+	// 			}
+	//
+	// 			this.setFocus();
+	// 			// this.render();
+	//
+	// 		}
+	//
+	// 	}
+	//
+  // }
 
-    const request = this.getEditor();
 
-    if (!request.loading) {
+	*insertLink() {
 
-      const node = request.editor.selection.getNode();
-			const a = node && node.closest("a");
+    let request = this.getEditor();
 
-      if (a) {
+		while (request.loading) {
 
-				let href = node.getAttribute("href");
-
-				if (href === "nolink") {
-
-					href = "";
-
-				}
-
-        return [
-          {
-            href: href || "",
-            target: node.getAttribute("target") === "_blank" ? "1" : ""
-          }
-        ];
-
-      }
-
-    }
-
-    return [];
-
-  }
-
-  setLinkForm(value) {
-
-    const request = this.getEditor();
-
-    if (!request.loading) {
-
-			// const editorBody = request.editor.getElement();
-			// const selection = this.getSelection();
-			// const startNode = KarmaFieldsAlpha.field.tinymce.getNode(editorBody, selection.startPath);
-			// const endNode = KarmaFieldsAlpha.field.tinymce.getNode(editorBody, selection.endPath);
-			// const range = new Range();
-			//
-			// // if (startNode.nodeType === 3 && startNode.nodeValue && selection.startOffset <= startNode.nodeValue.length && endNode.nodeType === 3 && endNode.nodeValue && selection.endOffset <= endNode.nodeValue.length) {
-			//
-			// 	range.setStart(startNode, selection.startOffset);
-			// 	range.setEnd(endNode, selection.endOffset);
-			//
-			// 	request.editor.selection.setRng(range);
-
-	      if (value.href === "") {
-
-					request.editor.execCommand("Unlink");
-
-	      } else {
-
-					let href = value.href;
-
-					if (!href) {
-
-						const node = request.editor.selection.getNode();
-						const a = node && node.closest("a");
-
-						if (a) {
-
-							href = a.getAttribute("href") || "";
-
-						}
-
-
-
-					}
-
-					request.editor.execCommand("mceInsertLink", false, {
-	          "href": href,
-	          "target": value.target ? "_blank" : null
-	        });
-
-	      // } else if (value.href) {
-				//
-				// 	request.editor.execCommand("mceInsertLink", false, {
-				// 		"href": value.href,
-	      //     "target": null
-	      //   });
-
-	      // } else if (value.target) {
-				//
-				// 	request.editor.execCommand("mceInsertLink", false, {
-	      //     "target": "_blank"
-	      //   });
-
-	      }
-
-				// this.saveContent();
-				// const content = editor.getContent();
-				// this.setValue(content);
-				//
-				// this.setSelection({final: true});
-				// this.render();
-				// this.save("link");
-
-				const text = request.editor.getContent();
-				// const content = new KarmaFieldsAlpha.Content(text);
-				this.save("link", "link");
-				// this.removeSelection();
-				this.setFocus();
-				this.setValue(text);
-				this.render();
-
-			// }
-
-    }
-
-  }
-
-  openLink() {
-
-		const request = this.getEditor();
-
-		if (!request.loading) {
-
-			const element = request.editor.getElement();
-			const range = request.editor.selection.getRng();
-
-			this.setSelection({
-				linkForm: true,
-				startPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.startContainer),
-				startOffset: range.startOffset,
-				endPath: KarmaFieldsAlpha.field.tinymce.getPath(element, range.endContainer),
-				endOffset: range.endOffset
-			});
-
-			this.render();
+			request = this.getEditor();
+			yield;
 
 		}
 
+		request.editor.execCommand("mceInsertLink", false, {
+			"href": "nolink"
+		});
 
+		request.editor.selection.collapse(true);
 
+		const node = request.editor.selection.getNode();
 
+		request.editor.selection.select(node);
 
-  }
-
-
-  closelink() {
-
-		const request = this.getEditor();
-
-    if (!request.loading) {
-
-			const node = request.editor.selection.getNode();
-			const a = node && node.closest("a");
-
-			if (a) {
-
-				if (a.getAttribute("href") === "nolink") {
-
-					request.editor.execCommand("Unlink");
-
-					const text = request.editor.getContent();
-					// const content = new KarmaFieldsAlpha.Content(text);
-					this.save("link", "link");
-					this.setValue(text);
-
-				} else {
-
-					// -> set caret after node (https://stackoverflow.com/a/9829634/2086505)
-					const range = request.editor.selection.getRng();
-					range.setStartAfter(a);
-					range.setEndAfter(a);
-
-					request.editor.selection.setRng(range);
-
-				}
-
-				this.setFocus();
-				this.render();
-
-			}
-
-		}
-
-  }
-
-
-	insertLink() {
-
-    const request = this.getEditor();
-
-    if (!request.loading) {
-
-
-			request.editor.execCommand("mceInsertLink", false, {
-				"href": "nolink"
-			});
-
-			request.editor.selection.collapse(true);
-
-			const node = request.editor.selection.getNode();
-
-			request.editor.selection.select(node);
-
-			const text = request.editor.getContent();
-			// const content = new KarmaFieldsAlpha.Content(text);
-			this.save("link", "link");
-			this.setFocus();
-			this.setValue(text);
-			this.render();
-
-    }
+		const text = request.editor.getContent();
+		// const content = new KarmaFieldsAlpha.Content(text);
+		// this.save("link", "link");
+		this.setFocus();
+		this.setValue(text);
+		// this.render();
 
   }
 
@@ -1156,11 +1093,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
     return data.mode || "edit";
   }
 
-  execMode(value) {
+  *execMode(value) {
 
     this.setOption(value, "mode");
 
-		this.render();
+		// this.render();
 
   }
 
@@ -1238,6 +1175,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				console.error("deprecated");
         return this.queryOL();
 
+			// deprec
       case "linkform":
         // return this.getLinkForm();
 				const linkForm = this.getLinkForm();
@@ -1342,6 +1280,14 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
         this.setFormat(value);
 				break;
 
+			case "file":
+				const id = value[0];
+				const work = this.insert(id);
+				KarmaFieldsAlpha.Jobs.add(work);
+				this.setFocus(true);
+				this.request("render");
+				break;
+
       case "unlink":
       case "bold":
       case "italic":
@@ -1357,47 +1303,47 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
         this.execCommand(key);
         break;
 
-      case "linkform": {
-        // this.setLinkForm(value);
-				this.setLinkForm(value);
-        break;
-      }
+      // case "linkform": {
+      //   // this.setLinkForm(value);
+			// 	this.setLinkForm(value);
+      //   break;
+      // }
 
-      case "ul":
-				console.error("deprecated");
-        // if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
-        // 	this.editor.execCommand('InsertUnorderedList', false, {
-        // 	  'list-style-type': 'disc'
-        // 	});
-        // } else {
-        // 	this.editor.execCommand("RemoveList");
-        // }
-        // this.saveContent();
-        this.execUL();
-        break;
-
-      case "ol":
-				console.error("deprecated");
-        // if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
-        // 	this.editor.execCommand('InsertOrderedList', false, {
-        // 		'list-style-type': 'decimal'
-        // 	});
-        // } else {
-        // 	this.editor.execCommand("RemoveList");
-        // }
-        // this.saveContent();
-        this.execOL();
-        break;
-
-      case "mode": {
-				console.error("deprecated");
-        // this.parent.request("set-option", content.data, "mode");
-        // if (this.render) {
-        //   this.render();
-        // }
-				this.execMode(value);
-        break;
-      }
+      // case "ul":
+			// 	console.error("deprecated");
+      //   // if (this.editor.queryCommandValue("InsertUnorderedList") !== "true") {
+      //   // 	this.editor.execCommand('InsertUnorderedList', false, {
+      //   // 	  'list-style-type': 'disc'
+      //   // 	});
+      //   // } else {
+      //   // 	this.editor.execCommand("RemoveList");
+      //   // }
+      //   // this.saveContent();
+      //   this.execUL();
+      //   break;
+			//
+      // case "ol":
+			// 	console.error("deprecated");
+      //   // if (this.editor.queryCommandValue("InsertOrderedList") !== "true") {
+      //   // 	this.editor.execCommand('InsertOrderedList', false, {
+      //   // 		'list-style-type': 'decimal'
+      //   // 	});
+      //   // } else {
+      //   // 	this.editor.execCommand("RemoveList");
+      //   // }
+      //   // this.saveContent();
+      //   this.execOL();
+      //   break;
+			//
+      // case "mode": {
+			// 	console.error("deprecated");
+      //   // this.parent.request("set-option", content.data, "mode");
+      //   // if (this.render) {
+      //   //   this.render();
+      //   // }
+			// 	this.execMode(value);
+      //   break;
+      // }
 
 			case "raw":
 				// this.parent.setValue(value, this.getKey());
@@ -1485,9 +1431,9 @@ console.error("deprecated");
 
 
 
-	useSocket() {
-		return new KarmaFieldsAlpha.Content(true);
-	}
+	// useSocket() {
+	// 	return new KarmaFieldsAlpha.Content(true);
+	// }
 
 	getDriver() {
 
@@ -1495,75 +1441,183 @@ console.error("deprecated");
 
   }
 
-	getTable() {
+	// getTable() {
+	//
+  //   return this.parse(this.resource.table || "medias");
+	//
+  // }
+	//
+  // getParams() {
+	//
+  //   return this.parse(this.resource.params);
+	//
+  // }
 
-    return this.parse(this.resource.table || "medias");
+	async *attachMedias(ids) {
 
-  }
+		const filesField = new KarmaFieldsAlpha.field.files({
+			uploader: "wp",
+			key: "file",
+			mimetype: ["image"]
+		}, "attachFile", this);
 
-  getParams() {
+		yield* filesField.edit();
 
-    return this.parse(this.resource.params);
-
-  }
-
-	attachMedias(ids) {
-
-		const table = this.getTable();
-    const params = this.getParams();
-
-    if (table.loading || params.loading) {
-
-      this.addTask(() => this.edit(), "attach-file");
-
-    } else {
-
-			this.save("attach-file", "Attach File");
-
-			this.setFocus(false);
-			this.request("open", table.toString(), params.toObject(), false);
-
-			if (ids) {
-
-				this.addTask(() => this.request("dispatch", "selectByIds", ids), "pre-select");
-
-			}
-
-    }
+		// const table = this.getTable();
+    // const params = this.getParams();
+		//
+    // if (table.loading || params.loading) {
+		//
+    //   this.addTask(() => this.edit(), "attach-file");
+		//
+    // } else {
+		//
+		// 	this.save("attach-file", "Attach File");
+		//
+		// 	this.setFocus(false);
+		// 	this.request("open", table.toString(), params.toObject(), false);
+		//
+		// 	if (ids) {
+		//
+		// 		this.addTask(() => this.request("dispatch", "selectByIds", ids), "pre-select");
+		//
+		// 	}
+		//
+    // }
 
 	}
 
-	insert(ids) {
 
-    const request = this.getEditor();
+	*insert(ids) {
 
-		const attachments = this.getFiles(ids);
+		debugger;
 
-		if (request.loading || request.loading || attachments.loading) {
+		const htmls = [];
 
-			this.addTask(() => this.insert(ids), "insert-file");
+		for (let id of ids) {
 
-		} else {
+			const mediaField = new KarmaFieldsAlpha.field.media({
+				id: id,
+				driver: this.getDriver()
+			}, "media", this);
 
-			const html = this.printAttachments(attachments.toArray());
+			let media = mediaField.getMedia();
 
-			request.editor.insertContent(html);
+			// while (item.loading) {
+			while (media.loading) {
 
-			request.editor.selection.collapse(true);
+				media = mediaField.getMedia();
+				yield;
 
-			const node = request.editor.selection.getNode();
+			}
 
-			request.editor.selection.select(node);
+			const html = this.printAttachment(media);
 
-			const text = request.editor.getContent();
-			this.save("insert-image", "Insert Image");
-			this.setFocus();
-			this.setValue(text);
-			this.render();
+			htmls.push(html);
 
 		}
 
-  }
+		let request = this.getEditor();
+
+		while (request.loading) {
+
+			request = this.getEditor();
+			yield;
+
+		}
+
+		console.log(htmls);
+
+		// const html = this.printAttachments(attachments.toArray());
+
+		request.editor.insertContent(htmls.join(""));
+
+		request.editor.selection.collapse(true);
+
+		const node = request.editor.selection.getNode();
+
+		request.editor.selection.select(node);
+
+		const text = request.editor.getContent();
+		this.save("insert-image", "Insert Image");
+		this.setFocus();
+		this.setValue(text);
+		// this.render();
+
+	}
+
+	// getContent(key) {
+	//
+	// 	if (key === "file") {
+	//
+	// 		return new KarmaFieldsAlpha.Content();
+	//
+	// 	}
+	//
+	// 	return super.getContent(key);
+	// }
+	//
+	//
+	// setValue(value, key) {
+	//
+	// 	if (key === "file" && value && value[0]) {
+	//
+	// 		const id = value[0];
+	// 		const work = this.insert(id);
+	// 		KarmaFieldsAlpha.Jobs.add(work);
+	// 		this.setFocus(true);
+	// 		this.request("render");
+	//
+	// 	}
+	//
+	// }
+	//
+	// async *attachfile() {
+	//
+	// 	const filesField = new KarmaFieldsAlpha.field.files({
+	// 		uploader: "wp",
+	// 		key: "file",
+	// 		mimetype: []
+	// 	}, "attachFile", this);
+	//
+	// 	yield* filesField.edit();
+	//
+	// }
+
+
+
+
+	// insert(ids) {
+	//
+  //   const request = this.getEditor();
+	//
+	// 	const attachments = this.getFiles(ids);
+	//
+	// 	if (request.loading || request.loading || attachments.loading) {
+	//
+	// 		this.addTask(() => this.insert(ids), "insert-file");
+	//
+	// 	} else {
+	//
+	// 		const html = this.printAttachments(attachments.toArray());
+	//
+	// 		request.editor.insertContent(html);
+	//
+	// 		request.editor.selection.collapse(true);
+	//
+	// 		const node = request.editor.selection.getNode();
+	//
+	// 		request.editor.selection.select(node);
+	//
+	// 		const text = request.editor.getContent();
+	// 		this.save("insert-image", "Insert Image");
+	// 		this.setFocus();
+	// 		this.setValue(text);
+	// 		this.render();
+	//
+	// 	}
+	//
+  // }
 
 
 
@@ -1890,7 +1944,27 @@ console.error("deprecated");
 	//
 	// }
 
-	getChild(type) {
+	// getChild(type) {
+	//
+	// 	if (type === "linkForm") {
+	//
+	// 		return this.createChild({
+	// 			type: "linkForm",
+	// 			...this.resource.linkForm,
+	// 		}, "linkForm");
+	//
+	// 	} else if (type === "textarea") { // mixed
+	//
+	// 		return this.createChild({
+	// 			type: "textarea",
+	// 			key: "raw"
+	// 		}, "textarea");
+	//
+	// 	}
+	//
+	// }
+
+	newChild(type) {
 
 		if (type === "linkForm") {
 
@@ -1909,6 +1983,19 @@ console.error("deprecated");
 		}
 
 	}
+
+	getChild(index, ...path) {
+
+    let child = this.newChild(index);
+
+    if (child && path.length) {
+
+      return child.getChild(...path);
+
+    }
+
+    return child;
+  }
 
 
 	// hasFocus() {
@@ -2007,8 +2094,8 @@ console.error("deprecated");
                           // children: ["separator", "edit"],
 													children: ["separator", "edit"],
                           ...this.resource.textarea_buttons,
-													index: "toolbar"
-                        }).build()
+													// index: "toolbar"
+                        }, "toolbar").build()
                       }
                     ]
                   },
@@ -2082,7 +2169,7 @@ console.error("deprecated");
                         child: this.createChild({
                           type: "buttons",
                           ...(this.resource.buttons || this.resource.header)
-                        }).build()
+                        }, "toolbar").build()
                       }
                     ]
                   },
@@ -2252,15 +2339,26 @@ console.error("deprecated");
 																node = request.editor.getBody().contains(node) && node; // target node may be outside editor !!
 
 																// const targetElement = node && node.closest(field.resource.selector);
-																const targetElement = node && node.matches(field.resource.selector);
+
+																// let targetElement;
+																//
+																// if (node && node.matches(field.resource.selector)) {
+																//
+																// 	targetElement = node;
+																//
+																// }
+
+																const isActive = node && node.matches(field.resource.selector);
 
 
-																popover.element.classList.toggle("hidden", !targetElement);
-																popover.element.classList.toggle("active", Boolean(targetElement));
 
-																if (targetElement) {
 
-																	console.log(node, targetElement, request.editor.getContainer(), request.editor.getBody());
+																popover.element.classList.toggle("hidden", !isActive);
+																popover.element.classList.toggle("active", Boolean(isActive));
+
+																if (isActive) {
+
+																	const targetElement = node;
 
 																	popover.children = [field.build()];
 
@@ -2373,23 +2471,36 @@ console.error("deprecated");
 
 }
 
+
+// KarmaFieldsAlpha.field.tinymce.buttons = {
+// 	type: "group",
+// 	display: "flex",
+// 	children: ["format", "bold", "italic", "link", "ul", "ol", "image", "code"],
+// }
+
+// KarmaFieldsAlpha.field.tinymce.register("buttons", {
+// 	type: "group",
+// 	display: "flex",
+// 	children: ["format", "bold", "italic", "link", "ul", "ol", "image", "code"],
+// });
+
 KarmaFieldsAlpha.field.tinymce.buttons = class extends KarmaFieldsAlpha.field.group {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 
 		super({
 			display: "flex",
 			// children: ["format", "bold", "italic", "link", "ul", "ol"],
 			children: ["format", "bold", "italic", "link", "ul", "ol", "image", "code"],
 			...resource
-		});
+		}, id, parent);
 
 	}
 
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.format = class extends KarmaFieldsAlpha.field.dropdown {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			type: "dropdown",
 			key: "format",
@@ -2404,13 +2515,13 @@ KarmaFieldsAlpha.field.tinymce.buttons.format = class extends KarmaFieldsAlpha.f
 				{id: "p", name: "P"}
 			],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 
 KarmaFieldsAlpha.field.tinymce.buttons.bold = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-bold",
 			title: "Bold",
@@ -2419,12 +2530,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.bold = class extends KarmaFieldsAlpha.fie
 			// value: "bold",
 			active: ["request", "queryCommand", "bold"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.italic = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-italic",
 			title: "Italic",
@@ -2433,12 +2544,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.italic = class extends KarmaFieldsAlpha.f
 			params: ["italic"],
 			active: ["request", "queryCommand", "italic"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.link = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "admin-links",
 			title: "Link",
@@ -2447,12 +2558,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.link = class extends KarmaFieldsAlpha.fie
 			active: ["request", "queryLink"],
 			enabled: ["||", ["request", "hasContentSelected"], ["request", "queryLink"]],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.image = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "format-image",
 			title: "Image",
@@ -2460,61 +2571,63 @@ KarmaFieldsAlpha.field.tinymce.buttons.image = class extends KarmaFieldsAlpha.fi
 			// active: ["request", "queryImage"],
 			// disabled: ["!", ["request", "hasContentSelected"]],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.ul = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-ul",
 			title: "Unordered list",
 			action: "execUL",
 			active: ["request", "queryUL"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.ol = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-ol",
 			title: "Ordered list",
 			action: "execOL",
 			active: ["request", "queryOL"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.code = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-code",
 			title: "Code",
 			action: "execMode",
-			value: "code",
+			// value: "code",
+			params: ["code"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.edit = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "edit",
 			title: "Code",
 			action: "execMode",
-			value: "edit",
+			// value: "edit",
+			params: ["edit"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 
 KarmaFieldsAlpha.field.tinymce.buttons.strikethrough = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-strikethrough",
 			title: "Strikethrough",
@@ -2522,12 +2635,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.strikethrough = class extends KarmaFields
 			value: "strikethrough",
 			active: ["request", "queryCommand", "strikethrough"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.superscript = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			// dashicon: "editor-strikethrough",
 			title: "Superscript",
@@ -2535,12 +2648,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.superscript = class extends KarmaFieldsAl
 			value: "superscript",
 			active: ["request", "queryCommand", "superscript"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.superscript = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			// dashicon: "editor-strikethrough",
 			title: "Subscript",
@@ -2548,12 +2661,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.superscript = class extends KarmaFieldsAl
 			value: "subscript",
 			active: ["request", "queryCommand", "subscript"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.justifyLeft = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-alignleft",
 			title: "JustifyLeft",
@@ -2561,12 +2674,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.justifyLeft = class extends KarmaFieldsAl
 			value: "JustifyLeft",
 			active: ["request", "queryCommand", "JustifyLeft"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.justifyCenter = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-aligncenter",
 			title: "JustifyCenter",
@@ -2574,12 +2687,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.justifyCenter = class extends KarmaFields
 			value: "JustifyCenter",
 			active: ["request", "queryCommand", "JustifyCenter"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.justifyRight = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-alignright",
 			title: "JustifyRight",
@@ -2587,12 +2700,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.justifyRight = class extends KarmaFieldsA
 			value: "JustifyRight",
 			active: ["request", "queryCommand", "JustifyRight"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.justifyFull = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-justify",
 			title: "JustifyFull",
@@ -2600,12 +2713,12 @@ KarmaFieldsAlpha.field.tinymce.buttons.justifyFull = class extends KarmaFieldsAl
 			value: "JustifyFull",
 			active: ["request", "queryCommand", "JustifyFull"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
 KarmaFieldsAlpha.field.tinymce.buttons.justifyNone = class extends KarmaFieldsAlpha.field.button {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			dashicon: "editor-alignleft",
 			title: "JustifyNone",
@@ -2613,7 +2726,7 @@ KarmaFieldsAlpha.field.tinymce.buttons.justifyNone = class extends KarmaFieldsAl
 			value: "JustifyNone",
 			active: ["request", "queryCommand", "JustifyNone"],
 			...resource
-		});
+		}, id, parent);
 	}
 }
 
@@ -2621,22 +2734,6 @@ KarmaFieldsAlpha.field.tinymce.buttons.justifyNone = class extends KarmaFieldsAl
 
 
 KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group {
-
-	// getValue(key) {
-	//
-	// 	const data = this.getData();
-	//
-	// 	if (data && data.buffer && data.buffer[key] !== undefined) {
-	//
-	// 		return KarmaFieldsAlpha.Type.toString(data.buffer[key]);
-	//
-	// 	} else {
-	//
-	// 		return super.getValue(key);
-	//
-	// 	}
-	//
-	// }
 
 	getContent(subkey) {
 
@@ -2658,143 +2755,25 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 
 		}
 
-		// if (data && data.buffer && data.buffer[key] !== undefined) {
-		//
-		// 	return KarmaFieldsAlpha.Type.toString(data.buffer[key]);
-		//
-		// } else {
-		//
-		// 	return super.getValue(key);
-		//
-		// }
-
 		return content;
 
 	}
 
-	// setValue(value, subkey) {
-	//
-	//
-	// 	// const currentValues = this.getValue(subkey);
-	//
-	// 	// value = KarmaFieldsAlpha.Type.toArray(value);
-	//
-	// 	// if (KarmaFieldsAlpha.DeepObject.differ(value, currentValues)) {
-	//
-	// 	// debugger;
-	//
-	// 		const data = this.getData() || {};
-	//
-	// 		if (!data.buffer) {
-	//
-	// 			const [buffer] = this.parent.getValue(this.getKey()) || [];
-	// 			// const [value] = super.getValue() || [];
-	//
-	// 			data.buffer = buffer || {};
-	//
-	// 		}
-	//
-	// 		data.buffer[subkey] = value;
-	//
-	// 		// this.setData(data);
-	//
-	// 	// }
-	//
-	// }
-
 	setValue(value, subkey) {
-
 
 		this.setOption(value, subkey);
 
-			// const data = this.getData() || {};
-			//
-			// if (!data.buffer) {
-			//
-			// 	const [buffer] = this.parent.getValue(this.getKey()) || [];
-			// 	// const [value] = super.getValue() || [];
-			//
-			// 	data.buffer = buffer || {};
-			//
-			// }
-			//
-			// data.buffer[subkey] = value;
-
-			// this.setData(data);
-
-		// }
-
 	}
 
-	// modified(key) {
-	//
-	// 	const data = this.getData();
-	//
-	// 	if (!data || !data.buffer || data.buffer[key] === super.getValue(key)) {
-	//
-	// 		return false;
-	//
-	// 	}
-	//
-	// 	return true;
-	//
-	// }
-
-	// submit() {
-	//
-	// 	const data = this.getData();
-	//
-	// 	let key = this.getKey();
-	//
-	// 	if (data && data.buffer) {
-	//
-	// 		if (key) {
-	//
-	// 			// super.setValue(data.buffer, key);
-	//
-	// 			this.parent.setValue(data.buffer, key);
-	//
-	// 		} else {
-	//
-	// 			for (key in data.buffer) {
-	//
-	// 				this.parent.setValue(data.buffer[key], key);
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 		this.render();
-	//
-	// 		// for (let key in data.buffer) {
-	//
-	// 		//   super.setValue(data.buffer[key], key);
-	//
-	// 		// }
-	//
-	// 	}
-	//
-	// 	// this.request("closelink");
-	//
-	// 	this.close();
-	//
-	// }
-
-	submit() {
-
-		const content = new KarmaFieldsAlpha.Content();
+	*submit() {
 
 		const value = this.getOption();
-
-
 
 		if (value) {
 
 			const key = this.getKey();
 
-			this.setValue(content, key);
-
-			// this.render();
+			this.parent.setValue(value, key);
 
 		}
 
@@ -2802,17 +2781,7 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 
 	}
 
-	close() {
-
-		// const data = this.getData();
-		//
-		// if (data.buffer) {
-		//
-		// 	delete data.buffer;
-		//
-		// 	// this.setData(data);
-		//
-		// }
+	*close() {
 
 		this.removeOption();
 
@@ -2831,13 +2800,245 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 
 	}
 
-	// save() {
-	//   // noop
+}
+
+
+KarmaFieldsAlpha.field.tinymce.linkForm = class extends KarmaFieldsAlpha.field.group {
+
+	constructor(resource, id, parent) {
+		super({
+			key: "linkform",
+			selector: "a",
+			children: [
+				"linkFormInput",
+				"target",
+				"linkFormFooter"
+			],
+			...resource
+		}, id, parent);
+	}
+
+	getContent(subkey) {
+
+		const response = new KarmaFieldsAlpha.Content();
+
+		const value = this.getOption(subkey);
+
+		if (value === undefined) {
+
+			const request = this.parent.getEditor();
+
+	    if (request.loading) {
+
+				response.loading = true;
+
+			} else {
+
+	      const node = request.editor.selection.getNode();
+				const a = node && node.closest("a");
+
+	      if (a) {
+
+					if (subkey === "href") {
+
+						let href = node.getAttribute("href");
+
+						if (href === "nolink") {
+
+							response.value = "";
+
+						} else {
+
+							response.value = href || "";
+
+						}
+
+					} else if (subkey === "target") {
+
+						response.value = node.getAttribute("target") === "_blank" ? "1" : "";
+
+					}
+
+	      }
+
+	    }
+
+		} else {
+
+			response.value = value;
+			response.modified = true;
+
+		}
+
+		return response;
+	}
+
+	setValue(value, subkey) {
+
+		this.setOption(value, subkey);
+
+	}
+
+	// getTargetBlank() {
+	//
+	// 	const response = new KarmaFieldsAlpha.Content();
+	//
+	// 	response.value = this.getOption("target");
+	//
+	// 	if (response.value === undefined) {
+	//
+	// 		const request = this.parent.getEditor();
+	//
+	//     if (request.loading) {
+	//
+	// 			response.loading = true;
+	//
+	// 		} else {
+	//
+	// 			const node = request.editor.selection.getNode();
+	// 			const a = node && node.closest("a");
+	//
+	// 			if (a) {
+	//
+	// 				response.value = a.getAttribute("target") === "_blank" && "1" || "";
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	return response;
+	// }
+	//
+	// getHref() {
+	//
+	// 	const response = new KarmaFieldsAlpha.Content();
+	//
+	// 	response.value = this.getOption("href");
+	//
+	// 	if (response.value === undefined) {
+	//
+	// 		const request = this.parent.getEditor();
+	//
+	// 		if (request.loading) {
+	//
+	// 			response.loading = true;
+	//
+	// 		} else {
+	//
+	// 			const node = request.editor.selection.getNode();
+	// 			const a = node && node.closest("a");
+	//
+	// 			if (a) {
+	//
+	// 				response.value = a.getAttribute("href") || "";
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	return response;
 	// }
 
-	// render() {
-	//   // noop
-	// }
+	*submit() {
+
+		// let href = this.getHref();
+		// let targetBlank = this.getTargetBlank();
+		let href = this.getContent("href");
+		let targetBlank = this.getContent("target");
+		let request = this.parent.getEditor();
+
+		while (href.loading || targetBlank.loading || request.loading) {
+
+			// href = this.getHref();
+			// targetBlank = this.getTargetBlank();
+			href = this.getContent("href");
+			targetBlank = this.getContent("target");
+			request = this.parent.getEditor();
+			yield;
+
+		}
+
+		if (href.toString() === "") {
+
+			request.editor.execCommand("Unlink");
+
+		} else {
+
+			request.editor.execCommand("mceInsertLink", false, {
+				"href": href.toString(),
+				"target": targetBlank.toBoolean() ? "_blank" : null
+			});
+
+		}
+
+		const text = request.editor.getContent();
+
+		this.save("link", "link");
+		this.parent.setValue(text);
+
+
+		yield* this.close();
+
+	}
+
+	*close() {
+
+		this.removeOption();
+
+		const request = this.parent.getEditor();
+
+		while (request.loading) {
+
+			request = this.parent.getEditor();
+			yield;
+
+		}
+
+		const node = request.editor.selection.getNode();
+		const a = node && node.closest("a");
+
+		if (a) {
+
+			if (a.getAttribute("href") === "nolink") {
+
+				request.editor.execCommand("Unlink");
+
+				const text = request.editor.getContent();
+
+				this.setValue(text);
+
+			} else {
+
+				// -> set caret after node (https://stackoverflow.com/a/9829634/2086505)
+				const range = request.editor.selection.getRng();
+				range.setStartAfter(a);
+				range.setEndAfter(a);
+
+				request.editor.selection.setRng(range);
+
+			}
+
+		}
+
+		this.setFocus();
+
+  }
+
+	hasChange() {
+
+		const response = new KarmaFieldsAlpha.Content();
+
+		const data = this.getOption();
+
+		response.value = Boolean(data && Object.values(data).length);
+
+		return response;
+
+	}
 
 }
 
@@ -3092,24 +3293,26 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 //
 // }
 
-KarmaFieldsAlpha.field.tinymce.linkForm = class extends KarmaFieldsAlpha.field.tinymce.form {
-	constructor(resource) {
-		super({
-			key: "linkform",
-			selector: "a",
-			children: [
-				"linkFormInput",
-				"target",
-				"linkFormFooter"
-			],
-			...resource
-		});
-	}
 
-}
+// deprecated
+// KarmaFieldsAlpha.field.tinymce.linkFormXX = class extends KarmaFieldsAlpha.field.tinymce.form {
+// 	constructor(resource) {
+// 		super({
+// 			key: "linkform",
+// 			selector: "a",
+// 			children: [
+// 				"linkFormInput",
+// 				"target",
+// 				"linkFormFooter"
+// 			],
+// 			...resource
+// 		});
+// 	}
+//
+// }
 
 KarmaFieldsAlpha.field.tinymce.linkFormInput = class extends KarmaFieldsAlpha.field.group {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			display: "flex",
 			children: [
@@ -3117,13 +3320,13 @@ KarmaFieldsAlpha.field.tinymce.linkFormInput = class extends KarmaFieldsAlpha.fi
 				"attachFile"
 			],
 			...resource
-		});
+		}, id, parent);
 	}
 
 }
 
 KarmaFieldsAlpha.field.tinymce.linkFormFooter = class extends KarmaFieldsAlpha.field.group {
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			display: "flex",
 			children: [
@@ -3133,7 +3336,7 @@ KarmaFieldsAlpha.field.tinymce.linkFormFooter = class extends KarmaFieldsAlpha.f
 				"submit"
 			],
 			...resource
-		});
+		}, id, parent);
 	}
 
 }
@@ -3143,13 +3346,13 @@ KarmaFieldsAlpha.field.tinymce.linkFormFooter = class extends KarmaFieldsAlpha.f
 
 KarmaFieldsAlpha.field.tinymce.linkForm.href = class extends KarmaFieldsAlpha.field.input {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 
 		super({
 			key: "href",
 			style: "flex-grow:1",
 			...resource
-		});
+		}, id, parent);
 
 	}
 
@@ -3157,13 +3360,13 @@ KarmaFieldsAlpha.field.tinymce.linkForm.href = class extends KarmaFieldsAlpha.fi
 
 KarmaFieldsAlpha.field.tinymce.linkForm.target = class extends KarmaFieldsAlpha.field.checkbox {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 
 		super({
 			key: "target",
 			text: "Open in new tab",
 			...resource
-		});
+		}, id, parent);
 
 	}
 
@@ -3171,13 +3374,13 @@ KarmaFieldsAlpha.field.tinymce.linkForm.target = class extends KarmaFieldsAlpha.
 
 KarmaFieldsAlpha.field.tinymce.linkForm.cancel = class extends KarmaFieldsAlpha.field.button {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 
 		super({
 			text: "Cancel",
 			request: ["close"],
 			...resource
-		});
+		}, id, parent);
 
 	}
 
@@ -3185,28 +3388,28 @@ KarmaFieldsAlpha.field.tinymce.linkForm.cancel = class extends KarmaFieldsAlpha.
 
 KarmaFieldsAlpha.field.tinymce.linkForm.unlink = class extends KarmaFieldsAlpha.field.button {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 
 		super({
 			text: "Unlink",
 			request: ["unlink"],
 			// disabled: ["!", ["getValue", "href"]],
 			...resource
-		});
+		}, id, parent);
 
 	}
 
 }
 KarmaFieldsAlpha.field.tinymce.linkForm.submit = class extends KarmaFieldsAlpha.field.button {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 
 		super({
 				text: "Apply",
 				request: ["submit"],
 				primary: true,
 			...resource
-		});
+		}, id, parent);
 
 	}
 
@@ -3217,18 +3420,14 @@ KarmaFieldsAlpha.field.tinymce.linkForm.submit = class extends KarmaFieldsAlpha.
 
 KarmaFieldsAlpha.field.tinymce.linkForm.attachFile = class extends KarmaFieldsAlpha.field.button {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 
 		super({
 			dashicon: "paperclip",
 			request: ["attachfile"],
 			...resource
-		});
+		}, id, parent);
 
-	}
-
-	useSocket() {
-		return new KarmaFieldsAlpha.Content(true);
 	}
 
 	getDriver() {
@@ -3237,63 +3436,64 @@ KarmaFieldsAlpha.field.tinymce.linkForm.attachFile = class extends KarmaFieldsAl
 
   }
 
-	getTable() {
+	*insert(id) {
 
-    return this.parse(this.resource.table || "medias");
+		const mediaField = new KarmaFieldsAlpha.field.media({
+			id: id,
+			driver: this.getDriver()
+		}, "media", this);
 
-  }
+		let media = mediaField.getMedia();
 
-  getParams() {
+		// while (item.loading) {
+		while (media.icon === "loading") {
 
-    return this.parse(this.resource.params);
+			media = mediaField.getMedia();
+			yield;
 
-  }
+		}
 
-	attachfile() {
+		console.log(media);
 
-		const table = this.getTable();
-    const params = this.getParams();
-
-    if (table.loading || params.loading) {
-
-      this.addTask(() => this.edit(), "attach-file");
-
-    } else {
-
-			this.save("attach-file", "Attach File");
-
-			this.setFocus(false);
-			this.request("open", table.toString(), params.toObject(), false);
-
-			// this.addTask(() => this.request("dispatch", "selectByIds", ids), "pre-select");
-
-    }
+		this.parent.setValue(media.src, "href");
 
 	}
 
-	insert(ids) {
+	getContent(key) {
 
-		if (ids.length) {
+		if (key === "file") {
 
-			const driver = this.getDriver();
-
-			const filename = new KarmaFieldsAlpha.Content.Value(driver, ids[0], "filename");
-			const dir = new KarmaFieldsAlpha.Content.Value(driver, ids[0], "dir");
-
-			if (filename.loading || dir.loading) {
-
-				this.addTask(() => this.edit(), "insert-file");
-
-			} else {
-
-
-				const href = KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString();
-
-				this.parent.setValue(href, "href");
-
-			}
+			return new KarmaFieldsAlpha.Content();
 
 		}
+
+		return super.getContent(key);
+	}
+
+
+	setValue(value, key) {
+
+		if (key === "file" && value && value[0]) {
+
+			const id = value[0];
+			const work = this.insert(id);
+      KarmaFieldsAlpha.Jobs.add(work);
+      this.setFocus(true);
+      this.request("render");
+
+		}
+
+	}
+
+	async *attachfile() {
+
+		const filesField = new KarmaFieldsAlpha.field.files({
+			uploader: "wp",
+			key: "file",
+			mimetype: []
+		}, "attachFile", this);
+
+		yield* filesField.edit();
 
 	}
 

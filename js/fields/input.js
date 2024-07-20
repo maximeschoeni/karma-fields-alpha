@@ -35,6 +35,25 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	}
 
+	exportDefaults() {
+
+		let defaults = new KarmaFieldsAlpha.Content({})
+		const response = this.getDefault();
+
+		if (response.loading) {
+
+			defaults.loading = true;
+
+		} else {
+
+			defaults.value = {[this.getKey()]: response.toString()};
+
+		}
+
+		return defaults;
+
+	}
+
 	isDisabled() {
 
     if (this.resource.disabled) {
@@ -366,6 +385,11 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
         if (!content.loading) {
 
+
+
+					input.element.placeholder = this.getPlaceholder();
+					input.element.classList.toggle("mixed", Boolean(content.mixed));
+
 					if (content.notFound) {
 
 						// if (this.resource.createWhenNotFound) {
@@ -389,8 +413,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					} else {
 
-						input.element.placeholder = this.getPlaceholder();
-						input.element.classList.toggle("mixed", Boolean(content.mixed));
+
 						input.element.classList.toggle("selected", Boolean(content.mixed && this.hasFocus()));
 
 	          if (content.mixed) {

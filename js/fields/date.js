@@ -1,7 +1,7 @@
 
 KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
-  constructor(resource) {
+  constructor(resource, id, parent) {
 
 		super({
       // format: "DD/MM/YYYY",
@@ -13,7 +13,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
       displayFormat: "dd/mm/yyyy",
       storeFormat: "yyyy-mm-dd",
       ...resource
-    });
+    }, id, parent);
 
 
 

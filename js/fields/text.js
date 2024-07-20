@@ -70,6 +70,7 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 	getContent() {
 
+
 		return this.parse(this.resource.value || this.resource.content);
 
 	}
@@ -107,7 +108,7 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 					if (content.loading) {
 
-						node.children = [];
+						// node.children = [];
 
 					} else if (content.mixed) {
 
@@ -125,13 +126,11 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 						// node.element.innerHTML = content.toArray().map(value => `<div class="text-item">${value.toString()}</div>`).join("");
 
-
 						node.children = content.toArray().map(value => {
 							return {
 								// class:"text-item",
 								// tag: "li",
 								update: node => {
-
 									node.element.innerHTML = value.toString();
 								}
 							}
@@ -506,32 +505,78 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 	//
 	// }
 
+	newChild(index) {
+
+    if (index === "popup") {
+
+      const tableResource = this.resource.popup;
+
+      const constructor = this.getConstructor(tableResource.type || "table");
+
+      return new constructor(tableResource, "popup", this);
+
+    }
+
+  }
+
 
 
 	*nav(index = 0) {
 
-		let table = this.parse(this.resource.table);
-		let params = this.parse(this.resource.params);
-
-		while (table.loading || params.loading) {
-
-			yield;
-
-		}
+		// let params = this.parse(this.resource.params);
+		//
+		// while (params.loading) {
+		//
+		// 	params = this.parse(this.resource.params);
+		// 	yield;
+		//
+		// }
 
 		this.save("open", "Open link");
 
 		// KarmaFieldsAlpha.saucer.open(key);
 
-		const popup = this.getField("board", table.toString());
+		// const popup = this.getField("board", table.toString());
 
-    popup.open();
+		const popup = this.getChild("popup");
 
-    const tableField = popup.getChild("table");
+		popup.setFocus(true);
 
-		console.log(params.toObject());
+    // popup.setState(params.toObject(), "params");
 
-    tableField.setState(params.toObject(), "params");
+
+
+		if (popup.resource.preselect) {
+
+			let ids = this.parse(popup.resource.preselect);
+
+			while (ids.loading) {
+
+				yield;
+				ids = this.parse(popup.resource.preselect);
+
+			}
+
+			yield* popup.selectByIdsSync([ids.toArray()[index]]);
+
+		}
+
+
+	}
+
+	open(index) {
+
+		const work = this.nav(index);
+
+		KarmaFieldsAlpha.Jobs.add(work);
+
+		this.render();
+
+	}
+
+	close() {
+
+		this.setFocus(true);
 
 	}
 
@@ -550,77 +595,109 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 	//
 	// }
 
+	*buildPopup() {
+
+		const hasPopup = this.hasFocusInside("popup");
+
+    if (hasPopup) {
+
+      const popup = this.getChild("popup");
+
+			yield {
+        class: "popup",
+				update: node => {
+          node.element.onmousedown = event => {
+            event.stopPropagation();
+
+						popup.setFocus(true);
+						// if (body.select) body.select(0, 0); // !!
+						this.render();
+          }
+        },
+        child: {
+          class: "popup-content",
+          children: [
+            popup.build()
+          ]
+        }
+      };
+
+		}
+
+	}
+
 
 	build() {
 
 		return {
-			tag: "ul",
-			class: "karma-field links",
-			update: node => {
-				node.element.classList.toggle("display-inline", this.resource.display === "inline");
+			class: "links",
+			children: [
+				{
+					tag: "ul",
+					class: "karma-field links",
+					update: node => {
+						node.element.classList.toggle("display-inline", this.resource.display === "inline");
 
-				const contents = this.parse(this.resource.content);
+						const contents = this.parse(this.resource.content);
 
-				if (contents.loading) {
+						if (contents.loading) {
 
-					node.children = [{
-						tag: "li"
-					}];
+							node.children = [{
+								tag: "li"
+							}];
 
-				} else {
+						} else {
 
-					node.children = contents.toArray().map((content, index) => {
-						return {
-							tag: "li",
-							child: {
-								tag: "a",
-								update: node => {
+							node.children = contents.toArray().map((content, index) => {
+								return {
+									tag: "li",
+									child: {
+										tag: "a",
+										update: node => {
 
-									node.element.onmousedown = event => {
-										event.stopPropagation();
-									};
+											node.element.onmousedown = event => {
+												event.stopPropagation();
+											};
 
-									if (this.resource.table && this.resource.params) {
+											if (this.resource.popup) {
 
-										node.element.onclick = event => {
-											event.preventDefault();
-											// this.nav(index);
+												node.element.onclick = event => {
+													event.preventDefault();
+													// this.nav(index);
 
-											const work = this.nav(index);
-											KarmaFieldsAlpha.Jobs.add(work);;
-											this.render();
-											// KarmaFieldsAlpha.Task.add({
-											// 	resolve: () => {
-											// 		KarmaFieldsAlpha.History.save("open", "Open link");
-											// 		KarmaFieldsAlpha.saucer.open(key);
-											// 	}
-											// });
+													this.open(index);
 
+													// const work = this.nav(index);
+													// KarmaFieldsAlpha.Jobs.add(work);;
+													// this.render();
+
+												}
+
+											} else if (this.resource.href) {
+
+												node.element.href = this.parse(this.resource.href).toArray()[index];
+
+											}
+
+											node.element.innerHTML = content;
+
+											if (this.resource.target) {
+
+												node.element.target = this.resource.target;
+
+											}
 
 										}
-
-									} else if (this.resource.href) {
-
-										node.element.href = this.parse(this.resource.href).toArray()[index];
-
 									}
-
-									node.element.innerHTML = content;
-
-									if (this.resource.target) {
-
-										node.element.target = this.resource.target;
-
-									}
-
 								}
-							}
+							});
+
 						}
-					});
 
-				}
-
-			}
+					}
+				},
+				...this.buildPopup()
+			]
 		};
 
 	}
@@ -737,10 +814,15 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 			const filetype = this.getContent("filetype");
 			const name = this.getContent("name");
 			const filename = this.getContent("filename");
+			const dir = this.getContent("dir");
 
-			if (mimetype.loading || filetype.loading || name.loading || filename.loading || !filetype.toString()) {
+			if (mimetype.loading || filetype.loading || name.loading || filename.loading || dir.loading) {
 
-				return {icon: "loading", text: ""};
+				return {icon: "loading", text: filename.toString(), loading: true};
+
+			} else if (filetype.toString() === "") {
+
+				return {icon: "notfound", text: "no file type!"};
 
 			} else if (filetype.toString() === "exit") {
 
@@ -752,21 +834,21 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			} else if (mimetype.toString().startsWith("image")) {
 
-				const filename = this.getContent("filename");
-
-				if (filename.loading) {
-
-					return {icon: "image", text: ""};
-
-				}
-
-				const dir = this.getContent("dir");
-
-				if (dir.loading) {
-
-					return {icon: "image", text:""};
-
-				}
+				// const filename = this.getContent("filename");
+				//
+				// if (filename.loading) {
+				//
+				// 	return {icon: "image", text: "", loading: true};
+				//
+				// }
+				//
+				// const dir = this.getContent("dir");
+				//
+				// if (dir.loading) {
+				//
+				// 	return {icon: "image", text:"", loading: true};
+				//
+				// }
 
 				if (mimetype.toString() === "image/jpeg" || mimetype.toString() === "image/png" || this.resource.display === "full") {
 
@@ -794,6 +876,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 								text: name.toString(),
 								mimetype: mimetype.toString(),
 								filename: filename.toString(),
+								loading: true
 							};
 
 						} else {
@@ -853,21 +936,21 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			} else if (mimetype.toString().startsWith("video")) {
 
-				const filename = this.getContent("filename");
+				// const filename = this.getContent("filename");
+				//
+				// if (filename.loading) {
+				//
+				// 	return {icon: "video", text: name.toString(), loading: true};
+				//
+				// }
 
-				if (filename.loading) {
-
-					return {icon: "video", text: name.toString()};
-
-				}
-
-				const dir = this.getContent("dir");
-
-				if (dir.loading) {
-
-					return {icon: "image", text: name.toString()};
-
-				}
+				// const dir = this.getContent("dir");
+				//
+				// if (dir.loading) {
+				//
+				// 	return {icon: "image", text: name.toString(), loading: true};
+				//
+				// }
 
 				if (this.resource.display === "video") {
 
@@ -892,20 +975,20 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			} else if (mimetype.toString().startsWith("audio")) {
 
-				const filename = this.getContent("filename");
-				const dir = this.getContent("dir");
+				// const filename = this.getContent("filename");
+				// const dir = this.getContent("dir");
 
-				if (dir.loading) {
-
-					return {icon: "image", text: name.toString()};
-
-				}
-
-				if (filename.loading) {
-
-					return {icon: "audio", text: name.toString()};
-
-				}
+				// if (dir.loading) {
+				//
+				// 	return {icon: "image", text: name.toString(), loading: true};
+				//
+				// }
+				//
+				// if (filename.loading) {
+				//
+				// 	return {icon: "audio", text: name.toString(), loading: true};
+				//
+				// }
 
 				if (this.resource.display === "audio") {
 
@@ -928,21 +1011,46 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				}
 
-			} else if (mimetype.toString().startsWith("text")) {
-
-				return {icon: "text", text: filename.toString()};
-
-			} else if (mimetype.toString() === "application/pdf") {
-
-				return {icon: "document", text: filename.toString()};
-
-			} else if (mimetype.toString() === "application/zip") {
-
-				return {icon: "zip", text: filename.toString()};
+			// } else if (mimetype.toString().startsWith("text")) {
+			//
+			// 	return {icon: "text", text: filename.toString()};
+			//
+			// } else if (mimetype.toString() === "application/pdf") {
+			//
+			// 	return {icon: "document", text: filename.toString()};
+			//
+			// } else if (mimetype.toString() === "application/zip") {
+			//
+			// 	return {icon: "zip", text: filename.toString()};
 
 			} else {
 
-				return {icon: "default", text: filename.toString()};
+				// return {icon: "default", text: filename.toString()};
+
+				const media = {
+					text: filename.toString(),
+					src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+				};
+
+				if (mimetype.toString().startsWith("text")) {
+
+					media.icon = "text";
+
+				} else if (mimetype.toString() === "application/pdf") {
+
+					media.icon = "document";
+
+				} else if (mimetype.toString() === "application/zip") {
+
+					media.icon = "zip";
+
+				} else {
+
+					media.icon = "default";
+
+				}
+
+				return media;
 
 			}
 

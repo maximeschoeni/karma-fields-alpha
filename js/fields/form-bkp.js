@@ -1,5 +1,5 @@
 
-KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
+KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field {
 
   getParams() {
 
@@ -34,144 +34,125 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
   }
 
-  // newChild(id) {
-  //
-  //   if  (id === "header") {
-  //
-  //     if (this.resource.header && this.resource.header.type === "header") {
-  //
-  //       return new KarmaFieldsAlpha.field.table.header(this.resource.header, "header", this);
-  //
-  //     } else {
-  //
-  //       return new KarmaFieldsAlpha.field.group(this.resource.header, "header", this);
-  //
-  //     }
-  //
-  //   } else if (id === "footer") {
-  //
-  //     return new KarmaFieldsAlpha.field.table.footer(this.resource.footer, "footer", this);
-  //
-  //   } else if (id === "body") {
-  //
-  //     // return new KarmaFieldsAlpha.field[this.resource.body.type]({
-  //     //   sortable: this.resource.sortable,
-  //     //   ...this.resource.body
-  //     // }, "body", this);
-  //
-  //     return this.getBody();
-  //
-  //   }
-  //
-  // }
+  newChild(id) {
 
-  // getBody(index) {
-  //
-  //   return new KarmaFieldsAlpha.field.form.single({
-  //     // id: this.resource.id,
-  //     children: this.resource.children, // compat
-  //     display: this.resource.display,
-  //     ...this.resource.body
-  //   }, "body", this);
-  //
-  // }
+    if  (id === "header") {
 
-  // getChild(index, ...path) {
-  //
-  //   let child = this.newChild(index);
-  //
-  //   if (child && path.length) {
-  //
-  //     return child.getChild(...path);
-  //
-  //   }
-  //
-  //   return child;
-  //
-  // }
+      if (this.resource.header && this.resource.header.type === "header") {
 
-  getBody() {
+        return new KarmaFieldsAlpha.field.table.header(this.resource.header, "header", this);
 
-		const constructor = this.getConstructor(this.resource.body && this.resource.body.type || "single");
+      } else {
 
-		return new constructor(this.resource.body, "body", this);
+        return new KarmaFieldsAlpha.field.group(this.resource.header, "header", this);
 
-	}
+      }
 
-  // *buildBody() {
-  //
-	// 	const body = this.getBody();
-  //
-	// 	yield {
-  //     class: "table-body",
-  //     child: body.build()
-  //   };
-  //
-	// }
+    } else if (id === "footer") {
 
-  // *buildParts() {
-  //
-  //   if (this.resource.header) {
-  //
-  //     yield {
-  //       class: "karma-header table-header table-main-header simple-buttons",
-  //       child: this.getChild("header").build()
-  //     };
-  //
-  //   }
-  //
-  //   yield {
-  //     class: "table-body form-body",
-  //     child: this.getChild("body").build()
-  //   };
-  //
-  //   if (this.resource.footer) {
-  //
-  //     yield {
-  //       class: "table-footer table-control",
-  //       child: this.getChild("footer").build(),
-  //       update: footer => {
-  //         const isLoading = this.request("hasTask");
-  //         footer.element.classList.toggle("loading", Boolean(isLoading));
-  //       }
-  //     };
-  //
-  //   }
-  //
-  // }
+      return new KarmaFieldsAlpha.field.table.footer(this.resource.footer, "footer", this);
+
+    } else if (id === "body") {
+
+      // return new KarmaFieldsAlpha.field[this.resource.body.type]({
+      //   sortable: this.resource.sortable,
+      //   ...this.resource.body
+      // }, "body", this);
+
+      return this.getBody();
+
+    }
+
+  }
+
+  getBody(index) {
+
+    return new KarmaFieldsAlpha.field.form.single({
+      // id: this.resource.id,
+      children: this.resource.children, // compat
+      display: this.resource.display,
+      ...this.resource.body
+    }, "body", this);
+
+  }
+
+  getChild(index, ...path) {
+
+    let child = this.newChild(index);
+
+    if (child && path.length) {
+
+      return child.getChild(...path);
+
+    }
+
+    return child;
+
+  }
+
+  *buildParts() {
+
+    if (this.resource.header) {
+
+      yield {
+        class: "karma-header table-header table-main-header simple-buttons",
+        child: this.getChild("header").build()
+      };
+
+    }
+
+    yield {
+      class: "table-body form-body",
+      child: this.getChild("body").build()
+    };
+
+    if (this.resource.footer) {
+
+      yield {
+        class: "table-footer table-control",
+        child: this.getChild("footer").build(),
+        update: footer => {
+          const isLoading = this.request("hasTask");
+          footer.element.classList.toggle("loading", Boolean(isLoading));
+        }
+      };
+
+    }
+
+  }
 
 
 
-  // build() {
-  //
-  //   return {
-  //     class: "table-field",
-  //     children: [
-  //       {
-  //         class: "mixed-content",
-  //         init: node => {
-  //           node.element.innerHTML = "[mixed content]";
-  //         },
-  //         update: node => {
-  //           node.element.classList.add("hidden");
-  //         }
-  //       },
-  //       {
-  //         class: "karma-field-table",
-  //         init: node => {
-  //           node.element.style.width = this.resource.width || "100%";
-  //         },
-  //         update: node => {
-  //
-  //         },
-  //         children: [
-  //           ...this.buildParts()
-  //         ]
-  //       }
-  //     ]
-  //   };
-  //
-  // }
+  build() {
+
+    return {
+      class: "table-field",
+      children: [
+        {
+          class: "mixed-content",
+          init: node => {
+            node.element.innerHTML = "[mixed content]";
+          },
+          update: node => {
+            node.element.classList.add("hidden");
+          }
+        },
+        {
+          class: "karma-field-table",
+          init: node => {
+            node.element.style.width = this.resource.width || "100%";
+          },
+          update: node => {
+
+          },
+          children: [
+            ...this.buildParts()
+          ]
+        }
+      ]
+    };
+
+  }
 
   getDriver() {
 
@@ -362,28 +343,10 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
     // return this.getState(key);
 
-    // const content = new KarmaFieldsAlpha.Content();
-    // content.value = this.getState("params", key);
-    //
-    // return content;
+    const content = new KarmaFieldsAlpha.Content();
+    content.value = this.getState(key);
 
-    // const response = new KarmaFieldsAlpha.Content();
-    //
-    // const params = this.getParams();
-    //
-    // if (params.loading) {
-    //
-    //   response.loading = true;
-    //
-    // } else {
-    //
-    //   response.value = params.toObject()[key];
-    //
-    // }
-    //
-    // return response;
-
-    return this.queryParam(key);
+    return content;
 
     // const content = new KarmaFieldsAlpha.Content();
     // const shuttle = this.getShuttle();
@@ -418,35 +381,31 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
   getParam(key) {
 
-    return this.queryParam(key);
+    // const content = new KarmaFieldsAlpha.Content();
+    // content.value = this.getState(key);
+    //
+    // return content;
 
-    // console.warn("DEPRECATED (use queryParam)");
-    //
-    // // const content = new KarmaFieldsAlpha.Content();
-    // // content.value = this.getState(key);
-    // //
-    // // return content;
-    //
-    //
-    // return this.getState("params", key);
+
+    return this.getState(key);
 
   }
 
   setParam(value, key) {
 
-    this.setValue(value, "params", key);
+    this.setValue(value, key);
 
   }
 
 
 
-  // isCurrentLayer() {
-  //
-  //   const currentLayer = KarmaFieldsAlpha.Store.Layer.getCurrent();
-  //
-  //   return currentLayer && currentLayer.table === this.parent.id;
-  //
-  // }
+  isCurrentLayer() {
+
+    const currentLayer = KarmaFieldsAlpha.Store.Layer.getCurrent();
+
+    return currentLayer && currentLayer.table === this.parent.id;
+
+  }
 
 
   async *submit() {
@@ -672,21 +631,12 @@ KarmaFieldsAlpha.field.form.single = class extends KarmaFieldsAlpha.field.group 
 
   }
 
-  build() {
-
-    return {
-      class: "form-single",
-      child: super.build()
-    };
-
-  }
-
 
 }
 
 
 
-KarmaFieldsAlpha.field.form.header = class extends KarmaFieldsAlpha.field.container.header {
+KarmaFieldsAlpha.field.form.header = class extends KarmaFieldsAlpha.field.group {
 
   constructor(resource, id, parent) {
 
@@ -704,29 +654,29 @@ KarmaFieldsAlpha.field.form.header = class extends KarmaFieldsAlpha.field.contai
 
 }
 
-// KarmaFieldsAlpha.field.form.title = class extends KarmaFieldsAlpha.field.text {
-//
-//   constructor(resource, id, parent) {
-//
-//     super({
-//       tag: "h1",
-//       style: "flex-grow:1",
-//       class: "ellipsis",
-//       content: "Title",
-//       ...resource
-//     }, id, parent);
-//
-//   }
-//
-//   getContent() {
-//
-//     const content = this.getResource("title");
-//
-//     return this.parse(content || this.resource.content);
-//
-//   }
-//
-// }
+KarmaFieldsAlpha.field.form.title = class extends KarmaFieldsAlpha.field.text {
+
+  constructor(resource, id, parent) {
+
+    super({
+      tag: "h1",
+      style: "flex-grow:1",
+      class: "ellipsis",
+      content: "Title",
+      ...resource
+    }, id, parent);
+
+  }
+
+  getContent() {
+
+    const content = this.getResource("title");
+
+    return this.parse(content || this.resource.content);
+
+  }
+
+}
 
 KarmaFieldsAlpha.field.form.close = class extends KarmaFieldsAlpha.field.button {
   constructor(resource, id, parent) {
@@ -741,7 +691,7 @@ KarmaFieldsAlpha.field.form.close = class extends KarmaFieldsAlpha.field.button 
 
 
 
-KarmaFieldsAlpha.field.form.footer = class extends KarmaFieldsAlpha.field.container.footer {
+KarmaFieldsAlpha.field.form.footer = class extends KarmaFieldsAlpha.field.group {
 
   constructor(resource, id, parent) {
 

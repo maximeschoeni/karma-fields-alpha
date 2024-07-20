@@ -35,41 +35,39 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
   //
   // }
 
-  newChild(id) {
+  // newChild(id) {
+  //
+  //   if (id === "footer") {
+  //
+  //     return new KarmaFieldsAlpha.field.files.footer(this.resource.footer, "footer", this);
+  //
+  //   } else if (id === "body") {
+  //
+  //     return new KarmaFieldsAlpha.field.gallery({
+  //       sortable: true
+  //     }, "body", this);
+  //
+  //   }
+  //
+  // }
 
-    if (id === "footer") {
+  getBody() {
 
-      return new KarmaFieldsAlpha.field.files.footer(this.resource.footer, "footer", this);
-
-    } else if (id === "body") {
-
-      return new KarmaFieldsAlpha.field.gallery({
-        sortable: true
-      }, "body", this);
-
-    }
+    return new KarmaFieldsAlpha.field.gallery({
+      sortable: true
+    }, "body", this);
 
   }
+
+  getFooter() {
+
+    return new KarmaFieldsAlpha.field.files.footer(this.resource.footer, "footer", this)
+
+	}
 
   getChild(index, ...path) {
 
     let child = this.newChild(index);
-
-    // // if  (index === "header") {
-    // //
-    // //   child = new KarmaFieldsAlpha.field.files.header(this.resource.header, "header", this);
-    // //
-    // // } else
-    //
-    // if (index === "footer") {
-    //
-    //   child = new KarmaFieldsAlpha.field.files.footer(this.resource.footer, "footer", this);
-    //
-    // } else if (index === "body") {
-    //
-    //   child = new KarmaFieldsAlpha.field.gallery(this.resource, "body", this);
-    //
-    // }
 
     if (child && path.length) {
 
@@ -120,7 +118,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
       },
       library: {
         // post__in: this.getSelectedIds(),
-        posts_per_page: 100,
+        posts_per_page: this.resource.posts_per_page || 100,
         type: this.resource.file && (this.resource.file.type || this.resource.file.types)
           || this.resource.mime_types
           || this.resource.mimeTypes
@@ -232,73 +230,73 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
   //
   // }
 
-  *buildParts() {
-
-    yield {
-      class: "table-body",
-      child: this.getChild("body").build()
-    };
-
-    if (this.resource.footer !== false) {
-
-      yield {
-        class: "table-footer table-control",
-        child: this.getChild("footer").build(),
-        // update: footer => {
-        //   const isLoading = this.request("hasTask");
-        //   footer.element.classList.toggle("loading", Boolean(isLoading));
-        // }
-      };
-
-    }
-
-  }
-
-  build() {
-
-    return KarmaFieldsAlpha.field.table.prototype.build.call(this);
-
-    // return {
-    //   class: "table-field",
-    //   children: [
-    //     {
-    //       class: "mixed-content",
-    //       init: node => {
-    //         node.element.innerHTML = "[mixed content]";
-    //       },
-    //       update: node => {
-    //         node.element.classList.toggle("hidden", !this.getContent().mixed);
-    //       }
-    //     },
-    //     {
-    //       class: "karma-field-table",
-    //       update: node => {
-    //         node.element.classList.toggle("hidden", Boolean(this.getLength().mixed));
-    //       },
-    //       children: [
-    //         {
-    //           class: "karma-header table-header table-main-header simple-buttons",
-    //           children: [...this.buildHeader()], // compat
-    //           update: header => {
-    //             header.element.classList.toggle("hidden", !this.resource.header);
-    //           }
-    //         },
-    //         this.getChild("body").build(),
-    //         {
-    //           class: "table-footer table-control",
-    //           children: [...this.buildFooter()], // compat
-    //           update: footer => {
-    //             const isLoading = this.request("hasTask");
-    //             footer.element.classList.toggle("loading", Boolean(isLoading));
-    //             footer.element.classList.toggle("hidden", !footer.element.hasChildNodes());
-    //           }
-    //         }
-    //       ]
-    //     }
-    //   ]
-    // };
-
-  }
+  // *buildParts() {
+  //
+  //   yield {
+  //     class: "table-body",
+  //     child: this.getChild("body").build()
+  //   };
+  //
+  //   if (this.resource.footer !== false) {
+  //
+  //     yield {
+  //       class: "table-footer table-control",
+  //       child: this.getChild("footer").build(),
+  //       // update: footer => {
+  //       //   const isLoading = this.request("hasTask");
+  //       //   footer.element.classList.toggle("loading", Boolean(isLoading));
+  //       // }
+  //     };
+  //
+  //   }
+  //
+  // }
+  //
+  // build() {
+  //
+  //   return KarmaFieldsAlpha.field.table.prototype.build.call(this);
+  //
+  //   // return {
+  //   //   class: "table-field",
+  //   //   children: [
+  //   //     {
+  //   //       class: "mixed-content",
+  //   //       init: node => {
+  //   //         node.element.innerHTML = "[mixed content]";
+  //   //       },
+  //   //       update: node => {
+  //   //         node.element.classList.toggle("hidden", !this.getContent().mixed);
+  //   //       }
+  //   //     },
+  //   //     {
+  //   //       class: "karma-field-table",
+  //   //       update: node => {
+  //   //         node.element.classList.toggle("hidden", Boolean(this.getLength().mixed));
+  //   //       },
+  //   //       children: [
+  //   //         {
+  //   //           class: "karma-header table-header table-main-header simple-buttons",
+  //   //           children: [...this.buildHeader()], // compat
+  //   //           update: header => {
+  //   //             header.element.classList.toggle("hidden", !this.resource.header);
+  //   //           }
+  //   //         },
+  //   //         this.getChild("body").build(),
+  //   //         {
+  //   //           class: "table-footer table-control",
+  //   //           children: [...this.buildFooter()], // compat
+  //   //           update: footer => {
+  //   //             const isLoading = this.request("hasTask");
+  //   //             footer.element.classList.toggle("loading", Boolean(isLoading));
+  //   //             footer.element.classList.toggle("hidden", !footer.element.hasChildNodes());
+  //   //           }
+  //   //         }
+  //   //       ]
+  //   //     }
+  //   //   ]
+  //   // };
+  //
+  // }
 
   // deleteFile() {
   //
@@ -516,7 +514,7 @@ KarmaFieldsAlpha.field.files.footer.add = class extends KarmaFieldsAlpha.field.b
     super({
       title: "Add",
       text: "Add File",
-      action: "add",
+      action: "open",
       hidden: ["||", [">=", ["count", ["getContent"]], ["request", "getMax"]], ["isMixed"]],
       ...resource
     }, id, parent);

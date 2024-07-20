@@ -215,8 +215,23 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     this.save("paste", "Paste");
 
-    const index = this.getSelection("index") || 0;
-    const length = this.getSelection("length") || 0;
+    let index = this.getSelection("index") || 0;
+    let length = this.getSelection("length") || 0;
+
+    if (length === 0) {
+
+      let lengthContent = this.getLength();
+
+      while (lengthContent.loading) {
+
+        lengthContent = this.getLength();
+        yield;
+
+      }
+
+      index = lengthContent.value;
+
+    }
 
     // this.import(grid, index, length);
 
@@ -376,7 +391,13 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async *import(grid, index, length, columns = this.getExportableColumns()) {
+  async *import(grid, index, length, columns) {
+
+    if (!columns) {
+
+      columns = this.getExportableColumns();
+
+    }
 
     if (index === undefined || length === undefined) {
 
@@ -657,6 +678,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   buildModal() {
 
+
     return {
       class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
       // child: this.createChild({
@@ -671,7 +693,29 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       //   ...this.resource.modal,
       //   type: "modal"
       // }, "*").build()],
+      init: div => {
+        // KarmaFieldsAlpha.registerStickyModal({
+        //   modal: div.element,
+        //   tableBody: div.element.parentNode.parentNode,
+        //   table: div.element.parentNode.parentNode.parentNode
+        // });
+      },
       update: div => {
+
+        // const sticky = this.parent.id !== "popup";
+        // console.log(this.getFocus());
+
+
+        div.element.classList.remove("sticky-modal");
+        if (this.parent.id !== "popup") {
+          const focus = this.getFocus();
+          if (focus && !focus.includes("popup")) { // -> opening popup in sticky container seems to be bugged
+            div.element.style.height = `${this.request("getModalHeight", div.element)}px`;
+            div.element.style.top = `${this.request("getModalTop", div.element)}px`;
+            div.element.classList.add("sticky-modal");
+          }
+        }
+
         div.element.classList.toggle("hidden", !this.resource.modal);
         if (this.resource.modal) {
           div.element.style.width = this.resource.modal.width || "30em";
@@ -692,32 +736,35 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     return {
       class: "karma-field-table-grid-container karma-field-frame karma-field-group final scroll-container table-body-column table-body-main-column",
-      init: grid => {
+      init: node => {
         if (this.resource.height) {
           node.element.style.minHeight = this.resource.height;
         }
         if (this.resource.style) {
-          grid.element.style = this.resource.style;
+          node.element.style = this.resource.style;
         }
         if (this.resource.width) {
-          grid.element.style.width = this.resource.width;
+          node.element.style.width = this.resource.width;
+        }
+        if (this.resource.class) {
+          node.element.classList.add(this.resource.class);
         }
       },
       child: {
         class: "table grid grid-field-body",
-        init: grid => {
-          // if (this.resource.style) {
-          //   grid.element.style = this.resource.style;
-          // }
-
-          // if (this.resource.align) {
-          //   grid.element.classList.add(`align-${this.resource.align}`);
-          // }
-        },
-        children: [...this.buildRows()],
+        // children: [...this.buildRows()],
         update: grid => {
 
           const length = this.getLength();
+
+          if (!length.loading) {
+
+            grid.children = [...this.buildRows()];
+
+          }
+
+
+
           // const query = this.queryItems();
           // const columns = this.getColumns();
 
@@ -820,9 +867,6 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     return {
       class: "table-body-columns",
-      init: node => {
-
-      },
       update: div => {
         // -> unselect
         // div.element.onmousedown = event => {
@@ -832,6 +876,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         //   this.setFocus(true);
         //   this.request("render");
         // };
+        div.element.classList.toggle("stretch-columns", this.parent.id === "popup");
       },
       children: [
         this.buildBody(),

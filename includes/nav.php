@@ -18,31 +18,25 @@
 		// var container = document.getElementById("wp-admin-bar-karma-fields-in-admin-bar");
 		var resource = <?php echo json_encode($this->resource) ?>;
 		var index = <?php echo $this->index; ?>;
-		var field = new KarmaFieldsAlpha.field.saucer({
-			...resource,
-			index: "karma-fields-field-nav"
-			// uid: index.toString()
-		});
+		var field = new KarmaFieldsAlpha.field.saucer(resource, "karma-fields-field-nav");
 
 		field.uid = "saucer";
 		field.id = "saucer";
 
-		KarmaFieldsAlpha.embeds.push({
-			...resource,
-			index: "board",
-			type: "board"
-		});
-
-		// KarmaFieldsAlpha.Store.set({
+		// KarmaFieldsAlpha.embeds.push({
 		// 	...resource,
 		// 	index: "board",
 		// 	type: "board"
-		// }, "embeds", index);
+		// });
+
+		KarmaFieldsAlpha.embeds["board"] = {type: "board"};
 
 
 
 		// field.renderPromise = KarmaFieldsAlpha.build(field.build(), container);
 		KarmaFieldsAlpha.saucer = field;
+
+		KarmaFieldsAlpha.tables = resource.tables || {};
 
 		field.render();
 

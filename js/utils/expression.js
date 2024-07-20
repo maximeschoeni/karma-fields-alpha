@@ -155,6 +155,7 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
       case "max":
       case "min":
       case "resource":
+      case "parent":
         this[args[0]](...args);
         break;
 
@@ -169,6 +170,14 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
         break;
 
     }
+
+  }
+
+  parent(...args) {
+
+    this.field = this.field.parent;
+
+    this.parse(args[1]);
 
   }
 
@@ -997,11 +1006,32 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   getParam(...args) {
 
-    const key = args[1];
+    // const key = args[1];
 
-    this.value = KarmaFieldsAlpha.Store.Layer.getParam(key);
+    const key = new KarmaFieldsAlpha.Expression(args[1], this.field);
 
-    // this.value = this.field.request("getParam", key);
+    if (key.loading) {
+
+      this.loading = true;
+
+    } else {
+
+      const param = this.field.parent.getParam(key.toString()); // --> using parent to prevent infinite loop when calling from a table
+
+      if (param.loading) {
+
+        this.loading = true;
+
+      } else {
+
+        this.value = param.value;
+
+      }
+
+    }
+
+    // this.value = KarmaFieldsAlpha.Store.Layer.getParam(key);
+
 
   }
 
@@ -1041,6 +1071,25 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
   }
 
+  // replace(...args) {
+  //
+  //   const string = new KarmaFieldsAlpha.Expression(args[1], this.field);
+  //   const wildcard = args[2];
+  //
+  //   const replacements = args.slice(3).map(replacement => new KarmaFieldsAlpha.Expression(replacement, this.field));
+  //
+  //   if (string.loading || replacements.some(value => value.loading)) {
+  //
+  //     this.loading = true;
+  //
+  //   } else {
+  //
+  //     this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string.toString());
+  //
+  //   }
+  //
+  // }
+
   replace(...args) {
 
     const string = new KarmaFieldsAlpha.Expression(args[1], this.field);
@@ -1052,9 +1101,13 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
 
       this.loading = true;
 
-    } else {
+    } else if (replacements.length) {
 
-      this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string.toString());
+      const grid = replacements.map(replacement => replacement.toArray());
+
+      this.value = grid[0].map((item, i) => grid.reduce((string, replacements) => string.replace(wildcard, replacements[i]), string.toString()));
+
+      // this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string.toString());
 
     }
 
@@ -1104,6 +1157,8 @@ KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
     // return new KarmaFieldsAlpha.Content(content.mixed);
 
   }
+
+
 
 
   async *submit(...args) {

@@ -67,6 +67,8 @@ KarmaFieldsAlpha.History = class {
 
       KarmaFieldsAlpha.Store.Buffer.merge(state, "state"); // must not update history!
 
+      KarmaFieldsAlpha.Store.Buffer.remove("lastId");
+
     }
 
   }
@@ -95,6 +97,8 @@ KarmaFieldsAlpha.History = class {
       const state = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index+1);
 
       KarmaFieldsAlpha.Store.Buffer.merge(state, "state"); // must not update history!
+
+      KarmaFieldsAlpha.Store.Buffer.remove("lastId");
 
     }
 

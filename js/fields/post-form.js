@@ -163,6 +163,8 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.form {
 
   *buildHidden() {
 
+
+
     if (this.resource.hiddenfield !== false) {
 
       yield {
@@ -177,12 +179,14 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.form {
         },
         update: input => {
           // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
+          
           const delta = this.getDelta();
           if (delta) {
             input.element.value = JSON.stringify(delta);
           } else {
             input.element.value = "";
           }
+
         }
       };
 

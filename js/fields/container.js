@@ -1,362 +1,420 @@
 KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
-	// getKeys() {
+	exportDefaults() {
 
-	// 	let keys = new Set();
+		let defaults = new KarmaFieldsAlpha.Content({});
 
-	// 	if (this.resource.children) {
+		const header = this.getHeader();
+		const footer = this.getFooter();
 
-	// 	  for (let resource of this.resource.children) {
+		if (header) {
 
-	// 			keys = new Set([...keys, ...this.createChild(resource).getKeys()]);
+			const response = header.exportDefaults();
 
-	// 		}
+      if (response.loading) {
 
-	// 	}
+        defaults.loading = true;
 
-	// 	return keys;
-	// }
+      } else {
 
-  // getSelection() {
-
-  //   const selection = this.parent.getSelection();
-
-  //   if (selection) {
-
-  //     return selection[this.resource.id];
-
-  //   }
-
-  // }
-
-  // setSelection(values) {
-
-  //   this.parent.setSelection({[this.resource.id]: values});
-
-  // }
-
-  // paste(selection) {
-
-  //   if (selection && this.resource.children) {
-
-  //     for (let i = 0; i < this.resource.children.length; i++) {
-
-  //       const child = this.createChild({
-  //         id: i,
-  //         ...this.resource.children[i]
-  //       });
-
-  //       if (selection[child.id]) {
-
-  //         child.paste(selection[child.id]);
-
-  //         break;
-
-  //       }
-
-  //     }
-
-  //   }
-
-  // }
-
-
-
-
-
-
-  // expect(action, object) {
-
-  //   switch (action) {
-
-  //     case "export": {
-
-  //       let object = {};
-
-  //       if (this.resource.children) {
-
-  //         for (let resource of this.resource.children) {
-
-  //           const child = this.createChild(resource);
-
-  //           object = {
-  //             ...object,
-  //             ...child.expect(action)
-  //           };
-
-  //         }
-
-  //       }
-
-  //       return object;
-  //     }
-
-  //     case "import": {
-
-  //       if (this.resource.children) {
-
-  //         for (let resource of this.resource.children) {
-
-  //           const child = this.createChild(resource);
-
-  //           child.expect(action, object);
-
-  //         }
-
-  //       }
-
-  //       break;
-  //     }
-
-  //     // case "gather": {
-
-  //     //   let set = new Set();
-
-  //     //   if (this.resource.children) {
-
-  //     //     for (let resource of this.resource.children) {
-
-  //     //       const child = this.createChild(resource);
-
-  //     //       const values = await child.expect(action, object);
-
-  //     //       if (values) {
-
-  //     //         set = new Set([...set, ...values]);
-
-  //     //       }
-
-  //     //     }
-
-  //     //   }
-
-  //     //   return set;
-  //     // }
-
-  //     default: {
-
-  //       if (this.resource.children) {
-
-  //         for (let resource of this.resource.children) {
-
-  //           const child = this.createChild(resource);
-
-  //           child.expect(action, object);
-
-  //         }
-
-  //       }
-
-  //     }
-
-  //   }
-
-  // }
-
-	initValue() {
-
-    if (this.resource.children) {
-
-      for (let i = 0; i < this.resource.children.length; i++) {
-
-        const child = this.getChild(i);
-
-        child.initValue();
+        defaults.value = {...defaults.toObject(), ...response.toObject()};
 
       }
+
+		}
+
+		if (footer) {
+
+			const response = footer.exportDefaults(defaults);
+
+      if (response.loading) {
+
+        defaults.loading = true;
+
+      } else {
+
+        defaults.value = {...defaults.toObject(), ...response.toObject()};
+
+      }
+
+		}
+
+    return defaults;
+
+	}
+
+	getHeader() {
+
+		if (this.resource.header) {
+
+			const constructor = this.getConstructor(this.resource.header.type || "header");
+
+			return new constructor(this.resource.header, "header", this);
+
+		}
+
+	}
+
+	getFooter() {
+
+		if (this.resource.footer) {
+
+			const constructor = this.getConstructor(this.resource.footer.type || "footer");
+
+			return new constructor(this.resource.footer, "footer", this);
+
+		}
+
+	}
+
+	getBody() {
+
+		const constructor = this.getConstructor(this.resource.body && this.resource.body.type || "group");
+
+		return new constructor({
+			children: this.resource.children,
+			...this.resource.body
+		}, "body", this);
+
+	}
+
+	blank() {
+
+		this.setSelection(0, 0);
+		this.setFocus(true);
+		this.render();
+
+	}
+
+	getHeaderTop(element) {
+
+		let scrollContainer = element.closest(".scroll-container");
+		let top = 0;
+
+		if (!scrollContainer) {
+
+			const adminBar = document.getElementById("wpadminbar");
+
+			if (adminBar) {
+
+				top += adminBar.clientHeight;
+
+			}
+
+		}
+
+		return top;
+	}
+
+	getModalTop(element) {
+
+		let tableBody = element.closest(".table-body");
+		let tableHeader = tableBody.previousElementSibling;
+
+		let top = 0;
+
+		if (tableHeader) {
+
+			top += this.getHeaderTop(tableHeader);
+
+			top += tableHeader.clientHeight;
+
+		} else {
+
+			let scrollContainer = element.parentNode.closest(".scroll-container");
+
+			if (!scrollContainer) {
+
+				const adminBar = document.getElementById("wpadminbar");
+
+				if (adminBar) {
+
+					top += adminBar.clientHeight;
+
+				}
+
+			}
+
+		}
+
+		return top;
+	}
+
+	getModalHeight(element) {
+
+		let scrollContainer = element.parentNode.closest(".scroll-container");
+		let tableBody = element.closest(".table-body");
+		let tableHeader = tableBody.previousElementSibling;
+		let tableFooter = tableBody.nextElementSibling;
+		let height = 0;
+
+		if (scrollContainer) {
+
+			height = scrollContainer.clientHeight;
+
+		} else {
+
+			height = window.innerHeight;
+
+			const adminBar = document.getElementById("wpadminbar");
+
+			if (adminBar) {
+
+				height -= adminBar.clientHeight;
+
+			}
+
+		}
+
+		if (tableHeader) {
+
+			height -= tableHeader.clientHeight;
+
+		}
+
+		if (tableFooter) {
+
+			height -= tableFooter.clientHeight;
+
+		}
+
+		return height;
+	}
+
+	newChild(id) {
+
+    if  (id === "header") {
+
+			return this.getHeader();
+
+    } else if (id === "footer") {
+
+      return this.getFooter();
+
+    } else if (id === "body") {
+
+      return this.getBody();
 
     }
 
   }
 
+	*buildHeader() {
 
-	buildLabel() {
+		const header = this.getHeader();
 
-		return [{
-			tag: "label",
-			class: "label",
-			update: label => {
-				label.element.htmlFor = field.getId();
-				label.element.textContent = field.getLabel();
-			}
-		}];
+		if (header) {
 
-	}
+			yield {
+        // class: "karma-header table-header table-main-header simple-buttons",
+				class: "karma-header table-header table-main-header",
+        child: header.build(),
+				update: node => {
 
-	buildPseudoLabel() {
-
-		return [{
-			class: "label",
-			update: label => {
-				label.element.textContent = field.getLabel();
-			}
-		}];
-
-	}
-
-	buildChildren(field, labelable) {
-		const children = [];
-
-		if (field.resource.label) {
-
-			// if (labelable) {
-			//
-			// 	children.push({
-			// 		tag: "label",
-			// 		class: "label",
-			// 		update: label => {
-			// 			label.element.htmlFor = field.getId();
-			// 			label.element.textContent = field.getLabel();
-			// 		}
-			// 	});
-			//
-			// } else {
-
-				children.push({
-					class: "label",
-					update: label => {
-						label.element.textContent = field.getLabel();
-					}
-				});
-
-			// }
+					// -> sticky
+					node.element.style.top = `${this.getHeaderTop(node.element)}px`;
+				}
+      };
 
 		}
 
-		if (field.build) { // -> not separators
+	}
 
-			children.push(field.build());
+	// *buildHeaderContent() {
+	//
+	// 	const header = this.getHeader();
+	//
+	// 	if (header) {
+	//
+	// 		yield header.build();
+	//
+	// 	}
+	//
+	// }
+
+	*buildFooter() {
+
+		const footer = this.getFooter();
+
+		if (footer) {
+
+			yield {
+        class: "table-footer table-control",
+        child: footer.build(),
+        update: node => {
+          node.element.classList.toggle("loading", Boolean(this.hasTask()));
+        }
+      };
 
 		}
 
-		return children;
 	}
 
-	build() {
-		return {
-			class: "karma-field karma-field-container display-"+(this.resource.display || "block"),
-			init: group => {
-				if (this.resource.container && this.resource.container.style) {
-					group.element.style = this.resource.container.style;
-				}
-				if (this.resource.class) {
-					group.element.classList.add(this.resource.class);
-				}
-				if (this.resource.classes) {
-					group.element.classList.add(...this.resource.classes);
-				}
-				if (this.resource.wrap === false) {
-					group.element.style.flexWrap = "nowrap";
-				}
-			},
-			update: group => {
-				// this.render = group.render;
+	// *buildFooterContent() {
+	//
+	// 	const footer = this.getFooter();
+	//
+	// 	if (footer) {
+	//
+	// 		yield footer.build();
+	//
+	// 	}
+	//
+	// }
 
+	*buildBody() {
 
+		const body = this.getBody();
 
-				group.children = this.getChildren().map((resource, index) => {
+		yield {
+      class: "table-body",
+      child: body.build()
+    };
 
-          if (typeof resource === "string") {
+	}
 
-            resource = {type: resource};
+	// *buildContent() {
+	//
+	// 	yield {
+	// 		// class: "karma-header table-header table-main-header simple-buttons",
+	// 		class: "karma-header table-header table-main-header",
+	// 		children: [...this.buildHeaderContent()]
+	// 	};
+	//
+	// 	yield {
+  //     class: "table-body",
+  //     child: this.getBody().build()
+  //   };
+	//
+	// 	yield {
+	// 		class: "table-footer table-control",
+	// 		children: [...this.buildFooterContent()],
+	// 		update: node => {
+	// 			node.element.classList.toggle("loading", Boolean(this.hasTask()));
+	// 		}
+	// 	};
+	//
+	// }
 
-          }
+  build() {
 
-
-
-          // const data = resource.data || {};
-          // const selection = resource.selection || {};
-
-					const field = this.createChild({
-            id: index,
-            ...resource,
-            index: index,
-            // data: data[index],
-            // selection: selection[index],
-            uid: `${this.resource.uid}-${index}`
-          }); // -> id is for retrieving selection (for unkeyed array)
-
-					const labelable = resource.type === "input"
-						|| resource.type === "textarea"
-						|| resource.type === "checkbox"
-						|| resource.type === "dropdown";
-
-					return {
-						tag: labelable ? "label" : "div",
-						class: "karma-field-frame karma-field-"+field.resource.type,
-						init: (container) => {
-							if (field.resource.style) {
-								container.element.style = field.resource.style;
-							}
-							if (field.resource.class) {
-								field.resource.class.split(" ").forEach(name => container.element.classList.add(name));
-							}
-							if (field.resource.flex) {
-								container.element.style.flex = field.resource.flex;
-							}
-							if (field.resource.width) {
-								container.element.style.maxWidth = field.resource.width;
-							}
-						},
-						update: (container) => {
-							container.children = [];
-
-							// const hidden = field.resource.hidden && await this.parse(field.resource.hidden)
-							// 	|| field.resource.visible && !await this.parse(field.resource.visible);
-
-              let hidden = false;
-
-              if (field.resource.hidden) {
-
-                hidden = KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.hidden));
-                // container.element.classList.toggle("hidden", KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.hidden)));
-              }
-
-              if (field.resource.visible) {
-
-                hidden = !KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.visible))
-                // container.element.classList.toggle("hidden", !KarmaFieldsAlpha.Type.toBoolean(this.parse(field.resource.visible)));
-              }
-
-							container.element.classList.toggle("hidden", hidden);
-
-							if (!hidden) {
-
-								container.children = this.buildChildren(field, labelable);
-
-							}
-
-
-							// container.children = [];
-							//
-							// if (!hidden) {
-							//
-							// 	if (resource.label) {
-							//
-							// 		if (labelable) {
-							//
-							// 			container.children = this.buildLabel(resource.label);
-							//
-							// 		} else {
-							//
-							// 			container.children = this.buildPseudoLabel(resource.label);
-							//
-							// 		}
-							//
-							// 	}
-							//
-							// 	container.children = [...container.children, field];
-							//
-							// }
-
-
-						}
+    return {
+      class: "table-field",
+			// init: node => {
+			// 	node.element.classList.add(`container-${this.id}`);
+			// },
+      child: {
+				class: "karma-field-table",
+				init: node => {
+					if (this.resource.class) {
+						node.element.classList.add(this.resource.class);
 					}
-				});
-
+					if (this.resource.classes) {
+						node.element.classList.add(...this.resource.classes);
+					}
+					node.element.style.width = this.resource.width || "100%";
+				},
+				update: node => {
+					node.element.classList.toggle("has-selection", Boolean(this.hasFocusInside()));
+					node.element.onmousedown = event => {
+						event.stopPropagation();
+						this.blank();
+					}
+				},
+				children: [
+					...this.buildHeader(),
+					...this.buildBody(),
+					...this.buildFooter()
+					// {
+					// 	// class: "karma-header table-header table-main-header simple-buttons",
+					// 	class: "karma-header table-header table-main-header",
+					// 	children: [...this.buildHeaderContent()]
+					// },
+					// {
+			    //   class: "table-body",
+			    //   child: this.getBody().build()
+			    // },
+					// {
+					// 	class: "table-footer table-control",
+					// 	children: [...this.buildFooterContent()],
+					// 	update: node => {
+					// 		node.element.classList.toggle("loading", Boolean(this.hasTask()));
+					// 	}
+					// }
+				]
 			}
+    };
 
-		};
-	}
+  }
+
+}
+
+KarmaFieldsAlpha.field.container.header = class extends KarmaFieldsAlpha.field.group {
+
+  constructor(resource, id, parent) {
+
+    super({
+      display: "flex",
+      children: [
+        "title",
+        "close"
+      ],
+      ...resource
+    }, id, parent);
+
+  }
+
+}
+
+KarmaFieldsAlpha.field.container.header.title = class extends KarmaFieldsAlpha.field.text {
+
+  constructor(resource, id, parent) {
+
+    super({
+      tag: "h1",
+      style: "flex-grow:1",
+      class: "ellipsis",
+      content: "Title",
+      ...resource
+    }, id, parent);
+
+  }
+
+  getContent() {
+
+    // const content = this.getResource("title");
+		//
+    // return this.parse(content || this.resource.content);
+
+
+		return this.queryLabel();
+
+  }
+
+}
+
+KarmaFieldsAlpha.field.container.close = class extends KarmaFieldsAlpha.field.button {
+  constructor(resource, id, parent) {
+    super({
+      dashicon: "no",
+      title: "Close",
+      request: ["close"],
+      ...resource
+    }, id, parent);
+  }
+}
+
+
+KarmaFieldsAlpha.field.container.footer = class extends KarmaFieldsAlpha.field.group {
+
+  constructor(resource, id, parent) {
+
+    super({
+      display: "flex",
+      children: [],
+      ...resource
+    }, id, parent);
+
+  }
 
 }

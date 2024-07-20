@@ -16,7 +16,7 @@ KarmaFieldsAlpha.Database = class {
 
   static async getDB() {
 
-    const dbName = "karma92";
+    const dbName = "karma99";
 
     if (!this.db) {
 
@@ -32,7 +32,7 @@ KarmaFieldsAlpha.Database = class {
       //
       // }
 
-      this.db = await this.openDB("karma92", 1);
+      this.db = await this.openDB(dbName, 1);
 
     }
 
@@ -103,6 +103,17 @@ KarmaFieldsAlpha.Database = class {
         // queries.createIndex("driver", "driver");
 
 
+        // const tests = db.createObjectStore("test", {keyPath: ["driver", "id", "key"]});
+        const tests = db.createObjectStore("test");
+        tests.createIndex("driver", "driver");
+        // tests.createIndex("id", "id");
+        // tests.createIndex("key", "key");
+
+
+        const test2 = db.createObjectStore("test2", {keyPath: ["driver", "id", "key"]});
+        test2.createIndex("driver", "driver");
+        test2.createIndex("id", ["driver", "id"]);
+        // tests.createIndex("key", "key");
 
       };
 
@@ -846,81 +857,319 @@ KarmaFieldsAlpha.Database.Vars = class extends KarmaFieldsAlpha.Database {
 
 }
 
-// KarmaFieldsAlpha.Database.Cache = class extends KarmaFieldsAlpha.Database {
+
+
 //
-//   static get(driver, paramstring) {
+// KarmaFieldsAlpha.Database.Test = class extends KarmaFieldsAlpha.Database {
+//
+//   static get(driver, id, key) {
 //     return this.getDB().then(db => new Promise((resolve, reject) => {
-//       const transaction = db.transaction("cache");
-//       const objectStore = transaction.objectStore("cache");
-//       const request = objectStore.get([driver, paramstring]);
+//       const transaction = db.transaction("test");
+//       const objectStore = transaction.objectStore("test");
+//       const request = objectStore.get([driver, id, key]);
 //       request.onsuccess = (event) => {
-//         const result = event.target.result;
-//         resolve(result && result.data);
-//         db.close();
+//         const data = event.target.result;
+//         resolve(data);
 //       };
 //       request.onerror = (event) => {
 //         reject(event.target.error);
-//         db.close();
 //       };
 //     }));
 //   }
 //
-//   static set(data, driver, paramstring) {
-//     return this.getDB().then(db => new Promise((resolve, reject) => {
-//       const transaction = db.transaction("cache", "readwrite");
-//       const objectStore = transaction.objectStore("cache");
-//       const request = objectStore.put({data, driver, paramstring});
-//       request.onsuccess = (event) => {
-//         resolve();
-//         db.close();
-//       }
-//       request.onerror = (event) => {
-//         reject(event.target.error);
-//         db.close();
-//       };
-//     }));
+//   // static getAll(driver, id, key) {
+//   //   return this.getDB().then(db => new Promise((resolve, reject) => {
+//   //     const transaction = db.transaction("test");
+//   //     const objectStore = transaction.objectStore("test");
+//   //     const request = objectStore.getAll([driver]);
+//   //     request.onsuccess = (event) => {
+//   //       const data = event.target.result;
+//   //       resolve(value);
+//   //     };
+//   //     request.onerror = (event) => {
+//   //       reject(event.target.error);
+//   //     };
+//   //   }));
+//   // }
+//   //
+//   // static getDriver(driver) {
+//   //   return this.getDB().then(db => new Promise((resolve, reject) => {
+//   //     const transaction = db.transaction("test");
+//   //     const objectStore = transaction.objectStore("test");
+//   //     const driverIndex = objectStore.index("driver");
+//   //
+//   //     const request = driverIndex.getAll(driver);
+//   //     // const request = driverIndex.openCursor();
+//   //     // request.onsuccess = (event) => {
+//   //     //     debugger;
+//   //     //     const cursor = event.target.result;
+//   //     //     cursor.continue();
+//   //     // };
+//   //
+//   //     request.onsuccess = (event) => {
+//   //       const data = event.target.result;
+//   //       resolve(data);
+//   //     };
+//   //     request.onerror = (event) => {
+//   //       reject(event.target.error);
+//   //     };
+//   //   }));
+//   // }
+//
+//   static set(data, driver, id, key) {
+//     return this.put(data, driver, id, key);
+//     // return this.getDB().then(db => new Promise((resolve, reject) => {
+//     //   const transaction = db.transaction("vars", "readwrite");
+//     //   const objectStore = transaction.objectStore("vars");
+//     //   const request = objectStore.get(driver);
+//     //
+//     //   request.onsuccess = (event) => {
+//     //     const value = event.target.result || [];
+//     //
+//     //     const updateRequest = objectStore.put(value, driver);
+//     //     updateRequest.onsuccess = (event) => {
+//     //       resolve();
+//     //     }
+//     //   }
+//     //
+//     // }));
 //   }
 //
-//   static remove(driver, paramstring) {
+//   static add(data, driver, id, key) {
 //     return this.getDB().then(db => new Promise((resolve, reject) => {
-//       const transaction = db.transaction("cache", "readwrite");
-//       const objectStore = transaction.objectStore("cache");
-//       const request = objectStore.delete([driver, paramstring]);
+//       const transaction = db.transaction("test", "readwrite");
+//       const objectStore = transaction.objectStore("test");
+//       const request = objectStore.get([driver, id, key]);
 //       request.onsuccess = (event) => {
-//         resolve();
-//         db.close();
-//       }
-//       request.onerror = (event) => {
-//         reject(event.target.error);
-//         db.close();
-//       };
-//     }));
-//   }
-//
-//   static removeDriver(driver) {
-//     return this.getDB().then(db => new Promise((resolve, reject) => {
-//       const transaction = db.transaction("cache", "readwrite");
-//       const objectStore = transaction.objectStore("cache");
-//       const driverIndex = objectStore.index("driver");
-//       const request = driverIndex.openCursor(driver);
-//       request.onsuccess = (event) => {
-//         const cursor = event.target.result;
-//         if (cursor) {
-//           cursor.delete();
-//           cursor.continue();
-//         } else {
+//         const array = event.target.result || [];
+//         const updateRequest = objectStore.put([...array, data], [driver, id, key]);
+//         updateRequest.onsuccess = (event) => {
 //           resolve();
-//           db.close();
 //         }
 //       }
-//       request.onerror = (event) => {
-//         reject(event.target.error);
-//         db.close();
-//       };
 //     }));
 //   }
 //
+//   // static add(data, driver, id, key) {
+//   //   return this.getDB().then(db => new Promise((resolve, reject) => {
+//   //     const transaction = db.transaction("test", "readwrite");
+//   //     const objectStore = transaction.objectStore("test");
+//   //     // const request = objectStore.add({data, driver, id, key});
+//   //     const request = objectStore.add(data, [driver, id, key]);
+//   //     request.onsuccess = (event) => {
+//   //       resolve();
+//   //     }
+//   //   }));
+//   // }
 //
+//   static put(data, driver, id, key) {
+//     return this.getDB().then(db => new Promise((resolve, reject) => {
+//       const transaction = db.transaction("test", "readwrite");
+//       const objectStore = transaction.objectStore("test");
+//       // const request = objectStore.add({data, driver, id, key});
+//       const request = objectStore.put(data, [driver, id, key]);
+//       request.onsuccess = (event) => {
+//         resolve();
+//       }
+//     }));
+//   }
+//
+//   // static add(data, driver, id, key) {
+//   //   return this.getDB().then(db => new Promise((resolve, reject) => {
+//   //     const transaction = db.transaction("test", "readwrite");
+//   //     const objectStore = transaction.objectStore("test");
+//   //     // const request = objectStore.add({data, driver, id, key});
+//   //     const request = objectStore.add(data, [driver, id, key]);
+//   //     request.onsuccess = (event) => {
+//   //       resolve();
+//   //     }
+//   //   }));
+//   // }
+//
+//   static remove(driver) {
+//     return this.getDB().then(db => new Promise((resolve, reject) => {
+//       const transaction = db.transaction("test", "readwrite");
+//       const objectStore = transaction.objectStore("test");
+//       const driverIndex = objectStore.index("driver");
+//       const request = driverIndex.getAll();
+//       request.onsuccess = (event) => {
+//         console.log(event);
+//         resolve(event.target.result);
+//       }
+//     }));
+//   }
 //
 //
 // }
+
+
+KarmaFieldsAlpha.Database.Test2 = class extends KarmaFieldsAlpha.Database {
+
+  static get(driver, id, key) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("test2");
+      const objectStore = transaction.objectStore("test2");
+      const request = objectStore.get([driver, id, key]);
+      request.onsuccess = (event) => {
+        const data = event.target.result;
+        resolve(data);
+      };
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    }));
+  }
+
+  static getAll(driver, id) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("test2");
+      const objectStore = transaction.objectStore("test2");
+      // const request = objectStore.get([driver, id, key]);
+      // request.onsuccess = (event) => {
+      //   const data = event.target.result;
+      //   resolve(data);
+      // };
+
+      if (id) {
+
+        const driverIndex = objectStore.index("id");
+        const request = driverIndex.getAll([driver, id]);
+        request.onsuccess = (event) => {
+          resolve(event.target.result);
+        }
+
+      } else {
+
+        const driverIndex = objectStore.index("driver");
+        const request = driverIndex.getAll(driver);
+        request.onsuccess = (event) => {
+          resolve(event.target.result);
+        }
+
+      }
+
+
+
+      // request.onerror = (event) => {
+      //   reject(event.target.error);
+      // };
+    }));
+  }
+
+  static add(value, driver, id, key) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("test2");
+      const objectStore = transaction.objectStore("test2");
+      const request = objectStore.get([driver, id, key]);
+      request.onsuccess = (event) => {
+        const data = event.target.result || [];
+        const updateRequest = objectStore.put({data: [...data, value], driver, id, key});
+        updateRequest.onsuccess = (event) => {
+          resolve();
+        }
+      };
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    }));
+  }
+
+  static set(data, driver, id, key) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("test2", "readwrite");
+      const objectStore = transaction.objectStore("test2");
+      const request = objectStore.put({data, driver, id, key});
+
+      request.onsuccess = (event) => {
+        resolve();
+      }
+
+    }));
+  }
+
+  static setMany(array, driver) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("test2", "readwrite");
+      const objectStore = transaction.objectStore("test2");
+
+      for (let {data, id, key} of array) {
+
+        objectStore.put({data, driver, id, key});
+
+      }
+
+      transaction.oncomplete = (event) => {
+        resolve();
+      }
+
+    }));
+  }
+
+  // static setQuery(query, driver) {
+  //   return this.getDB().then(db => new Promise((resolve, reject) => {
+  //     const transaction = db.transaction("test2", "readwrite");
+  //     const objectStore = transaction.objectStore("test2");
+  //
+  //     for (let row of query) {
+  //
+  //       for (let key in row) {
+  //
+  //         objectStore.put({data: [row[key]], driver, id: row.id, key});
+  //
+  //       }
+  //
+  //     }
+  //
+  //     transaction.oncomplete = (event) => {
+  //       resolve();
+  //     }
+  //
+  //   }));
+  // }
+
+  static removeDriver(driver) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("test2", "readwrite");
+      const objectStore = transaction.objectStore("test2");
+      // const driverIndex = objectStore.index("driver");
+      // const request = driverIndex.getAll(driver);
+      // request.onsuccess = (event) => {
+      //   console.log(event);
+      //   resolve(event.target.result);
+      // }
+
+      const driverIndex = objectStore.index("driver");
+      const request = driverIndex.openCursor(driver);
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          resolve();
+        }
+      }
+
+      // const request = objectStore.delete(driver);
+      // request.onsuccess = (event) => {
+      //   console.log(event);
+      //   resolve(event.target.result);
+      // }
+    }));
+  }
+
+  static removeId(driver, id) {
+    return this.getDB().then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction("test2", "readwrite");
+      const objectStore = transaction.objectStore("test2");
+      const driverIndex = objectStore.index("id");
+      const request = driverIndex.getAll([driver, id]);
+      request.onsuccess = (event) => {
+        console.log(event);
+        resolve(event.target.result);
+      }
+    }));
+  }
+
+
+}

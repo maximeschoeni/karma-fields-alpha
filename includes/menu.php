@@ -6,15 +6,22 @@
 				links[i].addEventListener("click", function(event) {
 					event.preventDefault();
 
-					if (KarmaFieldsAlpha.saucer) {
-						KarmaFieldsAlpha.Task.add({
-							resolve: () => {
-								KarmaFieldsAlpha.History.save("open", "Open link");
-								KarmaFieldsAlpha.saucer.open(key);
-							}
-						});
-						KarmaFieldsAlpha.saucer.render();
-					}
+					const link = new KarmaFieldsAlpha.field.links({
+						table: key,
+						params: {}
+					}, `link-${key}`, KarmaFieldsAlpha.saucer);
+
+					link.open();
+
+					// if (KarmaFieldsAlpha.saucer) {
+					// 	KarmaFieldsAlpha.Task.add({
+					// 		resolve: () => {
+					// 			KarmaFieldsAlpha.History.save("open", "Open link");
+					// 			KarmaFieldsAlpha.saucer.open(key);
+					// 		}
+					// 	});
+					// 	KarmaFieldsAlpha.saucer.render();
+					// }
 				});
 			}
 		}

@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '78';
+	public $version = '80';
 
 	public $middlewares = array();
 	public $drivers = array();
@@ -54,6 +54,11 @@ class Karma_Fields_Alpha {
 			add_action('karma_fields_term_field', array($this, 'print_term_field'), 10, 3);
 
 			add_action('karma_fields_option_field', array($this, 'print_option_field'), 10, 2);
+			// add_action('karma_fields_embed_field', array($this, 'print_embed'), 10, 3); // --> to be merged with print_embed_table
+
+			add_action('karma_fields_embed_table', array($this, 'print_embed_table'), 10, 1); // --> should also be used to embed basic form
+
+
 
 
 			add_action('admin_head', array($this, 'print_header_script'));
@@ -143,8 +148,8 @@ class Karma_Fields_Alpha {
 
 				// fields
 				wp_enqueue_script('karma-fields-alpha-field', $plugin_url . '/js/fields/field.js', array('karma-fields-alpha-build'), $this->version, true);
-				// wp_enqueue_script('karma-fields-alpha-container', $plugin_url . '/js/fields/container.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-group', $plugin_url . '/js/fields/group.js', array('karma-fields-alpha-field'), $this->version, true);
+
 				// wp_enqueue_script('karma-fields-alpha-form', $plugin_url . '/js/fields/form.js', array('karma-fields-alpha-container'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-input', $plugin_url . '/js/fields/input.js', array('karma-fields-alpha-field'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-date', $plugin_url . '/js/fields/date.js', array('karma-fields-alpha-input', 'moment'), $this->version, true);
@@ -163,6 +168,9 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-block-editor', $plugin_url . '/js/fields/block-editor.js', array(), $this->version, true);
 
 				wp_enqueue_script('karma-fields-alpha-editor', $plugin_url . '/js/fields/editor.js', array('karma-fields-alpha-input'), $this->version, true);
+
+
+				wp_enqueue_script('karma-fields-alpha-container', $plugin_url . '/js/fields/container.js', array('karma-fields-alpha-group', 'karma-fields-alpha-text'), $this->version, true);
 
 
 				// table
@@ -186,8 +194,10 @@ class Karma_Fields_Alpha {
 
 				// wp_enqueue_script('karma-fields-alpha-gridfield', $plugin_url . '/js/tables/grid-field.js', array('karma-fields-alpha-grid'), $this->version, true);
 
+				// wp_enqueue_script('karma-fields-alpha-popup', $plugin_url . '/js/tables/popup.js', array('karma-fields-alpha-field'), $this->version, true);
 
-				wp_enqueue_script('karma-fields-alpha-form', $plugin_url . '/js/fields/form.js', array('karma-fields-alpha-field'), $this->version, true);
+
+				wp_enqueue_script('karma-fields-alpha-form', $plugin_url . '/js/fields/form.js', array('karma-fields-alpha-field', 'karma-fields-alpha-container'), $this->version, true);
 
 				wp_enqueue_script('karma-fields-alpha-table', $plugin_url . '/js/tables/table-field.js', array('karma-fields-alpha-form'), $this->version, true);
 
@@ -200,7 +210,6 @@ class Karma_Fields_Alpha {
 
 				wp_enqueue_script('karma-fields-alpha-files', $plugin_url . '/js/fields/files.js', array('karma-fields-alpha-tags'), $this->version, true);
 
-				wp_enqueue_script('karma-fields-alpha-popup', $plugin_url . '/js/tables/popup.js', array('karma-fields-alpha-table'), $this->version, true);
 
 
 
@@ -1269,7 +1278,17 @@ class Karma_Fields_Alpha {
 		//
 		// include plugin_dir_path(__FILE__) . 'includes/post-field.php';
 
-		$this->print_embed('posts', $post_id, $args);
+		// $this->print_embed('posts', $post_id, $args);
+
+		$this->print_embed_table(array(
+			'driver' => 'posts',
+			'params' => array(
+				'id' => $post_id
+			),
+		  'type' => "postform",
+			'class' => "embed-form",
+			'body' => $args
+		));
 
 	}
 
@@ -1317,20 +1336,55 @@ class Karma_Fields_Alpha {
 		//
 		// include plugin_dir_path(__FILE__) . 'includes/option-field.php';
 
-		$this->print_embed('options', $option_name, $args);
+		// $this->print_embed('options', $option_name, $args);
+
+		$this->print_embed_table(array(
+			'driver' => 'options',
+			'params' => array(
+				'id' => $option_name
+			),
+		  'type' => "postform",
+			'class' => "embed-form",
+			'body' => $args
+		));
 
 	}
 
 	/**
-	 *	@hook karma_fields_embed
+	 *	@hook karma_fields_embed (= karma_fields_embed_form)
 	 */
-	public function print_embed($driver, $id, $args) {
-		static $index = 0;
+	// public function print_embed($driver, $id, $args) {
+	// 	// static $index = 0;
+	// 	//
+	// 	//
+	// 	// $index++;
+	// 	//
+	// 	// include plugin_dir_path(__FILE__) . 'includes/embed-field.php';
+	//
+	//
+	// 	$this->print_embed_table(array(
+	// 		'driver' => $driver,
+	// 		'params' => array(
+	// 			'id' => $id
+	// 		),
+	// 	  'type' => "postform",
+	// 		'class' => "embed-form",
+	// 		'body' => $args
+	// 	));
+	//
+	// }
 
+	/**
+	 *	@hook karma_fields_embed_table
+	 */
+	public function print_embed_table($args, $class = 'embed-table') {
+		static $index = 0;
 
 		$index++;
 
-		include plugin_dir_path(__FILE__) . 'includes/embed-field.php';
+		// $args['index'] = "karma-fields-embed-$index";
+
+		include plugin_dir_path(__FILE__) . 'includes/embed-table.php';
 
 	}
 

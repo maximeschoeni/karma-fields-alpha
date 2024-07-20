@@ -14,7 +14,9 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   newChild(index) {
 
-    let resource = this.resources[index];
+    const children = this.resource.children || [];
+
+    let resource = this.resource.children[index];
 
     if (resource) {
 
@@ -24,7 +26,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
       }
 
-      const constructor = getConstructor(resource.type);
+      const constructor = this.getConstructor(resource.type);
 
       return new constructor(resource, index, this);
 
@@ -110,9 +112,10 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 		if (key) {
 
-      const content = collection.pick();
+      const value = collection.value.shift();
+      // const content = new KarmaFieldsAlpha.Content()
 
-      this.parent.setValue(content.value, key);
+      this.parent.setValue(value, key);
 
 		} else {
 
@@ -128,11 +131,19 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
     if (field.resource.hidden) {
 
-      return field.parse(field.resource.hidden).toBoolean();
+      const hidden = field.parse(field.resource.hidden);
+
+      return !hidden.loading && hidden.toBoolean();
+
+      // return field.parse(field.resource.hidden).toBoolean();
 
     } else if (field.resource.visible) {
 
-      return !field.parse(field.resource.visible).toBoolean();
+      const visible = field.parse(field.resource.visible);
+
+      return visible.loading || !visible.toBoolean();
+
+      // return !field.parse(field.resource.visible).toBoolean();
 
     }
 

@@ -16,9 +16,11 @@
 
 	KarmaFieldsAlpha.embeds.push({
 		driver: "<?php echo $driver; ?>",
-		id: "<?php echo $id; ?>",
-		...<?php echo json_encode($args); ?>,
+		// id: "<?php echo $id; ?>",
+		params: {id: "<?php echo $id; ?>"},
 	  type: "postform",
+		class: "embed-form",
+		body: <?php echo json_encode($args); ?>,
 		index: "karma-fields-embed-<?php echo $index; ?>"
 	});
 

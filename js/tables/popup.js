@@ -1,152 +1,169 @@
 
 KarmaFieldsAlpha.field.popup = class extends KarmaFieldsAlpha.field {
 
-  newChild(id, ...path) {
-
-    const type = this.resource.type || "table";
-
-    return new KarmaFieldsAlpha.field[type](this.resource, "form", this);
-
-  }
-
-  // getChild(id = "form", ...path) {
+  // newChild(id, ...path) {
   //
-  //   const child = new KarmaFieldsAlpha.field[this.resource.type](this.resource, "form", this);
-  //   // child.parent = this;
-  //   // child.id = id;
+  //   // const type = this.resource.type || "table";
+  //   //
+  //   // return new KarmaFieldsAlpha.field[type](this.resource, "form", this);
   //
-  //   if (path.length) {
+  // }
+  //
+  //
+  // getChild(index, ...path) {
+  //
+  //   let child = this.newChild(index);
+  //
+  //   if (child && path.length) {
   //
   //     return child.getChild(...path);
   //
-  //   } else {
-  //
-  //     return child;
-  //
   //   }
   //
-  //   // return this.createChild({
-  //   //   type: "form",
-  //   //   ...this.resource
-  //   // }, "form");
+  //   return child;
+  //
+  // }
+  //
+  //
+  // isActive() {
+  //
+  //   return this.getState("active");
+  //
+  // }
+  //
+  // getZ() {
+  //
+  //   return this.getState("z");
+  //
+  // }
+  //
+  // open(z) {
+  //
+  //   // deprecated
+  //
+  //   // let z = KarmaFieldsAlpha.Store.get("layerZ") || 0;
+  //   // z++;
+  //   // KarmaFieldsAlpha.Store.set(z, "layerZ");
+  //
+  //   this.setState(true, "active");
+  //   this.setState(z, "z");
   //
   // }
 
-  getChild(index, ...path) {
-
-    let child = this.newChild(index);
-
-    if (child && path.length) {
-
-      return child.getChild(...path);
-
-    }
-
-    return child;
-
-  }
-
-
-  isActive() {
-
-    return this.getState("active");
-
-  }
-
-  open() {
-
-    let z = KarmaFieldsAlpha.Store.get("layerZ") || 0;
-    z++;
-    KarmaFieldsAlpha.Store.set(z, "layerZ");
-
-    this.setState(true, "active");
-    this.setState(z, "z");
-
-    // this.getChild("form").setState(params, "params");
-
-  }
-
-  close() {
-
-    this.setState(false, "active");
-
-    // KarmaFieldsAlpha.Store.remove("events", "drop", this.id);
-    KarmaFieldsAlpha.Store.remove("dropper", this.id);
-
-  }
+  // close() {
+  //
+  //   this.setState(false, "active");
+  //
+  //   // KarmaFieldsAlpha.Store.remove("dropper", this.id);
+  //
+  //   this.removeState("master");
+  //
+  //
+  // }
 
   async *drop() {
 
-    const dropperPath = KarmaFieldsAlpha.Store.State.get("dropper", this.id);
-    const ids = this.getChild("form").getSelectedIds();
+    // const dropperPath = KarmaFieldsAlpha.Store.State.get("dropper", this.id);
+    // const dropperPath = this.getState("master");
 
-    if (dropperPath && ids.length) {
+    // const ids = this.getChild("form").getSelectedIds();
+    const ids = this.getSelectedIds();
 
-      const dropper = this.getField(...dropperPath);
+    // if (dropperPath && ids.length) {
+    if (ids.length) {
 
-      if (dropper) {
+      // const dropper = this.getField(...dropperPath);
 
-        yield* dropper.insert(ids);
+      // if (dropper) {
+      if (this.parent.insert) {
+
+        yield* this.parent.insert(ids);
 
       }
 
     }
 
-    this.close();
+    this.parent.close();
 
   }
+
+
 
   canDrop() {
 
-    return KarmaFieldsAlpha.Store.State.get("dropper", this.id) !== undefined;
+    // return KarmaFieldsAlpha.Store.State.get("dropper", this.id) !== undefined;
+    // return this.getState("master") !== undefined;
 
+
+
+    return Boolean(this.parent.insert);
   }
 
-  // hasEvent(...path) {
+
+  // *buildTable() {
   //
-  //   return KarmaFieldsAlpha.Store.get("events", ...path, this.id) !== undefined;
-  //   // return KarmaFieldsAlpha.Store.get("events", "close", this.id);
+  //   if (this.getState("active")) {
+  //
+  //     // const table = this.createChild({
+  //     //   type: "form",
+  //     //   driver:
+  //     //   ...this.resource,
+  //     //   params: {
+  //     //     ...this.resource.params,
+  //     //     this.getState("params")
+  //     //   }
+  //     // }, "form");
+  //
+  //     yield this.getChild("form").build();
+  //
+  //
+  //
+  //   }
   //
   // }
 
-  // getParams() {
+  // build() {
   //
-  //   return this.getState("params") || {};
+  //   // return {
+  //   //   class: "table-container",
+  //   //   update: node => {
+  //   //     node.element.style.zIndex = this.getState("z") || 0;
+  //   //     node.element.classList.toggle("hidden", !this.getState("active"));
+  //   //   },
+  //   //   children: [...this.buildTable()]
+  //   // };
+  //
+  //   // -> to be overriden
   //
   // }
 
-  *buildTable() {
 
-    if (this.getState("active")) {
-
-      // const table = this.createChild({
-      //   type: "form",
-      //   driver:
-      //   ...this.resource,
-      //   params: {
-      //     ...this.resource.params,
-      //     this.getState("params")
-      //   }
-      // }, "form");
-
-      yield this.getChild("form").build();
-
-    }
-
-  }
-
-  build() {
-
-    return {
-      class: "table-container",
-      update: node => {
-        node.element.style.zIndex = this.getState("z") || 0;
-        node.element.classList.toggle("hidden", !this.getState("active"));
-      },
-      children: [...this.buildTable()]
-    };
-
-  }
+  // buildPopup() {
+  //
+  //   if (this.getState("active")) {
+  //
+  //     return {
+  //       class: "table-container",
+  //       update: node => {
+  //         node.element.style.zIndex = this.getState("z") || 0;
+  //         node.element.classList.remove("hidden");
+  //       },
+  //       children: [this.build()]
+  //     };
+  //
+  //   } else {
+  //
+  //     return {
+  //       class: "table-container",
+  //       update: node => {
+  //         node.element.classList.add("hidden");
+  //       },
+  //       children: []
+  //     };
+  //
+  //   }
+  //
+  // }
 
 }
 

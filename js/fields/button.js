@@ -76,6 +76,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 		}
 
+
 		if (this.resource.action || this.resource.task) {
 
 			yield* this.request(this.resource.action || this.resource.task, ...params);
@@ -106,7 +107,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 			}
 
-			this.request(...this.resource.request);
+			// this.request(...this.resource.request);
 
 
 
@@ -541,12 +542,12 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 
 		super({
 			text: "Export",
 			...resource
-		});
+		}, id, parent);
 
 	}
 
@@ -567,11 +568,78 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 	}
 
+	*doTask() {
+
+		// const closestTable = this.closest(field => field.constructor === KarmaFieldsAlpha.field.table);
+		//
+		// if (!closestTable) {
+		//
+		// 	console.error("Closest Table not found");
+		//
+		// }
+		//
+		// const table = new KarmaFieldsAlpha.field.table(closestTable.resource);
+
+		const table = this.closest(field => field.constructor === KarmaFieldsAlpha.field.table);
+
+		let count = table.getCount();
+
+		while (count.loading) {
+
+			count = table.getCount();
+			yield;
+
+		}
+
+		const ppp = this.resource.ppp || 100;
+		let page = 0;
+		let tableData = new KarmaFieldsAlpha.Content.Grid();
+
+		while (page*ppp < count.toNumber()) {
+
+			table.setPage(page+1);
+
+			const length = Math.min(ppp, count.toNumber()-page*ppp);
+			const grid = table.getChild("body");
+			let gridData = grid.export(0, length);
+
+			while (gridData.loading) {
+
+				gridData = grid.export(0, 100);
+				yield;
+
+			}
+
+			tableData.value = [...tableData.toArray(), ...gridData.toArray()];
+
+			page++;
+
+		}
+
+		console.log(tableData);
+
+		this.download(tableData);
+
+	}
+
+
+	click() {
+
+		const work = this.doTask();
+
+		KarmaFieldsAlpha.Jobs.add(work);
+
+		this.render();
+
+	}
+
+
+
 	// click() {
 	//
 	// 	const data = new KarmaFieldsAlpha.Content.Grid();
 	// 	let page = 1;
-	// 	const ppp = this.resource.ppp || 200;
+	// 	const ppp = this.resource.ppp || 100;
 	// 	const params = this.request("body", "getParams");
 	// 	const driver = this.request("body", "getDriver");
 	//
@@ -590,20 +658,36 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 	//
 	// 			if (data.value.length < count) {
 	//
-	// 				const query = new KarmaFieldsAlpha.Content.Query(driver, {...params, page: page, ppp: ppp});
+	// 				const resource = this.request("body", "getResources");
 	//
-	// 				if (!query.loading) {
+	// 				const gridField = new KarmaFieldsAlpha.field.gridField({
+	// 					...resource,
+	// 					params: {...params.toObject(), page: page, ppp: ppp}
+	// 				});
 	//
-	// 					const grid = this.request("body", "exportIds", query.toIds());
+	// 				const grid = gridField.slice();
 	//
-	// 					if (!grid.loading) {
+	// 				if (!grid.loading) {
 	//
-	// 						data.value = [...data.value, ...grid.value];
-	// 						page++;
-	//
-	// 					}
+	// 					data.value = [...data.toArray(), ...grid.toArray()];
+	// 					page++;
 	//
 	// 				}
+	//
+	// 				// const query = new KarmaFieldsAlpha.Content.Query(driver, {...params, page: page, ppp: ppp});
+	//
+	// 				// if (!grid.loading) {
+	// 				//
+	// 				// 	const grid = this.request("body", "exportIds", query.toIds());
+	// 				//
+	// 				// 	if (!grid.loading) {
+	// 				//
+	// 				// 		data.value = [...data.value, ...grid.value];
+	// 				// 		page++;
+	// 				//
+	// 				// 	}
+	// 				//
+	// 				// }
 	//
 	// 				this.addTask(() => loop(), `export (${page}/${total})`);
 	//
@@ -622,78 +706,6 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 	// 	this.request("render");
 	//
 	// }
-
-	click() {
-
-		const data = new KarmaFieldsAlpha.Content.Grid();
-		let page = 1;
-		const ppp = this.resource.ppp || 100;
-		const params = this.request("body", "getParams");
-		const driver = this.request("body", "getDriver");
-
-		const loop = () => {
-
-			const countContent = this.request("body", "getCount");
-
-			if (countContent.loading) {
-
-				this.addTask(() => loop(), "export");
-
-			} else {
-
-				const count = countContent.toNumber();
-				const total = Math.ceil(count/ppp);
-
-				if (data.value.length < count) {
-
-					const resource = this.request("body", "getResources");
-
-					const gridField = new KarmaFieldsAlpha.field.gridField({
-						...resource,
-						params: {...params.toObject(), page: page, ppp: ppp}
-					});
-
-					const grid = gridField.slice();
-
-					if (!grid.loading) {
-
-						data.value = [...data.toArray(), ...grid.toArray()];
-						page++;
-
-					}
-
-					// const query = new KarmaFieldsAlpha.Content.Query(driver, {...params, page: page, ppp: ppp});
-
-					// if (!grid.loading) {
-					//
-					// 	const grid = this.request("body", "exportIds", query.toIds());
-					//
-					// 	if (!grid.loading) {
-					//
-					// 		data.value = [...data.value, ...grid.value];
-					// 		page++;
-					//
-					// 	}
-					//
-					// }
-
-					this.addTask(() => loop(), `export (${page}/${total})`);
-
-				} else {
-
-					this.download(data);
-
-				}
-
-			}
-
-		}
-
-		loop();
-
-		this.request("render");
-
-	}
 
 }
 
