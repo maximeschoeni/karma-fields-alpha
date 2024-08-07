@@ -1,10 +1,10 @@
 KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
-  getDefault() {
+  async getDefault() {
 
     const content = new KarmaFieldsAlpha.Content();
 
-    const options = this.getOptions();
+    const options = await this.getOptions();
 
     if (options.loading) {
 
@@ -14,13 +14,15 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
       if (this.resource.default) {
 
-        content.value = this.parse(this.resource.default).toString();
+        const defaultValue = await this.parse(this.resource.default)
+
+        content.value = defaultValue.toString();
 
   		}
 
       if (content.value === undefined || !options.toArray().some(item => item.id === content.value)) {
 
-        content.value = options.toArray()[0].id; // ! allowing default value not in options may lead in infinite loop !
+        content.value = options.toArray()[0].id; // -> allowing default value not in options may lead in infinite loop !
 
       }
 
@@ -30,13 +32,13 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 	}
 
-  export() {
+  async export() {
 
     if (this.resource.export === "name") {
 
       const output = new KarmaFieldsAlpha.Content();
-      const content = this.getContent();
-      const options = this.getOptions();
+      const content = await this.getContent();
+      const options = await this.getOptions();
 
       if (content.loading || options.loading) {
 
@@ -89,24 +91,24 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
     if (this.resource.disabled) {
 
-      return this.parent.parse(this.resource.disabled).toBoolean();
+      return this.parent.parse(this.resource.disabled);
 
     } else if (this.resource.enabled) {
 
-      return !this.parent.parse(this.resource.enabled).toBoolean();
+      return !this.parent.parse(this.resource.enabled);
 
     }
 
-    return false;
+    return new KarmaFieldsAlpha.Content(false);
   }
 
-  getOptions() {
+  async getOptions() {
 
 		let options;
 
 		if (this.resource.options) {
 
-			options = this.parse(this.resource.options);
+			options = await this.parse(this.resource.options);
 
 		} else {
 
@@ -116,13 +118,13 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		if (this.resource.driver) {
 
-      const params = this.parse(this.resource.params);
-
-      if (params.loading) {
-
-        options.loading = true;
-
-      } else {
+      // const params = await this.parse(this.resource.params);
+      //
+      // if (params.loading) {
+      //
+      //   options.loading = true;
+      //
+      // } else {
 
 
 
@@ -137,13 +139,24 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
         //   params: this.resource.params
         // }, "options", this);
 
-        const table = new KarmaFieldsAlpha.field.table({
-          driver: this.resource.driver,
-          params: params.toObject()
-        }, "options", this);
+        // const table = new KarmaFieldsAlpha.field.table({
+        //   driver: this.resource.driver,
+        //   params: this.resource.params
+        // }, "options", this);
 
+      const server = new KarmaFieldsAlpha.Server(this.resource.driver);
 
-        const set = table.getOptionsList();
+      const params = await this.parse(this.resource.params || {});
+
+      if (params.loading) {
+
+        options.loading = true;
+
+      } else {
+
+        await server.query(params.toObject());
+
+        const set = await server.getOptionsList();
 
         if (set.loading) {
 
@@ -169,11 +182,11 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 		return {
 			tag: "select",
 			class: "dropdown karma-field",
-			update: dropdown => {
+			update: async dropdown => {
 
 
-        let options = this.getOptions();
-        let content = this.getContent();
+        let options = await this.getOptions();
+        let content = await this.getContent();
 
         dropdown.element.classList.toggle("loading", Boolean(content.loading));
 
@@ -185,25 +198,25 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
           } else {
 
-            if (content.notFound) { // || !options.toArray().some(option => option.id === content.toString())) {
-
-              if (this.resource.createWhenNotFound) {
-
-  							this.createTask("create");
-
-  						}
-
-              // content = this.getDefault();
-              //
-              // if (!content.loading) {
-              //
-              //   this.setContent(content);
-              //
-              //   KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
-              //
-              // }
-
-            }
+            // if (content.notFound) { // || !options.toArray().some(option => option.id === content.toString())) {
+            //
+            //   if (this.resource.createWhenNotFound) {
+            //
+  					// 		this.createTask("create");
+            //
+  					// 	}
+            //
+            //   // content = this.getDefault();
+            //   //
+            //   // if (!content.loading) {
+            //   //
+            //   //   this.setContent(content);
+            //   //
+            //   //   KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
+            //   //
+            //   // }
+            //
+            // }
 
           }
 
@@ -245,23 +258,23 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
           }
 
 
-          dropdown.element.onchange = event => {
+          dropdown.element.onchange = async event => {
 
             const key = this.getKey();
             // const content = new KarmaFieldsAlpha.Content(dropdown.element.value);
 
-            this.save("change", "Change");
+            await this.save("change", "Change");
 
-            this.parent.setValue(dropdown.element.value, key);
+            await this.parent.setValue(dropdown.element.value, key);
 
 
-            this.request("render");
+            await this.request("render");
 
           }
 
-          dropdown.element.onfocus = event => {
+          dropdown.element.onfocus = async event => {
 
-						this.setFocus(content.mixed);
+						await this.setFocus(content.mixed);
 
 					}
 
@@ -271,7 +284,9 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
           }
 
-          dropdown.element.disabled = this.isDisabled();
+          const disabled = await this.isDisabled();
+
+          dropdown.element.disabled = disabled.toBoolean();
 
           dropdown.element.parentNode.classList.toggle("modified", Boolean(content.modified));
 

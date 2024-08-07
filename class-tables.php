@@ -145,6 +145,7 @@ class Karma_Fields_Alpha {
 
 				wp_enqueue_script('karma-fields-alpha-media', $plugin_url . '/js/media.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-build', $plugin_url . '/js/build-v7.7.js', array('karma-fields-alpha-media'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-abduct', $plugin_url . '/js/abduct-v2.js', array('karma-fields-alpha-media'), $this->version, true);
 
 				// fields
 				wp_enqueue_script('karma-fields-alpha-field', $plugin_url . '/js/fields/field.js', array('karma-fields-alpha-build'), $this->version, true);
@@ -164,7 +165,7 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-hidden', $plugin_url . '/js/fields/hidden.js', array('karma-fields-alpha-field'), $this->version, true);
 
 				// beta
-				wp_enqueue_script('karma-fields-alpha-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-alpha-input'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-alpha-input', 'karma-fields-alpha-dropdown'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-block-editor', $plugin_url . '/js/fields/block-editor.js', array(), $this->version, true);
 
 				wp_enqueue_script('karma-fields-alpha-editor', $plugin_url . '/js/fields/editor.js', array('karma-fields-alpha-input'), $this->version, true);
@@ -253,30 +254,31 @@ class Karma_Fields_Alpha {
 
 
 				wp_enqueue_script('karma-fields-utils-selection', $plugin_url . '/js/utils/selection.js', array('karma-fields-utils-segment'), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-tree', $plugin_url . '/js/utils/tree.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-tree', $plugin_url . '/js/utils/tree.js', array(), $this->version, true);
 
         // wp_enqueue_script('karma-fields-utils-delta', $plugin_url . '/js/utils/delta.js', array(), $this->version, true);
         // wp_enqueue_script('karma-fields-utils-terminal', $plugin_url . '/js/utils/terminal.js', array(), $this->version, true);
         // wp_enqueue_script('karma-fields-utils-utils', $plugin_url . '/js/utils/utils.js', array(), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-store', $plugin_url . '/js/utils/store.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-store', $plugin_url . '/js/utils/store.js', array(), $this->version, true);
 				// wp_enqueue_script('karma-fields-utils-timing', $plugin_url . '/js/utils/timing.js', array(), $this->version, true);
 
 				// wp_enqueue_script('karma-fields-utils-backup', $plugin_url . '/js/utils/backup.js', array(), $this->version, true);
 
-				wp_enqueue_script('karma-fields-utils-embed', $plugin_url . '/js/utils/embed.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-embed', $plugin_url . '/js/utils/embed.js', array(), $this->version, true);
 
 				wp_enqueue_script('karma-fields-utils-database', $plugin_url . '/js/utils/database.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-content', $plugin_url . '/js/utils/content.js', array(), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-expression', $plugin_url . '/js/utils/expression.js', array('karma-fields-utils-content'), $this->version, true);
 				wp_enqueue_script('karma-fields-utils-query', $plugin_url . '/js/utils/query.js', array('karma-fields-utils-content'), $this->version, true);
 
-				wp_enqueue_script('karma-fields-utils-remote', $plugin_url . '/js/utils/remote.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-remote', $plugin_url . '/js/utils/remote.js', array(), $this->version, true);
 
 				wp_enqueue_script('karma-fields-utils-task', $plugin_url . '/js/utils/task.js', array(), $this->version, true);
-				wp_enqueue_script('karma-fields-utils-model', $plugin_url . '/js/utils/model.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-model', $plugin_url . '/js/utils/model.js', array(), $this->version, true);
+				wp_enqueue_script('karma-fields-utils-server', $plugin_url . '/js/utils/server.js', array(), $this->version, true);
 
 
-				wp_enqueue_script('karma-fields-utils-shuttle', $plugin_url . '/js/utils/shuttle.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-utils-shuttle', $plugin_url . '/js/utils/shuttle.js', array(), $this->version, true);
 
 
 

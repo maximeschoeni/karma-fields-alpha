@@ -1,44 +1,50 @@
 KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
-	*create() {
+	// async *create() {
+	//
+	// 	// let value = await this.getDefault();
+	// 	//
+	// 	// if (value) {
+	// 	//
+	// 	// 	while (value.loading) {
+	// 	//
+	// 	// 		yield;
+	// 	// 		value = await this.getDefault();
+	// 	//
+	// 	// 	}
+	// 	//
+	// 	// 	await this.setValue(value.toString());
+	// 	//
+	// 	// }
+	//
+	// 	if (this.resource.default !== null) {
+	//
+	// 		let value = await this.getDefault();
+	//
+	// 		while (value.loading) {
+	//
+	// 			yield;
+	// 			value = await this.getDefault();
+	//
+	// 		}
+	//
+	// 		await this.setValue(value.toString());
+	//
+	// 	}
+	//
+	// }
 
-		let value = this.getDefault();
+	async getDefault() {
 
-		if (value) {
-
-			while (value.loading) {
-
-				yield;
-				value = this.getDefault();
-
-			}
-
-			this.setValue(value.toString());
-
-		}
+		return this.parse(this.resource.default || "");
 
 	}
 
-	getDefault() {
+	async exportDefaults() {
 
-		if (this.resource.default === null) {
+		let defaults = new KarmaFieldsAlpha.Content();
 
-			return null;
-
-		} else if (this.resource.default) {
-
-			return this.parse(this.resource.default);
-
-		}
-
-		return new KarmaFieldsAlpha.Content("");
-
-	}
-
-	exportDefaults() {
-
-		let defaults = new KarmaFieldsAlpha.Content({})
-		const response = this.getDefault();
+		const response = await this.getDefault();
 
 		if (response.loading) {
 
@@ -69,39 +75,25 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
     return false;
   }
 
-	// debounce(callback, duration = 500) {
-	//
-	// 	if (this.debounceTimer) {
-	//
-	// 		clearTimeout(this.debounceTimer);
-	//
-	// 	}
-	//
-	// 	this.debounceTimer = setTimeout(() => void callback(), duration);
-	// }
-
 	debounce(callback, duration = 500) {
 
-		let timer = this.getData("timer");
+		if (KarmaFieldsAlpha.timer) {
 
-		if (timer) {
-
-			clearTimeout(timer);
+			clearTimeout(KarmaFieldsAlpha.timer);
 
 		}
 
-		timer = setTimeout(() => void callback(), duration);
+		KarmaFieldsAlpha.timer = setTimeout(() => void callback(), duration);
 
-		this.setData(timer, "timer");
 	}
 
-	copy() {
+	async copy() {
 
-		let content = this.getContent();
+		let content = await this.getContent();
 
 		if (content.mixed) {
 
-			content = new KarmaFieldsAlpha.Content.Grid(content);
+			content = new KarmaFieldsAlpha.Content.Grid(content.value);
 
 		}
 
@@ -109,64 +101,26 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	paste(string) {
+	async paste(string) {
 
-		// const content = new KarmaFieldsAlpha.Content(string);
-		KarmaFieldsAlpha.History.save("paste", "Paste");
-		this.setValue(string);
-		this.request("render");
+		await KarmaFieldsAlpha.History.save("paste", "Paste");
+		await this.setValue(string);
+		await this.request("render");
 
 	}
 
-	*delete() { // -> for mixed values
+	async delete() { // -> for mixed values
 
 		// const content = new KarmaFieldsAlpha.Content("");
 		// KarmaFieldsAlpha.History.save("delete", "Delete");
 		// this.setContent(content);
 		// this.request("render");
 
-		this.setValue("");
+		await this.setValue("");
 
 	}
 
-	// getContent() {
-	//
-	// 	const key = this.getKey();
-	//
-	// 	let content = this.parent.getContent(key);
-	//
-	// 	if (this.resource.value && !content.mixed) {
-	//
-	// 		const value = this.parse(this.resource.value);
-	//
-	// 		if (!value.loading && !value.equals(content)) {
-	//
-	// 			this.parent.setValue(value, key);
-	//
-	// 			content = value;
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// 	// if (content.notFound) {
-	// 	//
-	// 	// 	const value = this.getDefault();
-	// 	//
-	// 	// 	if (!value.loading) {
-	// 	//
-	// 	// 		this.setContent(value);
-	// 	//
-	// 	// 	}
-	// 	//
-	// 	// 	content = value;
-	// 	//
-	// 	// }
-	//
-	// 	return content;
-	// }
-
-	getContent(key) {
+	async getContent(key) {
 
 		if (!key) {
 
@@ -174,23 +128,34 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		}
 
-		let content = this.parent.getContent(key);
 
-		if (this.resource.value && !content.mixed) {
+		// if (this.resource.value) {
+		//
+		// 	const content = await this.parent.getContent(key);
+		//
+		// 	if (!content.mixed) {
+		//
+		// 		const value = await this.parse(this.resource.value);
+		//
+		// 		if (!value.loading && !value.equals(content)) {
+		//
+		// 			await this.parent.setValue(value.toString(), key);
+		//
+		// 			return value;
+		//
+		// 		}
+		//
+		// 	}
+		//
+		// 	return content;
+		//
+		// } else {
 
-			const value = this.parse(this.resource.value);
+			return this.parent.getContent(key);
 
-			if (!value.loading && !value.equals(content)) {
+		// }
 
-				this.parent.setValue(value, key);
-
-				content = value;
-
-			}
-
-		}
-
-		return content;
+		// return content;
 	}
 
 	setValue(value, key) {
@@ -201,53 +166,60 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		}
 
-		this.parent.setValue(value, key);
+		return this.parent.setValue(value, key);
 
 	}
 
 
-	export() { // -> return array of string
+	async export() {
 
-		const output = new KarmaFieldsAlpha.Content();
+		// const output = new KarmaFieldsAlpha.Content();
+		//
+		// if (this.resource.export !== false) {
+		//
+		// 	const content = await this.getContent();
+		//
+		// 	if (content.loading) {
+		//
+		// 		output.loading = true;
+		//
+		// 	} else {
+		//
+		// 		output.value = content.toString() || "";
+		//
+		// 	}
+		//
+		// }
+		//
+		// return output;
+
 
 		if (this.resource.export !== false) {
 
-			const content = this.getContent();
-
-			if (content.loading) {
-
-				output.loading = true;
-
-			} else {
-
-				output.value = content.toString() || "";
-
-			}
+			return this.getContent();
 
 		}
 
-		return output;
+		return new KarmaFieldsAlpha.Content();
 
   }
 
-	async *import(collection) {
+	async import(collection) {
 
     const string = collection.value.shift();
 
-		// const content = new KarmaFieldsAlpha.Content(string);
-
-		this.setValue(string);
+		await this.setValue(string);
   }
 
-	getPlaceholder() {
+	async getPlaceholder() {
 
 		if (this.resource.placeholder) {
 
-			return this.parse(this.resource.placeholder).toString();
+			return this.parse(this.resource.placeholder);
 
 		}
 
-		return "";
+		return new KarmaFieldsAlpha.Content("");
 
 	}
 
@@ -255,11 +227,11 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.readonly) {
 
-			return KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.readonly));
+			return this.parse(this.resource.readonly);
 
 		}
 
-		return false;
+		return new KarmaFieldsAlpha.Content(false);
 	}
 
 	// save(deleting = false) {
@@ -278,75 +250,75 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 
 
-	write(value) {
-
-		// if (!content) {
-		//
-		//
-		//
-		// }
-
-		const current = this.getContent();
-
-		// const content = this.getContent();
-
-		// if (content.loading) {
-		//
-		// 	// return; // does not work because getContent() continuely return a query made when row field is set as loading
-		//
-		// 	// let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "writing" && task.id === this.uid);
-		// 	//
-		// 	// if (task) {
-		// 	//
-		// 	// 	task.value = value;
-		// 	//
-		// 	// } else {
-		// 	//
-		// 	// 	task = {
-	  //   //     type: "writing",
-		// 	// 		id: this.uid,
-		// 	// 		value: value,
-		// 	// 		proority: -1,
-	  //   //     resolve: () => this.write(task.value)
-	  //   //   };
-		// 	//
-		// 	// 	KarmaFieldsAlpha.Store.Tasks.add(task);
-		// 	//
-		// 	// }
-		//
-		// 	this.setOption(value, "writing");
-		//
-		// } else {
-
-			const normalizedValue = value.normalize();
-
-			this.debounce(() => {
-
-				if (normalizedValue.length < current.toString().length) {
-
-					this.save(`${this.uid}-delete`, "Delete");
-
-				} else {
-
-					this.save(`${this.uid}-insert`, "Insert");
-
-				}
-
-				// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
-
-				this.setValue(normalizedValue);
-
-				this.setData(false, "embargo");
-
-				this.request("render");
-
-			}, this.resource.debounce || 300);
-
-			this.setData(true, "embargo");
-
-		// }
-
-	}
+	// write(value) {
+	//
+	// 	// if (!content) {
+	// 	//
+	// 	//
+	// 	//
+	// 	// }
+	//
+	// 	const current = this.getContent();
+	//
+	// 	// const content = this.getContent();
+	//
+	// 	// if (content.loading) {
+	// 	//
+	// 	// 	// return; // does not work because getContent() continuely return a query made when row field is set as loading
+	// 	//
+	// 	// 	// let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "writing" && task.id === this.uid);
+	// 	// 	//
+	// 	// 	// if (task) {
+	// 	// 	//
+	// 	// 	// 	task.value = value;
+	// 	// 	//
+	// 	// 	// } else {
+	// 	// 	//
+	// 	// 	// 	task = {
+	//   //   //     type: "writing",
+	// 	// 	// 		id: this.uid,
+	// 	// 	// 		value: value,
+	// 	// 	// 		proority: -1,
+	//   //   //     resolve: () => this.write(task.value)
+	//   //   //   };
+	// 	// 	//
+	// 	// 	// 	KarmaFieldsAlpha.Store.Tasks.add(task);
+	// 	// 	//
+	// 	// 	// }
+	// 	//
+	// 	// 	this.setOption(value, "writing");
+	// 	//
+	// 	// } else {
+	//
+	// 		const normalizedValue = value.normalize();
+	//
+	// 		this.debounce(() => {
+	//
+	// 			if (normalizedValue.length < current.toString().length) {
+	//
+	// 				this.save(`${this.uid}-delete`, "Delete");
+	//
+	// 			} else {
+	//
+	// 				this.save(`${this.uid}-insert`, "Insert");
+	//
+	// 			}
+	//
+	// 			// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
+	//
+	// 			this.setValue(normalizedValue);
+	//
+	// 			this.setData(false, "embargo");
+	//
+	// 			this.request("render");
+	//
+	// 		}, this.resource.debounce || 300);
+	//
+	// 		this.setData(true, "embargo");
+	//
+	// 	// }
+	//
+	// }
 
 
 
@@ -361,60 +333,27 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					Object.assign(input.element, this.resource.input);
 				}
 			},
-			// complete: input => {
-			// 	const value = this.getOption("writing");
-			// 	if (value) {
-			// 		this.write(value);
-			// 	}
-			// },
-			update: input => {
+			update: async input => {
 
-				// const writing = this.getOption("writing");
-				//
-				// if (writing) {
-				//
-				// 	this.removeOption("writing");
-				//
-				// 	this.write(writing);
-				//
-				// }
 
-        const content = this.getContent();
+        const content = await this.getContent();
+				const hasFocus = await this.hasFocus();
 
         input.element.classList.toggle("loading", Boolean(content.loading));
 
         if (!content.loading) {
 
+					const placeholder = await this.getPlaceholder();
 
-
-					input.element.placeholder = this.getPlaceholder();
+					input.element.placeholder = placeholder.toString();
 					input.element.classList.toggle("mixed", Boolean(content.mixed));
 
-					if (content.notFound) {
-
-						// if (this.resource.createWhenNotFound) {
-						//
-						// 	this.createTask("create");
-						//
-						// }
+					// if (content.notFound) {
+					//
+					// } else {
 
 
-						// const defaultContent = this.getDefault();
-						//
-						// input.element.value = defaultContent.toString();
-						//
-						// if (defaultContent.value !== null) {
-						//
-						// 	this.setContent(defaultContent);
-						//
-						// 	KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
-						//
-						// }
-
-					} else {
-
-
-						input.element.classList.toggle("selected", Boolean(content.mixed && this.hasFocus()));
+						input.element.classList.toggle("selected", Boolean(content.mixed && hasFocus));
 
 	          if (content.mixed) {
 
@@ -423,12 +362,21 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	          } else {
 
-	            input.element.readOnly = this.isReadonly();
+							if (this.resource.readonly) {
+
+								const readonly = await this.parse(this.resource.readonly);
+								input.element.readOnly = readonly.toBoolean();
+
+							} else {
+
+								input.element.readOnly = false;
+
+							}
+
 	            input.element.parentNode.classList.toggle("modified", Boolean(content.modified));
 
 							const value = content.toString();
 
-	            // if (input.element.value.normalize() !== value && !this.getData("embargo")) { // -> replacing same value still reset caret position
 							if (input.element.value.normalize() !== value) { // -> replacing same value still reset caret position
 
 	              input.element.value = value || "";
@@ -437,7 +385,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	          }
 
-					}
+					// }
 
 				} else {
 
@@ -456,41 +404,33 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				}
 
-        input.element.oninput = event => {
+        input.element.oninput = async event => {
 
-					// this.write(input.element.value, content);
-
-
-					const newValue = input.element.value;
-					const normalizedValue = newValue.normalize();
+					const normalizedValue = input.element.value.normalize();
 
 					if (normalizedValue.length < content.toString().length) {
 
-						this.save(`${this.uid}-delete`, "Delete");
+						await this.save(`${this.uid}-delete`, "Delete");
 
 					} else {
 
-						this.save(`${this.uid}-insert`, "Insert");
+						await this.save(`${this.uid}-insert`, "Insert");
 
 					}
 
-					// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
-
-					this.setValue(normalizedValue);
+					await this.setValue(normalizedValue);
 
 					this.debounce(() => {
 						this.request("render");
 					}, 400);
 
-
-
         }
 
-				input.element.onfocus = event => {
+				input.element.onfocus = async event => {
 
-					this.setFocus(content.mixed);
+					await this.setFocus(content.mixed);
 
-					this.request("render"); // update clipboard textarea, unselect other stuffs
+					await this.request("render"); // update clipboard textarea, unselect other stuffs
 
 				}
 
@@ -500,23 +440,31 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				}
 
-				input.element.onkeydown = event => {
+				input.element.onkeydown = async event => {
 
 					if (event.key === "Enter") {
 
 						event.preventDefault(); // -> prevent sending form if embeded in a post page
 
-            this.request("submit"); // -> Save
+            await this.request("submit"); // -> Save
+
+						await this.render();
 
           }
 
 				}
 
+				if (this.resource.disabled) {
 
+					const disabled = await this.parse(this.resource.disabled);
+					input.element.disabled = disabled.toBoolean();
 
+		    } else if (this.resource.enabled) {
 
+					const enabled = await this.parse(this.resource.enabled);
+					input.element.disabled = !enabled.toBoolean();
 
-				input.element.disabled = this.isDisabled();
+		    }
 
 			}
 		};

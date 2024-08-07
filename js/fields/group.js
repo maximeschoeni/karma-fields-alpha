@@ -34,25 +34,29 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   }
 
-  getContent(subkey) {
+  async getContent(subkey) {
 
     const key = this.getKey();
 
     if (key) {
 
-      const content = this.parent.getContent(key);
+      const content = await this.parent.getContent(key);
+
+      const response = new KarmaFieldsAlpha.Content();
 
       if (content.loading) {
 
-        return new KarmaFieldsAlpha.Content.Request();
+        response.loading = true;
 
       }
 
-      const value = KarmaFieldsAlpha.DeepObject.get(content.toObject(), subkey);
+      response.value = KarmaFieldsAlpha.DeepObject.get(content.toObject(), subkey);
 
-      return new KarmaFieldsAlpha.Content(value);
+      // return new KarmaFieldsAlpha.Content(value);
 
       // return new KarmaFieldsAlpha.Content.Node(content, subkey);
+
+      return response;
 
     } else if (this.parent) {
 
@@ -62,13 +66,13 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   }
 
-  setValue(value, ...path) {
+  async setValue(value, ...path) {
 
     const key = this.getKey();
 
     if (key) {
 
-      let groupContent = this.parent.getContent(key);
+      let groupContent = await this.parent.getContent(key);
 
       if (!groupContent.loading) {
 
@@ -76,27 +80,25 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
         KarmaFieldsAlpha.DeepObject.set(newValue, value, ...path);
 
-        this.parent.setValue(newValue, key);
+        await this.parent.setValue(newValue, key);
 
       }
 
     } else {
 
-      this.parent.setValue(value, ...path);
+      return this.parent.setValue(value, ...path);
 
     }
 
   }
 
-	export() {
+	async export() {
 
 		const key = this.getKey();
 
 		if (key) {
 
-      let content = this.parent.getContent(key);
-
-      return new KarmaFieldsAlpha.Content.Collection([content.toSingle()]);
+      return this.parent.getContent(key);
 
 		} else {
 
@@ -106,7 +108,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	async *import(collection) {
+	async import(collection) {
 
 		const key = this.getKey();
 
@@ -115,23 +117,21 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
       const value = collection.value.shift();
       // const content = new KarmaFieldsAlpha.Content()
 
-      this.parent.setValue(value, key);
+      await this.parent.setValue(value, key);
 
 		} else {
 
-      yield* super.import(collection);
+      await super.import(collection);
 
 		}
 
 	}
 
-  isHidden(field) {
-
-
+  async isHidden(field) {
 
     if (field.resource.hidden) {
 
-      const hidden = field.parse(field.resource.hidden);
+      const hidden = await field.parse(field.resource.hidden);
 
       return !hidden.loading && hidden.toBoolean();
 
@@ -139,8 +139,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
     } else if (field.resource.visible) {
 
-      const visible = field.parse(field.resource.visible);
-
+      const visible = await field.parse(field.resource.visible);
       return visible.loading || !visible.toBoolean();
 
       // return !field.parse(field.resource.visible).toBoolean();
@@ -153,31 +152,33 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
   inline() {
 
     return this.resource.display === "flex";
+
   }
 
-  buildLabel() {
+  // buildLabel() {
+  //
+	// 	return [{
+	// 		tag: "label",
+	// 		class: "label",
+	// 		update: async label => {
+	// 			label.element.htmlFor = field.getId();
+  //       const label = await
+	// 			label.element.textContent = field.getLabel();
+	// 		}
+	// 	}];
+  //
+	// }
 
-		return [{
-			tag: "label",
-			class: "label",
-			update: label => {
-				label.element.htmlFor = field.getId();
-				label.element.textContent = field.getLabel();
-			}
-		}];
-
-	}
-
-	buildPseudoLabel() {
-
-		return [{
-			class: "label",
-			update: label => {
-				label.element.textContent = field.getLabel();
-			}
-		}];
-
-	}
+	// buildPseudoLabel() {
+  //
+	// 	return [{
+	// 		class: "label",
+	// 		update: label => {
+	// 			label.element.textContent = field.getLabel();
+	// 		}
+	// 	}];
+  //
+	// }
 
 	buildChildren(field, labelable) {
 		const children = [];
@@ -186,8 +187,9 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 			children.push({
 				class: "label",
-				update: label => {
-					label.element.textContent = field.getLabel();
+				update: async node => {
+          const label = await field.getLabel();
+					node.element.textContent = label.toString();
 				}
 			});
 
@@ -306,10 +308,10 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 							// 	container.element.style.alignItems = field.resource.align;
 							// }
 						},
-						update: (container) => {
+						update: async (container) => {
 							container.children = [];
 
-              let hidden = this.isHidden(field);
+              let hidden = await this.isHidden(field);
 
 							container.element.classList.toggle("hidden", hidden);
 
@@ -337,12 +339,12 @@ KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
 
     return {
       class: "tabs",
-      update: tabs => {
+      update: async tabs => {
         // const selection = this.getSelection();
 
         // const data = this.getData();
         // const currentIndex = data && data.index || 0;
-        const currentIndex = this.getOption("index") || 0;
+        const currentIndex = await this.getState("index") || 0;
 
         tabs.children = [
           {
@@ -353,14 +355,13 @@ KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
                 class: "tab-handler",
                 update: node => {
                   node.element.innerHTML = child.label;
-                  // const isActive = selection && index === selection.childId || !selection && index === 0;
                   const isActive = index === currentIndex;
                   node.element.classList.toggle("active", Boolean(isActive));
-                  node.element.onclick = event => {
+                  node.element.onclick = async event => {
                     // this.setSelection({child: {}, childId: index});
                     // data.index = index;
-                    this.setOption(index, "index");
-                    this.render();
+                    await this.setState(index, "index");
+                    await this.render();
                   }
                 }
               };
@@ -373,23 +374,14 @@ KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
               return {
                 class: "tab-content",
                 update: node => {
-
                   const isActive = index === currentIndex;
-
                   node.element.classList.toggle("hidden", !isActive);
-
                   if (isActive) {
-
                     const child = this.getChild(index);
-
                     node.children = [child.build()];
-
                   } else {
-
                     node.children = [];
-
                   }
-
                 }
               };
             })

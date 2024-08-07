@@ -1,6 +1,6 @@
 KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
-	exportDefaults() {
+	async exportDefaults() {
 
 		let defaults = new KarmaFieldsAlpha.Content({});
 
@@ -9,7 +9,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		if (header) {
 
-			const response = header.exportDefaults();
+			const response = await header.exportDefaults();
 
       if (response.loading) {
 
@@ -25,7 +25,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		if (footer) {
 
-			const response = footer.exportDefaults(defaults);
+			const response = await footer.exportDefaults(defaults);
 
       if (response.loading) {
 
@@ -78,20 +78,21 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	blank() {
+	async blank() {
 
-		this.setSelection(0, 0);
-		this.setFocus(true);
-		this.render();
+		await this.setSelection({index: 0, length: 0});
+		await this.setFocus(true);
+		await this.render();
 
 	}
 
 	getHeaderTop(element) {
 
 		let scrollContainer = element.closest(".scroll-container");
+		let popup = element.closest(".popup");
 		let top = 0;
 
-		if (!scrollContainer) {
+		if (!scrollContainer && !popup) {
 
 			const adminBar = document.getElementById("wpadminbar");
 
@@ -314,8 +315,9 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 					}
 					node.element.style.width = this.resource.width || "100%";
 				},
-				update: node => {
-					node.element.classList.toggle("has-selection", Boolean(this.hasFocusInside()));
+				update: async node => {
+					const hasFocus = await this.hasFocusInside();
+					node.element.classList.toggle("has-selection", Boolean(hasFocus));
 					node.element.onmousedown = event => {
 						event.stopPropagation();
 						this.blank();

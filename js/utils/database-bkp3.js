@@ -53,9 +53,9 @@ KarmaFieldsAlpha.Database = class {
         queries.createIndex("driver", "driver");
         queries.createIndex("open", "open");
 
-        const vars = db.createObjectStore("vars", {keyPath: ["driver", "id"]});
+        const vars = db.createObjectStore("vars", {keyPath: ["driver", "id", "key"]});
         vars.createIndex("driver", "driver");
-        // vars.createIndex("id", ["driver", "id"]);
+        vars.createIndex("id", ["driver", "id"]);
 
         const history = db.createObjectStore("history", {keyPath: ["session", "index", "context", "driver", "id", "key"]});
         history.createIndex("index", ["session", "index"]);
@@ -115,13 +115,13 @@ KarmaFieldsAlpha.Database.General = class extends KarmaFieldsAlpha.Database {
 
 KarmaFieldsAlpha.Database.Vars = class extends KarmaFieldsAlpha.Database {
 
-  static get(driver, id) {
+  static get(driver, id, key) {
     return this.getDB().then(db => new Promise((resolve, reject) => {
       const transaction = db.transaction("vars");
       const objectStore = transaction.objectStore("vars");
-      const request = objectStore.get([driver, id]);
+      const request = objectStore.get([driver, id, key]);
       request.onsuccess = (event) => {
-        resolve(event.target.result);
+        resolve(event.target.result && event.target.result.data);
       };
       request.onerror = (event) => {
         reject(event.target.error);
@@ -129,18 +129,17 @@ KarmaFieldsAlpha.Database.Vars = class extends KarmaFieldsAlpha.Database {
     }));
   }
 
-  static select(driver) {
+  static select(driver, id) {
     return this.getDB().then(db => new Promise((resolve, reject) => {
       const transaction = db.transaction("vars");
       const objectStore = transaction.objectStore("vars");
-      // if (id) {
-      //   const index = objectStore.index("id");
-      //   const request = index.getAll([driver, id]);
-      //   request.onsuccess = (event) => {
-      //     resolve(request.result);
-      //   };
-      // } else
-      if (driver) {
+      if (id) {
+        const index = objectStore.index("id");
+        const request = index.getAll([driver, id]);
+        request.onsuccess = (event) => {
+          resolve(request.result);
+        };
+      } else if (driver) {
         const index = objectStore.index("driver");
         const request = index.getAll(driver);
         request.onsuccess = (event) => {
@@ -155,11 +154,11 @@ KarmaFieldsAlpha.Database.Vars = class extends KarmaFieldsAlpha.Database {
     }));
   }
 
-  static set(data, driver, id) {
+  static set(data, driver, id, key) {
     return this.getDB().then(db => new Promise((resolve, reject) => {
       const transaction = db.transaction("vars", "readwrite");
       const objectStore = transaction.objectStore("vars");
-      objectStore.put({driver, id, ...data});
+      objectStore.put({data, driver, id, key, time: Date.now()});
       transaction.oncomplete = (event) => {
         resolve();
       }
@@ -178,23 +177,23 @@ KarmaFieldsAlpha.Database.Vars = class extends KarmaFieldsAlpha.Database {
     }));
   }
 
-  static remove(driver, id) { // -> get all edits
+  static remove(driver, id, key) { // -> get all edits
     console.log("remove vars", driver, id, key);
     return this.getDB().then(db => new Promise((resolve, reject) => {
       const transaction = db.transaction("vars", "readwrite");
       const objectStore = transaction.objectStore("vars");
-      if (id) {
-        objectStore.delete([driver, id]);
-      // } else if (id) {
-      //   const index = objectStore.index("id");
-      //   const request = index.openCursor([driver, id]);
-      //   request.onsuccess = (event) => {
-      //     const cursor = event.target.result;
-      //     if (cursor) {
-      //       cursor.delete();
-      //       cursor.continue();
-      //     }
-      //   }
+      if (key) {
+        objectStore.delete([driver, paramstring, key]);
+      } else if (id) {
+        const index = objectStore.index("id");
+        const request = index.openCursor([driver, id]);
+        request.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            cursor.delete();
+            cursor.continue();
+          }
+        }
       } else if (driver) {
         const index = objectStore.index("driver");
         const request = index.openCursor(driver);

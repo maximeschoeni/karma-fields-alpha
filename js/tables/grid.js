@@ -16,6 +16,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   *genChildren() {
 
+    console.warn("deprecated??")
+
     for (let i = 0; i < this.getLength().toNumber(); i++) {
 
       yield this.createChild({
@@ -32,18 +34,17 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     if (id === "modal" || id === "*") {
 
-      return new KarmaFieldsAlpha.field.grid.modal(this.resource.modal, "modal", this);
+      if (this.resource.modal) {
 
-      // return this.createChild({
-      //   ...this.resource.modal,
-      //   type: "modal",
-      // }, "modal");
+        return new KarmaFieldsAlpha.field.grid.modal(this.resource.modal, "modal", this);
+
+      }
 
     } else {
 
       return new KarmaFieldsAlpha.field.grid.row({
         children: this.resource.children,
-        index: (this.resource.index || 0) + id
+        index: id
       }, id, this);
 
     }
@@ -85,11 +86,13 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   //
   // }
 
-  getContentAt(index, key) {
+  async getContentAt(index, key) {
 
     if (index === "modal" || index === "*") {
 
-      const selection = {index: 0, length: 0, ...this.querySelection()};
+      let selection = await this.querySelection();
+
+      selection = {index: 0, length: 0, ...selection};
 
       if (selection.length > 1) {
 
@@ -113,61 +116,67 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  setContentAt(value, index, key) {
+  async setContentAt(value, index, key) {
 
     if (index === "modal" || index === "*") {
 
-      const selection = {index: 0, length: 0, ...this.querySelection()};
+      let selection = await this.querySelection();
+
+      selection = {index: 0, length: 0, ...selection};
 
       for (let i = 0; i < selection.length; i++) {
 
-        this.parent.setContentAt(value, selection.index + i, key);
+        await this.parent.setContentAt(value, selection.index + i, key);
 
       }
 
     } else {
 
-      this.parent.setContentAt(value, index, key);
+      await this.parent.setContentAt(value, index, key);
 
     }
 
   }
 
-  setValueAt(value, index, key) {
+  async setValueAt(value, index, key) {
 
     if (index === "modal" || index === "*") {
 
-      const selection = {index: 0, length: 0, ...this.querySelection()};
+      let selection = await this.querySelection();
+
+      selection = {index: 0, length: 0, ...selection};
 
       for (let i = 0; i < selection.length; i++) {
 
-        this.parent.setValueAt(value, selection.index + i, key);
+        await this.parent.setValueAt(value, selection.index + i, key);
 
       }
 
     } else {
 
-      this.parent.setValueAt(value, index, key);
+      await this.parent.setValueAt(value, index, key);
 
     }
 
   }
 
-  hasSelection() {
+  async hasSelection() {
 
-    return this.getSelection("length") > 0;
+    let selection = await this.getSelection();
+
+    return new KarmaFieldsAlpha.Content(selection && selection.length > 0 || false);
 
   }
 
   select(index = 0, length = 0) { // to be overrided (ie. Medias grid)
 
-    this.setSelection({index, length});
+    return this.setSelection({index, length});
 
   }
 
   unselect() { // to be overrided (ie. Medias grid)
 
-    this.removeSelection();
+    return this.removeSelection();
 
   }
 
@@ -177,11 +186,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  *selectAll() {
+  async selectAll() {
 
-    const length = this.getLength();
+    const length = await this.getLength();
 
-    this.setSelection({
+    await this.setSelection({
       index: 0,
       length: length.toNumber()
     });
@@ -190,12 +199,14 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  copy() {
+  async copy() {
 
-    const index = this.getSelection("index") || 0;
-    const length = this.getSelection("length") || 0;
+    const selection = await this.getSelection();
 
-    const grid = this.export(index, length);
+    const index = selection.index || 0;
+    const length = selection.length || 0;
+
+    const grid = await this.export(index, length);
 
     if (grid.loading) {
 
@@ -209,23 +220,25 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async *paste(value) {
+  async paste(value) {
 
     const grid = new KarmaFieldsAlpha.Content.Grid(value);
 
-    this.save("paste", "Paste");
+    await this.save("paste", "Paste");
 
-    let index = this.getSelection("index") || 0;
-    let length = this.getSelection("length") || 0;
+    const selection = await this.getSelection();
+
+    const index = selection.index || 0;
+    const length = selection.length || 0;
 
     if (length === 0) {
 
-      let lengthContent = this.getLength();
+      let lengthContent = await this.getLength();
 
       while (lengthContent.loading) {
 
-        lengthContent = this.getLength();
-        yield;
+        await this.render();
+        lengthContent = await this.getLength();
 
       }
 
@@ -235,11 +248,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     // this.import(grid, index, length);
 
-    yield* this.import(grid, index, length);
+    await this.import(grid, index, length);
 
     const body = this.getChild("body");
 
-    this.setSelection({index, length: grid.toArray().length});
+    await this.setSelection({index, length: grid.toArray().length});
 
     // const work = this.parent.import(grid, index, length);
     //
@@ -249,15 +262,15 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  // *delete() {
-  //
-  //   yield* this.parent.delete();
-  //
-  // }
+  async delete() {
 
-  getDefaultIndex() {
+    return this.parent.delete();
 
-    const selection = this.getSelection();
+  }
+
+  async getDefaultIndex() {
+
+    const selection = await this.getSelection();
 
     if (selection && selection.length) {
 
@@ -269,15 +282,17 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      return this.getLength().toNumber();
+      const length = await this.getLength();
+
+      return length.toNumber();
 
     }
 
   }
 
-  getNewItemIndex() {
+  async getNewItemIndex() {
 
-    const selection = this.querySelection();
+    const selection = await this.querySelection();
 
     if (selection && selection.length) {
 
@@ -289,7 +304,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      return this.getLength().toNumber();
+      const length = await this.getLength();
+
+      return length.toNumber();
 
     }
 
@@ -301,7 +318,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   //
   // }
 
-  *create(index, length = 1) {
+  async *create(index, length = 1) {
+
+    console.error("deprecated");
 
     for (let i = 0; i < length; i++) {
 
@@ -327,9 +346,38 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  *duplicate() {
+  async exportDefaults() {
 
-    yield* this.parent.duplicate(num);
+    const response = new KarmaFieldsAlpha.Content();
+
+    for (let index of [0, "*"]) {
+
+      const child = this.getChild(index);
+
+      if (child) {
+
+        const defaults = await child.exportDefaults();
+
+        if (defaults.loading) {
+
+          response.loading = true;
+
+        } else {
+
+          response.value = {...response.toObject(), ...defaults.toObject()};
+
+        }
+
+      }
+    }
+
+    return response;
+
+  }
+
+  async duplicate(num) {
+
+    return this.parent.duplicate(num);
 
   }
 
@@ -353,11 +401,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  export(index, length, columns = this.getExportableColumns()) {
+  async export(index, length, columns = this.getExportableColumns()) {
 
     if (index === undefined || length === undefined) {
 
-      const selection = this.getSelection();
+      const selection = await this.getSelection();
 
       index = selection && selection.index || 0;
       length = selection && selection.length || 0;
@@ -373,7 +421,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         children: columns
       }, index + i);
 
-      const collection = rowField.export();
+      const collection = await rowField.export();
 
       if (collection.loading) {
 
@@ -391,7 +439,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async *import(grid, index, length, columns) {
+  async import(grid, index, length, columns) {
 
     if (!columns) {
 
@@ -401,7 +449,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     if (index === undefined || length === undefined) {
 
-      const selection = this.getSelection();
+      const selection = await this.getSelection();
 
       index = selection && selection.index || 0;
       length = selection && selection.length || 0;
@@ -412,11 +460,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     if (array.length < length) {
 
-      yield* this.parent.delete(index + array.length, length - array.length);
+      await this.parent.delete(index + array.length, length - array.length);
 
     } else if (array.length > length) {
 
-      yield* this.parent.add(array.length - length, index + length);
+      await this.parent.add(array.length - length, index + length);
 
     }
 
@@ -429,7 +477,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       const content = new KarmaFieldsAlpha.Content(array[i]);
 
-      yield* child.import(content);
+      await child.import(content);
 
     }
 
@@ -579,11 +627,50 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 
 
-  *buildHeader() {
+  // *buildHeader() {
+  //
+  //   const columns = this.getColumns();
+  //
+  //   if (this.hasHeader() && this.getLength().toNumber()) {
+  //
+  //     for (let i = 0; i < columns.length; i++) {
+  //
+  //       const classes = [];
+  //
+  //       if (i === 0) {
+  //         classes.push("first-cell");
+  //       }
+  //       if (i === columns.length - 1) {
+  //         classes.push("last-cell");
+  //       }
+  //
+  //       // yield this.createChild({
+  //       //   ...columns[i],
+  //       //   classes,
+  //       //   type: "headerCell"
+  //       // }, `header-cell-${i}`).build();
+  //       const headerCell = new KarmaFieldsAlpha.field.grid.headerCell({
+  //         ...columns[i],
+  //         classes,
+  //       }, `header-cell-${i}`, this);
+  //
+  //       yield headerCell.build();
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+
+
+
+  *buildRows(length, offset, selection) {
+
+    // yield* this.buildHeader();
 
     const columns = this.getColumns();
 
-    if (this.hasHeader() && this.getLength().toNumber()) {
+    if (this.hasHeader() && length.toNumber()) {
 
       for (let i = 0; i < columns.length; i++) {
 
@@ -612,15 +699,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     }
 
-  }
-
-
-
-  *buildRows() {
-
-    yield* this.buildHeader();
-
-    const length = this.getLength().toNumber();
+    // const length = this.getLength().toNumber();
 
     // const pageQuery = this.request("getPage");
     // const pppQuery = this.request("getPpp");
@@ -630,11 +709,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     //
     // const offset = (pageQuery.toNumber() - 1)*pppQuery.toNumber();
 
-    const offset = this.request("getIndexOffset") || 0;
+    // const offset = this.request("getIndexOffset") || 0;
 
-    const selection = this.getSelection();
+    // const selection = this.getSelection();
 
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < length.toNumber(); i++) {
 
       const row = this.createChild({
         type: "row",
@@ -662,7 +741,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
           update: td => {
             td.element.classList.toggle("selected", Boolean(isRowSelected));
             td.element.classList.toggle("odd", i%2 === 0);
-            td.element.classList.toggle("last-row", i === length-1);
+            td.element.classList.toggle("last-row", i === length.toNumber()-1);
             td.element.classList.toggle("first-cell", j === 0);
             td.element.classList.toggle("last-cell", j === row.resource.children.length - 1);
 
@@ -700,15 +779,24 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         //   table: div.element.parentNode.parentNode.parentNode
         // });
       },
-      update: div => {
+      update: async div => {
 
         // const sticky = this.parent.id !== "popup";
         // console.log(this.getFocus());
 
+        const selection = await this.getSelection();
+
+        div.children = [...this.createChild({
+          ...this.resource.modal,
+          type: "modal"
+        }, "*").build(selection)];
+
+
+
 
         div.element.classList.remove("sticky-modal");
         if (this.parent.id !== "popup") {
-          const focus = this.getFocus();
+          const focus = await this.getFocus();
           if (focus && !focus.includes("popup")) { // -> opening popup in sticky container seems to be bugged
             div.element.style.height = `${this.request("getModalHeight", div.element)}px`;
             div.element.style.top = `${this.request("getModalTop", div.element)}px`;
@@ -719,13 +807,14 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         div.element.classList.toggle("hidden", !this.resource.modal);
         if (this.resource.modal) {
           div.element.style.width = this.resource.modal.width || "30em";
-          div.element.onmousedown = event => {
+          div.element.onmousedown = async event => {
             event.stopPropagation(); // -> prevent unselecting
 
-            this.setFocus(true);
-            this.request("render");
+            await this.setFocus(true);
+            await this.request("render");
           };
-          div.element.classList.toggle("active", Boolean(this.hasSelection()));
+          const hasSelection = await this.hasSelection();
+          div.element.classList.toggle("active", Boolean(hasSelection));
         }
       }
     };
@@ -753,13 +842,15 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       child: {
         class: "table grid grid-field-body",
         // children: [...this.buildRows()],
-        update: grid => {
+        update: async grid => {
 
-          const length = this.getLength();
+          const length = await this.getLength();
+          const offset = await this.request("getIndexOffset") || 0;
+          const selection = await this.getSelection();
 
           if (!length.loading) {
 
-            grid.children = [...this.buildRows()];
+            grid.children = [...this.buildRows(length, offset, selection)];
 
           }
 
@@ -779,7 +870,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
           grid.element.style.gridTemplateColumns = row.resource.children.map((resource, index) => row.getChild(index).resource.width || "auto").join(" ");
           // grid.element.style.gridTemplateColumns = columns.map(resource => resource.width || "auto").join(" ");
 
-          let selection = this.getSelection();
+          // let selection = this.getSelection();
 
 
 
@@ -796,20 +887,20 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
               elements.map(element => element.classList.remove("selected"));
             }
 
-            sorter.onSelectionComplete = () => {
-              this.setFocus(1);
-              this.request("render");
+            sorter.onSelectionComplete = async () => {
+              await this.setFocus(1);
+              await this.request("render");
             }
 
-            sorter.onSwap = (newState, lastState) => {
-              this.save("sort", "Sort");
-              this.request("swap", lastState.selection.index, newState.selection.index, newState.selection.length);
-              this.setSelection(newState.selection);
+            sorter.onSwap = async (newState, lastState) => {
+              await this.save("sort", "Sort");
+              await this.request("swap", lastState.selection.index, newState.selection.index, newState.selection.length);
+              await this.setSelection(newState.selection);
             };
 
-            sorter.onSort = (index, target, length) => {
-              this.setFocus(1);
-              this.request("render");
+            sorter.onSort = async (index, target, length) => {
+              await this.setFocus(1);
+              await this.request("render");
             }
 
           } else {
@@ -828,9 +919,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
               elements.map(element => element.classList.remove("selected"));
             }
 
-            selector.onSelectionComplete = () => {
-              this.setFocus(true);
-              this.request("render");
+            selector.onSelectionComplete = async () => {
+              await this.setFocus(true);
+              await this.request("render");
             }
 
           }
@@ -876,6 +967,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         //   this.setFocus(true);
         //   this.request("render");
         // };
+
+        this.indexOffset = this.parent.getIndexOffset && this.parent.getIndexOffset(); // promise !
+
         div.element.classList.toggle("stretch-columns", this.parent.id === "popup");
       },
       children: [
@@ -917,15 +1011,15 @@ KarmaFieldsAlpha.field.grid.headerCell = class extends KarmaFieldsAlpha.field {
           a.element.onmousedown = event => {
             event.stopPropagation(); // -> prevent header selection
           }
-          a.element.onclick = event => {
+          a.element.onclick = async event => {
             event.preventDefault();
             if (this.activeColumn) {
-              this.setValue(this.order === "asc" ? "desc" : "asc", "order");
-              this.render();
+              await this.setValue(this.order === "asc" ? "desc" : "asc", "order");
+              await this.render();
             } else {
-              this.setValue(this.resource.order || "asc", "order");
-              this.setValue(this.resource.orderby || this.resource.key, "orderby");
-              this.render();
+              await this.setValue(this.resource.order || "asc", "order");
+              await this.setValue(this.resource.orderby || this.resource.key, "orderby");
+              await this.render();
             }
           };
         }
@@ -985,13 +1079,15 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field.group {
 
   setValue(value, key) {
 
-    this.parent.setValueAt(value, this.id, key);
+    return this.parent.setValueAt(value, this.id, key);
 
   }
 
-  getIndex() {
+  async getIndex() {
 
-    return new KarmaFieldsAlpha.Content(this.resource.index || 0);
+    const indexOffset = await this.parent.indexOffset || 0;
+
+    return new KarmaFieldsAlpha.Content(indexOffset.toNumber() + (this.resource.index || 0));
 
   }
 
@@ -999,9 +1095,10 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field.group {
 
 KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.grid.row {
 
-  *build() {
+  *build(selection) {
 
-    if (this.parent.hasSelection()) {
+    // if (this.parent.hasSelection()) {
+    if (selection && selection.length) {
 
       yield super.build();
 
@@ -1018,6 +1115,10 @@ KarmaFieldsAlpha.field.grid.row.rowIndex = class extends KarmaFieldsAlpha.field.
       width: "min-content",
       ...resource
     }, id, parent)
+  }
+  async getContent() {
+    const index = await this.parent.getIndex();
+    return new KarmaFieldsAlpha.Content(index.toNumber() + 1);
   }
 };
 

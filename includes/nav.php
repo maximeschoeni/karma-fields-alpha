@@ -12,7 +12,7 @@
 
 <script>
 
-	document.addEventListener("DOMContentLoaded", function() {
+	document.addEventListener("DOMContentLoaded", async event => {
 
 		// var container = document.getElementById("karma-fields-field-nav");
 		// var container = document.getElementById("wp-admin-bar-karma-fields-in-admin-bar");
@@ -38,7 +38,20 @@
 
 		KarmaFieldsAlpha.tables = resource.tables || {};
 
-		field.render();
+
+		sessionStorage.clear();
+		KarmaFieldsAlpha.History.setIndex(0);
+
+
+
+		await KarmaFieldsAlpha.Database.States.clear();
+		await KarmaFieldsAlpha.Database.Vars.clear();
+		await KarmaFieldsAlpha.Database.Queries.clear();
+		await KarmaFieldsAlpha.Database.History.clear();
+
+		console.log("clear db");
+
+		await field.render();
 
 		// document.dispatchEvent(new CustomEvent('karmaFieldsAlpha'));
 	});

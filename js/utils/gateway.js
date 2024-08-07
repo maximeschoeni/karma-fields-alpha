@@ -11,7 +11,7 @@ KarmaFieldsAlpha.HTTP = class {
 		}
 
 		return fetch(KarmaFieldsAlpha.restURL+"karma-fields-alpha/v1/"+queryString+params, {
-			cache: "default", // force-cache
+			cache: "no-store", // force-cache
 			headers: {
 				"Content-Type": "application/json",
 				"X-WP-Nonce": KarmaFieldsAlpha.nonce //wpApiSettings.nonce

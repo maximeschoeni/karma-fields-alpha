@@ -9,11 +9,15 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   getField(...path) {
 
+    console.error("deprecated");
+
     return this.getChildByPath(...path);
 
   }
 
   getGrid(tableId) { // deprecated
+
+    console.error("deprecated");
 
     if (!tableId) {
 
@@ -37,6 +41,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   getTableResource(tableId) {
 
+    console.error("deprecated");
+
     if (!tableId) {
 
       tableId = KarmaFieldsAlpha.Store.Layer.getTable();
@@ -48,6 +54,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
   getDriver(table) {
+
+    console.error("deprecated");
 
     const resource = this.getTableResource(table);
 
@@ -62,6 +70,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   getContent(key) {
 
     return new KarmaFieldsAlpha.Content();
+
+
 
     // console.error("THIS IS DEPRECATED");
     //
@@ -123,13 +133,35 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  dispatch(functionName, ...args) {
+  async dispatch(functionName, ...args) {
 
-    const focus = this.getFocus();
+    console.error("deprecated. Use getFocusField()");
+
+    const focus = await this.getFocus();
 
     if (focus) {
 
+      const child = this.getChild(...focus.slice(1));
+
+      if (child[functionName]) {
+
+        return child[functionName](...args);
+
+      }
+
       return this.lift(focus, functionName, ...args);
+
+    }
+
+  }
+
+  async getFocusField() {
+
+    const focus = await this.getFocus();
+
+    if (focus) {
+
+      return this.getChild(...focus.slice(1));
 
     }
 
@@ -142,6 +174,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
   tunnel(offset = 0, functionName, ...args) {
+
+    console.error("deprecated");
 
     const layerIndex = KarmaFieldsAlpha.Store.Layer.getIndex() || 0;
 
@@ -156,6 +190,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
   insertable() {
+
+    console.error("deprecated");
 
     // const layerIndex = KarmaFieldsAlpha.Store.Layer.getIndex();
     // const focus = KarmaFieldsAlpha.Store.Layer.get(layerIndex-1, "focus");
@@ -172,6 +208,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   }
 
   getItemsUnder() {
+
+    console.error("deprecated");
 
     // const layerIndex = KarmaFieldsAlpha.Store.Layer.getIndex();
     // const focus = KarmaFieldsAlpha.Store.Layer.get(layerIndex-1, "focus");
@@ -232,28 +270,16 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-
-  getChild(index) {
+  newChild(index) {
 
     if (index === "board") {
 
       return this.createChild({
-        type: "board",
-        tables: this.resource.tables,
-        index: "board"
+        type: "board"
+        // tables: this.resource.tables // -> to be removed
       }, "board");
 
     } else {
-
-      // for (const resource of KarmaFieldsAlpha.embeds) {
-      //
-      //   if (resource.index === index) {
-      //
-      //     return this.createChild(resource, index);
-      //
-      //   }
-      //
-      // }
 
       if (KarmaFieldsAlpha.embeds[index]) {
 
@@ -265,7 +291,42 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
+
+  // getChild(index) {
+  //
+  //   if (index === "board") {
+  //
+  //     return this.createChild({
+  //       type: "board",
+  //       tables: this.resource.tables,
+  //       index: "board"
+  //     }, "board");
+  //
+  //   } else {
+  //
+  //     // for (const resource of KarmaFieldsAlpha.embeds) {
+  //     //
+  //     //   if (resource.index === index) {
+  //     //
+  //     //     return this.createChild(resource, index);
+  //     //
+  //     //   }
+  //     //
+  //     // }
+  //
+  //     if (KarmaFieldsAlpha.embeds[index]) {
+  //
+  //       return this.createChild(KarmaFieldsAlpha.embeds[index], index);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+
   canDelete() {
+
+    console.error("deprecated");
 
     return this.dispatch("canDelete");
 
@@ -301,6 +362,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   isSaving() {
 
+    console.error("deprecated");
+
     return Boolean(KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "save"));
 
   }
@@ -312,6 +375,8 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   // }
 
   delta() {
+
+    console.error("deprecated");
 
     const task = new KarmaFieldsAlpha.Task.Save();
 
@@ -357,34 +422,36 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   hasChange() {
 
+    console.error("deprecated");
+
     return this.delta();
 
   }
 
-  hasTask() {
-
-    // const tasks = KarmaFieldsAlpha.Store.get("tasks") || [];
-    //
-    // // if (priorityLevel !== undefined) {
-    // //
-    // //   return tasks && tasks.some(task => !task.priority || task.priority >)
-    // //
-    // // }
-    // //
-    // // return tasks && tasks.length > 0 || false;
-    //
-    // // return tasks && tasks.some(task => !task.priority || task.priority >= 0);
-    //
-    //
-    // const works = KarmaFieldsAlpha.Store.get("works") || [];
-    //
-    //
-    // return tasks.length > 0 || works.some(work => !work.done);
-
-
-    return KarmaFieldsAlpha.Jobs.has();
-
-  }
+  // hasTask() {
+  //
+  //   // const tasks = KarmaFieldsAlpha.Store.get("tasks") || [];
+  //   //
+  //   // // if (priorityLevel !== undefined) {
+  //   // //
+  //   // //   return tasks && tasks.some(task => !task.priority || task.priority >)
+  //   // //
+  //   // // }
+  //   // //
+  //   // // return tasks && tasks.length > 0 || false;
+  //   //
+  //   // // return tasks && tasks.some(task => !task.priority || task.priority >= 0);
+  //   //
+  //   //
+  //   // const works = KarmaFieldsAlpha.Store.get("works") || [];
+  //   //
+  //   //
+  //   // return tasks.length > 0 || works.some(work => !work.done);
+  //
+  //
+  //   return KarmaFieldsAlpha.Jobs.has();
+  //
+  // }
 
   // hasEvent(...path) {
   //
@@ -398,78 +465,82 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   popup(tableName, params) {
 
+    console.error("deprecated");
+
     return this.lift(["board", tableName], "open", params);
 
   }
 
 
-  openBKP(table, params) {
-
-    const resource = this.getTableResource(table);
-
-    let index = KarmaFieldsAlpha.Store.Layer.getIndex() || 0;
-
-    // this.save(`open-${table}`, `Open ${table}`);
-
-    if (!replace) {
-
-      index++;
-
-      KarmaFieldsAlpha.Store.Layer.setIndex(index);
-
-    }
-
-    // KarmaFieldsAlpha.Store.remove("vars");
-    // KarmaFieldsAlpha.Store.remove("queries");
-    // KarmaFieldsAlpha.Store.remove("counts");
-
-    // const newLayer = {
-    //   table: table,
-    //   params: {
-    //     ...resource.body.params,
-    //     ...params
-    //   },
-    //   focus: ["board", table, "body"],
-    // };
-    //
-    // KarmaFieldsAlpha.Store.Layer.set(newLayer, index);
-
-    const bodyParams = this.parse(resource.params || resource.body.params);
-
-    if (bodyParams.loading) {
-
-      KarmaFieldsAlpha.Store.Tasks.add({
-        type: "open",
-        resolve: () => {
-          this.open(table, params, replace);
-        }
-      });
-
-      return;
-
-    }
-
-    KarmaFieldsAlpha.Store.Layer.set(table, index, "table");
-    KarmaFieldsAlpha.Store.Layer.set({...bodyParams.toObject(), ...params}, index, "params");
-    KarmaFieldsAlpha.Store.Layer.set(["board", table, "body"], index, "focus");
-
-    if (selectedIds.length) { // deprecated
-
-      KarmaFieldsAlpha.Store.Tasks.add({
-        type: "preselect",
-        resolve: () => {
-          this.dispatch("selectByIds", selectedIds);
-        }
-      });
-
-    }
-
-    // this.render();
-
-  }
+  // openBKP(table, params) {
+  //
+  //   const resource = this.getTableResource(table);
+  //
+  //   let index = KarmaFieldsAlpha.Store.Layer.getIndex() || 0;
+  //
+  //   // this.save(`open-${table}`, `Open ${table}`);
+  //
+  //   if (!replace) {
+  //
+  //     index++;
+  //
+  //     KarmaFieldsAlpha.Store.Layer.setIndex(index);
+  //
+  //   }
+  //
+  //   // KarmaFieldsAlpha.Store.remove("vars");
+  //   // KarmaFieldsAlpha.Store.remove("queries");
+  //   // KarmaFieldsAlpha.Store.remove("counts");
+  //
+  //   // const newLayer = {
+  //   //   table: table,
+  //   //   params: {
+  //   //     ...resource.body.params,
+  //   //     ...params
+  //   //   },
+  //   //   focus: ["board", table, "body"],
+  //   // };
+  //   //
+  //   // KarmaFieldsAlpha.Store.Layer.set(newLayer, index);
+  //
+  //   const bodyParams = this.parse(resource.params || resource.body.params);
+  //
+  //   if (bodyParams.loading) {
+  //
+  //     KarmaFieldsAlpha.Store.Tasks.add({
+  //       type: "open",
+  //       resolve: () => {
+  //         this.open(table, params, replace);
+  //       }
+  //     });
+  //
+  //     return;
+  //
+  //   }
+  //
+  //   KarmaFieldsAlpha.Store.Layer.set(table, index, "table");
+  //   KarmaFieldsAlpha.Store.Layer.set({...bodyParams.toObject(), ...params}, index, "params");
+  //   KarmaFieldsAlpha.Store.Layer.set(["board", table, "body"], index, "focus");
+  //
+  //   if (selectedIds.length) { // deprecated
+  //
+  //     KarmaFieldsAlpha.Store.Tasks.add({
+  //       type: "preselect",
+  //       resolve: () => {
+  //         this.dispatch("selectByIds", selectedIds);
+  //       }
+  //     });
+  //
+  //   }
+  //
+  //   // this.render();
+  //
+  // }
 
 
   removeLayer() {
+
+    console.error("deprecated");
 
     KarmaFieldsAlpha.Store.Layer.close();
 
@@ -498,16 +569,6 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     if (embeds) {
 
-      // for (let resource of embeds) {
-      //
-      //   const element = document.getElementById(resource.index);
-      //
-      //   const child = this.createChild(resource, resource.index);
-      //
-      //   await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
-      //
-      // }
-
       for (let index in embeds) {
 
         const resource = embeds[index];
@@ -519,6 +580,10 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
         await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
 
       }
+
+      const focus = await this.getFocus() || [];
+
+      document.body.classList.toggle("karma-table-open", focus.includes("popup"));
 
     }
 
@@ -555,199 +620,288 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   // }
 
 
+  // async loop() {
+  //
+  //
+  //
+  //   const embeds = KarmaFieldsAlpha.embeds;
+  //
+  //   // let task;
+  //   //
+  //   // let works;
+  //
+  //   do {
+  //
+  //     // const jobs = KarmaFieldsAlpha.Store.get("jobs");
+  //     //
+  //     // if (jobs && jobs.length) {
+  //     //
+  //     //   job = jobs.shift();
+  //     //
+  //     //   await job();
+  //     //
+  //     //   // KarmaFieldsAlpha.Store.set(jobs, "jobs");
+  //     // }
+  //
+  //
+  //
+  //     // const jobs = KarmaFieldsAlpha.Jobs.get();
+  //     //
+  //     // if (jobs && jobs.length) {
+  //     //
+  //     //   const incompleteJobs = [];
+  //     //
+  //     //   for (let job of jobs) {
+  //     //
+  //     //     const result = await job.next();
+  //     //
+  //     //     if (!result.done) {
+  //     //
+  //     //       incompleteJobs.push(job);
+  //     //
+  //     //     }
+  //     //
+  //     //   }
+  //     //
+  //     //    KarmaFieldsAlpha.Jobs.set(incompleteJobs);
+  //     // }
+  //
+  //     const jobs = KarmaFieldsAlpha.Jobs.get();
+  //
+  //     if (jobs && jobs.length) {
+  //
+  //       KarmaFieldsAlpha.Jobs.set([]);
+  //
+  //       for (let job of jobs) {
+  //
+  //         const result = await job.next();
+  //
+  //         if (!result.done) {
+  //
+  //           KarmaFieldsAlpha.Jobs.add(job);
+  //
+  //         }
+  //
+  //       }
+  //
+  //     }
+  //
+  //
+  //
+  //
+  //
+  //     // works = await KarmaFieldsAlpha.Store.get("works") || [];
+  //     //
+  //     // if (works) {
+  //     //
+  //     //   for (let work of works) {
+  //     //
+  //     //     if (!work.done) {
+  //     //
+  //     //       const result = await work.gen.next();
+  //     //
+  //     //       work.done = result.done;
+  //     //
+  //     //     }
+  //     //
+  //     //   }
+  //     //
+  //     // }
+  //
+  //
+  //     if (embeds) {
+  //
+  //       // for (let resource of embeds) {
+  //       //
+  //       //   const element = document.getElementById(resource.index);
+  //       //
+  //       //   const child = this.createChild(resource, resource.index);
+  //       //
+  //       //   await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+  //       //
+  //       // }
+  //
+  //       for (let index in embeds) {
+  //
+  //         const resource = embeds[index];
+  //
+  //         const element = document.getElementById(index);
+  //
+  //         const child = this.createChild(resource, index);
+  //
+  //         await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+  //
+  //       }
+  //
+  //     }
+  //
+  //
+  //     const focus = await this.getFocus() || [];
+  //
+  //     document.body.classList.toggle("karma-table-open", focus.includes("popup"));
+  //
+  //
+  //     // debugger;
+  //
+  //
+  //
+  //
+  //     // let tasks = await KarmaFieldsAlpha.Store.get("tasks");
+  //     //
+  //     // if (tasks) {
+  //     //
+  //     //   // if (!tasks.length) {
+  //     //   //
+  //     //   //   tasks = [{
+  //     //   //     type: "tick",
+  //     //   //     resolve: async task => {
+  //     //   //       await new Promise((resolve) => {
+  //     //   //         setTimeout(resolve, 1000);
+  //     //   //       });
+  //     //   //     }
+  //     //   //   }];
+  //     //   //
+  //     //   // }
+  //     //
+  //     //   tasks.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  //     //
+  //     //   task = tasks.shift();
+  //     //
+  //     //   if (task) {
+  //     //
+  //     //     await KarmaFieldsAlpha.Store.set(tasks, "tasks");
+  //     //
+  //     //     await task.resolve(task);
+  //     //
+  //     //   }
+  //     //
+  //     // }
+  //
+  //
+  //
+  //
+  //
+  //
+  //   } while (KarmaFieldsAlpha.Jobs.has());
+  //
+  // }
+
+  // async work() {
+  //
+  //   if (!this.rendering) {
+  //
+  //     await this.abduct();
+  //
+  //     this.rendering = true;
+  //
+  //     let job = KarmaFieldsAlpha.Jobs.pick();
+  //
+  //     while (job) {
+  //
+  //       let result = await job.next();
+  //
+  //       while (!result.done) {
+  //
+  //         await this.abduct();
+  //
+  //         result = await job.next();
+  //
+  //       }
+  //
+  //       await this.abduct();
+  //
+  //       job = KarmaFieldsAlpha.Jobs.pick();
+  //
+  //     }
+  //
+  //     this.rendering = false;
+  //
+  //   }
+  //
+  // }
+
+
   async loop() {
 
+    // await this.abduct();
+    //
+    // while (KarmaFieldsAlpha.task) {
+    //
+    //   await KarmaFieldsAlpha.task;
+    //
+    //   KarmaFieldsAlpha.task = null;
+    //
+    //   await this.abduct();
+    //
+    // }
 
 
-    const embeds = KarmaFieldsAlpha.embeds;
+    await this.abduct();
 
-    let task;
+    let queries = await KarmaFieldsAlpha.Database.Queries.select({open: 1});
 
-    let works;
+    while (queries.length) {
 
-    do {
-
-      // const jobs = KarmaFieldsAlpha.Store.get("jobs");
+      // for (let query of queries) {
       //
-      // if (jobs && jobs.length) {
+      //   const server = new KarmaFieldsAlpha.Server(query.driver);
+      //   server.paramstring = query.paramstring;
       //
-      //   job = jobs.shift();
+      //   if (query.type === "query") {
       //
-      //   await job();
+      //     await server.fetch();
       //
-      //   // KarmaFieldsAlpha.Store.set(jobs, "jobs");
-      // }
-
-
-
-      // const jobs = KarmaFieldsAlpha.Jobs.get();
+      //   } if (query.type === "count") {
       //
-      // if (jobs && jobs.length) {
-      //
-      //   const incompleteJobs = [];
-      //
-      //   for (let job of jobs) {
-      //
-      //     const result = await job.next();
-      //
-      //     if (!result.done) {
-      //
-      //       incompleteJobs.push(job);
-      //
-      //     }
+      //     await server.count();
       //
       //   }
       //
-      //    KarmaFieldsAlpha.Jobs.set(incompleteJobs);
       // }
 
-      const jobs = KarmaFieldsAlpha.Jobs.get();
+      await KarmaFieldsAlpha.Server.queryAll(queries);
 
-      if (jobs && jobs.length) {
+      await this.abduct();
 
-        KarmaFieldsAlpha.Jobs.set([]);
-
-        for (let job of jobs) {
-
-          const result = await job.next();
-
-          if (!result.done) {
-
-            KarmaFieldsAlpha.Jobs.add(job);
-
-          }
-
-        }
-
-      }
-
-
-
-
-
-      works = KarmaFieldsAlpha.Store.get("works") || [];
-
-      if (works) {
-
-        for (let work of works) {
-
-          if (!work.done) {
-
-            const result = await work.gen.next();
-
-            work.done = result.done;
-
-          }
-
-        }
-
-      }
-
-
-      if (embeds) {
-
-        // for (let resource of embeds) {
-        //
-        //   const element = document.getElementById(resource.index);
-        //
-        //   const child = this.createChild(resource, resource.index);
-        //
-        //   await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
-        //
-        // }
-
-        for (let index in embeds) {
-
-          const resource = embeds[index];
-
-          const element = document.getElementById(index);
-
-          const child = this.createChild(resource, index);
-
-          await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
-
-        }
-
-      }
-
-
-      const focus = this.getFocus() || [];
-
-      document.body.classList.toggle("karma-table-open", focus.includes("popup"));
-
-
-      // debugger;
-
-
-
-
-      let tasks = KarmaFieldsAlpha.Store.get("tasks");
-
-      if (tasks) {
-
-        // if (!tasks.length) {
-        //
-        //   tasks = [{
-        //     type: "tick",
-        //     resolve: async task => {
-        //       await new Promise((resolve) => {
-        //         setTimeout(resolve, 1000);
-        //       });
-        //     }
-        //   }];
-        //
-        // }
-
-        tasks.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-
-        task = tasks.shift();
-
-        if (task) {
-
-          KarmaFieldsAlpha.Store.set(tasks, "tasks");
-
-          await task.resolve(task);
-
-        }
-
-      }
-
-
-
-
-
-
-    } while (task || works.some(work => !work.done) || KarmaFieldsAlpha.Jobs.has());
-
-  }
-
-
-
-  async *generator() {
-
-    let works = KarmaFieldsAlpha.Store.get("works");
-
-    for (work of works) {
-
-      yield* work;
+      queries = await KarmaFieldsAlpha.Database.Queries.select({open: 1});
 
     }
 
-    KarmaFieldsAlpha.Store.remove("works");
-
   }
+
+
+
+  // async *generator() {
+  //
+  //   let works = KarmaFieldsAlpha.Store.get("works");
+  //
+  //   for (work of works) {
+  //
+  //     yield* work;
+  //
+  //   }
+  //
+  //   KarmaFieldsAlpha.Store.remove("works");
+  //
+  // }
 
   render() {
 
-    if (!this.rendering) {
+    // if (!this.rendering) {
+    //
+    //   this.rendering = this.loop().then(() => this.rendering = null);
+    //
+    // }
+    //
+    // return this.rendering;
 
-      this.rendering = this.loop().then(() => this.rendering = null);
+    KarmaFieldsAlpha.rendering = this.loop();
 
-    }
-
-    return this.rendering;
+    return KarmaFieldsAlpha.rendering;
 
   }
+
+
 
 //   medias(...args) {
 //
@@ -1050,32 +1204,52 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
     return {
       class: "saucer",
       init: async container => {
-        document.addEventListener("keydown", event => {
+
+        // await KarmaFieldsAlpha.Database.Queries.remove();
+        // await KarmaFieldsAlpha.Database.States.remove("queries");
+
+        // sessionStorage.clear();
+        // KarmaFieldsAlpha.History.setIndex(0);
+        //
+        // console.log("clear db");
+        //
+        // await KarmaFieldsAlpha.Database.States.clear();
+        // await KarmaFieldsAlpha.Database.Vars.clear();
+        // await KarmaFieldsAlpha.Database.Queries.clear();
+        // await KarmaFieldsAlpha.Database.History.clear();
+
+
+        document.addEventListener("keydown", async event => {
           if (event.key === "s" && event.metaKey) {
             event.preventDefault();
             // this.parent.send();
-            this.request("send");
+            // this.request("send");
+            const field = await this.getFocusField();
+            await field.request("submit");
+            await this.request("render");
           } else if (event.key === "z" && event.metaKey) {
             event.preventDefault();
             if (event.shiftKey) {
               // console.log("redo");
               // this.parent.redo();
-              this.request("redo");
+              // this.request("redo");
+              KarmaFieldsAlpha.History.redo();
             } else {
               // console.log("undo");
               // debugger;
               // this.parent.undo();
-              this.request("undo");
+              // this.request("undo");
+              KarmaFieldsAlpha.History.undo();
             }
           }
         });
-        window.addEventListener("popstate", event => {
+        window.addEventListener("popstate", async event => {
           // console.log("popstate", location.hash);
-          KarmaFieldsAlpha.History.update();
-          this.parent.render();
+          await KarmaFieldsAlpha.History.update();
+          await this.parent.render();
         });
 
-        window.addEventListener("mousedown", event => {
+        window.addEventListener("mousedown", async event => {
 
           // console.log("mousedown", KarmaFieldsAlpha.Store.Layer.getCurrent("focus"));
 
@@ -1087,12 +1261,13 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
           //   this.request("render");
           // }
 
+          const focus = await this.getFocus();
 
-          if (this.getFocus()) {
+          if (focus) {
             // KarmaFieldsAlpha.Store.Layer.removeSelection();
             // KarmaFieldsAlpha.Store.Layer.removeCurrent("focus");
-            this.removeFocus();
-            this.request("render");
+            await this.removeFocus();
+            await this.request("render");
           }
         });
 
@@ -1117,34 +1292,34 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
 
 
-        const buffer = history.state && history.state.karma && await KarmaFieldsAlpha.Database.Records.get(history.state.karma);
-
-        if (buffer && false) {
-
-          KarmaFieldsAlpha.Store.set(buffer, "buffer");
-
-        } else {
-
-          const recordId = Date.now();
-          // const day = 1*24*60*60*1000;
-          //
-          // await KarmaFieldsAlpha.Database.Records.deleteBefore(recordId - day);
-          // await KarmaFieldsAlpha.Database.History.deleteBefore(recordId - day);
-
-
-          const minRecordId = recordId - 10*24*60*60*1000;
-
-          await KarmaFieldsAlpha.Database.Records.deleteBefore(minRecordId);
-          await KarmaFieldsAlpha.Database.History.deleteBefore(minRecordId);
-
-          history.replaceState({karma: recordId}, "");
-
-          KarmaFieldsAlpha.Store.Buffer.add(recordId);
-
-
-          // await KarmaFieldsAlpha.History.init(); // -> empty history
-
-        }
+        // const buffer = history.state && history.state.karma && await KarmaFieldsAlpha.Database.Records.get(history.state.karma);
+        //
+        // if (buffer && false) {
+        //
+        //   await KarmaFieldsAlpha.Store.set(buffer, "buffer");
+        //
+        // } else {
+        //
+        //   const recordId = Date.now();
+        //   // const day = 1*24*60*60*1000;
+        //   //
+        //   // await KarmaFieldsAlpha.Database.Records.deleteBefore(recordId - day);
+        //   // await KarmaFieldsAlpha.Database.History.deleteBefore(recordId - day);
+        //
+        //
+        //   const minRecordId = recordId - 10*24*60*60*1000;
+        //
+        //   await KarmaFieldsAlpha.Database.Records.deleteBefore(minRecordId);
+        //   await KarmaFieldsAlpha.Database.History.deleteBefore(minRecordId);
+        //
+        //   history.replaceState({karma: recordId}, "");
+        //
+        //   await KarmaFieldsAlpha.Store.Buffer.add(recordId);
+        //
+        //
+        //   // await KarmaFieldsAlpha.History.init(); // -> empty history
+        //
+        // }
 
 
       },
@@ -1154,11 +1329,12 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
           {
             class: "clipboard",
             tag: "textarea",
-            update: clipboard => {
+            update: async clipboard => {
               clipboard.element.id = "karma-fields-alpha-clipboard";
               clipboard.readOnly = true;
 
-              const useClipboard = KarmaFieldsAlpha.Store.State.get("clipboard");
+              // const useClipboard = await KarmaFieldsAlpha.Store.State.get("clipboard");
+              const useClipboard = await KarmaFieldsAlpha.Database.States.get("focus", "", "", "clipboard");
 
               if (useClipboard) {
 
@@ -1166,30 +1342,32 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
               }
 
-              clipboard.element.onkeydown = event => {
+              clipboard.element.onkeydown = async event => {
 
                 if (event.key === "a" && event.metaKey) {
                   event.preventDefault();
-                  const work = this.request("dispatch", "selectAll");
-                  KarmaFieldsAlpha.Jobs.add(work);
-                  this.render();
+                  // const work = this.request("dispatch", "selectAll");
+                  const field = await this.getFocusField();
+                  await field.selectAll();
+                  await this.render();
                 }
 
                 if (event.key === "Delete" || event.key === "Backspace") {
                   event.preventDefault();
-                  const work = this.request("dispatch", "delete");
-                  KarmaFieldsAlpha.Jobs.add(work);
-                  this.render();
+                  // const work = this.request("dispatch", "delete");
+                  const field = await this.getFocusField();
+                  await field.delete();
+                  await this.render();
 
                 } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
                   event.preventDefault();
 
-                  this.request(event.key);
+                  // this.request(event.key);
 
                 }
               }
 
-              clipboard.element.onpaste = event => {
+              clipboard.element.onpaste = async event => {
                 event.preventDefault();
                 const string = event.clipboardData.getData("text/plain").normalize();
                 // debugger;
@@ -1199,26 +1377,34 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
 
 
-                const work = this.request("dispatch", "paste", string);
-                KarmaFieldsAlpha.Jobs.add(work);
-                this.request("render");
+                // const work = this.request("dispatch", "paste", string);
+
+                const field = await this.getFocusField();
+                await field.paste(string);
+                await this.request("render");
               }
 
-              clipboard.element.oncut = event => {
+              clipboard.element.oncut = async event => {
                 event.preventDefault();
-                const value = this.request("dispatch", "copy");
+                // const value = await this.request("dispatch", "copy");
+                const field = await this.getFocusField();
+                const value = await field.copy();
+
                 console.log("CUT", value);
                 event.clipboardData.setData("text/plain", value || "");
 
-                const work = this.request("dispatch", "paste", "");
-                KarmaFieldsAlpha.Jobs.add(work);
-                this.request("render");
+                // const work = this.request("dispatch", "paste", "");
+                await field.paste("");
+
+                await this.request("render");
               }
 
-              clipboard.element.oncopy = event => {
+              clipboard.element.oncopy = async event => {
                 event.preventDefault();
 
-                const value = this.request("dispatch", "copy");
+                // const value = await this.request("dispatch", "copy");
+                const field = await this.getFocusField();
+                const value = await field.copy();
                 console.log("COPY", value);
                 event.clipboardData.setData("text/plain", value || "");
               }

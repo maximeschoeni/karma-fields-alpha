@@ -75,9 +75,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
   //
   // }
 
-  hasFocusInside() {
+  async hasFocusInside() {
 
-    const focus = this.getFocus();
+    const focus = await this.getFocus();
 
     return focus && focus.length <= this.path.length + 1 && this.path.every((id, index) => id === focus[index]);
   }
@@ -120,14 +120,14 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
   // }
 
 
-  export() {
+  async export() {
 
     const output = new KarmaFieldsAlpha.Content();
 
     if (this.resource.export !== false) {
 
       const body = this.getChild("body");
-      const length = this.getLength();
+      const length = await this.getLength();
 
       if (length.loading) {
 
@@ -135,7 +135,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       } else if (body) {
 
-        const gridContent = body.export(0, length.toNumber());
+        const gridContent = await body.export(0, length.toNumber());
 
         if (gridContent.loading) {
 
@@ -154,21 +154,21 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     return output;
   }
 
-  async *import(collection) {
+  async import(collection) {
 
     const string = collection.value.shift();
 
     const grid = new KarmaFieldsAlpha.Content.Grid(string);
 
     const body = this.getChild("body");
-    const length = this.getLength();
+    const length = await this.getLength();
 
-    yield* body.import(grid, 0, length.toNumber());
+    await body.import(grid, 0, length.toNumber());
 
   }
 
 
-  getLength() {
+  async getLength() {
 
     const keys = this.getKeys();
 
@@ -176,7 +176,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     for (let key of keys) {
 
-      const value = this.getContent(key);
+      const value = await this.getContent(key);
 
       if (value.loading) {
 
@@ -193,14 +193,14 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     return length;
   }
 
-  getContentAt(index, key) {
+  async getContentAt(index, key) {
 
     const cellContent = new KarmaFieldsAlpha.Content();
     const arrayKey = this.getKey();
 
     if (arrayKey) {
 
-      const content = this.getContent(arrayKey);
+      const content = await this.getContent(arrayKey);
 
       if (content.loading) {
 
@@ -224,7 +224,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     } else {
 
-      const content = this.getContent(key);
+      const content = await this.getContent(key);
 
       if (content.loading) {
 
@@ -251,13 +251,13 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     return cellContent;
   }
 
-  setValueAt(value, index, key) {
+  async setValueAt(value, index, key) {
 
     const arrayKey = this.getKey();
 
     if (arrayKey) {
 
-      let content = this.getContent(arrayKey);
+      let content = await this.getContent(arrayKey);
 
       if (!content.loading) {
 
@@ -275,13 +275,13 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
         clone[index][key] = value;
 
-        this.setValue(clone, arrayKey);
+        await this.setValue(clone, arrayKey);
 
       }
 
     } else {
 
-      let content = this.getContent(key);
+      let content = await this.getContent(key);
 
       if (!content.loading) {
 
@@ -289,7 +289,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
         clone[index] = value;
 
-        this.setValue(clone, key);
+        await this.setValue(clone, key);
 
       }
 
@@ -297,7 +297,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
   }
 
-  *delete(index, length) {
+  async delete(index, length) {
 
     if (index === undefined && length === undefined) {
 
@@ -305,7 +305,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       if (body) {
 
-        const selection = body.querySelection();
+        const selection = await body.querySelection();
 
         index = selection && selection.index || 0;
         length = selection && selection.length || 0;
@@ -316,12 +316,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     const keys = this.getKeys();
 
-    let contents = keys.map(key => this.getContent(key));
+    let contents = await Promise.all(keys.map(key => this.getContent(key)));
 
     while (contents.some(content => content.loading)) {
 
-      yield;
-      contents = keys.map(key => this.getContent(key));
+      await this.render();
+      contents = await Promise.all(keys.map(key => this.getContent(key)));
 
     }
 
@@ -334,17 +334,26 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       newContent.splice(index, length);
 
-      this.setValue(newContent, key);
+      await this.setValue(newContent, key);
 
     }
 
   }
 
-  swap(index, target, length) {
+  async swap(index, target, length) {
 
     const keys = this.getKeys();
 
-    let contents = keys.map(key => this.getContent(key));
+    // let contents = keys.map(key => this.getContent(key));
+
+    let contents = await Promise.all(keys.map(key => this.getContent(key)));
+
+    // while (contents.some(content => content.loading)) {
+    //
+    //   yield;
+    //   contents = await Promise.all(keys.map(key => this.getContent(key)));
+    //
+    // }
 
     // while (contents.some(content => content.loading)) {
     //
@@ -361,7 +370,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     }
 
 
-    this.save("sort", "Sort");
+    await this.save("sort", "Sort");
 
     for (let j in contents) {
 
@@ -372,7 +381,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       newContent.splice(target, 0, ...newContent.splice(index, length));
 
-      this.setValue(newContent, key);
+      await this.setValue(newContent, key);
 
     }
 
@@ -380,21 +389,21 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     if (body) {
 
-      body.setFocus(true);
-      body.select(target, length);
+      await body.setFocus(true);
+      await body.select(target, length);
 
     }
 
   }
 
-  *add(num = 1, index = undefined) {
+  async add(num = 1, index = undefined) {
 
-    let length = this.getLength();
+    let length = await this.getLength();
 
     while (length.loading) {
 
-      yield;
-      length = this.getLength();
+      await this.render();
+      length = await this.getLength();
 
     }
 
@@ -404,7 +413,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       if (body) {
 
-        index = body.getNewItemIndex();
+        index = await body.getNewItemIndex();
 
       } else {
 
@@ -415,17 +424,18 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     }
 
 
-    this.save("add", "Insert");
+    await this.save("add", "Insert");
 
     // this.addAt(index, 1)
 
     const keys = this.getKeys();
-    let contents = keys.map(key => this.getContent(key));
+    // let contents = keys.map(key => this.getContent(key));
+    let contents = await Promise.all(keys.map(key => this.getContent(key)));
 
     while (contents.some(content => content.loading)) {
 
-      yield;
-      contents = keys.map(key => this.getContent(key));
+      await this.render();
+      contents = await Promise.all(keys.map(key => this.getContent(key)));
 
     }
 
@@ -438,43 +448,59 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       newContent.splice(index, 0, ...Array(num));
 
-      this.setValue(newContent, key);
+      await this.setValue(newContent, key);
 
     }
 
     if (body) {
 
+      const rowField = await body.getChild(0);
+
+      let defaults = await rowField.exportDefaults();
+
+      while (defaults.loading) {
+
+        defaults = await rowField.exportDefaults();
+
+      }
+
       for (let i = 0; i < num; i++) {
 
         const rowField = body.getChild(i + index);
 
-        yield* rowField.create();
+        // yield* rowField.create();
+
+        for (let key in defaults) {
+
+          rowField.setValue(defaults[key], key);
+
+        }
 
       }
 
-      body.setFocus(true);
-      body.select(index, num);
+      await body.setFocus(true);
+      await body.select(index, num);
 
     }
 
   }
 
 
-  *sortUp(index, length = 1) {
+  async sortUp(index, length = 1) {
 
     if (index > 0) {
 
-      yield* this.swap(index, length, index-1);
+      return this.swap(index, length, index-1);
 
     }
 
   }
 
-  *sortDown(index, length = 1) {
+  async sortDown(index, length = 1) {
 
     if (index + length < this.getLength().toNumber()) {
 
-      yield* this.swap(index, length, index+1);
+      return this.swap(index, length, index+1);
 
     }
 

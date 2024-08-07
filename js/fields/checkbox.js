@@ -445,8 +445,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 						},
 						update: async checkbox => {
 
-							let content = this.getContent();
-
+							let content = await this.getContent();
 
 							if (!content.loading) {
 
@@ -482,7 +481,7 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 								checkbox.element.classList.toggle("mixed", Boolean(content.mixed));
 								checkbox.element.checked = content.toString() === this.true();
 
-								checkbox.element.onchange = () => {
+								checkbox.element.onchange = async () => {
 
 									let value;
 
@@ -511,13 +510,23 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 
 									// const newContent = new KarmaFieldsAlpha.Content(value);
 
-									this.save("check", "Check");
-									this.setValue(value);
-									this.request("render");
+									await this.save("check", "Check");
+									await this.setValue(value);
+									await this.request("render");
 
 								}
 
-								checkbox.element.disabled = this.isDisabled();
+								if (this.resource.disabled) {
+
+									const disabled = await this.parse(this.resource.disabled);
+									input.element.disabled = disabled.toBoolean();
+
+						    } else if (this.resource.enabled) {
+
+									const enabled = await this.parse(this.resource.enabled);
+									input.element.disabled = !enabled.toBoolean();
+
+						    }
 
 							}
 

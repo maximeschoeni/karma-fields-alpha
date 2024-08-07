@@ -1,12 +1,65 @@
 KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
+// 	isDisabled() {
+//
+//
+//
+// 		if (this.resource.disabled) {
+// // if (this.resource.text === "Remove") debugger;
+// 			return this.parse(this.resource.disabled);
+//
+// 			// return (disabled !== KarmaFieldsAlpha.loading && KarmaFieldsAlpha.Type.toBoolean(disabled));
+// 			// return (disabled === KarmaFieldsAlpha.loading || KarmaFieldsAlpha.Type.toBoolean(disabled));
+//
+// 		} else if (this.resource.enabled) {
+//
+// 			return !this.parse(this.resource.enabled);
+//
+// 			// const enabled = this.parse(this.resource.enabled);
+// 			//
+// 			// return (enabled === KarmaFieldsAlpha.loading || !KarmaFieldsAlpha.Type.toBoolean(enabled));
+//
+// 		}
+//
+// 		return new KarmaFieldsAlpha.Content(false);
+//
+// 	}
+//
+// 	isActive() {
+//
+// 		if (this.resource.active) {
+//
+// 			return this.parse(this.resource.active);
+//
+// 			// return active !== KarmaFieldsAlpha.loading && KarmaFieldsAlpha.Type.toBoolean(active);
+// 		}
+//
+// 		return new KarmaFieldsAlpha.Content(false);
+// 	}
+//
+// 	isBusy() {
+//
+// 		if (this.resource.loading) {
+//
+// 			// const loading = KarmaFieldsAlpha.Type.toBoolean(this.parse(this.resource.loading));
+// 			//
+// 			// return loading !== KarmaFieldsAlpha.loading && KarmaFieldsAlpha.Type.toBoolean(loading);
+//
+//
+// 			return this.parse(this.resource.loading);
+//
+// 		}
+//
+// 		return new KarmaFieldsAlpha.Content(false);
+// 	}
+
 	exportDefaults() {
 
 		return new KarmaFieldsAlpha.Content({});
 
 	}
 
-	async doTask() {
+	async *doTask() {
 
 		let params = [];
 
@@ -18,7 +71,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 				while (result.loading) {
 
-					await this.render();
+					yield;
 					result = await this.parse(param);
 
 				}
@@ -31,7 +84,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.action || this.resource.task) {
 
-			await this.request(this.resource.action || this.resource.task, ...params);
+			yield* this.request(this.resource.action || this.resource.task, ...params);
 
 		}
 		//
@@ -49,11 +102,9 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	async click() {
+	click() {
 
 		if (this.resource.request) {
-
-			// console.error("deprecated request", this);
 
 			if (typeof this.resource.request === "string") {
 
@@ -61,27 +112,23 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 			}
 
-			await this.request(...this.resource.request);
+			const work = this.request(...this.resource.request);
 
-			// if (work) {
-			//
-			// 	KarmaFieldsAlpha.Jobs.add(work);
-			//
-			// }
+			if (work) {
 
-			await this.render();
+				KarmaFieldsAlpha.Jobs.add(work);
+
+			}
+
+			this.render();
 
 		} else if (this.resource.generate) {
-
-				console.error("deprecated generate", this);
 
 			const [value, key] = this.resource.set;
 
 			this.parent.setValue(value, key);
 
 		} else if (this.resource.task) {
-
-			console.error("deprecated task", this);
 
 			// if (typeof this.resource.task === "string") {
 			//
@@ -113,13 +160,11 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 		} else if (this.resource.action) {
 
-			await this.rendering();
+			const work = this.doTask();
 
-			await this.doTask();
+			KarmaFieldsAlpha.Jobs.add(work);
 
-			// KarmaFieldsAlpha.Jobs.add(work);
-			//
-			await this.render();
+			this.render();
 
 		}
 
@@ -553,7 +598,17 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 	}
 
-	async doTask() {
+	async *doTask() {
+
+		// const closestTable = this.closest(field => field.constructor === KarmaFieldsAlpha.field.table);
+		//
+		// if (!closestTable) {
+		//
+		// 	console.error("Closest Table not found");
+		//
+		// }
+		//
+		// const table = new KarmaFieldsAlpha.field.table(closestTable.resource);
 
 		const table = this.closest(field => field.constructor === KarmaFieldsAlpha.field.table);
 
@@ -561,7 +616,7 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 		while (count.loading) {
 
-			await this.render();
+			yield;
 			count = await table.getCount();
 
 		}
@@ -581,7 +636,7 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 			while (gridData.loading) {
 
-				await this.render();
+				yield;
 				gridData = await grid.export(0, length);
 
 			}
@@ -597,13 +652,13 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 	}
 
 
-	async click() {
+	click() {
 
-		await this.doTask();
+		const work = this.doTask();
 
-		// KarmaFieldsAlpha.Jobs.add(work);
+		KarmaFieldsAlpha.Jobs.add(work);
 
-		// await this.render();
+		this.render();
 
 	}
 

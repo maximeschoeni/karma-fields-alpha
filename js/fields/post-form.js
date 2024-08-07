@@ -149,17 +149,17 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.form {
   //
   // }
 
-  async clean() {
-
-    const delta = this.getDelta();
-
-    for (let driver in delta) {
-
-      await KarmaFieldsAlpha.Database.Queries.removeDriver(driver);
-
-    }
-
-  }
+  // async clean() {
+  //
+  //   const delta = this.getDelta();
+  //
+  //   for (let driver in delta) {
+  //
+  //     await KarmaFieldsAlpha.Database.Queries.removeDriver(driver);
+  //
+  //   }
+  //
+  // }
 
   *buildHidden() {
 
@@ -177,10 +177,10 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.form {
             });
           }
         },
-        update: input => {
+        update: async input => {
           // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote");
-          
-          const delta = this.getDelta();
+
+          const delta = await this.getDelta();
           if (delta) {
             input.element.value = JSON.stringify(delta);
           } else {

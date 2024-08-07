@@ -1,31 +1,41 @@
 
 KarmaFieldsAlpha.Jobs = class {
 
-  static get(def = "render", ...path) {
+  static get() {
 
-    return KarmaFieldsAlpha.Store.get("jobs", def, ...path);
+    // return KarmaFieldsAlpha.Store.get("jobs", def, ...path);
 
-  }
-
-  static set(tasks, def = "render", ...path) {
-
-    KarmaFieldsAlpha.Store.set(tasks, "jobs", def, ...path);
+    return KarmaFieldsAlpha.jobs || [];
 
   }
 
-  static add(task, ...path) {
+  static set(tasks) {
 
-    const tasks = this.get(...path) || [];
+    // await KarmaFieldsAlpha.Store.set(tasks, "jobs", def, ...path);
+
+    KarmaFieldsAlpha.jobs = tasks;
+
+  }
+
+  static add(task) {
+
+    const tasks = this.get();
 
     this.set([...tasks, task]);
 
   }
 
-  static has(...path) {
+  static has() {
 
-    const jobs = this.get(...path);
+    return this.get().length > 0 ;
 
-    return jobs && jobs.length > 0 || false;
+  }
+
+  static pick() {
+
+    const tasks = this.get();
+
+    return tasks.shift();
 
   }
 
@@ -35,23 +45,23 @@ KarmaFieldsAlpha.Jobs = class {
 
 KarmaFieldsAlpha.Task = class {
 
-  static get() {
+  static async get() {
 
     return KarmaFieldsAlpha.Store.get("tasks");
 
   }
 
-  static set(tasks) {
+  static async set(tasks) {
 
     KarmaFieldsAlpha.Store.set(tasks, "tasks");
 
   }
 
-  static add(task) {
+  static async add(task) {
 
-    const tasks = this.get() || [];
+    const tasks = await this.get() || [];
 
-    this.set([...tasks, task]);
+    await this.set([...tasks, task]);
 
   }
 
@@ -67,9 +77,9 @@ KarmaFieldsAlpha.Task = class {
 
   }
 
-  static has() {
+  static async has() {
 
-    const tasks = this.get();
+    const tasks = await this.get();
 
     return tasks && tasks.length > 0 || false;
 

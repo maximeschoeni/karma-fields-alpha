@@ -1,1221 +1,1839 @@
 
-KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
+// KarmaFieldsAlpha.Expression = class {
 
-  // static parse(expression, field) {
+  // static compare(operator, v1, v2) {
   //
-  //   return new KarmaFieldsAlpha.Expression(expression, field);
+  //   const response = new KarmaFieldsAlpha.Content();
   //
-  // }
+  //   if (v1.loading || v2.loading) {
   //
-  // static parseObject(object, field) {
-  //
-  //   let entries = Object.entries(object);
-  //
-  //   entries = entries.map(([key, value]) => [key, new KarmaFieldsAlpha.Expression(value, this.field)]);
-  //
-  //   if (entries.some(([value, value]) => value.loading)) {
-  //
-  //     return new KarmaFieldsAlpha.LoadingContent();
-  //
-  //   }
-  //
-  //   entries = entries.map(([key, value]) => [key, value.toString()]);
-  //
-  //   const result = Object.fromEntries(entries);
-  //
-  //   return new KarmaFieldsAlpha.Content(result);
-  //
-  // }
-
-  constructor(expression, field) {
-
-    super(expression);
-
-    this.field = field;
-
-    if (expression && typeof expression === "object") {
-
-      if (Array.isArray(expression)) {
-
-        this.parse(expression);
-
-      } else {
-
-        this.parseObject(expression);
-
-      }
-
-    }
-
-    if (this.value instanceof KarmaFieldsAlpha.Content) {
-
-      Object.assign(this, this.value);
-
-    }
-
-  }
-
-  parseObject(object) {
-
-    let entries = Object.entries(object);
-
-    entries = entries.map(([key, value]) => [key, new KarmaFieldsAlpha.Expression(value, this.field)]);
-
-    if (entries.some(([key, value]) => value.loading)) {
-
-      this.loading = true;
-
-    } else {
-
-      entries = entries.map(([key, value]) => [key, value.toString()]);
-
-      this.value = Object.fromEntries(entries);
-
-    }
-
-  }
-
-  parse(args) {
-
-    switch (args[0]) {
-      case "=":
-      case "==":
-      case "===":
-      case "!=":
-      case "!==":
-      case ">":
-      case "<":
-      case ">=":
-      case "<=":
-      case "like":
-        this.compare(...args);
-        break;
-
-      case "+":
-      case "-":
-      case "*":
-      case "/":
-      case "%":
-        this.compute(...args);
-        break;
-
-      case "&&":
-      case "||":
-        this.logic(...args);
-        break;
-
-      case "!":
-        this.not(...args);
-        break;
-
-      case "?":
-        this.condition(...args);
-        break;
-
-      case "...":
-        this.concat(...args);
-        break;
-
-      case "concat":
-      case "math":
-      case "include":
-      case "replace":
-      case "date":
-      case "year":
-      case "month":
-      case "day":
-      case "request":
-      case "getValue": // compat
-      case "getContent":
-      // case "hasValue":
-      case "queryValue":
-      case "query":
-      case "queryCount":
-      case "parseParams":
-      case "getOptions":
-      case "map":
-      case "getItem":
-      case "join":
-      case "indexOf":
-      case "sum":
-      case "getLength":
-      case "count":
-      case "getParam":
-      case "isLoading":
-      case "isMixed":
-      case "getKey":
-      case "getIndex":// deprec
-      case "getIds":
-      case "get":
-      case "getAt":
-      case "array":
-      case "debug":
-      case "dump":
-      case "log":
-      case "max":
-      case "min":
-      case "resource":
-      case "parent":
-        this[args[0]](...args);
-        break;
-
-      // case "set":
-      case "submit":
-      // case "add":
-      // case "delete":
-        // this.doTask(...args);
-        this.task = true;
-        this.value = this[args[0]](...args);
-
-        break;
-
-    }
-
-  }
-
-  parent(...args) {
-
-    this.field = this.field.parent;
-
-    this.parse(args[1]);
-
-  }
-
-  debug(...args) {
-
-    debugger;
-
-    const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    this.value = expr.value;
-    this.loading = expr.loading;
-
-  }
-
-  log(...args) {
-
-    const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    console.log(expr);
-    // console.trace();
-
-    this.value = expr.value;
-    this.loading = expr.loading;
-
-    // console.log(args.slice(1).forEach(expr => new KarmaFieldsAlpha.Expression(expr, this.field).toObject()));
-
-  }
-
-  dump(...args) {
-
-    const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    this.value = JSON.stringify(expr.value);
-
-  }
-
-  compute(...args) {
-
-    const v1 = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const v2 = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-    if (v1.loading || v2.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      switch (args[0]) {
-
-        case "+":
-          this.value = v1.toNumber() + v2.toNumber();
-          break;
-
-        case "-":
-          this.value = v1.toNumber() - v2.toNumber();
-          break;
-        case "*":
-          this.value = v1.toNumber() * v2.toNumber();
-          break;
-
-        case "/":
-          this.value = v1.toNumber() / v2.toNumber();
-          break;
-
-      }
-
-    }
-
-  }
-
-  compare(...args) {
-
-    const v1 = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const v2 = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-
-    if (v1.loading || v2.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      switch (args[0]) {
-
-        case "=":
-        case "==":
-          this.value = v1.toSingle() == v2.toSingle();
-          break;
-
-        case "===":
-          this.value = v1.toSingle() === v2.toSingle();
-          break;
-
-        case "!=":
-          this.value = v1.toSingle() != v2.toSingle();
-          break;
-
-        case "!==":
-          this.value = v1.toSingle() !== v2.toSingle();
-          break;
-
-        case ">":
-          this.value = v1.toSingle() > v2.toSingle();
-          break;
-
-        case "<":
-          this.value = v1.toSingle() < v2.toSingle();
-          break;
-
-        case ">=":
-          this.value = v1.toSingle() >= v2.toSingle();
-          break;
-
-        case "<=":
-          this.value = v1.toSingle() <= v2.toSingle();
-          break;
-
-        case "like":
-          this.value = v1.toString().match(new RegExp(v2.toSingle()));
-          break;
-
-      }
-
-    }
-
-  }
-
-  logic(...args) {
-
-    const values = args.slice(1).map(value => new KarmaFieldsAlpha.Expression(value, this.field));
-
-    if (values.some(value => value.loading)) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = values.shift().toSingle();
-
-      while (values.length) {
-
-        const value = values.shift();
-
-        switch (args[0]) {
-
-          case "&&":
-            this.value = this.toSingle() && value.toSingle();
-            break;
-
-          case "||":
-            this.value = this.toSingle() || value.toSingle();
-            break;
-
-        }
-
-      }
-
-    }
-
-  }
-
-  math(...args) {
-
-    const values = args.slice(2).map(value => new KarmaFieldsAlpha.Expression(value, this.field));
-
-    if (values.some(value => value.loading)) {
-
-      this.loading = true;
-
-    } else if (Math[args[1]]) {
-
-      this.value = Math[args[1]](...values.map(value => value.toNumber()));
-
-    }
-
-  }
-
-  not(...args) {
-
-    const value = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (value.loading) {
-
-      this.loading = true;
-
-    }
-
-    this.value = !value.toBoolean();
-
-  }
-
-  condition(...args) {
-
-    const v1 = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (v1.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = v1.toBoolean() ? new KarmaFieldsAlpha.Expression(args[2], this.field) : new KarmaFieldsAlpha.Expression(args[3], this.field);
-
-    }
-
-  }
-
-  concat(...args) {
-
-    const array = args.slice(1).map(value => new KarmaFieldsAlpha.Expression(value, this.field));
-
-    if (array.some(array => array.loading)) {
-
-      this.loading = true;
-
-    } else {
-
-      // this.value = [].concat(...arrays.toArray());
-      this.value = array.reduce((array, content) => [...array, ...content.toArray()], []);
-
-    }
-
-  }
-
-  join(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const glue = args[2] || ", ";
-
-    if (array.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray().join(glue);
-
-    }
-
-  }
-
-  indexOf(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const value = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-    if (array.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray().indexOf(value.toSingle());
-
-    }
-
-  }
-
-  sum(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (array.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray().reduce((accumulator, item)=> accumulator + Number(item), 0);
-
-    }
-
-  }
-
-
-  min(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (array.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray().reduce((accumulator, item) => Math.min(accumulator, Number(item)), Infinity);
-
-    }
-
-  }
-
-  max(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (array.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray().reduce((accumulator, item) => Math.max(accumulator, Number(item)), 0);
-
-    }
-
-  }
-
-  include(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const value = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-    if (array.loading || value.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray().include(value.toSingle());
-
-    }
-
-  }
-
-  count(...args) {
-
-    this.getLength(...args);
-
-  }
-
-  getLength(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (array.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray().length;
-
-    }
-
-  }
-
-  map(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (array.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray().map(value => {
-
-        if (args[2]) {
-
-          this.field.expressionCurrentItem = value;
-
-          return new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-        }
-
-        return new KarmaFieldsAlpha.Content(value);
-
-      });
-
-      this.loading = this.value.some(value => value.loading);
-
-      if (!this.loading) {
-
-        // this.value = this.value.map(value => value.toString());
-        this.value = this.value.map(value => value.toSingle());
-
-      }
-
-    }
-
-  }
-
-  getItem(...args) {
-
-    this.value = KarmaFieldsAlpha.DeepObject.get(this.field.expressionCurrentItem, ...args.slice(1));
-
-  }
-
-  getItemAt(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-    if (array.loading || index.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array[index];
-
-    }
-
-  }
-
-  get(...args) {
-
-    const object = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (object.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = KarmaFieldsAlpha.DeepObject.get(object.toObject(), ...args.slice(2));
-
-    }
-
-  }
-
-  getAt(...args) {
-
-    const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
-
-    if (array.loading || index.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = array.toArray()[index.toNumber()];
-
-    }
-
-  }
-
-  year(...args) {
-
-    if (args[1]) {
-
-      this.date(...args, {year: 'numeric'}, args[2]);
-
-    } else {
-
-      this.value = new Date().getFullYear();
-
-    }
-
-  }
-
-  month(...args) {
-
-    if (args[1]) {
-
-      this.date(...args, {month: '2-digit'}, args[2])
-
-    } else {
-
-      // this.value = new Date().getMonth() + 1;
-      this.value = new Date().toLocaleDateString(KarmaFieldsAlpha.locale, {month: "2-digit"});
-
-    }
-
-  }
-
-  day(...args) {
-
-    if (args[1]) {
-
-      this.date(...args, {day: '2-digit'}, args[2])
-
-    } else {
-
-      // this.value = new Date().getDate();
-      this.value = new Date().toLocaleDateString(KarmaFieldsAlpha.locale, {day: "2-digit"});
-
-    }
-
-  }
-
-  // now(...args) {
-  //
-  //   const date = new Date();
-  //
-  //   switch (args[1]) {
-  //
-  //     case "year":
-  //       this.value = date.getFullYear();
-  //       break;
-  //
-  //     case "month":
-  //       this.value = date.getMonth() + 1;
-  //       break;
-  //
-  //     case "day":
-  //       this.value = date.getDate();
-  //       break;
-  //
-  //     case "hour":
-  //       this.value = date.getHours();
-  //       break;
-  //
-  //     case "minute":
-  //       this.value = date.getMinutes();
-  //       break;
-  //
-  //     case "second":
-  //       this.value = date.getSeconds();
-  //       break;
-  //
-  //     default:
-  //       this.value = date;
-  //       break;
-  //
-  //   }
-  //
-  // }
-
-  date(...args) {
-
-    const dateString = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const option = args[2] || {}; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
-    const locale = args[3] || KarmaFieldsAlpha.locale || "en";
-
-    if (dateString.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      const dateObj = new Date(dateString.toObject());
-
-      if (isNaN(dateObj)) {
-
-        this.value = "";
-
-      } else {
-
-        this.value = dateObj.toLocaleDateString(locale, option);
-        // this.value = dateObj.toLocaleString(locale, option);
-
-      }
-
-    }
-
-  }
-
-  getValue(...args) {
-
-    return this.getContent(...args);
-  }
-
-
-  getContent(...args) {
-
-    let key = args[1];
-
-    if (key && Array.isArray(key)) {
-
-      key = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-      if (key.loading) {
-
-        this.loading = true;
-
-        return;
-
-      }
-
-      key = key.toString();
-
-    } else if (!key) {
-
-      key = this.field.getKey();
-
-    }
-
-    const content = this.field.parent.getContent(key);
-
-    if (content.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = content.value;
-
-    }
-
-  }
-
-  queryValue(...args) {
-
-    const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const id = new KarmaFieldsAlpha.Expression(args[2], this.field);
-    const key = new KarmaFieldsAlpha.Expression(args[3], this.field);
-
-    if (driver.loading || id.loading || key.loading) {
-
-      this.loading = true;
-      this.value = "";
-
-    } else if (driver.toString() && id.toString() && key.toString()) {
-
-      // const content = new KarmaFieldsAlpha.Content.Value(driver.toString(), id.toString(), key.toString());
-
-      // const model = new KarmaFieldsAlpha.Model(driver.toString());
-      //
-      //
-      // // console.log("queryValue", id.toString(), key.toString());
-      //
-      // const content = model.queryValue(id.toString(), key.toString());
-      //
-      // this.value = content.value;
-      // this.loading = content.loading;
-      // this.notFound = content.notFound;
-
-      // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString());
-      // const value = shuttle.getValue(id, key);
-      //
-      // if (value.loading) {
-      //
-      //   this.loading = true;
-      //
-      // } else {
-      //
-      //   this.value = value.value;
-      //
-      // }
-
-
-      const form = new KarmaFieldsAlpha.field.form({
-        driver: driver.toString()
-      });
-
-      const content = form.getValueById(id.toString(), key.toString());
-
-      if (content.loading) {
-
-        this.loading = true;
-
-      } else {
-
-        this.value = content.value;
-
-      }
-
-    } else {
-
-      this.value = undefined;
-
-    }
-
-  }
-
-  queryValues(...params) {
-
-    // const driver = new KarmaFieldsAlpha.Expression(params[1], this.field);
-    // const ids = new KarmaFieldsAlpha.Expression(params[2], this.field);
-    // const key = new KarmaFieldsAlpha.Expression(params[3], this.field);
-    //
-    // if (driver.loading || ids.loading || key.loading) {
-    //
-    //   return new KarmaFieldsAlpha.LoadingContent();
-    //
-    // }
-    //
-    // const values = ids.map(id => KarmaFieldsAlpha.Query.getValue(driver.toString(), id.toString(), key.toString()));
-    //
-    // if (values.some(value => value.loading)) {
-    //
-    //   return new KarmaFieldsAlpha.LoadingContent();
-    //
-    // }
-    //
-    // new KarmaFieldsAlpha.Content(values.reduce((accumulator, items) => [...accumulator, ...items], []));
-
-  }
-
-  query(...args) {
-
-    const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const params = new KarmaFieldsAlpha.Expression(args[2] || {}, this.field);
-
-    if (driver.loading || params.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
-      // // const query = KarmaFieldsAlpha.Driver.getQuery(driver.toString(), paramstring);
-      //
-      //
-      // const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString(), paramstring);
-      // const query = collection.queryItems();
-      //
-      //
-      // if (query.loading) {
-      //
-      //   this.loading = true;
-      //
-      // } else {
-      //
-      //   this.value = query.value;
-      //
-      // }
-
-
-      // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
-      // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString(), paramstring);
-      // const ids = shuttle.getIds();
-      //
-
-
-      const table = new KarmaFieldsAlpha.field.table({
-        driver: driver.toString(),
-        params: params.toObject()
-      });
-
-      const ids = table.getIds();
-
-      if (ids.loading) {
-
-        this.loading = true;
-
-      } else {
-
-        this.value = ids.toArray();
-
-      }
-
-
-    }
-
-  }
-
-  queryCount(...args) {
-
-    const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const params = new KarmaFieldsAlpha.Expression(args[2] || {}, this.field);
-
-    if (params.loading || driver.loading) {
-
-      this.loading;
-
-    } else {
-
-      // const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString());
-      //
-      // collection.paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
-      //
-      // const count = collection.count();
-      //
-      // this.loading = count.loading;
-      // this.value = count.value;
-
-      // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
-      // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString(), paramstring);
-      // const count = shuttle.getCount();
-
-      const table = new KarmaFieldsAlpha.field.table({
-        driver: driver.toString(),
-        params: params.toObject()
-      });
-
-      const count = table.getCount();
-
-      if (count.loading) {
-
-        this.loading = true;
-
-      } else {
-
-        this.value = count.toNumber();
-
-      }
-
-    }
-
-  }
-
-  resource(...args) {
-
-    const key = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (key.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = this.field.getResource(key.toString());
-
-    }
-
-  }
-
-
-  // deprecated
-  parseParams(...args) {
-
-    let params = args[1];
-
-    this.parseObject(args[1]); // !!!!
-
-  }
-
-  getOptions(...args) {
-
-    console.error("deprecated");
-
-    // const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    // const params = KarmaFieldsAlpha.parseObject(args[2] || {}, this.field);
-    //
-    // if (driver.loading || params.loading) {
-    //
-    //   return new KarmaFieldsAlpha.LoadingContent();
-    //
-    // }
-    //
-    // return KarmaFieldsAlpha.Query.getOptions(driver, params);
-  }
-
-  getParam(...args) {
-
-    // const key = args[1];
-
-    const key = new KarmaFieldsAlpha.Expression(args[1], this.field);
-
-    if (key.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      const param = this.field.parent.getParam(key.toString()); // --> using parent to prevent infinite loop when calling from a table
-
-      if (param.loading) {
-
-        this.loading = true;
-
-      } else {
-
-        this.value = param.value;
-
-      }
-
-    }
-
-    // this.value = KarmaFieldsAlpha.Store.Layer.getParam(key);
-
-
-  }
-
-  getKey() {
-
-    this.value = this.field.getKey();
-
-  }
-
-  getIndex() {
-
-    this.value = this.field.request("getIndex");
-
-  }
-
-  getIds() {
-
-    // deprecated ?
-
-    this.value = this.field.parent.getContent("id");
-
-  }
-
-  request(...args) {
-
-    this.value = this.field.request(...args.slice(1));
-
-    // if (value instanceof KarmaFieldsAlpha.Content) {
-    //
-    //   Object.assign(this, value);
-    //
-    // } else {
-    //
-    //   this.value = value;
-    //
-    // }
-
-  }
-
-  // replace(...args) {
-  //
-  //   const string = new KarmaFieldsAlpha.Expression(args[1], this.field);
-  //   const wildcard = args[2];
-  //
-  //   const replacements = args.slice(3).map(replacement => new KarmaFieldsAlpha.Expression(replacement, this.field));
-  //
-  //   if (string.loading || replacements.some(value => value.loading)) {
-  //
-  //     this.loading = true;
+  //     response.loading = true;
   //
   //   } else {
   //
-  //     this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string.toString());
+  //     switch (operator) {
+  //
+  //       case "=":
+  //       case "==":
+  //         response.value = v1.toSingle() == v2.toSingle();
+  //         break;
+  //
+  //       case "===":
+  //         response.value = v1.toSingle() === v2.toSingle();
+  //         break;
+  //
+  //       case "!=":
+  //         response.value = v1.toSingle() != v2.toSingle();
+  //         break;
+  //
+  //       case "!==":
+  //         response.value = v1.toSingle() !== v2.toSingle();
+  //         break;
+  //
+  //       case ">":
+  //         response.value = v1.toSingle() > v2.toSingle();
+  //         break;
+  //
+  //       case "<":
+  //         response.value = v1.toSingle() < v2.toSingle();
+  //         break;
+  //
+  //       case ">=":
+  //         response.value = v1.toSingle() >= v2.toSingle();
+  //         break;
+  //
+  //       case "<=":
+  //         response.value = v1.toSingle() <= v2.toSingle();
+  //         break;
+  //
+  //       case "like":
+  //         response.value = v1.toString().match(new RegExp(v2.toString()));
+  //         break;
+  //
+  //       case "+":
+  //         response.value = v1.toNumber() + v2.toNumber();
+  //         break;
+  //
+  //       case "-":
+  //         response.value = v1.toNumber() - v2.toNumber();
+  //         break;
+  //       case "*":
+  //         response.value = v1.toNumber() * v2.toNumber();
+  //         break;
+  //
+  //       case "/":
+  //         response.value = v1.toNumber() / v2.toNumber();
+  //         break;
+  //
+  //       case "%":
+  //         response.value = v1.toNumber() % v2.toNumber();
+  //         break;
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return response;
+  // }
+
+  // static logic(operator, ...values) {
+  //
+  //   const response = new KarmaFieldsAlpha.Content();
+  //
+  //   if (values.some(value => value.loading)) {
+  //
+  //     response.loading = true;
+  //
+  //   } else {
+  //
+  //     response.value = values.shift().toSingle();
+  //
+  //     while (values.length) {
+  //
+  //       const value = values.shift();
+  //
+  //       switch (operator) {
+  //
+  //         case "&&":
+  //           response.value = response.toSingle() && value.toSingle();
+  //           break;
+  //
+  //         case "||":
+  //           response.value = response.toSingle() || value.toSingle();
+  //           break;
+  //
+  //       }
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  //   return response;
+  // }
+  //
+  // static not(operator, value) {
+  //
+  //   const response = new KarmaFieldsAlpha.Content();
+  //
+  //   if (value.loading) {
+  //
+  //     response.loading = true;
+  //
+  //   } else {
+  //
+  //     response.value = !value.toBoolean();
+  //
+  //   }
+  //
+  //   return response;
+  // }
+  //
+  // static condition(operator, v1, v2, v3) {
+  //
+  //   const response = new KarmaFieldsAlpha.Content();
+  //
+  //   if (v1.loading || v2.loading || v2.loading) {
+  //
+  //     response.loading = true;
+  //
+  //   } else {
   //
   //   }
   //
   // }
 
-  replace(...args) {
+  // async parse(expression) {
+  //
+  //   let response = new KarmaFieldsAlpha.Content();
+  //   //
+  //   // const params = await Promise.all(expression.slice(1).map(param => this.parse(param)));
+  //   //
+  //   // if (params.some(param => param.loading)) {
+  //   //
+  //   //   response.loading = true;
+  //   //
+  //   // } else {
+  //
+  //   if (expression) {
+  //
+  //     switch (expression[0]) {
+  //
+  //       case "=":
+  //       case "==":
+  //       case "===":
+  //       case "!=":
+  //       case "!==":
+  //       case ">":
+  //       case "<":
+  //       case ">=":
+  //       case "<=":
+  //       case "like":
+  //       case "+":
+  //       case "-":
+  //       case "*":
+  //       case "/":
+  //       case "%":
+  //         const v1 = await this.parse(expression[1]);
+  //         const v2 = await this.parse(expression[2]);
+  //         // response = KarmaFieldsAlpha.Expression.compare(expression[0], v1, v2);
+  //         if (v1.loading || v2.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           switch (operator) {
+  //             case "=":
+  //             case "==":
+  //               response.value = v1.toSingle() == v2.toSingle();
+  //               break;
+  //             case "===":
+  //               response.value = v1.toSingle() === v2.toSingle();
+  //               break;
+  //             case "!=":
+  //               response.value = v1.toSingle() != v2.toSingle();
+  //               break;
+  //             case "!==":
+  //               response.value = v1.toSingle() !== v2.toSingle();
+  //               break;
+  //             case ">":
+  //               response.value = v1.toSingle() > v2.toSingle();
+  //               break;
+  //             case "<":
+  //               response.value = v1.toSingle() < v2.toSingle();
+  //               break;
+  //             case ">=":
+  //               response.value = v1.toSingle() >= v2.toSingle();
+  //               break;
+  //             case "<=":
+  //               response.value = v1.toSingle() <= v2.toSingle();
+  //               break;
+  //             case "like":
+  //               response.value = v1.toString().match(new RegExp(v2.toString()));
+  //               break;
+  //             case "+":
+  //               response.value = v1.toNumber() + v2.toNumber();
+  //               break;
+  //             case "-":
+  //               response.value = v1.toNumber() - v2.toNumber();
+  //               break;
+  //             case "*":
+  //               response.value = v1.toNumber() * v2.toNumber();
+  //               break;
+  //             case "/":
+  //               response.value = v1.toNumber() / v2.toNumber();
+  //               break;
+  //             case "%":
+  //               response.value = v1.toNumber() % v2.toNumber();
+  //               break;
+  //           }
+  //         }
+  //         break;
+  //       case "&&":
+  //         const values = expression.slice(1);
+  //         response = await this.parse(values.shift());
+  //         if (!response.loading && values.length && response.toBoolean()) {
+  //           response = this.parse(["&&", ...values]);
+  //         }
+  //         break;
+  //       case "||":
+  //         const values = expression.slice(1);
+  //         response = await this.parse(values.shift());
+  //         if (!response.loading && values.length && !response.toBoolean()) {
+  //           response = this.parse(["||", ...values]);
+  //         }
+  //         break;
+  //       case "!":
+  //         const value = await this.parse(expression[1]);
+  //         if (value.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = !value.toBoolean();
+  //         }
+  //         break;
+  //
+  //       case "?":
+  //         const condition = await this.parse(expression[1]);
+  //         if (condition.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response = condition.toBoolean() ? this.parse(expression[2]) : this.parse(expression[3]);
+  //         }
+  //         break;
+  //       case "...":
+  //       case "concat":
+  //         const items = await Promise.all(expression.slice(1).map(item => this.parse(item)));
+  //         if (items.some(item => item.loading)) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = items.reduce((array, item) => [...array, ...item.toArray()], []);
+  //         }
+  //         break;
+  //       case "math":
+  //         const method = expression[1];
+  //         const values = await Promise.all(expression.slice(2).map(value => this.parse(value)));
+  //         if (values.some(value => value.loading)) {
+  //           response.loading = true;
+  //         } else if (Math[expression[1]]) {
+  //           response.value = Math[expression[1]](...values.map(value => value.toNumber()));
+  //         }
+  //         break;
+  //       case "include":
+  //         const array = await this.parse(expression[1]);
+  //         const value = await this.parse(expression[2]);
+  //         if (array.loading || value.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = array.toArray().include(value.toSingle());
+  //         }
+  //         break;
+  //       case "replace":
+  //         const string = await this.parse(expression[1]);
+  //         const wildcard = expression[2];
+  //         const replacements = await Promise.all(expression.slice(3).map(replacement => this.parse(replacement)));
+  //         if (string.loading || replacements.some(value => value.loading)) {
+  //           response.loading = true;
+  //         } else if (replacements.length) {
+  //           const grid = replacements.map(replacement => replacement.toArray());
+  //           response.value = grid[0].map((item, i) => grid.reduce((string, replacements) => string.replace(wildcard, replacements[i]), string.toString()));
+  //         }
+  //         break;
+  //       case "date":
+  //         const date = await this.parse(expression[1]);
+  //         const option = expression[2] || {}; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+  //         const locale = expression[3] || KarmaFieldsAlpha.locale || "en";
+  //         if (date.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           const string = date.toString();
+  //           if (!string || string === "now") {
+  //             response.value = (new Date()).toLocaleDateString(locale, option);
+  //           } else {
+  //             const dateObj = new Date(string);
+  //             if (isNaN(dateObj)) {
+  //               response.value = "";
+  //             } else {
+  //               response.value = dateObj.toLocaleDateString(locale, option);
+  //             }
+  //           }
+  //         }
+  //         break;
+  //       case "year":
+  //         // response = this.parse(["date", expression[1] || "", {year: expression[2] || "numeric"}]);
+  //         // break;
+  //       case "month":
+  //       case "day":
+  //         console.error("DEPRECATED (use date)");
+  //         break;
+  //       case "request":
+  //         var params = await Promise.all(expression.slice(1).map(param => this.parse(param)));
+  //         if (params.some(param => param.loading)) {
+  //           response.loading = true;
+  //         } else {
+  //           response = this.request(...params.map(param => param.value));
+  //         }
+  //         break;
+  //       case "getValue": // compat
+  //       case "getContent":
+  //         // var params = await Promise.all(expression.slice(1).map(param => this.parse(param)));
+  //         // if (params.some(param => param.loading)) {
+  //         //   response.loading = true;
+  //         // } else {
+  //         //   response = this.getContent(...params.map(param => param.toString()));
+  //         // }
+  //         if (expression[1]) {
+  //           const key = await this.parse(expression[1]);
+  //           response = this.getContent(key.toString());
+  //         } else {
+  //           response = this.getContent();
+  //         }
+  //         break;
+  //       case "queryValue":
+  //         const driver = await this.parse(expression[1]);
+  //         const id = await this.parse(expression[2]);
+  //         const key = await this.parse(expression[3]);
+  //         if (driver.loading || id.loading || key.loading) {
+  //           response.loading = true;
+  //         } else if (driver.toString() && id.toString() && key.toString()) {
+  //           const form = new KarmaFieldsAlpha.field.form({
+  //             driver: driver.toString()
+  //           });
+  //           response = form.getValueById(id.toString(), key.toString());
+  //         }
+  //         break;
+  //       case "query":
+  //         const driver = await this.parse(expression[1]);
+  //         const params = await this.parseObject(expression[2]);
+  //         const output = expression[3] || "ids";
+  //         if (driver.loading || params.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           const table = new KarmaFieldsAlpha.field.table({
+  //             driver: driver.toString(),
+  //             params: params.toObject()
+  //           });
+  //           if (output === "count") {
+  //             response = table.getCount();
+  //           } else if (output === "options") {
+  //             response = table.getOptionsList();
+  //           } else {
+  //             response = table.getIds();
+  //           }
+  //         }
+  //         break;
+  //       case "queryCount":
+  //         response = this.parse(["query", expression[1], expression[2], "count"]);
+  //         // console.warn("Deprecated. Use query");
+  //         // const driver = await this.parse(expression[1]);
+  //         // const params = await this.parseObject(expression[2]);
+  //         // if (driver.loading || params.loading) {
+  //         //   response.loading = true;
+  //         // } else {
+  //         //   const table = new KarmaFieldsAlpha.field.table({
+  //         //     driver: driver.toString(),
+  //         //     params: params.toObject()
+  //         //   });
+  //         //   response = table.getCount();
+  //         // }
+  //         break;
+  //       case "parseParams":
+  //         console.error("DEPRECATED");
+  //         break;
+  //       case "getOptions":
+  //         response = this.parse(["query", expression[1], expression[2], "options"]);
+  //         // console.warn("Deprecated. Use query");
+  //         // const driver = await this.parse(expression[1]);
+  //         // const params = await this.parseObject(expression[2]);
+  //         // if (driver.loading || params.loading) {
+  //         //   response.loading = true;
+  //         // } else {
+  //         //   const table = new KarmaFieldsAlpha.field.table({
+  //         //     driver: driver.toString(),
+  //         //     params: params.toObject()
+  //         //   });
+  //         //   response = table.getOptionsList();
+  //         // }
+  //         break;
+  //       case "map":
+  //         const array = await this.parse(expression[1]);
+  //         if (array.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = await Promise.all(array.toArray().map(value => {
+  //             const mapItem = new KarmaFieldsAlpha.Expression.MapItem(value, this);
+  //             const result = KarmaFieldsAlpha.Expression.prototype.parse.call(mapItem, expression[2]);
+  //           }));
+  //           response.loading = response.value.some(value => value.loading);
+  //         }
+  //         break;
+  //       case "getItem":
+  //         console.error("deprecated");
+  //         break;
+  //       case "join":
+  //         const array = await this.parse(expression[1]);
+  //         const glue = expression[2] || ", ";
+  //         if (array.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = array.toArray().join(glue);
+  //         }
+  //         break;
+  //       case "indexOf":
+  //         console.error("deprecated");
+  //         break;
+  //       case "sum":
+  //         const array = await this.parse(expression[1]);
+  //         if (array.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = array.toArray().reduce((accumulator, item)=> accumulator + Number(item), 0);
+  //         }
+  //         break;
+  //       case "getLength":
+  //       case "count":
+  //         const array = await this.parse(expression[1]);
+  //         if (array.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = array.toArray().length;
+  //         }
+  //         break;
+  //       case "getParam":
+  //         var key = await this.parse(expression[1]);
+  //         if (key.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response = this.getParam(key.toString());
+  //         }
+  //         break;
+  //       case "isLoading":
+  //         const content = await this.parse(expression[1]);
+  //         response.value = content.loading;
+  //         break;
+  //       case "isMixed":
+  //         const content = await this.parse(expression[1]);
+  //         response.value = content.mixed;
+  //         break;
+  //       case "getKey":
+  //       case "getIndex":// deprec
+  //       case "getIds":
+  //       case "get":
+  //       case "getAt":
+  //       case "array":
+  //         console.error("deprecated");
+  //         break;
+  //
+  //       case "debug":
+  //       case "dump":
+  //       case "log":
+  //         debugger;
+  //         response = await this.parse(expression[1]);
+  //         break;
+  //       case "max":
+  //         const array = await this.parse(expression[1]);
+  //         if (array.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = array.toArray().reduce((accumulator, item) => Math.max(accumulator, Number(item)), 0);
+  //         }
+  //         break;
+  //       case "min":
+  //         const array = await this.parse(expression[1]);
+  //         if (array.loading) {
+  //           response.loading = true;
+  //         } else {
+  //           response.value = array.toArray().reduce((accumulator, item) => Math.min(accumulator, Number(item)), Infinity);
+  //         }
+  //         break;
+  //       case "resource":
+  //         console.error("deprecated. Use request");
+  //         break;
+  //       case "parent":
+  //         response = this.parent.parse(expression);
+  //         break;
+  //
+  //       default:
+  //         response.value = expression;
+  //         break;
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     response.value = expression;
+  //
+  //   }
+  //
+  //   return response;
+  //
+  //
+  // }
+  //
+  // async parseObject(object) {
+  //
+  //   const response = new KarmaFieldsAlpha.Content();
+  //
+  //   let entries = Object.entries(object);
+  //
+  //   entries = await Promise.all(entries.map(([key, value]) => [key, this.parse(value)]));
+  //
+  //   if (entries.some(([key, value]) => value.loading)) {
+  //
+  //     response.loading = true;
+  //
+  //   } else {
+  //
+  //     entries = entries.map(([key, value]) => [key, value.toString()]);
+  //
+  //     response.value = Object.fromEntries(entries);
+  //
+  //   }
+  //
+  //   return response;
+  // }
 
-    const string = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    const wildcard = args[2];
 
-    const replacements = args.slice(3).map(replacement => new KarmaFieldsAlpha.Expression(replacement, this.field));
+// }
+//
+//
+// // KarmaFieldsAlpha.Expression.MapItem = class extends KarmaFieldsAlpha.Expression {
+//
+KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.field {
 
-    if (string.loading || replacements.some(value => value.loading)) {
+  constructor(value, parent) {
 
-      this.loading = true;
+    super(value, "", parent);
 
-    } else if (replacements.length) {
-
-      const grid = replacements.map(replacement => replacement.toArray());
-
-      this.value = grid[0].map((item, i) => grid.reduce((string, replacements) => string.replace(wildcard, replacements[i]), string.toString()));
-
-      // this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string.toString());
-
-    }
+    // this.value = value;
+    // this.parent = parent;
 
   }
 
-  array(...args) {
+  getContent(key) {
 
-    const items = args.slice(1).map(arg => new KarmaFieldsAlpha.Expression(arg, this.field));
+    const response = new KarmaFieldsAlpha.Content();
 
-    if (items.loading) {
+    if (key) {
 
-      this.loading;
+      response.value = this.resource[key];
 
     } else {
 
-      this.value = items.map(item => item.toSingle());
-    }
-
-  }
-
-  isLoading(...args) {
-
-    this.value = new KarmaFieldsAlpha.Expression(args[1], this.field).loading;
-
-    // return new KarmaFieldsAlpha.Content(content.loading);
-
-  }
-
-  isMixed(...args) {
-
-    if (Array.isArray(args[1])) {
-
-      this.value = new KarmaFieldsAlpha.Expression(args[1], this.field).mixed;
-
-    } else {
-
-      const content = this.field.getContent(...args.slice(1));
-
-      this.value = content.mixed;
+      response.value = this.resource;
 
     }
 
-
-
-    // const content = new KarmaFieldsAlpha.Expression(args[1], this.field);
-    //
-    // return new KarmaFieldsAlpha.Content(content.mixed);
+    return response;
 
   }
-
-
-
-
-  async *submit(...args) {
-
-    yield* this.field.request("submit");
-
-  }
-
-  // *add(...args) {
-  //
-  //   const num = new KarmaFieldsAlpha.Expression(args[1] || 1, this.field);
-  //   const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
-  //   const params = new KarmaFieldsAlpha.Expression(args[3] || {}, this.field);
-  //
-  //   while (num.loading || index.loading || params.loading) {
-  //
-  //     // yield;
-  //
-  //   }
-  //
-  //   yield* this.field.request("add", num.toNumber(), index.value, params.toObject());
-  //
-  // }
-  //
-  // *delete(...args) {
-  //
-  //   const index = new KarmaFieldsAlpha.Expression(args[1], this.field);
-  //   const num = new KarmaFieldsAlpha.Expression(args[2], this.field);
-  //
-  //   while (num.loading || index.loading) {
-  //
-  //     // yield;
-  //
-  //   }
-  //
-  //   yield* this.field.request("delete", index.value, num.value);
-  //
-  // }
-  //
-  // *set(...args) {
-  //
-  //   const value = new KarmaFieldsAlpha.Expression(args[1], this.field);
-  //   const key = new KarmaFieldsAlpha.Expression(args[2], this.field);
-  //
-  //   while (value.loading || key.loading) {
-  //
-  //     // yield;
-  //
-  //   }
-  //
-  //   this.field.setContent(value, key.toString());
-  //
-  // }
 
 }
 
-
+//
+// KarmaFieldsAlpha.Expression = class extends KarmaFieldsAlpha.Content {
+//
+//   // static parse(expression, field) {
+//   //
+//   //   return new KarmaFieldsAlpha.Expression(expression, field);
+//   //
+//   // }
+//   //
+//   // static parseObject(object, field) {
+//   //
+//   //   let entries = Object.entries(object);
+//   //
+//   //   entries = entries.map(([key, value]) => [key, new KarmaFieldsAlpha.Expression(value, this.field)]);
+//   //
+//   //   if (entries.some(([value, value]) => value.loading)) {
+//   //
+//   //     return new KarmaFieldsAlpha.LoadingContent();
+//   //
+//   //   }
+//   //
+//   //   entries = entries.map(([key, value]) => [key, value.toString()]);
+//   //
+//   //   const result = Object.fromEntries(entries);
+//   //
+//   //   return new KarmaFieldsAlpha.Content(result);
+//   //
+//   // }
+//
+//   constructor(expression, field) {
+//
+//     super(expression);
+//
+//     this.field = field;
+//
+//     if (expression && typeof expression === "object") {
+//
+//       if (Array.isArray(expression)) {
+//
+//         this.parse(expression);
+//
+//       } else {
+//
+//         this.parseObject(expression);
+//
+//       }
+//
+//     }
+//
+//     if (this.value instanceof KarmaFieldsAlpha.Content) {
+//
+//       Object.assign(this, this.value);
+//
+//     }
+//
+//   }
+//
+//   parseObject(object) {
+//
+//     let entries = Object.entries(object);
+//
+//     entries = entries.map(([key, value]) => [key, new KarmaFieldsAlpha.Expression(value, this.field)]);
+//
+//     if (entries.some(([key, value]) => value.loading)) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       entries = entries.map(([key, value]) => [key, value.toString()]);
+//
+//       this.value = Object.fromEntries(entries);
+//
+//     }
+//
+//   }
+//
+//   parse(args) {
+//
+//     switch (args[0]) {
+//       case "=":
+//       case "==":
+//       case "===":
+//       case "!=":
+//       case "!==":
+//       case ">":
+//       case "<":
+//       case ">=":
+//       case "<=":
+//       case "like":
+//         this.compare(...args);
+//         break;
+//
+//       case "+":
+//       case "-":
+//       case "*":
+//       case "/":
+//       case "%":
+//         this.compute(...args);
+//         break;
+//
+//       case "&&":
+//       case "||":
+//         this.logic(...args);
+//         break;
+//
+//       case "!":
+//         this.not(...args);
+//         break;
+//
+//       case "?":
+//         this.condition(...args);
+//         break;
+//
+//       case "...":
+//         this.concat(...args);
+//         break;
+//
+//       case "concat":
+//       case "math":
+//       case "include":
+//       case "replace":
+//       case "date":
+//       case "year":
+//       case "month":
+//       case "day":
+//       case "request":
+//       case "getValue": // compat
+//       case "getContent":
+//       // case "hasValue":
+//       case "queryValue":
+//       case "query":
+//       case "queryCount":
+//       case "parseParams":
+//       case "getOptions":
+//       case "map":
+//       case "getItem":
+//       case "join":
+//       case "indexOf":
+//       case "sum":
+//       case "getLength":
+//       case "count":
+//       case "getParam":
+//       case "isLoading":
+//       case "isMixed":
+//       case "getKey":
+//       case "getIndex":// deprec
+//       case "getIds":
+//       case "get":
+//       case "getAt":
+//       case "array":
+//       case "debug":
+//       case "dump":
+//       case "log":
+//       case "max":
+//       case "min":
+//       case "resource":
+//       case "parent":
+//         this[args[0]](...args);
+//         break;
+//
+//       // case "set":
+//       case "submit":
+//       // case "add":
+//       // case "delete":
+//         // this.doTask(...args);
+//         this.task = true;
+//         this.value = this[args[0]](...args);
+//
+//         break;
+//
+//     }
+//
+//   }
+//
+//   parent(...args) {
+//
+//     this.field = this.field.parent;
+//
+//     this.parse(args[1]);
+//
+//   }
+//
+//   debug(...args) {
+//
+//     debugger;
+//
+//     const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     this.value = expr.value;
+//     this.loading = expr.loading;
+//
+//   }
+//
+//   log(...args) {
+//
+//     const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     console.log(expr);
+//     // console.trace();
+//
+//     this.value = expr.value;
+//     this.loading = expr.loading;
+//
+//     // console.log(args.slice(1).forEach(expr => new KarmaFieldsAlpha.Expression(expr, this.field).toObject()));
+//
+//   }
+//
+//   dump(...args) {
+//
+//     const expr = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     this.value = JSON.stringify(expr.value);
+//
+//   }
+//
+//   compute(...args) {
+//
+//     const v1 = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const v2 = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//
+//     if (v1.loading || v2.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       switch (args[0]) {
+//
+//         case "+":
+//           this.value = await v1.toNumber() + await v2.toNumber();
+//           break;
+//
+//         case "-":
+//           this.value = await v1.toNumber() - await v2.toNumber();
+//           break;
+//         case "*":
+//           this.value = await v1.toNumber() * await v2.toNumber();
+//           break;
+//
+//         case "/":
+//           this.value = await v1.toNumber() / await v2.toNumber();
+//           break;
+//
+//       }
+//
+//     }
+//
+//   }
+//
+//   compare(...args) {
+//
+//     const v1 = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const v2 = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//
+//     if (v1.loading || v2.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = Promise.all([v1.toSingle(), v2.toSingle()]).then(([v1, v2]) => {
+//
+//         switch (args[0]) {
+//
+//           case "=":
+//           case "==":
+//             return v1 == v2;
+//             break;
+//
+//           case "===":
+//             return v1 === v2;
+//             break;
+//
+//           case "!=":
+//             return v1 != v2;
+//             break;
+//
+//           case "!==":
+//             return v1 !== v2;
+//             break;
+//
+//           case ">":
+//             return v1 > v2;
+//             break;
+//
+//           case "<":
+//             return v1 < v2;
+//             break;
+//
+//           case ">=":
+//             return v1 >= v2;
+//             break;
+//
+//           case "<=":
+//             return v1 <= v2;
+//             break;
+//
+//           case "like":
+//             return v1.toString().match(new RegExp(v2));
+//             break;
+//
+//         }
+//
+//       });
+//
+//     }
+//
+//   }
+//
+//   logic(...args) {
+//
+//     const values = args.slice(1).map(value => new KarmaFieldsAlpha.Expression(value, this.field));
+//
+//     if (values.some(value => value.loading)) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = values.shift().toSingle();
+//
+//       while (values.length) {
+//
+//         const value = values.shift();
+//
+//         switch (args[0]) {
+//
+//           case "&&":
+//             this.value = this.toSingle() && value.toSingle();
+//             break;
+//
+//           case "||":
+//             this.value = this.toSingle() || value.toSingle();
+//             break;
+//
+//         }
+//
+//       }
+//
+//     }
+//
+//   }
+//
+//   math(...args) {
+//
+//     const values = args.slice(2).map(value => new KarmaFieldsAlpha.Expression(value, this.field));
+//
+//     if (values.some(value => value.loading)) {
+//
+//       this.loading = true;
+//
+//     } else if (Math[args[1]]) {
+//
+//       this.value = Math[args[1]](...values.map(value => value.toNumber()));
+//
+//     }
+//
+//   }
+//
+//   not(...args) {
+//
+//     const value = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (value.loading) {
+//
+//       this.loading = true;
+//
+//     }
+//
+//     this.value = !value.toBoolean();
+//
+//   }
+//
+//   condition(...args) {
+//
+//     const v1 = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (v1.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = v1.toBoolean() ? new KarmaFieldsAlpha.Expression(args[2], this.field) : new KarmaFieldsAlpha.Expression(args[3], this.field);
+//
+//     }
+//
+//   }
+//
+//   concat(...args) {
+//
+//     const array = args.slice(1).map(value => new KarmaFieldsAlpha.Expression(value, this.field));
+//
+//     if (array.some(array => array.loading)) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       // this.value = [].concat(...arrays.toArray());
+//       this.value = array.reduce((array, content) => [...array, ...content.toArray()], []);
+//
+//     }
+//
+//   }
+//
+//   join(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const glue = args[2] || ", ";
+//
+//     if (array.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray().join(glue);
+//
+//     }
+//
+//   }
+//
+//   indexOf(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const value = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//
+//     if (array.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray().indexOf(value.toSingle());
+//
+//     }
+//
+//   }
+//
+//   sum(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (array.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray().reduce((accumulator, item)=> accumulator + Number(item), 0);
+//
+//     }
+//
+//   }
+//
+//
+//   min(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (array.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray().reduce((accumulator, item) => Math.min(accumulator, Number(item)), Infinity);
+//
+//     }
+//
+//   }
+//
+//   max(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (array.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray().reduce((accumulator, item) => Math.max(accumulator, Number(item)), 0);
+//
+//     }
+//
+//   }
+//
+//   include(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const value = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//
+//     if (array.loading || value.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray().include(value.toSingle());
+//
+//     }
+//
+//   }
+//
+//   count(...args) {
+//
+//     this.getLength(...args);
+//
+//   }
+//
+//   getLength(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (array.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray().length;
+//
+//     }
+//
+//   }
+//
+//   map(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (array.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray().map(value => {
+//
+//         if (args[2]) {
+//
+//           this.field.expressionCurrentItem = value;
+//
+//           return new KarmaFieldsAlpha.Expression(args[2], this.field);
+//
+//         }
+//
+//         return new KarmaFieldsAlpha.Content(value);
+//
+//       });
+//
+//       this.loading = this.value.some(value => value.loading);
+//
+//       if (!this.loading) {
+//
+//         // this.value = this.value.map(value => value.toString());
+//         this.value = this.value.map(value => value.toSingle());
+//
+//       }
+//
+//     }
+//
+//   }
+//
+//   getItem(...args) {
+//
+//     this.value = KarmaFieldsAlpha.DeepObject.get(this.field.expressionCurrentItem, ...args.slice(1));
+//
+//   }
+//
+//   getItemAt(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//
+//     if (array.loading || index.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array[index];
+//
+//     }
+//
+//   }
+//
+//   get(...args) {
+//
+//     const object = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (object.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = KarmaFieldsAlpha.DeepObject.get(object.toObject(), ...args.slice(2));
+//
+//     }
+//
+//   }
+//
+//   getAt(...args) {
+//
+//     const array = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//
+//     if (array.loading || index.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = array.toArray()[index.toNumber()];
+//
+//     }
+//
+//   }
+//
+//   year(...args) {
+//
+//     if (args[1]) {
+//
+//       this.date(...args, {year: 'numeric'}, args[2]);
+//
+//     } else {
+//
+//       this.value = new Date().getFullYear();
+//
+//     }
+//
+//   }
+//
+//   month(...args) {
+//
+//     if (args[1]) {
+//
+//       this.date(...args, {month: '2-digit'}, args[2])
+//
+//     } else {
+//
+//       // this.value = new Date().getMonth() + 1;
+//       this.value = new Date().toLocaleDateString(KarmaFieldsAlpha.locale, {month: "2-digit"});
+//
+//     }
+//
+//   }
+//
+//   day(...args) {
+//
+//     if (args[1]) {
+//
+//       this.date(...args, {day: '2-digit'}, args[2])
+//
+//     } else {
+//
+//       // this.value = new Date().getDate();
+//       this.value = new Date().toLocaleDateString(KarmaFieldsAlpha.locale, {day: "2-digit"});
+//
+//     }
+//
+//   }
+//
+//   // now(...args) {
+//   //
+//   //   const date = new Date();
+//   //
+//   //   switch (args[1]) {
+//   //
+//   //     case "year":
+//   //       this.value = date.getFullYear();
+//   //       break;
+//   //
+//   //     case "month":
+//   //       this.value = date.getMonth() + 1;
+//   //       break;
+//   //
+//   //     case "day":
+//   //       this.value = date.getDate();
+//   //       break;
+//   //
+//   //     case "hour":
+//   //       this.value = date.getHours();
+//   //       break;
+//   //
+//   //     case "minute":
+//   //       this.value = date.getMinutes();
+//   //       break;
+//   //
+//   //     case "second":
+//   //       this.value = date.getSeconds();
+//   //       break;
+//   //
+//   //     default:
+//   //       this.value = date;
+//   //       break;
+//   //
+//   //   }
+//   //
+//   // }
+//
+//   date(...args) {
+//
+//     const dateString = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const option = args[2] || {}; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+//     const locale = args[3] || KarmaFieldsAlpha.locale || "en";
+//
+//     if (dateString.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       const dateObj = new Date(dateString.toObject());
+//
+//       if (isNaN(dateObj)) {
+//
+//         this.value = "";
+//
+//       } else {
+//
+//         this.value = dateObj.toLocaleDateString(locale, option);
+//         // this.value = dateObj.toLocaleString(locale, option);
+//
+//       }
+//
+//     }
+//
+//   }
+//
+//   getValue(...args) {
+//
+//     return this.getContent(...args);
+//   }
+//
+//
+//   async getContent(...args) {
+//
+//     const path = args.map(arg => new KarmaFieldsAlpha.Expression(arg, this.field));
+//
+//     // if (args[1]) {
+//     //
+//     //   key = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     //
+//     // } else {
+//     //
+//     //   key = this.field.getKey();
+//     //
+//     // }
+//
+//     if (key.loading)) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = key.toString().then(key => this.field.parent.getContent(key));
+//
+//     }
+//
+//
+//
+//
+//
+//     let key = args[1];
+//
+//     if (key && Array.isArray(key)) {
+//
+//       key = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//       if (key.loading) {
+//
+//         this.loading = true;
+//
+//         return;
+//
+//       }
+//
+//       key = key.toString();
+//
+//     } else if (!key) {
+//
+//       key = this.field.getKey();
+//
+//     }
+//
+//     const content = this.field.parent.getContent(key);
+//
+//     if (content.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = content.value;
+//
+//     }
+//
+//   }
+//
+//   queryValue(...args) {
+//
+//     const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const id = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//     const key = new KarmaFieldsAlpha.Expression(args[3], this.field);
+//
+//     if (driver.loading || id.loading || key.loading) {
+//
+//       this.loading = true;
+//       this.value = "";
+//
+//     } else if (driver.toString() && id.toString() && key.toString()) {
+//
+//       // const content = new KarmaFieldsAlpha.Content.Value(driver.toString(), id.toString(), key.toString());
+//
+//       // const model = new KarmaFieldsAlpha.Model(driver.toString());
+//       //
+//       //
+//       // // console.log("queryValue", id.toString(), key.toString());
+//       //
+//       // const content = model.queryValue(id.toString(), key.toString());
+//       //
+//       // this.value = content.value;
+//       // this.loading = content.loading;
+//       // this.notFound = content.notFound;
+//
+//       // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString());
+//       // const value = shuttle.getValue(id, key);
+//       //
+//       // if (value.loading) {
+//       //
+//       //   this.loading = true;
+//       //
+//       // } else {
+//       //
+//       //   this.value = value.value;
+//       //
+//       // }
+//
+//
+//       const form = new KarmaFieldsAlpha.field.form({
+//         driver: driver.toString()
+//       });
+//
+//       const content = form.getValueById(id.toString(), key.toString());
+//
+//       if (content.loading) {
+//
+//         this.loading = true;
+//
+//       } else {
+//
+//         this.value = content.value;
+//
+//       }
+//
+//     } else {
+//
+//       this.value = undefined;
+//
+//     }
+//
+//   }
+//
+//   queryValues(...params) {
+//
+//     // const driver = new KarmaFieldsAlpha.Expression(params[1], this.field);
+//     // const ids = new KarmaFieldsAlpha.Expression(params[2], this.field);
+//     // const key = new KarmaFieldsAlpha.Expression(params[3], this.field);
+//     //
+//     // if (driver.loading || ids.loading || key.loading) {
+//     //
+//     //   return new KarmaFieldsAlpha.LoadingContent();
+//     //
+//     // }
+//     //
+//     // const values = ids.map(id => KarmaFieldsAlpha.Query.getValue(driver.toString(), id.toString(), key.toString()));
+//     //
+//     // if (values.some(value => value.loading)) {
+//     //
+//     //   return new KarmaFieldsAlpha.LoadingContent();
+//     //
+//     // }
+//     //
+//     // new KarmaFieldsAlpha.Content(values.reduce((accumulator, items) => [...accumulator, ...items], []));
+//
+//   }
+//
+//   query(...args) {
+//
+//     const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const params = new KarmaFieldsAlpha.Expression(args[2] || {}, this.field);
+//
+//     if (driver.loading || params.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+//       // // const query = KarmaFieldsAlpha.Driver.getQuery(driver.toString(), paramstring);
+//       //
+//       //
+//       // const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString(), paramstring);
+//       // const query = collection.queryItems();
+//       //
+//       //
+//       // if (query.loading) {
+//       //
+//       //   this.loading = true;
+//       //
+//       // } else {
+//       //
+//       //   this.value = query.value;
+//       //
+//       // }
+//
+//
+//       // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+//       // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString(), paramstring);
+//       // const ids = shuttle.getIds();
+//       //
+//
+//
+//       const table = new KarmaFieldsAlpha.field.table({
+//         driver: driver.toString(),
+//         params: params.toObject()
+//       });
+//
+//       const ids = table.getIds();
+//
+//       if (ids.loading) {
+//
+//         this.loading = true;
+//
+//       } else {
+//
+//         this.value = ids.toArray();
+//
+//       }
+//
+//
+//     }
+//
+//   }
+//
+//   queryCount(...args) {
+//
+//     const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const params = new KarmaFieldsAlpha.Expression(args[2] || {}, this.field);
+//
+//     if (params.loading || driver.loading) {
+//
+//       this.loading;
+//
+//     } else {
+//
+//       // const collection = new KarmaFieldsAlpha.Model.Collection(driver.toString());
+//       //
+//       // collection.paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+//       //
+//       // const count = collection.count();
+//       //
+//       // this.loading = count.loading;
+//       // this.value = count.value;
+//
+//       // const paramstring = KarmaFieldsAlpha.Params.stringify(params.toObject());
+//       // const shuttle = KarmaFieldsAlpha.Shuttle.get(driver.toString(), paramstring);
+//       // const count = shuttle.getCount();
+//
+//       const table = new KarmaFieldsAlpha.field.table({
+//         driver: driver.toString(),
+//         params: params.toObject()
+//       });
+//
+//       const count = table.getCount();
+//
+//       if (count.loading) {
+//
+//         this.loading = true;
+//
+//       } else {
+//
+//         this.value = count.toNumber();
+//
+//       }
+//
+//     }
+//
+//   }
+//
+//   resource(...args) {
+//
+//     const key = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (key.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       this.value = this.field.getResource(key.toString());
+//
+//     }
+//
+//   }
+//
+//
+//   // deprecated
+//   parseParams(...args) {
+//
+//     let params = args[1];
+//
+//     this.parseObject(args[1]); // !!!!
+//
+//   }
+//
+//   getOptions(...args) {
+//
+//     console.error("deprecated");
+//
+//     // const driver = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     // const params = KarmaFieldsAlpha.parseObject(args[2] || {}, this.field);
+//     //
+//     // if (driver.loading || params.loading) {
+//     //
+//     //   return new KarmaFieldsAlpha.LoadingContent();
+//     //
+//     // }
+//     //
+//     // return KarmaFieldsAlpha.Query.getOptions(driver, params);
+//   }
+//
+//   getParam(...args) {
+//
+//     // const key = args[1];
+//
+//     const key = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//
+//     if (key.loading) {
+//
+//       this.loading = true;
+//
+//     } else {
+//
+//       const param = this.field.parent.getParam(key.toString()); // --> using parent to prevent infinite loop when calling from a table
+//
+//       if (param.loading) {
+//
+//         this.loading = true;
+//
+//       } else {
+//
+//         this.value = param.value;
+//
+//       }
+//
+//     }
+//
+//     // this.value = KarmaFieldsAlpha.Store.Layer.getParam(key);
+//
+//
+//   }
+//
+//   getKey() {
+//
+//     this.value = this.field.getKey();
+//
+//   }
+//
+//   getIndex() {
+//
+//     this.value = this.field.request("getIndex");
+//
+//   }
+//
+//   getIds() {
+//
+//     // deprecated ?
+//
+//     this.value = this.field.parent.getContent("id");
+//
+//   }
+//
+//   request(...args) {
+//
+//     this.value = this.field.request(...args.slice(1));
+//
+//     // if (value instanceof KarmaFieldsAlpha.Content) {
+//     //
+//     //   Object.assign(this, value);
+//     //
+//     // } else {
+//     //
+//     //   this.value = value;
+//     //
+//     // }
+//
+//   }
+//
+//   // replace(...args) {
+//   //
+//   //   const string = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//   //   const wildcard = args[2];
+//   //
+//   //   const replacements = args.slice(3).map(replacement => new KarmaFieldsAlpha.Expression(replacement, this.field));
+//   //
+//   //   if (string.loading || replacements.some(value => value.loading)) {
+//   //
+//   //     this.loading = true;
+//   //
+//   //   } else {
+//   //
+//   //     this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string.toString());
+//   //
+//   //   }
+//   //
+//   // }
+//
+//   replace(...args) {
+//
+//     const string = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     const wildcard = args[2];
+//
+//     const replacements = args.slice(3).map(replacement => new KarmaFieldsAlpha.Expression(replacement, this.field));
+//
+//     if (string.loading || replacements.some(value => value.loading)) {
+//
+//       this.loading = true;
+//
+//     } else if (replacements.length) {
+//
+//       const grid = replacements.map(replacement => replacement.toArray());
+//
+//       this.value = grid[0].map((item, i) => grid.reduce((string, replacements) => string.replace(wildcard, replacements[i]), string.toString()));
+//
+//       // this.value = replacements.reduce((string, replacement) => string.replace(wildcard, replacement.toString()), string.toString());
+//
+//     }
+//
+//   }
+//
+//   array(...args) {
+//
+//     const items = args.slice(1).map(arg => new KarmaFieldsAlpha.Expression(arg, this.field));
+//
+//     if (items.loading) {
+//
+//       this.loading;
+//
+//     } else {
+//
+//       this.value = items.map(item => item.toSingle());
+//     }
+//
+//   }
+//
+//   isLoading(...args) {
+//
+//     this.value = new KarmaFieldsAlpha.Expression(args[1], this.field).loading;
+//
+//     // return new KarmaFieldsAlpha.Content(content.loading);
+//
+//   }
+//
+//   isMixed(...args) {
+//
+//     if (Array.isArray(args[1])) {
+//
+//       this.value = new KarmaFieldsAlpha.Expression(args[1], this.field).mixed;
+//
+//     } else {
+//
+//       const content = this.field.getContent(...args.slice(1));
+//
+//       this.value = content.mixed;
+//
+//     }
+//
+//
+//
+//     // const content = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//     //
+//     // return new KarmaFieldsAlpha.Content(content.mixed);
+//
+//   }
+//
+//
+//
+//
+//   async *submit(...args) {
+//
+//     yield* this.field.request("submit");
+//
+//   }
+//
+//   // *add(...args) {
+//   //
+//   //   const num = new KarmaFieldsAlpha.Expression(args[1] || 1, this.field);
+//   //   const index = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//   //   const params = new KarmaFieldsAlpha.Expression(args[3] || {}, this.field);
+//   //
+//   //   while (num.loading || index.loading || params.loading) {
+//   //
+//   //     // yield;
+//   //
+//   //   }
+//   //
+//   //   yield* this.field.request("add", num.toNumber(), index.value, params.toObject());
+//   //
+//   // }
+//   //
+//   // *delete(...args) {
+//   //
+//   //   const index = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//   //   const num = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//   //
+//   //   while (num.loading || index.loading) {
+//   //
+//   //     // yield;
+//   //
+//   //   }
+//   //
+//   //   yield* this.field.request("delete", index.value, num.value);
+//   //
+//   // }
+//   //
+//   // *set(...args) {
+//   //
+//   //   const value = new KarmaFieldsAlpha.Expression(args[1], this.field);
+//   //   const key = new KarmaFieldsAlpha.Expression(args[2], this.field);
+//   //
+//   //   while (value.loading || key.loading) {
+//   //
+//   //     // yield;
+//   //
+//   //   }
+//   //
+//   //   this.field.setContent(value, key.toString());
+//   //
+//   // }
+//
+// }
+//
+//
 
 //
 // KarmaFieldsAlpha.Content = class {

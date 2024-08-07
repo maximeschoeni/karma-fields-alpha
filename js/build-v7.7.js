@@ -35,7 +35,6 @@
 KarmaFieldsAlpha.buildChildren = async function(children, element, clean) {
 	let i = 0;
 	let child = element.firstElementChild;
-	const promises = [];
 	while (i < children.length) {
 		await this.build(children[i], element, child, clean);
 		i++;

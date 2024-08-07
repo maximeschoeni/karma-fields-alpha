@@ -34,24 +34,24 @@ KarmaFieldsAlpha.store = {};
 
 KarmaFieldsAlpha.Store = class {
 
-  static get(...path) {
+  static async get(...path) {
 
     return KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.store, ...path);
   }
 
-  static set(value, ...path) {
+  static async set(value, ...path) {
 
     KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.store, value, ...path);
 
   }
 
-  static remove(...path) {
+  static async remove(...path) {
 
     KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.store, ...path);
 
   }
 
-	static assign(value, ...path) {
+	static async assign(value, ...path) {
 
     KarmaFieldsAlpha.DeepObject.assign(KarmaFieldsAlpha.store, value, ...path);
 
@@ -85,7 +85,7 @@ KarmaFieldsAlpha.Store.Buffer = class {
 
   }
 
-	static get(...path) {
+	static async get(...path) {
 
 		return KarmaFieldsAlpha.Store.get("buffer", ...path);
 
@@ -104,46 +104,46 @@ KarmaFieldsAlpha.Store.Buffer = class {
 
   }
 
-	static set(value, ...path) {
+	static async set(value, ...path) {
 
-		KarmaFieldsAlpha.Store.set(value, "buffer", ...path);
+		await KarmaFieldsAlpha.Store.set(value, "buffer", ...path);
 
 		// KarmaFieldsAlpha.Database.Options.set(value, "buffer", ...path);
 
-    const recordId = this.get("recordId");
-    KarmaFieldsAlpha.Database.Records.set(value, recordId, ...path);
+    const recordId = await this.get("recordId");
+    await KarmaFieldsAlpha.Database.Records.set(value, recordId, ...path);
 
 	}
 
-  static remove(...path) {
+  static async remove(...path) {
 
-		KarmaFieldsAlpha.Store.remove("buffer", ...path);
+		await KarmaFieldsAlpha.Store.remove("buffer", ...path);
 
 		// KarmaFieldsAlpha.Database.Options.remove("buffer", ...path);
 
-    const recordId = this.get( "recordId");
-    KarmaFieldsAlpha.Database.Records.remove(recordId, ...path);
+    const recordId = await this.get( "recordId");
+    await KarmaFieldsAlpha.Database.Records.remove(recordId, ...path);
 
 	}
 
-	static assign(value, ...path) {
+	static async assign(value, ...path) {
 
-		KarmaFieldsAlpha.Store.assign(value, "buffer", ...path);
+		await KarmaFieldsAlpha.Store.assign(value, "buffer", ...path);
 
 		// KarmaFieldsAlpha.Database.Options.assign(value, "buffer", ...path);
 
-    const recordId = this.get("recordId");
-    KarmaFieldsAlpha.Database.Records.assign(value, recordId, ...path);
+    const recordId = await this.get("recordId");
+    await KarmaFieldsAlpha.Database.Records.assign(value, recordId, ...path);
 
 	}
 
-	static merge(value, ...path) {
+	static async merge(value, ...path) {
 
-		const source = this.get(...path);
+		const source = await this.get(...path);
 
 		KarmaFieldsAlpha.DeepObject.merge(source, value);
 
-		this.set(source, ...path);
+		await this.set(source, ...path);
 
   }
 
@@ -151,33 +151,33 @@ KarmaFieldsAlpha.Store.Buffer = class {
 
 KarmaFieldsAlpha.Store.State = class {
 
-  static get(...path) {
+  static async get(...path) {
 
     return KarmaFieldsAlpha.Store.Buffer.get("state", ...path);
 
   }
 
-  static set(value, ...path) {
+  static async set(value, ...path) {
 
     // KarmaFieldsAlpha.History.update(value, ...path);
 
-    const currentValue = this.get(...path);
+    const currentValue = await this.get(...path);
 
-    KarmaFieldsAlpha.History.delta(value, currentValue, ...path);
+    await KarmaFieldsAlpha.History.delta(value, currentValue, ...path);
 
-    KarmaFieldsAlpha.Store.Buffer.set(value, "state", ...path);
+    await KarmaFieldsAlpha.Store.Buffer.set(value, "state", ...path);
 
   }
 
-  static remove(...path) {
+  static async remove(...path) {
 
     // KarmaFieldsAlpha.History.update(null, ...path);
 
-    const currentValue = this.get(...path);
+    const currentValue = await this.get(...path);
 
-    KarmaFieldsAlpha.History.delta(null, currentValue, ...path);
+    await KarmaFieldsAlpha.History.delta(null, currentValue, ...path);
 
-    KarmaFieldsAlpha.Store.Buffer.remove("state", ...path);
+    await KarmaFieldsAlpha.Store.Buffer.remove("state", ...path);
 
   }
 
@@ -192,15 +192,15 @@ KarmaFieldsAlpha.Store.State = class {
   //
   // }
 
-  static getOption(...path) {
+  static async getOption(...path) {
 
-		this.get("options", ...path);
+		return this.get("options", ...path);
 
 	}
 
-  static setOption(data, ...path) {
+  static async setOption(data, ...path) {
 
-		this.set(data, "options", ...path);
+		return this.set(data, "options", ...path);
 
 	}
 
@@ -208,57 +208,39 @@ KarmaFieldsAlpha.Store.State = class {
 
 KarmaFieldsAlpha.Store.Delta = class {
 
-  static get(...path) {
+  static async get(...path) {
 
     return KarmaFieldsAlpha.Store.State.get("delta", ...path);
 
   }
 
-  // static change(value, currentValue, ...path) {
-  //
-  //   KarmaFieldsAlpha.History.delta(value, currentValue, "delta", ...path);
-  //
-  //   KarmaFieldsAlpha.Store.Buffer.set(value, "state", "delta", ...path);
-  //
-  // }
+  static async set(value, ...path) {
 
-  static set(value, ...path) {
+    const currentValue = await this.get(...path) || await KarmaFieldsAlpha.Store.get(...path);
 
-    // const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
-    const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get(...path);
+    await KarmaFieldsAlpha.History.delta(value, currentValue, "delta", ...path);
 
-    KarmaFieldsAlpha.History.delta(value, currentValue, "delta", ...path);
-
-    KarmaFieldsAlpha.Store.Buffer.set(value, "state", "delta", ...path);
+    await KarmaFieldsAlpha.Store.Buffer.set(value, "state", "delta", ...path);
 
   }
 
-  // static backup(value, ...path) {
-  //
-  //   KarmaFieldsAlpha.History.backup(value, "delta", ...path);
-  //
-  //   KarmaFieldsAlpha.Store.Buffer.set(value, "state", "delta", ...path);
-  //
-  // }
+  static async remove(...path) {
 
-  static remove(...path) {
+    const currentValue = await this.get(...path) || await KarmaFieldsAlpha.Store.get(...path);
 
-    // const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get("vars", ...path);
-    const currentValue = this.get(...path) || KarmaFieldsAlpha.Store.get(...path);
+    await KarmaFieldsAlpha.History.delta([], currentValue, "delta", ...path);
 
-    KarmaFieldsAlpha.History.delta([], currentValue, "delta", ...path);
-
-    KarmaFieldsAlpha.Store.Buffer.set([], "state", "delta", ...path);
+    await KarmaFieldsAlpha.Store.Buffer.set([], "state", "delta", ...path);
 
   }
 
-  static hasChange() {
+  static async hasChange() {
 
-		const delta = this.get("vars");
+		const delta = await this.get("vars");
 
 		if (delta) {
 
-			const vars = KarmaFieldsAlpha.Store.get("vars") || {};
+			const vars = await KarmaFieldsAlpha.Store.get("vars") || {};
 
 			return !KarmaFieldsAlpha.DeepObject.include(vars, delta);
 
@@ -267,13 +249,13 @@ KarmaFieldsAlpha.Store.Delta = class {
 		return false;
 	}
 
-	static modified(...path) {
+	static async modified(...path) {
 
-    const delta = this.get("vars", ...path);
+    const delta = await this.get("vars", ...path);
 
     if (delta) {
 
-			const value = KarmaFieldsAlpha.Store.get("vars", ...path);
+			const value = await KarmaFieldsAlpha.Store.get("vars", ...path);
 
 			return KarmaFieldsAlpha.DeepObject.differ(value, delta);
 

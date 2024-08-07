@@ -13,35 +13,35 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 					Object.assign(input.element, this.resource.textarea || this.resource.input);
 				}
 			},
-			update: input => {
+			update: async input => {
 
-        let content = this.getContent();
+        let content = await this.getContent();
 
         input.element.classList.toggle("loading", Boolean(content.loading));
 
         if (!content.loading) {
 
-					if (content.notFound) {
+					// if (content.notFound) {
+					//
+					// 	if (this.resource.createWhenNotFound) {
+					//
+					// 		this.createTask("create");
+					//
+					// 	}
+					//
+					// 	// content = this.getDefault();
+					// 	//
+					// 	// if (!content.loading) {
+					// 	//
+					// 	// 	this.setContent(content);
+					// 	//
+					// 	// 	KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
+					// 	//
+					// 	// }
+					//
+					// }
 
-						if (this.resource.createWhenNotFound) {
-
-							this.createTask("create");
-
-						}
-
-						// content = this.getDefault();
-						//
-						// if (!content.loading) {
-						//
-						// 	this.setContent(content);
-						//
-						// 	KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
-						//
-						// }
-
-					}
-
-					input.element.placeholder = this.getPlaceholder();
+					input.element.placeholder = await this.getPlaceholder();
 
 					input.element.classList.toggle("mixed", Boolean(content.mixed));
 					// input.element.classList.toggle("selected", Boolean(content.mixed && this.selection));
@@ -54,7 +54,16 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
           } else {
 
-            input.element.readOnly = Boolean(this.resource.readonly && this.parse(this.resource.readonly).toBoolean());
+						if (this.resource.readonly) {
+
+							const readonly = await this.parse(this.resource.readonly);
+							input.element.readOnly = readonly.toBoolean();
+
+						} else {
+
+							input.element.readOnly = false;
+
+						}
 
             input.element.parentNode.classList.toggle("modified", Boolean(content.modified));
 
@@ -83,7 +92,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 				const value = content.toString();
 
-        input.element.oninput = event => {
+        input.element.oninput = async event => {
 
 					// this.write(input.element.value, content);
 
@@ -93,33 +102,29 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 					if (normalizedValue.length < content.toString().length) {
 
-						this.save(`${this.uid}-delete`, "Delete");
+						await this.save(`${this.uid}-delete`, "Delete");
 
 					} else {
 
-						this.save(`${this.uid}-insert`, "Insert");
+						await this.save(`${this.uid}-insert`, "Insert");
 
 					}
 
 					// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
 
-					this.setValue(normalizedValue);
+					await this.setValue(normalizedValue);
 
 					this.debounce(() => {
 						this.request("render");
 					}, 400);
 
-
-
-
-
         }
 
-				input.element.onfocus = event => {
+				input.element.onfocus = async event => {
 
-					this.setFocus(content.mixed);
+					await this.setFocus(content.mixed);
 
-					this.request("render"); // update clipboard textarea, unselect other stuffs
+					await this.request("render"); // update clipboard textarea, unselect other stuffs
 
 				}
 
@@ -129,9 +134,17 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 				}
 
+				if (this.resource.disabled) {
 
+					const disabled = await this.parse(this.resource.disabled);
+		      this.disabled = disabled.toBoolean();
 
-				this.resource.disabled = this.isDisabled();
+		    } else if (this.resource.enabled) {
+
+					const enabled = await this.parse(this.resource.enabled);
+		      this.disabled = !enabled.toBoolean();
+
+		    }
 
 
 			}

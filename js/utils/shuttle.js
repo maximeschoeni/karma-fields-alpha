@@ -175,22 +175,32 @@ KarmaFieldsAlpha.Shuttle = class {
   //
   // }
 
-  store(dataset, context) {
+  async store(dataset, context) {
+
+    const items = [];
 
     for (let id in dataset) {
 
       for (let key in dataset[id]) {
 
-        KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", context, this.driver, id, key);
+        items.push({
+          id,
+          key,
+          data: dataset[id][key]
+        });
+
+        // await KarmaFieldsAlpha.Store.set(dataset[id][key], "vars", context, this.driver, id, key);
 
       }
 
     }
 
+    await KarmaFieldsAlpha.Database.Vars.import(items, this.driver);
+
   }
 
 
-  parseResults(results, context) {
+  async parseResults(results, context) {
 
     const dataset = {};
 
@@ -210,11 +220,11 @@ KarmaFieldsAlpha.Shuttle = class {
 
     }
 
-    this.store(dataset, context);
+    await this.store(dataset, context);
 
   }
 
-  parseRelations(relations, context) {
+  async parseRelations(relations, context) {
 
     const dataset = {};
 
@@ -243,7 +253,7 @@ KarmaFieldsAlpha.Shuttle = class {
 
     }
 
-    this.store(dataset, context);
+    await this.store(dataset, context);
 
   }
 
@@ -262,90 +272,78 @@ KarmaFieldsAlpha.Shuttle = class {
   }
 
 
-  async *mix(lazy = false, useCache = this.useCache) {
+  async *mix(driver, id, lazy = true) {
 
     this.idle = false;
     this.started = true;
 
-    const idAlias = this.getAlias( "id");
+    const idAlias = this.getAlias("id");
     const relations = this.getRelations();
 
+    let subqueries = await KarmaFieldsAlpha.Database.Queries.getQuery(driver, id, "subqueries") || new Set();
 
+    let queriedIds;
 
-    // if (!this.queried) {
+    if (subqueries.has("query")) {
 
-    if (!this.queries.has("query")) {
+      queriedIds = await KarmaFieldsAlpha.Database.Queries.getQuery(driver, id, "queriedIds") || [];
 
-      this.queries.add("query");
-      // this.queried = true;
+    } else {
 
-      let paramstring = this.getParamstring();
+      subqueries.add("query")
 
-      if (useCache) {
+      await KarmaFieldsAlpha.Database.Queries.set(subqueries, driver, id, "subqueries");
 
-        yield;
+      let paramstring = id;
 
-        const results = await KarmaFieldsAlpha.Database.Queries.get("query", this.driver, paramstring);
+      if (!paramstring) {
 
-        this.cached = true;
+        let requestedIds = await KarmaFieldsAlpha.Database.Queries.getQuery(driver, id, "requestedIds") || new Set();
 
-        if (results) {
-
-          this.parseResults(results, "cache");
-
-          this.cachedIds = results.map(result => result[idAlias]);
-
-          if (relations && this.cachedIds.length) {
-
-            const paramstring = `ids=${this.cachedIds.join(",")}`;
-
-            for (let relation of relations) {
-
-              const results = await KarmaFieldsAlpha.Database.Queries.get(relation, this.driver, paramstring);
-
-              if (results) {
-
-                this.parseRelations(results, "cache");
-
-              } else {
-
-                break;
-
-              }
-
-            }
-
-          }
-
-        }
+        paramstring = `ids=${[requestedIds].join(",")}`;
 
       }
 
       yield;
 
-      const results = await KarmaFieldsAlpha.HTTP.get(`query/${this.driver}`, paramstring);
+      const results = await KarmaFieldsAlpha.HTTP.get(`query/${driver}`, paramstring);
+
+      queriedIds = [];
 
       if (results) {
 
-        if (useCache) {
+        const items = [];
 
-          await KarmaFieldsAlpha.Database.Queries.set(results, "query", this.driver, paramstring);
+
+        const idAlias = KarmaFieldsAlpha.Driver.getAlias(driver, "id");
+
+        for (let item of results) {
+
+          const id = item[idAlias];
+
+          for (let key in item) {
+
+            items.push({id, key, data: [item[key]]});
+
+          }
+
+          queriedIds.add(id);
 
         }
 
-        this.parseResults(results, "remote");
+        await KarmaFieldsAlpha.Database.Vars.import(items, driver);
 
-        this.queriedIds = results.map(result => result[idAlias]);
-
-        // KarmaFieldsAlpha.Store.State.set(this.queriedIds, "ids", this.driver, this.paramstring);
+        await KarmaFieldsAlpha.Database.Queries.set(queriedIds, driver, id, "queriedIds");
 
       }
 
-      this.queried = true;
+      await KarmaFieldsAlpha.Database.Queries.set(true, driver, id, "queried");
+      // this.queried = true;
 
       if (lazy) {
 
-        this.idle = true;
+        await KarmaFieldsAlpha.Database.Queries.set(true, driver, id, "idle");
+        // this.idle = true;
         return;
 
       }
@@ -353,46 +351,84 @@ KarmaFieldsAlpha.Shuttle = class {
     }
 
 
-
-
-    if (relations && this.queriedIds && this.queriedIds.length > 0) {
+    if (relations && queriedIds.length > 0) {
 
       for (let relation of relations) {
 
-        // if (!this.relationQuery[relation]) {
-        if (!this.queries.has(relation)) {
+        const subqueries = await KarmaFieldsAlpha.Database.Queries.getQuery(driver, id, "subqueries") || new Set();
 
-          this.queries.add(relation);
+        if (!subqueries.has(relation)) {
+
+          subqueries.add(relation);
+
+          await KarmaFieldsAlpha.Database.Queries.set(subqueries, driver, id, "subqueries");
 
           yield;
 
           const max = 200;
 
-          for (let i = 0; i < this.queriedIds.length; i += max) {
+          for (let i = 0; i < queriedIds.length; i += max) {
 
-            const paramstring = `ids=${this.queriedIds.slice(i, i + max).join(",")}`;
+            const paramstring = `ids=${queriedIds.slice(i, i + max).join(",")}`;
 
-            const results = await KarmaFieldsAlpha.HTTP.get(`relations/${this.driver}/${relation}`, paramstring);
+            const results = await KarmaFieldsAlpha.HTTP.get(`relations/${driver}/${relation}`, paramstring);
 
             if (results) {
 
-              if (useCache) {
+              // await this.parseRelations(results, "remote");
+              const dataset = {};
 
-                await KarmaFieldsAlpha.Database.Queries.set(results, relation, this.driver, paramstring);
+              for (let relation of results) {
+
+                const id = relation.id.toString();
+                const key = relation.key.toString();
+
+                if (!dataset[id]) {
+
+                  dataset[id] = {};
+
+                }
+
+                if (!dataset[id][key]) {
+
+                  dataset[id][key] = [];
+
+                }
+
+                dataset[id][key].push(relation.value);
 
               }
 
-              this.parseRelations(results, "remote");
+              const items = [];
+
+              for (let id in dataset) {
+
+                for (let key in dataset[id]) {
+
+                  items.push({id, key, data: dataset[id][key]});
+
+                }
+
+              }
+
+              await KarmaFieldsAlpha.Database.Vars.import(items, driver);
 
             }
 
           }
 
-          this.relationQuery[relation] = true;
+          // this.relationQuery[relation] = true;
+
+
+          // do we really need this?
+          const relationQuery = await KarmaFieldsAlpha.Database.Queries.get(driver, id, "relationQuery");
+          relationQuery[relation] = true;
+          await KarmaFieldsAlpha.Database.Queries.set(relationQuery, driver, id, "relationQuery");
 
           if (lazy) {
 
-            this.idle = true;
+            // this.idle = true;
+            await KarmaFieldsAlpha.Database.Queries.set(true, driver, id, "idle");
             return;
 
           }
@@ -403,27 +439,8 @@ KarmaFieldsAlpha.Shuttle = class {
 
     }
 
-    this.complete = true;
-
-
-
-    // write null values
-
-    // for (let id of this.ids) {
-    //
-    //   for (let key of this.keys) {
-    //
-    //     const value = KarmaFieldsAlpha.Store.get("vars", "remote", this.driver, id, key);
-    //
-    //     if (!value) {
-    //
-    //       KarmaFieldsAlpha.Store.set([], "vars", "remote", this.driver, id, key);
-    //
-    //     }
-    //
-    //   }
-    //
-    // }
+    // this.complete = true;
+    await KarmaFieldsAlpha.Database.Queries.set(true, driver, id, "complete");
 
   }
 

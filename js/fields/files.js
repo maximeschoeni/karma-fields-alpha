@@ -91,25 +91,25 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   }
 
-  async *edit() {
+  async edit() {
 
     if (this.resource.uploader === "wp" || this.resource.library === "wp") {
 
-      this.openMediaLibrary();
+      await this.openMediaLibrary();
 
     } else {
 
-      yield* super.edit();
+      await super.edit();
 
     }
 
   }
 
-  openMediaLibrary() {
+  async openMediaLibrary() {
 
     // const rootSelection = KarmaFieldsAlpha.Store.State.getSelection();
 
-    const selection = this.getSelection();
+    // const selection = await this.getSelection();
 
     const frame = wp.media({
       title: "Select file",
@@ -130,26 +130,24 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
       },
       multiple: this.getMax() > 1 ? true : false
     });
-    frame.on("select", () => {
+    frame.on("select", async () => {
 
       const attachments = frame.state().get("selection").toJSON();
       const attachmentIds = attachments.map(attachment => attachment.id.toString());
 
-      const work = this.insert(attachmentIds);
-      KarmaFieldsAlpha.Jobs.add(work);
-      this.setFocus(true);
-      this.request("render");
+      await KarmaFieldsAlpha.rendering;
+
+      // KarmaFieldsAlpha.task = this.insert(attachmentIds);
+      await this.insert(attachmentIds);
+      await this.setFocus(true);
+      await this.render();
 
     });
-    frame.on("open", () => {
+    frame.on("open", async () => {
       let mediaSelection = frame.state().get("selection");
-      const ids = this.getSelectedIds();
-      // if (!ids.loading) {
-      //   for (let id of ids.toArray()) {
-      //     mediaSelection.add(wp.media.attachment(id));
-      //   }
-      // }
-      for (let id of ids) {
+      const ids = await this.getSelectedIds();
+
+      for (let id of ids.toArray()) {
         mediaSelection.add(wp.media.attachment(id));
       }
     });

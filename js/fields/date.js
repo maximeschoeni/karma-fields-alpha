@@ -151,7 +151,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
   }
 
-  getDefault() {
+  async getDefault() {
 
     let content;
 
@@ -163,7 +163,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
     } else if (this.resource.default) {
 
-      content = this.parse(this.resource.default);
+      content = await this.parse(this.resource.default);
 
     } else if (this.resource.default !== null) {
 
@@ -283,14 +283,15 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
           event.preventDefault(); // -> prevent input blur event
         };
       },
-      update: container => {
+      update: async container => {
 
-        const content = this.getContent();
-        // const selection = this.getSelection();
+        const content = await this.getContent();
 
-        const currentDate = this.getOption("date");
+        const currentDate = await this.getState("date");
 
-        if (this.hasFocus() && currentDate) {
+        const hasFocus = await this.hasFocus();
+
+        if (hasFocus && currentDate) {
 
           const rows = this.createCalendar(currentDate);
           const activeDate = !content.loading && this.constructor.parse(content.toString(), this.resource.storeFormat);
@@ -310,10 +311,10 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                         tag: "a",
                         update: a => {
                           a.element.innerHTML = "&lsaquo;";
-                          a.element.onclick = event => {
+                          a.element.onclick = async event => {
                             currentDate.setMonth(currentDate.getMonth()-1);
-                            this.setOption(currentDate, "date");
-                            container.render();
+                            await this.setState(currentDate, "date");
+                            await container.render();
                           };
                         }
                       }
@@ -332,10 +333,10 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                         tag: "a",
                         update: a => {
                           a.element.innerHTML = "&rsaquo;";
-                          a.element.onclick = event => {
+                          a.element.onclick = async event => {
                             currentDate.setMonth(currentDate.getMonth()+1);
-                            this.setSelection(currentDate, "date");
-                            container.render();
+                            await this.setSelection(currentDate, "date");
+                            await container.render();
                           };
                         }
                       }
@@ -370,11 +371,11 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                               a.element.onmouseup = async event => {
                                 event.preventDefault();
                                 const sqlDate = this.constructor.format(day.date, this.resource.storeFormat);
-                                this.save("date", "Select Date");
-                                this.setValue(sqlDate);
-                                this.removeOption("date");
+                                await this.save("date", "Select Date");
+                                await this.setValue(sqlDate);
+                                await this.removeState("date");
                                 await container.render();
-                                this.render();
+                                await this.render();
                               }
                             }
                           }],
@@ -422,15 +423,17 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                 input.element.type = "text";
                 input.element.id = this.getUid();
               },
-              update: (input) => {
+              update: async input => {
 
                 // let value = this.getSingleValue();
-                const content = this.getContent();
+                const content = await this.getContent();
 
                 // const selection = this.getSelection();
-                const currentDate = this.getOption("date");
+                const currentDate = await this.getState("date");
 
-                input.element.placeholder = this.getPlaceholder();
+                const hasFocus = await this.hasFocus();
+
+                input.element.placeholder = await this.getPlaceholder();
 
                 input.element.classList.toggle("loading", Boolean(content.loading));
 
@@ -465,41 +468,44 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
                       const date = this.constructor.parse(input.element.value, this.resource.displayFormat);
 
-                      this.save("date", "Change Date");
+                      await this.save("date", "Change Date");
 
                       if (date) {
 
-                        this.setOption(date, "date");
+                        await this.setState(date, "date");
                         // await container.render();
                         const sqlDate = this.constructor.format(date, this.resource.storeFormat);
                         // const content = new KarmaFieldsAlpha.Content(sqlDate);
-                        this.setValue(sqlDate);
+                        await this.setValue(sqlDate);
 
                       } else {
 
-                        this.setValue(input.element.value);
+                        await this.setValue(input.element.value);
 
                       }
 
-                      this.render();
+                      await this.render();
                     };
 
-                    input.element.onfocus = () => {
+                    input.element.onfocus = async () => {
                       const date = this.constructor.parse(input.element.value, this.resource.displayFormat) || new Date();
 
-                      this.setOption(date, "date");
+                      await this.setState(date, "date");
 
-                      this.setFocus(content.mixed ? true : false);
+                      await this.setFocus(content.mixed ? true : false);
 
-                      container.render();
+                      await container.render();
                     };
 
-                    input.element.onblur = () => {
+                    input.element.onblur = async () => {
 
-                      if (this.hasFocus()) {
+                      // const hasFocus = await this.hasFocus();
 
-                        this.removeFocus();
-                        this.render();
+                      if (hasFocus) {
+
+                        await this.removeFocus();
+                        await this.render();
+
                       }
 
                     }
@@ -538,7 +544,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
                   }
 
 
-                  if (this.hasFocus() && input.element !== document.activeElement && !content.mixed) {
+                  if (hasFocus && input.element !== document.activeElement && !content.mixed) {
 
           					input.element.focus();
 
@@ -546,7 +552,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
 
 
-                  if (!this.hasFocus() || !currentDate && input.element === document.activeElement) {
+                  if (!hasFocus || !currentDate && input.element === document.activeElement) {
 
                     input.element.blur();
 

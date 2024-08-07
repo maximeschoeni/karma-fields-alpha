@@ -2,23 +2,25 @@
 KarmaFieldsAlpha.Content = class {
 
 
-  constructor(value, params) {
+  constructor(value) {
 
-    if (value instanceof KarmaFieldsAlpha.Content) {
+    // if (value instanceof KarmaFieldsAlpha.Content) {
+    //
+    //   this.value = value.value;
+    //
+    // } else {
+    //
+    //   this.value = value;
+    //
+    // }
+    //
+    // if (params) {
+    //
+    //   Object.assign(this, params);
+    //
+    // }
 
-      this.value = value.value;
-
-    } else {
-
-      this.value = value;
-
-    }
-
-    if (params) {
-
-      Object.assign(this, params);
-
-    }
+    this.value = value;
 
   }
 
@@ -46,60 +48,60 @@ KarmaFieldsAlpha.Content = class {
   //
   // }
 
-  value(value) {
+  // value(value) {
+  //
+  //   this.value = value;
+  //
+  //   return this;
+  // }
 
-    this.value = value;
-
-    return this;
-  }
-
-  getAt(index) {
-
-    const content = new KarmaFieldsAlpha.Content();
-
-    if (this.loading) {
-
-      content.loading = true;
-
-    } else {
-
-      content.value = this.toArray()[index];
-
-    }
-
-    return content;
-  }
-
-  getChild(key) {
-
-    const content = new KarmaFieldsAlpha.Content();
-
-    if (this.loading) {
-
-      content.loading = true;
-
-    } else {
-
-      content.value = this.toObject()[key];
-
-    }
-
-    return content;
-  }
-
-  set(content) { // deprecated
-
-    if (content.loading) {
-
-      this.loading = true;
-
-    } else {
-
-      this.value = content.value;
-
-    }
-
-  }
+  // getAt(index) {
+  //
+  //   const content = new KarmaFieldsAlpha.Content();
+  //
+  //   if (this.loading) {
+  //
+  //     content.loading = true;
+  //
+  //   } else {
+  //
+  //     content.value = this.toArray()[index];
+  //
+  //   }
+  //
+  //   return content;
+  // }
+  //
+  // getChild(key) {
+  //
+  //   const content = new KarmaFieldsAlpha.Content();
+  //
+  //   if (this.loading) {
+  //
+  //     content.loading = true;
+  //
+  //   } else {
+  //
+  //     content.value = this.toObject()[key];
+  //
+  //   }
+  //
+  //   return content;
+  // }
+  //
+  // set(content) { // deprecated
+  //
+  //   if (content.loading) {
+  //
+  //     this.loading = true;
+  //
+  //   } else {
+  //
+  //     this.value = content.value;
+  //
+  //   }
+  //
+  // }
 
   equals(content) {
 
@@ -107,12 +109,12 @@ KarmaFieldsAlpha.Content = class {
 
   }
 
-  assign(content) {
-
-    this.value = content.value;
-    this.loading = content.loading;
-
-  }
+  // assign(content) {
+  //
+  //   this.value = content.value;
+  //   this.loading = content.loading;
+  //
+  // }
 
   isEmpty() {
 
@@ -123,21 +125,25 @@ KarmaFieldsAlpha.Content = class {
 
     const clone = new this.constructor();
 
-    Object.assign(clone, this);
+    this.value = clone.value;
 
     return clone;
 
   }
 
-  slice(index = 0, length = this.toArray().length) {
-
-    return this.toArray().slice(index, index + length);
-
-  }
-
-
+  // slice(index = 0, length = this.toArray().length) {
+  //
+  //   return this.toArray().slice(index, index + length);
+  //
+  // }
 
   toSingle() {
+
+    if (this.loading || this.mixed || this.value === undefined) {
+
+      return;
+
+    }
 
     if (Array.isArray(this.value)) {
 
@@ -150,25 +156,36 @@ KarmaFieldsAlpha.Content = class {
 
   toObject() {
 
-    return this.toSingle() || {};
+    if (this.loading || this.mixed || this.value === undefined) {
 
+      return {};
+
+    }
+
+    if (Array.isArray(this.value)) {
+
+      return this.value[0] || {};
+
+    }
+
+    return this.value || {};
   }
 
   toString() {
 
-    if (this.loading || this.mixed) {
+    if (this.loading || this.mixed || this.value === undefined) {
 
       return "";
 
     }
 
-    if (this.mixed) {
+    let value = this.value;
 
-      return "[mixed]";
+    if (Array.isArray(value)) {
+
+      value = value[0];
 
     }
-
-    let value = this.toSingle();
 
     if (typeof value === "string") {
 
@@ -194,21 +211,45 @@ KarmaFieldsAlpha.Content = class {
 
     }
 
-    let value = this.toSingle();
+    if (Array.isArray(this.value)) {
 
-    return Number(value);
+      return Number(this.value[0]);
+
+    } else {
+
+      return Number(this.value);
+
+    }
 
   }
 
   toBoolean() {
 
-    let value = this.toSingle();
+    if (this.loading || this.mixed || this.value === undefined) {
+
+      return false;
+
+    }
+
+    let value = this.value;
+
+    if (Array.isArray(value)) {
+
+      value = value[0];
+
+    }
 
     return Boolean(value);
 
   }
 
   toArray() {
+
+    if (this.loading || this.mixed || this.value === undefined) {
+
+      return [];
+
+    }
 
     if (this.value === undefined) {
 
@@ -224,23 +265,11 @@ KarmaFieldsAlpha.Content = class {
 
   }
 
-  do() {
-
-    if (this.task) {
-
-      KarmaFieldsAlpha.Jobs.add(this.value);
-
-    }
-
-  }
-
 }
 
-KarmaFieldsAlpha.Content.Loading = class extends KarmaFieldsAlpha.Content {
+KarmaFieldsAlpha.Content.Loading = class {
 
   constructor() {
-
-    super();
 
     this.loading = true;
 

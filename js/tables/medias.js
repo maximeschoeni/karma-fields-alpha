@@ -38,54 +38,400 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.table {
   // }
 
 
-  async *edit() {
+  async edit() {
 
   }
 
-  async *add(length = 1, index = undefined, params = {}) {
+  async add(length = 1, index = undefined, params = {}) {
 
     params = {...params, filetype: "folder"}
 
-    yield* super.add(1, index, params);
+    await super.add(1, index, params);
 
   }
 
-  async *upload(files, index) {
+  // async *upload(files, index) {
+  //
+  //   let shuttle = await this.getShuttle();
+  //
+  //   while (!shuttle) {
+  //
+  //     yield;
+  //     shuttle = await this.getShuttle();
+  //
+  //   }
+  //
+  //   let defaults = await this.getDefaultParams();
+  //
+  //   while (defaults.loading) {
+  //
+  //     yield;
+  //     defaults = await this.getDefaultParams();
+  //   }
+  //
+  //   // let filters = this.getFilters();
+  //   //
+  //   // while (filters.loading) { // should never happens since this.params is loaded now !
+  //   //
+  //   //   yield;
+  //   //   filters = this.getFilters();
+  //   // }
+  //
+  //   const params = {...shuttle.filters, ...defaults.toObject()};
+  //
+  //   const body = this.getChild("body");
+  //
+  //   if (index === undefined) {
+  //
+  //     if (body) {
+  //
+  //       index = await body.getNewFileIndex();
+  //
+  //     } else {
+  //
+  //       index = 0;
+  //
+  //     }
+  //
+  //   }
+  //
+  //   await this.save("insert", "Insert");
+  //
+  //   // set.add(params, index, length);
+  //   // this.shuttle.upload(files, params, index);
+  //
+  //
+  //   // -> reformat params
+  //   // params = Object.fromEntries(Object.entries(params).map(([key, value]) => [shuttle.getAlias(key), new KarmaFieldsAlpha.Content(value).toArray()]));
+  //
+  //
+  //
+  //   // create a token per file
+  //
+  //   const tokens = [];
+  //
+  //   for (let file of files) {
+  //
+  //     const token = this.createToken();
+  //     tokens.push(token);
+  //
+  //     // set default params
+  //     for (let key in params) {
+  //
+  //       await this.setValueById(params[key], token, key);
+  //
+  //     }
+  //
+  //   }
+  //
+  //   let set = await this.getIds();
+  //
+  //   while (set.loading) {
+  //
+  //     yield;
+  //     set = await this.getIds();
+  //
+  //   }
+  //
+  //   // add token in queried ids
+  //
+  //   const ids = [...set.toArray()];
+  //
+  //   ids.splice(index, 0, ...tokens);
+  //
+  //   await KarmaFieldsAlpha.Store.set(ids, "buffer", "state", "ids", shuttle.driver, shuttle.paramstring); // do not update history
+  //
+  //   if (body) {
+  //
+  //     await body.select(index, tokens.length);
+  //
+  //   }
+  //
+  //   yield* body.create(index, files.length);
+  //
+  //   yield* this.increaseCount(tokens.length);
+  //
+  //
+  //   // upload files
+  //
+  //   const createdIds = [];
+  //
+  //   for (let file of files) {
+  //
+  //     const token = tokens.shift();
+  //
+  //     yield;
+  //
+  //     let id = await KarmaFieldsAlpha.HTTP.upload(file); // -> parent and params are not going anywhere!
+  //
+  //     id = id.toString();
+  //
+  //     createdIds.push(id);
+  //
+  //     // if (params) {
+  //     //
+  //     //   await KarmaFieldsAlpha.HTTP.post(`update/${shuttle.driver}`, {[id]: {trash: ["0"], ...params}});
+  //     //
+  //     // }
+  //
+  //     // set preliminary values
+  //
+  //     const delta = await KarmaFieldsAlpha.Store.Delta.get("vars", "remote", shuttle.driver, token);
+  //
+  //     if (delta) {
+  //
+  //       for (let key in delta) {
+  //
+  //         await KarmaFieldsAlpha.Store.Delta.set(delta[key], "vars", "remote", shuttle.driver, id, key); // update history !
+  //
+  //       }
+  //
+  //       await KarmaFieldsAlpha.HTTP.post(`update/${shuttle.driver}`, {[id]: {trash: ["0"], ...delta}});
+  //
+  //     }
+  //
+  //     // remove preliminary values
+  //     await KarmaFieldsAlpha.Store.remove("buffer", "state", "delta", "vars", "remote", shuttle.driver, token); // do not update history
+  //
+  //     // handle history
+  //     await KarmaFieldsAlpha.Store.set(["1"], "vars", "remote", shuttle.driver, id, "trash");
+  //     await KarmaFieldsAlpha.Store.Delta.set(["0"], "vars", "remote", shuttle.driver, id, "trash");
+  //     await KarmaFieldsAlpha.Store.set(["0"], "vars", "remote", shuttle.driver, id, "trash");
+  //
+  //     // replace tokens by id
+  //     const idsRequest = await this.getIds();
+  //     let newIds = idsRequest.toArray().map(item => item === token ? id : item);
+  //
+  //     if (newIds.some(id => typeof id === "symbol")) {
+  //
+  //       await KarmaFieldsAlpha.Store.set(newIds, "buffer", "state", "ids", shuttle.driver, shuttle.paramstring); // do not update history
+  //
+  //     } else {
+  //
+  //       await KarmaFieldsAlpha.Store.State.set(newIds, "ids", shuttle.driver, shuttle.paramstring); // update history
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  //   // load newly created files
+  //
+  //   const paramstring = `ids=${createdIds.join(",")}`;
+  //   const newShuttle = new KarmaFieldsAlpha.Shuttle(shuttle.driver, paramstring);
+  //
+  //   await KarmaFieldsAlpha.Store.set(newShuttle, "shuttles", shuttle.driver, paramstring);
+  //
+  //   yield* shuttle.mix();
+  //
+  //
+  // }
 
-    let shuttle = this.getShuttle();
+  // async *upload(files, index) {
+  //
+  //   let model = await this.model;
+  //
+  //   while (model.loading) {
+  //
+  //     yield;
+  //     model = await this.load();
+  //
+  //   }
+  //
+  //   let tableDefaults = await body.getParams();
+  //
+  //   while (tableDefaults.loading) {
+  //
+  //     yield;
+  //     tableDefaults = await body.getParams();
+  //   }
+  //
+  //   const {page, ppp, order, orderby, ...filters} = tableDefaults.toObject();
+  //
+  //   const body = this.getChild("body");
+  //
+  //   if (index === undefined) {
+  //
+  //     if (body) {
+  //
+  //       index = await body.getNewFileIndex();
+  //
+  //     } else {
+  //
+  //       index = 0;
+  //
+  //     }
+  //
+  //   }
+  //
+  //   await this.save("insert", "Insert");
+  //
+  //   // set.add(params, index, length);
+  //   // this.shuttle.upload(files, params, index);
+  //
+  //
+  //   // -> reformat params
+  //   // params = Object.fromEntries(Object.entries(params).map(([key, value]) => [shuttle.getAlias(key), new KarmaFieldsAlpha.Content(value).toArray()]));
+  //
+  //
+  //
+  //   // create a token per file
+  //
+  //   const tokens = [];
+  //
+  //   for (let file of files) {
+  //
+  //     const token = this.createToken();
+  //     tokens.push(token);
+  //
+  //     // set default params
+  //     for (let key in filters) {
+  //
+  //       await KarmaFieldsAlpha.Database.State.set([filters[key]], "external", model.driver, token, key); // -> do not save history !
+  //
+  //       // await this.setValueById(filters[key], token, key);
+  //
+  //     }
+  //
+  //   }
+  //
+  //   const originalIds = model.ids;
+  //   let idsWithTokens = [...model.ids];
+  //
+  //   idsWithTokens.splice(index, 0, ...tokens);
+  //
+  //   // await KarmaFieldsAlpha.Store.set(ids, "buffer", "state", "ids", shuttle.driver, shuttle.paramstring); // do not update history
+  //   await KarmaFieldsAlpha.Database.States.set(idsWithTokens, "queries", model.driver, model.paramstring, "ids"); // do not update history
+  //
+  //   const body = this.getChild("body");
+  //
+  //   if (body) {
+  //
+  //     await body.select(index, tokens.length);
+  //
+  //   }
+  //
+  //   // yield* body.create(index, files.length);
+  //
+  //   yield* this.increaseCount(tokens.length);
+  //
+  //
+  //   // upload files
+  //
+  //   const createdIds = [];
+  //
+  //   for (let file of files) {
+  //
+  //     const token = tokens.shift();
+  //
+  //     yield;
+  //
+  //     let id = await KarmaFieldsAlpha.HTTP.upload(file); // -> parent and params need to be saved later
+  //
+  //     id = id.toString();
+  //
+  //     createdIds.push(id);
+  //
+  //     // const delta = await KarmaFieldsAlpha.Store.Delta.get("vars", "remote", shuttle.driver, token);
+  //     const statesWidthToken = KarmaFieldsAlpha.Database.State.select("external", model.driver, token); // select all keys with tokens
+  //
+  //     if (statesWidthToken) {
+  //
+  //       await KarmaFieldsAlpha.Database.State.insert(statesWidthToken.map(state => ({...state, id})), "external"); // replace token by ids
+  //
+  //       const obj = Object.fromEntries(items.map(item => [item.key, item.data]));
+  //
+  //       await KarmaFieldsAlpha.HTTP.post(`update/${model.driver}`, {[id]: {trash: ["0"], ...obj}}); // -> update defaults values to attachment
+  //
+  //     }
+  //
+  //     // remove preliminary values
+  //     // await KarmaFieldsAlpha.Store.remove("buffer", "state", "delta", "vars", "remote", shuttle.driver, token); // do not update history
+  //     await KarmaFieldsAlpha.Database.State.remove("external", model.driver, token);
+  //
+  //     // handle history
+  //     await KarmaFieldsAlpha.Database.State.set(["1"], "external", model.driver, id, "trash");
+  //     await KarmaFieldsAlpha.History.write(["1"], ["0"] "external", model.driver, id, "trash");
+  //
+  //
+  //     // await KarmaFieldsAlpha.Store.set(["1"], "vars", "remote", shuttle.driver, id, "trash");
+  //     // await KarmaFieldsAlpha.Store.Delta.set(["0"], "vars", "remote", shuttle.driver, id, "trash");
+  //     // await KarmaFieldsAlpha.Store.set(["0"], "vars", "remote", shuttle.driver, id, "trash");
+  //
+  //     // replace tokens by id
+  //     idsWithTokens = await KarmaFieldsAlpha.Database.States.get("queries", model.driver, model.paramstring, "ids"); // update ids
+  //     // const idsRequest = await this.getIds();
+  //
+  //     idsWithTokens = idsWithTokens.map(item => item === token ? id : item); // replace token with the id in ids
+  //     await KarmaFieldsAlpha.Database.States.set("queries", model.driver, model.paramstring, "ids"); // no history update yet (may still have token)
+  //
+  //     // let newIds = idsRequest.toArray().map(item => item === token ? id : item);
+  //     //
+  //     // if (newIds.some(id => typeof id === "symbol")) {
+  //     //
+  //     //   await KarmaFieldsAlpha.Store.set(newIds, "buffer", "state", "ids", shuttle.driver, shuttle.paramstring); // do not update history
+  //     //
+  //     // } else {
+  //     //
+  //     //   await KarmaFieldsAlpha.Store.State.set(newIds, "ids", shuttle.driver, shuttle.paramstring); // update history
+  //     //
+  //     // }
+  //
+  //   }
+  //
+  //   let finalIds = await KarmaFieldsAlpha.Database.States.get("queries", model.driver, model.paramstring, "ids"); // update ids
+  //
+  //   finalIds = finalIds.filter(id => id.beginWith("_")) // -> filter tokens
+  //
+  //   await KarmaFieldsAlpha.History.write(finalIds, originalIds "queries", model.driver, model.paramstring, "ids");
+  //
+  //
+  //
+  //   // load newly created files (because values like filename is generated server side)
+  //
+  //   // const paramstring = `ids=${createdIds.join(",")}`;
+  //   // const newShuttle = new KarmaFieldsAlpha.Shuttle(shuttle.driver, paramstring);
+  //   //
+  //   // await KarmaFieldsAlpha.Store.set(newShuttle, "shuttles", shuttle.driver, paramstring);
+  //   //
+  //   // yield* shuttle.mix();
+  //
+  //   await KarmaFieldsAlpha.Database.Queries.remove(model.driver, "");
+  //   await KarmaFieldsAlpha.Database.Queries.set(createdIds, model.driver, "", "requestedIds");
+  //
+  //   yield* this.fetch(model.driver, "", false);
+  //
+  //
+  // }
 
-    while (!shuttle) {
 
-      yield;
-      shuttle = this.getShuttle();
+  async upload(files, index) {
+
+    let server = await this.server;
+
+    while (server.loading) {
+
+      await this.render();
+      server = await this.createServer();
 
     }
 
-    let defaults = this.getDefaultParams();
+    const body = this.getChild("body");
+
+    let defaults = await body.exportDefaults();
 
     while (defaults.loading) {
 
-      yield;
-      defaults = this.getDefaultParams();
+      await this.render();
+      defaults = await body.exportDefaults();
+
     }
-
-    // let filters = this.getFilters();
-    //
-    // while (filters.loading) { // should never happens since this.params is loaded now !
-    //
-    //   yield;
-    //   filters = this.getFilters();
-    // }
-
-    const params = {...shuttle.filters, ...defaults.toObject()};
-
-    const body = this.getChild("body");
 
     if (index === undefined) {
 
       if (body) {
 
-        index = body.getNewFileIndex();
+        index = await body.getNewFileIndex();
 
       } else {
 
@@ -95,194 +441,140 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.table {
 
     }
 
-    this.save("insert", "Insert");
+    if (body) {
 
-    // set.add(params, index, length);
-    // this.shuttle.upload(files, params, index);
+      await body.select(index, files.length);
+
+    }
+
+    await this.save("insert", "Insert");
+
+    const {page, ppp, order, orderby, ...filters} = server.params;
 
 
-    // -> reformat params
-    // params = Object.fromEntries(Object.entries(params).map(([key, value]) => [shuttle.getAlias(key), new KarmaFieldsAlpha.Content(value).toArray()]));
-
-
-
-    // create a token per file
+    // yield* server.upload(files, index, filters);
 
     const tokens = [];
 
     for (let file of files) {
 
-      const token = this.createToken();
+      const token = server.createToken();
       tokens.push(token);
 
       // set default params
+      const params = {...filters, ...defaults.toObject()};
       for (let key in params) {
 
-        this.setValueById(params[key], token, key);
+        await KarmaFieldsAlpha.Database.States.set([params[key]], "external", server.driver, token, key); // -> do not save history !
 
       }
 
     }
 
-    let set = this.getIds();
-
-    while (set.loading) {
-
-      yield;
-      set = this.getIds();
-
-    }
-
-    // add token in queried ids
-
-    const ids = [...set.toArray()];
+    const previousIds = server.ids;
+    let ids = [...this.ids];
 
     ids.splice(index, 0, ...tokens);
 
-    KarmaFieldsAlpha.Store.set(ids, "buffer", "state", "ids", shuttle.driver, shuttle.paramstring); // do not update history
-
-    if (body) {
-
-      body.select(index, tokens.length);
-
-    }
-
-    yield* body.create(index, files.length);
-
-    yield* this.increaseCount(tokens.length);
-
-
-    // upload files
-
-    const createdIds = [];
+    await KarmaFieldsAlpha.Database.States.set(ids, "queries", server.driver, server.paramstring, "ids"); // do not update history
 
     for (let file of files) {
 
       const token = tokens.shift();
 
-      yield;
-
-      let id = await KarmaFieldsAlpha.HTTP.upload(file); // -> parent and params are not going anywhere!
-
-      id = id.toString();
-
-      createdIds.push(id);
-
-      // if (params) {
-      //
-      //   await KarmaFieldsAlpha.HTTP.post(`update/${shuttle.driver}`, {[id]: {trash: ["0"], ...params}});
-      //
-      // }
-
-      // set preliminary values
-
-      const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote", shuttle.driver, token);
-
-      if (delta) {
-
-        for (let key in delta) {
-
-          KarmaFieldsAlpha.Store.Delta.set(delta[key], "vars", "remote", shuttle.driver, id, key); // update history !
-
-        }
-
-        await KarmaFieldsAlpha.HTTP.post(`update/${shuttle.driver}`, {[id]: {trash: ["0"], ...delta}});
-
-      }
-
-      // remove preliminary values
-      KarmaFieldsAlpha.Store.remove("buffer", "state", "delta", "vars", "remote", shuttle.driver, token); // do not update history
-
-      // handle history
-      KarmaFieldsAlpha.Store.set(["1"], "vars", "remote", shuttle.driver, id, "trash");
-      KarmaFieldsAlpha.Store.Delta.set(["0"], "vars", "remote", shuttle.driver, id, "trash");
-      KarmaFieldsAlpha.Store.set(["0"], "vars", "remote", shuttle.driver, id, "trash");
-
-      // replace tokens by id
-      let newIds = this.getIds().toArray().map(item => item === token ? id : item);
-
-      if (newIds.some(id => typeof id === "symbol")) {
-
-        KarmaFieldsAlpha.Store.set(newIds, "buffer", "state", "ids", shuttle.driver, shuttle.paramstring); // do not update history
-
-      } else {
-
-        KarmaFieldsAlpha.Store.State.set(newIds, "ids", shuttle.driver, shuttle.paramstring); // update history
-
-      }
+      await server.upload(file, token, filters);
 
     }
 
+    ids = await KarmaFieldsAlpha.Database.States.get("queries", server.driver, server.paramstring, "ids");
 
-    // load newly created files
+    await KarmaFieldsAlpha.History.write(ids, previousIds, "queries", server.driver, server.paramstring, "ids"); // update history
 
-    const paramstring = `ids=${createdIds.join(",")}`;
-    const newShuttle = new KarmaFieldsAlpha.Shuttle(shuttle.driver, paramstring);
 
-    KarmaFieldsAlpha.Store.set(newShuttle, "shuttles", shuttle.driver, paramstring);
+    await KarmaFieldsAlpha.Database.Queries.remove(server.driver, "");
+    await KarmaFieldsAlpha.Database.Queries.set(createdIds, server.driver, "", "requestedIds");
 
-    yield* shuttle.mix();
+    const fileServer = new KarmaFieldsAlpha.Server(server.driver); // server without paramstring
+
+    await fileServer.fetchIds();
+    await this.render();
+
+    const relations = KarmaFieldsAlpha.Driver.getRelations(fileServer.driver);
+
+    for (let relation of relations) {
+
+      await fileServer.fetchRelation(relation);
+      await this.render();
+
+    }
+
+    // await KarmaFieldsAlpha.Database.Queries.set(true, fileServer.driver, "", "complete");
 
 
   }
 
-  async *move(index, length, destId) {
+  async move(index, length, destId) {
 
-    let shuttle = this.getShuttle();
+    let server = await this.server;
 
-    while (!shuttle) {
+    // let ids = await this.getIds();
 
-      yield;
-      shuttle = this.getShuttle();
+    while (server.loading) {
 
-    }
-
-    let set = this.getIds();
-
-    while (set.loading) {
-
-      yield;
-      set = this.getIds();
+      await this.render();
+      server = await this.createServer();
 
     }
 
     // remove ids
+    const originalIds = server.ids;
+    const movedIds = originalIds.slice(index, index+length);
+    const newIds = originalIds.filter(id => !movedIds.includes(id));
 
-    const movedIds = set.toArray().slice(index, index+length);
-
-    const newIds = set.toArray().filter(id => !movedIds.includes(id));
-
-    KarmaFieldsAlpha.Store.State.set(newIds, "ids", shuttle.driver, shuttle.paramstring);
+    await KarmaFieldsAlpha.Database.States.set(newIds, "queries", server.driver, server.paramstring, "ids");
+    await KarmaFieldsAlpha.History.write(newIds, originalIds, "queries", server.driver, server.paramstring, "ids");
 
 
     // update vars
 
     for (let id of movedIds) {
 
-      this.setValueById(destId, id, "parent"); // just for update history
+      await this.setValueById(destId, id, "parent"); // just for update history
 
     }
+
+    // save changes
+    const parentKey = KarmaFieldsAlpha.Driver.getAlias(server.driver, "parent");
+    const obj = Object.fromEntries(movedIds.map(id => [id, {[parentKey]: [destId]}]));
+    await KarmaFieldsAlpha.HTTP.post(`update/${server.driver}`, obj);
+
+
+
+    // clear cache
+    await KarmaFieldsAlpha.Database.Queries.remove(server.driver);
+    await KarmaFieldsAlpha.Database.States.remove("queries", server.driver);
+
+
+
 
     // submit changes
 
-    yield* this.submit();
-
-
+    // yield* this.submit();
 
     // reload destination folder
 
-    const params = {...shuttle.params, parent: destId};
-    const paramstring = KarmaFieldsAlpha.Params.stringify(params);
-    const destShuttle = KarmaFieldsAlpha.Store.get("shuttles", shuttle.driver, paramstring);
-
-    KarmaFieldsAlpha.Store.remove("buffer", "state", "ids", shuttle.driver, paramstring); // remove delta without updating cache
-
-    if (destShuttle) {
-
-      destShuttle.reset();
-      yield* destShuttle.mix(false, false); // no lazy, no cache
-
-    }
+    // const params = {...shuttle.params, parent: destId};
+    // const paramstring = KarmaFieldsAlpha.Params.stringify(params);
+    // const destShuttle = await KarmaFieldsAlpha.Store.get("shuttles", shuttle.driver, paramstring);
+    //
+    // await KarmaFieldsAlpha.Store.remove("buffer", "state", "ids", shuttle.driver, paramstring); // remove delta without updating cache
+    //
+    // if (destShuttle) {
+    //
+    //   destShuttle.reset();
+    //   yield* destShuttle.mix(false, false); // no lazy, no cache
+    //
+    // }
 
 
 
@@ -309,13 +601,13 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   }
 
 
-  getContentAt(index, key) {
+  async getContentAt(index, key) {
 
     if (index === "exit") {
 
       switch (key) {
         case "id":
-          const id = this.getContent("parent");
+          const id = await this.getContent("parent");
           return this.getParent(id.toString());
 
         case "filetype":
@@ -346,7 +638,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
     if (index !== "exit") {
 
-      super.setValueAt(content, index, key);
+      return super.setValueAt(content, index, key);
 
     }
 
@@ -356,20 +648,20 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
     if (index !== "exit") {
 
-      super.setContentAt(content, index, key);
+      return super.setContentAt(content, index, key);
 
     }
 
   }
 
 
-  select(index = 0, length = 0) { // to be overrided (ie. Medias grid)
+  async select(index = 0, length = 0) { // to be overrided (ie. Medias grid)
 
-    for (let socket of this.genSockets()) {
+    for await (let socket of this.genSockets()) {
 
       if (socket.id === index) {
 
-        this.setSelection({index: socket.index, length});
+        await this.setSelection({index: socket.index, length});
         break;
 
       }
@@ -378,16 +670,18 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
-  querySelection() { // to be overrided (ie. Medias grid)
+  async querySelection() { // to be overrided (ie. Medias grid)
 
-    const selection = this.getSelection();
+    const selection = await this.getSelection();
 
     if (selection) {
 
       const index = selection.index || 0;
       const length = selection.length || 0;
 
-      const sockets = this.getSockets().slice(index, index+length).filter(socket => socket.id !== "exit");
+      const socketsQuery = await this.getSockets();
+
+      const sockets = socketsQuery.slice(index, index+length).filter(socket => socket.id !== "exit");
 
       if (sockets.length) {
 
@@ -413,19 +707,38 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   //
   // }
 
-  getSockets() {
+  async getSockets() {
 
-    return [...this.genSockets()];
+    const sockets = [];
+
+    for await (let socket of this.genSockets()) {
+
+      sockets.push(socket);
+
+    }
+
+    return sockets;
+
+    // return [...this.genSockets()];
 
   }
 
-  *genSockets() {
+  async *genSockets() {
 
-    const length = this.parent.getLength().toNumber();
-    const parent = this.getContent("parent").toString() || "0";
+    const lengthQuery = await this.parent.getLength();
+    const parentQuery = await this.getContent("parent");
+
+    if (lengthQuery.loading || parentQuery.loading) {
+
+      return;
+
+    }
+
+    const length = lengthQuery.toNumber();
+    const parent = parentQuery.toString() || "0";
     let index = 0;
 
-    if (parent !== "0") {
+    if (parent.toString() !== "0") {
 
       yield {
         index: index++,
@@ -438,7 +751,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
     for (let i = 0; i < length; i++) {
 
       // const itemParent = this.getContentAt(i, "parent").toString() || "0";
-      const filetype = this.getContentAt(i, "filetype").toString();
+      const filetype = await this.getContentAt(i, "filetype");
       // const id = this.getContentAt(i, "id").toString();
 
       // if (itemParent === parent) {
@@ -446,7 +759,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
         yield {
           id: i,
           index: index++,
-          filetype
+          filetype: filetype.toString()
         };
 
       // }
@@ -541,11 +854,13 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   //
   // }
 
-  getLength() {
+  async getLength() {
 
     const length = new KarmaFieldsAlpha.Content();
 
-    length.value = [...this.genSockets()].length;
+    const sockets = await this.getSockets();
+
+    length.value = sockets.length;
 
     return length;
 
@@ -577,9 +892,9 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
 
 
-  getNewItemIndex() {
+  async getNewItemIndex() {
 
-    for (let socket of this.genSockets()) {
+    for await (let socket of this.genSockets()) {
 
       if (socket.filetype === "file") {
 
@@ -589,53 +904,57 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
     }
 
-    return [...this.genSockets()].length - 1;
+    const length = await this.getLength();
+
+    return length.toNumber() - 1;
 
   }
 
-  getNewFileIndex() {
+  async getNewFileIndex() {
 
     // const sockets = this.getSockets();
     //
     // return sockets[sockets.length - 1].id;
 
-    return this.parent.getLength().toNumber();
+    const length = await this.parent.getLength()
+
+    return length.toNumber();
 
   }
 
-  *openFolder(socket) {
+  async openFolder(socket) {
 
     if (socket.filetype === "folder") {
 
       if (socket.id === "exit") {
 
-        this.save(`open`, "Upper Directory");
+        await this.save(`open`, "Upper Directory");
 
-        const parent = this.getContent("parent");
+        const parent = await this.getContent("parent");
 
-        let id = this.getParent(parent.toString());
+        let id = await this.getParent(parent.toString());
 
         while (id.loading) {
 
-          yield;
-          id = this.getParent(parent.toString());
+          await this.render();
+          id = await this.getParent(parent.toString());
 
         }
 
-        this.setValue(id.toString() || "0", "parent");
+        await this.setValue(id.toString() || "0", "parent");
 
-        this.removeSelection();
+        await this.removeSelection();
 
 
       } else {
 
-        this.save(`open`, "Open Directory");
+        await this.save(`open`, "Open Directory");
 
-        const id = this.getContentAt(socket.id, "id");
+        const id = await this.getContentAt(socket.id, "id");
 
-        this.setValue(id.toString() || "0", "parent");
+        await this.setValue(id.toString() || "0", "parent");
 
-        this.removeSelection();
+        await this.removeSelection();
 
       }
 
@@ -647,11 +966,16 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
     if (id && id !== "0") {
 
-      const table = new KarmaFieldsAlpha.field.table({
-        driver: this.getDriver()
-      });
+      // const table = new KarmaFieldsAlpha.field.table({
+      //   driver: this.getDriver()
+      // });
 
-      return table.getValueById(id, "parent");
+      const driver = this.getDriver();
+      const server = new KarmaFieldsAlpha.Server(driver);
+
+      return server.getValue(id, "parent");
+
+      // return table.getValueById(id, "parent");
 
 
 
@@ -771,7 +1095,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   // }
 
 
-  async *move(sockets, targetSocket) {
+  async move(sockets, targetSocket) {
 
 
     // let targetId;
@@ -782,26 +1106,26 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
       // let destId;
 
-      this.removeSelection();
+      await this.removeSelection();
 
       if (targetSocket.id === "exit") {
 
-        this.save("move", "Move upper");
+        await this.save("move", "Move upper");
 
-        const id = this.getContent("parent");
+        const id = await this.getContent("parent");
 
-        let parent = this.getParent(id.toString());
+        let parent = await this.getParent(id.toString());
 
         while (parent.loading) {
 
-          yield;
-          parent = this.getParent(id.toString());
+          await this.render();
+          parent = await this.getParent(id.toString());
 
         }
 
         // destId = parent;
 
-        yield* this.parent.move(sockets[0].id, sockets.length, parent.toString());
+        await this.parent.move(sockets[0].id, sockets.length, parent.toString());
 
         // for (let socket of sockets) {
         //
@@ -811,13 +1135,13 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
       } else {
 
-        this.save("move", "Move to Folder");
+        await this.save("move", "Move to Folder");
 
-        const id = this.getContentAt(targetSocket.id, "id");
+        const id = await this.getContentAt(targetSocket.id, "id");
 
         // destId = id;
 
-        yield* this.parent.move(sockets[0].id, sockets.length, id.toString());
+        await this.parent.move(sockets[0].id, sockets.length, id.toString());
 
         // for (let socket of sockets) {
         //
@@ -1067,12 +1391,14 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   //
   // }
 
-  *buildThumbnails() {
+  *buildThumbnails(selection, hasFocus, sockets) {
 
-    const selection = this.getSelection();
-    const hasFocus = this.hasFocus();
+    // const selection = this.getSelection();
+    // const hasFocus = this.hasFocus();
+    //
+    // for (let socket of this.genSockets()) {
 
-    for (let socket of this.genSockets()) {
+    for (let socket of sockets) {
 
       yield {
         tag: "li",
@@ -1083,18 +1409,14 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
           li.element.classList.toggle("selected", KarmaFieldsAlpha.Segment.contain(selection, socket.index) && hasFocus);
           li.element.classList.toggle("media-dropzone", socket.filetype === "folder");
 
-          li.element.ondblclick = event => {
+          li.element.ondblclick = async event => {
             if (socket.filetype === "folder") {
-              const work = this.openFolder(socket);
-              KarmaFieldsAlpha.Jobs.add(work);
-              this.render();
+              await this.openFolder(socket);
+              await this.render();
             } else { // -> edit image in files field
               this.setSelection({index: socket.index, length: 1});
-              const work = this.request("edit");
-              if (work) {
-                KarmaFieldsAlpha.Jobs.add(work);
-                this.render();
-              }
+              await this.request("edit");
+              await this.render();
             }
           }
 
@@ -1125,14 +1447,13 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
     return {
       class: "media-table-container",
       init: node => {
-        node.element.ondrop = event => {
+        node.element.ondrop = async event => {
           event.preventDefault();
           // debugger;
           const files = event.dataTransfer.files;
           if (files.length) {
-            const work = this.request("upload", files);
-            KarmaFieldsAlpha.Jobs.add(work);
-            this.render();
+            await this.request("upload", files);
+            await this.render();
           }
           node.element.classList.remove("drop-active");
         }
@@ -1157,10 +1478,11 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
             grid.element.style = this.resource.style;
           }
         },
-        update: grid => {
-          const sockets = this.getSockets();
-          const selection = this.getSelection();
+        update: async grid => {
 
+          const sockets = await this.getSockets();
+          const selection = await this.getSelection();
+          const hasFocus = await this.hasFocus();
 
           if (this.resource.draganddrop) {
 
@@ -1176,9 +1498,9 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
               elements.map(element => element.classList.remove("selected"));
             }
 
-            selector.onSelectionComplete = () => {
-              this.setFocus(true);
-              this.request("render");
+            selector.onSelectionComplete = async () => {
+              await this.setFocus(true);
+              await this.request("render");
 
             }
 
@@ -1198,19 +1520,18 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
               element.classList.remove("drop-active");
             };
 
-            selector.ondrop = (index, selection) => {
+            selector.ondrop = async (index, selection) => {
               // const sockets = this.getSockets();
               const slice = sockets.slice(selector.state.selection.index, selector.state.selection.index + selector.state.selection.length);
               const target = sockets[index];
-              const work = this.move(slice, target);
-              KarmaFieldsAlpha.Jobs.add(work);
-              this.setFocus(true);
-              this.render();
+              await this.move(slice, target);
+              await this.setFocus(true);
+              await this.render();
             };
 
-            selector.onCancelDrag = () => {
-              this.setFocus(true);
-              this.request("render");
+            selector.onCancelDrag = async () => {
+              await this.setFocus(true);
+              await this.request("render");
             }
 
           } else if (this.resource.sortable) {
@@ -1230,24 +1551,24 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
             }
 
-            sorter.onSelectionComplete = () => {
+            sorter.onSelectionComplete = async () => {
 
-              this.setFocus(true);
-              this.request("render");
+              await this.setFocus(true);
+              await this.request("render");
 
             }
 
-            sorter.onSwap = (newState, lastState) => {
+            sorter.onSwap = async (newState, lastState) => {
 
-              this.parent.swap(lastState.selection.index, newState.selection.index, newState.selection.length);
-              this.setSelection(newState.selection);
+              await this.parent.swap(lastState.selection.index, newState.selection.index, newState.selection.length);
+              await this.setSelection(newState.selection);
 
             };
 
-            sorter.onSort = (newSelection, lastSelection) => {
+            sorter.onSort = async (newSelection, lastSelection) => {
 
-              this.setFocus(true);
-              this.request("render");
+              await this.setFocus(true);
+              await this.request("render");
 
             }
 
@@ -1298,8 +1619,15 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
           // }
 
-        },
-        children: [...this.buildThumbnails()]
+          // const selection = this.getSelection();
+          // const hasFocus = this.hasFocus();
+          //
+          // for (let socket of this.genSockets()) {
+
+          grid.children = [...this.buildThumbnails(selection, hasFocus, sockets)];
+
+        }
+        // children: [...this.buildThumbnails()]
       }
     };
 
@@ -1370,9 +1698,8 @@ KarmaFieldsAlpha.field.saucer.upload = class extends KarmaFieldsAlpha.field.butt
 							if (files.length) {
                 // this.parent.request("body", "upload", files);
 
-                const work = this.parent.request("upload", files);
-                KarmaFieldsAlpha.Jobs.add(work);
-                this.render();
+                await this.parent.request("upload", files);
+                await this.render();
 							}
 						}
 					}

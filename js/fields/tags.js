@@ -49,7 +49,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
   }
 
-  *add() { // called when pasting items
+  async add() { // called when pasting items
 
 
   }
@@ -146,7 +146,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
   }
 
-  async *open() {
+  async open() {
 
     // const content = this.getContent();
     //
@@ -162,37 +162,53 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
     //
     // }
 
-    const length = this.getIds().toArray().length;
+    let ids = await this.getIds();
 
-    this.setSelection({index: length, length: 0});
+    while (ids.loading) {
 
-    yield* this.edit();
+      await this.render();
+      ids = await this.getIds();
+
+    }
+
+    const length = ids.toArray().length;
+
+    await this.setSelection({index: length, length: 0});
+
+    await this.edit();
 
   }
 
-  async *edit() {
+  async edit() {
 
-    let table = this.getTable();
+    // let table = this.getTable();
+    //
+    // while (table.loading) {
+    //
+    //   yield;
+    //   table = this.getTable();
+    //
+    // }
 
-    while (table.loading) {
-
-      yield;
-      table = this.getTable();
-
-    }
-
-    let params = this.getParams();
+    let params = await this.getParams();
 
     while (params.loading) {
 
-      yield;
-      params = this.getParams();
+      await this.render();
+      params = await this.getParams();
 
     }
 
-    const ids = this.getSelectedIds();
+    let ids = await this.getSelectedIds();
 
-    this.save("edit-tag", "Edit Tag");
+    while (ids.loading) {
+
+      await this.render();
+      ids = await this.getSelectedIds();
+
+    }
+
+    await this.save("edit-tag", "Edit Tag");
 
     // this.setFocus(true);
 
@@ -202,7 +218,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
     const popup = this.getChild("popup");
 
-    popup.setFocus(true);
+    await popup.setFocus(true);
 
 
 
@@ -215,12 +231,12 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
     // popup.open();
     // const tableField = popup.getChild("table");
     // tableField.setState(params.toObject(), "params");
-    popup.setState(params.toObject(), "params");
+    await popup.setState(params.toObject(), "params");
 
     // this.setState(true, "popup");
 
     // yield* tableField.selectByIds(ids);
-    yield* popup.selectByIds(ids);
+    await popup.selectByIds(ids.toArray());
 
 
     // KarmaFieldsAlpha.Store.State.set(this.path, "dropper", table.toString());
@@ -231,11 +247,11 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
   }
 
-  close() {
+  async close() {
 
     // this.setState(false, "popup");
 
-    this.setFocus(true);
+    return this.setFocus(true);
 
   }
 
@@ -246,20 +262,20 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
   }
 
 
-  async *insert(ids, index = undefined, length = undefined) {
+  async insert(ids, index = undefined, length = undefined) {
 
-    const content = this.getIds();
+    let content = await this.getIds();
 
     while (content.loading) {
 
-      yield;
-      content = this.getIds();
+      await this.render();
+      content = await this.getIds();
 
     }
 
     if (index === undefined && length === undefined) {
 
-      const selection = this.getSelection() || {};
+      const selection = await this.getSelection() || {};
 
       // this would delete selected items and replace by new items:
       // index = selection.index || content.toArray().length;
@@ -283,23 +299,24 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
     const newIds = [...content.toArray()];
     newIds.splice(index, length, ...ids);
 
-    this.setIds(newIds);
+    await this.setIds(newIds);
+    await this.setFocus(true);
 
 	}
 
-  getDefault(defaults = {}) {
+  getDefault() {
 
     return this.parse(this.resource.default);
 
 	}
 
-  export(index = 0, length = Infinity) {
+  async export(index = 0, length = Infinity) {
 
     const output = new KarmaFieldsAlpha.Content();
 
     if (this.resource.export !== false) {
 
-      const content = this.getIds();
+      const content = await this.getIds();
 
       if (content.loading) {
 
@@ -349,51 +366,61 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
 	}
 
-  async *import(collection, index = 0, length = Infinity) {
+  async import(collection, index = 0, length = Infinity) {
 
     const string = collection.value.shift();
 
     const addedIds = string && string.split(",") || [];
 
-    const content = this.getIds();
+    let content = await this.getIds();
 
     while (content.loading) {
 
-      yield;
-      content = this.getIds();
+      await this.render();
+      content = await this.getIds();
 
     }
 
     const newIds = [...content.toArray()];
     newIds.splice(index, length, ...addedIds);
 
-    this.setIds(newIds);
+    await this.setIds(newIds);
 
 	}
 
-  getSelectedIds() {
+  async getSelectedIds() {
 
-    const selection = this.getSelection();
+    const response = new KarmaFieldsAlpha.Content();
+
+    const selection = await this.getSelection();
 
     if (selection) {
 
       const index = selection.index || 0;
       const length = selection.length || 0;
 
-      const content = this.getIds();
+      const ids = await this.getIds();
 
-      return content.toArray().slice(index, index + length);
+      if (ids.loading) {
+
+        response.loading = true;
+
+      } else {
+
+        response.value = ids.toArray().slice(index, index + length);
+
+      }
 
     }
 
-    return [];
+    return response;
   }
 
-  swap(index, target, length) {
+  async swap(index, target, length) {
 
     if (target !== index) {
 
-      const content = this.getIds();
+      const content = await this.getIds();
 
       if (!content.loading) {
 
@@ -401,7 +428,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
         clones.splice(target, 0, ...clones.splice(index, length));
 
-        this.setIds(clones);
+        await this.setIds(clones);
 
       }
 
@@ -409,29 +436,29 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
   }
 
-  getLength() {
+  async getLength() {
 
-    const length = new KarmaFieldsAlpha.Content();
-    const content = this.getIds();
+    const response = new KarmaFieldsAlpha.Content();
+    const content = await this.getIds();
 
     if (content.loading) {
 
-      length.laoding = true;
+      response.loading = true;
 
     } else {
 
-      length.value = content.toArray().length;
+      response.value = content.toArray().length;
 
     }
 
-    return length;
+    return response;
   }
 
-  getIds() {
+  async getIds() {
 
     const key = this.getKey();
 
-    const content = this.parent.getContent(key);
+    const content = await this.parent.getContent(key);
 
     content.value = content.toArray().filter(value => parseInt(value));
 
@@ -443,7 +470,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
     const key = this.getKey();
 
-    this.parent.setValue(ids, key);
+    return this.parent.setValue(ids, key);
 
   }
 
@@ -459,14 +486,14 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
   }
 
-  getContentAt(index, key) {
+  async getContentAt(index, key) {
 
     const content = new KarmaFieldsAlpha.Content();
-    const ids = this.getIds();
+    const ids = await this.getIds();
 
     if (ids.loading) {
 
-      content.Loading = true;
+      content.loading = true;
 
     } else {
 
@@ -488,9 +515,9 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
   }
 
-  setValueAt(value, index, key) {
+  async setValueAt(value, index, key) {
 
-    const ids = this.getIds();
+    const ids = await this.getIds();
 
     if (!ids.loading) {
 
@@ -498,7 +525,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
       newIds[index] = value;
 
-      this.setIds(newIds, key);
+      await this.setIds(newIds, key);
 
     }
 
@@ -580,29 +607,31 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
   //
   // }
 
-  async *paste(value) {
+  async paste(value) {
 
     // const ids = value && value.split(",") || [];
 
-    this.save("paste", "Paste");
+    await this.save("paste", "Paste");
 
     // this.insert(ids);
-    yield* this.import(value);
+    await this.import(value);
 
-    this.request("render");
+    await this.request("render");
 
   }
 
-  copy() {
+  async copy() {
 
-    const selection = this.getSelection();
+    const selection = await this.getSelection();
 
     if (selection) {
 
       const index = selection.index || 0;
       const length = selection.length || 0;
 
-      return this.export(index, length).toString();
+      const content = await this.export(index, length);
+
+      return content.toString();
 
       // return ids.join(",");
 
@@ -610,7 +639,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
   }
 
-  async *delete(index, length) {
+  async delete(index, length) {
 
     const body = this.getChild("body");
 
@@ -618,7 +647,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
       if (body) {
 
-        const selection = body.getSelection() || {};
+        const selection = await body.getSelection() || {};
         index = selection.index || 0;
         length = selection.length || 0;
 
@@ -628,26 +657,26 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
     if (length) {
 
-      let content = this.getIds();
+      let content = await this.getIds();
 
       while (content.loading) {
 
-        yield;
-        content = this.getIds();
+        await this.render();
+        content = await this.getIds();
 
       }
 
-      this.save("delete", "Delete");
+      await this.save("delete", "Delete");
 
       const clones = [...content.toArray()];
 
       clones.splice(index, length);
 
-      this.setIds(clones);
+      await this.setIds(clones);
 
       if (body) {
 
-        body.removeSelection();
+        await body.removeSelection();
 
       }
 
@@ -890,34 +919,73 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.form { // bec
 
     yield* super.buildFooter();
 
-    const hasPopup = this.hasFocusInside("popup");
 
-    if (hasPopup) {
 
-      const popup = this.getChild("popup");
-
-      yield {
-        class: "popup",
-        update: node => {
-          // node.element.onmousedown = event => {
-          //   event.stopPropagation();
-          //   const body = popup.getChild("body");
-          //   if (body) {
-          //     body.setFocus(true);
-          //     if (body.select) body.select(0, 0); // !!
-          //     this.render();
-          //   }
-          // }
-        },
-        child: {
-          class: "popup-content",
-          children: [
-            popup.build()
-          ]
+    yield {
+      class: "popup-container",
+      update: async node => {
+        const hasPopup = await this.hasFocusInside("popup");
+        node.element.classList.toggle("hidden", !hasPopup);
+        if (hasPopup) {
+          const popup = this.getChild("popup");
+          node.children = [{
+            class: "popup",
+            update: node => {
+              // node.element.onmousedown = event => {
+              //   event.stopPropagation();
+              //   const body = popup.getChild("body");
+              //   if (body) {
+              //     body.setFocus(true);
+              //     if (body.select) body.select(0, 0); // !!
+              //     this.render();
+              //   }
+              // }
+            },
+            child: {
+              class: "popup-content",
+              children: [
+                popup.build()
+              ]
+            }
+          }];
         }
-      };
+        // else {
+        //   node.children = [];
+        // }
+      }
+    };
 
-    }
+
+
+
+    // const hasPopup = this.hasFocusInside("popup");
+    //
+    // if (hasPopup) {
+    //
+    //   const popup = this.getChild("popup");
+    //
+    //   yield {
+    //     class: "popup",
+    //     update: node => {
+    //       // node.element.onmousedown = event => {
+    //       //   event.stopPropagation();
+    //       //   const body = popup.getChild("body");
+    //       //   if (body) {
+    //       //     body.setFocus(true);
+    //       //     if (body.select) body.select(0, 0); // !!
+    //       //     this.render();
+    //       //   }
+    //       // }
+    //     },
+    //     child: {
+    //       class: "popup-content",
+    //       children: [
+    //         popup.build()
+    //       ]
+    //     }
+    //   };
+    //
+    // }
 
   }
 
@@ -938,7 +1006,7 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
       return new KarmaFieldsAlpha.field.button({
         title: "Add",
         text: "Add",
-        request: ["open"],
+        action: "open",
         hidden: [">=", ["getLength", ["getContent"]], ["request", "getMax"]],
       }, "add", this);
 
@@ -974,13 +1042,13 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
 
   select(index = 0, length = 0) {
 
-    this.setSelection({index, length});
+    return this.setSelection({index, length});
 
   }
 
   unselect() { // to be overrided (ie. Medias grid)
 
-    this.removeSelection();
+    return this.removeSelection();
 
   }
 
@@ -990,18 +1058,18 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
 
   }
 
-  *buildChildren() {
+  *buildChildren(selection, length, hasFocus) {
 
-    const selection = this.getSelection();
-    // const ids = this.getContent();
-    const length = this.parent.getLength();
+    // const selection = this.getSelection();
+    // // const ids = this.getContent();
+    // const length = this.parent.getLength();
 
     if (length.mixed) {
 
       yield {
         tag: "li",
-        update: frame => {
-          const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, 0) && this.hasFocus();
+        update: async frame => {
+          const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, 0) && hasFocus;
           frame.element.classList.toggle("selected", Boolean(isSelected));
         },
         children: [
@@ -1017,10 +1085,9 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
               close.element.textContent = "×";
             },
             update: close => {
-              close.element.onclick = event => {
-                const work = this.request("delete");
-                KarmaFieldsAlpha.Jobs.add(work);
-                this.render();
+              close.element.onclick = async event => {
+                await this.request("delete");
+                await this.render();
               }
             }
           }
@@ -1031,7 +1098,7 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
 
       for (let i = 0; i < length.toNumber(); i++) {
 
-        const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, i) && this.hasFocus();
+        const isSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, i) && hasFocus;
 
         yield {
           tag: "li",
@@ -1041,9 +1108,9 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
           children: [
             {
               tag: "span",
-              update: span => {
+              update: async span => {
 
-                const name = this.getContentAt(i, "name");
+                const name = await this.getContentAt(i, "name");
                 if (name.notFound) {
                   span.element.innerHTML = "[not Found]";
                 } else {
@@ -1057,10 +1124,9 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
                 close.element.textContent = "×";
               },
               update: close => {
-                close.element.onclick = event => {
-                  const work = this.request("delete", i, 1);
-                  KarmaFieldsAlpha.Jobs.add(work);
-                  this.render();
+                close.element.onclick = async event => {
+                  await this.request("delete", i, 1);
+                  await this.render();
                 }
               }
             }
@@ -1080,13 +1146,18 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
       complete: ul => {
         ul.element.classList.toggle("hidden", !ul.element.hasChildNodes());
       },
-      update: ul => {
+      update: async ul => {
 
         // const ids = this.getContent().toArray();
 
-        let selection = this.getSelection();
+        // let selection = this.getSelection();
+
+        const selection = await this.getSelection();
+        const length = await this.parent.getLength();
 
         const sorter = new KarmaFieldsAlpha.ListSorterInline(ul.element, selection);
+
+        const hasFocus = await this.hasFocus();
 
         sorter.onSelect = elements => {
 
@@ -1101,39 +1172,43 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
 
         }
 
-        sorter.onSelectionComplete = () => {
+        sorter.onSelectionComplete = async () => {
 
           // this.request("deferFocus");
-          this.setFocus(true);
-          this.request("render");
+          await this.setFocus(true);
+          await this.request("render");
 
         }
 
-        sorter.onSwap = (newState, lastState) => {
+        sorter.onSwap = async (newState, lastState) => {
 
-          this.parent.swap(lastState.selection.index, newState.selection.index, newState.selection.length);
-          this.setSelection(newState.selection);
+          await this.parent.swap(lastState.selection.index, newState.selection.index, newState.selection.length);
+          await this.setSelection(newState.selection);
 
         };
 
-        sorter.onSort = (index, target, length) => {
+        sorter.onSort = async (index, target, length) => {
 
-          KarmaFieldsAlpha.History.save("order", "Reorder");
-          this.setFocus(true);
-          this.request("render");
+          await KarmaFieldsAlpha.History.save("order", "Reorder");
+          await this.setFocus(true);
+          await this.request("render");
+
+        }
+
+        ul.element.ondblclick = async event => {
+
+          await this.parent.edit();
+          await this.render();
 
         }
 
-        ul.element.ondblclick = event => {
 
-          const work = this.parent.edit();
-          KarmaFieldsAlpha.Jobs.add(work);
-          this.render();
 
-        }
+
+        ul.children = [...this.buildChildren(selection, length, hasFocus)];
 
       },
-      children: [...this.buildChildren()]
+      // children: [...this.buildChildren()]
     };
 
   }
