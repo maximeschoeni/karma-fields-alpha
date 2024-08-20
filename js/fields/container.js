@@ -1,6 +1,76 @@
 KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
-	async exportDefaults() {
+	async abduct() {
+
+		await KarmaFieldsAlpha.build(this.build(), this.element.parentNode, this.element);
+
+	}
+
+	async render() {
+
+		if (this.id === "popup" && this.element) {
+
+			// console.log(this.element.parentNode, this.element);
+
+			this.element.classList.add("container-loading");
+
+			await KarmaFieldsAlpha.server.init();
+
+			await this.abduct();
+
+			while (KarmaFieldsAlpha.server.hasOrder()) {
+
+				await KarmaFieldsAlpha.server.process();
+
+				await this.abduct();
+
+			}
+
+			this.element.classList.remove("container-loading");
+
+		} else {
+
+			await this.parent.render();
+
+		}
+
+	}
+
+	async close() {
+
+    await this.parent.setFocus();
+
+		await this.parent.render();
+
+  }
+
+	// used by array
+  getKeys() {
+
+    const key = this.getKey();
+    let keys = [];
+
+    if (key) {
+
+      keys.push(key);
+
+    } else {
+
+			const body = this.getBody();
+
+			if (body) {
+
+        keys.push(...body.getKeys());
+
+			}
+
+    }
+
+    return keys;
+
+  }
+
+	exportDefaults() {
 
 		let defaults = new KarmaFieldsAlpha.Content({});
 
@@ -9,7 +79,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		if (header) {
 
-			const response = await header.exportDefaults();
+			const response = header.exportDefaults();
 
       if (response.loading) {
 
@@ -25,7 +95,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		if (footer) {
 
-			const response = await footer.exportDefaults(defaults);
+			const response = footer.exportDefaults(defaults);
 
       if (response.loading) {
 
@@ -81,6 +151,15 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 	async blank() {
 
 		await this.setSelection({index: 0, length: 0});
+
+		const body = this.getBody();
+
+		if (body && body.unselect) {
+
+			await body.unselect();
+
+		}
+
 		await this.setFocus(true);
 		await this.render();
 
@@ -304,6 +383,9 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 			// init: node => {
 			// 	node.element.classList.add(`container-${this.id}`);
 			// },
+			update: node => {
+				this.element = node.element;
+			},
       child: {
 				class: "karma-field-table",
 				init: node => {
@@ -315,8 +397,8 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 					}
 					node.element.style.width = this.resource.width || "100%";
 				},
-				update: async node => {
-					const hasFocus = await this.hasFocusInside();
+				update: node => {
+					const hasFocus = this.hasFocusInside();
 					node.element.classList.toggle("has-selection", Boolean(hasFocus));
 					node.element.onmousedown = event => {
 						event.stopPropagation();

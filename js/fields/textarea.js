@@ -13,39 +13,19 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 					Object.assign(input.element, this.resource.textarea || this.resource.input);
 				}
 			},
-			update: async input => {
+			update: input => {
 
-        let content = await this.getContent();
+        let content = this.getContent();
+				const hasFocus = this.hasFocus();
 
         input.element.classList.toggle("loading", Boolean(content.loading));
 
         if (!content.loading) {
 
-					// if (content.notFound) {
-					//
-					// 	if (this.resource.createWhenNotFound) {
-					//
-					// 		this.createTask("create");
-					//
-					// 	}
-					//
-					// 	// content = this.getDefault();
-					// 	//
-					// 	// if (!content.loading) {
-					// 	//
-					// 	// 	this.setContent(content);
-					// 	//
-					// 	// 	KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
-					// 	//
-					// 	// }
-					//
-					// }
-
-					input.element.placeholder = await this.getPlaceholder();
+					input.element.placeholder = this.getPlaceholder().toString();
 
 					input.element.classList.toggle("mixed", Boolean(content.mixed));
-					// input.element.classList.toggle("selected", Boolean(content.mixed && this.selection));
-					input.element.classList.toggle("selected", Boolean(content.mixed && this.hasFocus()));
+					input.element.classList.toggle("selected", Boolean(content.mixed && hasFocus));
 
           if (content.mixed) {
 
@@ -56,8 +36,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 						if (this.resource.readonly) {
 
-							const readonly = await this.parse(this.resource.readonly);
-							input.element.readOnly = readonly.toBoolean();
+							input.element.readOnly = this.parse(this.resource.readonly).toBoolean();
 
 						} else {
 
@@ -124,7 +103,8 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 					await this.setFocus(content.mixed);
 
-					await this.request("render"); // update clipboard textarea, unselect other stuffs
+					// await this.request("render"); // update clipboard textarea, unselect other stuffs
+					await this.parent.render(); // -> render parent in case this is a textarea inside tinymce
 
 				}
 
@@ -136,13 +116,11 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 				if (this.resource.disabled) {
 
-					const disabled = await this.parse(this.resource.disabled);
-		      this.disabled = disabled.toBoolean();
+		      this.disabled = this.parse(this.resource.disabled).toBoolean();
 
 		    } else if (this.resource.enabled) {
 
-					const enabled = await this.parse(this.resource.enabled);
-		      this.disabled = !enabled.toBoolean();
+		      this.disabled = !this.parse(this.resource.enabled).toBoolean();
 
 		    }
 

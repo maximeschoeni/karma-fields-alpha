@@ -9,7 +9,7 @@ KarmaFieldsAlpha.field.hidden = class extends KarmaFieldsAlpha.field.input {
 				input.element.type = "hidden";
 				// input.element.disabled = true;
 			},
-			update: input => {
+			update: async input => {
 
         let content = this.getContent();
 

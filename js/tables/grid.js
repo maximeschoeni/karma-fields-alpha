@@ -65,32 +65,12 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  // getChild(index) {
-  //
-  //   if (index === "modal" || index === "*") {
-  //
-  //     return this.createChild({
-  //       ...this.resource.modal,
-  //       type: "modal",
-  //     }, "modal");
-  //
-  //   } else {
-  //
-  //     return this.createChild({
-  //       type: "row",
-  //       children: this.resource.children,
-  //       index: (this.resource.index || 0) + index
-  //     }, index);
-  //
-  //   }
-  //
-  // }
 
-  async getContentAt(index, key) {
+  getContentAt(index, key) {
 
     if (index === "modal" || index === "*") {
 
-      let selection = await this.querySelection();
+      let selection = this.querySelection();
 
       selection = {index: 0, length: 0, ...selection};
 
@@ -120,7 +100,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     if (index === "modal" || index === "*") {
 
-      let selection = await this.querySelection();
+      let selection = this.querySelection();
 
       selection = {index: 0, length: 0, ...selection};
 
@@ -142,7 +122,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     if (index === "modal" || index === "*") {
 
-      let selection = await this.querySelection();
+      let selection = this.querySelection();
 
       selection = {index: 0, length: 0, ...selection};
 
@@ -160,11 +140,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async hasSelection() {
+  hasSelection() {
 
-    let selection = await this.getSelection();
-
-    return new KarmaFieldsAlpha.Content(selection && selection.length > 0 || false);
+    return Boolean(this.getSelection().length);
 
   }
 
@@ -188,25 +166,25 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   async selectAll() {
 
-    const length = await this.getLength();
+    const length = this.getLength();
 
     await this.setSelection({
       index: 0,
-      length: length.toNumber()
+      length: length
     });
 
     // this.request("render");
 
   }
 
-  async copy() {
+  copy() {
 
-    const selection = await this.getSelection();
+    const selection = this.getSelection();
 
     const index = selection.index || 0;
     const length = selection.length || 0;
 
-    const grid = await this.export(index, length);
+    const grid = this.export(index, length);
 
     if (grid.loading) {
 
@@ -226,23 +204,29 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     await this.save("paste", "Paste");
 
-    const selection = await this.getSelection();
+    const selection = this.getSelection();
 
     const index = selection.index || 0;
     const length = selection.length || 0;
 
+    // if (length === 0) {
+    //
+    //   let lengthContent = await this.getLength();
+    //
+    //   while (lengthContent.loading) {
+    //
+    //     await this.render();
+    //     lengthContent = await this.getLength();
+    //
+    //   }
+    //
+    //   index = lengthContent.value;
+    //
+    // }
+
     if (length === 0) {
 
-      let lengthContent = await this.getLength();
-
-      while (lengthContent.loading) {
-
-        await this.render();
-        lengthContent = await this.getLength();
-
-      }
-
-      index = lengthContent.value;
+      let length = this.getLength();
 
     }
 
@@ -254,25 +238,19 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     await this.setSelection({index, length: grid.toArray().length});
 
-    // const work = this.parent.import(grid, index, length);
-    //
-    // KarmaFieldsAlpha.Jobs.add(work);
-    //
-    // this.request("render");
-
   }
 
-  async delete() {
+  delete() {
 
     return this.parent.delete();
 
   }
 
-  async getDefaultIndex() {
+  getDefaultIndex() {
 
-    const selection = await this.getSelection();
+    const selection = this.getSelection();
 
-    if (selection && selection.length) {
+    if (selection.length) {
 
       return selection.index + selection.length;
 
@@ -282,19 +260,17 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      const length = await this.getLength();
-
-      return length.toNumber();
+      return this.getLength();
 
     }
 
   }
 
-  async getNewItemIndex() {
+  getNewItemIndex() {
 
-    const selection = await this.querySelection();
+    const selection = this.querySelection();
 
-    if (selection && selection.length) {
+    if (selection.length) {
 
       return selection.index + selection.length;
 
@@ -304,9 +280,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     } else {
 
-      const length = await this.getLength();
-
-      return length.toNumber();
+      return this.getLength();
 
     }
 
@@ -346,7 +320,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async exportDefaults() {
+  exportDefaults() {
 
     const response = new KarmaFieldsAlpha.Content();
 
@@ -356,7 +330,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
       if (child) {
 
-        const defaults = await child.exportDefaults();
+        const defaults = child.exportDefaults();
 
         if (defaults.loading) {
 
@@ -375,7 +349,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async duplicate(num) {
+  duplicate(num) {
 
     return this.parent.duplicate(num);
 
@@ -401,14 +375,14 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async export(index, length, columns = this.getExportableColumns()) {
+  export(index, length, columns = this.getExportableColumns()) {
 
     if (index === undefined || length === undefined) {
 
-      const selection = await this.getSelection();
+      const selection = this.getSelection();
 
-      index = selection && selection.index || 0;
-      length = selection && selection.length || 0;
+      index = selection.index || 0;
+      length = selection.length || 0;
 
     }
 
@@ -416,12 +390,16 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     for (let i = 0; i < length; i++) {
 
-      const rowField = this.createChild({
-        type: "row",
-        children: columns
-      }, index + i);
+      // const rowField = this.createChild({
+      //   type: "row",
+      //   children: columns
+      // }, index + i);
 
-      const collection = await rowField.export();
+      // const rowField = this.getChild(index + i);
+
+      const rowField = new KarmaFieldsAlpha.field.grid.row({children: columns}, index + i, this);
+
+      const collection = rowField.export();
 
       if (collection.loading) {
 
@@ -449,10 +427,10 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     if (index === undefined || length === undefined) {
 
-      const selection = await this.getSelection();
+      const selection = this.getSelection();
 
-      index = selection && selection.index || 0;
-      length = selection && selection.length || 0;
+      index = selection.index || 0;
+      length = selection.length || 0;
 
     }
 
@@ -470,10 +448,12 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     for (let i = 0; i < array.length; i++) {
 
-      const child = this.createChild({
-        children: columns,
-        type: "row",
-      }, index + i);
+      // const child = this.createChild({
+      //   children: columns,
+      //   type: "row",
+      // }, index + i);
+
+      const child = this.getChild(index + i);
 
       const content = new KarmaFieldsAlpha.Content(array[i]);
 
@@ -482,12 +462,6 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     }
 
   }
-
-  // swap(index, length, target) {
-  //
-  //   this.parent.swap(index, length, target)
-  //
-  // }
 
   getColumns() {
 
@@ -501,176 +475,14 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  // *buildHeader() {
-  //
-  //   const columns = this.getColumns();
-  //
-  //   if (this.hasHeader()) {
-  //
-  //     for (let i = 0; i < columns.length; i++) {
-  //
-  //       const resource = columns[i];
-  //
-  //       yield {
-  //         class: "th table-header-cell",
-  //         init: th => {
-  //           if (resource.style) {
-  //             th.element.style = resource.style;
-  //           }
-  //           th.element.tabIndex = -1;
-  //         },
-  //         update: th => {
-  //           th.element.classList.toggle("first-cell", i === 0);
-  //           th.element.classList.toggle("last-cell", i === columns.length - 1);
-  //           th.children = [
-  //             {
-  //               class: "header-cell-content title",
-  //               init: a => {
-  //                 a.element.textContent = resource.label;
-  //               }
-  //             },
-  //             {
-  //               class: "header-cell-content order",
-  //               // child: {
-  //               //   tag: "span",
-  //               //   class: "dashicons",
-  //               //   update: span => {
-  //               //     // const order = this.getOrder() || "asc";
-  //               //     const order = this.getContent("order").toString() || "asc";
-  //               //     // const orderby = this.getOrderby();
-  //               //     const orderby = this.getContent("orderby").toString();
-  //               //     const isAsc = orderby === (resource.orderby || resource.key) && order === "asc";
-  //               //     const isDesc = orderby === (resource.orderby || resource.key) && order === "desc";
-  //               //     span.element.classList.toggle("dashicons-arrow-up", isAsc);
-  //               //     span.element.classList.toggle("dashicons-arrow-down", isDesc);
-  //               //     span.element.classList.toggle("dashicons-leftright", !isAsc && !isDesc);
-  //               //   }
-  //               // },
-  //               children: [
-  //                 {
-  //                   tag: "span",
-  //                   class: "dashicons dashicons-arrow-up",
-  //
-  //                   update: span => {
-  //                     // const order = this.getContent("order").toString() || "asc";
-  //                     // const orderby = this.getContent("orderby").toString();
-  //                     //
-  //                     // if (orderby.toString() === (resource.orderby || resource.key)) {
-  //                     //   if (!order.toString() || order.toString() === "asc") {
-  //                     //     span.element.classList.toggle("active", isAsc);
-  //                     //   }
-  //                     //
-  //                     //
-  //                     // }
-  //
-  //                     span.element.classList.toggle("active-order", (this.getContent("order").toString() || "asc") === "asc");
-  //                     span.element.classList.toggle("active-orderby", this.getContent("orderby").toString() === (resource.orderby || resource.key));
-  //
-  //
-  //                     // const isAsc = orderby === (resource.orderby || resource.key) && order === "asc";
-  //                     // const isDesc = orderby === (resource.orderby || resource.key) && order === "desc";
-  //                     // span.element.classList.toggle("dashicons-arrow-up", isAsc);
-  //                     // span.element.classList.toggle("dashicons-arrow-down", isDesc);
-  //                     // span.element.classList.toggle("dashicons-leftright", !isAsc && !isDesc);
-  //                   }
-  //                 },
-  //                 {
-  //                   tag: "span",
-  //                   class: "dashicons",
-  //                   update: span => {
-  //                     // // const order = this.getOrder() || "asc";
-  //                     // const order = this.getContent("order").toString() || "asc";
-  //                     // // const orderby = this.getOrderby();
-  //                     // const orderby = this.getContent("orderby").toString();
-  //                     // const isAsc = orderby === (resource.orderby || resource.key) && order === "asc";
-  //                     // const isDesc = orderby === (resource.orderby || resource.key) && order === "desc";
-  //                     // span.element.classList.toggle("dashicons-arrow-up", isAsc);
-  //                     // span.element.classList.toggle("dashicons-arrow-down", isDesc);
-  //                     // span.element.classList.toggle("dashicons-leftright", !isAsc && !isDesc);
-  //
-  //                     span.element.classList.toggle("active-order", (this.getContent("order").toString() || "asc") === "asc");
-  //                     span.element.classList.toggle("active-orderby", this.getContent("orderby").toString() === (resource.orderby || resource.key));
-  //                   }
-  //                 }
-  //               ],
-  //               update: a => {
-  //                 a.element.classList.toggle("hidden", !resource.sortable);
-  //                 if (resource.sortable) {
-  //                   a.element.onmousedown = event => {
-  //                     event.stopPropagation(); // -> prevent header selection
-  //                   }
-  //                   a.element.onclick = event => {
-  //                     event.preventDefault();
-  //
-  //                     const order = this.getContent("order");
-  //                     const orderby = this.getContent("orderby");
-  //                     if (orderby.toString() === (resource.orderby || resource.key)) {
-  //                       this.setValue((order.toString() || resource.order || "asc") === "asc" ? "desc" : "asc", "order");
-  //                       this.render();
-  //                     } else {
-  //                       this.setValue(resource.order || "asc", "order");
-  //                       this.setValue(resource.orderby || resource.key, "orderby");
-  //                       this.render();
-  //                     }
-  //                   };
-  //                 }
-  //               }
-  //             }
-  //           ];
-  //         }
-  //       };
-  //     }
-  //
-  //   }
-  //
-  // }
+  *buildRows() {
 
+    let length = this.getLength();
+    let selection = this.getSelection();
 
+    if (this.hasHeader() && length) {
 
-  // *buildHeader() {
-  //
-  //   const columns = this.getColumns();
-  //
-  //   if (this.hasHeader() && this.getLength().toNumber()) {
-  //
-  //     for (let i = 0; i < columns.length; i++) {
-  //
-  //       const classes = [];
-  //
-  //       if (i === 0) {
-  //         classes.push("first-cell");
-  //       }
-  //       if (i === columns.length - 1) {
-  //         classes.push("last-cell");
-  //       }
-  //
-  //       // yield this.createChild({
-  //       //   ...columns[i],
-  //       //   classes,
-  //       //   type: "headerCell"
-  //       // }, `header-cell-${i}`).build();
-  //       const headerCell = new KarmaFieldsAlpha.field.grid.headerCell({
-  //         ...columns[i],
-  //         classes,
-  //       }, `header-cell-${i}`, this);
-  //
-  //       yield headerCell.build();
-  //
-  //     }
-  //
-  //   }
-  //
-  // }
-
-
-
-  *buildRows(length, offset, selection) {
-
-    // yield* this.buildHeader();
-
-    const columns = this.getColumns();
-
-    if (this.hasHeader() && length.toNumber()) {
+      const columns = this.getColumns();
 
       for (let i = 0; i < columns.length; i++) {
 
@@ -683,11 +495,6 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
           classes.push("last-cell");
         }
 
-        // yield this.createChild({
-        //   ...columns[i],
-        //   classes,
-        //   type: "headerCell"
-        // }, `header-cell-${i}`).build();
         const headerCell = new KarmaFieldsAlpha.field.grid.headerCell({
           ...columns[i],
           classes,
@@ -699,30 +506,18 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     }
 
-    // const length = this.getLength().toNumber();
+    for (let i = 0; i < length; i++) {
 
-    // const pageQuery = this.request("getPage");
-    // const pppQuery = this.request("getPpp");
-    //
-    // // const page = this.parent.getContent("page").toNumber() || 1;
-    // // const ppp = this.parent.getContent("ppp").toNumber() || 100;
-    //
-    // const offset = (pageQuery.toNumber() - 1)*pppQuery.toNumber();
+      // const row = this.createChild({
+      //   type: "row",
+      //   children: this.resource.children,
+      //   index: (this.resource.index || 0) + i,
+      //   rowIndex: (this.resource.index || 0) + i // compat
+      // }, i);
 
-    // const offset = this.request("getIndexOffset") || 0;
+      const row = this.getChild(i);
 
-    // const selection = this.getSelection();
-
-    for (let i = 0; i < length.toNumber(); i++) {
-
-      const row = this.createChild({
-        type: "row",
-        children: this.resource.children,
-        index: (this.resource.index || 0) + i,
-        rowIndex: (this.resource.index || 0) + i // compat
-      }, i);
-
-      const isRowSelected = selection && KarmaFieldsAlpha.Segment.contain(selection, i);
+      const isRowSelected = KarmaFieldsAlpha.Segment.contain(selection, i);
 
       for (let j = 0; j < row.resource.children.length; j++) {
 
@@ -741,7 +536,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
           update: td => {
             td.element.classList.toggle("selected", Boolean(isRowSelected));
             td.element.classList.toggle("odd", i%2 === 0);
-            td.element.classList.toggle("last-row", i === length.toNumber()-1);
+            td.element.classList.toggle("last-row", i === length-1);
             td.element.classList.toggle("first-cell", j === 0);
             td.element.classList.toggle("last-cell", j === row.resource.children.length - 1);
 
@@ -755,7 +550,21 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  *buildModalContent() {
+
+    const modal = this.getChild("*");
+
+
+    if (modal) {
+
+      yield* modal.build();
+
+    }
+
+  }
+
   buildModal() {
+
 
 
     return {
@@ -764,10 +573,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       //   ...this.resource.modal,
       //   type: "row"
       // }, "*").build(),
-      children: [...this.createChild({
-        ...this.resource.modal,
-        type: "modal"
-      }, "*").build()],
+      children: [...this.buildModalContent()],
       // children: [this.createChild({
       //   ...this.resource.modal,
       //   type: "modal"
@@ -779,30 +585,26 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         //   table: div.element.parentNode.parentNode.parentNode
         // });
       },
-      update: async div => {
+      update: div => {
 
-        // const sticky = this.parent.id !== "popup";
-        // console.log(this.getFocus());
+        if (this.resource.display === "fixed") {
+          div.element.classList.add("fixed-modal");
 
-        const selection = await this.getSelection();
+        } else {
 
-        div.children = [...this.createChild({
-          ...this.resource.modal,
-          type: "modal"
-        }, "*").build(selection)];
-
-
-
-
-        div.element.classList.remove("sticky-modal");
-        if (this.parent.id !== "popup") {
-          const focus = await this.getFocus();
-          if (focus && !focus.includes("popup")) { // -> opening popup in sticky container seems to be bugged
-            div.element.style.height = `${this.request("getModalHeight", div.element)}px`;
-            div.element.style.top = `${this.request("getModalTop", div.element)}px`;
-            div.element.classList.add("sticky-modal");
+          div.element.classList.remove("sticky-modal");
+          if (this.parent.id !== "popup") {
+            const focus = this.getFocus();
+            if (focus && !focus.includes("popup")) { // -> opening popup in sticky container seems to be bugged
+              div.element.style.height = `${this.request("getModalHeight", div.element)}px`;
+              div.element.style.top = `${this.request("getModalTop", div.element)}px`;
+              div.element.classList.add("sticky-modal");
+            }
           }
         }
+
+
+
 
         div.element.classList.toggle("hidden", !this.resource.modal);
         if (this.resource.modal) {
@@ -813,7 +615,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
             await this.setFocus(true);
             await this.request("render");
           };
-          const hasSelection = await this.hasSelection();
+          const hasSelection = this.hasSelection();
           div.element.classList.toggle("active", Boolean(hasSelection));
         }
       }
@@ -841,28 +643,28 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       },
       child: {
         class: "table grid grid-field-body",
-        // children: [...this.buildRows()],
-        update: async grid => {
+        children: [...this.buildRows()],
+        update: grid => {
 
-          const length = await this.getLength();
-          const offset = await this.request("getIndexOffset") || 0;
-          const selection = await this.getSelection();
+          const length = this.getLength();
+          // const offset = this.parent.getIndex && this.parent.getIndex() || 0;
+          const selection = this.getSelection();
 
-          if (!length.loading) {
-
-            grid.children = [...this.buildRows(length, offset, selection)];
-
-          }
+          // if (!this.getIds().loading) {
+          //
+          //   grid.children = [...this.buildRows()];
+          //
+          // }
 
 
 
           // const query = this.queryItems();
           // const columns = this.getColumns();
 
-          grid.element.classList.toggle("loading", Boolean(length.loading));
+          grid.element.classList.toggle("loading", false); // !!!!
           grid.element.classList.toggle("active", Boolean(this.hasFocus()));
-          grid.element.classList.toggle("even", length.toNumber()%2 === 0);
-          grid.element.classList.toggle("filled", length.toNumber() > 0); // -> draw table borders
+          grid.element.classList.toggle("even", length%2 === 0);
+          grid.element.classList.toggle("filled", length > 0); // -> draw table borders
 
           // const columns = this.getColumns();
           const row = this.getChild(0);
@@ -933,29 +735,6 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   build() {
 
-    // return {
-    //   class: "table-body",
-    //   children: [
-    //     {
-    //       class: "table-body-columns",
-    //       update: div => {
-    //         // -> unselect
-    //         // div.element.onmousedown = event => {
-    //         //   event.stopPropagation();
-    //         //   event.preventDefault();
-    //         //
-    //         //   this.setFocus(true);
-    //         //   this.request("render");
-    //         // };
-    //       },
-    //       children: [
-    //         this.buildBody(),
-    //         this.buildModal()
-    //       ]
-    //     }
-    //   ]
-    // };
-
     return {
       class: "table-body-columns",
       update: div => {
@@ -968,7 +747,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         //   this.request("render");
         // };
 
-        this.indexOffset = this.parent.getIndexOffset && this.parent.getIndexOffset(); // promise !
+        // this.indexOffset = this.parent.getIndexOffset && this.parent.getIndexOffset(); // promise !
 
         div.element.classList.toggle("stretch-columns", this.parent.id === "popup");
       },
@@ -987,16 +766,11 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.grid.headerCell = class extends KarmaFieldsAlpha.field {
 
-  init() {
-
-    super.init();
-
-    this.order = this.getContent("order").toString() || this.resource.order || "asc";
-    this.activeColumn = this.getContent("orderby").toString() === (this.resource.orderby || this.resource.key);
-
-  }
 
   build() {
+
+    this.order = this.getParam("order") || this.resource.order || "asc";
+    this.activeColumn = this.getParam("orderby") === (this.resource.orderby || this.resource.key);
 
     return {
       class: "th table-header-cell",
@@ -1071,23 +845,17 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field.group {
 
   }
 
-  // setContent(value, key) {
-  //
-  //   this.setValue(value && value.value || value, this.id, key);
-  //
-  // }
-
   setValue(value, key) {
 
     return this.parent.setValueAt(value, this.id, key);
 
   }
 
-  async getIndex() {
+  getIndex() {
 
-    const indexOffset = await this.parent.indexOffset || 0;
+    const indexOffset = this.parent.getIndex();
 
-    return new KarmaFieldsAlpha.Content(indexOffset.toNumber() + (this.resource.index || 0));
+    return indexOffset + (this.resource.index || 0);
 
   }
 
@@ -1095,7 +863,9 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field.group {
 
 KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.grid.row {
 
-  *build(selection) {
+  *build() {
+
+    const selection = this.parent.getSelection();
 
     // if (this.parent.hasSelection()) {
     if (selection && selection.length) {
@@ -1116,9 +886,9 @@ KarmaFieldsAlpha.field.grid.row.rowIndex = class extends KarmaFieldsAlpha.field.
       ...resource
     }, id, parent)
   }
-  async getContent() {
-    const index = await this.parent.getIndex();
-    return new KarmaFieldsAlpha.Content(index.toNumber() + 1);
+  getContent() {
+    const index = this.parent.getIndex();
+    return new KarmaFieldsAlpha.Content(index + 1);
   }
 };
 

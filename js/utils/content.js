@@ -267,15 +267,61 @@ KarmaFieldsAlpha.Content = class {
 
 }
 
-KarmaFieldsAlpha.Content.Loading = class {
+KarmaFieldsAlpha.Loading = class extends KarmaFieldsAlpha.Content {
 
   constructor() {
+
+    super();
 
     this.loading = true;
 
   }
 
 }
+
+
+KarmaFieldsAlpha.Content.Params = class { // ... just a draft!
+
+  constructor(value = {}) {
+
+    this.loading = false;
+    this.value = value;
+
+    this.string = this.stringify(value);
+
+  }
+
+  toObject() {
+
+    return this.value;
+
+  }
+
+  toString() {
+
+    return this.string;
+
+  }
+
+  stringify(object) {
+
+		let entries = Object.entries(object).filter(entries => entries[1]);
+
+    entries.sort((a, b) => {
+      if (a[0] < b[0]) return -1;
+      else if (a[0] > b[0]) return 1;
+      else return 0;
+    });
+
+		entries = entries.map(entries => entries[0]+"="+encodeURI(entries[1]));
+
+    return entries.join("&");
+
+	}
+
+}
+
+
 
 
 KarmaFieldsAlpha.Content.Request = class extends KarmaFieldsAlpha.Content {
@@ -377,7 +423,7 @@ KarmaFieldsAlpha.Content.Grid = class extends KarmaFieldsAlpha.Content.Collectio
 
   }
 
-  toString() {
+  toString(delimiter = "\t") {
 
     return Papa.unparse(this.value, {
       delimiter: "\t",

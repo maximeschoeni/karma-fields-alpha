@@ -34,17 +34,17 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 	//
 	// }
 
-	async getDefault() {
+	getDefault() {
 
 		return this.parse(this.resource.default || "");
 
 	}
 
-	async exportDefaults() {
+	exportDefaults() {
 
 		let defaults = new KarmaFieldsAlpha.Content();
 
-		const response = await this.getDefault();
+		const response = this.getDefault();
 
 		if (response.loading) {
 
@@ -87,9 +87,9 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	async copy() {
+	copy() {
 
-		let content = await this.getContent();
+		let content = this.getContent();
 
 		if (content.mixed) {
 
@@ -103,7 +103,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	async paste(string) {
 
-		await KarmaFieldsAlpha.History.save("paste", "Paste");
+		await this.save("paste", "Paste");
 		await this.setValue(string);
 		await this.request("render");
 
@@ -120,7 +120,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	async getContent(key) {
+	getContent(key) {
 
 		if (!key) {
 
@@ -171,7 +171,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 	}
 
 
-	async export() {
+	export() {
 
 		// const output = new KarmaFieldsAlpha.Content();
 		//
@@ -211,7 +211,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		await this.setValue(string);
   }
 
-	async getPlaceholder() {
+	getPlaceholder() {
 
 		if (this.resource.placeholder) {
 
@@ -333,25 +333,28 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 					Object.assign(input.element, this.resource.input);
 				}
 			},
-			update: async input => {
+			update: input => {
 
-
-        const content = await this.getContent();
-				const hasFocus = await this.hasFocus();
+        const content = this.getContent();
+				const hasFocus = this.hasFocus();
 
         input.element.classList.toggle("loading", Boolean(content.loading));
 
         if (!content.loading) {
 
-					const placeholder = await this.getPlaceholder();
+					// if (hasFocus && document.activeElement !== input.element) {
+					//
+					// 	input.element.onfocus = null;
+					// 	input.focus();
+					//
+					// }
 
-					input.element.placeholder = placeholder.toString();
+					input.element.placeholder = this.getPlaceholder().toString();
 					input.element.classList.toggle("mixed", Boolean(content.mixed));
 
 					// if (content.notFound) {
 					//
 					// } else {
-
 
 						input.element.classList.toggle("selected", Boolean(content.mixed && hasFocus));
 
@@ -364,8 +367,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 							if (this.resource.readonly) {
 
-								const readonly = await this.parse(this.resource.readonly);
-								input.element.readOnly = readonly.toBoolean();
+								input.element.readOnly = this.parse(this.resource.readonly).toBoolean();
 
 							} else {
 
@@ -389,20 +391,21 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				} else {
 
-					input.element.value = ""; // set blank while loading
+					// input.element.value = ""; // set blank while loading
 
 				}
 
 				// -> NOT TEXTAREA
-				input.element.onkeyup = event => {
-
-					if (event.key === "Enter" && !content.mixed) {
-
-						this.request("submit");
-
-					}
-
-				}
+				// input.element.onkeyup = async event => {
+				//
+				// 	if (event.key === "Enter" && !content.mixed) {
+				//
+				// 		await this.request("submit");
+				// 		await this.render();
+				//
+				// 	}
+				//
+				// }
 
         input.element.oninput = async event => {
 
@@ -430,7 +433,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					await this.setFocus(content.mixed);
 
-					await this.request("render"); // update clipboard textarea, unselect other stuffs
+					await this.render(); // update clipboard textarea, unselect other stuffs
 
 				}
 
@@ -456,13 +459,11 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				if (this.resource.disabled) {
 
-					const disabled = await this.parse(this.resource.disabled);
-					input.element.disabled = disabled.toBoolean();
+					input.element.disabled = this.parse(this.resource.disabled).toBoolean();
 
 		    } else if (this.resource.enabled) {
 
-					const enabled = await this.parse(this.resource.enabled);
-					input.element.disabled = !enabled.toBoolean();
+					input.element.disabled = !this.parse(this.resource.enabled).toBoolean();
 
 		    }
 

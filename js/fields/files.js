@@ -95,7 +95,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
     if (this.resource.uploader === "wp" || this.resource.library === "wp") {
 
-      await this.openMediaLibrary();
+      this.openMediaLibrary();
 
     } else {
 
@@ -105,7 +105,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   }
 
-  async openMediaLibrary() {
+  openMediaLibrary() {
 
     // const rootSelection = KarmaFieldsAlpha.Store.State.getSelection();
 
@@ -143,11 +143,11 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
       await this.render();
 
     });
-    frame.on("open", async () => {
+    frame.on("open", () => {
       let mediaSelection = frame.state().get("selection");
-      const ids = await this.getSelectedIds();
+      const ids = this.getSelectedIds();
 
-      for (let id of ids.toArray()) {
+      for (let id of ids) {
         mediaSelection.add(wp.media.attachment(id));
       }
     });

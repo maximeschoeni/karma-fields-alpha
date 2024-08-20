@@ -50,13 +50,34 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 	//
 	// }
 
+	constructor(resource, id, parent) {
+
+    super(resource, id, parent);
+
+    this.server = new KarmaFieldsAlpha.Server();
+
+  }
+
 	async abduct() {
 
 		if (this.container) {
 
+			this.content = this.getContent();
+
+			if (this.content.mixed) {
+
+				this.mode = "mixed";
+
+			} else {
+
+				this.mode = this.getState("mode") || "edit";
+
+			}
+
+
 			// await abduct(this.element, this.buildEditor());
 
-			this.focusInside = await this.hasFocusInside();
+			// this.focusInside = await this.hasFocusInside();
 
 			await KarmaFieldsAlpha.build({
 				class: "mode mode-edit",
@@ -74,11 +95,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
     await this.abduct();
 
-    while (KarmaFieldsAlpha.task) {
+    while (KarmaFieldsAlpha.server.hasOrder()) { // need loading when inserting file
 
-      await KarmaFieldsAlpha.task;
-
-      KarmaFieldsAlpha.task = null;
+      await KarmaFieldsAlpha.server.process();
 
       await this.abduct();
 
@@ -88,11 +107,27 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	render() {
 
-		this.renderPromise = this.loop();
+		const focus = this.getFocus();
 
-    return this.renderPromise;
+		return this.loop();
 
 	}
+
+	// async setFocus() {
+	//
+	// 	const hasFocus = this.hasFocusInside();
+	//
+	// 	if (!hasFocus) {
+	//
+	// 		await this.parent.render();
+	//
+	// 	}
+	//
+	// 	// console.log(hasFocus, "setFocus");
+	//
+	// 	await  super.setFocus();
+	//
+	// }
 
 
   getEditor() {
@@ -153,7 +188,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 			this.debounce(async () => {
 				const textModified = manager.editor.getContent();
 				if (textModified !== text) {
-					console.log("text modified !!!!");
+					console.log("text modified !!!! why??");
 					await this.setValue(textModified);
 				}
 
@@ -170,6 +205,9 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 	async click() {
 
 		const manager = this.getEditor();
+
+		const hasFocus = this.hasFocusInside();
+
 
 		if (!manager.loading) {
 
@@ -433,19 +471,28 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
   // }
 
 
-	// async insertLink() {
-	//
-  //   let manager = this.getEditor();
-	//
-	// 	if (!manager.loading) {
-	//
-	// 		const linkField = this.getChild("linkForm");
-	// 		await linkField.setFocus();
-	// 		await this.render();
-	//
-	// 	}
-	//
-  // }
+	async insertLink() {
+
+    let manager = this.getEditor();
+
+		if (!manager.loading) {
+
+			// const node = manager.editor.selection.getNode();
+			//
+			// console.log(node);
+			// manager.editor.selection.select(node);
+
+			// const selection = manager.editor.selection.getSel();
+			// selection.modify('move', 'foward', 'word');
+			// selection.modify('extend', 'backward', 'word');
+
+			const linkField = this.getChild("linkForm");
+			await linkField.setFocus();
+			await this.render();
+
+		}
+
+  }
 	//
 	// async attachMedias(ids) {
 	//
@@ -461,9 +508,23 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 
 
-  queryMode() {
+  getMode() {
 
-	  return this.getState("mode") || "edit";
+		if (this.content) {
+
+			if (this.content.mixed) {
+
+				return "mixed";
+
+			} else if (!this.content.loading) {
+
+				return this.getState("mode") || "edit";
+
+			}
+
+		}
+
+	  return "";
 
   }
 
@@ -474,7 +535,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
   }
 
-	async getContent(key) {
+	getContent(key) {
 
     switch (key) {
 
@@ -502,11 +563,11 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				console.error("deprecated");
         return this.queryOL();
 
-			// deprec
-      case "linkform":
-        // return this.getLinkForm();
-				const linkForm = this.getLinkForm();
-				return new KarmaFieldsAlpha.Content(linkForm);
+			// // deprec
+      // case "linkform":
+      //   // return this.getLinkForm();
+			// 	const linkForm = this.getLinkForm();
+			// 	return new KarmaFieldsAlpha.Content(linkForm);
 
 			case "raw":
 				return this.parent.getContent(this.getKey());
@@ -663,7 +724,7 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 	*buildMixed() {
 
-		if (this.content && this.content.mixed) {
+		if (this.mode === "mixed") {
 
 			yield {
 				class: "textarea",
@@ -717,9 +778,6 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 				yield {
 					class: "tinymce editor-body",
-					init: node => {
-						node.element.editable = true;
-					}
 				};
 
 			} else {
@@ -730,11 +788,13 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 						node.element.editable = true;
 					},
 					update: async node => {
-						const manager = this.getEditor();
-						await manager.register(node.element, this.uid, this.resource.params);
-						const diff = manager.editor.getContent() !== this.content.toString();
-						if (diff) {
-							manager.editor.setContent(this.content.toString());
+						if (!this.content.loading) {
+							const manager = this.getEditor();
+							await manager.register(node.element, this.uid, this.resource.params);
+							const diff = manager.editor.getContent() !== this.content.toString();
+							if (diff) {
+								manager.editor.setContent(this.content.toString());
+							}
 						}
 					}
 				};
@@ -743,22 +803,22 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 
 			yield {
 				class: "karma-popover-container imageform-container",
-				// children: [...this.getChild("imageForm").build()],
-				update: async node => {
-					const field = this.getChild("imageForm");
-					field.focusInside = await field.hasFocusInside();
-					node.children = [...field.build()];
-				}
+				children: [...this.getChild("imageForm").build()],
+				// update: node => {
+				// 	const field = this.getChild("imageForm");
+				// 	field.focusInside = field.hasFocusInside();
+				// 	node.children = [...field.build()];
+				// }
 			};
 
 			yield {
 				class: "karma-popover-container linkform-container",
-				// children: [...this.getChild("linkForm").build()]
-				update: async node => {
-					const field = this.getChild("linkForm");
-					field.focusInside = await field.hasFocusInside();
-					node.children = [...field.build()];
-				}
+				children: [...this.getChild("linkForm").build()]
+				// update: node => {
+				// 	const field = this.getChild("linkForm");
+				// 	field.focusInside = field.hasFocusInside();
+				// 	node.children = [...field.build()];
+				// }
 			};
 
 		}
@@ -766,16 +826,29 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 	}
 
 	build() {
+
+		this.content = this.getContent();
+
+		if (this.content.mixed) {
+
+			this.mode = "mixed";
+
+		} else {
+
+			this.mode = this.getState("mode") || "edit";
+
+		}
+
+
 		return {
 			class: "editor karma-tinymce",
-      update: async container => {
+      update: container => {
 
 				this.container = container.element;
 
-				this.selection = await this.getSelection() || {};
-				this.content = await this.getContent();
-				this.mode = await this.getState("mode") || "edit";
-				this.focusInside = await this.hasFocusInside();
+				// this.selection = this.getSelection();
+
+				// this.focusInside = this.hasFocusInside();
 
 				container.element.classList.toggle("loading", Boolean(this.content.loading));
 
@@ -788,17 +861,18 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 				{
 					class: "mode mode-mixed",
 					update: node => {
+						// node.element.classList.toggle("hidden", !this.content.mixed);
 						node.element.classList.toggle("hidden", this.mode !== "mixed");
-						node.children = [...this.buildMixed()];
-					}
-					// children: [...this.buildMixed()]
+						// node.children = [...this.buildMixed()];
+					},
+					children: [...this.buildMixed()]
 				},
 				{
 					class: "mode mode-code",
-					// children: [...this.buildCode()],
+					children: [...this.buildCode()],
 					update: node => {
 						node.element.classList.toggle("hidden", this.mode !== "code");
-						node.children = [...this.buildCode()];
+						// node.children = [...this.buildCode()];
 					}
 				},
 				{
@@ -808,12 +882,13 @@ KarmaFieldsAlpha.field.tinymce = class extends KarmaFieldsAlpha.field.input {
 					},
 					child: {
 						class: "mode mode-edit",
-						// children: [...this.buildEditor()],
+						children: [...this.buildEditor()],
 						update: node => {
 							this.element = node.element;
-							node.element.classList.toggle("active", Boolean(this.focusInside));
+							const hasFocus = this.hasFocusInside();
+							node.element.classList.toggle("active", Boolean(hasFocus));
 							node.element.classList.toggle("hidden", this.mode !== "edit");
-							node.children = [...this.buildEditor()];
+							// node.children = [...this.buildEditor()];
 						}
 					}
 				}
@@ -905,10 +980,10 @@ KarmaFieldsAlpha.field.tinymce.buttons.link = class extends KarmaFieldsAlpha.fie
 		super({
 			dashicon: "admin-links",
 			title: "Link",
-			// action: "openLink",
-			request: ["insertLink"],
+			action: "insertLink",
+			// request: ["insertLink"],
 			active: ["request", "queryLink"],
-			enabled: ["||", ["request", "hasContentSelected"], ["request", "queryLink"]],
+			// enabled: ["||", ["request", "hasContentSelected"], ["request", "queryLink"]],
 			...resource
 		}, id, parent);
 	}
@@ -1192,7 +1267,9 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 
 		// return this.hasFocusInside();
 
-		return this.focusInside;
+		return this.hasFocusInside();
+
+		// return this.focusInside;
 
 	}
 
@@ -1208,7 +1285,7 @@ KarmaFieldsAlpha.field.tinymce.form = class extends KarmaFieldsAlpha.field.group
 						event.stopPropagation();
 					}
 				},
-				update: async popover => {
+				update: popover => {
 
 					const manager = this.parent.getEditor();
 					const targetElement = manager.editor.selection.getNode();
@@ -1282,13 +1359,13 @@ KarmaFieldsAlpha.field.tinymce.linkForm = class extends KarmaFieldsAlpha.field.t
 		}, id, parent);
 	}
 
-	async getContent(subkey) {
+	getContent(subkey) {
 
 		const response = new KarmaFieldsAlpha.Content();
 
-		const value = await this.getState(subkey);
+		const state = this.getData(subkey);
 
-		if (value === undefined) {
+		if (state === undefined) {
 
 			const request = this.parent.getEditor();
 
@@ -1329,7 +1406,7 @@ KarmaFieldsAlpha.field.tinymce.linkForm = class extends KarmaFieldsAlpha.field.t
 
 		} else {
 
-			response.value = value;
+			response.value = state;
 			response.modified = true;
 
 		}
@@ -1337,16 +1414,16 @@ KarmaFieldsAlpha.field.tinymce.linkForm = class extends KarmaFieldsAlpha.field.t
 		return response;
 	}
 
-	async setValue(value, subkey) {
+	setValue(value, subkey) {
 
-		return this.setState(value, subkey);
+		return this.setData(value, subkey);
 
 	}
 
 	async submit() {
 
-		let href = await this.getContent("href");
-		let targetBlank = await this.getContent("target");
+		let href = this.getContent("href");
+		let targetBlank = this.getContent("target");
 		let request = this.parent.getEditor();
 
 		if (!href.loading && !targetBlank.loading && !request.loading) {
@@ -1378,7 +1455,10 @@ KarmaFieldsAlpha.field.tinymce.linkForm = class extends KarmaFieldsAlpha.field.t
 
 	async close() {
 
-		await this.removeState();
+		// await this.setData({});
+		KarmaFieldsAlpha.server.setData({}, this.uid);
+
+		this.parent.setFocus();
 
 		const request = this.parent.getEditor();
 
@@ -1425,9 +1505,9 @@ KarmaFieldsAlpha.field.tinymce.linkForm = class extends KarmaFieldsAlpha.field.t
 
 		const response = new KarmaFieldsAlpha.Content();
 
-		const data = await this.getState();
+		const data = this.getState();
 
-		response.value = Boolean(data && Object.values(data).length);
+		response.value = Boolean(data && Object.values(data.toObject()).length);
 
 		return response;
 
@@ -1519,7 +1599,7 @@ KarmaFieldsAlpha.field.tinymce.linkForm.unlink = class extends KarmaFieldsAlpha.
 
 		super({
 			text: "Unlink",
-			request: ["unlink"],
+			action: "unlink",
 			// disabled: ["!", ["getValue", "href"]],
 			...resource
 		}, id, parent);
@@ -1533,7 +1613,7 @@ KarmaFieldsAlpha.field.tinymce.linkForm.applyButton = class extends KarmaFieldsA
 
 		super({
 				text: "Apply",
-				request: ["submit"],
+				action: "submit",
 				primary: true,
 			...resource
 		}, id, parent);
@@ -1551,7 +1631,7 @@ KarmaFieldsAlpha.field.tinymce.linkForm.attachFile = class extends KarmaFieldsAl
 
 		super({
 			dashicon: "paperclip",
-			request: ["attachfile"],
+			action: "attachfile",
 			...resource
 		}, id, parent);
 
@@ -1567,7 +1647,8 @@ KarmaFieldsAlpha.field.tinymce.linkForm.attachFile = class extends KarmaFieldsAl
 
 		const mediaField = new KarmaFieldsAlpha.field.media({
 			id: id,
-			driver: this.getDriver()
+			driver: this.getDriver(),
+			display: "full"
 		}, "media", this);
 
 		let media = await mediaField.getMedia();

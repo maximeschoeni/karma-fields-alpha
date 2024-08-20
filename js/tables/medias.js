@@ -601,13 +601,13 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   }
 
 
-  async getContentAt(index, key) {
+  getContentAt(index, key) {
 
     if (index === "exit") {
 
       switch (key) {
         case "id":
-          const id = await this.getContent("parent");
+          const id = this.getContent("parent");
           return this.getParent(id.toString());
 
         case "filetype":
@@ -657,7 +657,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
   async select(index = 0, length = 0) { // to be overrided (ie. Medias grid)
 
-    for await (let socket of this.genSockets()) {
+    for (let socket of this.genSockets()) {
 
       if (socket.id === index) {
 
@@ -670,16 +670,16 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
   }
 
-  async querySelection() { // to be overrided (ie. Medias grid)
+  querySelection() { // to be overrided (ie. Medias grid)
 
-    const selection = await this.getSelection();
+    const selection = this.getSelection();
 
     if (selection) {
 
       const index = selection.index || 0;
       const length = selection.length || 0;
 
-      const socketsQuery = await this.getSockets();
+      const socketsQuery = this.getSockets();
 
       const sockets = socketsQuery.slice(index, index+length).filter(socket => socket.id !== "exit");
 
@@ -707,34 +707,33 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   //
   // }
 
-  async getSockets() {
+  getSockets() {
 
-    const sockets = [];
+    // const sockets = [];
+    //
+    // for (let socket of this.genSockets()) {
+    //
+    //   sockets.push(socket);
+    //
+    // }
+    //
+    // return sockets;
 
-    for await (let socket of this.genSockets()) {
-
-      sockets.push(socket);
-
-    }
-
-    return sockets;
-
-    // return [...this.genSockets()];
+    return [...this.genSockets()];
 
   }
 
-  async *genSockets() {
+  *genSockets() {
 
-    const lengthQuery = await this.parent.getLength();
-    const parentQuery = await this.getContent("parent");
+    const length = this.parent.getLength();
+    const parentQuery = this.getContent("parent");
 
-    if (lengthQuery.loading || parentQuery.loading) {
+    if (parentQuery.loading) {
 
       return;
 
     }
 
-    const length = lengthQuery.toNumber();
     const parent = parentQuery.toString() || "0";
     let index = 0;
 
@@ -751,7 +750,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
     for (let i = 0; i < length; i++) {
 
       // const itemParent = this.getContentAt(i, "parent").toString() || "0";
-      const filetype = await this.getContentAt(i, "filetype");
+      const filetype = this.getContentAt(i, "filetype");
       // const id = this.getContentAt(i, "id").toString();
 
       // if (itemParent === parent) {
@@ -765,25 +764,6 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
       // }
 
     }
-
-    // const driver = this.getDriver();
-    // const delta = KarmaFieldsAlpha.Store.Delta.get("vars", "remote", driver);
-    // const parentAlias = KarmaFieldsAlpha.Driver.getAlias(driver, "parent");
-    //
-    // for (let id in delta) {
-    //
-    //   if (delta[id][parentAlias] === parent) {
-    //
-    //     yield {
-    //       id: id,
-    //       index: index++,
-    //       filetype: this.getValueById(id, "filetype")
-    //     }
-    //
-    //   }
-    //
-    //
-    // }
 
   }
 
@@ -854,15 +834,15 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   //
   // }
 
-  async getLength() {
+  getLength() {
 
-    const length = new KarmaFieldsAlpha.Content();
+    // const length = new KarmaFieldsAlpha.Content();
+    //
+    // const sockets = await this.getSockets();
+    //
+    // length.value = sockets.length;
 
-    const sockets = await this.getSockets();
-
-    length.value = sockets.length;
-
-    return length;
+    return this.getSockets().length;
 
   }
 
@@ -892,9 +872,9 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
 
 
-  async getNewItemIndex() {
+  getNewItemIndex() {
 
-    for await (let socket of this.genSockets()) {
+    for (let socket of this.genSockets()) {
 
       if (socket.filetype === "file") {
 
@@ -904,21 +884,18 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
     }
 
-    const length = await this.getLength();
-
-    return length.toNumber() - 1;
+    return this.getLength() - 1;
 
   }
 
-  async getNewFileIndex() {
+  getNewFileIndex() {
 
     // const sockets = this.getSockets();
     //
     // return sockets[sockets.length - 1].id;
 
-    const length = await this.parent.getLength()
 
-    return length.toNumber();
+    return this.parent.getLength();
 
   }
 
@@ -930,14 +907,14 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
         await this.save(`open`, "Upper Directory");
 
-        const parent = await this.getContent("parent");
+        const parent = this.getContent("parent");
 
-        let id = await this.getParent(parent.toString());
+        let id = this.getParent(parent.toString());
 
         while (id.loading) {
 
           await this.render();
-          id = await this.getParent(parent.toString());
+          id = this.getParent(parent.toString());
 
         }
 
@@ -950,7 +927,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
         await this.save(`open`, "Open Directory");
 
-        const id = await this.getContentAt(socket.id, "id");
+        const id = this.getContentAt(socket.id, "id");
 
         await this.setValue(id.toString() || "0", "parent");
 
@@ -971,9 +948,12 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
       // });
 
       const driver = this.getDriver();
-      const server = new KarmaFieldsAlpha.Server(driver);
+      // const server = new KarmaFieldsAlpha.Server(driver);
+      //
+      // return server.getValue(id, "parent");
 
-      return server.getValue(id, "parent");
+
+      return this.getWild(driver, id, "parent");
 
       // return table.getValueById(id, "parent");
 
@@ -1112,14 +1092,14 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
         await this.save("move", "Move upper");
 
-        const id = await this.getContent("parent");
+        const id = this.getContent("parent");
 
-        let parent = await this.getParent(id.toString());
+        let parent = this.getParent(id.toString());
 
         while (parent.loading) {
 
           await this.render();
-          parent = await this.getParent(id.toString());
+          parent = this.getParent(id.toString());
 
         }
 
@@ -1137,7 +1117,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
         await this.save("move", "Move to Folder");
 
-        const id = await this.getContentAt(targetSocket.id, "id");
+        const id = this.getContentAt(targetSocket.id, "id");
 
         // destId = id;
 
@@ -1391,10 +1371,11 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
   //
   // }
 
-  *buildThumbnails(selection, hasFocus, sockets) {
+  *buildThumbnails() {
 
-    // const selection = this.getSelection();
-    // const hasFocus = this.hasFocus();
+    const selection = this.getSelection();
+    const hasFocus = this.hasFocus();
+    const sockets = this.genSockets();
     //
     // for (let socket of this.genSockets()) {
 
@@ -1478,11 +1459,10 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
             grid.element.style = this.resource.style;
           }
         },
-        update: async grid => {
+        update: grid => {
 
-          const sockets = await this.getSockets();
-          const selection = await this.getSelection();
-          const hasFocus = await this.hasFocus();
+          const sockets = this.getSockets();
+          const selection = this.getSelection();
 
           if (this.resource.draganddrop) {
 
@@ -1624,10 +1604,10 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
           //
           // for (let socket of this.genSockets()) {
 
-          grid.children = [...this.buildThumbnails(selection, hasFocus, sockets)];
+          // grid.children = [...this.buildThumbnails()];
 
-        }
-        // children: [...this.buildThumbnails()]
+        },
+        children: [...this.buildThumbnails()]
       }
     };
 

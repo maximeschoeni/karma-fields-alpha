@@ -75,11 +75,13 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
   //
   // }
 
-  async hasFocusInside() {
+  hasFocusInside() {
 
-    const focus = await this.getFocus();
+    // const focus = await this.getFocus();
+    //
+    // return focus && focus.length <= this.path.length + 1 && this.path.every((id, index) => id === focus[index]);
 
-    return focus && focus.length <= this.path.length + 1 && this.path.every((id, index) => id === focus[index]);
+    return super.hasFocusInside();
   }
 
   // getChild(index) {
@@ -120,14 +122,14 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
   // }
 
 
-  async export() {
+  export() {
 
     const output = new KarmaFieldsAlpha.Content();
 
     if (this.resource.export !== false) {
 
       const body = this.getChild("body");
-      const length = await this.getLength();
+      const length = this.queryLength();
 
       if (length.loading) {
 
@@ -135,7 +137,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       } else if (body) {
 
-        const gridContent = await body.export(0, length.toNumber());
+        const gridContent = body.export(0, length.toNumber());
 
         if (gridContent.loading) {
 
@@ -161,14 +163,14 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     const grid = new KarmaFieldsAlpha.Content.Grid(string);
 
     const body = this.getChild("body");
-    const length = await this.getLength();
+    const length = this.getLength();
 
-    await body.import(grid, 0, length.toNumber());
+    await body.import(grid, 0, length);
 
   }
 
 
-  async getLength() {
+  queryLength() {
 
     const keys = this.getKeys();
 
@@ -176,7 +178,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     for (let key of keys) {
 
-      const value = await this.getContent(key);
+      const value = this.getContent(key);
 
       if (value.loading) {
 
@@ -193,14 +195,31 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     return length;
   }
 
-  async getContentAt(index, key) {
+  getLength() {
+
+    const keys = this.getKeys();
+
+    let length = 0;
+
+    for (let key of keys) {
+
+      const value = this.getContent(key);
+
+      length = Math.max(length, value.toArray().length);
+
+    }
+
+    return length;
+  }
+
+  getContentAt(index, key) {
 
     const cellContent = new KarmaFieldsAlpha.Content();
     const arrayKey = this.getKey();
 
     if (arrayKey) {
 
-      const content = await this.getContent(arrayKey);
+      const content = this.getContent(arrayKey);
 
       if (content.loading) {
 
@@ -224,7 +243,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     } else {
 
-      const content = await this.getContent(key);
+      const content = this.getContent(key);
 
       if (content.loading) {
 
@@ -257,15 +276,11 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     if (arrayKey) {
 
-      let content = await this.getContent(arrayKey);
+      let content = this.getContent(arrayKey);
 
       if (!content.loading) {
 
-        // const clone = new KarmaFieldsAlpha.Content();
-
         const clone = KarmaFieldsAlpha.DeepObject.clone(content.toArray());
-
-        // clone.value[index] = {...clone.value[index]};
 
         if (!clone[index]) {
 
@@ -281,7 +296,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     } else {
 
-      let content = await this.getContent(key);
+      let content = this.getContent(key);
 
       if (!content.loading) {
 
@@ -305,7 +320,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       if (body) {
 
-        const selection = await body.querySelection();
+        const selection = body.querySelection();
 
         index = selection && selection.index || 0;
         length = selection && selection.length || 0;
@@ -316,12 +331,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     const keys = this.getKeys();
 
-    let contents = await Promise.all(keys.map(key => this.getContent(key)));
+    let contents = keys.map(key => this.getContent(key));
 
     while (contents.some(content => content.loading)) {
 
       await this.render();
-      contents = await Promise.all(keys.map(key => this.getContent(key)));
+      contents = keys.map(key => this.getContent(key));
 
     }
 
@@ -344,23 +359,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     const keys = this.getKeys();
 
-    // let contents = keys.map(key => this.getContent(key));
-
-    let contents = await Promise.all(keys.map(key => this.getContent(key)));
-
-    // while (contents.some(content => content.loading)) {
-    //
-    //   yield;
-    //   contents = await Promise.all(keys.map(key => this.getContent(key)));
-    //
-    // }
-
-    // while (contents.some(content => content.loading)) {
-    //
-    //   yield;
-    //   contents = keys.map(key => this.getContent(key));
-    //
-    // }
+    let contents = keys.map(key => this.getContent(key));
 
     if (contents.some(content => content.loading)) {
 
@@ -398,12 +397,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
   async add(num = 1, index = undefined) {
 
-    let length = await this.getLength();
+    let length = this.queryLength();
 
     while (length.loading) {
 
       await this.render();
-      length = await this.getLength();
+      length = this.queryLength();
 
     }
 
@@ -413,7 +412,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
       if (body) {
 
-        index = await body.getNewItemIndex();
+        index = body.getNewItemIndex();
 
       } else {
 
@@ -426,16 +425,13 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     await this.save("add", "Insert");
 
-    // this.addAt(index, 1)
-
     const keys = this.getKeys();
-    // let contents = keys.map(key => this.getContent(key));
-    let contents = await Promise.all(keys.map(key => this.getContent(key)));
+    let contents = keys.map(key => this.getContent(key));
 
     while (contents.some(content => content.loading)) {
 
       await this.render();
-      contents = await Promise.all(keys.map(key => this.getContent(key)));
+      contents = keys.map(key => this.getContent(key));
 
     }
 
@@ -454,13 +450,14 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     if (body) {
 
-      const rowField = await body.getChild(0);
+      const rowField = body.getChild(0);
 
-      let defaults = await rowField.exportDefaults();
+      let defaults = rowField.exportDefaults();
 
       while (defaults.loading) {
 
-        defaults = await rowField.exportDefaults();
+        await this.render();
+        defaults = rowField.exportDefaults();
 
       }
 
@@ -468,11 +465,9 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
         const rowField = body.getChild(i + index);
 
-        // yield* rowField.create();
-
         for (let key in defaults) {
 
-          rowField.setValue(defaults[key], key);
+          await rowField.setValue(defaults[key], key);
 
         }
 
@@ -505,67 +500,6 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     }
 
   }
-
-  // getChild(index) {
-  //
-  //   return KarmaFieldsAlpha.field.table.prototype.getChild.call(this, index);
-  //
-  // }
-
-  // buildHeader() {
-  //
-  //   return KarmaFieldsAlpha.field.table.prototype.buildHeader.call(this);
-  //
-  // }
-  //
-  // *buildFooter() {
-  //
-  //   if (this.resource.footer !== false) {
-  //
-  //     const footer = this.createChild({
-  //       type: "footer",
-  //       ...(this.resource.controls || this.resource.footer)
-  //     }, "footer");
-  //
-  //     yield footer.build();
-  //
-  //   }
-  //
-  // }
-
-  // buildFooter() {
-  //
-  //   return KarmaFieldsAlpha.field.table.prototype.buildFooter.call(this);
-  //
-  // }
-
-  // *buildParts() {
-  //
-  //   yield {
-  //     class: "table-body",
-  //     child: this.getChild("body").build()
-  //   };
-  //
-  //   if (this.resource.footer !== false) {
-  //
-  //     yield {
-  //       class: "table-footer table-control",
-  //       child: this.getChild("footer").build(),
-  //       // update: footer => {
-  //       //   const isLoading = this.request("hasTask");
-  //       //   footer.element.classList.toggle("loading", Boolean(isLoading));
-  //       // }
-  //     };
-  //
-  //   }
-  //
-  // }
-  //
-  // build() {
-  //
-  //   return KarmaFieldsAlpha.field.table.prototype.build.call(this);
-  //
-  // }
 
 }
 

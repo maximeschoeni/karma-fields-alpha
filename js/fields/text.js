@@ -33,29 +33,7 @@
 
 KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
-	async export() {
-
-		// const collection = new KarmaFieldsAlpha.Content.Collection();
-		//
-		//
-		//
-		// if (this.resource.export === true) {
-		//
-		// 	const content = this.parse(this.resource.content);
-		//
-		// 	collection.merge(content);
-		//
-		// } else if (this.resource.export) {
-		//
-		// 	const content = this.parse(this.resource.export);
-		//
-		// 	collection.merge(content);
-		//
-		// }
-		//
-		//
-		// return collection;
-
+	export() {
 
 		const output = new KarmaFieldsAlpha.Content();
 		let content;
@@ -70,30 +48,15 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 				return this.parse(this.resource.export);
 
-			} else {
-
-
-
 			}
-
-			// if (content.loading) {
-			//
-			// 	output.loading = true;
-			//
-			// } else {
-			//
-			// 	output.value = content.toArray();
-			//
-			// }
 
 		}
 
 		return new KarmaFieldsAlpha.Content();
 
-		// return output;
 	}
 
-	async import(collection) {
+	import(collection) {
 
 		if (this.resource.export) {
 
@@ -104,7 +67,6 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 	}
 
 	getContent() {
-
 
 		return this.parse(this.resource.value || this.resource.content);
 
@@ -127,17 +89,12 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 				}
 				// node.element.tabIndex = -1;
 			},
-			update: async node => {
-
-				// node.children = [];
-				// node.element.innerHTML = "";
+			update: node => {
 
 				if (this.resource.content || this.resource.value) {
 
 
-					let content = await this.getContent();
-
-					// const children = this.getChildren();
+					let content = this.getContent();
 
 					node.element.classList.toggle("loading", Boolean(content.loading));
 
@@ -157,14 +114,8 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 					} else {
 
-						// content = KarmaFieldsAlpha.Type.toArray(content);
-
-						// node.element.innerHTML = content.toArray().map(value => `<div class="text-item">${value.toString()}</div>`).join("");
-
 						node.children = content.toArray().map(value => {
 							return {
-								// class:"text-item",
-								// tag: "li",
 								update: node => {
 									node.element.innerHTML = value.toString();
 								}
@@ -173,121 +124,16 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 					}
 
-        // } else if (this.resource.links) {
-				//
-				// 	const links = this.parse(this.resource.links);
-				//
-				// 	if (!links.loading) {
-				//
-				// 		// node.children = links.toArray().map((link, index) => {
-				// 		//
-				// 		// 	return this.createChild({
-				// 		// 		type: "a",
-				// 		// 		...link,
-				// 		// 		index: index
-				// 		// 	}, index);
-				// 		// });
-				//
-				//
-				// 		node.children = links.toArray().map(link => {
-				// 			return {
-				// 				class:"text-item",
-				// 				update: node => {
-				// 					node.element.onmousedown = event => {
-				// 						event.stopPropagation();
-				// 					};
-				//
-				// 					if (link.href) {
-				//
-				// 						const href = this.parse(link.href);
-				//
-				// 						node.element.href = href.toString();
-				//
-				// 					} else if (link.table || link.params) {
-				//
-				// 						const table = this.parse(link.table);
-				// 						const params = this.parse(link.params);
-				// 						const selectedIds = this.parse(link.selectedIds);
-				//
-				// 						if (!table.loading && !params.loading && !selectedIds.loading) {
-				//
-				// 							node.element.onclick = event => {
-				//
-				// 								event.preventDefault();
-				//
-				// 								this.request("open", table.toString(), params.toObject(), this.resource.replace ?  true : false, selectedIds.toArray())
-				//
-				// 							}
-				//
-				// 						}
-				//
-				// 					}
-				//
-				// 				}
-				// 			}
-				// 		});
-				//
-				// 	}
-				//
-				//
-				//
-				//
-				// } else if (this.resource.medias) {
-				//
-				// 	const medias = KarmaFieldsAlpha.Type.toArray(this.resource.medias);
-				//
-				// 	node.children = medias.map((media, index) => {
-				//
-				// 		return this.createChild({
-				// 			type: "media",
-				// 			...media,
-				// 			index: index
-				// 		}).build();
-				//
-				// 	});
-				//
-				// } else if (this.resource.media) {
-				//
-				// 	if (this.resource.media.id) {
-				//
-				// 		let ids = this.parse(this.resource.media.id);
-				//
-				// 		ids = KarmaFieldsAlpha.Type.toArray(ids);
-				//
-				//
-				// 		node.children = ids.map((id, index) => {
-				//
-				// 			return this.createChild({
-				// 				type: "media",
-				// 				driver: this.resource.media.driver || "medias",
-				// 				display: this.resource.media.display || "thumb",
-				// 				id: id,
-				// 				index: index
-				// 			}).build();
-				//
-				// 		});
-				//
-				// 	}
-				//
-
-
 				}
 
 				if (this.resource.disabled) {
-					const disabled = await this.parse(this.resource.disabled);
+					const disabled = this.parse(this.resource.disabled);
 					node.element.classList.toggle("disabled", disabled.toBoolean());
 				}
         if (this.resource.enabled) {
-					const enabled = await this.parse(this.resource.enabled);
+					const enabled = this.parse(this.resource.enabled);
 					node.element.classList.toggle("disabled", !enabled.toBoolean());
 				}
-
-
-				// if (this.resource.test) {
-				// 	console.log(this.parse(this.resource.test));
-				// }
-
-				// node.element.classList.remove("loading");
 
 			}
 		};
@@ -576,12 +422,12 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
 		if (popup.resource.preselect) {
 
-			let ids = await this.parse(popup.resource.preselect);
+			let ids = this.parse(popup.resource.preselect);
 
 			while (ids.loading) {
 
 				await this.render();
-				ids = await this.parse(popup.resource.preselect);
+				ids = this.parse(popup.resource.preselect);
 
 			}
 
@@ -623,13 +469,14 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 	//
 	// }
 
-	*buildPopup(hasPopup) {
+	*buildPopup() {
 
 		// const hasPopup = this.hasFocusInside("popup");
 
-    if (hasPopup) {
+		const popup = this.getChild("popup");
+		const hasPopup = popup.hasFocusInside();
 
-      const popup = this.getChild("popup");
+    if (hasPopup) {
 
 			yield {
         class: "popup",
@@ -638,7 +485,6 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
             event.stopPropagation();
 
 						await popup.setFocus(true);
-						// if (body.select) body.select(0, 0); // !!
 						await this.render();
           }
         },
@@ -663,10 +509,10 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 				{
 					tag: "ul",
 					class: "karma-field links",
-					update: async node => {
+					update: node => {
 						node.element.classList.toggle("display-inline", this.resource.display === "inline");
 
-						const contents = await this.parse(this.resource.content);
+						const contents = this.parse(this.resource.content);
 
 						if (contents.loading) {
 
@@ -681,7 +527,7 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 									tag: "li",
 									child: {
 										tag: "a",
-										update: async node => {
+										update: node => {
 
 											node.element.onmousedown = event => {
 												event.stopPropagation();
@@ -703,7 +549,7 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
 											} else if (this.resource.href) {
 
-												const href = await this.parse(this.resource.href);
+												const href = this.parse(this.resource.href);
 
 												node.element.href = href.toArray()[index];
 
@@ -728,11 +574,11 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 				},
 				{
 					class: "popup-container",
-					update: async node => {
+					update: node => {
 
-						const hasPopup = await this.hasFocusInside("popup");
 
-						node.children = [...this.buildPopup(hasPopup)];
+
+						node.children = [...this.buildPopup()];
 					}
 				}
 				// ...this.buildPopup()
@@ -744,6 +590,127 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 }
 
 
+KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
+
+	newChild(index) {
+
+    if (index === "popup" && this.resource.popup) {
+
+			const resource = typeof this.resource.popup === "string" && KarmaFieldsAlpha.tables[this.resource.popup] || this.resource.popup;
+
+      const constructor = this.getConstructor(resource.type || "table");
+
+      return new constructor(resource, "popup", this);
+
+    }
+
+  }
+
+	async open() {
+
+		await this.save("open", "Open link");
+
+		const popup = this.getChild("popup");
+
+		await popup.setFocus(true);
+
+		if (this.resource.params) {
+
+			let params = this.parseObject(this.resource.params);
+
+			while (params.loading) {
+
+				await this.render();
+				params = this.parse(this.resource.params);
+
+			}
+
+			popup.setState(params.toObject(), "params");
+
+		}
+
+		if (this.resource.preselect) {
+
+			let ids = this.parse(this.resource.preselect);
+
+			while (ids.loading) {
+
+				await this.render();
+				ids = this.parse(this.resource.preselect);
+
+			}
+
+			await popup.selectByIds(ids.toArray());
+
+		}
+
+		await this.render();
+
+	}
+
+	getText() {
+
+		return this.parse(this.resource.text || this.resource.content).toString();
+
+	}
+
+	*buildPopup() {
+
+		const popup = this.getChild("popup");
+		const hasPopup = popup.hasFocusInside();
+
+    if (hasPopup) {
+
+			yield {
+        class: "popup",
+				update: node => {
+          node.element.onmousedown = async event => {
+            event.stopPropagation();
+
+						await popup.setFocus(true);
+						await popup.render();
+          }
+        },
+        child: {
+          class: "popup-content",
+          children: [
+            popup.build()
+          ]
+        }
+      };
+
+		}
+
+	}
+
+	build() {
+
+		return {
+			class: "popup-link",
+			children: [
+				{
+					tag: "a",
+					update: node => {
+						node.element.innerHTML = this.getText();
+						node.element.onclick = event => {
+							event.preventDefault();
+							this.open();
+						}
+					}
+				},
+				{
+					class: "popup-container",
+					children: [...this.buildPopup()]
+				}
+			]
+		};
+
+	}
+
+}
+
+
+
 KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.links {
 
 	getKey() {
@@ -752,27 +719,29 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 
 	}
 
+
 	build() {
 
 		return {
 			class: "taxonomy-links",
-			update: async node => {
-				const server = new KarmaFieldsAlpha.Server(this.resource.driver);
+			update: node => {
+				// const server = new KarmaFieldsAlpha.Server(this.resource.driver);
 				const key = this.getKey();
-				const values = await this.parent.getContent(key);
+				const values = this.parent.getContent(key);
 
 				if (!values.loading) {
 					node.children = values.toArray().map(id => {
 						return {
 							tag: "a",
-							update: async node => {
-								const name = await server.getValue(id, "name");
+							update: node => {
+								// const name = await server.getValue(id, "name");
+								const name = this.getWild(this.resource.driver, id, "name");
 								if (!name.loading) {
 									node.element.innerHTML = name.toString();
 								}
 								node.element.onclick = async event => {
 									event.preventDefault();
-									await this.parent.setParam(id, this.resource.driver);
+									await this.parent.setParam(id, this.resource.key);
 									await this.render();
 								}
 							}
@@ -798,17 +767,15 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	async getContent(key) {
+	getContent(key) {
 
 		if (this.resource.driver && this.resource.id) {
 
-			let idQuery = await this.parse(this.resource.id);
+			let idQuery = this.parse(this.resource.id);
 
 			if (idQuery.loading) {
 
-				const response = new KarmaFieldsAlpha.Content();
-				response.loading = true;
-				return response;
+				return new KarmaFieldsAlpha.Loading();
 
 			} else {
 
@@ -825,8 +792,10 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 	      // });
 
 				const driver = this.getDriver();
-				const server = new KarmaFieldsAlpha.Server(driver);
-				return server.getValue(idQuery.toString(), key);
+				// const server = new KarmaFieldsAlpha.Server(driver);
+				// return server.getValue(idQuery.toString(), key);
+
+				return this.getWild(driver, idQuery.toString(), key);
 
 			}
 
@@ -838,7 +807,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	async getMedia() {
+	getMedia() {
 
 		const driver = this.getDriver();
 
@@ -880,11 +849,11 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 			// const name = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "name");
 			// const filename = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filename");
 
-			const mimetype = await this.getContent("mimetype");
-			const filetype = await this.getContent("filetype");
-			const name = await this.getContent("name");
-			const filename = await this.getContent("filename");
-			const dir = await this.getContent("dir");
+			const mimetype = this.getContent("mimetype");
+			const filetype = this.getContent("filetype");
+			const name = this.getContent("name");
+			const filename = this.getContent("filename");
+			const dir = this.getContent("dir");
 
 			if (mimetype.loading || filetype.loading || name.loading || filename.loading || dir.loading) {
 
@@ -937,7 +906,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 					//
 					// } else {
 
-						const sizes = await this.getContent("sizes");
+						const sizes = this.getContent("sizes");
 
 						if (sizes.loading) {
 
@@ -971,6 +940,8 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 									text: name.toString(),
 									mimetype: mimetype.toString(),
 									filename: filename.toString(),
+									src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
+									image: true
 								};
 
 							}
@@ -1146,9 +1117,9 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 					node.element.classList.add("greyscale");
 				}
 			},
-			update: async node => {
+			update: node => {
 
-				const media = await this.getMedia();
+				const media = this.getMedia();
 
 				node.children = [
 					{

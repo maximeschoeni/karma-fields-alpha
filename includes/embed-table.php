@@ -22,4 +22,5 @@
 
 	KarmaFieldsAlpha.embeds["karma-fields-embed-<?php echo $index; ?>"] = <?php echo json_encode($args); ?>;
 
+
 </script>

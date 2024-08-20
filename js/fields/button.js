@@ -8,18 +8,19 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 	async doTask() {
 
+
 		let params = [];
 
 		if (this.resource.params) {
 
 			for (let param of this.resource.params) {
 
-				let result = await this.parse(param);
+				let result = this.parse(param);
 
 				while (result.loading) {
 
 					await this.render();
-					result = await this.parse(param);
+					result = this.parse(param);
 
 				}
 
@@ -113,13 +114,13 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 		} else if (this.resource.action) {
 
-			await this.rendering();
+			// await this.rendering();
 
 			await this.doTask();
 
 			// KarmaFieldsAlpha.Jobs.add(work);
 			//
-			await this.render();
+			await this.render(); // should be removed because sometime we need a global rendering (like close button)
 
 		}
 
@@ -263,10 +264,10 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 			children: [
 				{
 					tag: "span",
-					update: async span => {
+					update: span => {
 						span.element.classList.toggle("hidden", !this.resource.dashicon);
 						if (this.resource.dashicon) {
-							const dashicon = await this.parse(this.resource.dashicon);
+							const dashicon = this.parse(this.resource.dashicon);
 							span.element.classList.add("dashicons", `dashicons-${dashicon.toString()}`);
 							// span.element.className = "dashicons dashicons-"+.toString();
 						}
@@ -274,21 +275,21 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 				},
 				{
 					tag: "span",
-					update: async span => {
+					update: span => {
 						span.element.classList.toggle("hidden", !this.resource.text);
 						if (this.resource.text) {
 							span.element.className = "text";
-							const text = await this.parse(this.resource.text);
+							const text = this.parse(this.resource.text);
 							span.element.textContent = text.toString();
 						}
 					}
 				},
 			],
-			update: async button => {
+			update: button => {
 
 				if (this.resource.primary) {
 
-					const primary = await this.parse(this.resource.primary);
+					const primary = this.parse(this.resource.primary);
 
 					button.element.classList.toggle("button-primary", primary.toBoolean());
 
@@ -344,20 +345,20 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 
 				if (this.resource.disabled) {
-					const disabled = await this.parse(this.resource.disabled);
+					const disabled = this.parse(this.resource.disabled);
 					button.element.disabled = disabled.toBoolean();
 				} else if (this.resource.enabled) {
-					const enabled = await this.parse(this.resource.enabled);
+					const enabled = this.parse(this.resource.enabled);
 					button.element.disabled = !enabled.toBoolean();
 				}
 
 				if (this.resource.active) {
-					const active = await this.parse(this.resource.active);
+					const active = this.parse(this.resource.active);
 					button.element.classList.toggle("active", active.toBoolean());
 				}
 
 				if (this.resource.loading) {
-					const loading = await this.parse(this.resource.loading);
+					const loading = this.parse(this.resource.loading);
 					button.element.classList.toggle("loading", loading.toBoolean());
 				}
 
@@ -538,8 +539,10 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 	async download(grid) {
 
-		const csv = grid.toString();
-		const filename = await this.parse(this.resource.filename || "export.csv").toString();
+		// const csv = grid.toString(",");
+
+		const csv = Papa.unparse(grid.value);
+		const filename = this.parse(this.resource.filename || "export.csv").toString();
 
 		const element = document.createElement("a");
 		element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
@@ -553,16 +556,62 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 	}
 
+	// async doTask() {
+	//
+	// 	const table = this.closest(field => field.constructor === KarmaFieldsAlpha.field.table);
+	//
+	// 	let count = table.queryCount();
+	//
+	// 	while (count.loading) {
+	//
+	// 		await this.render();
+	// 		count = table.queryCount();
+	//
+	// 	}
+	//
+	// 	const ppp = this.resource.ppp || 100;
+	// 	let page = 0;
+	// 	let tableData = new KarmaFieldsAlpha.Content.Grid();
+	//
+	// 	while (page*ppp < count.toNumber()) {
+	//
+	// 		await table.setPage(page+1);
+	//
+	// 		const length = Math.min(ppp, count.toNumber()-page*ppp);
+	// 		const grid = table.getChild("body");
+	//
+	// 		let gridData = grid.export(0, length);
+	//
+	// 		while (gridData.loading) {
+	//
+	// 			await this.render();
+	// 			gridData = grid.export(0, length);
+	//
+	// 		}
+	//
+	// 		tableData.value = [...tableData.toArray(), ...gridData.toArray()];
+	//
+	// 		page++;
+	//
+	// 	}
+	//
+	// 	await this.download(tableData);
+	//
+	// }
+
 	async doTask() {
 
-		const table = this.closest(field => field.constructor === KarmaFieldsAlpha.field.table);
+		const closestTable = this.closest(field => field.constructor === KarmaFieldsAlpha.field.table);
 
-		let count = await table.getCount();
+		const table = new KarmaFieldsAlpha.field.table(closestTable.resource, "clone", this);
+		table.setState(closestTable.getParams(), "params");
+
+		let count = table.queryCount();
 
 		while (count.loading) {
 
 			await this.render();
-			count = await table.getCount();
+			count = table.queryCount();
 
 		}
 
@@ -577,12 +626,12 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 			const length = Math.min(ppp, count.toNumber()-page*ppp);
 			const grid = table.getChild("body");
 
-			let gridData = await grid.export(0, length);
+			let gridData = grid.export(0, length);
 
 			while (gridData.loading) {
 
 				await this.render();
-				gridData = await grid.export(0, length);
+				gridData = grid.export(0, length);
 
 			}
 
@@ -597,89 +646,14 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 	}
 
 
+
+
 	async click() {
 
 		await this.doTask();
 
-		// KarmaFieldsAlpha.Jobs.add(work);
-
-		// await this.render();
-
 	}
 
-
-
-	// click() {
-	//
-	// 	const data = new KarmaFieldsAlpha.Content.Grid();
-	// 	let page = 1;
-	// 	const ppp = this.resource.ppp || 100;
-	// 	const params = this.request("body", "getParams");
-	// 	const driver = this.request("body", "getDriver");
-	//
-	// 	const loop = () => {
-	//
-	// 		const countContent = this.request("body", "getCount");
-	//
-	// 		if (countContent.loading) {
-	//
-	// 			this.addTask(() => loop(), "export");
-	//
-	// 		} else {
-	//
-	// 			const count = countContent.toNumber();
-	// 			const total = Math.ceil(count/ppp);
-	//
-	// 			if (data.value.length < count) {
-	//
-	// 				const resource = this.request("body", "getResources");
-	//
-	// 				const gridField = new KarmaFieldsAlpha.field.gridField({
-	// 					...resource,
-	// 					params: {...params.toObject(), page: page, ppp: ppp}
-	// 				});
-	//
-	// 				const grid = gridField.slice();
-	//
-	// 				if (!grid.loading) {
-	//
-	// 					data.value = [...data.toArray(), ...grid.toArray()];
-	// 					page++;
-	//
-	// 				}
-	//
-	// 				// const query = new KarmaFieldsAlpha.Content.Query(driver, {...params, page: page, ppp: ppp});
-	//
-	// 				// if (!grid.loading) {
-	// 				//
-	// 				// 	const grid = this.request("body", "exportIds", query.toIds());
-	// 				//
-	// 				// 	if (!grid.loading) {
-	// 				//
-	// 				// 		data.value = [...data.value, ...grid.value];
-	// 				// 		page++;
-	// 				//
-	// 				// 	}
-	// 				//
-	// 				// }
-	//
-	// 				this.addTask(() => loop(), `export (${page}/${total})`);
-	//
-	// 			} else {
-	//
-	// 				this.download(data);
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// 	loop();
-	//
-	// 	this.request("render");
-	//
-	// }
 
 }
 
@@ -687,14 +661,14 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 KarmaFieldsAlpha.field.submit = class extends KarmaFieldsAlpha.field.button {
 
-	constructor(resource) {
+	constructor(resource, id, parent) {
 		super({
 			primary: true,
 			text: "Submit",
 			action: "submit",
-			disabled: ["!", ["request", "hasChange"]],
+			enabled: ["request", "hasDelta"],
 			...resource
-		});
+		}, id, parent);
 
 	}
 

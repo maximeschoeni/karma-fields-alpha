@@ -51,7 +51,7 @@ KarmaFieldsAlpha.Session = class {
 
 }
 
-
+history.scrollRestoration = "manual";
 
 KarmaFieldsAlpha.History = class {
 
@@ -286,7 +286,7 @@ KarmaFieldsAlpha.History = class {
   static async update() { // called on popstate
 
     let current = KarmaFieldsAlpha.Session.getValue("karmaHistoryIndex") || 0;
-    current = ParseInt(current);
+    current = parseInt(current);
     const index = this.getIndex();
 
     while (current > index) {

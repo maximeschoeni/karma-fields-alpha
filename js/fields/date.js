@@ -145,13 +145,34 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
   //
   // }
 
-  getPlaceholder() {
+  export() {
 
-    return super.getPlaceholder() || this.resource.displayFormat;
+    if (this.resource.export !== false) {
+
+      const content = this.getContent();
+
+      if (!content.loading) {
+
+        const date = this.constructor.parse(content.toString(), this.resource.storeFormat);
+
+        if (date) {
+
+          content.value = this.constructor.format(date, this.resource.displayFormat);
+
+        }
+
+      }
+
+      return content;
+
+    }
+
+    return new KarmaFieldsAlpha.Content();
 
   }
 
-  async getDefault() {
+
+  getDefault() {
 
     let content;
 
@@ -159,73 +180,15 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
       const value = this.constructor.format(new Date(), this.resource.storeFormat);
 
-      content = new KarmaFieldsAlpha.Content(value);
+      return new KarmaFieldsAlpha.Content(value);
 
-    } else if (this.resource.default) {
+    } else {
 
-      content = await this.parse(this.resource.default);
-
-    } else if (this.resource.default !== null) {
-
-      content = new KarmaFieldsAlpha.Content();
+      return super.getDefault();
 
     }
 
-    return content;
   }
-
-  // exportValue() {
-
-  //   const key = this.getKey();
-  //   const values = this.parent.request("get", {}, key);
-
-  //   if (values) {
-
-  //     let value = KarmaFieldsAlpha.Type.toString(values);
-
-  //     const momentDate = moment(value, this.resource.output_format);
-
-  //     if (momentDate.isValid()) {
-
-  //       value = momentDate.format(this.resource.export_format);
-
-  //     }
-
-
-  //   }
-
-  //   return value;
-  // }
-
-  // importValue(value) {
-
-  //   const key = this.getKey();
-
-  //   const momentDate = moment(value, this.resource.export_format);
-
-  //   if (momentDate.isValid()) {
-  //     value = momentDate.format(this.resource.output_format);
-  //   }
-
-  //   this.parent.request("set", value, key);
-
-  // }
-
-  // export(keys) {
-  //   const key = this.getKey();
-  //   const object = {};
-  //   if (!keys.length || keys.includes(key)) {
-  //     object[key] = await this.exportValue();
-  //   }
-  //   return object;
-  // }
-
-  // async import(object) {
-  //   const key = this.getKey();
-  //   if (object[key] !== undefined) {
-  //     await this.importValue(object[key]);
-  //   }
-  // }
 
   getMonthDays(monthDate) {
 		var days = [];
@@ -273,131 +236,264 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
     return rows;
   }
 
-  buildPopup() {
-    return {
-      class: "date-popup",
-      init: popup => {
-        // prevent input loosing focus
-        popup.element.onmousedown = event => {
-          event.stopPropagation(); // -> prevent reseting modal selection
-          event.preventDefault(); // -> prevent input blur event
-        };
-      },
-      update: async container => {
 
-        const content = await this.getContent();
+  async render() {
 
-        const currentDate = await this.getState("date");
+    if (this.element) {
 
-        const hasFocus = await this.hasFocus();
+      await KarmaFieldsAlpha.build(this.build(), this.element.parentNode, this.element);
 
-        if (hasFocus && currentDate) {
+    } else {
 
-          const rows = this.createCalendar(currentDate);
-          const activeDate = !content.loading && this.constructor.parse(content.toString(), this.resource.storeFormat);
+      await this.parent.render();
 
-          container.children = [
-            {
-              class: "calendar",
-              children: [
-                {
-                  tag: "ul",
-                  class: "calendar-nav",
-                  children: [
-                    {
-                      tag: "li",
-                      class: "prev-month calendar-arrow",
-                      child: {
-                        tag: "a",
-                        update: a => {
-                          a.element.innerHTML = "&lsaquo;";
-                          a.element.onclick = async event => {
-                            currentDate.setMonth(currentDate.getMonth()-1);
-                            await this.setState(currentDate, "date");
-                            await container.render();
-                          };
-                        }
-                      }
-                    },
-                    {
-                      tag: "li",
-                      class: "current-month",
-                      update: li => {
-                        li.element.textContent = currentDate.toLocaleDateString(KarmaFieldsAlpha.locale, {month: "long", year: "numeric"});
-                      }
-                    },
-                    {
-                      tag: "li",
-                      class: "next-month calendar-arrow",
-                      child: {
-                        tag: "a",
-                        update: a => {
-                          a.element.innerHTML = "&rsaquo;";
-                          a.element.onclick = async event => {
-                            currentDate.setMonth(currentDate.getMonth()+1);
-                            await this.setSelection(currentDate, "date");
-                            await container.render();
-                          };
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  tag: "ul",
-                  class: "calendar-days-title",
-                  children: rows[0].map(day => {
-                    return {
-                      tag: "li",
-                      update: li => {
-                        li.element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, {weekday: "short"});
-                      }
-                    };
-                  })
-                },
-                {
-                  class: "calendar-days",
-                  children: rows.map(row => {
-                    return {
-                      tag: "ul",
-                      class: "calendar-days-content",
-                      children: row.map(day => {
-                        return {
-                          tag: "li",
-                          children: [{
-                            tag: "a",
-                            update: a => {
-                              a.element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, {day: "numeric"});
-                              a.element.onmouseup = async event => {
-                                event.preventDefault();
-                                const sqlDate = this.constructor.format(day.date, this.resource.storeFormat);
-                                await this.save("date", "Select Date");
-                                await this.setValue(sqlDate);
-                                await this.removeState("date");
-                                await container.render();
-                                await this.render();
-                              }
-                            }
-                          }],
-                          update: li => {
-                            li.element.classList.toggle("active", Boolean(activeDate && day.date.getTime() === activeDate.getTime()));
-                            li.element.classList.toggle("offset", day.isOffset);
-                            li.element.classList.toggle("today", day.isToday);
-                          }
-                        };
-                      })
-                    };
-                  })
-                }
-              ]
-            }
-          ];
-        } else {
-          container.children = [];
-        }
-      }
-    };
+    }
+
   }
+
+  *buildPopup() {
+
+    const content = this.getContent();
+    const hasFocus = this.hasFocus();
+
+    // const currentDate = this.date || new Date();
+
+    if (hasFocus) {
+
+
+      const activeDate = !content.loading && this.constructor.parse(content.toString(), this.resource.storeFormat);
+
+      if (!this.date) {
+
+        this.date = activeDate || new Date();
+
+      }
+
+      const rows = this.createCalendar(this.date);
+
+
+      yield {
+        class: "calendar",
+        children: [
+          {
+            tag: "ul",
+            class: "calendar-nav",
+            children: [
+              {
+                tag: "li",
+                class: "prev-month calendar-arrow",
+                child: {
+                  tag: "a",
+                  update: a => {
+                    a.element.innerHTML = "&lsaquo;";
+                    a.element.onclick = async event => {
+                      this.date.setMonth(this.date.getMonth()-1);
+                      // await this.setState(currentDate, "date");
+                      await this.render(); // local render
+                    };
+                  }
+                }
+              },
+              {
+                tag: "li",
+                class: "current-month",
+                update: li => {
+                  li.element.textContent = this.date.toLocaleDateString(KarmaFieldsAlpha.locale, {month: "long", year: "numeric"});
+                }
+              },
+              {
+                tag: "li",
+                class: "next-month calendar-arrow",
+                child: {
+                  tag: "a",
+                  update: a => {
+                    a.element.innerHTML = "&rsaquo;";
+                    a.element.onclick = async event => {
+                      this.date.setMonth(this.date.getMonth()+1);
+                      // await this.setState(currentDate, "date");
+                      await this.render();
+                    };
+                  }
+                }
+              }
+            ]
+          },
+          {
+            tag: "ul",
+            class: "calendar-days-title",
+            children: rows[0].map(day => {
+              return {
+                tag: "li",
+                update: li => {
+                  li.element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, {weekday: "short"});
+                }
+              };
+            })
+          },
+          {
+            class: "calendar-days",
+            children: rows.map(row => {
+              return {
+                tag: "ul",
+                class: "calendar-days-content",
+                children: row.map(day => {
+                  return {
+                    tag: "li",
+                    children: [{
+                      tag: "a",
+                      update: a => {
+                        a.element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, {day: "numeric"});
+                        a.element.onmouseup = async event => {
+                          event.preventDefault();
+                          const sqlDate = this.constructor.format(day.date, this.resource.storeFormat);
+                          await this.save("date", "Select Date");
+                          await this.setValue(sqlDate);
+                          // await this.setState("", "date");
+                          await this.removeFocus();
+                          await this.parent.render(); // -> global render
+                        }
+                      }
+                    }],
+                    update: li => {
+                      li.element.classList.toggle("active", Boolean(activeDate && day.date.getTime() === activeDate.getTime()));
+                      li.element.classList.toggle("offset", day.isOffset);
+                      li.element.classList.toggle("today", day.isToday);
+                    }
+                  };
+                })
+              };
+            })
+          }
+        ]
+      };
+
+    }
+
+  }
+
+  // buildPopup() {
+  //   return {
+  //     class: "date-popup",
+  //     init: popup => {
+  //       // prevent input loosing focus
+  //       popup.element.onmousedown = event => {
+  //         event.stopPropagation(); // -> prevent reseting modal selection
+  //         event.preventDefault(); // -> prevent input blur event
+  //       };
+  //     },
+  //     update: container => {
+  //
+  //       const content = this.getContent();
+  //       const currentDate = this.getState("date");
+  //       const hasFocus = this.hasFocus();
+  //
+  //       if (hasFocus && currentDate) {
+  //
+  //         const rows = this.createCalendar(currentDate);
+  //         const activeDate = !content.loading && this.constructor.parse(content.toString(), this.resource.storeFormat);
+  //
+  //         container.children = [
+  //           {
+  //             class: "calendar",
+  //             children: [
+  //               {
+  //                 tag: "ul",
+  //                 class: "calendar-nav",
+  //                 children: [
+  //                   {
+  //                     tag: "li",
+  //                     class: "prev-month calendar-arrow",
+  //                     child: {
+  //                       tag: "a",
+  //                       update: a => {
+  //                         a.element.innerHTML = "&lsaquo;";
+  //                         a.element.onclick = async event => {
+  //                           currentDate.setMonth(currentDate.getMonth()-1);
+  //                           await this.setState(currentDate, "date");
+  //                           await container.render();
+  //                         };
+  //                       }
+  //                     }
+  //                   },
+  //                   {
+  //                     tag: "li",
+  //                     class: "current-month",
+  //                     update: li => {
+  //                       li.element.textContent = currentDate.toLocaleDateString(KarmaFieldsAlpha.locale, {month: "long", year: "numeric"});
+  //                     }
+  //                   },
+  //                   {
+  //                     tag: "li",
+  //                     class: "next-month calendar-arrow",
+  //                     child: {
+  //                       tag: "a",
+  //                       update: a => {
+  //                         a.element.innerHTML = "&rsaquo;";
+  //                         a.element.onclick = async event => {
+  //                           currentDate.setMonth(currentDate.getMonth()+1);
+  //                           await this.setSelection(currentDate, "date");
+  //                           await container.render();
+  //                         };
+  //                       }
+  //                     }
+  //                   }
+  //                 ]
+  //               },
+  //               {
+  //                 tag: "ul",
+  //                 class: "calendar-days-title",
+  //                 children: rows[0].map(day => {
+  //                   return {
+  //                     tag: "li",
+  //                     update: li => {
+  //                       li.element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, {weekday: "short"});
+  //                     }
+  //                   };
+  //                 })
+  //               },
+  //               {
+  //                 class: "calendar-days",
+  //                 children: rows.map(row => {
+  //                   return {
+  //                     tag: "ul",
+  //                     class: "calendar-days-content",
+  //                     children: row.map(day => {
+  //                       return {
+  //                         tag: "li",
+  //                         children: [{
+  //                           tag: "a",
+  //                           update: a => {
+  //                             a.element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, {day: "numeric"});
+  //                             a.element.onmouseup = async event => {
+  //                               event.preventDefault();
+  //                               const sqlDate = this.constructor.format(day.date, this.resource.storeFormat);
+  //                               await this.save("date", "Select Date");
+  //                               await this.setValue(sqlDate);
+  //                               await this.removeState("date");
+  //                               await container.render();
+  //                               await this.render();
+  //                             }
+  //                           }
+  //                         }],
+  //                         update: li => {
+  //                           li.element.classList.toggle("active", Boolean(activeDate && day.date.getTime() === activeDate.getTime()));
+  //                           li.element.classList.toggle("offset", day.isOffset);
+  //                           li.element.classList.toggle("today", day.isToday);
+  //                         }
+  //                       };
+  //                     })
+  //                   };
+  //                 })
+  //               }
+  //             ]
+  //           }
+  //         ];
+  //       } else {
+  //         container.children = [];
+  //       }
+  //     }
+  //   };
+  // }
 
 
   build() {
@@ -409,168 +505,151 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
           // event.preventDefault();
         }
       },
-      update: (container) => {
-
-          container.children = [
-            {
-              class: "date-popup-container open-down",
-              child: this.buildPopup()
+      update: node => {
+        this.element = node.element;
+      },
+      children: [
+        {
+          class: "date-popup-container open-down",
+          child: {
+            class: "date-popup",
+            init: popup => {
+              // prevent input loosing focus
+              popup.element.onmousedown = event => {
+                event.stopPropagation(); // -> prevent reseting modal selection
+                event.preventDefault(); // -> prevent input blur event
+              };
             },
-            {
-              tag: "input",
-              class: "text-input date karma-field-input",
-              init: (input) => {
-                input.element.type = "text";
-                input.element.id = this.getUid();
-              },
-              update: async input => {
+            children: [...this.buildPopup()]
+          }
+        },
+        {
+          tag: "input",
+          class: "text-input date karma-field-input",
+          init: input => {
+            input.element.type = "text";
+            input.element.id = this.getUid();
+          },
+          update: input => {
+            const content = this.getContent();
+            // const currentDate = this.getState("date");
 
-                // let value = this.getSingleValue();
-                const content = await this.getContent();
+            input.element.placeholder = this.getPlaceholder();
+            input.element.classList.toggle("loading", Boolean(content.loading));
 
-                // const selection = this.getSelection();
-                const currentDate = await this.getState("date");
+            if (!content.loading) {
 
-                const hasFocus = await this.hasFocus();
+              let value = content.toString();
 
-                input.element.placeholder = await this.getPlaceholder();
+              input.element.classList.toggle("mixed", Boolean(content.mixed));
+              input.element.classList.toggle("selected", Boolean(content.mixed && this.hasFocus()));
 
-                input.element.classList.toggle("loading", Boolean(content.loading));
+              if (this.resource.readonly) {
 
-                if (!content.loading) {
+                input.element.readOnly = true;
 
-                  let value = content.toString();
+              } else {
 
-                  if (content.notFound) {
+                input.element.readOnly = false;
 
-        						// const defaultContent = this.getDefault();
-                    //
-        						// value = defaultContent.toString();
-                    //
-                    // this.setContent(defaultContent);
+                input.element.onkeyup = async () => {
 
-                    // KarmaFieldsAlpha.Query.init(); // -> add empty task to force rerendering
+                  const date = this.constructor.parse(input.element.value, this.resource.displayFormat);
 
-                  }
+                  await this.save("date", "Change Date");
 
-                  input.element.classList.toggle("mixed", Boolean(content.mixed));
-        					input.element.classList.toggle("selected", Boolean(content.mixed && this.hasFocus()));
+                  if (date) {
 
-                  if (this.resource.readonly) {
-
-                    input.element.readOnly = true;
-
-                  } else {
-
-                    input.element.readOnly = false;
-
-                    input.element.onkeyup = async () => {
-
-                      const date = this.constructor.parse(input.element.value, this.resource.displayFormat);
-
-                      await this.save("date", "Change Date");
-
-                      if (date) {
-
-                        await this.setState(date, "date");
-                        // await container.render();
-                        const sqlDate = this.constructor.format(date, this.resource.storeFormat);
-                        // const content = new KarmaFieldsAlpha.Content(sqlDate);
-                        await this.setValue(sqlDate);
-
-                      } else {
-
-                        await this.setValue(input.element.value);
-
-                      }
-
-                      await this.render();
-                    };
-
-                    input.element.onfocus = async () => {
-                      const date = this.constructor.parse(input.element.value, this.resource.displayFormat) || new Date();
-
-                      await this.setState(date, "date");
-
-                      await this.setFocus(content.mixed ? true : false);
-
-                      await container.render();
-                    };
-
-                    input.element.onblur = async () => {
-
-                      // const hasFocus = await this.hasFocus();
-
-                      if (hasFocus) {
-
-                        await this.removeFocus();
-                        await this.render();
-
-                      }
-
-                    }
-
-
-                  }
-
-                  if (content.mixed) {
-
-                    input.element.value = "[mixed values]";
-                    input.element.readOnly = true;
+                    // await this.setState(date, "date");
+                    this.date = date;
+                    const sqlDate = this.constructor.format(date, this.resource.storeFormat);
+                    await this.setValue(sqlDate);
 
                   } else {
 
-                    let displayDate;
-
-                    const date = this.constructor.parse(value, this.resource.storeFormat);
-
-                    if (date) {
-
-                      displayDate = this.constructor.format(date, this.resource.displayFormat);
-
-                    } else {
-
-                      displayDate = value || "";
-
-                    }
-
-
-                    if (input.element.value !== displayDate) {
-
-                      input.element.value = displayDate;
-
-                    }
+                    await this.setValue(input.element.value);
 
                   }
 
+                  await this.parent.render(); // global render
+                };
 
-                  if (hasFocus && input.element !== document.activeElement && !content.mixed) {
+                input.element.onfocus = async () => {
+                  // const date = this.constructor.parse(input.element.value, this.resource.displayFormat) || new Date();
+                  //
+                  // // await this.setState(date, "date");
+                  // this.date = date;
+                  await this.setFocus(content.mixed);
 
-          					input.element.focus();
+                  await this.parent.render(); // global render
+                };
 
-          				}
-
-
-
-                  if (!hasFocus || !currentDate && input.element === document.activeElement) {
-
-                    input.element.blur();
-
-                  }
+                // input.element.onblur = async () => {
+                //
+                //   await this.removeFocus();
+                //   await this.parent.render(); // global render
+                //
+                // }
 
 
+              }
 
+              if (content.mixed) {
 
+                input.element.value = "[mixed values]";
+                input.element.readOnly = true;
+
+              } else {
+
+                let displayDate;
+
+                const date = this.constructor.parse(content.toString(), this.resource.storeFormat);
+
+                if (date) {
+
+                  displayDate = this.constructor.format(date, this.resource.displayFormat);
+
+                } else {
+
+                  displayDate = content.toString() || "";
 
                 }
 
 
+                if (input.element.value !== displayDate) {
+
+                  input.element.value = displayDate;
+
+                }
+
               }
+
+
+              // if (hasFocus && input.element !== document.activeElement && !content.mixed) {
+              //
+              //   input.element.focus();
+              //
+              // }
+              //
+              //
+              //
+              // if (!hasFocus || !currentDate && input.element === document.activeElement) {
+              //
+              //   input.element.blur();
+              //
+              // }
+
+
+
+
+
             }
-          ];
 
 
-      }
+          }
+        }
+      ]
+
     };
   }
 

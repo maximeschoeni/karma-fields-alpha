@@ -26,7 +26,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
       }
 
-      const constructor = this.getConstructor(resource.type);
+      const constructor = this.getConstructor(resource.type || "group"); // compat
 
       return new constructor(resource, index, this);
 
@@ -34,13 +34,13 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   }
 
-  async getContent(subkey) {
+  getContent(subkey) {
 
     const key = this.getKey();
 
     if (key) {
 
-      const content = await this.parent.getContent(key);
+      const content = this.parent.getContent(key);
 
       const response = new KarmaFieldsAlpha.Content();
 
@@ -72,7 +72,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
     if (key) {
 
-      let groupContent = await this.parent.getContent(key);
+      let groupContent = this.parent.getContent(key);
 
       if (!groupContent.loading) {
 
@@ -92,7 +92,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
   }
 
-	async export() {
+	export() {
 
 		const key = this.getKey();
 
@@ -115,7 +115,6 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 		if (key) {
 
       const value = collection.value.shift();
-      // const content = new KarmaFieldsAlpha.Content()
 
       await this.parent.setValue(value, key);
 
@@ -127,22 +126,18 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 	}
 
-  async isHidden(field) {
+  isHidden(field) {
 
     if (field.resource.hidden) {
 
-      const hidden = await field.parse(field.resource.hidden);
+      const hidden = field.parse(field.resource.hidden);
 
       return !hidden.loading && hidden.toBoolean();
 
-      // return field.parse(field.resource.hidden).toBoolean();
-
     } else if (field.resource.visible) {
 
-      const visible = await field.parse(field.resource.visible);
+      const visible = field.parse(field.resource.visible);
       return visible.loading || !visible.toBoolean();
-
-      // return !field.parse(field.resource.visible).toBoolean();
 
     }
 
@@ -308,10 +303,10 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 							// 	container.element.style.alignItems = field.resource.align;
 							// }
 						},
-						update: async (container) => {
+						update: (container) => {
 							container.children = [];
 
-              let hidden = await this.isHidden(field);
+              let hidden = this.isHidden(field);
 
 							container.element.classList.toggle("hidden", hidden);
 
@@ -339,12 +334,12 @@ KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
 
     return {
       class: "tabs",
-      update: async tabs => {
+      update: tabs => {
         // const selection = this.getSelection();
 
         // const data = this.getData();
         // const currentIndex = data && data.index || 0;
-        const currentIndex = await this.getState("index") || 0;
+        const currentIndex = this.getState("index") || 0;
 
         tabs.children = [
           {

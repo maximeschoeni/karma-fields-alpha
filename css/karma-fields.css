@@ -416,7 +416,8 @@ body.karma-table-open {
 }
 
 
-.karma-field-table .table-footer.loading {
+.karma-field-table .table-footer.loading,
+.container-loading .table-footer {
   background-color: var(--background-color);
 
 
@@ -425,16 +426,11 @@ body.karma-table-open {
   color: #e8e8e8 !important;
   border-color: var(--disabled-color) !important;
 
-
-
-
   /* background-image: linear-gradient(-45deg, white 33%, var(--background-color) 33%,var(--background-color) 70%, white 70%);
   background-size: 40em 40em; */
 
-
   /* background-image: linear-gradient(-45deg,var(--wp-components-color-accent,var(--wp-admin-theme-color,#3858e9)) 33%,var(--wp-components-color-accent-darker-20,var(--wp-admin-theme-color-darker-20,#183ad6)) 33%,var(--wp-components-color-accent-darker-20,var(--wp-admin-theme-color-darker-20,#183ad6)) 70%,var(--wp-components-color-accent,var(--wp-admin-theme-color,#3858e9)) 70%);
   background-size: 20em 20em;
-
 
   background-image: linear-gradient(-45deg,var(--wp-components-color-accent,var(--wp-admin-theme-color,#3858e9)) 33%,var(--wp-components-color-accent-darker-20,var(--wp-admin-theme-color-darker-20,#183ad6)) 33%,var(--wp-components-color-accent-darker-20,var(--wp-admin-theme-color-darker-20,#183ad6)) 70%,var(--wp-components-color-accent,var(--wp-admin-theme-color,#3858e9)) 70%);
     background-size: 100px 100%; */
@@ -1695,11 +1691,15 @@ ul.tag-links li:not(:last-child)::after {
   min-height: 4em;
 } */
 
-/* Input Datalist */
 
-.karma-field-input-datalist {
-  display: flex;
-  flex-grow: 1;
+/* Input Datalist
+--------------------------------------*/
+
+.karma-fields .datalist input {
+  color: var(--loading-color);
+}
+.karma-fields .datalist input.canon {
+  color: black;
 }
 
 /* Clipboard textarea */
@@ -1894,6 +1894,9 @@ textarea.clipboard {
 }
 .karma-field .tabs .tabs-header {
   display: flex;
+  position: sticky;
+  top: 0;
+  background-color: var(--background-color);
 }
 .karma-field .tabs .tabs-header .tab-handler {
   padding: var(--gap-width);
@@ -2076,11 +2079,13 @@ textarea.clipboard {
   width: 100%;
   border: none;
   padding: var(--gap-width);
+
   /* display: flex; */
 }
 .karma-tinymce .mode {
   border: var(--border-width) solid #8c8f94;
   position: relative;
+  flex-grow: 1;
 }
 
 .karma-tinymce .mode.mode-mixed {
@@ -2154,6 +2159,12 @@ textarea.clipboard {
 .karma-tinymce .editor-header .toolbar select:focus {
   box-shadow: none;
   outline: none;
+}
+
+
+.karma-tinymce .mode-edit-container {
+  flex-grow: 1;
+  display: flex;
 }
 
 
