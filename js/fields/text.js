@@ -596,11 +596,14 @@ KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
 
     if (index === "popup" && this.resource.popup) {
 
-			const resource = typeof this.resource.popup === "string" && KarmaFieldsAlpha.tables[this.resource.popup] || this.resource.popup;
+			// const resource = typeof this.resource.popup === "string" && KarmaFieldsAlpha.tables[this.resource.popup] || this.resource.popup;
+			//
+      // const constructor = this.getConstructor(resource.type || "table");
+			//
+      // return new constructor(resource, "popup", this);
 
-      const constructor = this.getConstructor(resource.type || "table");
 
-      return new constructor(resource, "popup", this);
+			return this.createChild(this.resource.popup, "popup");
 
     }
 
@@ -650,7 +653,7 @@ KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
 
 	getText() {
 
-		return this.parse(this.resource.text || this.resource.content).toString();
+		return this.parse(this.resource.text || this.resource.content || this.resource.value).toString();
 
 	}
 

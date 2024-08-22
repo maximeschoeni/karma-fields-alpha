@@ -57,24 +57,24 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
 
 
 
-  // exportDefaults() {
-  //
-  //   const response = new KarmaFieldsAlpha.Content();
-  //
-  //   const defaultsParams = this.parseObject(this.resource.params || this.resource.body && this.resource.body.params || {}); // compat
-  //   const defaultsFieldsParams = super.exportDefaults();
-  //
-  //   if (defaultsParams.loading || defaultsFieldsParams.loading) {
-  //
-  //     response.loading = true;
-  //
-  //   } else {
-  //
-  //     response.value = {...defaultsParams.toObject(), ...defaultsFieldsParams.toObject()};
-  //   }
-  //
-  //   return response;
-  // }
+  exportDefaults() {
+
+    const response = new KarmaFieldsAlpha.Content();
+
+    const defaultsParams = this.parseObject(this.resource.params || this.resource.body && this.resource.body.params || {}); // compat
+    const defaultsFieldsParams = super.exportDefaults();
+
+    if (defaultsParams.loading || defaultsFieldsParams.loading) {
+
+      response.loading = true;
+
+    } else {
+
+      response.value = {...defaultsParams.toObject(), ...defaultsFieldsParams.toObject()};
+    }
+
+    return response;
+  }
 
   // prepare() {
   //
@@ -106,43 +106,29 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
   //
   // }
 
-  // queryParams() {
-  //
-  //   let params = this.params;
-  //
-  //   if (!params) {
-  //
-  //     params = new KarmaFieldsAlpha.Content();
-  //
-  //     const defaults = this.exportDefaults();
-  //
-  //     if (defaults.loading) {
-  //
-  //       params.loading = true;
-  //
-  //     } else {
-  //
-  //       params.value = {...defaults.toObject(), ...this.getState("params")};
-  //       params.string = KarmaFieldsAlpha.Params.stringify(params.value);
-  //
-  //       this.params = params;
-  //
-  //     }
-  //
-  //   }
-  //
-  //   return params;
-  //
-  // }
-
   queryParams() {
 
-    let params = super.queryParams();
+    let params = this.params;
 
-    if (!params.loading && !params.string) {
+    if (!params) {
 
-      params.string = KarmaFieldsAlpha.Params.stringify(params.value);
-      
+      params = new KarmaFieldsAlpha.Content();
+
+      const defaults = this.exportDefaults();
+
+      if (defaults.loading) {
+
+        params.loading = true;
+
+      } else {
+
+        params.value = {...defaults.toObject(), ...this.getState("params")};
+        params.string = KarmaFieldsAlpha.Params.stringify(params.value);
+
+        this.params = params;
+
+      }
+
     }
 
     return params;
@@ -227,64 +213,77 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
 
   }
 
-  // getParams() {
-  //
-  //   return this.queryParams().toObject();
-  //
-  // }
-  //
-  // async setParams(params) {
-  //
-  //   delete this.params;
-  //
-  //   // return KarmaFieldsAlpha.server.setState(params, "fields", this.uid, "params");
-  //
-  //   await this.setState(params, "params");
-  //
-  // }
-  //
-  // getParam(key) {
-  //
-  //   return this.getParams()[key];
-  //
-  // }
-  //
-  // async setParam(value, key) {
-  //
-  //   await this.setParams({...this.getParams(), [key]: value});
-  //
-  // }
-  //
-  // getContent(key) {
-  //
-  //   const params = this.queryParams();
-  //
-  //   const response = new KarmaFieldsAlpha.Content();
-  //
-  //   if (params.loading) {
-  //
-  //     response.loading = true;
-  //
-  //   } else {
-  //
-  //     response.value = params.toObject()[key];
-  //   }
-  //
-  //   return response;
-  //
-  // }
-  //
-  // setValue(value, key) {
-  //
-  //   return this.setParam(value, key);
-  //
-  // }
+  getParams() {
+
+    return this.queryParams().toObject();
+
+  }
+
+  async setParams(params) {
+
+    delete this.params;
+
+    // return KarmaFieldsAlpha.server.setState(params, "fields", this.uid, "params");
+
+    await this.setState(params, "params");
+
+  }
+
+  getParam(key) {
+
+    return this.getParams()[key];
+
+  }
+
+  async setParam(value, key) {
+
+    await this.setParams({...this.getParams(), [key]: value});
+
+  }
+
+  getContent(key) {
+
+    // const response = new KarmaFieldsAlpha.Content();
+    //
+    // if (this.loading) {
+    //
+    //   response.loading = true;
+    //
+    // } else {
+    //
+    //   response.value = this.getParam(key);
+    // }
+    //
+    // return response;
+
+    const params = this.queryParams();
+
+    const response = new KarmaFieldsAlpha.Content();
+
+    if (params.loading) {
+
+      response.loading = true;
+
+    } else {
+
+      response.value = params.toObject()[key];
+    }
+
+    return response;
+
+  }
+
+  setValue(value, key) {
+
+    return this.setParam(value, key);
+
+  }
 
 
   getBody() {
 
 		// const constructor = this.getConstructor(this.resource.body && this.resource.body.type || "grid");
-    //
+    // 
 		// return new constructor(this.resource.body, "body", this);
 
     return this.createChild({

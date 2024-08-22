@@ -61,7 +61,7 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   getFooter() {
 
-    return new KarmaFieldsAlpha.field.files.footer(this.resource.footer, "footer", this)
+    return new KarmaFieldsAlpha.field.files.footer(this.resource.footer, "footer", this);
 
 	}
 
@@ -513,7 +513,8 @@ KarmaFieldsAlpha.field.files.footer.add = class extends KarmaFieldsAlpha.field.b
       title: "Add",
       text: "Add File",
       action: "open",
-      hidden: ["||", [">=", ["count", ["getContent"]], ["request", "getMax"]], ["isMixed"]],
+      // hidden: ["||", [">=", ["count", ["getContent"]], ["request", "getMax"]], ["isMixed"]],
+      hidden: ["||", [">=", ["request", "getLength"], ["request", "getMax"]], ["isMixed", ["getValue"]]],
       ...resource
     }, id, parent);
   }
@@ -525,7 +526,8 @@ KarmaFieldsAlpha.field.files.footer.remove = class extends KarmaFieldsAlpha.fiel
       text: "Remove",
       request: ["delete"],
       disabled: ["!", ["request", "hasSelection"]],
-      hidden: ["=", ["count", ["getValue"]], 0],
+      // hidden: ["=", ["count", ["getValue"]], 0],
+      hidden: ["=", ["request", "getLength"], 0],
       ...resource
     }, id, parent);
   }
@@ -535,8 +537,9 @@ KarmaFieldsAlpha.field.files.footer.edit = class extends KarmaFieldsAlpha.field.
     super({
       text: "Change",
       action: "edit",
-      disabled: ["!", ["request", "getSelectedIds"]],
-      hidden: ["||", ["=", ["count", ["getValue"]], 0], ["isMixed"]],
+      disabled: ["!", ["request", "hasSelection"]],
+      // hidden: ["||", ["=", ["count", ["getValue"]], 0], ["isMixed"]],
+      hidden: ["||", ["=", ["request", "getLength"], 0], ["isMixed", ["getValue"]]],
       ...resource
     }, id, parent);
   }

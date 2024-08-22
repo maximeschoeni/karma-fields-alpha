@@ -78,7 +78,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   getContent(key) {
 
-    return new KarmaFieldsAlpha.Content();
+    const searchParams = new URLSearchParams(location.search);
+
+    return new KarmaFieldsAlpha.Content(searchParams.get(key));
 
   }
 

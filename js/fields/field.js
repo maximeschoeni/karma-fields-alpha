@@ -147,31 +147,28 @@ KarmaFieldsAlpha.field = class {
 
     }
 
+    if (resource.field && KarmaFieldsAlpha.tables[resource.field]) {
+
+      resource = {...KarmaFieldsAlpha.tables[resource.field], ...resource};
+
+    }
+
     // compat
     if (id === undefined) {
 
       id = resource.index || resource.type || "no-index";
 
     }
-// if (resource.type === "apply") debugger;
+
     const constructor = this.getConstructor(resource.type || "group");
 
     if (!constructor) {
 
-      debugger;
-      this.getConstructor(resource.type || "group");
+      console.error("constructor does not exist", constructor, resource, this);
 
     }
 
     const child = new constructor(resource, id, this);
-
-    // child.parent = this;
-    // child.id = id;
-    // child.uid = `${this.uid}-${id}`;
-    // child.path = [...this.path, id];
-    // child.options = this.options && this.options[id];
-
-    // child.init();
 
     return child;
   }

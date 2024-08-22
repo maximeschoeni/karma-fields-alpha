@@ -17,88 +17,244 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
 
   getBody() {
 
-    return new KarmaFieldsAlpha.field.form.single(this.resource.body, "body", this);
+    // return new KarmaFieldsAlpha.field.form.single({
+    //   children: [this.resource.body]
+    // }, "body", this);
+
+
+
+    // return new KarmaFieldsAlpha.field.form.single({
+    //   children: this.resource.children,
+    //   ...this.resource.body
+    // }, "body", this);
+
+    return this.createChild(this.resource.body, "body");
 
 	}
 
-  getValueById(id, key) {
+  // *buildBody() {
+  //
+	// 	const body = this.getBody();
+  //
+  //   yield {
+  //     class: "table-body",
+  //     child: {
+  //       class: "form-single",
+  //       child: body.build()
+  //     }
+  //   };
+  //
+	// }
 
-    if (key === "id") {
 
-      return new KarmaFieldsAlpha.Content(id);
+  exportDefaults() {
+
+    const response = new KarmaFieldsAlpha.Content();
+
+    const defaultsParams = this.parseObject(this.resource.params || this.resource.body && this.resource.body.params || {}); // compat
+    const defaultsFieldsParams = super.exportDefaults();
+
+    if (defaultsParams.loading || defaultsFieldsParams.loading) {
+
+      response.loading = true;
 
     } else {
 
-      const driver = this.getDriver();
+      response.value = {...defaultsParams.toObject(), ...defaultsFieldsParams.toObject()};
+    }
 
-      return KarmaFieldsAlpha.server.queryValue(driver, id, key);
+    return response;
+  }
+
+  queryParams() {
+
+    let params = this.params;
+
+    if (!params) {
+
+      params = new KarmaFieldsAlpha.Content();
+
+      const defaults = this.exportDefaults();
+
+      if (defaults.loading) {
+
+        params.loading = true;
+
+      } else {
+
+        params.value = {...defaults.toObject(), ...this.getState("params")};
+        params.string = KarmaFieldsAlpha.Params.stringify(params.value);
+
+        this.params = params;
+
+      }
+
+    }
+
+    return params;
+
+  }
+
+
+  getParams() {
+
+    return this.queryParams().toObject();
+
+  }
+
+  async setParams(params) {
+
+    delete this.params;
+
+    await this.setState(params, "params");
+
+  }
+
+  getParam(key) {
+
+    // return this.getParams()[key];
+
+    let value = this.getParams()[key];
+
+    if (value === undefined) {
+
+      return this.parent.getContent(key).value;
+
+    } else {
+
+      return value;
 
     }
 
   }
 
-  setValueById(value, id, key) {
+  async setParam(value, key) {
 
-    const driver = this.getDriver();
-
-    return KarmaFieldsAlpha.server.setValue(value, driver, id, key);
+    await this.setParams({...this.getParams(), [key]: value});
 
   }
 
-
-  getId() {
-
-    let stateId = this.getState("id");
-
-    if (stateId) {
-
-      return new KarmaFieldsAlpha.Content(stateId);
-
-    } else if (this.resource.id) {
-
-      return this.parse(this.resource.id);
-
-    } else if (this.resource.params.id) {
-
-      return new KarmaFieldsAlpha.Content(this.resource.params.id);
-
-    }
-
-  }
 
   getContent(key) {
 
-    const id = this.getId();
+    let value = this.getParam(key);
 
-    if (id.loading) {
+    return new KarmaFieldsAlpha.Content(value);
 
-      return new KarmaFieldsAlpha.Loading();
-
-    } else {
-
-      return this.getValueById(id.toString(), key);
-
-    }
-
-
+    // if (value === undefined) {
+    //
+    //   return this.parent.getContent(key);
+    //
+    // } else {
+    //
+    //   return new KarmaFieldsAlpha.Content(value);
+    //
+    // }
 
   }
 
   async setValue(value, key) {
 
-    const id = this.getId();
-
-    if (!id.loading) {
-
-      await this.setValueById(value, id.toString(), key);
-
-    }
+    await this.setParam(value, key);
 
   }
 
+
+
+  // getValueById(id, key) {
+  //
+  //   if (key === "id") {
+  //
+  //     return new KarmaFieldsAlpha.Content(id);
+  //
+  //   } else {
+  //
+  //     const driver = this.getDriver();
+  //
+  //     return KarmaFieldsAlpha.server.queryValue(driver, id, key);
+  //
+  //   }
+  //
+  // }
+  //
+  // setValueById(value, id, key) {
+  //
+  //   const driver = this.getDriver();
+  //
+  //   return KarmaFieldsAlpha.server.setValue(value, driver, id, key);
+  //
+  // }
+  //
+  //
+  // getId() {
+  //
+  //   let stateId = this.getState("id");
+  //
+  //   if (stateId) {
+  //
+  //     return new KarmaFieldsAlpha.Content(stateId);
+  //
+  //   } else if (this.resource.id) {
+  //
+  //     return this.parse(this.resource.id);
+  //
+  //   } else if (this.resource.params && this.resource.params.id) { // deprecated
+  //
+  //     return new KarmaFieldsAlpha.Content(this.resource.params.id);
+  //
+  //   } else {
+  //
+  //     return this.parent.getContent("id");
+  //
+  //   }
+  //
+  // }
+  //
+  // getContent(key) {
+  //
+  //   const id = this.getId();
+  //
+  //   if (id.loading) {
+  //
+  //     return new KarmaFieldsAlpha.Loading();
+  //
+  //   } else {
+  //
+  //     return this.getValueById(id.toString(), key);
+  //
+  //   }
+  //
+  //
+  //
+  // }
+  //
+  // async setValue(value, key) {
+  //
+  //   const id = this.getId();
+  //
+  //   if (!id.loading) {
+  //
+  //     await this.setValueById(value, id.toString(), key);
+  //
+  //   }
+  //
+  // }
+
   getDriver() {
 
-    return this.resource.driver || this.resource.body && this.resource.body.driver; // compat
+    if (this.resource.driver) {
+
+      return this.resource.driver;
+
+    } else if (this.resource.body && this.resource.body.driver) { // compat
+
+      return this.resource.body.driver;
+
+    } else {
+
+      return this.parent.getDriver();
+
+    }
 
   }
 
@@ -179,6 +335,56 @@ KarmaFieldsAlpha.field.form.single = class extends KarmaFieldsAlpha.field.group 
   //   return this.setValue(content, key);
   //
   // }
+
+  getId() {
+
+    if (this.resource.id) {
+
+      return this.parse(this.resource.id);
+
+    } else {
+
+      return this.parent.getContent("id");
+
+    }
+
+  }
+
+  getContent(key) {
+
+    const id = this.getId();
+
+    if (id.loading) {
+
+      return new KarmaFieldsAlpha.Loading();
+
+    } else if (key === "id") {
+
+      return id;
+
+    } else {
+
+      const driver = this.getDriver();
+
+      return KarmaFieldsAlpha.server.queryValue(driver, id.toString(), key);
+
+    }
+
+  }
+
+  async setValue(value, key) {
+
+    const id = this.getId();
+
+    if (!id.loading) {
+
+      const driver = this.getDriver();
+
+      await KarmaFieldsAlpha.server.setValue(value, driver, id.toString(), key);
+
+    }
+
+  }
 
   build() {
 

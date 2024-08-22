@@ -122,8 +122,6 @@ KarmaFieldsAlpha.Server = class {
 
     const response = new KarmaFieldsAlpha.Content();
 
-    key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
-
     const ids = this.queryIds(driver, paramstring);
 
     if (ids.loading) {
@@ -140,15 +138,25 @@ KarmaFieldsAlpha.Server = class {
 
       if (id) {
 
-        response.value = KarmaFieldsAlpha.DeepObject.get(this.store, "vars", driver, id, key);
+        if (key === "id") {
 
-        if (!response.value) {
+          response.value = id;
 
-          response.loading = true;
+        } else {
 
-          this.orders.filled = true;
+          key = KarmaFieldsAlpha.Driver.getAlias(driver, key);
 
-          KarmaFieldsAlpha.DeepObject.set(this.orders, true, "vars", driver, paramstring, key);
+          response.value = KarmaFieldsAlpha.DeepObject.get(this.store, "vars", driver, id, key);
+
+          if (!response.value) {
+
+            response.loading = true;
+
+            this.orders.filled = true;
+
+            KarmaFieldsAlpha.DeepObject.set(this.orders, true, "vars", driver, paramstring, key);
+
+          }
 
         }
 

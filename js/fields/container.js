@@ -117,9 +117,14 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.header) {
 
-			const constructor = this.getConstructor(this.resource.header.type || "header");
+			// const constructor = this.getConstructor(this.resource.header.type || "header");
+			//
+			// return new constructor(this.resource.header, "header", this);
 
-			return new constructor(this.resource.header, "header", this);
+			return this.createChild({
+				type: "header",
+				...this.resource.header
+			}, "header");
 
 		}
 
@@ -129,9 +134,15 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.footer) {
 
-			const constructor = this.getConstructor(this.resource.footer.type || "footer");
+			// const constructor = this.getConstructor(this.resource.footer.type || "footer");
+			//
+			// return new constructor(this.resource.footer, "footer", this);
 
-			return new constructor(this.resource.footer, "footer", this);
+
+			return this.createChild({
+				type: "footer",
+				...this.resource.footer
+			}, "footer");
 
 		}
 
@@ -139,12 +150,18 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 	getBody() {
 
-		const constructor = this.getConstructor(this.resource.body && this.resource.body.type || "group");
+		// const constructor = this.getConstructor(this.resource.body && this.resource.body.type || "group");
+		//
+		// return new constructor({
+		// 	children: this.resource.children,
+		// 	...this.resource.body
+		// }, "body", this);
 
-		return new constructor({
-			children: this.resource.children,
+
+		return this.createChild({
+			children: this.resource.children, // compat
 			...this.resource.body
-		}, "body", this);
+		}, "body");
 
 	}
 

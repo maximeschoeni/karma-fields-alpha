@@ -307,6 +307,7 @@ body.karma-table-open {
   position: relative;
   flex-direction: column;
   min-height: 0;
+  overflow: auto; /* needed for form content in a popup. Not needed for tables */
   /* z-index: 1; ! --> cause problem with popups inside */
 }
 
@@ -736,7 +737,10 @@ body.karma-table-open {
 /* Forms
 --------------------------------------*/
 .karma-fields .form-single {
-  padding: 0 var(--gap-width);
+  padding: var(--gap-width);
+
+  /* overflow: auto; -> overflow in parent node */
+  flex-grow: 1;
 }
 .karma-fields .embed-form>.table-body>.form-single {
   padding: 0;
@@ -1701,6 +1705,9 @@ ul.tag-links li:not(:last-child)::after {
 .karma-fields .datalist input.canon {
   color: black;
 }
+input[list]::-webkit-calendar-picker-indicator {
+    display: none !important;
+}
 
 /* Clipboard textarea */
 textarea.clipboard {
@@ -1879,12 +1886,29 @@ textarea.clipboard {
   display: none;
 }
 
+
+/* Radio
+--------------------------------------*/
+.karma-fields ul.radio.display-inline {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+}
+.karma-fields ul.radio.display-inline li {
+  margin: 0;
+}
+.karma-fields ul.radio.display-inline li a.active {
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+
 /* Tabs
 --------------------------------------*/
 .karma-field-tabs {
   /* flex-grow: 1; */
 }
-.karma-field .tabs {
+.karma-fields .tabs {
   display: flex;
   flex-direction: column;
   margin: 0 calc(var(--gap-width)*-1);
@@ -1892,33 +1916,33 @@ textarea.clipboard {
   /* width: 100%; */
   align-self: stretch;
 }
-.karma-field .tabs .tabs-header {
+.karma-fields .tabs .tabs-header {
   display: flex;
   position: sticky;
   top: 0;
   background-color: var(--background-color);
 }
-.karma-field .tabs .tabs-header .tab-handler {
+.karma-fields .tabs .tabs-header .tab-handler {
   padding: var(--gap-width);
   border-right: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
 }
-.karma-field .tabs .tabs-header .tab-handler.active {
+.karma-fields .tabs .tabs-header .tab-handler.active {
   border-bottom: none;
   font-weight: var(--static-text-weight);
 }
-.karma-field .tabs .tabs-header::after {
+.karma-fields .tabs .tabs-header::after {
   content: "";
   flex-grow: 1;
   border-bottom: 1px solid var(--border-color);
 }
-.karma-field .tabs .tabs-body {
+.karma-fields .tabs .tabs-body {
   display: flex;
 
   /* flex-grow: 1; */
 }
-.karma-field .tabs .tab-content {
+.karma-fields .tabs .tab-content {
   flex-grow: 1;
   padding: var(--gap-width);
 }

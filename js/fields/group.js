@@ -16,19 +16,23 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
     const children = this.resource.children || [];
 
-    let resource = this.resource.children[index];
+    let resource = children[index];
 
     if (resource) {
 
-      if (typeof resource === "string") {
+      // if (typeof resource === "string") {
+      //
+      //   resource = {type: resource};
+      //
+      // }
+      //
+      // const constructor = this.getConstructor(resource.type || "group"); // compat
+      //
+      // return new constructor(resource, index, this);
 
-        resource = {type: resource};
+      // console.log(resource);
 
-      }
-
-      const constructor = this.getConstructor(resource.type || "group"); // compat
-
-      return new constructor(resource, index, this);
+      return this.createChild(resource, index);
 
     }
 
@@ -223,11 +227,11 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 				group.children = this.getChildren().map((resource, index) => {
 
-          if (typeof resource === "string") {
-
-            resource = {type: resource};
-
-          }
+          // if (typeof resource === "string") {
+          //
+          //   resource = {type: resource};
+          //
+          // }
 
 					// const field = this.createChild({
           //   id: index,
@@ -238,10 +242,10 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
           const field = this.createChild(resource, index);
 
-					const labelable = resource.type === "input"
-						|| resource.type === "textarea"
-						|| resource.type === "checkbox"
-						|| resource.type === "dropdown";
+					const labelable = field.resource.type === "input"
+						|| field.resource.type === "textarea"
+						|| field.resource.type === "checkbox"
+						|| field.resource.type === "dropdown";
 
 					return {
 						tag: labelable ? "label" : "div",
@@ -276,32 +280,6 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
                   }
                 }
 							}
-
-              // if (field.resource.width) {
-              //   if (this.inline()) { // -> flex-direction: row
-              //     if (field.resource.width) {
-              //       const fr = field.resource.width.match(/(.*)fr/);
-              //       if (fr) {
-              //         container.element.style.flexGrow = fr[1];
-              //       } else {
-              //         container.element.style.width = field.resource.width;
-              //       }
-              //     } else {
-              //       container.element.style.flexGrow = fr[1];
-              //
-              //     }
-              //
-              //   } else { // -> flex-direction: column
-              //     if (field.resource.width === "auto") {
-              //       container.element.style.alignSelf = "flex-start";
-              //     } else if (!field.resource.width.match(/(.*)fr/)) {
-              //       container.element.style.width = field.resource.width;
-              //     }
-              //   }
-							// }
-              // if (field.resource.align) {
-							// 	container.element.style.alignItems = field.resource.align;
-							// }
 						},
 						update: (container) => {
 							container.children = [];
