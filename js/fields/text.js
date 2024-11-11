@@ -96,6 +96,12 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 					let content = this.getContent();
 
+					// if (content.value === null) {
+					//
+					// 	debugger;
+					// 	content = this.getContent();
+					// }
+
 					node.element.classList.toggle("loading", Boolean(content.loading));
 
 					if (content.loading) {
@@ -140,6 +146,82 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 	}
 
 
+}
+
+KarmaFieldsAlpha.field.simpletext = class extends KarmaFieldsAlpha.field.text {
+
+	getContent() {
+
+		return this.parse(this.resource.value || this.resource.content);
+
+	}
+
+
+	build() {
+		return {
+			tag: this.resource.tag,
+			class: "text karma-field",
+			init: node => {
+				if (this.resource.classes) {
+					node.element.classList.add(...this.resource.classes);
+				}
+				if (this.resource.width) {
+					node.element.style.width = this.resource.width;
+				}
+				if (this.resource.display) {
+					node.element.classList.add(`display-${this.resource.display}`);
+				}
+			},
+			update: node => {
+				let content = this.getContent();
+				if (content.mixed) {
+					node.element.innerHTML = "[mixed content]";
+				} else if (!content.loading) {
+					node.element.innerHTML = content.toString();
+				}
+			}
+		};
+	}
+
+
+}
+
+
+
+KarmaFieldsAlpha.field.html = class extends KarmaFieldsAlpha.field {
+
+	build() {
+		return {
+			tag: this.resource.tag,
+			class: "text karma-field",
+			init: node => {
+				if (this.resource.classes) {
+					node.element.classList.add(...this.resource.classes);
+				}
+				if (this.resource.width) {
+					node.element.style.width = this.resource.width;
+				}
+			},
+			update: node => {
+
+				const attributes = this.parseObject(this.resource.element);
+
+				if (!attributes.loading) {
+					Object.assign(node.element, attributes.toObject());
+				}
+
+				if (this.resource.disabled) {
+					const disabled = this.parse(this.resource.disabled);
+					node.element.classList.toggle("disabled", disabled.toBoolean());
+				}
+        if (this.resource.enabled) {
+					const enabled = this.parse(this.resource.enabled);
+					node.element.classList.toggle("disabled", !enabled.toBoolean());
+				}
+
+			}
+		};
+	}
 }
 
 
@@ -744,6 +826,7 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 								}
 								node.element.onclick = async event => {
 									event.preventDefault();
+									await this.save("nav", "Nav");
 									await this.parent.setParam(id, this.resource.key);
 									await this.render();
 								}
@@ -758,6 +841,33 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 
 }
 
+
+
+KarmaFieldsAlpha.field.link = class extends KarmaFieldsAlpha.field {
+
+	build() {
+
+		return {
+			tag: "a",
+			class: "link",
+			init: node => {
+
+			},
+			update: node => {
+				const href = this.parse(this.resource.href);
+				if (!href.loading) {
+					node.element.href = href.toString();
+				}
+				const content = this.parse(this.resource.text || this.resource.content);
+				if (!content.loading) {
+					node.element.innerHTML = content.toString();
+				}
+			}
+		};
+
+	}
+
+}
 
 
 
@@ -862,6 +972,10 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				return {icon: "loading", text: filename.toString(), loading: true};
 
+			} else if (mimetype.mixed || filetype.mixed || name.mixed || filename.mixed || dir.mixed) {
+
+				return {icon: "mixed", text: "[mixed]"};
+
 			} else if (filetype.toString() === "") {
 
 				return {icon: "notfound", text: "no file type!"};
@@ -870,7 +984,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 				return {icon: "exit", text: ".."};
 
-			} else if (filetype.toString() === "folder") {
+			} else if (filetype.toString() === "folder" || filetype.toString() === "autofolder") {
 
 				return {icon: "folder", text: name.toString()};
 
@@ -918,7 +1032,8 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 								text: name.toString(),
 								mimetype: mimetype.toString(),
 								filename: filename.toString(),
-								loading: true
+								loading: true,
+								sizes: []
 							};
 
 						} else {
@@ -933,7 +1048,8 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 									mimetype: mimetype.toString(),
 									filename: filename.toString(),
 									src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+size.filename.toString(),
-									image: true
+									image: true,
+									sizes: sizes.toArray()
 								};
 
 							} else {
@@ -944,7 +1060,8 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 									mimetype: mimetype.toString(),
 									filename: filename.toString(),
 									src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-									image: true
+									image: true,
+									sizes: sizes.toArray()
 								};
 
 							}
@@ -967,7 +1084,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 				} else {
 
 					return {
-						icon: "image",
+						// icon: "image",
 						text: name.toString(),
 						mimetype: mimetype.toString(),
 						filename: filename.toString(),
@@ -1136,7 +1253,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 									{
 										update: node => {
 											node.element.classList.toggle("dashicons", Boolean(media.icon));
-											node.element.classList.toggle("dashicons-category", media.icon === "folder");
+											// node.element.classList.toggle("dashicons-category", media.icon === "folder");
 											node.element.classList.toggle("dashicons-format-image", media.icon === "image");
 											node.element.classList.toggle("dashicons-media-video", media.icon === "video");
 											node.element.classList.toggle("dashicons-media-audio", media.icon === "audio");
@@ -1144,7 +1261,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 											node.element.classList.toggle("dashicons-media-document", media.icon === "document");
 											node.element.classList.toggle("dashicons-media-archive", media.icon === "archive");
 											node.element.classList.toggle("dashicons-media-default", media.icon === "default");
-											node.element.classList.toggle("dashicons-open-folder", media.icon === "exit");
+											node.element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
 											node.element.classList.toggle("dashicons-upload", media.icon === "uploading");
 											node.element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
 											node.element.classList.toggle("dashicons-warning", media.icon === "notfound");

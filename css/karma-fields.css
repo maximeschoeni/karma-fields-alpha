@@ -90,6 +90,12 @@
   color: var(--inverse-text-color); */
 }
 
+.karma-fields .headline {
+  font-size: 2em;
+  line-height: 1em;
+  margin: .67em 0;
+}
+
 .loading {
   --text-color: var(--loading-color);
 }
@@ -173,6 +179,7 @@ body.karma-table-open {
   flex-direction: column;
 
   align-items: flex-start;
+  flex-shrink: 0;
 }
 .karma-field-frame.hidden {
   display: none !important;
@@ -219,7 +226,7 @@ body.karma-table-open {
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 99999;
+  z-index: 100001;
   width: 100%;
   height: 100%;
   background-color: rgba(0,0,0,0.7);
@@ -227,6 +234,8 @@ body.karma-table-open {
   box-sizing: border-box;
   display: flex;
   overflow: hidden;
+
+  /* --admin-bar-width: 0; */
 }
 .karma-fields .popup-content {
   flex-grow: 1;
@@ -289,8 +298,13 @@ body.karma-table-open {
   min-height: 0;
   flex-grow: 1;
   width: 100%;
+
+
 }
 .karma-fields .field-container .table-field .karma-field-table {
+
+}
+.karma-field-frame>.table-field>.karma-field-table {
   border: 1px solid var(--border-color);
 }
 
@@ -307,8 +321,13 @@ body.karma-table-open {
   position: relative;
   flex-direction: column;
   min-height: 0;
+
+}
+.popup .karma-field-table .table-body {
   overflow: auto; /* needed for form content in a popup. Not needed for tables */
   /* z-index: 1; ! --> cause problem with popups inside */
+
+  --admin-bar-width: 0;
 }
 
 .karma-fields .karma-field-table h1.text {
@@ -327,9 +346,11 @@ body.karma-table-open {
 .karma-fields .table-body-main-column {
   flex-grow: 1;
   /* padding: var(--gap-width); */
-  overflow: auto;
+  /* overflow: auto; -> must NOT append when table is not into popup */
 }
-
+.karma-fields .popup .table-body-main-column {
+  overflow: auto; /* must NOT append when table is not into popup */
+}
 
 .karma-fields .table-header {
   display: flex;
@@ -337,14 +358,18 @@ body.karma-table-open {
   padding: var(--gap-width);
   border-bottom: 1px solid var(--border-color);
   background-color: white;
+  min-height: 3.15rem;
 }
 
 
 .karma-fields .karma-field-table .table-header {
   position: sticky;
-  /* top: var(--admin-bar-width); */
-  top: 0;
+  top: var(--admin-bar-width);
+  /* top: 0; */
   z-index: 2;
+}
+.karma-fields .display-fixed .karma-field-table .table-header {
+  top: 0;
 }
 
 .karma-fields .popup .karma-field-table .table-header {
@@ -365,7 +390,8 @@ body.karma-table-open {
   flex-grow: 1;
   min-width: 0;
   min-height: 0;
-  align-items: flex-start; /* -> for modals (not inside popup) being sticky */
+  /* align-items: flex-start;  */
+  /* -> for modals (not inside popup) being sticky ---> sticky modal no longer exist!  */
 }
 .karma-fields .karma-field-table .table-body-columns.stretch-columns {
   align-items: stretch;
@@ -385,13 +411,38 @@ body.karma-table-open {
   flex-direction: column;
   overflow: auto;
   /* min-width: 0; */
-  padding: 0 var(--gap-width); /* -> top padding cause problem whith tinymce sticky toobar */
-
   border-left: 1px solid var(--border-color);
+
+
+  /* position: fixed;
+  background-color: var(--background-color);
+  right: 0;
+  top: 32px;
+  bottom: 0;
+  z-index: 99999; */
 }
-.karma-fields .table-body-side-column.sticky-modal {
-  position: sticky;
+
+.karma-fields .table-body-side-column {
+
 }
+
+.karma-fields .table-body-side-column.display-fixed {
+  position: fixed;
+  background-color: var(--background-color);
+  right: 0;
+  top: 32px;
+  bottom: 0;
+  z-index: 99999;
+}
+.karma-fields .table-body-side-column.display-fixed:not(.active) {
+  display: none;
+}
+
+/* .karma-fields .popup .table-body-side-column {
+  position: static;
+} */
+
+
 
 /* Table Control */
 .karma-field-table .table-footer {
@@ -833,11 +884,11 @@ body.karma-table-open {
   transition: transform 200ms;
 }
 
-.karma-field-table .media-table .selected {
-  /* outline: var(--border-width) solid var(--border-color); */
+.karma-field-table ul.media-table li.selected {
+  outline: 2px solid var(--theme-color);
 }
 .karma-field-table .media-table.dragging {
-  z-index: 9999999;
+  /* z-index: 9999999; */
 }
 .karma-field-table .media-table.dragging .frame {
   transition: none;
@@ -874,7 +925,19 @@ body.karma-table-open {
 
 
 /* Breadcrumb */
-ul.karma-breadcrumb {
+
+.karma-fields ul.breadcrumb {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  list-style-type: none;
+  gap: 0.2em;
+}
+.karma-fields ul.breadcrumb li:not(:last-child)::after {
+  content: " >";
+}
+
+/* ul.karma-breadcrumb {
   padding: 0;
   margin: 0 -0.75em;
   display: flex;
@@ -896,7 +959,7 @@ ul.karma-breadcrumb li a {
 }
 ul.karma-breadcrumb li a:hover {
   background-color: var(--active-background-color);
-}
+} */
 
 
 
@@ -966,7 +1029,8 @@ ul.karma-breadcrumb li a:hover {
   justify-content: center;
   padding: 0 var(--gap-width);
 }
-.karma-fields .simple-buttons .button {
+/* .karma-fields .simple-buttons .button { */
+.karma-fields .button.simple-buttons {
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -974,18 +1038,19 @@ ul.karma-breadcrumb li a:hover {
   justify-content: center; */
   border: none;
   background-color: transparent;
-  padding: 0.1em 0.1em;
+  padding: 0.2em;
 
 }
-.karma-fields .simple-buttons .button.active {
+.karma-fields .button.simple-buttons.active,
+.karma-fields .button.simple-buttons:hover {
   background-color: var(--theme-color);
   color: var(--background-color);
   box-shadow: none;
 }
-.karma-fields .simple-buttons .button[disabled] {
+.karma-fields .button.simple-buttons[disabled] {
   background-color: transparent !important;
 }
-.karma-fields .simple-buttons .button.loading {
+.karma-fields .button.simple-buttons.loading {
   color: #a7aaad !important;
   background-color: transparent !important;
 }
@@ -995,8 +1060,9 @@ ul.karma-breadcrumb li a:hover {
   width: auto;
   height: auto;
 }
-.karma-fields .simple-buttons .button .dashicons::before {
-  font-size: 1.1538em;
+.karma-fields .button.simple-buttons .dashicons::before {
+  /* font-size: 1.1538em; */
+  font-size: 1rem;
 }
 
 
@@ -1206,7 +1272,11 @@ ul.karma-breadcrumb li a:hover {
   content: ", ";
 }
 .karma-field-frame.ellipsis {
-  overflow: hidden;
+  /* overflow: hidden; */
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 0;
+  display: block;
 }
 .karma-field-frame.ellipsis .text {
   white-space: nowrap;
@@ -1322,8 +1392,9 @@ ul.tag-links li:not(:last-child)::after {
 .frame.selected .karma-field-media figure.image img,
 .td.selected .karma-field-media figure.image img,
 .karma-field-media.greyscale figure.image img {
-  filter: grayscale(1) contrast(1.3);
-  mix-blend-mode: screen;
+  /* filter: grayscale(1) contrast(1.3); */
+  filter: grayscale(1);
+  mix-blend-mode: hard-light;
 }
 .karma-gallery .frame:not(.selected) .karma-field-media figure.image img {
   filter: none;
@@ -1344,8 +1415,9 @@ ul.tag-links li:not(:last-child)::after {
   object-fit: cover;
   object-position: center;
 
-  filter: grayscale(1) contrast(1.3);
-  mix-blend-mode: screen;
+  /* filter: grayscale(1) contrast(1.3); */
+
+  /* mix-blend-mode: screen; */
 }
 .karma-field-media figure video {
   display: block;
@@ -1392,7 +1464,13 @@ ul.tag-links li:not(:last-child)::after {
   /* text-overflow: ellipsis;
   overflow: hidden; */
   text-align: center;
-  word-break: break-all;
+  /* word-break: break-all; */
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 /* Text - Media - selection
@@ -1454,8 +1532,12 @@ ul.tag-links li:not(:last-child)::after {
   flex-direction: row;
   /* align-items: flex-end; */
   /* align-items: baseline;  -> for header /// NO ALIGNMENT */
-
+  align-items: baseline;
+  flex-wrap: nowrap;
   width: 100%;
+}
+.karma-field-container.display-flex .karma-field-frame {
+  /* flex-shrink: 0; */
 }
 .karma-field-container.display-block {
   flex-wrap: nowrap;
@@ -1700,10 +1782,10 @@ ul.tag-links li:not(:last-child)::after {
 --------------------------------------*/
 
 .karma-fields .datalist input {
-  color: var(--loading-color);
+  /* color: var(--loading-color); */
 }
 .karma-fields .datalist input.canon {
-  color: black;
+  /* color: black; */
 }
 input[list]::-webkit-calendar-picker-indicator {
     display: none !important;
@@ -1852,7 +1934,7 @@ textarea.clipboard {
 }
 .karma-field-date ul li.today a {
   /* background-color: var(--theme-bg-color); */
-  color: var(--text-color);
+  color: var(--theme-color);
 }
 .karma-field-date ul li:active a,
 .karma-field-date ul li.active a {
@@ -1993,6 +2075,7 @@ textarea.clipboard {
 
 }
 
+
 .scroll-container .karma-tinymce .editor-header {
   top: 0;
 }
@@ -2021,14 +2104,34 @@ textarea.clipboard {
   cursor: text;
   line-height: 1.2em;
 
-  /* max-width: 640px; */
+
 }
 
-.karma-tinymce .editor-body.placeholder {
-  position: absolute;
-  z-index: 0;
-  opacity: 0.5;
+.mode-edit .editor-body {
+  max-width: 40rem;
+}
+
+/* .mode-edit .editor-body p,
+.mode-edit .editor-body span, */
+.mode-edit .editor-body p,
+.mode-edit .editor-body p * {
+  font-size: 0.875rem;
+  line-height: 1.5em;
+  color: black;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; /* --> see chrome bug: https://stackoverflow.com/a/15214362/2086505 */
+}
+
+
+.mode-edit .editor-body hr {
   pointer-events: none;
+}
+
+
+.karma-tinymce .editor-body.placeholder {
+  /* position: absolute;
+  z-index: 0; */
+  opacity: 0.5;
+  /* pointer-events: none; */
 }
 
 .karma-field-tinymce {
@@ -2059,29 +2162,49 @@ textarea.clipboard {
   color: var(--active-text-color); */
 }
 
+
 .karma-tinymce .editor-body a {
   /* text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 0.1em; */
   cursor: text;
 }
+.karma-tinymce .editor-body ul {
+  list-style-type: disc;
+}
+.karma-tinymce .editor-body ol {
+  /* list-style-type: disc; */
+}
 .karma-tinymce .editor-body img {
   max-width: 100%;
   height: auto;
+
+  pointer-events: none; /* testing things !!!! */
 }
 .karma-tinymce .editor-body figure {
-  display: inline-block;
-  margin: calc(var(--gap-width)*0.5) 0;
+  /* display: inline-block;
+  margin: calc(var(--gap-width)*0.5) 0; */
+  display: block;
+  margin: 1em 0;
+  /* background-color: var(--background-color); */
 }
 .karma-tinymce .editor-body figure figcaption {
-  /* padding: 0 var(--gap-width); */
-  padding: calc(var(--gap-width)*0.5) 0;
+  /* padding: 0.125rem 0;
   font-size: 0.875em;
-  /* color: var(--text-color); */
+  min-height: 1em;
+  color: var(--loading-color); */
+
+  padding: 0.125rem 0;
+  font-size: 0.75rem;
+  line-height: 1.2em;
+  min-height: 1.2em;
+  color: var(--loading-color);
+
+  /* font-size: 0.875em;
   min-height: 1em;
   box-sizing: content-box;
   text-align: center;
-  border: 1px solid #8c8f94;
+  border: 1px solid #8c8f94; */
 }
 .karma-tinymce .editor-body.mce-content-body img[data-mce-selected],
 .karma-tinymce .editor-body.mce-content-body hr[data-mce-selected]{
@@ -2127,7 +2250,7 @@ textarea.clipboard {
   top: calc(-1 * var(--gap-width)); */
   background-color: var(--background-color);
   z-index: 2;
-  padding: 0.5em var(--gap-width);
+  padding: var(--gap-width) var(--gap-width);
 
   border-bottom: var(--border-width) solid #8c8f94;
   display: flex;
@@ -2136,7 +2259,7 @@ textarea.clipboard {
   border-top-right-radius: 5px;
 
 }
-.karma-tinymce .editor-header .toolbar .karma-field-container {
+.karma-tinymce .editor-header .toolbar>.karma-field-container { /* do not propagate to children nodes! */
   /* gap: 0; */
   align-items: center;
 }
@@ -2166,18 +2289,20 @@ textarea.clipboard {
 
 .karma-tinymce .editor-header .toolbar select {
   border: none;
-  line-height: inherit;
+  line-height: 1em;
   min-height: 0;
   background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%232271b1'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
   background-size: 16px;
-  padding: 0 25px 0 0;
+  /* padding: 0 25px 0 0; */
+  padding: 0.2rem 1.5rem 0.2rem 0.4rem;
   color: var(--theme-color);
-  font-size: 1em;
+  font-size: 0.9375rem;
 }
 .karma-tinymce .editor-header .toolbar select:hover {
-  background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%230a4b78'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
+  /* background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%230a4b78'/%3E%3C/svg%3E") no-repeat right 5px top 55%; */
+  background: var(--theme-color) url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='white'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
   background-size: 16px;
-  color: #0a4b78;;
+  color: white;
 }
 
 .karma-tinymce .editor-header .toolbar select:focus {
@@ -2204,15 +2329,16 @@ textarea.clipboard {
   background-color: var(--background-color);
   top: 0;
   left: 100px;
-  z-index: 4;
+  /* z-index: 4; */
+  z-index: 100000;
   border-radius: var(--border-radius);
 
   transition: transform 150ms;
   transform-origin: top left;
-  transform: scale(0);
+  /* transform: scale(0); */
 }
 .karma-tinymce .karma-tinymce-popover.active {
-  transform: scale(1);
+  /* transform: scale(1); -> prevent a full popup to be open inside */
 }
 /* .karma-tinymce .karma-tinymce-popover.dark {
   border-color: var(--theme-bg-color);
@@ -2250,24 +2376,27 @@ textarea.clipboard {
   margin: 1em 0;
   line-height: 1.2;
 }
-.karma-tinymce .editor-body h1 {
-  font-size: 2.5em;
+.karma-tinymce .editor-body h1,
+.karma-tinymce .editor-body h1 * {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; /* --> see chrome bug: https://stackoverflow.com/a/15214362/2086505 */
+  font-size: 2.5rem;
+  font-weight: 600;
 }
 .karma-tinymce .editor-body h2,
 #poststuff .karma-tinymce .editor-body h2 { /* wtf? */
-  font-size: 2em;
+  font-size: 2rem;
 }
 .karma-tinymce .editor-body h3 {
-  font-size: 1.5em;
+  font-size: 1.5rem;
 }
 .karma-tinymce .editor-body h4 {
-  font-size: 1.25em;
+  font-size: 1.25rem;
 }
 .karma-tinymce .editor-body h5 {
-  font-size: 1.125em;
+  font-size: 1.125rem;
 }
 .karma-tinymce .editor-body h6 {
-  font-size: 1em;
+  font-size: 1rem;
 }
 
 /* Image */
@@ -2283,6 +2412,34 @@ textarea.clipboard {
 .karma-tinymce img.aligncenter {
   margin: 0 auto;
 }
+
+
+/* Footer */
+.karma-tinymce .editor-footer {
+  position: sticky;
+  bottom: 0;
+  /* display: grid;
+  transition: grid-template-rows 250ms; */
+}
+.karma-tinymce .editor-footer .inspector {
+  background-color: var(--background-color);
+  z-index: 2;
+  padding: var(--gap-width) var(--gap-width);
+
+  border-top: var(--border-width) solid #8c8f94;
+  /* display: flex; */
+
+  /* overflow: hidden; */
+
+  /* border-top-left-radius: 5px;
+  border-top-right-radius: 5px; */
+}
+
+/* .karma-tinymce .editor-body  */
+::highlight(richtext-highlight) {
+  background-color: #DDDDDD;
+}
+
 
 
 /* Block Editor

@@ -8,7 +8,6 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 	async doTask() {
 
-
 		let params = [];
 
 		if (this.resource.params) {
@@ -35,6 +34,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 			await this.request(this.resource.action || this.resource.task, ...params);
 
 		}
+
 		//
 		// let task = this.parse(this.resource.task);
 		//
@@ -120,7 +120,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 			// KarmaFieldsAlpha.Jobs.add(work);
 			//
-			await this.render(); // should be removed because sometime we need a global rendering (like close button)
+			// await this.render(); // should be removed because sometime we need a global rendering (like close button)
 
 		}
 
@@ -247,6 +247,9 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 			class: "button karma-button karma-field",
 			init: button => {
 				button.element.tabIndex = -1;
+				// console.log(this.resource.dashicon);
+				// if (this.resource.dashicon === "editor-bold") debugger;
+				button.element.classList.toggle("simple-buttons", this.getResource("simplebuttons") || false);
 			},
 			// child: {
 			// 	tag: "span",
@@ -545,7 +548,9 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 		const filename = this.parse(this.resource.filename || "export.csv").toString();
 
 		const element = document.createElement("a");
+		// element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
 		element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
+
 		element.setAttribute("download", filename);
 		element.style.display = "none";
 		document.body.appendChild(element);
@@ -604,7 +609,8 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 		const closestTable = this.closest(field => field.constructor === KarmaFieldsAlpha.field.table);
 
 		const table = new KarmaFieldsAlpha.field.table(closestTable.resource, "clone", this);
-		table.setState(closestTable.getParams(), "params");
+		const params = closestTable.getParams();
+		table.setState(params, "params");
 
 		let count = table.queryCount();
 
@@ -638,6 +644,12 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 			tableData.value = [...tableData.toArray(), ...gridData.toArray()];
 
 			page++;
+
+		}
+
+		if (this.resource.headers) {
+
+			tableData.value = [this.resource.headers, ...tableData.value];
 
 		}
 

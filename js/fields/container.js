@@ -4,35 +4,57 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		await KarmaFieldsAlpha.build(this.build(), this.element.parentNode, this.element);
 
+		const focus = this.getFocus();
+
+		document.body.classList.toggle("karma-table-open", focus.includes("popup"));
+
 	}
 
 	async render() {
 
+		return this.parent.render();
+
+
+		// local rendering dactivated !
+
 		if (this.id === "popup" && this.element) {
 
-			// console.log(this.element.parentNode, this.element);
+			if (!this.rendering) {
 
-			this.element.classList.add("container-loading");
+				this.rendering = true;
 
-			await KarmaFieldsAlpha.server.init();
+				this.element.classList.add("container-loading");
 
-			await this.abduct();
-
-			while (KarmaFieldsAlpha.server.hasOrder()) {
-
-				await KarmaFieldsAlpha.server.process();
+				await KarmaFieldsAlpha.server.init();
 
 				await this.abduct();
 
+				while (KarmaFieldsAlpha.server.hasOrder()) {
+
+					await KarmaFieldsAlpha.server.process();
+
+					await this.abduct();
+
+				}
+
+				this.element.classList.remove("container-loading");
+
+				this.rendering = false;
+
+			} else {
+
+				console.warn("Rendering under process!", this);
+
 			}
 
-			this.element.classList.remove("container-loading");
+
 
 		} else {
 
 			await this.parent.render();
 
 		}
+
 
 	}
 
@@ -41,6 +63,12 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
     await this.parent.setFocus();
 
 		await this.parent.render();
+
+  }
+
+	getResource(key) {
+
+    return this.resource[key];
 
   }
 
@@ -157,30 +185,59 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		// 	...this.resource.body
 		// }, "body", this);
 
+		if (this.resource.body) {
 
-		return this.createChild({
-			children: this.resource.children, // compat
-			...this.resource.body
-		}, "body");
+			return this.createChild(this.resource.body, "body");
+
+		} else { // compat
+
+			return this.createChild({
+				children: this.resource.children || [],
+				type: "group"
+			}, "body");
+
+		}
+
+
+		// return this.createChild({
+		// 	children: this.resource.children, // compat
+		// 	...this.resource.body
+		// }, "body");
 
 	}
 
 	async blank() {
 
-		await this.setSelection({index: 0, length: 0});
+		if (!this.hasFocus()) {
 
-		const body = this.getBody();
+			await this.setSelection({index: 0, length: 0});
 
-		if (body && body.unselect) {
+			const body = this.getBody();
 
-			await body.unselect();
+			if (body && body.unselect) {
+
+				await body.unselect();
+
+			}
+
+			await this.setFocus(true);
+			await this.render();
 
 		}
 
-		await this.setFocus(true);
-		await this.render();
-
 	}
+
+	async unselect() {
+
+    const body = this.getChild("body");
+
+    if (body && body.unselect) {
+
+      await body.unselect();
+
+    }
+
+  }
 
 	getHeaderTop(element) {
 
@@ -309,7 +366,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 				update: node => {
 
 					// -> sticky
-					node.element.style.top = `${this.getHeaderTop(node.element)}px`;
+					// node.element.style.top = `${this.getHeaderTop(node.element)}px`;
 				}
       };
 
@@ -363,33 +420,47 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		const body = this.getBody();
 
-		yield {
-      class: "table-body",
-      child: body.build()
-    };
+		if (body) {
+
+			yield {
+	      class: "table-body",
+	      child: body.build()
+	    };
+
+		}
 
 	}
 
-	// *buildContent() {
+	*buildContent() {
+
+		yield* this.buildHeader();
+		yield* this.buildBody();
+		yield* this.buildFooter();
+
+	}
+
+	// *buildColumns() {
+	//
+	// 	if (this.resource.left) {
+	//
+	// 		const field = this.createChild(this.resource.left, "left");
+	//
+	// 		yield field.build();
+	//
+	// 	}
 	//
 	// 	yield {
-	// 		// class: "karma-header table-header table-main-header simple-buttons",
-	// 		class: "karma-header table-header table-main-header",
-	// 		children: [...this.buildHeaderContent()]
-	// 	};
+	// 		class: "karma-field-table",
+	// 		children: [...this.buildContent()]
+	// 	}
 	//
-	// 	yield {
-  //     class: "table-body",
-  //     child: this.getBody().build()
-  //   };
+	// 	if (this.resource.right) {
 	//
-	// 	yield {
-	// 		class: "table-footer table-control",
-	// 		children: [...this.buildFooterContent()],
-	// 		update: node => {
-	// 			node.element.classList.toggle("loading", Boolean(this.hasTask()));
-	// 		}
-	// 	};
+	// 		const field = this.createChild(this.resource.right, "right");
+	//
+	// 		yield field.build();
+	//
+	// 	}
 	//
 	// }
 
@@ -397,12 +468,32 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
     return {
       class: "table-field",
-			// init: node => {
-			// 	node.element.classList.add(`container-${this.id}`);
-			// },
 			update: node => {
 				this.element = node.element;
+
+				// const hasFocus = this.hasFocusInside();
+				// node.element.classList.toggle("has-selection", Boolean(hasFocus));
+				// node.element.onmousedown = event => {
+				// 	event.stopPropagation();
+				// 	this.blank();
+				// }
+
+
+				node.element.ondrop = async event => {
+          event.preventDefault();
+          // debugger;
+          const files = event.dataTransfer.files;
+          if (files.length) {
+            // await this.request("upload", files);
+            // await this.render();
+
+
+          }
+					console.log(files);
+          // node.element.classList.remove("drop-active");
+        }
 			},
+			// children: [...this.buildColumns()]
       child: {
 				class: "karma-field-table",
 				init: node => {
@@ -422,27 +513,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 						this.blank();
 					}
 				},
-				children: [
-					...this.buildHeader(),
-					...this.buildBody(),
-					...this.buildFooter()
-					// {
-					// 	// class: "karma-header table-header table-main-header simple-buttons",
-					// 	class: "karma-header table-header table-main-header",
-					// 	children: [...this.buildHeaderContent()]
-					// },
-					// {
-			    //   class: "table-body",
-			    //   child: this.getBody().build()
-			    // },
-					// {
-					// 	class: "table-footer table-control",
-					// 	children: [...this.buildFooterContent()],
-					// 	update: node => {
-					// 		node.element.classList.toggle("loading", Boolean(this.hasTask()));
-					// 	}
-					// }
-				]
+				children: [...this.buildContent()]
 			}
     };
 
@@ -482,11 +553,6 @@ KarmaFieldsAlpha.field.container.header.title = class extends KarmaFieldsAlpha.f
   }
 
   getContent() {
-
-    // const content = this.getResource("title");
-		//
-    // return this.parse(content || this.resource.content);
-
 
 		return this.queryLabel();
 

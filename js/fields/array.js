@@ -84,6 +84,20 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
     return super.hasFocusInside();
   }
 
+  hasSelection() {
+
+    const body = this.getChild("body");
+
+    if (body && body.hasSelection) {
+
+      return body.hasSelection();
+
+    }
+
+    return false;
+
+  }
+
   // getChild(index) {
   //
   //   if (index === "body") {
@@ -353,6 +367,7 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
 
     }
 
+    await this.render();
   }
 
   async swap(index, target, length) {
@@ -477,6 +492,8 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
       await body.select(index, num);
 
     }
+
+    await this.render();
 
   }
 

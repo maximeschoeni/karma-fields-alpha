@@ -1,3 +1,5 @@
+
+
 KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   // getChild(index) {
@@ -51,6 +53,147 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
   //
   // }
 
+  async import(collection, index = 0, length = Infinity) {
+
+    let idsQuery = this.getIds();
+
+    while (idsQuery.loading) {
+
+      await this.render();
+      idsQuery = this.getIds();
+
+    }
+
+    const string = collection.value.shift();
+
+
+    let addedItems = [];
+
+
+    if (string.startsWith("http")) {
+
+      // const tokens = KarmaFieldsAlpha.server.createTokens(1);
+
+
+
+        // this.upload(file);
+
+        // const mediasTable = this.getChild("popup");
+        //
+        // const driver = mediasTable.getDriver();
+        // let params = mediasTable.queryParams();
+        //
+        // while (params.loading) {
+        //
+        //   await this.render();
+        //   params = mediasTable.queryParams();
+        //
+        // }
+        //
+        // const paramstring = params.string;
+
+        const driver = this.getDriver();
+        let params = this.queryParams();
+
+        while (params.loading) {
+
+          await this.render();
+          params = this.getParams();
+
+        }
+
+        const defaults = Object.fromEntries(Object.entries(params.toObject()).map(([key, value]) => [KarmaFieldsAlpha.Driver.getAlias(driver, key), value]));
+
+        const token = Symbol("token");
+
+        for (let key in defaults) {
+
+          KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, [defaults[key]], "vars", driver, token, key);
+
+        }
+
+        KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.server.store, "ids", driver);
+
+        let ids = [...idsQuery.toArray()];
+        ids.splice(index, 0, token);
+
+        const key = this.getKey();
+        const content = this.parent.getContent("id");
+        const contentDriver = this.parent.getDriver();
+
+        KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, ids, "vars", contentDriver, content.toString(), key);
+
+        await this.render();
+
+        const response = await fetch(string);
+        const blob = await response.blob();
+        const filename = string.split('/').pop();
+
+        // const file = new File([blob], filename, {type: "image/jpg"});
+        const file = new File([blob], filename);
+
+        let id = await KarmaFieldsAlpha.HTTP.upload(file); // -> parent and params need to be saved later
+
+        id = id.toString();
+
+        const delta = KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.server.store, "vars", driver, token);
+
+        if (delta) {
+
+          KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, delta, "vars", driver, id);
+          KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.server.store, "vars", driver, token);
+
+          for (let key in delta) {
+
+            await KarmaFieldsAlpha.Database.States.set(delta[key], "external", driver, id, key);
+            await KarmaFieldsAlpha.History.write(delta[key], [], "external", driver, id, key);
+
+          }
+
+        }
+
+        await KarmaFieldsAlpha.Database.Vars.set(["0"], driver, id, "trash");
+        await KarmaFieldsAlpha.Database.States.set(["0"], "external", driver, id, "trash");
+        await KarmaFieldsAlpha.History.write(["0"], ["1"], "external", driver, id, "trash");
+
+
+
+        await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, {[id]: defaults});
+
+        await KarmaFieldsAlpha.Database.States.remove("queries", driver);
+        await KarmaFieldsAlpha.Database.Queries.remove({driver});
+
+
+        ids = ids.map(currentId => currentId === token ? id : currentId);
+
+        // -> remove symbol from store or it will trigger an error when updating history!
+        KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, idsQuery.toArray(), "vars", contentDriver, content.toString(), key);
+
+        await this.setIds(ids);
+
+
+        // or manually change it
+        // await KarmaFieldsAlpha.Database.States.set(ids, "external", contentDriver, content.toString(), key));
+        // await KarmaFieldsAlpha.History.write(ids, idsQuery.toArray(), "external", contentDriver, content.toString(), key)); // update history
+
+        // await this.render();
+
+
+    } else {
+
+      addedItems = string && string.split(",") || [];
+
+      const newIds = [...idsQuery.toArray()];
+      newIds.splice(index, length, ...addedIds);
+
+      await this.setIds(newIds);
+
+    }
+
+	}
+
+
+
   getBody() {
 
     return new KarmaFieldsAlpha.field.gallery({
@@ -65,17 +208,47 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
 	}
 
-  getChild(index, ...path) {
+  // getChild(index, ...path) {
+  //
+  //   if (index === "popup") {
+  //
+  //
+  //   }
+  //
+  //   let child = this.newChild(index);
+  //
+  //   if (child && path.length) {
+  //
+  //     return child.getChild(...path);
+  //
+  //   }
+  //
+  //   return child;
+  //
+  // }
 
-    let child = this.newChild(index);
+  getPopup() {
 
-    if (child && path.length) {
+    // let resource = KarmaFieldsAlpha.tables[this.resource.table || "medias"];
+    //
+    // if (resource) {
+    //
+    //   const constructor = this.getConstructor(resource.type || "table"); // may be medias!
+    //
+    //   return new constructor(resource, "popup", this);
+    //
+    // }
 
-      return child.getChild(...path);
+    // return new KarmaFieldsAlpha.field.medias(this.resource.popup, "popup", this);
 
-    }
 
-    return child;
+    return this.createChild({
+      type: "medias",
+      params: {
+        parent: 0
+      },
+      ...this.resource.popup
+    }, "popup");
 
   }
 
@@ -91,15 +264,15 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
   }
 
-  async edit() {
+  async edit(ids) {
 
     if (this.resource.uploader === "wp" || this.resource.library === "wp") {
 
-      this.openMediaLibrary();
+      this.openMediaLibrary(ids);
 
     } else {
 
-      await super.edit();
+      await super.edit(ids);
 
     }
 
@@ -490,6 +663,10 @@ KarmaFieldsAlpha.field.files.footer = class extends KarmaFieldsAlpha.field.group
         "add",
         "edit",
         "remove"
+        // {
+        //   type: "text",
+        //   content: ["debug", ["request", "hasSelection"]]
+        // }
       ],
       ...resource
     }, id, parent);
@@ -498,15 +675,15 @@ KarmaFieldsAlpha.field.files.footer = class extends KarmaFieldsAlpha.field.group
 
 }
 
-KarmaFieldsAlpha.field.files.footer.test = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource, id, parent) {
-    super({
-      title: "Test",
-      action: "test",
-      ...resource
-    }, id, parent);
-  }
-}
+// KarmaFieldsAlpha.field.files.footer.test = class extends KarmaFieldsAlpha.field.button {
+//   constructor(resource, id, parent) {
+//     super({
+//       title: "Test",
+//       action: "test",
+//       ...resource
+//     }, id, parent);
+//   }
+// }
 KarmaFieldsAlpha.field.files.footer.add = class extends KarmaFieldsAlpha.field.button {
   constructor(resource, id, parent) {
     super({
@@ -524,7 +701,7 @@ KarmaFieldsAlpha.field.files.footer.remove = class extends KarmaFieldsAlpha.fiel
     super({
       title: "Remove",
       text: "Remove",
-      request: ["delete"],
+      action: "delete",
       disabled: ["!", ["request", "hasSelection"]],
       // hidden: ["=", ["count", ["getValue"]], 0],
       hidden: ["=", ["request", "getLength"], 0],

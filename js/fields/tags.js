@@ -3,6 +3,13 @@
 
 KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
+  // render() {
+  //
+  //   console.trace();
+  //   debugger;
+  //   return super.render();
+  // }
+
   getBody() {
 
     return new KarmaFieldsAlpha.field.tagsList(this.resource, "body", this);
@@ -81,19 +88,19 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
   //
   // }
 
-  getChild(index, ...path) {
-
-    let child = this.newChild(index);
-
-    if (child && path.length) {
-
-      return child.getChild(...path);
-
-    }
-
-    return child;
-
-  }
+  // getChild(index, ...path) {
+  //
+  //   let child = this.newChild(index);
+  //
+  //   if (child && path.length) {
+  //
+  //     return child.getChild(...path);
+  //
+  //   }
+  //
+  //   return child;
+  //
+  // }
 
 
   getTable() {
@@ -141,9 +148,11 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
   hasSelection() {
 
-    if (this.resource.body) {
+    // if (this.resource.body) {
 
-      const body = this.getChild("body");
+      // const body = this.getChild("body");
+
+      const body = this.getBody();
 
       if (body && body.hasSelection) {
 
@@ -151,7 +160,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
       }
 
-    }
+    // }
 
     return false;
 
@@ -190,7 +199,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
   }
 
-  async edit() {
+  async edit(ids) { // -> ids used in files attacher in tinymce
 
     // let table = this.getTable();
     //
@@ -210,7 +219,13 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
     }
 
-    let ids = this.getSelectedIds();
+    // let ids = this.getSelectedIds();
+
+    if (!ids) {
+
+      ids = this.getSelectedIds();
+
+    }
 
     // while (ids.loading) {
     //
@@ -254,7 +269,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
     // popup.setState(this.path, "master"); // -> should replace droppers;
 
 
-
+    await this.render();
 
   }
 
@@ -263,6 +278,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
     // this.setState(false, "popup");
 
     await this.setFocus(true);
+
+    await this.render();
 
   }
 
@@ -437,7 +454,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
   getSelectedIds() {
 
-    const selection = this.getSelection();
+    const selection = this.getSelection() || {};
 
     const index = selection.index || 0;
     const length = selection.length || 0;
@@ -501,7 +518,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
     const content = this.parent.getContent(key);
 
-    content.value = content.toArray().filter(value => parseInt(value));
+    // content.value = content.toArray().filter(value => parseInt(value));
 
     return content;
 
@@ -659,7 +676,8 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
     await this.save("paste", "Paste");
 
     // this.insert(ids);
-    await this.import(value);
+    const collection = new KarmaFieldsAlpha.Content([value]);
+    await this.import(collection);
 
     await this.request("render");
 
@@ -725,6 +743,7 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
     }
 
+    await this.render();
   }
   //
   // remove(index = 0, length = 1) {
@@ -990,83 +1009,65 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
 
   }
 
-  *buildFooter() {
+  *buildContent() {
 
-    // yield* KarmaFieldsAlpha.field.table.prototype.buildParts.call(this);
+		yield* super.buildContent();
 
-    yield* super.buildFooter();
+    yield* this.buildPopup();
 
-
-
-    yield {
-      class: "popup-container",
-      children: [...this.buildPopup()],
-      update: node => {
-        // const popup = this.getChild("popup");
-        // const hasPopup = popup.hasFocusInside();
-        node.element.classList.toggle("hidden", !node.children.length);
-
-        // if (hasPopup) {
-        //   node.children = [{
-        //     class: "popup",
-        //     update: node => {
-        //       // node.element.onmousedown = event => {
-        //       //   event.stopPropagation();
-        //       //   const body = popup.getChild("body");
-        //       //   if (body) {
-        //       //     body.setFocus(true);
-        //       //     if (body.select) body.select(0, 0); // !!
-        //       //     this.render();
-        //       //   }
-        //       // }
-        //     },
-        //     child: {
-        //       class: "popup-content",
-        //       children: [
-        //         popup.build()
-        //       ]
-        //     }
-        //   }];
-        // }
-        // else {
-        //   node.children = [];
-        // }
-      }
-    };
+	}
 
 
-
-
-    // const hasPopup = this.hasFocusInside("popup");
-    //
-    // if (hasPopup) {
-    //
-    //   const popup = this.getChild("popup");
-    //
-    //   yield {
-    //     class: "popup",
-    //     update: node => {
-    //       // node.element.onmousedown = event => {
-    //       //   event.stopPropagation();
-    //       //   const body = popup.getChild("body");
-    //       //   if (body) {
-    //       //     body.setFocus(true);
-    //       //     if (body.select) body.select(0, 0); // !!
-    //       //     this.render();
-    //       //   }
-    //       // }
-    //     },
-    //     child: {
-    //       class: "popup-content",
-    //       children: [
-    //         popup.build()
-    //       ]
-    //     }
-    //   };
-    //
-    // }
-
-  }
+  // *buildFooter() {
+  //
+  //   // yield* KarmaFieldsAlpha.field.table.prototype.buildParts.call(this);
+  //
+  //   yield* super.buildFooter();
+  //
+  //
+  //
+  //
+  //   // yield {
+  //   //   class: "popup-container",
+  //   //   children: [...this.buildPopup()],
+  //   //   update: node => {
+  //   //     node.element.classList.toggle("hidden", !node.children.length);
+  //   //   }
+  //   // };
+  //
+  //
+  //
+  //
+  //   // const hasPopup = this.hasFocusInside("popup");
+  //   //
+  //   // if (hasPopup) {
+  //   //
+  //   //   const popup = this.getChild("popup");
+  //   //
+  //   //   yield {
+  //   //     class: "popup",
+  //   //     update: node => {
+  //   //       // node.element.onmousedown = event => {
+  //   //       //   event.stopPropagation();
+  //   //       //   const body = popup.getChild("body");
+  //   //       //   if (body) {
+  //   //       //     body.setFocus(true);
+  //   //       //     if (body.select) body.select(0, 0); // !!
+  //   //       //     this.render();
+  //   //       //   }
+  //   //       // }
+  //   //     },
+  //   //     child: {
+  //   //       class: "popup-content",
+  //   //       children: [
+  //   //         popup.build()
+  //   //       ]
+  //   //     }
+  //   //   };
+  //   //
+  //   // }
+  //
+  // }
 
   // build() {
   //
@@ -1258,8 +1259,11 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
         sorter.onSelectionComplete = async () => {
 
           // this.request("deferFocus");
-          await this.setFocus(true);
-          await this.request("render");
+          if (!this.hasFocus()) {
+            await this.setFocus(true);
+            await this.request("render");
+          }
+
 
         }
 
@@ -1270,18 +1274,29 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
 
         };
 
-        sorter.onSort = async (index, target, length) => {
+        // sorter.onSort = async (index, target, length) => {
+        //
+        //   await KarmaFieldsAlpha.History.save("order", "Reorder");
+        //   await this.setFocus(true);
+        //   await this.request("render");
+        //
+        // }
 
-          await KarmaFieldsAlpha.History.save("order", "Reorder");
-          await this.setFocus(true);
-          await this.request("render");
+        sorter.onSort = async (newSelection, lastSelection) => {
+
+          if (KarmaFieldsAlpha.DeepObject.differ(newSelection, lastSelection)) {
+
+            await this.setFocus(true);
+            await this.request("render");
+
+          }
 
         }
 
         ul.element.ondblclick = async event => {
 
           await this.parent.edit();
-          await this.render();
+          // await this.render();
 
         }
 
@@ -1343,71 +1358,3 @@ KarmaFieldsAlpha.field.tagsList = class extends KarmaFieldsAlpha.field {
 
 
 }
-
-
-// KarmaFieldsAlpha.field.tags.add = class extends KarmaFieldsAlpha.field.button {
-//   constructor(resource, id, parent) {
-//     super({
-//       title: "Add",
-//       text: "Add",
-//       request: ["add"],
-//       hidden: [">=", ["getLength", ["getContent"]], ["request", "getMax"]],
-//       ...resource
-//     }, id, parent);
-//   }
-// }
-//
-//
-//
-//
-// KarmaFieldsAlpha.field.tags.controls = class extends KarmaFieldsAlpha.field.group {
-//
-//   constructor(resource, id, parent) {
-//
-//     super({
-//       display: "flex",
-//       children: [
-//         "add"
-//       ],
-//       ...resource
-//     }, id, parent);
-//
-//   }
-//
-// }
-//
-// KarmaFieldsAlpha.field.tags.controls.add = class extends KarmaFieldsAlpha.field.button {
-//   constructor(resource, id, parent) {
-//     super({
-//       title: "Add",
-//       text: "Add",
-//       request: ["add"],
-//       hidden: [">=", ["getLength", ["getContent"]], ["request", "getMax"]],
-//       ...resource
-//     }, id, parent);
-//   }
-// }
-// KarmaFieldsAlpha.field.tags.controls.remove = class extends KarmaFieldsAlpha.field.button {
-//   constructor(resource, id, parent) {
-//     super({
-//       title: "Remove",
-//       text: "×",
-//       action: "delete",
-//       disabled: ["!", ["getSelection"]],
-//       hidden: ["=", ["getLength", ["getContent"]], 0],
-//       ...resource
-//     }, id, parent);
-//   }
-// }
-// KarmaFieldsAlpha.field.tags.controls.edit = class extends KarmaFieldsAlpha.field.button {
-//   constructor(resource, id, parent) {
-//     super({
-//       title: "Edit",
-//       // dashicon: "update",
-//       request: ["edit"],
-//       disabled: ["!", ["request", "getSelection"]],
-//       hidden: ["=", ["getLength", ["getContent"]], 0],
-//       ...resource
-//     }, id, parent);
-//   }
-// }

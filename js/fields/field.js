@@ -9,7 +9,15 @@ KarmaFieldsAlpha.field = class {
 
   constructor(resource, id, parent) {
 
-    if (resource.field && KarmaFieldsAlpha.tables[resource.field]) {
+    if (typeof resource === "string") {
+
+      this.resource = KarmaFieldsAlpha.tables[resource];
+
+    } else if (resource.model && KarmaFieldsAlpha.tables[resource.model]) {
+
+      this.resource = {...KarmaFieldsAlpha.tables[resource.model], ...resource};
+
+    } else if (resource.field && KarmaFieldsAlpha.tables[resource.field]) { // compat
 
       this.resource = {...KarmaFieldsAlpha.tables[resource.field], ...resource};
 
@@ -147,9 +155,9 @@ KarmaFieldsAlpha.field = class {
 
     }
 
-    if (resource.field && KarmaFieldsAlpha.tables[resource.field]) {
+    if (resource.model && KarmaFieldsAlpha.tables[resource.model]) {
 
-      resource = {...KarmaFieldsAlpha.tables[resource.field], ...resource};
+      resource = {...KarmaFieldsAlpha.tables[resource.model], ...resource};
 
     }
 
@@ -362,6 +370,7 @@ KarmaFieldsAlpha.field = class {
 
     } else {
 
+      console.error("no parent field!!!");
       return KarmaFieldsAlpha.server.submit();
 
     }
@@ -529,6 +538,18 @@ KarmaFieldsAlpha.field = class {
   setValue(value, ...path) {
 
     return this.parent.setValue(value, ...path);
+
+  }
+
+  getContentAt(id, key) {
+
+    return this.parent.getContentAt(id, key);
+
+  }
+
+  setValueAt(value, id, key) {
+
+    return this.parent.setValueAt(value, id, key);
 
   }
 
@@ -1093,6 +1114,9 @@ KarmaFieldsAlpha.field = class {
         }
         case "parent":
           response = this.parent.parse(expression);
+          break;
+        case "upload-directory":
+          response.value = KarmaFieldsAlpha.uploadURL;
           break;
 
         default:

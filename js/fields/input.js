@@ -44,15 +44,19 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		let defaults = new KarmaFieldsAlpha.Content();
 
-		const response = this.getDefault();
+		if (this.resource.default !== null) { // -> for search field
 
-		if (response.loading) {
+			const response = this.getDefault();
 
-			defaults.loading = true;
+			if (response.loading) {
 
-		} else {
+				defaults.loading = true;
 
-			defaults.value = {[this.getKey()]: response.toString()};
+			} else {
+
+				defaults.value = {[this.getKey()]: response.toString()};
+
+			}
 
 		}
 
@@ -206,9 +210,14 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	async import(collection) {
 
-    const string = collection.value.shift();
+		if (this.resource.import !== false) {
 
-		await this.setValue(string);
+			const string = collection.value.shift();
+
+			await this.setValue(string);
+
+		}
+
   }
 
 	getPlaceholder() {
@@ -337,6 +346,12 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
         const content = this.getContent();
 				const hasFocus = this.hasFocus();
+
+				if (hasFocus && document.activeElement !== input.element) {
+
+					input.element.focus({preventScroll: true});
+
+				}
 
         input.element.classList.toggle("loading", Boolean(content.loading));
 

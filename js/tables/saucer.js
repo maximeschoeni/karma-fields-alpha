@@ -80,7 +80,9 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     const searchParams = new URLSearchParams(location.search);
 
-    return new KarmaFieldsAlpha.Content(searchParams.get(key));
+    const value = searchParams.get(key) || undefined; // -> method get return null if empty
+
+    return new KarmaFieldsAlpha.Content(value);
 
   }
 
@@ -185,25 +187,45 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
     // KarmaFieldsAlpha.server = new KarmaFieldsAlpha.Server();
 
-    for (let index in KarmaFieldsAlpha.embeds) {
-      document.getElementById(index).classList.add("container-loading");
+    if (this.rendering) {
+
+      console.warn("Rendering under process!", this);
+
     }
 
-    await KarmaFieldsAlpha.server.init();
+    // console.log("rendering");
 
-    await this.abduct();
+    // if (!this.rendering) {
 
-    while (KarmaFieldsAlpha.server.hasOrder()) {
+      this.rendering = true;
 
-      await KarmaFieldsAlpha.server.process();
+      for (let index in KarmaFieldsAlpha.embeds) {
+        document.getElementById(index).classList.add("container-loading");
+      }
+
+      await KarmaFieldsAlpha.server.init();
 
       await this.abduct();
 
-    }
+      while (KarmaFieldsAlpha.server.hasOrder()) {
 
-    for (let index in KarmaFieldsAlpha.embeds) {
-      document.getElementById(index).classList.remove("container-loading");
-    }
+        await KarmaFieldsAlpha.server.process();
+
+        await this.abduct();
+
+      }
+
+      for (let index in KarmaFieldsAlpha.embeds) {
+        document.getElementById(index).classList.remove("container-loading");
+      }
+
+      this.rendering = false;
+
+    // } else {
+    //
+    //   console.warn("Rendering under process!", this);
+    //
+    // }
 
   }
 
@@ -396,6 +418,7 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
                 const string = event.clipboardData.getData("text/plain").normalize();
                 console.log("PASTE", string);
                 const field = this.getFocusField();
+
                 await field.paste(string);
                 await this.request("render");
               }
@@ -498,8 +521,22 @@ KarmaFieldsAlpha.field.saucer.menu = class extends KarmaFieldsAlpha.field {
 
 }
 
+KarmaFieldsAlpha.field.save = class extends KarmaFieldsAlpha.field.button {
 
-KarmaFieldsAlpha.field.saucer.undo = class extends KarmaFieldsAlpha.field.button {
+  constructor(resource, id, parent) {
+    super({
+      action: "submit",
+      title: "Save",
+      text: "Save",
+      enabled: ["request", "hasDelta"],
+      primary: true,
+      ...resource
+    }, id, parent);
+  }
+
+}
+
+KarmaFieldsAlpha.field.undo = class extends KarmaFieldsAlpha.field.button {
   constructor(resource, id, parent) {
     super({
       // action: "undo",
@@ -510,7 +547,7 @@ KarmaFieldsAlpha.field.saucer.undo = class extends KarmaFieldsAlpha.field.button
     }, id, parent);
   }
 }
-KarmaFieldsAlpha.field.saucer.redo = class extends KarmaFieldsAlpha.field.button {
+KarmaFieldsAlpha.field.redo = class extends KarmaFieldsAlpha.field.button {
   constructor(resource, id, parent) {
     super({
       // action: "redo",
@@ -521,3 +558,24 @@ KarmaFieldsAlpha.field.saucer.redo = class extends KarmaFieldsAlpha.field.button
     }, id, parent);
   }
 }
+
+
+
+// document.addEventListener("paste", event => {
+//
+//   debugger;
+//
+//   console.log(event);
+//    var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+//    console.log(items);
+//
+//
+// });
+
+// window.addEventListener("copy", event => {
+//
+//
+//   event.clipboardData.setData("text/plain", "aaaa");
+//   event.preventDefault();
+//
+// });

@@ -44,6 +44,12 @@ KarmaFieldsAlpha.Server = class {
 
   }
 
+  // async updateState(value, driver, id, key) {
+  //
+  //   KarmaFieldsAlpha.DeepObject.set(this.store, value, "state", driver, id, key);
+  //
+  // }
+
   async removeState(driver, id, key) {
 
     // not used
@@ -109,9 +115,13 @@ KarmaFieldsAlpha.Server = class {
 
       response.loading = true;
 
-      this.orders.filled = true;
+      if (typeof id !== "symbol") {
 
-      KarmaFieldsAlpha.DeepObject.set(this.orders, true, "wild", driver, id, key);
+        this.orders.filled = true;
+
+        KarmaFieldsAlpha.DeepObject.set(this.orders, true, "wild", driver, id, key);
+
+      }
 
     }
 
@@ -152,9 +162,13 @@ KarmaFieldsAlpha.Server = class {
 
             response.loading = true;
 
-            this.orders.filled = true;
+            if (typeof id !== "symbol") {
 
-            KarmaFieldsAlpha.DeepObject.set(this.orders, true, "vars", driver, paramstring, key);
+              this.orders.filled = true;
+
+              KarmaFieldsAlpha.DeepObject.set(this.orders, true, "vars", driver, paramstring, key);
+
+            }
 
           }
 
@@ -324,7 +338,11 @@ KarmaFieldsAlpha.Server = class {
 
           }
 
-          const ids = query.queriedIds || [];
+          // const ids = query.queriedIds || [];
+
+          let ids = KarmaFieldsAlpha.DeepObject.get(this.store, "ids", driver, paramstring) || query.queriedIds || [];
+
+          ids = ids.filter(id => typeof id !== "symbol");
 
           for (let id of ids) {
 
@@ -1215,6 +1233,9 @@ KarmaFieldsAlpha.Server = class {
 
   async *add(driver, paramstring, index, length, defaults, data) {
 
+    // -> alias keys
+    defaults = Object.fromEntries(Object.entries(defaults).map(([key, value]) => [KarmaFieldsAlpha.Driver.getAlias(driver, key), value]));
+
     const tokens = [];
 
     for (let i = 0; i < length; i++) {
@@ -1223,20 +1244,15 @@ KarmaFieldsAlpha.Server = class {
       const token = Symbol("token");
       tokens.push(token);
 
-      const itemData = data && data[i];
+      const itemData = data && data[i] && Object.fromEntries(Object.entries(data[i]).map(([key, value]) => [KarmaFieldsAlpha.Driver.getAlias(driver, key), value]));
+
       const params = {...defaults, ...itemData};
 
       for (let key in params) {
 
-        // await KarmaFieldsAlpha.Database.States.set([params[key]], "external", driver, token, key); // do not update history
-
         KarmaFieldsAlpha.DeepObject.set(this.store, [params[key]], "vars", driver, token, key);
 
       }
-
-
-
-      // KarmaFieldsAlpha.DeepObject.set(this.orders, true, "tokens", driver, paramstring, token);
 
     }
 
@@ -1245,31 +1261,6 @@ KarmaFieldsAlpha.Server = class {
     let previousIds = ids.filter(id => typeof id !== "symbol");
 
     ids.splice(index, 0, ...tokens);
-
-
-
-
-
-
-    // let query = await KarmaFieldsAlpha.Database.Queries.get("query", driver, paramstring);
-    //
-    // if (!query) {
-    //
-    //   query = {type: "query", driver, paramstring};
-    //
-    //   await this.fetch(query).next();
-    //
-    // }
-    //
-    // const delta = await KarmaFieldsAlpha.Database.States.get("queries", driver, paramstring, "ids");
-    //
-    // const previousIds = delta || query.queriedIds || [];
-    // let ids = [...previousIds];
-    // ids.splice(index, 0, ...tokens);
-    //
-    // await KarmaFieldsAlpha.Database.States.set(ids, "queries", driver, paramstring, "ids"); // do not update history
-    //
-    // KarmaFieldsAlpha.DeepObject.set(this.store, ids, "ids", driver, paramstring);
 
     for (let token of tokens) {
 
@@ -1305,35 +1296,9 @@ KarmaFieldsAlpha.Server = class {
 
       }
 
+      await KarmaFieldsAlpha.Database.Vars.set(["0"], driver, id, "trash");
       await KarmaFieldsAlpha.Database.States.set(["0"], "external", driver, id, "trash");
       await KarmaFieldsAlpha.History.write(["0"], ["1"], "external", driver, id, "trash");
-
-
-
-
-      // // replace token by id in queries states
-      // const states = await KarmaFieldsAlpha.Database.States.select("external", driver, token);
-      //
-      // if (states) {
-      //
-      //   KarmaFieldsAlpha.Database.States.insert(states.map(item => ({...item, id})));
-      //
-      // }
-      //
-      // await KarmaFieldsAlpha.Database.States.remove("external", driver, token);
-      //
-      // await KarmaFieldsAlpha.Database.States.set(["0"], "external", driver, id, "trash");
-      // await KarmaFieldsAlpha.History.write(["0"], ["1"], "external", driver, id, "trash");
-      //
-      // ids = await KarmaFieldsAlpha.Database.States.get("queries", driver, paramstring, "ids"); // reload in case it changed inbetween
-      //
-      // ids = ids.map(item => item === token ? id : item);
-      //
-      // await KarmaFieldsAlpha.Database.States.set(ids, "queries", driver, paramstring, "ids");
-      //
-      // KarmaFieldsAlpha.DeepObject.set(this.store, ids, "ids", driver, paramstring);
-
-      // KarmaFieldsAlpha.DeepObject.set(this.store, ids, "ids", driver, paramstring);
 
     }
 
@@ -1347,7 +1312,7 @@ KarmaFieldsAlpha.Server = class {
   }
 
 
-  async delete(driver, paramstring, index, length) {
+  async *delete(driver, paramstring, index, length) {
 
     // let ids = this.getIds();
     //
@@ -1378,6 +1343,7 @@ KarmaFieldsAlpha.Server = class {
 
     for (let id of removedIds) {
 
+      // await KarmaFieldsAlpha.Database.Vars.set(["1"], driver, id, "trash");
       await KarmaFieldsAlpha.Database.States.set(["1"], "external", driver, id, "trash");
       await KarmaFieldsAlpha.History.write(["1"], ["0"], "external", driver, id, "trash");
 
@@ -1387,6 +1353,9 @@ KarmaFieldsAlpha.Server = class {
     await KarmaFieldsAlpha.History.write(newIds, previousIds, "queries", driver, paramstring, "ids");
 
     KarmaFieldsAlpha.DeepObject.set(this.store, newIds, "ids", driver, paramstring);
+
+    // yield;
+    // await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, Object.fromEntries(removedIds.map(id => [id, {trash: ["1"]}])));
 
   }
 
@@ -1422,49 +1391,63 @@ KarmaFieldsAlpha.Server = class {
   //
   // }
 
-  async *upload(driver, paramstring, files, defaults) {
+  // createTokens(length) {
+  //
+  //   const tokens = [];
+  //
+  //   for (let i = 0; i < length; i++) {
+  //
+  //     tokens.push(Symbol("token"));
+  //
+  //   }
+  //
+  //   return tokens;
+  //
+  // }
+
+  async *upload(driver, paramstring, index, files, defaults) { // }, tokens) {
+
+    // if (!tokens || tokens.length !== files.length) {
+    //
+    //   tokens = this.createTokens(files.length);
+    //
+    // }
 
     const tokens = [];
 
-    for (let file of files) {
+    // -> alias keys
+    defaults = Object.fromEntries(Object.entries(defaults).map(([key, value]) => [KarmaFieldsAlpha.Driver.getAlias(driver, key), value]));
 
-      const token = this.createToken();
+    for (let i = 0; i < files.length; i++) {
+
+      const token = Symbol("token");
       tokens.push(token);
 
-      // set default params
+      // const token = tokens[i];
+
       for (let key in defaults) {
 
-        await KarmaFieldsAlpha.Database.States.set([params[key]], "external", driver, token, key); // -> do not save history !
+        KarmaFieldsAlpha.DeepObject.set(this.store, [defaults[key]], "vars", driver, token, key);
 
       }
 
     }
 
-    let query = await KarmaFieldsAlpha.Database.Queries.get("query", driver, paramstring);
+    let ids = KarmaFieldsAlpha.DeepObject.get(this.store, "ids", driver, paramstring);
 
-    if (!query) {
-
-      query = await this.fetchQuery(driver, paramstring);
-
-    }
-
-    const delta = await KarmaFieldsAlpha.Database.States.get("queries", driver, paramstring, "ids");
-
-    const previousIds = delta || query.queriedIds || [];
-
-    let ids = [...this.ids];
+    let previousIds = ids.filter(id => typeof id !== "symbol");
 
     ids.splice(index, 0, ...tokens);
-
-    await KarmaFieldsAlpha.Database.States.set(ids, "queries", server.driver, server.paramstring, "ids"); // do not update history
 
     const createdIds = [];
 
     for (let file of files) {
 
-      yield;
-
       const token = tokens.shift();
+
+      yield token;
+
+
 
       // await server.upload(file, token, filters);
 
@@ -1474,69 +1457,125 @@ KarmaFieldsAlpha.Server = class {
 
       createdIds.push(id);
 
-      const states = KarmaFieldsAlpha.Database.States.select("external", driver, token); // select all keys with tokens
+      ids = KarmaFieldsAlpha.DeepObject.get(this.store, "ids", driver, paramstring);
 
-      if (states) {
+      const index = ids.indexOf(token);
 
-        await KarmaFieldsAlpha.Database.States.insert(states.map(state => ({...state, id})), "external"); // replace token by ids
+      if (index > -1) {
 
-        const obj = Object.fromEntries(items.map(item => [item.key, item.data]));
-
-        await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, {[id]: {trash: ["0"], ...obj}}); // -> update defaults values to attachment
+        ids[index] = id;
 
       }
 
-      // remove preliminary values
-      await KarmaFieldsAlpha.Database.States.remove("external", driver, token);
+      const delta = KarmaFieldsAlpha.DeepObject.get(this.store, "vars", driver, token);
 
-      // handle history
-      await KarmaFieldsAlpha.Database.States.set(["1"], "external", driver, id, "trash");
-      await KarmaFieldsAlpha.History.write(["1"], ["0"], "external", driver, id, "trash");
+      if (delta) {
 
+        KarmaFieldsAlpha.DeepObject.set(this.store, delta, "vars", driver, id);
+        KarmaFieldsAlpha.DeepObject.remove(this.store, "vars", driver, token);
 
-      // replace tokens by id
+        for (let key in delta) {
 
-      let ids = await KarmaFieldsAlpha.Database.States.set(ids, "queries", driver, paramstring, "ids");
+          await KarmaFieldsAlpha.Database.States.set(delta[key], "external", driver, id, key);
+          await KarmaFieldsAlpha.History.write(delta[key], [], "external", driver, id, key);
 
-      ids = ids.map(item => item === token ? id : item);
+        }
 
-      // const index = ids.indexOf(token);
-      //
-      // if (index > -1) {
-      //
-      //   ids[index] = id;
-      //
-      // }
+      }
 
-      await KarmaFieldsAlpha.Database.States.set(ids, "queries", driver, paramstring, "ids"); // no history update yet (may still have token)
+      await KarmaFieldsAlpha.Database.Vars.set(["0"], driver, id, "trash");
+      await KarmaFieldsAlpha.Database.States.set(["0"], "external", driver, id, "trash");
+      await KarmaFieldsAlpha.History.write(["0"], ["1"], "external", driver, id, "trash");
 
+      if (Object.values(defaults).length) {
+
+        const payload = Object.fromEntries(Object.entries(defaults).map(([key, value]) => [key, [value]]));
+
+        await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, {[id]: payload});
+
+      }
 
     }
 
-    // ids = await KarmaFieldsAlpha.Database.States.get("queries", server.driver, server.paramstring, "ids");
+    ids = KarmaFieldsAlpha.DeepObject.get(this.store, "ids", driver, paramstring);
 
+    ids = ids.filter(id => typeof id !== "symbol"); // filter tokens
+
+    await KarmaFieldsAlpha.Database.States.set(ids, "queries", driver, paramstring, "ids");
     await KarmaFieldsAlpha.History.write(ids, previousIds, "queries", driver, paramstring, "ids"); // update history
 
 
-    // await KarmaFieldsAlpha.Database.Queries.remove(driver, "");
-    // await KarmaFieldsAlpha.Database.Queries.set(createdIds, driver, "", "requestedIds");
+    const query = await KarmaFieldsAlpha.Database.Queries.get("query", driver, paramstring);
+    query.complete = false;
+    query.queried = 0;
+    query.relationIndex = 0;
+
+    await KarmaFieldsAlpha.Database.Queries.set(query);
+
+    // yield;
 
 
-
-
-    const gen = this.fetch({type: "query", driver, paramstring: "", requestedIds: new Set(createdIds)});
-
-    for await (let query of gen) {
-
-      await this.render();
-
-    }
-
-
-
-
+    // const gen = this.fetch({type: "wild", driver, paramstring: "", requestedIds: new Set(createdIds)});
+    //
+    // for await (let query of gen) {
+    //
+    //   yield;
+    //
+    // }
 
   }
+
+
+  // async *getImage(id, driver = "medias") {
+  //
+	// 	const object = {};
+  //
+	// 	let filename = this.queryValue(driver, id, "filename");
+	// 	let dir = this.queryValue(driver, id, "dir");
+	// 	let mimetype = this.queryValue(driver, id, "mimetype");
+	// 	let imageWidth = this.queryValue(driver, id, "width");
+	// 	let imageHeight = this.queryValue(driver, id, "height");
+  //
+	// 	while (filename.loading || dir.loading || mimetype.loading || imageWidth.loading || imageHeight.loading) {
+  //
+  //     yield;
+  //
+	// 		filename = this.queryValue(driver, id, "filename");
+	// 		dir = this.queryValue(driver, id, "dir");
+	// 		mimetype = this.queryValue(driver, id, "mimetype");
+	// 		imageWidth = this.queryValue(driver, id, "width");
+	// 		imageHeight = this.queryValue(driver, id, "height");
+  //
+	// 	}
+  //
+	// 	object.width = imageWidth.toString();
+	// 	object.height = imageHeight.toString();
+	// 	object.src = `${KarmaFieldsAlpha.uploadURL}${dir.toString()}/${filename.toString()}`;
+  //
+	// 	if (mimetype.toString() === "image/jpeg" || mimetype.toString() === "image/jpg" || mimetype.toString() === "image/png" || mimetype.toString() === "image/webp") {
+  //
+	// 		let sizes = this.getWild("medias", object.id, "sizes");
+  //
+	// 		while (sizes.loading) {
+  //
+  //       yield;
+  //
+	// 			sizes = this.queryValue(driver, object.id, "sizes");
+  //
+	// 		}
+  //
+	// 		if (sizes.toArray().length) {
+  //
+	// 			object.srcset = sizes.toArray().map(size => `${KarmaFieldsAlpha.uploadURL}${dir.toString()}/${size.filename} ${size.width}w`).join(",");
+	// 			object.sizes = "(min-width: 1024px) 1024px, 100vw";
+  //
+	// 		}
+  //
+	// 	}
+  //
+  //
+	// }
+
 
 
 
@@ -1559,7 +1598,23 @@ KarmaFieldsAlpha.Server = class {
       await KarmaFieldsAlpha.Database.Queries.remove({driver});
       await KarmaFieldsAlpha.Database.States.remove("queries", driver);
 
+      for (let id in delta[driver]) {
+
+        for (let key in delta[driver][id]) {
+
+          await KarmaFieldsAlpha.Database.Vars.set(delta[driver][id][key], driver, id, key);
+
+        }
+
+      }
+
     }
+
+    // for await (let edit of edits) {
+    //
+    //   await KarmaFieldsAlpha.Database.Vars.set(edit.data, edit.driver, edit.id, edit.key);
+    //
+    // }
 
   }
 

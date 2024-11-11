@@ -2,6 +2,7 @@
 
 <div id="karma-fields-embed-<?php echo $index; ?>" class="karma-fields"></div>
 
+
 <script>
 
 	KarmaFieldsAlpha.embeds.push({

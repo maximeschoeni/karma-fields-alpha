@@ -13,8 +13,6 @@ KarmaFieldsAlpha.field.datalist = class extends KarmaFieldsAlpha.field.input {
 
 		if (this.element) {
 
-      console.log("local render");
-
 			await KarmaFieldsAlpha.server.init();
 
 			await this.abduct();
@@ -40,9 +38,9 @@ KarmaFieldsAlpha.field.datalist = class extends KarmaFieldsAlpha.field.input {
 
     const content = super.getContent();
 
-    if (content.loading) {
+    if (content.loading || content.mixed) {
 
-      return new KarmaFieldsAlpha.Loading();
+      return content;
 
     } else if (content.toString()) {
 
@@ -106,11 +104,30 @@ KarmaFieldsAlpha.field.datalist = class extends KarmaFieldsAlpha.field.input {
 
     // const driver = this.getDriver();
     let content = this.getContent();
-    const hasFocus = this.hasFocus();
+    let hasFocus = this.hasFocus();
+
+    if (content.mixed) {
+
+      yield {
+        tag: "input",
+        init: node => {
+          node.element.type = "text";
+          node.element.setAttribute("list", `${this.uid}-datalist`);
+        },
+        update: node => {
+          hasFocus = this.hasFocus();
+          node.element.classList.toggle("selected", Boolean(content.mixed && hasFocus));
+          node.element.readOnly = true;
+          node.element.value = "[mixed content]";
+          node.element.onfocus = async event => {
+  					await this.setFocus(true);
+  					await this.render(); // update clipboard textarea, unselect other stuffs
+  				}
+        }
+      };
 
 
-
-    if (!content.loading) {
+    } else if (!content.loading) {
 
       if (this.search === undefined) {
 
@@ -141,6 +158,8 @@ KarmaFieldsAlpha.field.datalist = class extends KarmaFieldsAlpha.field.input {
           node.element.setAttribute("list", `${this.uid}-datalist`);
         },
         update: node => {
+          node.element.classList.remove("selected"); // only when mixed
+          node.element.readOnly = false;
           node.element.classList.toggle("canon", isCanon);
           if (node.element.value.normalize() !== this.search) { // -> replacing same value still reset caret position
             node.element.value = this.search;

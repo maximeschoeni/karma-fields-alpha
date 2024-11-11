@@ -2,7 +2,7 @@
 
 
 
-Class Karma_Fields_Alpha_Driver_Options {
+class Karma_Fields_Alpha_Driver_Options {
 
   // /**
 	//  * recursive_get
@@ -93,7 +93,7 @@ Class Karma_Fields_Alpha_Driver_Options {
 
         $option = get_option($id);
 
-        
+
 
         $option = apply_filters('karma_fields_query_options', $option, $id, $params);
 

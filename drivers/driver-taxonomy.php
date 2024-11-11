@@ -2,7 +2,7 @@
 
 
 
-Class Karma_Fields_Alpha_Driver_Taxonomy {
+class Karma_Fields_Alpha_Driver_Taxonomy {
 
   /**
 	 * update

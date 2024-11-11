@@ -100,6 +100,12 @@ class Karma_Fields_Alpha_Driver_Posts {
 
       foreach ($data as $key => $value) {
 
+        if (!is_array($value)) {
+
+          die("Error updating data (posts driver): value must be an array");
+
+        }
+
         if (apply_filters('karma_fields_posts_driver_update', null, $value, $key, $id, $args, $data) === null) {
 
           switch ($key) {
@@ -183,6 +189,9 @@ class Karma_Fields_Alpha_Driver_Posts {
 
 
                 $meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->postmeta WHERE meta_key = %s AND post_id = %d ORDER BY meta_id", $key, $id ) );
+
+
+
 
 
                 for ( $i = 0; $i < max(count($value), count($meta_ids)); $i++ ) {
@@ -1109,7 +1118,6 @@ class Karma_Fields_Alpha_Driver_Posts {
 
         // $result->value = maybe_unserialize($result->value);
         $result->value = apply_filters('karma_fields_posts_meta_format', $result->value, $result->key, $result->id);
-
         $result->value = apply_filters('karma_fields_posts_driver_join_meta', $result->value, $result->key, $result->id); // deprecated
 
 

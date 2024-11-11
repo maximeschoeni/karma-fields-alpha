@@ -177,6 +177,14 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  // async close() { // close modal
+  //
+  //   await this.removeSelection();
+  //
+  //   // await this.render();
+  //
+  // }
+
   copy() {
 
     const selection = this.getSelection();
@@ -234,7 +242,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     await this.import(grid, index, length);
 
-    const body = this.getChild("body");
+    // const body = this.getChild("body");
 
     await this.setSelection({index, length: grid.toArray().length});
 
@@ -365,7 +373,10 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
     } else if (this.resource.modal) {
 
-      return [...this.resource.children, ...this.resource.modal.children];
+      const modalContent = this.getChild("*", "body");
+
+      // return [...this.resource.children, ...this.resource.modal.children];
+      return [...this.resource.children, ...modalContent.resource.children];
 
     } else {
 
@@ -550,83 +561,87 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
-  *buildModalContent() {
+  // *buildModalContent() {
+  //
+  //   const modal = this.getChild("*");
+  //
+  //
+  //   if (modal) {
+  //
+  //     yield* modal.build();
+  //
+  //   }
+  //
+  // }
 
-    const modal = this.getChild("*");
+  // buildModal() {
+  //
+  //
+  //
+  //   return {
+  //     class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
+  //     // child: this.createChild({
+  //     //   ...this.resource.modal,
+  //     //   type: "row"
+  //     // }, "*").build(),
+  //     children: [...this.buildModalContent()],
+  //     // children: [this.createChild({
+  //     //   ...this.resource.modal,
+  //     //   type: "modal"
+  //     // }, "*").build()],
+  //     init: div => {
+  //       // KarmaFieldsAlpha.registerStickyModal({
+  //       //   modal: div.element,
+  //       //   tableBody: div.element.parentNode.parentNode,
+  //       //   table: div.element.parentNode.parentNode.parentNode
+  //       // });
+  //     },
+  //     update: div => {
+  //
+  //       // if (this.resource.display === "fixed") {
+  //       //   div.element.classList.add("fixed-modal");
+  //       //
+  //       // } else {
+  //       //
+  //       //   div.element.classList.remove("sticky-modal");
+  //       //   if (this.parent.id !== "popup") {
+  //       //     const focus = this.getFocus();
+  //       //     if (focus && !focus.includes("popup")) { // -> opening popup in sticky container seems to be bugged
+  //       //       div.element.style.height = `${this.request("getModalHeight", div.element)}px`;
+  //       //       div.element.style.top = `${this.request("getModalTop", div.element)}px`;
+  //       //       div.element.classList.add("sticky-modal");
+  //       //     }
+  //       //   }
+  //       // }
+  //
+  //
+  //
+  //
+  //       div.element.classList.toggle("hidden", !this.resource.modal);
+  //       if (this.resource.modal) {
+  //         div.element.style.width = this.resource.modal.width || "30em";
+  //         div.element.onmousedown = async event => {
+  //           event.stopPropagation(); // -> prevent unselecting
+  //
+  //           await this.setFocus(true);
+  //           await this.request("render");
+  //         };
+  //         const hasSelection = this.hasSelection();
+  //         div.element.classList.toggle("active", Boolean(hasSelection));
+  //       }
+  //
+  //
+  //
+  //     }
+  //   };
+  //
+  // }
 
 
-    if (modal) {
-
-      yield* modal.build();
-
-    }
-
-  }
-
-  buildModal() {
-
-
+  buildBody() { // overrided by gallery
 
     return {
-      class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
-      // child: this.createChild({
-      //   ...this.resource.modal,
-      //   type: "row"
-      // }, "*").build(),
-      children: [...this.buildModalContent()],
-      // children: [this.createChild({
-      //   ...this.resource.modal,
-      //   type: "modal"
-      // }, "*").build()],
-      init: div => {
-        // KarmaFieldsAlpha.registerStickyModal({
-        //   modal: div.element,
-        //   tableBody: div.element.parentNode.parentNode,
-        //   table: div.element.parentNode.parentNode.parentNode
-        // });
-      },
-      update: div => {
-
-        if (this.resource.display === "fixed") {
-          div.element.classList.add("fixed-modal");
-
-        } else {
-
-          div.element.classList.remove("sticky-modal");
-          if (this.parent.id !== "popup") {
-            const focus = this.getFocus();
-            if (focus && !focus.includes("popup")) { // -> opening popup in sticky container seems to be bugged
-              div.element.style.height = `${this.request("getModalHeight", div.element)}px`;
-              div.element.style.top = `${this.request("getModalTop", div.element)}px`;
-              div.element.classList.add("sticky-modal");
-            }
-          }
-        }
-
-
-
-
-        div.element.classList.toggle("hidden", !this.resource.modal);
-        if (this.resource.modal) {
-          div.element.style.width = this.resource.modal.width || "30em";
-          div.element.onmousedown = async event => {
-            event.stopPropagation(); // -> prevent unselecting
-
-            await this.setFocus(true);
-            await this.request("render");
-          };
-          const hasSelection = this.hasSelection();
-          div.element.classList.toggle("active", Boolean(hasSelection));
-        }
-      }
-    };
-
-  }
-
-  buildBody() {
-
-    return {
-      class: "karma-field-table-grid-container karma-field-frame karma-field-group final scroll-container table-body-column table-body-main-column",
+      class: "karma-field-table-grid-container karma-field-frame karma-field-group final table-body-column table-body-main-column",
       init: node => {
         if (this.resource.height) {
           node.element.style.minHeight = this.resource.height;
@@ -639,6 +654,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         }
         if (this.resource.class) {
           node.element.classList.add(this.resource.class);
+        }
+        if (this.parent.id === "popup") {
+          node.element.classList.add("scroll-container");
         }
       },
       child: {
@@ -733,6 +751,112 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  getModal() {
+
+    if (this.resource.modal) {
+
+      return this.getChild("*");
+
+    }
+
+  }
+
+  *buildModal() {
+
+    const modal = this.getModal();
+
+    if (modal) {
+
+      // const selection = this.getSelection();
+      //
+      //
+      // if (modal && selection && selection.length) {
+
+        // const modal = this.getChild("*");
+
+
+
+        yield {
+          class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
+          update: div => {
+            div.element.classList.toggle("display-fixed", modal.resource.display === "fixed");
+            div.element.style.width = modal.resource.width || "30em";
+
+            // redondant with container catcher
+            // div.element.onmousedown = async event => {
+            //   event.stopPropagation(); // -> prevent unselecting
+            //
+            //   if (!this.hasFocus()) {
+            //     await this.setFocus(true);
+            //     await this.request("render");
+            //   }
+            // };
+
+            const selection = this.getSelection();
+
+            div.element.classList.toggle("active", selection && selection.length > 0 || false);
+
+
+
+            div.children = [...modal.build()];
+          }
+        };
+
+      // }
+
+    }
+
+  }
+
+  // *buildModalContent() {
+  //
+  //   const modal = this.getModal();
+  //
+  //   if (modal) {
+  //
+  //     const selection = this.getSelection();
+  //
+  //
+  //     if (modal && selection && selection.length) {
+  //
+  //       // const modal = this.getChild("*");
+  //
+  //
+  //
+  //       yield {
+  //         class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
+  //         update: div => {
+  //           div.element.classList.toggle("display-fixed", modal.resource.display === "fixed");
+  //           div.element.style.width = modal.resource.width || "30em";
+  //
+  //           // redondant with container catcher
+  //           // div.element.onmousedown = async event => {
+  //           //   event.stopPropagation(); // -> prevent unselecting
+  //           //
+  //           //   if (!this.hasFocus()) {
+  //           //     await this.setFocus(true);
+  //           //     await this.request("render");
+  //           //   }
+  //           // };
+  //
+  //           div.children = [...modal.build()];
+  //         }
+  //       };
+  //
+  //     }
+  //
+  //   // }
+  //
+  // }
+
+  *buildColumns() {
+
+    yield this.buildBody();
+
+    yield* this.buildModal();
+
+  }
+
   build() {
 
     return {
@@ -750,11 +874,13 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
         // this.indexOffset = this.parent.getIndexOffset && this.parent.getIndexOffset(); // promise !
 
         div.element.classList.toggle("stretch-columns", this.parent.id === "popup");
-      },
-      children: [
-        this.buildBody(),
-        this.buildModal()
-      ]
+
+        div.children = [...this.buildColumns()]
+      }
+      // children: [
+      //   this.buildBody(),
+      //   this.buildModal()
+      // ]
     };
 
   }
@@ -861,13 +987,38 @@ KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field.group {
 
 }
 
-KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.grid.row {
+KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.container {
+
+  getContent(key) {
+
+    return this.parent.getContentAt("*", key);
+
+  }
+
+  setValue(value, key) {
+
+    return this.parent.setValueAt(value, "*", key);
+
+  }
+
+  getBody() {
+
+    return new KarmaFieldsAlpha.field.grid.modalContent(this.resource.body || {children: this.resource.children}, "body", this);
+
+	}
+
+  async close() {
+
+    await this.parent.removeSelection();
+
+		await super.close();
+
+  }
 
   *build() {
 
     const selection = this.parent.getSelection();
 
-    // if (this.parent.hasSelection()) {
     if (selection && selection.length) {
 
       yield super.build();
@@ -876,7 +1027,79 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.grid.ro
 
   }
 
+  // *buildModalContent() {
+  //
+  //   const modal = this.getModal();
+  //
+  //   if (modal) {
+  //
+  //     const selection = this.getSelection();
+  //
+  //
+  //     if (modal && selection && selection.length) {
+  //
+  //       // const modal = this.getChild("*");
+  //
+  //
+  //
+  //       yield {
+  //         class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
+  //         update: div => {
+  //           div.element.classList.toggle("display-fixed", modal.resource.display === "fixed");
+  //           div.element.style.width = modal.resource.width || "30em";
+  //
+  //           // redondant with container catcher
+  //           // div.element.onmousedown = async event => {
+  //           //   event.stopPropagation(); // -> prevent unselecting
+  //           //
+  //           //   if (!this.hasFocus()) {
+  //           //     await this.setFocus(true);
+  //           //     await this.request("render");
+  //           //   }
+  //           // };
+  //
+  //           div.children = [...modal.build()];
+  //         }
+  //       };
+  //
+  //     }
+  //
+  //   // }
+  //
+  // }
+
 }
+
+
+KarmaFieldsAlpha.field.grid.modalContent = class extends KarmaFieldsAlpha.field.group {
+
+  // getContent(key) {
+  //
+  //   return this.parent.getContentAt(this.id, key);
+  //
+  // }
+  //
+  // setValue(value, key) {
+  //
+  //   return this.parent.setValueAt(value, this.id, key);
+  //
+  // }
+
+
+
+  build() {
+
+    return {
+      class: "form-single",
+      child: super.build()
+    };
+
+  }
+
+
+}
+
+
 
 KarmaFieldsAlpha.field.grid.row.rowIndex = class extends KarmaFieldsAlpha.field.text {
   constructor(resource, id, parent) {

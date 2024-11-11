@@ -166,6 +166,8 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
         let options = this.getOptions();
         let content = this.getContent();
 
+
+
         dropdown.element.classList.toggle("loading", Boolean(content.loading));
 
         if (!options.loading && !content.loading) {
@@ -176,32 +178,9 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
           } else {
 
-            // if (content.notFound) { // || !options.toArray().some(option => option.id === content.toString())) {
-            //
-            //   if (this.resource.createWhenNotFound) {
-            //
-  					// 		this.createTask("create");
-            //
-  					// 	}
-            //
-            //   // content = this.getDefault();
-            //   //
-            //   // if (!content.loading) {
-            //   //
-            //   //   this.setContent(content);
-            //   //
-            //   //   KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
-            //   //
-            //   // }
-            //
-            // }
-
           }
 
           const value = content.toString();
-
-
-          // if (true || dropdown.element.childElementCount !== options.toArray().length) {
 
           const optionsArray = options.toArray();
           const elementOptions = [...dropdown.element.options];
@@ -214,18 +193,7 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
               let optionElement;
 
-              // if (option.id === KarmaFieldsAlpha.mixed) {
-              //
-              //   optionElement = new Option(option.name, "", true, true);
-              //   optionElement.disabled = true;
-              //
-              // } else {
-
-
-
-                optionElement = new Option(option.name, option.id, value === option.id, value === option.id);
-
-              // }
+              optionElement = new Option(option.name, option.id, value === option.id, value === option.id);
 
               dropdown.element.add(optionElement);
 
@@ -236,7 +204,6 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
             dropdown.element.value = value || "";
 
           }
-
 
           dropdown.element.onchange = async event => {
 

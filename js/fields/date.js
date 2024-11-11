@@ -33,7 +33,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
       const key = formats[i];
       const value = values[i];
 
-      if (key && value && key.length === value.length && !isNaN(value)) {
+      if (key && value && value.length === key.length && !isNaN(value)) {
 
         object[key] = Number(value);
 
@@ -168,6 +168,36 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
     }
 
     return new KarmaFieldsAlpha.Content();
+
+  }
+
+  async import(collection) {
+
+    if (typeof this.resource.import === "string") {
+
+      const string = collection.value.shift();
+
+      if (string) {
+
+        const date = KarmaFieldsAlpha.field.date.parse(string, this.resource.import);
+
+        if (date instanceof Date) {
+
+          const value = KarmaFieldsAlpha.field.date.format(date, this.resource.storeFormat);
+
+          await this.setValue(value);
+
+        }
+
+      }
+
+    } else if (this.resource.import !== false) {
+
+			const string = collection.value.shift();
+
+			await this.setValue(string);
+
+		}
 
   }
 
