@@ -2113,14 +2113,18 @@ textarea.clipboard {
 
 /* .mode-edit .editor-body p,
 .mode-edit .editor-body span, */
-.mode-edit .editor-body p,
-.mode-edit .editor-body p * {
+.mode-edit .editor-body p {
   font-size: 0.875rem;
   line-height: 1.5em;
-  color: black;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; /* --> see chrome bug: https://stackoverflow.com/a/15214362/2086505 */
+  /* color: black;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; /* --> see chrome bug: https://stackoverflow.com/a/15214362/2086505 */ */
 }
-
+.mode-edit .editor-body ul {
+  font-size: 0.875rem;
+  line-height: 1.5em;
+  /* color: black;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif; /* --> see chrome bug: https://stackoverflow.com/a/15214362/2086505 */ */
+}
 
 .mode-edit .editor-body hr {
   pointer-events: none;
@@ -2179,7 +2183,8 @@ textarea.clipboard {
   max-width: 100%;
   height: auto;
 
-  pointer-events: none; /* testing things !!!! */
+  pointer-events: none;
+   /* testing things !!!! */
 }
 .karma-tinymce .editor-body figure {
   /* display: inline-block;
@@ -2433,6 +2438,13 @@ textarea.clipboard {
 
   /* border-top-left-radius: 5px;
   border-top-right-radius: 5px; */
+}
+.karma-tinymce .editor-header .inspector {
+  background-color: var(--background-color);
+  padding: var(--gap-width) var(--gap-width);
+  border-bottom: var(--border-width) solid #8c8f94;
+  position: absolute;
+  width: 100%;
 }
 
 /* .karma-tinymce .editor-body  */

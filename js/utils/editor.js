@@ -10,6 +10,15 @@ KarmaFieldsAlpha.Editor = class {
     }
 
     this.element = element;
+    this.nodes = [];
+    this.range = new Range();
+
+  }
+
+  update(range) {
+
+    this.range = range;
+    this.nodes = [...this.listNodesAt(range)];
 
   }
 
@@ -26,7 +35,7 @@ KarmaFieldsAlpha.Editor = class {
 
   getContent() {
 
-    if (this.isEmpty(this.element)) {
+    if (this.isEmpty(this.element) && (!this.element.firstChild || !this.isContainer(this.element.firstChild))) { // keep it if empty list!
 
       return "";
 
@@ -38,15 +47,28 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  setContent(content) {
+  setContent(content, pathes) {
 
     if (content) {
 
       this.element.innerHTML = content;
 
+      console.log(content, pathes);
+
       this.sanitize();
 
       this.element.normalize();
+
+      if (pathes) {
+
+        const range = this.getRangeFromPathes(pathes);
+        const selection = document.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        this.update(range);
+
+      }
 
     } else {
 
@@ -56,7 +78,266 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
+
+
+  getPathesAt(range) {
+
+    if (!this.contains(range)) {
+
+      return [];
+
+    }
+
+    if (range.collapsed) {
+
+      return [this.getPathFromPoint(range.startContainer, range.startOffset)];
+
+    } else {
+
+      return [
+        this.getPathFromPoint(range.startContainer, range.startOffset),
+        this.getPathFromPoint(range.endContainer, range.endOffset)
+      ];
+
+    }
+
+  }
+
+  getPathFromPoint(node, index) {
+
+    const path = [index];
+
+    while (!this.isRoot(node)) {
+
+      index = 0;
+
+      while (node.previousSibling) {
+
+        index++;
+        node = node.previousSibling
+
+      }
+
+      path.unshift(index);
+
+      node = node.parentNode;
+
+    }
+
+    return path;
+  }
+
+  // getPointFromPath(path) {
+  //
+  //   let node = this.element;
+  //   let depth = 0;
+  //   let offset = path[depth] || 0;
+  //
+  //   while (this.isElement(node) && node.firstChild) {
+  //
+  //
+  //     node = node.firstChild;
+  //
+  //     for (let i = 0; i < offset; i++) {
+  //
+  //       if (node.nextSibling) {
+  //
+  //         node = node.nextSibling;
+  //
+  //       }
+  //
+  //     }
+  //
+  //     depth++;
+  //
+  //
+  //
+  //     if (depth < path.length) {
+  //
+  //       offset = path[depth];
+  //
+  //     } else {
+  //
+  //       break;
+  //
+  //     }
+  //
+  //   }
+  //
+  //   if (this.isElement(node)) {
+  //
+  //     offset = Math.min(node.childNodes.length, offset);
+  //
+  //   } else {
+  //
+  //     offset = Math.min(node.length, offset);
+  //
+  //   }
+  //
+  //   return [node, offset];
+  //
+  // }
+
+  getPointFromPath(path) {
+
+    let nodePath = path.slice(0, -1);
+    let node = this.element;
+    let depth = 0;
+    let offset = path[path.length - 1];
+
+    while (this.isElement(node) && depth < nodePath.length && node.firstChild) {
+
+      node = node.firstChild;
+
+      for (let i = 0; i < nodePath[depth]; i++) {
+
+        if (node.nextSibling) {
+
+          node = node.nextSibling;
+
+        }
+
+      }
+
+      depth++;
+
+
+
+      // if (depth < path.length) {
+      //
+      //   offset = path[depth];
+      //
+      // } else {
+      //
+      //   break;
+      //
+      // }
+
+    }
+
+    if (this.isElement(node)) {
+
+      offset = Math.min(node.childNodes.length, offset);
+
+    } else {
+
+      offset = Math.min(node.length, offset);
+
+    }
+
+    return [node, offset];
+
+  }
+
+  getRangeFromPathes(pathes, range) {
+
+    if (!range) {
+
+
+      range = new Range();
+
+    }
+
+    if (pathes[0]) {
+
+      range.setStart(...this.getPointFromPath(pathes[0]));
+
+    }
+
+    if (pathes[1]) {
+
+      range.setEnd(...this.getPointFromPath(pathes[1]));
+
+    } else {
+
+      range.collapse(true);
+
+    }
+
+    return range;
+
+  }
+
+
+
+  // extractAtPathes(startPath, endPath) {
+  //
+  //   let content;
+  //
+  //   let path = startPath.slice();
+  //
+  //   let [node, offset] = this.getPointFromPath(startPath);
+  //   let [endNode, endOffset] = this.getPointFromPath(endPath);
+  //
+  //   while (node) {
+  //
+  //     if (node === endNode) {
+  //
+  //
+  //
+  //     }
+  //
+  //
+  //
+  //   }
+  //
+  //   if (this.isText(node)) {
+  //
+  //     this.splitTextNode(node, offset);
+  //
+  //
+  //
+  //
+  //
+  //   }
+  //
+  //   content =
+  //
+  //
+  //
+  //
+  //
+  //
+  // }
+  //
+  // shortcutPath(path) {
+  //
+  //   while (path.length > 0 && path[path.length-1] === 0) {
+  //
+  //     path.pop();
+  //
+  //   }
+  //
+  // }
+  //
+  // cutPathTo(path, length) {
+  //
+  //   let [node, offset] = this.getPointFromPath(path);
+  //
+  //   if (this.isText(node)) {
+  //
+  //     let [leftNode, rightNode] = this.splitTextNode(node, offset);
+  //
+  //   } else {
+  //
+  //     const leftNode = node.cloneNode();
+  //
+  //     for (let i = 0; i < offset; i++) {
+  //
+  //       leftNode.appendChild(node.firstChild);
+  //
+  //     }
+  //
+  //   }
+  //
+  //
+  // }
+
+
+
   selectDown(range) {
+
+    // console.warn("deprecated");
 
     while (range.startOffset >= this.getNodeLength(range.startContainer) && !this.isRoot(range.startContainer)) {
 
@@ -84,7 +365,84 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
+  // shrinkRange(range) {
+  //
+  //   if (range.startOffset >= this.getNodeLength(range.startContainer) && !this.isRoot(range.startContainer)) {
+  //
+  //     let node = range.startContainer;
+  //
+  //     while (!node.nextSibling && !this.isRoot(node)) {
+  //
+  //       node = node.parentNode;
+  //
+  //     }
+  //
+  //     if (node.nextSibling) {
+  //
+  //       node = node.nextSibling;
+  //
+  //     }
+  //
+  //     range.setStart(node, 0);
+  //
+  //   }
+  //
+  //   while (range.startOffset === 0 && range.startContainer.firstChild) {
+  //
+  //     range.setStart(range.startContainer.firstChild, 0);
+  //
+  //   }
+  //
+  //   let node = range.endContainer;
+  //
+  //   if (range.endOffset === 0) {
+  //
+  //     while (!node.previousSibling && !this.isRoot(node)) {
+  //
+  //       node = node.parentNode;
+  //
+  //     }
+  //
+  //     if (node.previousSibling) {
+  //
+  //       node = node.previousSibling;
+  //
+  //     }
+  //
+  //     range.setEnd(node, this.getNodeLength(node));
+  //
+  //   }
+  //
+  //   while (range.startOffset === 0 && range.startContainer.firstChild) {
+  //
+  //     range.setStart(range.startContainer.firstChild, 0);
+  //
+  //   }
+  //
+  //
+  //
+  //
+  // }
+
+  // isPointAtEnd(node, offset) {
+  //
+  //   if (this.isText(node)) {
+  //
+  //     console.log(node.textContent.trimEnd().length, node.length);
+  //
+  //     return offset <= node.textContent.trimEnd().length;
+  //
+  //   } else {
+  //
+  //
+  //
+  //   }
+  //
+  // }
+
   getDeepRange(range) {
+
+    console.warn("deprecated");
 
     range = range.cloneRange();
 
@@ -96,11 +454,15 @@ KarmaFieldsAlpha.Editor = class {
 
   getNodeByTags(range, ...tags) {
 
+    console.error("deprecated");
+
     return this.getNode(range, node => this.isElement(node) && node.matches(tags.join(",")));
 
   }
 
   getNode(range, fn) {
+
+    console.error("deprecated");
 
     if (range.collapsed) {
 
@@ -311,7 +673,7 @@ KarmaFieldsAlpha.Editor = class {
 
     }
 
-    while (!node.nextSibling) {
+    while (!node.nextSibling && node.parentNode) {
 
       node = node.parentNode;
 
@@ -321,94 +683,348 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  *getNodesAt(range, fn) {
+  getPreviousNode(node) {
 
-    let node = range.startContainer;
+    if (node.lastChild) {
 
-    while (node && !this.isRoot(node)) {
+      return node.lastChild;
 
-      if (fn(node)) {
-
-        yield node;
-
-      }
-
-      node = node.parentNode;
     }
 
+    while (!node.previousSibling && node.parentNode) {
 
-    // if (range.collapsed || (this.isText(range.startContainer) && range.startContainer === range.endContainer)) {
-    //
-    //   let node = range.startContainer;
-    //
-    //   while (node && !this.isRoot(node)) {
-    //
-    //     if (fn(node)) {
-    //
-    //       yield node;
-    //
-    //     }
-    //
-    //     node = node.parentNode;
-    //   }
-    //
-    // } else {
+      node = node.parentNode;
+
+    }
+
+    return node.previousSibling;
+
+  }
+
+  // *getNodesAtBKP(range, fn) {
+  //
+  //   let node = range.startContainer;
+  //
+  //   while (node && !this.isRoot(node)) {
+  //
+  //     if (fn(node)) {
+  //
+  //       yield node;
+  //
+  //     }
+  //
+  //     node = node.parentNode;
+  //   }
+  //
+  //
+  //   // if (range.collapsed || (this.isText(range.startContainer) && range.startContainer === range.endContainer)) {
+  //   //
+  //   //   let node = range.startContainer;
+  //   //
+  //   //   while (node && !this.isRoot(node)) {
+  //   //
+  //   //     if (fn(node)) {
+  //   //
+  //   //       yield node;
+  //   //
+  //   //     }
+  //   //
+  //   //     node = node.parentNode;
+  //   //   }
+  //   //
+  //   // } else {
+  //
+  //   if (!range.collapsed) {
+  //
+  //     range = this.getDeepRange(range);
+  //
+  //     let node, endNode;
+  //
+  //     if (this.isText(range.startContainer)) {
+  //
+  //       node = range.startContainer;
+  //
+  //     } else {
+  //
+  //       node = range.startContainer.childNodes[range.startOffset];
+  //
+  //     }
+  //
+  //     if (this.isText(range.endContainer)) {
+  //
+  //       endNode = range.endContainer; //this.getNextNode(range.endContainer);
+  //
+  //     } else {
+  //
+  //       endNode = range.endContainer.childNodes[range.endOffset];
+  //
+  //     }
+  //
+  //     while (node && node !== endNode && !this.isRoot(node)) {
+  //
+  //       if (fn(node)) {
+  //
+  //         yield node;
+  //
+  //       }
+  //
+  //       node = this.getNextNode(node);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+
+  *listNodesIn(container) {
+
+    let node = container.firstChild;
+
+    while (node) {
+
+      yield node;
+
+      node = this.getNextNode(node);
+
+    }
+
+  }
+
+  getNodeAfterPoint(node, offset) {
+
+    if (this.isText(node)) {
+
+      return node;
+
+    } else {
+
+      return node.childNodes[offset] || this.getNextNode(node);
+
+    }
+
+  }
+
+  getNodeBeforePoint(node, offset) {
+
+    if (this.isText(node)) {
+
+      return node;
+
+    } else {
+
+      return node.childNodes[offset - 1];
+
+    }
+
+  }
+
+
+  *listNodesAt(range) {
 
     if (!range.collapsed) {
 
-      range = this.getDeepRange(range);
+      range = range.cloneRange();
 
-      let node, endNode;
+      // while (range.startOffset === 0 && !this.isRoot(range.startContainer)) {
+      //
+      //   range.setStartBefore(range.startContainer);
+      //
+      // }
 
-      if (this.isText(range.startContainer)) {
+      while (range.startOffset >= this.getNodeLength(range.startContainer) && !this.isRoot(range.startContainer)) {
 
-        node = range.startContainer;
-
-      } else {
-
-        node = range.startContainer.childNodes[range.startOffset];
-
-      }
-
-      if (this.isText(range.endContainer)) {
-
-        endNode = range.endContainer; //this.getNextNode(range.endContainer);
-
-      } else {
-
-        endNode = range.endContainer.childNodes[range.endOffset];
+        range.setStartAfter(range.startContainer);
 
       }
 
-      while (node && node !== endNode && !this.isRoot(node)) {
+      while (range.endOffset === 0 && !this.isRoot(range.endContainer)) {
 
-        if (fn(node)) {
+        range.setEndBefore(range.endContainer);
 
-          yield node;
+      }
 
-        }
+      // while (range.endOffset >= this.getNodeLength(range.endContainer) && !this.isRoot(range.endContainer)) {
+      //
+      //   range.setEndAfter(range.endContainer);
+      //
+      // }
+
+      const leftNode = this.getNodeAfterPoint(range.startContainer, range.startOffset);
+      // const rightNode = this.getNodeAfterPoint(range.endContainer, range.endOffset);
+
+      if (!leftNode) {
+
+        console.warn("selected node not found");
+
+        return;
+
+      }
+
+      let node = leftNode.parentNode;
+
+      while (node && !this.isRoot(node)) {
+
+        yield node;
+
+        node = node.parentNode;
+
+      }
+
+      // yield* this.listNodesBetween(leftNode, rightNode);
+
+      node = leftNode;
+
+      while (node && range.intersectsNode(node) && this.element.contains(node)) {
+
+        yield node;
 
         node = this.getNextNode(node);
 
       }
 
+    } else {
+
+      yield* this.listNodesUnder(range.startContainer);
+
+    }
+
+
+
+  }
+
+  // *listNodesAtBETA(range) {
+  //
+  //   let node = range.startContainer;
+  //
+  //   while (!this.isRoot(node)) {
+  //
+  //     yield node;
+  //
+  //     node = node.parentNode;
+  //
+  //   }
+  //
+  //   if (!range.collapsed) {
+  //
+  //     node = range.endContainer;
+  //
+  //     while (node !== range.commonAncestorContainer) {
+  //
+  //       yield node;
+  //
+  //       node = node.parentNode;
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+
+  *listNodesBetween(node, endNode) {
+
+    while (node && node !== endNode && !this.isRoot(node)) {
+
+      yield node;
+
+      node = this.getNextNode(node);
+
     }
 
   }
+
+  *listNodesUnder(node) {
+
+    while (node && !this.isRoot(node)) {
+
+      yield node;
+
+      node = node.parentNode;
+
+    }
+
+  }
+
+  getNodesAt(range) {
+
+    const nodes = [...this.listNodesAt(range)];
+
+    return nodes;
+
+  }
+
+  getNodesUnder(node) {
+
+    return [...this.listNodesUnder(node)];
+
+  }
+
+  // *getNodesAt(range, fn) {
+  //
+  //   range = range.cloneRange();
+  //
+  //   while ((range.startOffset === 0 || this.isText(range.startContainer)) && !this.isRoot(range.startContainer)) {
+  //
+  //     range.setStartBefore(range.startContainer);
+  //
+  //   }
+  //
+  //   while (range.endOffset === 0 && !this.isRoot(range.endContainer)) {
+  //
+  //     range.setEndBefore(range.endContainer);
+  //
+  //   }
+  //
+  //   let node = range.startContainer.childNodes[range.startOffset];
+  //
+  //   while (node && node !== range.commonAncestorContainer && !this.isRoot(node) && range.comparePoint(node, 0) < 1) {
+  //
+  //     if (fn(node)) {
+  //
+  //       yield node;
+  //
+  //     }
+  //
+  //     node = this.getNextNode(node);
+  //
+  //   }
+  //
+  //   node = range.commonAncestorContainer;
+  //
+  //   while (node && !this.isRoot(node)) {
+  //
+  //     if (fn(node)) {
+  //
+  //       yield node;
+  //
+  //     }
+  //
+  //     node = node.parentNode;
+  //
+  //   }
+  //
+  // }
 
   hasNodeAt(range, fn) {
 
-    return !this.getNodesAt(range, fn).next().done;
+    console.warn("deprecated");
+
+    for (let node of this.listNodesAt(range)) {
+
+      if (fn(node)) {
+
+        return true;
+
+      }
+
+    }
+
+    return false;
 
   }
 
-  getNodeAtStart(range, fn) {
+  findNodeAt(range, fn) {
 
-    range = this.getDeepRange(range);
-
-    let node = range.startContainer;
-
-    while (!this.isRoot(node)) {
+    for (let node of this.listNodesAt(range)) {
 
       if (fn(node)) {
 
@@ -416,69 +1032,89 @@ KarmaFieldsAlpha.Editor = class {
 
       }
 
-      node = node.parentNode;
-
-    }
-
-    if (this.isElement(range.startContainer)) {
-
-      node = range.startContainer.childNodes[range.startOffset];
-
-      while (node) {
-
-        if (fn(node)) {
-
-          return node;
-
-        }
-
-        node = node.firstChild;
-
-      }
-
     }
 
   }
 
-  getNodeAtEnd(range, fn) {
-
-    range = this.getDeepRange(range);
-
-    let node = range.endContainer;
-
-    while (!this.isRoot(node)) {
-
-      if (fn(node)) {
-
-        return node;
-
-      }
-
-      node = node.parentNode;
-
-    }
-
-    if (this.isElement(range.endContainer)) {
-
-      node = range.endContainer.childNodes[range.endOffset - 1];
-
-      while (node) {
-
-        if (fn(node)) {
-
-          return node;
-
-        }
-
-        node = node.lastChild;
-
-      }
-
-    }
-
-  }
+  // getNodeAtStart(range, fn) {
+  //
+  //   range = this.getDeepRange(range);
+  //
+  //   let node = range.startContainer;
+  //
+  //   while (!this.isRoot(node)) {
+  //
+  //     if (fn(node)) {
+  //
+  //       return node;
+  //
+  //     }
+  //
+  //     node = node.parentNode;
+  //
+  //   }
+  //
+  //   if (this.isElement(range.startContainer)) {
+  //
+  //     node = range.startContainer.childNodes[range.startOffset];
+  //
+  //     while (node) {
+  //
+  //       if (fn(node)) {
+  //
+  //         return node;
+  //
+  //       }
+  //
+  //       node = node.firstChild;
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+  //
+  // getNodeAtEnd(range, fn) {
+  //
+  //   range = this.getDeepRange(range);
+  //
+  //   let node = range.endContainer;
+  //
+  //   while (!this.isRoot(node)) {
+  //
+  //     if (fn(node)) {
+  //
+  //       return node;
+  //
+  //     }
+  //
+  //     node = node.parentNode;
+  //
+  //   }
+  //
+  //   if (this.isElement(range.endContainer)) {
+  //
+  //     node = range.endContainer.childNodes[range.endOffset - 1];
+  //
+  //     while (node) {
+  //
+  //       if (fn(node)) {
+  //
+  //         return node;
+  //
+  //       }
+  //
+  //       node = node.lastChild;
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
 
   wrap(range, tagName, params) {
+
+    console.error("deprecated");
 
     if (!range || !tagName) {
 
@@ -556,9 +1192,9 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  wrapAt(range, tagName, params) {
+  createNode(tagName, params) {
 
-    let wrapNode = document.createElement(tagName);
+    let node = document.createElement(tagName);
 
     if (params) {
 
@@ -566,13 +1202,38 @@ KarmaFieldsAlpha.Editor = class {
 
         if (params[key]) {
 
-          wrapNode.setAttribute(key, params[key]);
+          node.setAttribute(key, params[key]);
 
         }
 
       }
 
     }
+
+    return node;
+  }
+
+  wrapAt(range, tagName, params) {
+
+    console.warn("deprecated");
+
+    // let wrapNode = document.createElement(tagName);
+    //
+    // if (params) {
+    //
+    //   for (let key in params) {
+    //
+    //     if (params[key]) {
+    //
+    //       wrapNode.setAttribute(key, params[key]);
+    //
+    //     }
+    //
+    //   }
+    //
+    // }
+
+    let wrapNode = this.createNode(tagName, params);
 
     if (this.isContainer(wrapNode)) {
 
@@ -679,7 +1340,166 @@ KarmaFieldsAlpha.Editor = class {
 
     } else if (this.isBlock(wrapNode)) {
 
-      console.error("wraping block not implemented");
+      // if (blocks.length) {
+      if (this.isContainer(range.commonAncestorContainer)) {
+
+        const blocks = [...this.getNodesAt(range, node => this.isBlock(node))];
+
+        for (let block of blocks) {
+
+          // let newRange = new Range();
+          // newRange.selectNodeContents(block);
+          //
+          // this.wrapAt(newRange, tagName, params);
+
+          range.selectNodeContents(block);
+
+          this.wrapAt(range, tagName, params);
+
+        }
+
+      } else {
+
+        const content = range.extractContents();
+
+        while (!this.isRoot(range.endContainer) && (!this.isContainer(range.endContainer) || !this.isValidIn(wrapNode, range.endContainer))) {
+
+          range.setEndAfter(range.endContainer);
+
+        }
+
+        if (!this.isValidIn(wrapNode, range.endContainer)) {
+
+          const p = document.createElement("p");
+
+          while (wrapNode.firstChild) {
+
+            p.appendChild(wrapNode.firstChild);
+
+          }
+
+          wrapNode = p;
+
+        }
+
+        const nextContent = range.extractContents();
+
+        const prevNode = range.startContainer.childNodes[range.startOffset - 1];
+
+        if (prevNode && this.isEmpty(prevNode)) {
+
+          range.selectNode(prevNode);
+          range.deleteContents();
+
+        }
+
+        while (content.firstChild) {
+
+          wrapNode.appendChild(content.firstChild);
+
+        }
+
+        range.insertNode(wrapNode);
+        range.collapse(false);
+
+        if (!this.isEmpty(nextContent)) {
+
+          range.insertNode(nextContent);
+
+        }
+
+        range.selectNodeContents(wrapNode);
+
+      }
+
+      // const content = range.extractContents();
+      //
+      // while (!this.isRoot(range.endContainer) && (!this.isContainer(range.endContainer) || !this.isValidIn(wrapNode, range.endContainer))) {
+      //
+      //   range.setEndAfter(range.endContainer);
+      //
+      // }
+      //
+      // if (!this.isValidIn(wrapNode, range.endContainer)) {
+      //
+      //   const p = document.createElement("p");
+      //
+      //   while (wrapNode.firstChild) {
+      //
+      //     p.appendChild(wrapNode.firstChild);
+      //
+      //   }
+      //
+      //   wrapNode = p;
+      //
+      // }
+      //
+      // const nextContent = range.extractContents();
+      //
+      // const prevNode = range.startContainer.childNodes[range.startOffset - 1];
+      //
+      // if (prevNode && this.isEmpty(prevNode)) {
+      //
+      //   range.selectNode(prevNode);
+      //   range.deleteContents();
+      //
+      // }
+
+
+
+      // const blocks = [];
+      // let node = content.firstChild;
+      //
+      // while (node) {
+      //
+      //   if (this.isBlock(node)) {
+      //
+      //     blocks.push(node);
+      //
+      //   }
+      //
+      //   node = this.getNextNode(node);
+      //
+      // }
+      //
+      // if (blocks.length) {
+      //
+      //   for (let block of blocks) {
+      //
+      //     const wrapNodeClone = wrapNode.cloneNode();
+      //
+      //     while (block.firstChild) {
+      //
+      //       wrapNodeClone.appendChild(block.firstChild);
+      //
+      //     }
+      //
+      //     range.insertNode(wrapNodeClone);
+      //     range.collapse(false);
+      //
+      //   }
+      //
+      // } else {
+      //
+      //   while (content.firstChild) {
+      //
+      //     wrapNode.appendChild(content.firstChild);
+      //
+      //   }
+      //
+      //   range.insertNode(wrap);
+      //   range.collapse(false);
+      //
+      // }
+      //
+      // if (!this.isEmpty(nextContent)) {
+      //
+      //   range.insertNode(nextContent);
+      //   range.setStartBefore(nextContent);
+      //   range.collapse(true);
+      //
+      // }
+
 
     }
 
@@ -707,6 +1527,8 @@ KarmaFieldsAlpha.Editor = class {
     }
 
     const parent = node.parentNode;
+    const firstNode = node.firstChild;
+    const lastNode = node.lastChild;
 
     while (node.firstChild) {
 
@@ -714,13 +1536,472 @@ KarmaFieldsAlpha.Editor = class {
 
     }
 
+    // const range = this.range || new Range();
+    this.range.setStartBefore(firstNode);
+    this.range.setEndAfter(lastNode);
+
     parent.removeChild(node);
     parent.normalize();
+
+
+    return this.range;
+  }
+
+  // getNextPoint(node, position = 0) {
+  //
+  //   if (position === 0) {
+  //
+  //     if (node.firstChild) {
+  //
+  //       return [node.firstChild, 0];
+  //
+  //     } else {
+  //
+  //       return [node, 1];
+  //
+  //     }
+  //
+  //   } else {
+  //
+  //     if (node.nextSibling) {
+  //
+  //       return [node.nextSibling, 0];
+  //
+  //     } else {
+  //
+  //       return [node.parentNode, 1];
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+  //
+  // *listInlineRangesAt(range) {
+  //
+  //   let subrange;
+  //   let node = range.startContainer;
+  //   let position = range.startOffset < this.getNodeLength(range.startContainer);
+  //
+  //   while (!range.collapsed) {
+  //
+  //     if (subrange) {
+  //
+  //       if (this.isContainer(node) || this.isBlock(node)) {
+  //
+  //         yield subrange;
+  //
+  //         subrange = null;
+  //
+  //       } else if (position === 1) {
+  //
+  //         subrange.setEndAfter(node);
+  //
+  //         if (!range.isPointInRange(subrange.endContainer, subrange.endOffset)) {
+  //
+  //           subrange.setEnd(range.endContainer, range.endOffset);
+  //
+  //           break;
+  //
+  //         }
+  //
+  //       }
+  //
+  //     } else {
+  //
+  //       if (position === 0 && (this.isText(node) || this.isInline(node))) {
+  //
+  //         subrange = new Range();
+  //         range.setStart(range.startContainer, range.startOffset);
+  //
+  //       }
+  //
+  //     }
+  //
+  //     [node, position] = this.getNextPoint(node, position);
+  //
+  //     if (position === 1) {
+  //
+  //       range.setStartAfter(node);
+  //
+  //     } else {
+  //
+  //       range.setStartBefore(node);
+  //
+  //     }
+  //
+  //   }
+  //
+  // }
+
+  // *listNodesAtTEST(range) {
+  //
+  //
+  //
+  // }
+
+  getNextPoint(node, before) {
+
+    if (before) {
+
+      if (node.firstChild) {
+
+        return [node.firstChild, true];
+
+      } else {
+
+        return [node, false];
+
+      }
+
+    } else {
+
+      if (node.nextSibling) {
+
+        return [node.nextSibling, true];
+
+      } else {
+
+        return [node.parentNode, false];
+
+      }
+
+    }
+
+  }
+
+  getPointAfter(container, offset) {
+
+    if (this.isText(container)) {
+
+      return [container, offset === 0];
+
+    } else {
+
+      return [container.childNodes[offset], true];
+
+    }
+
+  }
+
+  isPointAfter(node, before, range) {
+
+    const offset = before ? 0 : this.getNodeLength(node);
+
+    return range.comparePoint(node, offset) > 0;
+
+  }
+
+  *listInlineRangesAt(range) {
+
+    let subrange;
+    // let node = range.startContainer;
+    let [node, before] = this.getPointAfter(range.startContainer, range.startOffset);
+    // let [nodeAfter] = this.getPointAfter(range.endContainer, range.endOffset);
+
+    if (!this.isContainer(range.startContainer)) {
+
+      subrange = new Range();
+      subrange.setStart(range.startContainer, range.startOffset);
+
+    }
+
+    // while (!this.isRoot(node) && (node !== nodeAfter || !before)) {
+    while (!this.isRoot(node) && !this.isPointAfter(node, before, range)) {
+
+      if (subrange) {
+
+        if (this.isContainer(node) || this.isBlock(node)) {
+
+          yield subrange;
+
+          subrange = null;
+
+        } else if (!before) {
+
+          subrange.setEndAfter(node);
+
+          // if (!range.isPointInRange(subrange.endContainer, subrange.endOffset)) {
+          //
+          //   subrange.setEnd(range.endContainer, range.endOffset);
+          //
+          //   yield subrange;
+          //
+          //   break;
+          //
+          // }
+
+        }
+
+      } else {
+
+        if (before && (this.isText(node) || this.isInline(node))) {
+
+          subrange = new Range();
+
+          subrange.setStartBefore(node);
+
+          // if (!range.isPointInRange(node, 0)) {
+          //
+          //   subrange.setStart(range.startContainer, range.startOffset);
+          //
+          // } else {
+          //
+          //   subrange.setStartBefore(node);
+          //
+          // }
+
+        }
+
+      }
+
+      [node, before] = this.getNextPoint(node, before);
+
+      // if (before) {
+      //
+      //   range.setStartBefore(node);
+      //
+      // } else {
+      //
+      //   range.setStartAfter(node);
+      //
+      // }
+
+
+
+    }
+
+    if (subrange) {
+
+      // if (!range.isPointInRange(subrange.endContainer, subrange.endOffset)) {
+      //
+      //   subrange.setEnd(range.endContainer, range.endOffset);
+      //
+      // }
+      if (this.isPointAfter(node, before, range)) {
+
+        subrange.setEnd(range.endContainer, range.endOffset);
+
+      }
+
+      // if (node === nodeAfter) {
+      //
+      //   subrange.setEnd(range.endContainer, range.endOffset);
+      //
+      // }
+
+      yield subrange;
+
+    }
+
+  }
+
+  wrapInlineAt(range, tagName, params) {
+
+    if (this.isText(range.commonAncestorContainer) || this.isInline(range.commonAncestorContainer) || this.isBlock(range.commonAncestorContainer)) {
+
+      const content = range.extractContents();
+
+      if (!this.isEmpty(content)) {
+
+        const inlineNode = this.createNode(tagName, params);
+
+        inlineNode.appendChild(content);
+
+        range.insertNode(inlineNode);
+
+        range.selectNodeContents(inlineNode);
+
+        inlineNode.parentNode.normalize();
+
+        this.update(range);
+
+      }
+
+    } else if (this.isContainer(range.commonAncestorContainer)) {
+
+      for (let subrange of this.listInlineRangesAt(range)) {
+
+        this.wrapInlineAt(subrange, tagName, params);
+
+      }
+
+    }
+
+  }
+
+  wrapBlockAt(range, tagName) {
+
+    const blockNodes = [];
+
+    if (range.collapsed) {
+
+      const blockNode = document.createElement(tagName);
+      const br = document.createElement("br");
+      blockNode.appendChild(br);
+      blockNodes.push(blockNode);
+
+    } else {
+
+      let content = range.extractContents();
+
+      for (let node of this.listNodesIn(content)) {
+
+        if (this.isBlock(node)) {
+
+          const blockNode = document.createElement(tagName);
+
+          while (node.firstChild) {
+
+            blockNode.appendChild(node.firstChild);
+
+          }
+
+          if (!this.isEmpty(blockNode)) {
+
+            blockNodes.push(blockNode);
+
+          }
+
+        }
+
+      }
+
+      if (!blockNodes.length && ![...this.listNodesIn(content)].some(node => this.isContainer(node))) {
+
+        const blockNode = document.createElement(tagName);
+
+        while (content.firstChild) {
+
+          blockNode.appendChild(content.firstChild);
+
+        }
+
+        blockNodes.push(blockNode);
+
+      }
+
+    }
+
+    if (blockNodes.length) {
+
+      this.insertAt(range, ...blockNodes);
+
+      // range.setStartBefore(blockNodes[0]);
+      // range.setEndAfter(blockNodes[blockNodes.length-1]);
+
+      this.update(range);
+
+    }
+
+  }
+
+
+  wrapListAt(range, tagName) {
+
+    let wrapNode = this.createNode(tagName);
+
+    if (range.collapsed) {
+
+      const li = document.createElement("li");
+      const br = document.createElement("br");
+      li.appendChild(br);
+      wrapNode.appendChild(li);
+
+      this.insertContainerAt(range, wrapNode);
+
+      // range.setStart(li, 0);
+      // range.collapse(true)
+
+    } else {
+
+      this.selectDown(range); // -> not really needed!
+
+      let content = range.extractContents();
+
+      for (let node of this.listNodesIn(content)) {
+
+        if (this.isBlock(node)) {
+
+          const li = document.createElement("li");
+
+          while (node.firstChild) {
+
+            li.appendChild(node.firstChild);
+
+          }
+
+          wrapNode.appendChild(li);
+
+        }
+
+      }
+
+      if (!wrapNode.hasChildNodes()) {
+
+        const li = document.createElement("li");
+
+        while (content.firstChild) {
+
+          li.appendChild(content.firstChild);
+
+        }
+
+        wrapNode.appendChild(li);
+
+      }
+
+      this.insertContainerAt(range, wrapNode);
+
+      // range.selectNodeContents(wrapNode);
+
+    }
+
+    this.update(range);
+
+  }
+
+  unwrapList(listNode) {
+
+    const paragraphs = [];
+
+    for (let li of listNode.childNodes) {
+
+      let p = document.createElement("p");
+
+      paragraphs.push(p);
+
+      while (li.firstChild) {
+
+        p.appendChild(li.firstChild);
+
+      }
+
+      listNode.parentNode.insertBefore(p, listNode);
+
+    }
+
+    listNode.remove();
+
+    // return paragraphs;
+
+    const range = this.range || new Range();
+
+    if (paragraphs.length) {
+
+      range.setStartBefore(paragraphs[0]);
+      range.setEndAfter(paragraphs[paragraphs.length-1]);
+
+      this.update(range);
+
+    }
 
   }
 
 
   renameNode(range, tagName, newTagName) {
+
+    console.error("deprecated");
 
     const node = this.getNodeByTags(range, tagName);
 
@@ -763,6 +2044,8 @@ KarmaFieldsAlpha.Editor = class {
   }
 
   getChildTag(node) {
+
+    console.error("deprecated");
 
     const editNode = new KarmaFieldsAlpha.EditorNode(node);
 
@@ -808,9 +2091,25 @@ KarmaFieldsAlpha.Editor = class {
 
   isBreakable(node) {
 
-    const editNode = new KarmaFieldsAlpha.EditorNode(node);
+    switch (node.tagName) {
 
-    return editNode.isBreakable();
+      case "P":
+      case "LI":
+      // case "H1":
+      // case "H2":
+      // case "H3":
+      // case "H4":
+      // case "H5":
+      // case "H6":
+        return true;
+
+    }
+
+    return false;
+
+    // const editNode = new KarmaFieldsAlpha.EditorNode(node);
+    //
+    // return editNode.isBreakable();
   }
 
   isSingle(node) {
@@ -818,14 +2117,6 @@ KarmaFieldsAlpha.Editor = class {
     const editNode = new KarmaFieldsAlpha.EditorNode(node);
 
     return editNode.isSingle();
-
-  }
-
-  isValid(node) {
-
-    const editNode = new KarmaFieldsAlpha.EditorNode(node);
-
-    return editNode.isValid();
 
   }
 
@@ -841,7 +2132,29 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
+  isHeading(node) {
+
+    switch (node.tagName) {
+
+      case "H1":
+      case "H2":
+      case "H3":
+      case "H4":
+      case "H5":
+      case "H6":
+        return true;
+
+    }
+
+    return false;
+
+    // return node.tagName === "H1" || node.tagName === "H2" || node.tagName === "H3" || node.tagName === "H4" || node.tagName === "H5" || node.tagName === "H6";
+
+  }
+
   isBreakNode(node, range) {
+
+    console.log("deprecared");
 
     if (range.startContainer === node && range.startOffset === 0) {
 
@@ -852,6 +2165,21 @@ KarmaFieldsAlpha.Editor = class {
     return false;
 
   }
+
+  isValidAttribute(node, key, value) {
+
+    switch (node.tagName) {
+
+      case "A":
+        return key === "target" || key === "href";
+
+    }
+
+    return false;
+
+  }
+
+
 
   isValid(node) {
 
@@ -865,17 +2193,21 @@ KarmaFieldsAlpha.Editor = class {
 
     const editNode = new KarmaFieldsAlpha.EditorNode(node);
 
-    return editNode.isValid() && editNode.isValidIn(container);
+    return editNode.isValidIn(container);
 
   }
 
   createEmptyParagraph() {
+
+    console.log("deprecated");
 
     return this.createEmpty("p");
 
   }
 
   clone(node) {
+
+    console.log("deprecated");
 
     if (this.isBreakable(node)) {
 
@@ -890,6 +2222,8 @@ KarmaFieldsAlpha.Editor = class {
   }
 
   areJoinable(nodeBefore, nodeAfter) {
+
+    console.log("deprecated");
 
     if (nodeBefore && nodeAfter && nodeBefore.nodeType === nodeAfter.nodeType && nodeBefore.tagName === nodeAfter.tagName) {
 
@@ -938,6 +2272,8 @@ KarmaFieldsAlpha.Editor = class {
 
   getNodeAfterStart(range) {
 
+    console.log("deprecated");
+
     return range.startContainer.nodeType === 1 && range.startContainer.childNodes[range.startOffset];
 
 
@@ -982,6 +2318,8 @@ KarmaFieldsAlpha.Editor = class {
   }
 
   getNodeBeforeStart(range) {
+
+    console.log("deprecated");
 
     // return range.startContainer.parentNode.childNodes[range.startOffset - 1];
 
@@ -1029,6 +2367,8 @@ KarmaFieldsAlpha.Editor = class {
 
   getNodeAfterEnd(range) {
 
+    console.log("deprecated");
+
     return range.endContainer.parentNode.childNodes[range.endOffset + 1];
 
     // if (!range || !range.endContainer) {
@@ -1074,6 +2414,9 @@ KarmaFieldsAlpha.Editor = class {
   }
 
   getNodeBeforeEnd(range) {
+
+    console.log("deprecated");
+
 
     if (!range || !range.endContainer) {
 
@@ -1140,7 +2483,7 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  breakLine(range) {
+  breakLine(range, shift) {
 
     if (!range || !range.startContainer || !this.element.contains(range.startContainer)) {
 
@@ -1152,6 +2495,81 @@ KarmaFieldsAlpha.Editor = class {
     if (!range.collapsed) {
 
       this.delete(range);
+
+    }
+
+    if (shift) {
+
+      let br = document.createElement("br");
+      range.insertNode(br);
+
+      // range.setStartAfter(br);
+      // range.collapse(true);
+      range.collapse(false);
+
+      br.parentNode.normalize();
+
+      if (br.parentNode.lastChild === br) {
+
+        range.insertNode(document.createElement("br"));
+        // range.setStartAfter(br);
+        range.collapse(true);
+
+      }
+
+      return;
+
+
+
+      // let node = range.startContainer;
+      //
+      // const clone = range.cloneRange();
+      //
+      // while (!this.isBlock(clone.endContainer) && !this.isRoot(clone.endContainer)) {
+      //
+      //   clone.setEndAfter(clone.endContainer);
+      //
+      // }
+      //
+      // const content = clone.extractContents();
+      //
+      // const br = document.createElement("br");
+      //
+      // if (this.isEmpty(content)) {
+      //
+      //   range.insertNode(br);
+      //   range.setStartAfter(br);
+      //   range.collapse(true);
+      //   // range.insertNode(document.createElement("br"));
+      //
+      // } else {
+      //
+      //   range.insertNode(br);
+      //   range.setStartAfter(br);
+      //
+      //   while (content.firstChild) {
+      //
+      //     range.insertNode(content.firstChild);
+      //
+      //   }
+      //
+      // }
+      //
+      //
+      //
+      //
+      //
+      // // this.insertAt(range, br);
+      //
+      // range.setStartAfter(br);
+      // range.collapse(true);
+      //
+      // // range.insertNode(document.createElement("br"));
+      // //
+      // // range.setStartAfter(br);
+      // // range.collapse(true);
+      //
+      // return;
 
     }
 
@@ -1343,6 +2761,38 @@ KarmaFieldsAlpha.Editor = class {
 
   join(leftNode, rightNode) {
 
+    if (this.isEmpty(leftNode) && this.isEmpty(rightNode)) {
+
+      this.empty(leftNode);
+
+      const br = document.createElement("br");
+
+      leftNode.appendChild(br);
+
+      rightNode.remove();
+
+      return [null, br];
+
+    }
+
+    if (this.isEmpty(leftNode)) {
+
+      leftNode.remove();
+
+      return [null, rightNode.firstChild];
+
+    }
+
+    if (this.isEmpty(rightNode)) {
+
+      // this.empty(rightNode);
+
+      rightNode.remove();
+
+      return [leftNode.lastChild, null];
+
+    }
+
     let innerLeftNode = leftNode.lastChild;
     let innerRightNode = rightNode.firstChild;
 
@@ -1359,174 +2809,795 @@ KarmaFieldsAlpha.Editor = class {
   }
 
 
+  // delete(range) {
+  //
+  //   if (!range.collapsed) {
+  //
+  //     this.selectDown(range);
+  //
+  //     let nodeRemoved = range.commonAncestorContainer;
+  //
+  //     const content = range.extractContents();
+  //
+  //     while (range.commonAncestorContainer !== this.element && this.isEmpty(range.commonAncestorContainer)) {
+  //
+  //       range.selectNode(range.commonAncestorContainer);
+  //       range.deleteContents();
+  //
+  //     }
+  //
+  //     if (this.isBlock(content.firstChild)) {
+  //
+  //       range.insertNode(this.createEmpty(content.firstChild.tagName));
+  //       range.collapse(true);
+  //
+  //     }
+  //
+  //     if (!this.element.firstChild) {
+  //
+  //       const p = this.createEmpty("p");
+  //       range.insertNode(p);
+  //       range.setStart(p, 0);
+  //       range.collapse(true);
+  //
+  //     }
+  //
+  //     return true;
+  //
+  //   } else if (this.isEmpty(this.element)) {
+  //
+  //     return true; // -> prevent default BUT should not save!
+  //
+  //   } else if (range.startOffset === 0) {
+  //
+  //     const node = range.startContainer;
+  //
+  //     if (this.isRoot(node)) {
+  //
+  //       return false;
+  //
+  //     }
+  //
+  //     range.setStartBefore(node);
+  //     range.collapse(true);
+  //
+  //     // if (this.isBlock(node)) {
+  //     //
+  //     //   return this.delete(range, node);
+  //     //
+  //     // } else {
+  //
+  //       return this.delete(range);
+  //
+  //     // }
+  //
+  //   } else if (this.isElement(range.startContainer)) {
+  //
+  //     let nodeAfter = range.startContainer.childNodes[range.startOffset];
+  //     let nodeBefore = range.startContainer.childNodes[range.startOffset - 1];
+  //
+  //     if (nodeBefore.tagName === "BR" && nodeAfter.tagName === "BR") {
+  //
+  //       range.startContainer.removeChild(nodeBefore);
+  //       range.startContainer.removeChild(nodeAfter);
+  //
+  //       return true;
+  //
+  //     }
+  //
+  //     if (nodeBefore && this.isEmpty(nodeBefore)) {
+  //
+  //       // if (nodeBefore.previousSibling) {
+  //       //
+  //       //   let node = nodeBefore.previousSibling;
+  //       //
+  //       //   while (node.lastChild) {
+  //       //
+  //       //     node = node.lastChild;
+  //       //
+  //       //   }
+  //       //
+  //       //   range.selectNodeContents(node);
+  //       //   range.collapse(false);
+  //       //
+  //       // }
+  //
+  //       nodeBefore.remove();
+  //
+  //       return true;
+  //
+  //     }
+  //
+  //     let backNode = nodeAfter;
+  //
+  //     while (backNode && !this.isBlock(backNode)) {
+  //
+  //       backNode = backNode.firstChild;
+  //
+  //     }
+  //
+  //     if (!backNode) {
+  //
+  //       while (this.isElement(nodeBefore) && this.isElement(nodeAfter) && nodeBefore.tagName === nodeAfter.tagName) {
+  //
+  //         [nodeBefore, nodeAfter] = this.join(nodeBefore, nodeAfter);
+  //
+  //       }
+  //
+  //       range.selectNodeContents(nodeBefore);
+  //       range.collapse(false);
+  //
+  //       nodeBefore.parentNode.normalize();
+  //
+  //       return false;
+  //
+  //     }
+  //
+  //     while (nodeBefore && !this.isBlock(nodeBefore)) {
+  //
+  //       nodeBefore = nodeBefore.lastChild;
+  //
+  //     }
+  //
+  //     if (nodeBefore) {
+  //
+  //       if (this.isEmpty(backNode)) {
+  //
+  //         backNode.remove();
+  //
+  //         // if (this.isEmpty(nodeAfter)) {
+  //         //
+  //         //   nodeAfter.remove();
+  //         //
+  //         // }
+  //
+  //         while (nodeBefore.lastChild) {
+  //
+  //           nodeBefore = nodeBefore.lastChild;
+  //
+  //         }
+  //
+  //         range.selectNodeContents(nodeBefore);
+  //         range.collapse(false);
+  //
+  //         // return true;
+  //
+  //       } else {
+  //
+  //         let [leftNode, rightNode] = this.join(nodeBefore, backNode);
+  //
+  //         while (this.isElement(leftNode) && this.isElement(rightNode) && leftNode.tagName === rightNode.tagName) {
+  //
+  //           [leftNode, rightNode] = this.join(leftNode, rightNode);
+  //
+  //         }
+  //
+  //         range.selectNodeContents(leftNode);
+  //         range.collapse(false);
+  //
+  //         leftNode.parentNode.normalize();
+  //
+  //       }
+  //
+  //       if (nodeAfter && nodeAfter !== backNode && this.isEmpty(nodeAfter)) {
+  //
+  //         nodeAfter.remove();
+  //
+  //       }
+  //
+  //       return true;
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return false;
+  //
+  // }
+
+  isJoinable(node1, node2) {
+
+    return this.isBlock(node1) && this.isBlock(node2) || this.isInline(node1) && this.isInline(node2) && node1.tagName === node2.tagName;
+
+  }
+
+  // delete(range) {
+  //
+  //   if (!range.collapsed) {
+  //
+  //
+  //
+  //
+  //     // this.selectDown(range);
+  //
+  //     while (range.startOffset === 0 && range.startContainer !== range.commonAncestorContainer) {
+  //
+  //       range.setStartBefore(range.startContainer);
+  //
+  //     }
+  //
+  //     while (range.endOffset === 0 && range.endContainer !== range.commonAncestorContainer) {
+  //
+  //       range.setEndBefore(range.endContainer);
+  //
+  //     }
+  //
+  //     let nodeRemoved = range.commonAncestorContainer;
+  //
+  //     const content = range.deleteContents();
+  //
+  //     while (range.commonAncestorContainer !== this.element && this.isEmpty(range.commonAncestorContainer)) {
+  //
+  //       range.selectNode(range.commonAncestorContainer);
+  //       range.deleteContents();
+  //
+  //     }
+  //
+  //
+  //
+  //     if (!this.isText(range.startContainer)) { // -> bridge
+  //
+  //       let nodeBefore = range.startContainer.childNodes[range.startOffset-1];
+  //       let nodeAfter = range.startContainer.childNodes[range.startOffset];
+  //
+  //       while (nodeBefore && nodeAfter && this.isJoinable(nodeBefore, nodeAfter)) {
+  //
+  //         [nodeBefore, nodeAfter] = this.join(nodeBefore, nodeAfter);
+  //
+  //       }
+  //
+  //       if (nodeBefore) {
+  //
+  //         range.setStartAfter(nodeBefore);
+  //
+  //       } else if (nodeAfter) {
+  //
+  //         range.setStartBefore(nodeAfter);
+  //
+  //       }
+  //
+  //       range.collapse(true);
+  //
+  //       range.startContainer.normalize();
+  //
+  //     }
+  //
+  //
+  //
+  //
+  //
+  //     // if (this.isBlock(content.firstChild)) {
+  //     //
+  //     //   range.insertNode(this.createEmpty(content.firstChild.tagName));
+  //     //   range.collapse(true);
+  //     //
+  //     // }
+  //
+  //     if (!this.element.firstChild) {
+  //
+  //       const p = this.createEmpty("p");
+  //       range.insertNode(p);
+  //       range.setStart(p, 0);
+  //       range.collapse(true);
+  //
+  //     }
+  //
+  //     return true;
+  //
+  //   }
+  //
+  //
+  //   if (this.isEmpty(this.element)) {
+  //
+  //     return true; // -> prevent default BUT should not save!
+  //
+  //   } else if (range.startOffset === 0) {
+  //
+  //     const node = range.startContainer;
+  //
+  //     if (this.isRoot(node)) {
+  //
+  //       return false;
+  //
+  //     }
+  //
+  //     range.setStartBefore(node);
+  //     range.collapse(true);
+  //
+  //     // if (this.isBlock(node)) {
+  //     //
+  //     //   return this.delete(range, node);
+  //     //
+  //     // } else {
+  //
+  //       return this.delete(range);
+  //
+  //     // }
+  //
+  //   } else if (this.isElement(range.startContainer)) {
+  //
+  //     let nodeAfter = range.startContainer.childNodes[range.startOffset];
+  //     let nodeBefore = range.startContainer.childNodes[range.startOffset - 1];
+  //
+  //     if (nodeBefore.tagName === "BR" && nodeAfter.tagName === "BR") {
+  //
+  //       range.startContainer.removeChild(nodeBefore);
+  //       range.startContainer.removeChild(nodeAfter);
+  //
+  //       return true;
+  //
+  //     }
+  //
+  //     if (nodeBefore && this.isEmpty(nodeBefore)) {
+  //
+  //       nodeBefore.remove();
+  //
+  //       return true;
+  //
+  //     }
+  //
+  //     let backNode = nodeAfter;
+  //
+  //     while (backNode && !this.isBlock(backNode)) {
+  //
+  //       backNode = backNode.firstChild;
+  //
+  //     }
+  //
+  //     if (!backNode) {
+  //
+  //       while (this.isElement(nodeBefore) && this.isElement(nodeAfter) && nodeBefore.tagName === nodeAfter.tagName) {
+  //
+  //         [nodeBefore, nodeAfter] = this.join(nodeBefore, nodeAfter);
+  //
+  //       }
+  //
+  //       range.selectNodeContents(nodeBefore);
+  //       range.collapse(false);
+  //
+  //       nodeBefore.parentNode.normalize();
+  //
+  //       return false;
+  //
+  //     }
+  //
+  //     while (nodeBefore && !this.isBlock(nodeBefore)) {
+  //
+  //       nodeBefore = nodeBefore.lastChild;
+  //
+  //     }
+  //
+  //     if (nodeBefore) {
+  //
+  //       if (this.isEmpty(backNode)) {
+  //
+  //         backNode.remove();
+  //
+  //         // if (this.isEmpty(nodeAfter)) {
+  //         //
+  //         //   nodeAfter.remove();
+  //         //
+  //         // }
+  //
+  //         while (nodeBefore.lastChild) {
+  //
+  //           nodeBefore = nodeBefore.lastChild;
+  //
+  //         }
+  //
+  //         range.selectNodeContents(nodeBefore);
+  //         range.collapse(false);
+  //
+  //         // return true;
+  //
+  //       } else {
+  //
+  //         let [leftNode, rightNode] = this.join(nodeBefore, backNode);
+  //
+  //         while (this.isElement(leftNode) && this.isElement(rightNode) && leftNode.tagName === rightNode.tagName) {
+  //
+  //           [leftNode, rightNode] = this.join(leftNode, rightNode);
+  //
+  //         }
+  //
+  //         range.selectNodeContents(leftNode);
+  //         range.collapse(false);
+  //
+  //         leftNode.parentNode.normalize();
+  //
+  //       }
+  //
+  //       if (nodeAfter && nodeAfter !== backNode && this.isEmpty(nodeAfter)) {
+  //
+  //         nodeAfter.remove();
+  //
+  //       }
+  //
+  //       return true;
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return false;
+  //
+  // }
+
+  // deleteBKP(range) {
+  //
+  //   if (!range.collapsed) {
+  //
+  //     while (range.startOffset === 0 && range.startContainer !== range.commonAncestorContainer) {
+  //
+  //       range.setStartBefore(range.startContainer);
+  //
+  //     }
+  //
+  //     while (range.endOffset === 0 && range.endContainer !== range.commonAncestorContainer) {
+  //
+  //       range.setEndBefore(range.endContainer);
+  //
+  //     }
+  //
+  //     let nodeRemoved = range.commonAncestorContainer;
+  //
+  //     const content = range.deleteContents();
+  //
+  //     if (range.commonAncestorContainer !== this.element && this.isEmpty(range.commonAncestorContainer)) {
+  //
+  //       range.selectNode(range.commonAncestorContainer);
+  //       range.deleteContents();
+  //
+  //       return true;
+  //
+  //     }
+  //
+  //
+  //
+  //     if (!this.isText(range.startContainer)) { // -> bridge
+  //
+  //       let nodeBefore = range.startContainer.childNodes[range.startOffset-1];
+  //       let nodeAfter = range.startContainer.childNodes[range.startOffset];
+  //
+  //       while (nodeBefore && this.isContainer(nodeBefore) && nodeBefore.lastChild) {
+  //
+  //         nodeBefore = nodeBefore.lastChild;
+  //
+  //       }
+  //
+  //       while (nodeBefore && nodeAfter && this.isJoinable(nodeBefore, nodeAfter)) {
+  //
+  //         [nodeBefore, nodeAfter] = this.join(nodeBefore, nodeAfter);
+  //
+  //       }
+  //
+  //       if (nodeBefore) {
+  //
+  //         range.setStartAfter(nodeBefore);
+  //
+  //       } else if (nodeAfter) {
+  //
+  //         range.setStartBefore(nodeAfter);
+  //
+  //       }
+  //
+  //       range.collapse(true);
+  //
+  //       range.startContainer.normalize();
+  //
+  //     }
+  //
+  //     if (!this.element.firstChild) {
+  //
+  //       const p = this.createEmpty("p");
+  //       range.insertNode(p);
+  //       range.setStart(p, 0);
+  //       range.collapse(true);
+  //
+  //     }
+  //
+  //     return true;
+  //
+  //   }
+  //
+  //   if (this.isEmpty(this.element)) {
+  //
+  //     return true; // -> prevent default BUT should not save!
+  //
+  //   } else if (this.isText(range.startContainer) && range.startOffset > 0) {
+  //
+  //     return false;
+  //
+  //   } else {
+  //
+  //     while (range.startOffset === 0 && !this.isRoot(range.startContainer)) {
+  //
+  //       range.setStartBefore(range.startContainer);
+  //
+  //     }
+  //
+  //     let nodeAfter = range.startContainer.childNodes[range.startOffset];
+  //     let nodeBefore = range.startContainer.childNodes[range.startOffset - 1];
+  //
+  //     while (this.isContainer(nodeBefore)) {
+  //
+  //       nodeBefore = nodeBefore.lastChild;
+  //
+  //     }
+  //
+  //     if (nodeBefore && nodeAfter && this.isJoinable(nodeBefore, nodeAfter)) {
+  //
+  //       while (nodeBefore && nodeAfter && this.isJoinable(nodeBefore, nodeAfter)) {
+  //
+  //         [nodeBefore, nodeAfter] = this.join(nodeBefore, nodeAfter);
+  //
+  //       }
+  //
+  //       if (nodeBefore) {
+  //
+  //         range.setStartAfter(nodeBefore);
+  //
+  //       } else if (nodeAfter) {
+  //
+  //         range.setStartBefore(nodeAfter);
+  //
+  //       }
+  //
+  //       range.collapse(true);
+  //
+  //       range.startContainer.normalize();
+  //
+  //       return true;
+  //
+  //     } else {
+  //
+  //       return true;
+  //
+  //     }
+  //
+  //   }
+  //
+  //   return false;
+  //
+  // }
+
+
   delete(range) {
 
     if (!range.collapsed) {
 
-      this.selectDown(range);
+      while (range.startOffset >= this.getNodeLength(range.startContainer) && !this.isRoot(range.startContainer)) {
 
-      let nodeRemoved = range.commonAncestorContainer;
-
-      const content = range.extractContents();
-
-      while (range.commonAncestorContainer !== this.element && this.isEmpty(range.commonAncestorContainer)) {
-
-        range.selectNode(range.commonAncestorContainer);
-        range.deleteContents();
+        range.setStartAfter(range.startContainer);
 
       }
 
-      if (this.isBlock(content.firstChild)) {
+      while (range.startOffset === 0 && !this.isRoot(range.startContainer)) {
 
-        range.insertNode(this.createEmpty(content.firstChild.tagName));
-        range.collapse(true);
+        range.setStartBefore(range.startContainer);
 
       }
 
-      if (!this.element.firstChild) {
+      while (range.endOffset === 0 && !this.isRoot(range.endContainer)) {
 
-        const p = this.createEmpty("p");
-        range.insertNode(p);
-        range.setStart(p, 0);
-        range.collapse(true);
+        range.setEndBefore(range.endContainer);
+
+      }
+
+      while (range.endOffset >= this.getNodeLength(range.endContainer) && !this.isRoot(range.endContainer)) {
+
+        range.setEndAfter(range.endContainer);
+
+      }
+
+      range.deleteContents();
+
+      let node = range.startContainer
+
+      // while (!this.isRoot(node) && this.isEmpty(node)) {
+      //
+      //   const parent = node.parentNode;
+      //
+      //   parent.removeChild(node);
+      //
+      //   node = parent;
+      //
+      // }
+
+      node.parentNode.normalize();
+
+      range.collapse(true);
+
+      if (!this.element.hasChildNodes()) {
+
+        this.reset()
+
+      }
+
+      while (this.isElement(range.startContainer) && range.startOffset > 0) {
+
+        range.selectNodeContents(range.startContainer.childNodes[range.startOffset-1]);
+        range.collapse(false);
 
       }
 
       return true;
 
-    } else if (this.isEmpty(this.element)) {
+    }
+
+
+    if (this.isEmpty(this.element)) {
 
       return true; // -> prevent default BUT should not save!
 
-    } else if (range.startOffset === 0) {
+    } else if (this.isText(range.startContainer) && range.startOffset > 0) {
 
-      const node = range.startContainer;
+      return false;
 
-      if (this.isRoot(node)) {
+    } else if (range.startOffset > 0) {
 
-        return false;
+      let nodeBefore = range.startContainer.childNodes[range.startOffset-1];
 
-      }
-
-      range.setStartBefore(node);
-      range.collapse(true);
-
-      // if (this.isBlock(node)) {
-      //
-      //   return this.delete(range, node);
-      //
-      // } else {
-
-        return this.delete(range);
-
-      // }
-
-    } else if (this.isElement(range.startContainer)) {
-
-      let nodeAfter = range.startContainer.childNodes[range.startOffset];
-      let nodeBefore = range.startContainer.childNodes[range.startOffset - 1];
-
-      if (nodeBefore && this.isEmpty(nodeBefore)) {
-
-        // if (nodeBefore.previousSibling) {
-        //
-        //   let node = nodeBefore.previousSibling;
-        //
-        //   while (node.lastChild) {
-        //
-        //     node = node.lastChild;
-        //
-        //   }
-        //
-        //   range.selectNodeContents(node);
-        //   range.collapse(false);
-        //
-        // }
-
-        nodeBefore.remove();
-
-        return true;
-
-      }
-
-      let backNode = nodeAfter;
-
-      while (backNode && !this.isBlock(backNode)) {
-
-        backNode = backNode.firstChild;
-
-      }
-
-      if (!backNode) {
-
-        while (this.isElement(nodeBefore) && this.isElement(nodeAfter) && nodeBefore.tagName === nodeAfter.tagName) {
-
-          [nodeBefore, nodeAfter] = this.join(nodeBefore, nodeAfter);
-
-        }
+      while (nodeBefore) {
 
         range.selectNodeContents(nodeBefore);
         range.collapse(false);
-
-        nodeBefore.parentNode.normalize();
-
-        return false;
-
-      }
-
-      while (nodeBefore && !this.isBlock(nodeBefore)) {
 
         nodeBefore = nodeBefore.lastChild;
 
       }
 
-      if (nodeBefore) {
+      return false;
 
-        if (this.isEmpty(backNode)) {
+    } else {
 
-          backNode.remove();
+      let node = range.startContainer;
 
-          // if (this.isEmpty(nodeAfter)) {
-          //
-          //   nodeAfter.remove();
-          //
-          // }
+      while (node === node.parentNode.firstChild && !this.isRoot(node.parentNode) && !this.isBlock(node)) {
 
-          while (nodeBefore.lastChild) {
+        node = node.parentNode;
 
-            nodeBefore = nodeBefore.lastChild;
+      }
+
+      if (this.isText(node)) { // -> actually never happens
+
+        node.parentNode.normalize();
+
+        return false;
+
+      } else if (this.isInline(node)) { // -> actually never happens
+
+        // if (node.previousSibling && node.previousSibling.tagName === node.tagName) {
+        //
+        //   this.join(node.previousSibling, node);
+        //
+        //   node.parentNode.normalize();
+        //
+        // }
+
+        node.parentNode.normalize();
+
+        return false;
+
+      } else if (this.isBlock(node)) {
+
+        let rightNode = node;
+
+        while (!node.previousSibling && !this.isRoot(node)) {
+
+          node = node.parentNode;
+
+        }
+
+        let leftNode = node.previousSibling;
+
+        while (leftNode && !this.isBlock(leftNode)) {
+
+          leftNode = leftNode.lastChild;
+
+        }
+
+        if (leftNode) {
+
+          [leftNode, rightNode] = this.join(leftNode, rightNode);
+
+          while (leftNode && rightNode && this.isInline(leftNode) && this.isInline(rightNode) && leftNode.tagName === rightNode.tagName) {
+
+            [leftNode, rightNode] = this.join(leftNode, rightNode);
 
           }
 
-          range.selectNodeContents(nodeBefore);
-          range.collapse(false);
+          // if (leftNode) {
+          //
+          //   range.setStartAfter(leftNode);
+          //   range.collapse(true);
+          //
+          //   leftNode.parentNode.normalize();
+          //
+          // } else if (rightNode) {
+          //
+          //   range.setStartBefore(rightNode);
+          //   range.collapse(true);
+          //
+          //   rightNode.parentNode.normalize();
+          //
+          // }
 
-          // return true;
+          if (rightNode) {
 
-        } else {
+            range.setStartBefore(rightNode);
+            range.collapse(true);
 
-          let [leftNode, rightNode] = this.join(nodeBefore, backNode);
+            let node = rightNode;
 
-          while (this.isElement(leftNode) && this.isElement(rightNode) && leftNode.tagName === rightNode.tagName) {
+            while (node && !this.isSingle(node)) {
 
-            [leftNode, rightNode] = this.join(leftNode, rightNode);
+              range.setStart(node, 0);
+              range.collapse(true);
+
+              node = node.firstChild;
+
+            }
+
+            rightNode.parentNode.normalize();
+
+          } else if (leftNode) {
+
+            range.setStartAfter(leftNode);
+            range.collapse(true);
+
+            let node = leftNode;
+
+            while (node && !this.isSingle(node)) {
+
+              range.selectNodeContents(node);
+              range.collapse(false);
+
+              node = node.lastChild;
+
+            }
+
+            leftNode.parentNode.normalize();
+
+          }
+
+
+        }
+
+        return true;
+
+      } else if (this.isContainer(node)) {
+
+        let rightNode = node;
+
+        while (!node.previousSibling && !this.isRoot(node)) {
+
+          node = node.parentNode;
+
+        }
+
+        let leftNode = node.previousSibling;
+
+        if (this.isEmpty(rightNode)) {
+
+          rightNode.remove();
+
+        }
+
+        if (leftNode) {
+
+          while (leftNode.lastChild) {
+
+            leftNode = leftNode.lastChild;
 
           }
 
           range.selectNodeContents(leftNode);
           range.collapse(false);
 
-          leftNode.parentNode.normalize();
-
         }
 
-        if (nodeAfter && nodeAfter !== backNode && this.isEmpty(nodeAfter)) {
-
-          nodeAfter.remove();
-
-        }
-
-        return true;
+        return false;
 
       }
 
@@ -1537,6 +3608,8 @@ KarmaFieldsAlpha.Editor = class {
   }
 
   insert(range, ...nodes) {
+
+    console.log("deprecated");
 
     if (!range.collapsed) {
 
@@ -1602,215 +3675,516 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  insertAt(range, node) {
+  // insertAtBKP(range, node) {
+  //
+  //   if (this.isInline(node) || this.isText(node) || this.isSingle(node)) {
+  //
+  //     this.insertInlineAt(range, node);
+  //
+  //   } else {
+  //
+  //     this.insertContainerAt(range, node);
+  //
+  //   }
+  //
+  // }
 
-    if (!range.collapsed) {
+  insertAt(range, ...nodes) {
 
-      this.delete(range);
+    const clone = range.cloneRange();
+
+    for (let node of nodes) {
+
+      if (this.isInline(node) || this.isText(node) || this.isSingle(node)) {
+
+        this.insertInlineAt(range, node);
+
+      } else if (this.isBlock(node)) {
+
+        this.insertBlockAt(range, node);
+
+      } else {
+
+        this.insertContainerAt(range, node);
+
+      }
+
+      range.collapse(false);
 
     }
 
-    if (this.isInline(node) || this.isText(node) || this.isSingle(node)) {
-
-      if (this.isText(range.startContainer) || this.isInline(range.startContainer) || this.isBlock(range.startContainer)) {
-
-        if (this.isBlock(range.startContainer) && this.isEmpty(range.startContainer)) {
-
-          range.selectNodeContents(range.startContainer);
-          range.deleteContents();
-
-        }
-
-        range.insertNode(node);
-        range.setStartAfter(node);
-        range.collapse(true);
-
-        range.startContainer.normalize();
-
-      } else if (this.isContainer(range.startContainer)) { // -> create new block and insert into
-
-        let tag = this.getChildTag(range.startContainer);
-
-        while (!tag) { // e.g FIGURE
-
-          range.setStartAfter(range.startContainer);
-          range.collapse(true);
-
-          tag = this.getChildTag(range.startContainer);
-
-        }
-
-        const block = document.createElement(tag);
-
-        block.appendChild(node);
-
-        range.insertNode(block);
-        range.setStartAfter(node);
-        range.collapse(true);
-
-        block.normalize();
-
-      }
-
-    } else if (this.isBlock(node)) {
-
-      if (this.isText(range.startContainer) || this.isInline(range.startContainer) || this.isBlock(range.startContainer)) {
-
-        while (!this.isContainer(range.endContainer) && !this.isRoot(range.endContainer)) {
-
-          range.setEndAfter(range.endContainer);
-
-        }
-
-        const contents = range.extractContents();
-
-        range.insertNode(node);
-
-        range.setStartAfter(node);
-        range.collapse(true);
-
-        if (!this.isEmpty(contents)) {
-
-          range.insertNode(contents);
-
-        }
-
-        range.selectNodeContents(node);
-        range.collapse(false);
-
-
-        // if (this.isBlock(range.startContainer) && this.isEmpty(range.startContainer)) {
-        //
-        //   range.selectNodeContents(range.startContainer);
-        //   range.deleteContents();
-        //
-        // }
-        //
-        // let child = node.firstChild;
-        //
-        // while (child) {
-        //
-        //   range.insertNode(child);
-        //   range.setStartAfter(child);
-        //   range.collapse(true);
-        //
-        //   child = node.firstChild;
-        //
-        // }
-        //
-        // range.startContainer.normalize();
-
-      } else if (this.isContainer(range.startContainer)) {
-
-        let tag = this.getChildTag(range.startContainer);
-
-        while (!tag && !this.isRoot(range.startContainer)) { // -> e.g. container is FIGURE
-
-          range.setStartAfter(range.startContainer);
-          range.collapse(true);
-
-          tag = this.getChildTag(range.startContainer);
-
-        }
-
-        const p = document.createElement(tag || "p");
-
-        let child = node.firstChild;
-
-        while (child) {
-
-          p.appendChild(child);
-
-          child = node.firstChild;
-
-        }
-
-        range.insertNode(p);
-        range.setStartAfter(p);
-        range.collapse(true);
-
-        p.normalize();
-
-      }
-
-    } else if (this.isContainer(node)) {
-
-      if (this.isText(range.startContainer) || this.isInline(range.startContainer) || this.isBlock(range.startContainer)) {
-
-        // -> find next suitable container
-
-        while (!this.isRoot(range.endContainer) && !this.isContainer(range.endContainer) && !this.isValidIn(node, range.endContainer)) {
-
-          range.setEndAfter(range.endContainer);
-
-        }
-
-        // if (!this.isValidIn(node, range.endContainer)) {
-        //
-        //   // convert into p?
-        //
-        // }
-
-        // cut the rest
-
-        const content = range.extractContents();
-
-        range.insertNode(node);
-        range.setStartAfter(node);
-        range.collapse(true);
-
-        if (!this.isEmpty(content)) { // put the rest after if not empty
-
-          range.insertNode(content);
-
-        }
-
-        if (node.previousSibling && this.isEmpty(node.previousSibling)) { // clear node before if empty
-
-          node.previousSibling.remove();
-
-        }
-
-        range.setStartAfter(node);
-        range.collapse(true);
-
-
-      } else if (this.isContainer(range.startContainer)) {
-
-        while (!this.isRoot(range.endContainer) && !this.isContainer(range.endContainer) && !this.isValidIn(node, range.endContainer)) {
-
-          range.setStartAfter(range.endContainer);
-
-        }
-
-        // if (!this.isValidIn(node, range.endContainer)) {
-        //
-        //   // convert into p?
-        //
-        // }
-
-        range.collapse(true);
-        range.insertNode(node);
-
-        if (node.previousSibling && this.isEmpty(node.previousSibling)) {
-
-          node.previousSibling.remove();
-
-        }
-
-        range.setStartAfter(node);
-        range.collapse(true);
-
-      }
-
-
-    }
-
-    this.sanitize(node);
+    range.setStart(clone.startContainer, clone.startOffset);
 
   }
 
+
+  // insertAt(range, node) {
+  //
+  //   if (!range.collapsed) {
+  //
+  //     this.delete(range);
+  //
+  //   }
+  //
+  //   if (this.isInline(node) || this.isText(node) || this.isSingle(node)) {
+  //
+  //     if (this.isText(range.startContainer) || this.isInline(range.startContainer) || this.isBlock(range.startContainer)) {
+  //
+  //       if (this.isBlock(range.startContainer) && this.isEmpty(range.startContainer)) {
+  //
+  //         range.selectNodeContents(range.startContainer);
+  //         range.deleteContents();
+  //
+  //       }
+  //
+  //       range.insertNode(node);
+  //       range.setStartAfter(node);
+  //       range.collapse(true);
+  //
+  //       range.startContainer.normalize();
+  //
+  //     } else if (this.isContainer(range.startContainer)) { // -> create new block and insert into
+  //
+  //       let tag = this.getChildTag(range.startContainer);
+  //
+  //       while (!tag) { // e.g FIGURE
+  //
+  //         range.setStartAfter(range.startContainer);
+  //         range.collapse(true);
+  //
+  //         tag = this.getChildTag(range.startContainer);
+  //
+  //       }
+  //
+  //       const block = document.createElement(tag);
+  //
+  //       block.appendChild(node);
+  //
+  //       range.insertNode(block);
+  //       range.setStartAfter(node);
+  //       range.collapse(true);
+  //
+  //       block.normalize();
+  //
+  //     }
+  //
+  //   } else if (this.isBlock(node)) {
+  //
+  //     if (this.isText(range.startContainer) || this.isInline(range.startContainer) || this.isBlock(range.startContainer)) {
+  //
+  //       while (!this.isContainer(range.endContainer) && !this.isRoot(range.endContainer)) {
+  //
+  //         range.setEndAfter(range.endContainer);
+  //
+  //       }
+  //
+  //       const contents = range.extractContents();
+  //
+  //       range.insertNode(node);
+  //
+  //       range.setStartAfter(node);
+  //       range.collapse(true);
+  //
+  //       if (!this.isEmpty(contents)) {
+  //
+  //         range.insertNode(contents);
+  //
+  //       }
+  //
+  //       range.selectNodeContents(node);
+  //       range.collapse(false);
+  //
+  //
+  //       // if (this.isBlock(range.startContainer) && this.isEmpty(range.startContainer)) {
+  //       //
+  //       //   range.selectNodeContents(range.startContainer);
+  //       //   range.deleteContents();
+  //       //
+  //       // }
+  //       //
+  //       // let child = node.firstChild;
+  //       //
+  //       // while (child) {
+  //       //
+  //       //   range.insertNode(child);
+  //       //   range.setStartAfter(child);
+  //       //   range.collapse(true);
+  //       //
+  //       //   child = node.firstChild;
+  //       //
+  //       // }
+  //       //
+  //       // range.startContainer.normalize();
+  //
+  //     } else if (this.isContainer(range.startContainer)) {
+  //
+  //       if (this.isValidIn(node, range.startContainer)) {
+  //
+  //         range.insertNode(node);
+  //         range.collapse(false);
+  //
+  //       } else { // -> split container and insert below inbetween
+  //
+  //         while (!this.isValidIn(node, range.endContainer) && !this.isRoot(range.endContainer)) {
+  //
+  //           range.setEndAfter(range.endContainer);
+  //
+  //         }
+  //
+  //         let content = range.extractContents();
+  //
+  //         const nodeBefore = range.endContainer.childNodes[range.endOffset - 1];
+  //
+  //         if (nodeBefore && this.isEmpty(nodeBefore)) { // -> node before is left empty
+  //
+  //           range.selectNode(nodeBefore);
+  //           range.deleteContents();
+  //
+  //         }
+  //
+  //         if (!this.isValidIn(node, range.startContainer)) { // -> this is root and node is not allowed!
+  //
+  //           const p = document.createElement("p");
+  //
+  //           while (node.firstChild) {
+  //
+  //             p.appendChild(node.firstChild);
+  //
+  //           }
+  //
+  //           node = p;
+  //
+  //         }
+  //
+  //         range.insertNode(node);
+  //         range.collapse(false);
+  //
+  //         if (!this.isEmpty(content)) {
+  //
+  //           range.insertNode(content);
+  //
+  //         }
+  //
+  //         range.setStartAfter(node);
+  //         range.collapse(true);
+  //
+  //       }
+  //
+  //       // let tag = this.getChildTag(range.startContainer);
+  //       //
+  //       // while (!tag && !this.isRoot(range.startContainer)) { // -> e.g. container is FIGURE
+  //       //
+  //       //   range.setStartAfter(range.startContainer);
+  //       //   range.collapse(true);
+  //       //
+  //       //   tag = this.getChildTag(range.startContainer);
+  //       //
+  //       // }
+  //       //
+  //       // const p = document.createElement(tag || "p");
+  //       //
+  //       // let child = node.firstChild;
+  //       //
+  //       // while (child) {
+  //       //
+  //       //   p.appendChild(child);
+  //       //
+  //       //   child = node.firstChild;
+  //       //
+  //       // }
+  //       //
+  //       // range.insertNode(p);
+  //       // range.setStartAfter(p);
+  //       // range.collapse(true);
+  //       //
+  //       // p.normalize();
+  //
+  //     }
+  //
+  //   } else if (this.isContainer(node)) {
+  //
+  //     if (this.isText(range.startContainer) || this.isInline(range.startContainer) || this.isBlock(range.startContainer)) {
+  //
+  //       // -> find next suitable container
+  //
+  //       while (!this.isRoot(range.endContainer) && !this.isContainer(range.endContainer) && !this.isValidIn(node, range.endContainer)) {
+  //
+  //         range.setEndAfter(range.endContainer);
+  //
+  //       }
+  //
+  //       // if (!this.isValidIn(node, range.endContainer)) {
+  //       //
+  //       //   // convert into p?
+  //       //
+  //       // }
+  //
+  //       // cut the rest
+  //
+  //       const content = range.extractContents();
+  //
+  //       range.insertNode(node);
+  //       range.setStartAfter(node);
+  //       range.collapse(true);
+  //
+  //       if (!this.isEmpty(content)) { // put the rest after if not empty
+  //
+  //         range.insertNode(content);
+  //
+  //       }
+  //
+  //       if (node.previousSibling && this.isEmpty(node.previousSibling)) { // clear node before if empty
+  //
+  //         node.previousSibling.remove();
+  //
+  //       }
+  //
+  //       range.setStartAfter(node);
+  //       range.collapse(true);
+  //
+  //
+  //     } else if (this.isContainer(range.startContainer)) {
+  //
+  //       while (!this.isRoot(range.endContainer) && !this.isContainer(range.endContainer) && !this.isValidIn(node, range.endContainer)) {
+  //
+  //         range.setStartAfter(range.endContainer);
+  //
+  //       }
+  //
+  //       // if (!this.isValidIn(node, range.endContainer)) {
+  //       //
+  //       //   // convert into p?
+  //       //
+  //       // }
+  //
+  //       range.collapse(true);
+  //       range.insertNode(node);
+  //
+  //       if (node.previousSibling && this.isEmpty(node.previousSibling)) {
+  //
+  //         node.previousSibling.remove();
+  //
+  //       }
+  //
+  //       range.setStartAfter(node);
+  //       range.collapse(true);
+  //
+  //     }
+  //
+  //
+  //   }
+  //
+  //   this.sanitize(node);
+  //
+  // }
+
+  insertBlockAt(range, block) {
+
+    if (this.isContainer(range.startContainer)) {
+
+      while (!this.isValidIn(block, range.startContainer) && !this.isRoot(range.startContainer)) {
+
+        range.setStartAfter(range.startContainer);
+
+      }
+
+      if (!this.isValidIn(block, range.startContainer)) {
+
+        const p = document.createElement("p");
+
+        while (block.firstChild) {
+
+          p.appendChild(block.firstChild);
+
+        }
+
+        block = p;
+
+      }
+
+      range.insertNode(block);
+      range.selectNode(block);
+
+    } else {
+
+      if (this.isEmpty(range.startContainer)) {
+
+        this.empty(range.startContainer);
+
+      }
+
+      const firstChild = block.firstChild;
+
+      while (block.firstChild) {
+
+        range.insertNode(block.firstChild);
+        range.collapse(false);
+
+      }
+
+      range.setStartBefore(firstChild);
+
+    }
+
+  }
+
+  // insertContainerAt(range, container) {
+  //
+  //   if (!range.collapsed) {
+  //
+  //     range.deleteContents();
+  //
+  //   }
+  //
+  //   const rangeBefore = range.cloneRange();
+  //
+  //   while (!this.isValidIn(container, rangeBefore.startContainer) && !this.isRoot(rangeBefore.startContainer)) {
+  //
+  //     rangeBefore.setStartBefore(rangeBefore.startContainer);
+  //
+  //   }
+  //
+  //   const rangeAfter = range.cloneRange();
+  //
+  //   while (!this.isValidIn(container, rangeAfter.endContainer) && !this.isRoot(rangeAfter.endContainer)) {
+  //
+  //     rangeAfter.setEndAfter(rangeAfter.endContainer);
+  //
+  //   }
+  //
+  //   const contentBefore = rangeBefore.extractContents();
+  //   const contentAfter = rangeAfter.extractContents();
+  //
+  //   range.setStart(rangeBefore.startContainer, rangeBefore.startOffset);
+  //   range.setEnd(rangeAfter.endContainer, rangeAfter.endOffset);
+  //
+  //   range.deleteContents();
+  //
+  //
+  //
+  //   if (!this.isEmpty(contentBefore)) {
+  //
+  //     range.insertNode(contentBefore);
+  //     range.collapse(false);
+  //
+  //   }
+  //
+  //   range.insertNode(container);
+  //   range.collapse(false);
+  //
+  //   if (!this.isEmpty(contentAfter)) {
+  //
+  //     range.insertNode(contentAfter);
+  //     range.collapse(true);
+  //
+  //   }
+  //
+  //   range.selectNode(container);
+  //
+  // }
+
+  insertContainerAt(range, container) {
+
+    if (!range.collapsed) {
+
+      range.deleteContents();
+
+    }
+
+    while (!this.isValidIn(container, range.endContainer) && !this.isRoot(range.endContainer)) {
+
+      range.setEndAfter(range.endContainer);
+
+    }
+
+    const contentAfter = range.extractContents();
+
+    range.collapse(false);
+
+    range.insertNode(container);
+
+    if (container.previousSibling && this.isEmpty(container.previousSibling)) {
+
+      container.previousSibling.parentNode.removeChild(container.previousSibling);
+
+    }
+
+    if (container.nextSibling && this.isEmpty(container.nextSibling)) {
+
+      container.nextSibling.parentNode.removeChild(container.nextSibling);
+
+    }
+
+    if (!this.isEmpty(contentAfter)) {
+
+      range.collapse(false);
+      range.insertNode(contentAfter);
+
+    }
+
+
+
+    range.selectNode(container);
+
+  }
+
+  insertInlineAt(range, ...nodes) {
+
+    if (!range.collapsed) {
+
+      range.deleteContents();
+
+    }
+
+    if (this.isText(range.startContainer) || this.isInline(range.startContainer) || this.isBlock(range.startContainer)) {
+
+      for (let node of nodes) {
+
+        range.insertNode(node);
+        range.collapse(false);
+
+        node.parentNode.normalize();
+
+      }
+
+    } else { // -> insert into last node
+
+      let nodeBefore = this.getNodeBeforePoint(range.startContainer, range.startOffset);
+
+      while (nodeBefore && this.isContainer(nodeBefore)) {
+
+        nodeBefore = nodeBefore.lastChild;
+
+      }
+
+      if (nodeBefore) {
+
+        if (this.isEmpty(nodeBefore)) {
+
+          this.empty(nodeBefore);
+
+        }
+
+        for (let node of nodes) {
+
+          nodeBefore.appendChild(node);
+
+          range.selectNodeContents(node);
+
+        }
+
+        range.collapse(false);
+
+      }
+
+    }
+
+  }
+
+
   insertAfter(nodeBefore, ...nodes) {
+
+    console.log("deprecated");
 
     for (let node of nodes) {
 
@@ -1846,6 +4220,22 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
+  sanitizeNodeAttributes(node) {
+
+    const attributes = [...node.attributes];
+
+    for (let attribute of attributes) {
+
+      if (!this.isValidAttribute(node, attribute.name, attribute.value)) {
+
+        node.removeAttribute(attribute.name);
+
+      }
+
+    }
+
+  }
+
 
   findInvalidNode(node) {
 
@@ -1858,15 +4248,37 @@ KarmaFieldsAlpha.Editor = class {
     //
     // }
 
+    // if (this.isElement(node)) {
+    //
+    //   for (let child of node.childNodes) {
+    //
+    //     if (!this.isValidIn(child, node)) {
+    //
+    //       return child;
+    //
+    //     }
+    //
+    //     const invalidChild = this.findInvalidNode(child);
+    //
+    //     if (invalidChild) {
+    //
+    //       return invalidChild;
+    //
+    //     }
+    //
+    //   }
+    //
+    // }
+
+    if (!this.isValid(node)) {
+
+      return node;
+
+    }
+
     if (this.isElement(node)) {
 
       for (let child of node.childNodes) {
-
-        if (!this.isValidIn(child, node)) {
-
-          return child;
-
-        }
 
         const invalidChild = this.findInvalidNode(child);
 
@@ -1941,24 +4353,84 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  sanitize(node) {
+  sanitize(container) {
 
-    let invalidNode = this.findInvalidNode(node || this.element);
 
-    while (invalidNode) {
+    // let invalidNode = this.findInvalidNode(node || this.element);
+    //
+    // while (invalidNode) {
+    //
+    //   this.fixNode(invalidNode, node || this.element);
+    //
+    //   invalidNode = this.findInvalidNode(node || this.element);
+    //
+    // }
 
-      this.fixNode(invalidNode, node || this.element);
+    const nodes = [...(container || this.element).childNodes];
 
-      invalidNode = this.findInvalidNode(node || this.element);
+    // const nodes = [...this.listNodesIn(container || this.element)];
+
+    for (let node of nodes) {
+
+      if (node.parentNode && !this.isValid(node)) {
+
+        node.parentNode.removeChild(node);
+
+      } else if (this.isElement(node)) {
+
+        if (node.hasAttributes()) {
+
+          this.sanitizeNodeAttributes(node);
+
+        }
+
+        this.sanitize(node);
+
+        if (!this.isValidIn(node, node.parentNode)) {
+
+          while (node.firstChild) {
+
+            node.parentNode.insertBefore(node.firstChild, node);
+
+          }
+
+          node.parentNode.removeChild(node);
+
+        }
+
+      }
 
     }
 
-
   }
+
+  // extractAt(range) {
+  //
+  //   const content = range.extractContents();
+  //
+  //   this.deleteAt(range);
+  //
+  //   if (this.isText(range.commonAncestorContainer) || this.isInline(range.commonAncestorContainer) || this.isBlock(range.commonAncestorContainer)) {
+  //
+  //
+  //
+  //     range.commonAncestorContainer.normalize();
+  //
+  //
+  //
+  //   }
+  //
+  // }
 
 
 
   copy(range) {
+
+    this.selectDown(range);
+
+    // for (let node of this.listNodesAt(range)) {
+    //
+    // }
 
     const content = range.cloneContents();
 
@@ -1975,6 +4447,8 @@ KarmaFieldsAlpha.Editor = class {
 
     const content = range.extractContents();
 
+    this.delete(range);
+
     const container = document.createElement("div");
     container.appendChild(content);
 
@@ -1987,47 +4461,9 @@ KarmaFieldsAlpha.Editor = class {
     const container = document.createElement("div");
     container.innerHTML = html;
 
+    this.sanitize(container);
+
     container.normalize();
-
-    // let invalidNode = this.findInvalidNode(container);
-    //
-    // while (invalidNode) {
-    //
-    //   this.fixNode(invalidNode);
-    //
-    //   invalidNode = this.findInvalidNode(container);
-    //
-    // }
-
-    // this.clean(container);
-
-    // if (this.isRoot(range.startContainer)) {
-    //
-    //   if (range.startContainer.childNodes[range.startOffset]) {
-    //
-    //     range.setStart(range.startContainer.childNodes[range.startOffset], 0);
-    //
-    //   } else {
-    //
-    //     const p = document.createElement("p");
-    //     // p.appendChild(document.createElement("br"));
-    //
-    //     range.insertNode(p);
-    //     range.setStart(p, 0);
-    //     range.collapse(true);
-    //
-    //   }
-    //
-    // }
-
-    // for (let child of [...container.childNodes]) {
-    //
-    //   this.insertAt(range, child);
-    //
-    //   // range.setStartAfter(node);
-    //   // range.collapse(true);
-    //
-    // }
 
     let child = container.firstChild;
 
@@ -2037,13 +4473,11 @@ KarmaFieldsAlpha.Editor = class {
 
       this.insertAt(range, child);
 
+      range.collapse(false);
+
       child = container.firstChild;
 
     }
-
-    // this.insert(range, ...container.childNodes);
-    //
-    // this.sanitize(this.element);
 
   }
 
@@ -2101,48 +4535,113 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  insertList(range, tagName) {
+  toggleList(range, tagName) {
 
-    let listNode = this.getNodeByTags(range, "ul", "ol");
+    let listNodes = this.getNodesAt(range).filter(node => node.tagName === "UL" || node.tagName === "OL");
 
-    if (listNode) {
+    if (listNodes.length) {
 
-      range.selectNode(listNode);
-      range.deleteContents();
+      if (listNodes[0].tagName === tagName.toUpperCase()) {
 
-      if (listNode.tagName === tagName.toUpperCase()) {
+        for (let node of listNodes) {
 
-        for (let node of listNode.childNodes) {
+          const paragraphs = this.unwrapList(node);
 
-          const p = document.createElement("p");
+          if (paragraphs.length) {
 
-          while (node.firstChild) {
-
-            p.appendChild(node.firstChild);
+            range.setStartBefore(paragraphs[0]);
+            range.setEndAfter(paragraphs[paragraphs.length - 1]);
 
           }
-
-          this.insertAt(range, p);
 
         }
 
       } else {
 
-        const newListNode = document.createElement(tagName);
+        for (let node of listNodes) {
 
-        while (listNode.firstChild) {
-
-          newListNode.appendChild(listNode.firstChild);
+          this.updateNode(node, tagName);
 
         }
-
-        this.insertAt(range, newListNode);
 
       }
 
     } else {
 
-      listNode = document.createElement(tagName);
+      this.wrapListAt(range, tagName);
+
+    }
+
+  }
+
+  isListAt(range, tagName = "UL") {
+
+    for (let node of this.listNodesAt(range)) {
+
+      if (node.tagName === tagName) {
+
+        return true;
+
+      }
+
+    }
+
+    return false;
+  }
+
+  insertList(range, tagName) {
+
+    console.error("deprecated");
+
+    // let listNode = this.getNodeByTags(range, "ul", "ol");
+    // let listNodes = [...this.getNodesAt(range, node => node.tagName === "UL" || node.tagName === "OL")];
+
+    if (this.hasNodeAt(range, node => node.tagName === "UL" || node.tagName === "OL")) {
+
+      let listNodes = [...this.getNodesAt(range, node => node.tagName === "UL" || node.tagName === "OL")];
+
+      for (let listNode of listNodes) {
+
+        range.selectNode(listNode);
+        range.deleteContents();
+
+        if (listNode.tagName === tagName.toUpperCase()) {
+
+          for (let node of listNode.childNodes) {
+
+            const p = document.createElement("p");
+
+            while (node.firstChild) {
+
+              p.appendChild(node.firstChild);
+
+            }
+
+            this.insertAt(range, p);
+
+          }
+
+        } else {
+
+          const newListNode = document.createElement(tagName);
+
+          while (listNode.firstChild) {
+
+            newListNode.appendChild(listNode.firstChild);
+
+          }
+
+          this.insertAt(range, newListNode);
+
+          range.selectNodeContents(newListNode);
+
+        }
+
+      }
+
+    } else {
+
+      let listNode = document.createElement(tagName);
 
       if (range.collapsed) {
 
@@ -2157,23 +4656,13 @@ KarmaFieldsAlpha.Editor = class {
 
       } else {
 
-        while (!this.isRoot(range.startContainer)) {
-
-          range.setStartBefore(range.startContainer);
-
-        }
-
-        while (!this.isRoot(range.endContainer)) {
-
-          range.setEndAfter(range.endContainer);
-
-        }
-
         const content = range.extractContents();
 
-        for (let node of content.childNodes) {
+        let node = content.firstChild;
 
-          if (node.hasChildNodes()) {
+        while (node) {
+
+          if (this.isBlock(node)) {
 
             const item = document.createElement("li");
 
@@ -2187,6 +4676,8 @@ KarmaFieldsAlpha.Editor = class {
 
           }
 
+          node = this.getNextNode(node);
+
         }
 
         this.insertAt(range, listNode);
@@ -2198,79 +4689,310 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
+  toggleHeading(range, tagName) {
+
+    let nodes = this.getNodesAt(range).filter(node => this.isHeading(node));
+
+    if (nodes.length) {
+
+      for (let node of nodes) {
+
+        this.updateNode(node, "p");
+
+      }
+
+      range.setStartBefore(nodes[0]);
+      range.setEndAfter(nodes[nodes.length-1]);
+
+    } else if (!range.collapsed) {
+
+      this.wrapBlockAt(range, tagName || "h1");
+
+    }
+
+  }
+
+  isHeadingAt(range) {
+
+    for (let node of this.listNodesAt(range)) {
+
+      if (this.isHeading(node)) {
+
+        return true;
+
+      }
+
+    }
+
+    return false;
+  }
+
+  getHeadingAt(range) {
+
+    for (let node of this.listNodesAt(range)) {
+
+      if (this.isHeading(node)) {
+
+        return node;
+
+      }
+
+    }
+
+  }
+
+  toggleBoldAt(range) {
+
+		const nodes = this.getNodesAt(range).filter(node => node.tagName === "B" || node.tagName === "STRONG");
+
+		if (nodes.length) {
+
+			for (let node of nodes) {
+
+				this.unwrapNode(node);
+
+			}
+
+		} else {
+
+			this.wrapInlineAt(range, "b");
+
+		}
+
+  }
+
+  isBoldAt(range) {
+
+    for (let node of this.listNodesAt(range)) {
+
+      if (node.tagName === "B" || node.tagName === "STRONG") {
+
+        return true;
+
+      }
+
+    }
+
+    return false;
+  }
+
+  toggleItalicAt(range) {
+
+		const nodes = this.getNodesAt(range).filter(node => node.tagName === "I" || node.tagName === "EM");
+
+		if (nodes.length) {
+
+			for (let node of nodes) {
+
+				this.unwrapNode(node);
+
+			}
+
+		} else {
+
+			this.wrapInlineAt(range, "i");
+
+		}
+
+  }
+
+  isItalicAt(range) {
+
+    for (let node of this.listNodesAt(range)) {
+
+      if (node.tagName === "I" || node.tagName === "EM") {
+
+        return true;
+
+      }
+
+    }
+
+    return false;
+  }
+
+  isLinkAt(range) {
+
+    for (let node of this.listNodesAt(range)) {
+
+      if (node.tagName === "A") {
+
+        return true;
+
+      }
+
+    }
+
+    return false;
+
+  }
+
+  getLinkAt(range) {
+
+    for (let node of this.listNodesAt(range)) {
+
+      if (node.tagName === "A") {
+
+        return node;
+
+      }
+
+    }
+
+  }
+
+  unlinkAt(range) {
+
+    const link = this.getLinkAt(range);
+
+    if (link) {
+
+      this.unwrapNode(link);
+
+    }
+
+  }
+
+
   insertHeading(range, tagName) {
 
-    let node = this.getNodeByTags(range, "h1", "h2", "h3", "h4", "h5", "h6");
+    console.error("deprecated");
 
-    if (node) {
+    let nodes = [...this.getNodesAt(range, node => ["H1", "H2", "H3", "H4", "H5", "H6"].includes(node.tagName))];
 
-      if (node.tagName === tagName.toUpperCase()) {
+    if (nodes.length) {
+
+      if (nodes[0].tagName === tagName.toUpperCase()) {
 
         tagName = "p";
 
       }
 
-      const newNode = document.createElement(tagName);
+      for (let node of nodes) {
 
-      range.selectNode(node);
-      range.deleteContents();
+        const hNode = document.createElement(tagName);
 
-      while (node.firstChild) {
+        while (node.firstChild) {
 
-        newNode.appendChild(node.firstChild);
+          hNode.appendChild(node.firstChild);
+
+        }
+
+        node.replaceWith(hNode);
+
+        range.selectNodeContents(hNode);
 
       }
 
-      this.insertAt(range, newNode);
+    } else if (!range.collapsed) {
 
-    } else {
+      // const content = range.extractContents();
+      //
+      // const contentRange = new Range();
+      // contentRange.selectNodeContents(content);
+      //
+      // nodes = [...this.getNodesAt(contentRange, node => this.isBlock(node))];
 
-      if (!range.collapsed) {
+      nodes = [...this.getNodesAt(range, node => this.isBlock(node))];
 
-        this.selectDown(range);
+      for (let node of nodes) {
 
-        const content = range.extractContents();
+        range.selectNode(node);
+        range.deleteContents();
+        // range.collapse(false);
 
-        for (let child of content.childNodes) {
+        const hNode = document.createElement(tagName);
 
-          if (!this.isEmpty(child)) {
+        while (node.firstChild) {
 
-            const heading = document.createElement(tagName);
-
-            while (child.firstChild) {
-
-              heading.appendChild(child.firstChild);
-
-            }
-
-            this.insertAt(range, heading);
-
-          }
+          hNode.appendChild(node.firstChild);
 
         }
+
+        this.insertAt(range, hNode);
+
+        range.selectNodeContents(hNode);
 
       }
 
     }
+
+
+    // let node = this.getNodeByTags(range, "h1", "h2", "h3", "h4", "h5", "h6");
+    //
+    // if (node) {
+    //
+    //   if (node.tagName === tagName.toUpperCase()) {
+    //
+    //     tagName = "p";
+    //
+    //   }
+    //
+    //   const newNode = document.createElement(tagName);
+    //
+    //   range.selectNode(node);
+    //   range.deleteContents();
+    //
+    //   while (node.firstChild) {
+    //
+    //     newNode.appendChild(node.firstChild);
+    //
+    //   }
+    //
+    //   this.insertAt(range, newNode);
+    //
+    // } else {
+    //
+    //   if (!range.collapsed) {
+    //
+    //     this.selectDown(range);
+    //
+    //     const content = range.extractContents();
+    //
+    //     for (let child of content.childNodes) {
+    //
+    //       if (!this.isEmpty(child)) {
+    //
+    //         const heading = document.createElement(tagName);
+    //
+    //         while (child.firstChild) {
+    //
+    //           heading.appendChild(child.firstChild);
+    //
+    //         }
+    //
+    //         this.insertAt(range, heading);
+    //
+    //       }
+    //
+    //     }
+    //
+    //   }
+    //
+    // }
 
   }
 
   insertFigure(range, figure) {
 
-    const node = this.getNodeByTags(range, "figure");
+    // const node = this.getNodeByTags(range, "figure");
+    //
+    // if (node) {
+    //
+    //   range.selectNode(node);
+    //
+    // }
+    //
+    // this.insertAt(range, figure);
+    // range.selectNode(figure);
 
-    if (node) {
-
-      range.selectNode(node);
-
-    }
-
-    this.insertAt(range, figure);
-    range.selectNode(figure);
+    this.insertContainerAt(range, figure);
 
   }
 
   updateNodeByTag(range, tagName, params = {}) {
+
+    console.error("deprecated");
 
     let node = this.getNodeByTags(range, tagName);
 
@@ -2302,6 +5024,8 @@ KarmaFieldsAlpha.Editor = class {
 
   toggleNodeByTag(range, tagName) {
 
+    console.error("deprecated");
+
     let node = this.getNodeByTags(range, tagName);
 
     if (node) {
@@ -2318,6 +5042,8 @@ KarmaFieldsAlpha.Editor = class {
 
   updateNodeParams(node, params = {}) {
 
+    console.error("deprecated");
+
     for (let attribute of node.attributes) {
 
       node.removeAttributeNode(attribute);
@@ -2333,6 +5059,72 @@ KarmaFieldsAlpha.Editor = class {
       }
 
     }
+
+  }
+
+  updateNode(node, tagName, params) {
+
+    if (tagName) {
+
+      const newNode = document.createElement(tagName);
+
+      while (node.firstChild) {
+
+        newNode.appendChild(node.firstChild);
+
+      }
+
+      node.replaceWith(newNode);
+
+      node = newNode;
+
+    }
+
+    while (node.attributes.length) {
+
+      node.removeAttributeNode(node.attributes[0]);
+
+    }
+
+    if (params) {
+
+      for (let key in params) {
+
+        if (params[key]) {
+
+          node.setAttribute(key, params[key]);
+
+        }
+
+      }
+
+    }
+
+    // const range = this.range || new Range();
+
+    this.range.selectNode(node);
+
+    this.update(this.range);
+
+    return this.range;
+
+  }
+
+  removeNode(node) {
+
+    this.range.setStartBefore(node);
+    this.range.collapse(true);
+
+    this.update(this.range);
+
+    node.parentNode.removeChild(node);
+
+  }
+
+  selectNode(...nodes) {
+
+    this.range.setStartBefore(nodes[0]);
+    this.range.setEndAfter(nodes[nodes.length-1]);
 
   }
 
@@ -2459,7 +5251,7 @@ KarmaFieldsAlpha.EditorNode = class {
           this.breakable = false;
           // this.discard = !node.hasChildNodes();
           // this.valid = parentNode.tagName === "DIV";
-          this.validIn = ["DIV", "TD"];
+          this.validIn = ["DIV"];
           break;
 
         case "FIGCAPTION":

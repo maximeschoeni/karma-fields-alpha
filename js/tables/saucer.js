@@ -358,16 +358,17 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
             await field.request("submit");
             await this.request("render");
           } else if (event.key === "z" && event.metaKey) {
-            event.preventDefault();
-            if (event.shiftKey) {
-              KarmaFieldsAlpha.History.redo();
-            } else {
-              KarmaFieldsAlpha.History.undo();
-            }
+            // event.preventDefault();
+            // if (event.shiftKey) {
+            //   KarmaFieldsAlpha.History.redo();
+            // } else {
+            //   KarmaFieldsAlpha.History.undo();
+            // }
           }
         });
         window.addEventListener("popstate", async event => {
           KarmaFieldsAlpha.server = new KarmaFieldsAlpha.Server();
+          
           await KarmaFieldsAlpha.History.update();
           await this.parent.render();
         });
@@ -395,6 +396,14 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
                 clipboard.element.focus({preventScroll: true});
               }
               clipboard.element.onkeydown = async event => {
+                if (event.key === "z" && event.metaKey) {
+                  event.preventDefault();
+                  if (event.shiftKey) {
+                    KarmaFieldsAlpha.History.redo();
+                  } else {
+                    KarmaFieldsAlpha.History.undo();
+                  }
+                }
                 if (event.key === "a" && event.metaKey) {
                   event.preventDefault();
                   const field = this.getFocusField();

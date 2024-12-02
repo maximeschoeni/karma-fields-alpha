@@ -538,7 +538,7 @@ KarmaFieldsAlpha.field.container.header = class extends KarmaFieldsAlpha.field.g
 
 }
 
-KarmaFieldsAlpha.field.container.header.title = class extends KarmaFieldsAlpha.field.text {
+KarmaFieldsAlpha.field.container.title = class extends KarmaFieldsAlpha.field.text {
 
   constructor(resource, id, parent) {
 

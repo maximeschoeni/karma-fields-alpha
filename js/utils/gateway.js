@@ -19,10 +19,8 @@ KarmaFieldsAlpha.HTTP = class {
 		}).then(response => {
 			return response.json();
 		}).catch(error => {
-			console.log(queryString);
-			console.trace();
-			console.error(error);
-
+			// console.log(queryString);
+			console.warn(error, KarmaFieldsAlpha.restURL+"karma-fields-alpha/v1/"+queryString+params);
 		});
 	}
 

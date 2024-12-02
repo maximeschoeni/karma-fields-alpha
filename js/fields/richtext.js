@@ -2,9 +2,37 @@
 KarmaFieldsAlpha.ranges = {};
 KarmaFieldsAlpha.editors = {};
 
-// document.addEventListener("selectionchange", event => {
-//   console.log("Selection started", event);
-// });
+document.addEventListener("selectionchange", event => {
+
+	const selection = document.getSelection();
+
+	for (let uid in KarmaFieldsAlpha.editors) {
+
+		const editor = KarmaFieldsAlpha.editors[uid];
+
+		if (editor.element === document.activeElement) {
+
+			if (selection.rangeCount > 0) {
+
+				const range = selection.getRangeAt(0);
+				const pathes = editor.getPathesAt(range);
+
+				KarmaFieldsAlpha.server.setState(pathes, "fields", uid, "rangePath");
+
+				editor.update(range);
+
+				if (editor.onSelectionChange) {
+
+					editor.onSelectionChange();
+
+				}
+
+			}
+
+		}
+
+	}
+});
 
 KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
@@ -23,26 +51,126 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 	//
 	// }
 
-	getRange() {
-
-		return KarmaFieldsAlpha.ranges[this.uid];
-	}
+	// getRange() {
+	//
+	// 	return KarmaFieldsAlpha.ranges[this.uid];
+	// }
 
 	captureRange() {
 
-		CSS.highlights.clear();
+		// CSS.highlights.clear();
+		//
+		// const selection = document.getSelection();
+		//
+		// const editorContainer = this.getEditorContainer();
+		//
+		// if (editorContainer && editorContainer.contains(selection.focusNode)) {
+		//
+		// 	// this.range = selection.getRangeAt(0);
+		//
+		// 	KarmaFieldsAlpha.ranges[this.uid] = selection.getRangeAt(0);
+		//
+		// }
+
+	}
+
+	getCurrentRange() {
 
 		const selection = document.getSelection();
 
-		const editorContainer = this.getEditorContainer();
+		if (selection.rangeCount > 0) {
 
-		if (editorContainer && editorContainer.contains(selection.focusNode)) {
+			return selection.getRangeAt(0);
 
-			// this.range = selection.getRangeAt(0);
+		} else {
 
-			KarmaFieldsAlpha.ranges[this.uid] = selection.getRangeAt(0);
+			const range = new Range();
+			selection.addRange(range);
+
+			return range;
 
 		}
+
+	}
+
+	getRange() {
+
+		const editor = this.getEditor();
+		const rangePath = this.getState("rangePath");
+
+		if (editor && rangePath) {
+
+			return editor.getRangeFromPathes(rangePath);
+
+		}
+
+	}
+
+	setRange(range) {
+
+		const selection = document.getSelection();
+
+		selection.removeAllRanges();
+
+		selection.addRange(range);
+
+	}
+
+	async setSelectionState(range) {
+
+		CSS.highlights.clear();
+
+		// const selection = document.getSelection();
+		// let range = selection.rangeCount > 0 && selection.getRangeAt(0);
+		// if (!range) {
+		//
+		// 	range = new
+		//
+		// }
+		// let range = this.getCurrentRange();
+
+
+		const editor = this.getEditor();
+
+		if (editor && range && editor.contains(range)) {
+
+			const rangePath = editor.getPathesAt(range);
+
+			await this.setState(rangePath, "rangePath");
+
+		} else {
+
+			await this.setState([], "rangePath");
+
+		}
+
+	}
+
+	isRangeCollapsed() {
+
+		// const range = this.getRange();
+
+		const rangePath = this.getState("rangePath");
+
+		if (rangePath) {
+
+			return rangePath.length === 1;
+
+		}
+
+		return false;
+
+		// console.log(rangePath);
+		//
+		// if (range) {
+		//
+		//
+		//
+		// 	return range.collapsed;
+		//
+		// }
+		//
+		// return false;
 
 	}
 
@@ -94,27 +222,58 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 		document.body.classList.toggle("karma-table-open", focus.includes("popup"));
 
+		// this.editor = null;
+
 		return this.loop();
 
 	}
 
-	getEditorContainer() {
+	// getEditorContainer() {
+	//
+	// 	return KarmaFieldsAlpha.editors[this.uid];
+	//
+	// }
 
-		return KarmaFieldsAlpha.editors[this.uid];
+	setEditor(editor) {
 
+		KarmaFieldsAlpha.editors[this.uid] = editor;
 	}
 
   getEditor() {
 
-		const container = this.getEditorContainer();
+		return KarmaFieldsAlpha.editors[this.uid];
 
-		if (container) {
 
-			return new KarmaFieldsAlpha.Editor(container);
-
-		}
+		// return this.editor;
+		//
+		//
+		//
+		// const container = this.getEditorContainer();
+		//
+		// if (container) {
+		//
+		// 	return new KarmaFieldsAlpha.Editor(container);
+		//
+		// }
 
   }
+
+	async saveEditorContent(tag, editor = this.getEditor(), range = null) {
+
+		await this.save(tag, tag);
+
+		// if (range) {
+		//
+		// 	this.setRange(range);
+		// 	await this.setSelectionState(range);
+		//
+		// }
+
+		const text = editor.getContent();
+		await this.setValue(text);
+		// await this.setFocus();
+
+	}
 
 	// getEditorContent() {
 	//
@@ -142,12 +301,27 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	async toggleBold() {
 
-		const range = this.getRange();
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	editor.toggleBoldAt(range);
+		//
+		// 	await this.saveEditorContent("bold", editor, range);
+		//
+		// 	await this.parent.render();
+		//
+		// }
+
+
 		const editor = this.getEditor();
 
-		if (range && editor && editor.contains(range)) {
+		if (editor) {
 
-			const nodes = [...editor.getNodesAt(range, node => node.tagName === "B" || node.tagName === "STRONG")];
+			// editor.toggleBoldAt(range);
+
+			const nodes = editor.nodes.filter(node => node.tagName === "B" || node.tagName === "STRONG");
 
 			if (nodes.length) {
 
@@ -155,17 +329,20 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 					editor.unwrapNode(node);
 
+					// const range =
+					//
+					// this.setRange(range);
+
 				}
 
 			} else {
 
-				editor.wrapAt(range, "b");
+				editor.wrapInlineAt(editor.range, "b");
 
 			}
 
-			await this.save("bold", "bold");
-			const text = editor.getContent();
-			await this.setValue(text);
+			await this.saveEditorContent("bold", editor, editor.range);
+
 			await this.parent.render();
 
 		}
@@ -174,14 +351,22 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
   isBold() {
 
-		const range = this.getRange();
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	return editor.isBoldAt(range);
+		//
+		// }
+		//
+    // return false;
+
 		const editor = this.getEditor();
 
-		if (range && editor && editor.contains(range)) {
+		if (editor) {
 
-			const result = editor.getNodesAt(range, node => node.tagName === "B" || node.tagName === "STRONG").next();
-
-			return !result.done;
+			return editor.nodes.some(node => node.tagName === "B" || node.tagName === "STRONG");
 
 		}
 
@@ -191,18 +376,56 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	async toggleItalic() {
 
-		const range = this.getRange();
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	editor.toggleItalicAt(range);
+		//
+		// 	// const nodes = [...editor.getNodesAt(range, node => node.tagName === "I" || node.tagName === "EM")];
+		// 	//
+		// 	// if (nodes.length) {
+		// 	//
+		// 	// 	for (let node of nodes) {
+		// 	//
+		// 	// 		editor.unwrapNode(node);
+		// 	//
+		// 	// 	}
+		// 	//
+		// 	// } else {
+		// 	//
+		// 	// 	editor.wrapAt(range, "i");
+		// 	//
+		// 	// }
+		//
+		// 	await this.saveEditorContent("italic", editor, range);
+		//
+		// 	// await this.save("italic", "italic");
+		// 	// await this.setSelectionState(range);
+		// 	// const text = editor.getContent();
+		// 	// await this.setValue(text);
+		// 	await this.parent.render();
+		//
+		// }
+
 		const editor = this.getEditor();
 
-		if (range && editor && editor.contains(range)) {
+		if (editor) {
 
-			const nodes = [...editor.getNodesAt(range, node => node.tagName === "I" || node.tagName === "EM")];
+			// editor.toggleItalicAt(range);
+
+			const nodes = editor.nodes.filter(node => node.tagName === "I" || node.tagName === "EM");
 
 			if (nodes.length) {
 
 				for (let node of nodes) {
 
 					editor.unwrapNode(node);
+
+					// const range =
+					//
+					// this.setRange(range);
 
 				}
 
@@ -212,25 +435,37 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 			}
 
-			await this.save("italic", "italic");
-			const text = editor.getContent();
-			await this.setValue(text);
+			await this.saveEditorContent("italic", editor); //, editor.range);
+
 			await this.parent.render();
 
 		}
+
 
   }
 
   isItalic() {
 
-		const range = this.getRange();
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	return editor.isItalicAt(range);
+		//
+		// 	// const result = editor.getNodesAt(range, node => node.tagName === "I" || node.tagName === "EM").next();
+		// 	//
+		// 	// return !result.done;
+		//
+		// }
+		//
+    // return false;
+
 		const editor = this.getEditor();
 
-		if (range && editor && editor.contains(range)) {
+		if (editor) {
 
-			const result = editor.getNodesAt(range, node => node.tagName === "I" || node.tagName === "EM").next();
-
-			return !result.done;
+			return editor.nodes.some(node => node.tagName === "I" || node.tagName === "EM");
 
 		}
 
@@ -239,6 +474,8 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
   }
 
   queryCommand(key) {
+
+		console.error("deprecated");
 
 		const response = new KarmaFieldsAlpha.Content();
 
@@ -249,6 +486,8 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 
 	getEditorNode(...tags) {
+
+		console.error("deprecated");
 
 		const editor = this.getEditor();
 		const range = this.getRange();
@@ -264,11 +503,15 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
   async execCommand(key) {
 
+		console.error("deprecated");
+
 		document.execCommand(key);
 
   }
 
 	getTag(...tags) {
+
+		console.error("deprecated");
 
 		return this.getEditorNode(...tags);
 
@@ -276,11 +519,15 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	getNodes(...tags) {
 
+		console.error("deprecated");
+
 		return this.getEditorNode(...tags);
 
 	}
 
 	queryNode(...tags) {
+
+		console.error("deprecated");
 
 		const response = new KarmaFieldsAlpha.Content();
 
@@ -297,6 +544,8 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 	}
 
 	async execNode(...tags) {
+
+		console.error("deprecated");
 
 		const editor = this.getEditor();
 		const range = this.getRange();
@@ -328,33 +577,102 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
   }
 
 
-	queryHeading() {
+	hasHeading() {
 
-		return this.queryNode("h1", "h2", "h3", "h4", "h5", "h6");
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	return editor.isHeadingAt(range);
+		//
+		// }
+		//
+    // return false;
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			return editor.nodes.some(node => editor.isHeading(node));
+
+		}
+
+    return false;
 
 	}
 
 	async execHeading() {
 
+		// const editor = this.getEditor();
+		// const range = this.getRange();
+		//
+		// if (editor && range) {
+		//
+		// 	editor.toggleHeading(range, this.resource.defaultHeading || "h1");
+		//
+		// 	await this.saveEditorContent("heading", editor, range);
+		// 	await this.parent.render();
+		//
+		// }
+
 		const editor = this.getEditor();
-		const range = this.getRange();
 
-		if (editor && range) {
+		if (editor) {
 
-			editor.insertHeading(range, this.resource.defaultHeading || "h1");
+			let nodes = editor.nodes.filter(node => editor.isHeading(node));
 
-			await this.save("heading", "heading");
-			const text = editor.getContent();
-			await this.setValue(text);
+			if (nodes.length) {
+
+	      for (let node of nodes) {
+
+	        const range = editor.updateNode(node, "p");
+
+					this.setRange(range);
+
+	      }
+
+	      // range.setStartBefore(nodes[0]);
+	      // range.setEndAfter(nodes[nodes.length-1]);
+
+	    } else if (!editor.range.collapsed) {
+
+	      editor.wrapBlockAt(editor.range, this.resource.defaultHeading || "h1");
+
+	    }
+
+			// editor.toggleHeading(range, this.resource.defaultHeading || "h1");
+
+			await this.saveEditorContent("heading", editor); //, editor.range);
 			await this.parent.render();
 
 		}
 
+
 	}
 
-	queryList(listTag) {
+	isList(listTag = "ul") {
 
-		return this.queryNode(listTag);
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	return editor.isListAt(range, listTag);
+		//
+		// }
+		//
+    // return false;
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			return editor.nodes.some(node => node.tagName === listTag.toUpperCase());
+
+		}
+
+    return false;
 
   }
 
@@ -379,16 +697,67 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
   async execList(tagName) {
 
+		// const editor = this.getEditor();
+		// const range = this.getRange();
+		//
+		// if (editor && range) {
+		//
+		// 	editor.toggleList(range, tagName);
+		//
+		// 	// await this.save(tagName, tagName);
+		// 	// await this.setSelectionState(range);
+		// 	// const text = editor.getContent();
+		// 	// await this.setValue(text);
+		//
+		// 	await this.saveEditorContent(tagName, editor, range);
+		// 	await this.parent.render();
+		//
+		// }
+
 		const editor = this.getEditor();
-		const range = this.getRange();
 
-		if (editor && range) {
+		if (editor) {
 
-			editor.insertList(range, tagName);
+			// editor.toggleList(range, tagName);
 
-			await this.save(tagName, tagName);
-			const text = editor.getContent();
-			await this.setValue(text);
+			let listNodes = editor.nodes.filter(node => node.tagName === "UL" || node.tagName === "OL");
+
+	    if (listNodes.length) {
+
+	      if (listNodes[0].tagName === tagName.toUpperCase()) {
+
+	        for (let node of listNodes) {
+
+						editor.unwrapList(node);
+
+	          // const paragraphs =
+						//
+	          // if (paragraphs.length) {
+						//
+	          //   range.setStartBefore(paragraphs[0]);
+	          //   range.setEndAfter(paragraphs[paragraphs.length - 1]);
+						//
+	          // }
+
+	        }
+
+	      } else {
+
+	        for (let node of listNodes) {
+
+	          editor.updateNode(node, tagName);
+
+	        }
+
+	      }
+
+	    } else {
+
+	      editor.wrapListAt(editor.range, tagName);
+
+	    }
+
+			await this.saveEditorContent(tagName, editor); //, range);
 			await this.parent.render();
 
 		}
@@ -445,23 +814,42 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	async removeImage() {
 
+		// const editor = this.getEditor();
+		// const range = this.getRange();
+		//
+		// if (editor && range && editor.contains(range)) {
+		//
+		// 	const nodes = editor.getNodesAt(range).filter(node => node.tagName === "FIGURE");
+		//
+		// 	for (let node of nodes) {
+		//
+		// 		range.selectNode(node);
+		// 		range.deleteContents();
+		//
+		// 	}
+		//
+		// 	// await this.save("remove-image", "remove-image");
+		// 	// const text = editor.getContent();
+		// 	// await this.setValue(text);
+		//
+		// 	await this.saveEditorContent("remove-image", editor, range);
+		// 	await this.parent.render();
+		//
+		// }
+
 		const editor = this.getEditor();
-		const range = this.getRange();
 
-		if (editor && range && editor.contains(range)) {
+		if (editor) {
 
-			const nodes = [...editor.getNodesAt(range, node => node.tagName === "FIGURE")];
+			const figures = editor.nodes.filter(node => node.tagName === "FIGURE");
 
-			for (let node of nodes) {
+			for (let figure of figures) {
 
-				range.selectNode(node);
-				range.deleteContents();
+				editor.removeNode(figure);
 
 			}
 
-			await this.save("remove-image", "remove-image");
-			const text = editor.getContent();
-			await this.setValue(text);
+			await this.saveEditorContent("remove-image", editor);
 			await this.parent.render();
 
 		}
@@ -469,74 +857,63 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 	}
 
 
-	// async insertImage(img) {
-	//
-	// 	const editor = this.getEditorContainer();
-	//
-	// 	if (editor) {
-	//
-	// 		if (!this.range) {
-	//
-	// 			const selection = document.getSelection();
-	//
-	// 			this.range = selection.getRangeAt(0);
-	//
-	// 			// console.log("insertImage", this.range);
-	//
-	// 			if (!editor.contains(this.range.startContainer)) {
-	//
-	// 				this.range.selectNodeContents(editor);
-	// 				this.range.collapse(false);
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 		const figure = this.getTag("figure");
-	// 		const p = this.getTag("p");
-	//
-	// 		if (figure || p && !p.textContent.trim()) {
-	//
-	// 			this.range.selectNode(figure || p);
-	// 			this.range.deleteContents();
-	//
-	//
-	//
-	// 		}
-	//
-	// 		while (this.range.startContainer !== editor) {
-	//
-	// 			this.range.setStartAfter(this.range.startContainer);
-	//
-	// 		}
-	//
-	// 		this.range.insertNode(img);
-	//
-	//
-	// 		await this.save("format", "format");
-	// 		// await this.setValue(text);
-	// 		// await this.updateContent();
-	// 		const text = this.getEditorContent();
-	// 		await this.setValue(text);
-	// 		await this.setFocus();
-	// 		await this.parent.render();
-	//
-	// 	}
-	//
-	// }
 
-	async insertImage2(img) {
+	getImages() {
+
+		// const editor = this.getEditor();
+		// const range = this.getRange();
+		//
+		// if (editor && range && editor.contains(range)) {
+		//
+		// 	return editor.getNodesAt(range).filter(node => node.tagName === "FIGURE");
+		//
+		// }
+		//
+		// return [];
 
 		const editor = this.getEditor();
-		const range = this.getRange();
 
-		if (editor && range) {
+		if (editor) {
 
-			editor.insertFigure(range, img);
+			return editor.nodes.filter(node => node.tagName === "FIGURE");
 
-			await this.save("image", "image");
-			const text = editor.getContent();
-			await this.setValue(text);
+		}
+
+		return [];
+
+	}
+
+	hasImage() {
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			return editor.nodes.some(node => node.tagName === "FIGURE");
+
+		}
+
+		return false;
+
+	}
+
+	async insertImage2(...imgs) {
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			const nodes = editor.nodes.filter(node => node.tagName === "FIGURE");
+
+			if (nodes.length) {
+
+				editor.selectNode(...nodes);
+
+			}
+
+			editor.insertContainerAt(editor.range, ...imgs);
+
+			await this.saveEditorContent("insert-image", editor);
 			await this.parent.render();
 
 		}
@@ -649,18 +1026,20 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		// }
 
 		const editor = this.getEditor();
-		const range = this.getRange();
+		// const range = this.getRange();
 
-		if (editor && range) {
+		if (editor) {
 
 			const p = document.createElement("p");
 			p.innerHTML = "---";
-			editor.insertAt(range, p);
+			editor.insertContainerAt(editor.range, p);
 
-			await this.save("more", "more");
-			// const text = this.getEditorContent();
-			const text = editor.getContent();
-			await this.setValue(text);
+			// await this.save("more", "more");
+			// // const text = this.getEditorContent();
+			// const text = editor.getContent();
+			// await this.setValue(text);
+
+			await this.saveEditorContent("insert-more", editor);
 			await this.parent.render();
 
 		}
@@ -696,29 +1075,40 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 	//
 	// }
 
-	getLinkUnder() {
-
-		console.error("deprecated");
+	getLinksUnder() {
 
 		const editor = this.getEditor();
-		const range = this.getRange();
 
 		if (editor && range && editor.contains(range)) {
 
-			return editor.getNodeByTags(range, "a");
+			return editor.nodes.filter(node => node.tagName === "A");
 
 		}
+
+		return [];
 
 	}
 
 	isLink() {
 
+		// const editor = this.getEditor();
+		// const range = this.getRange();
+		//
+		// if (editor && range && editor.contains(range)) {
+		//
+		// 	// return editor.hasNodeAt(range, node => node.tagName === "A");
+		//
+		// 	return editor.isLinkAt(range);
+		//
+		// }
+		//
+		// return false;
+
 		const editor = this.getEditor();
-		const range = this.getRange();
 
-		if (editor && range && editor.contains(range)) {
+		if (editor) {
 
-			return editor.hasNodeAt(range, node => node.tagName === "A");
+			return editor.nodes.some(node => node.tagName === "A");
 
 		}
 
@@ -731,12 +1121,11 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		const editor = this.getEditor();
 		const range = this.getRange();
 
-		if (editor && range && editor.contains(range)) {
-
-
+		// if (editor && range && editor.contains(range) && !range.collapsed) {
+		if (editor && !editor.range.collapsed) {
 
 			// Create a custom highlight for these ranges.
-			const highlight = new Highlight(range);
+			const highlight = new Highlight(editor.range);
 
 			// Register the ranges in the HighlightRegistry.
 			CSS.highlights.set("richtext-highlight", highlight);
@@ -783,42 +1172,72 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 	// }
 
 
+	// async updateLink(params) {
+	//
+	// 	const editor = this.getEditor();
+	// 	const range = this.getRange();
+	//
+	// 	if (editor && range && editor.contains(range)) {
+	//
+	// 		let node = editor.getLinkAt(range);
+	//
+	// 		if (node) {
+	//
+	// 			const href = node.getAttribute("href");
+	// 			const target = node.getAttribute("target");
+	//
+	// 			editor.updateNode(node, null, {href, target, ...params});
+	//
+	// 			await this.saveEditorContent("link", editor); // not range!
+	//
+	// 		} else if (!range.collapsed && params.href) {
+	//
+	// 			editor.wrapInlineAt(range, "a", params);
+	//
+	// 			await this.saveEditorContent("link", editor); // not range!
+	//
+	// 			await this.setSelectionState(range); // do not cast setRange!
+	//
+	// 		}
+	//
+	// 		this.debounce(() => {
+	// 			this.render();
+	// 		}, 400);
+	//
+	// 	}
+	//
+	// }
+
 	async updateLink(params) {
 
 		const editor = this.getEditor();
-		const range = this.getRange();
 
-		if (editor && range && editor.contains(range)) {
+		if (editor) {
 
-			let node = editor.getNodeByTags(range, "a");
+			const links = editor.nodes.filter(node => node.tagName === "A");
 
-			if (node) {
+			if (links.length) {
 
-				const href = node.getAttribute("href");
-				const target = node.getAttribute("target");
+				for (let link of links) {
 
-				// params = {href, target, ...params};
+					const href = link.getAttribute("href");
+					const target = link.getAttribute("target");
 
-				// if (params.href) {
+					editor.updateNode(link, null, {href, target, ...params});
 
-					editor.updateNodeParams(node, {href, target, ...params});
+				}
 
-				// } else {
-				//
-				// 	editor.unwrapNode(node);
-				//
-				// }
+				await this.saveEditorContent("link", editor); // not range!
 
-			} else if (!range.collapsed && params.href) {
+			} else if (editor.range && !editor.range.collapsed && params.href) {
 
-				editor.wrapAt(range, "a", params);
+				editor.wrapInlineAt(editor.range, "a", params);
+
+				await this.saveEditorContent("link", editor); // not range!
+
+				await this.setSelectionState(editor.range); // do not cast setRange!
 
 			}
-
-			await this.save("link", "link");
-			const text = editor.getContent();
-			await this.setValue(text);
-			await this.setFocus();
 
 			this.debounce(() => {
 				this.render();
@@ -859,20 +1278,39 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	async unlink() {
 
+		// const editor = this.getEditor();
+		// const range = this.getRange();
+		//
+		// if (editor && range) {
+		//
+		// 	editor.unlinkAt(range);
+		//
+		// 	await this.saveEditorContent("unlink", editor, range);
+		// 	await this.parent.render();
+		//
+		// }
+
 		const editor = this.getEditor();
-		const range = this.getRange();
 
-		if (editor && range) {
+		if (editor) {
 
-			editor.unwrap(range, "a");
+			// editor.unlinkAt(range);
 
-			await this.save("format", "format");
-			const text = editor.getContent();
-			await this.setValue(text);
-			await this.setFocus();
+			const links = editor.nodes.filter(node => node.tagName === "A");
+
+	    for (let link of links) {
+
+	      editor.unwrapNode(link);
+
+	    }
+
+			await this.saveEditorContent("unlink", editor, editor.range);
 			await this.parent.render();
 
 		}
+
+
+
 
 	}
 
@@ -952,11 +1390,47 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 				const range = this.getRange();
 				const editor = this.getEditor();
 				if (range && editor && editor.contains(range)) {
-					const figures = editor.getNodesAt(range, node => node.tagName === "FIGURE");
-					const figure = figures.next().value;
+					const figure = editor.findNodeAt(range, node => node.tagName === "FIGURE");
+					// const figure = figures.next().value;
 					if (figure) {
 						const img = figure.querySelector("img");
-						content.value = img.src;
+						if (img) {
+							content.value = img.src;
+						}
+					}
+				}
+				return content;
+			}
+			case "heading": {
+				const content = new KarmaFieldsAlpha.Content();
+				const range = this.getRange();
+				const editor = this.getEditor();
+				if (range && editor && editor.contains(range)) {
+					const heading = editor.getHeadingAt(range);
+					// const headings = [...editor.getNodesAt(range, node => ["H1", "H2", "H3", "H4", "H5", "H6"].includes(node.tagName))];
+					if (heading) {
+						content.value = heading.tagName.toLowerCase();
+					}
+				}
+				return content;
+			}
+
+			case "href":
+			case "target": {
+				const content = new KarmaFieldsAlpha.Content();
+				// const range = this.getRange();
+				// const editor = this.getEditor();
+				// if (editor && range) {
+				// 	const link = editor.getLinkAt(range);
+				// 	if (link) {
+				// 		content.value = link.getAttribute(key);
+				// 	}
+				// }
+				const editor = this.getEditor();
+				if (editor) {
+					content.value = editor.nodes.filter(link => link.tagName === "A").map(link => link.getAttribute(key));
+					if (content.value.slice(1).some(value => value !== content.value[0])) {
+						content.mixed = true;
 					}
 				}
 				return content;
@@ -977,6 +1451,35 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 	async setValue(value, key) {
 
     switch (key) {
+
+			case "heading": {
+				const range = this.getRange();
+				const editor = this.getEditor();
+				if (range && editor && editor.contains(range)) {
+					// let nodes = editor.getNodesAt(range, node => editor.isHeading(node));
+					// for (let node of nodes) {
+					// 	editor.updateNode(node, value);
+					// }
+					let heading = editor.getHeadingAt(range);
+					if (heading) {
+						editor.updateNode(heading, value);
+					}
+					// editor.insertHeading(range, value);
+
+					await this.saveEditorContent("heading", editor); // not range!
+					await this.setFocus();
+
+					// await this.setSelectionState(range); // do not cast setRange!
+					await this.render();
+
+				}
+				break;
+			}
+			case "href":
+			case "target": {
+				await this.updateLink({[key]: value});
+				break;
+			}
 
       case "format":
         await this.setFormat(value);
@@ -1126,6 +1629,12 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 			// 	type: "filesAttacher"
 			// }, "filesAttacher")
 
+		} else if (type === "headingForm") {
+
+			return new KarmaFieldsAlpha.field.richtext.headingForm({
+				...this.resource.headingForm
+			}, "headingForm", this);
+
 		}
 
 	}
@@ -1180,8 +1689,10 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 					{
 						class: "toolbar simple-buttons",
 						child: this.getChild("editortoolbar").build()
-					}
+					},
+					...[...this.getFooterChildren()].map(child => child.build())
 				]
+
 			};
 
 			// yield {
@@ -1225,17 +1736,38 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 				},
 				update: async node => {
 
-					// this.captureRange();
+					// this.<();
 
 					// this.updateSelection(node.element);
 
 					// const selection = document.getSelection();
 					// this.range = selection && selection.rangeCount > 0 && selection.getRangeAt(0);
 
+					let editor = this.getEditor();
 
-					KarmaFieldsAlpha.editors[this.uid] = node.element;
+					if (!editor) {
 
-					const editor = new KarmaFieldsAlpha.Editor(node.element);
+						editor = new KarmaFieldsAlpha.Editor(node.element);
+
+						this.setEditor(editor);
+
+					}
+
+					editor.element = node.element;
+
+					// KarmaFieldsAlpha.editors[this.uid] = node.element;
+
+
+
+					// const editor = new KarmaFieldsAlpha.Editor(node.element);
+
+					editor.onSelectionChange = () => {
+						this.debounce(() => {
+							this.render();
+						}, 200);
+					};
+
+
 
 					let content = this.getContent();
 
@@ -1261,6 +1793,10 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	        if (!content.loading) {
 
+						// this.editor = editor;
+
+						// this.setEditor(editor);
+
 						// input.element.placeholder = this.getPlaceholder().toString();
 						node.element.classList.toggle("mixed", Boolean(content.mixed));
 
@@ -1285,7 +1821,11 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	            node.element.parentNode.classList.toggle("modified", Boolean(content.modified));
 
+							if (hasFocus && document.activeElement !== node.element) {
 
+								node.element.focus();
+
+							}
 
 							// const currentValue = editor.getContent();
 							//
@@ -1301,15 +1841,34 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 							let newContent = content.toString();
 
-							if (newContent !== editor.getContent()) {
 
-								editor.setContent(newContent);
+							if (newContent) {
 
-								newContent = editor.getContent();
+								let currentContent = editor.getContent();
 
-								this.setValue(newContent);
+
+
+								if (newContent !== currentContent) {
+
+									const rangePath = this.getState("rangePath");
+
+									editor.setContent(newContent, rangePath);
+
+									newContent = editor.getContent();
+
+									this.setValue(newContent);
+
+								}
+
+							} else {
+
+								editor.reset();
 
 							}
+
+
+
+
 
 
 
@@ -1348,7 +1907,12 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 					node.element.oninput = async event => {
 
-						this.captureRange();
+						// console.log("oninput");
+						//
+						// event.preventDefault();
+						// event.stopPropagation();
+
+						// this.captureRange();
 
 						// const selection = document.getSelection();
 						// this.range = selection.getRangeAt(0);
@@ -1382,24 +1946,40 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 						//
 						// }
 
+
+
+
+
 						// const normalizedValue = node.element.innerHTML.normalize();
-						const normalizedValue = editor.getContent();
+						// const normalizedValue = editor.getContent();
 
-						if (normalizedValue.length < content.toString().length) {
+						// if (normalizedValue.length < content.toString().length) {
+						//
+						// 	await this.save(`${this.uid}-delete`, "Delete");
+						//
+						// 	console.log("save Delete");
+						//
+						// } else {
+						//
+						// 	await this.save(`${this.uid}-insert`, "Insert");
+						//
+						// 	console.log("save Insert");
+						//
+						// }
 
-							await this.save(`${this.uid}-delete`, "Delete");
+						// console.log("write", event);
 
-						} else {
+						await this.saveEditorContent(event.inputType, editor);
 
-							await this.save(`${this.uid}-insert`, "Insert");
+						// await this.save("write", "Write");
+						//
+						// await this.setSelectionState();
+						//
+						// await this.setValue(normalizedValue);
 
-						}
-
-						await this.setValue(normalizedValue);
-
-						this.debounce(() => {
-							this.request("render");
-						}, 400);
+						// this.debounce(() => {
+						// 	this.request("render");
+						// }, 40000000);
 
 
 	        }
@@ -1460,7 +2040,7 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 						event.preventDefault();
 
-						const range = this.getRange();
+						const range = this.getCurrentRange();
 
 						if (range && !range.collapsed) {
 
@@ -1469,11 +2049,14 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 							const html = editor.cut(range);
 
 							event.clipboardData.setData("text/plain", html);
+							event.clipboardData.setData("text/html", html);
 
-							const text = editor.getContent();
+							// const text = editor.getContent();
+							//
+							// await this.save("cut", "cut");
+							// await this.setValue(text);
 
-							await this.save("cut", "cut");
-							await this.setValue(text);
+							await this.saveEditorContent("cut", editor, range);
 							await this.parent.render();
 
 						}
@@ -1484,16 +2067,23 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 						event.preventDefault();
 
-						const selection = document.getSelection();
-						const range = selection.getRangeAt(0);
+						// const selection = document.getSelection();
+						// const range = selection.getRangeAt(0);
+
+						const range = this.getCurrentRange();
 
 						if (range && !range.collapsed) {
 
 							// const editor = new KarmaFieldsAlpha.Editor(node.element);
 
-							const html = editor.copy(range);
+							let html = editor.copy(range);
+
+
+							// html = `<meta charset='utf-8'>${html}`;
 
 							event.clipboardData.setData("text/plain", html);
+							event.clipboardData.setData("text/html", html);
+
 
 						}
 
@@ -1504,26 +2094,28 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 						event.preventDefault();
 
-						const range = this.getRange();
+						const range = this.getCurrentRange();
 
 						if (range) {
 
 							// const editor = new KarmaFieldsAlpha.Editor(node.element);
 
-							const html = event.clipboardData.getData("text/plain");
+							// const html = event.clipboardData.getData("text/plain");
+							const html = event.clipboardData.getData("text/html");
+							const text = event.clipboardData.getData("text/plain");
 
-							console.log(html);
+							// console.log(text);
 
-							// debugger;
 
 							editor.paste(range, html);
 
-							await this.save("paste", "paste");
-							const text = editor.getContent();
-							await this.setValue(text);
+							// await this.save("paste", "paste");
+							// const text = editor.getContent();
+							// await this.setValue(text);
 							// await this.parent.render();
 
-							this.request("render");
+							await this.saveEditorContent("paste", editor, range);
+							await this.parent.render();
 
 						}
 						// const fragment = document.createDocumentFragment();
@@ -1546,142 +2138,68 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 
 
-					// node.element.onkeyup = async event => {
-					// 	if (event.key === "Backspace") {
-					//
-					// 		const selection = document.getSelection();
-					// 		this.range = selection.getRangeAt(0);
-					//
-					// 		// this.range.startContainer.nextSibling.replaceWith(this.range.startContainer.nextSibling.firstChild);
-					//
-					// 		console.log(this.range.startContainer.nextSibling.firstChild);
-					// 	}
-					// }
+					node.element.onkeyup =  async event => {
+
+						return;
+
+						// this.debounce(() => {
+						// 	this.render();
+						// }, 400);
+
+						const range = this.getCurrentRange();
+
+						await this.setSelectionState(range);
+
+						console.log("keyup");
+
+						await this.render();
+
+					}
 
 
 					node.element.onkeydown = async event => {
 
-						this.captureRange();
+						if (event.key === "z" && event.metaKey) {
+
+							event.preventDefault();
+							if (event.shiftKey) {
+							  KarmaFieldsAlpha.History.redo();
+							} else {
+							  KarmaFieldsAlpha.History.undo();
+							}
+							return;
+						}
 
 						if (event.key === "Backspace") {
 
+							const range = this.getCurrentRange();
 
+							if (editor.delete(range)) {
 
-							// const selection = document.getSelection();
-							// this.range = selection.getRangeAt(0);
-							//
-							// const range = this.range;
+								event.preventDefault();
 
-							const range = this.getRange();
+								await this.saveEditorContent("backspace", editor, range);
 
+								this.debounce(() => {
+									this.parent.render();
+								}, 400);
 
-
-
-							// if (this.range.startContainer.nodeType !== 3 || this.range.startOffset === 0 || !this.range.collapsed) {
-							//
-							// 	event.preventDefault();
-
-								// const editor = new KarmaFieldsAlpha.Editor(node.element);
-
-								// if (K.x) debugger;
-
-								if (editor.delete(range)) {
-
-									// K.x = true;
-
-									event.preventDefault();
-
-									await this.save("backspace", "Backspace");
-									const text = editor.getContent();
-									await this.setValue(text);
-									// await this.parent.render();
-
-									this.debounce(() => {
-										this.request("render");
-									}, 400);
-
-								}
-
-
-
-							// }
-
-
-							// let node = this.range.startContainer;
-							//
-							// if (node && (node.tagName === "FIGURE")) {
-							//
-							// 	this.deleteNode(this.range.startContainer);
-							//
-							// 	event.preventDefault();
-							//
-							// }
+							}
 
 						}
 
-						if (event.key === "Enter" && !event.shiftKey) {
+						if (event.key === "Enter") {
 
 							event.preventDefault();
 
-							// const selection = document.getSelection();
-							// this.range = selection.getRangeAt(0);
-							//
-							// const editor = new KarmaFieldsAlpha.Editor(node.element);
+							const range = this.getCurrentRange();
 
-							const range = this.getRange();
+							editor.breakLine(range, event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
 
-							editor.breakLine(range);
-
-							const text = editor.getContent();
-
-							await this.save("enter", "Enter");
-							await this.setValue(text);
+							await this.saveEditorContent("enter", editor, range);
 							await this.parent.render();
 
-							// let node = this.range.startContainer;
-							//
-							// if (node.nodeType !== 1) {
-							//
-							// 	node = node.parentNode;
-							//
-							// }
-							//
-							// // if (node.tagName !== "LI" && node.tagName !== "P") {
-							// if (node.tagName === "FIGCAPTION" || node.tagName === "FIGURE" ) {
-							//
-							// 	event.preventDefault();
-							//
-							// 	this.insertParagraph();
-							//
-							// }
-							//
-							// const ul = this.getSelectedNode("ul");
-							// const li = this.getSelectedNode("li");
-							//
-							// if (li && !li.textContent.trim()) {
-							//
-							// 	event.preventDefault();
-							//
-							// 	li.remove();
-							//
-							// 	this.insertParagraph();
-							//
-							// }
-
-							// if (ul) {
-							//
-							//
-							// 	event.preventDefault();
-							//
-							// 	this.insertParagraph();
-							//
-							// }
-
-
-
 	          }
-
-
 
 					}
 
@@ -1742,9 +2260,23 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 					node.element.onmousedown = event => {
 
-						const onmouseup = () => {
+						return;
 
-							this.captureRange();
+						const onmouseup =  event => {
+
+							// console.log("mouseup");
+
+
+
+
+
+							// setTimeout(() => {
+								const range = this.getCurrentRange();
+
+								this.setSelectionState(range);
+								this.render();
+
+							// }, 0);
 
 							document.removeEventListener("mouseup", onmouseup);
 						}
@@ -1753,27 +2285,27 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 					}
 
-					node.element.onmouseup = event => {
-
-						// this.captureRange();
-
-						// this.captureRange();
-						//
-						// console.log("captureRange");
-
-						// const selection = document.getSelection();
-						//
-						// const range = selection.getRangeAt(0);
-						//
-						//
-						//
-						// if (range.startContainer && node.element.contains(range.startContainer)) {
-						//
-						// 	this.range = range;
-						//
-						// }
-
-					}
+					// node.element.onmouseup = event => {
+					//
+					// 	// this.captureRange();
+					//
+					// 	// this.captureRange();
+					// 	//
+					// 	// console.log("captureRange");
+					//
+					// 	// const selection = document.getSelection();
+					// 	//
+					// 	// const range = selection.getRangeAt(0);
+					// 	//
+					// 	//
+					// 	//
+					// 	// if (range.startContainer && node.element.contains(range.startContainer)) {
+					// 	//
+					// 	// 	this.range = range;
+					// 	//
+					// 	// }
+					//
+					// }
 
 					node.element.onclick = async event => {
 
@@ -1862,7 +2394,7 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 						//
 						// 	}
 						//
-							await this.render();
+							// await this.render();
 						//
 						// }
 
@@ -1873,36 +2405,38 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 					node.element.ondblclick = async event => {
 
-						// const selection = document.getSelection();
-						//
-						// this.range = selection.getRangeAt(0);
-						//
-						// const range = this.range;
+						// console.log(event);
 
+						if (event.target.tagName === "IMG") {
 
-						// const figure = this.getTag("figure");
+							const field = this.getChild("filesAttacher");
 
-						// this.dblclick();
-
-						const range = this.getRange();
-						// const editor = this.getEditor();
-
-						if (range) {
-
-							const figure = editor.getNodeByTags(range, "figure");
-
-							if (figure) {
-
-								range.selectNode(figure);
-
-								const field = this.getChild("filesAttacher");
-
-								await field.edit();
-								await this.render();
-
-							}
+							await field.edit();
+							await this.render();
 
 						}
+
+
+						// const range = this.getCurrentRange();
+						// // const editor = this.getEditor();
+						//
+						// if (range) {
+						//
+						// 	// const figure = editor.getNodeByTags(range, "figure");
+						// 	const figures = this.getImages(range);
+						//
+						// 	if (figures.length) {
+						//
+						// 		range.selectNode(figures[0]);
+						//
+						// 		const field = this.getChild("filesAttacher");
+						//
+						// 		await field.edit();
+						// 		await this.render();
+						//
+						// 	}
+						//
+						// }
 
 
 
@@ -1913,37 +2447,19 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 				}
 			};
 
-			yield {
-				class: "tinymce editor-footer",
-				update: node => {
-					const children = [...this.getFooterChildren()];
-					node.children = children.map(child => child.build());
-					// node.element.style.gridTemplateRows = children.map(inspector => inspector.isActive() ? "1fr" : 0).join(" ");
-				}
-				// children: [
-				// 	this.getChild("linkForm").build()
-				// 	// {
-				// 	// 	class: "inspector linkform-container",
-				// 	// 	children: [...this.getChild("linkForm").build()]
-				// 	// }
-				// ]
-			};
+			if (false) {
 
-			// yield {
-			// 	class: "karma-popover-container imageform-container",
-			// 	children: [...this.getChild("imageForm").build()],
-			// 	// update: node => {
-			// 	// 	const field = this.getChild("imageForm");
-			// 	// 	field.focusInside = field.hasFocusInside();
-			// 	// 	node.children = [...field.build()];
-			// 	// }
-			// };
+				yield {
+					class: "tinymce editor-footer",
+					update: node => {
+						const children = [...this.getFooterChildren()];
+						node.children = children.map(child => child.build());
+						// node.element.style.gridTemplateRows = children.map(inspector => inspector.isActive() ? "1fr" : 0).join(" ");
+					}
+				};
 
-			// yield {
-			// 	class: "karma-popover-container linkform-container",
-			// 	children: [...this.getChild("linkForm").build()]
-			//
-			// };
+			}
+
 
 
 			yield {
@@ -1963,6 +2479,8 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		yield linkForm;
 
 		yield this.getChild("imageForm");
+
+		yield this.getChild("headingForm");
 
 	}
 
@@ -2108,7 +2626,7 @@ KarmaFieldsAlpha.field.richtext.buttons.heading = class extends KarmaFieldsAlpha
 			title: "Heading",
 			action: "execHeading",
 			// value: "bold",
-			active: ["request", "queryHeading"],
+			active: ["request", "hasHeading"],
 			...resource
 		}, id, parent);
 	}
@@ -2178,6 +2696,8 @@ KarmaFieldsAlpha.field.richtext.buttons.link = class extends KarmaFieldsAlpha.fi
 			// active: ["request", "queryNode", "a"],
 			active: ["request", "isLink"],
 			// enabled: ["||", ["request", "hasContentSelected"], ["request", "queryLink"]],
+			// disabled: ["request", "isRangeCollapsed"],
+			disabled: ["&&", ["request", "isRangeCollapsed"], ["!", ["request", "isLink"]]],
 			...resource
 		}, id, parent);
 	}
@@ -2315,7 +2835,7 @@ KarmaFieldsAlpha.field.richtext.buttons.image = class extends KarmaFieldsAlpha.f
 			dashicon: "format-image",
 			title: "Image",
 			action: "addImage",
-			// active: ["request", "queryImage"],
+			active: ["request", "hasImage"],
 			// disabled: ["!", ["request", "hasContentSelected"]],
 			...resource
 		}, id, parent);
@@ -2343,7 +2863,7 @@ KarmaFieldsAlpha.field.richtext.buttons.ul = class extends KarmaFieldsAlpha.fiel
 			action: "execList",
 			params: ["ul"],
 			// active: ["request", "queryUL"],
-			active: ["request", "queryList", "ul"],
+			active: ["request", "isList", "UL"],
 			...resource
 		}, id, parent);
 	}
@@ -2358,7 +2878,7 @@ KarmaFieldsAlpha.field.richtext.buttons.ol = class extends KarmaFieldsAlpha.fiel
 			action: "execList",
 			params: ["ol"],
 			// active: ["request", "queryOL"],
-			active: ["request", "queryList", "ol"],
+			active: ["request", "isList", "OL"],
 			...resource
 		}, id, parent);
 	}
@@ -2498,93 +3018,93 @@ KarmaFieldsAlpha.field.richtext.buttons.justifyNone = class extends KarmaFieldsA
 
 
 
-KarmaFieldsAlpha.field.richtext.form = class extends KarmaFieldsAlpha.field.group {
-
-	isActive() {
-
-		return this.hasFocusInside();
-
-		// return this.hasFocusInside();
-
-	}
-
-	*build() {
-
-
-		if (this.isActive()) {
-
-			yield super.build();
-
-			// yield {
-			// 	class: "karma-tinymce-contextual-tools active",
-			// 	child: super.build(),
-			// 	init: node => {
-			// 		node.element.onmousedown = event => {
-			// 			event.stopPropagation();
-			// 		}
-			// 	}
-			// }
-
-			// yield {
-			// 	class: "karma-tinymce-popover active",
-			// 	child: super.build(),
-			// 	init: popover => {
-			// 		popover.element.onmousedown = event => {
-			// 			event.stopPropagation();
-			// 		}
-			// 	},
-			// 	update: popover => {
-			//
-			// 		const editorBody = this.parent.getEditorContainer().parentNode;
-			//
-			// 		const range = this.parent.getRange();
-			//
-			// 		if (range) {
-			//
-			// 			const containerBox = editorBody.getBoundingClientRect();
-			//
-			// 			let box;
-			//
-			// 			if (range.collapsed) {
-			// 				let node = range.startContainer;
-			// 				if (node.nodeType !== 1) {
-			// 					node = node.parentNode;
-			// 				}
-			// 				box = node.getBoundingClientRect();
-			// 			} else {
-			// 				box = range.getBoundingClientRect();
-			// 			}
-			//
-			// 			const parentWidth = popover.element.parentNode.parentNode.clientWidth;
-			// 			const width = Math.min(360, containerBox.width);
-			// 			const left = Math.min(box.left - containerBox.left, parentWidth - width);
-			// 			let top = box.top - containerBox.top + box.height + 5;
-			//
-			// 			popover.element.style.left = `${left.toFixed()}px`;
-			// 			popover.element.style.top = `${top.toFixed()}px`;
-			// 			popover.element.style.width = `${width.toFixed()}px`;
-			//
-			// 		}
-			//
-			//
-			//
-			//
-			// 	}
-			// };
-
-		}
-
-	}
-
-}
+// KarmaFieldsAlpha.field.richtext.form = class extends KarmaFieldsAlpha.field.group {
+//
+// 	isActive() {
+//
+// 		return this.hasFocusInside();
+//
+// 		// return this.hasFocusInside();
+//
+// 	}
+//
+// 	*build() {
+//
+//
+// 		if (this.isActive()) {
+//
+// 			yield super.build();
+//
+// 			// yield {
+// 			// 	class: "karma-tinymce-contextual-tools active",
+// 			// 	child: super.build(),
+// 			// 	init: node => {
+// 			// 		node.element.onmousedown = event => {
+// 			// 			event.stopPropagation();
+// 			// 		}
+// 			// 	}
+// 			// }
+//
+// 			// yield {
+// 			// 	class: "karma-tinymce-popover active",
+// 			// 	child: super.build(),
+// 			// 	init: popover => {
+// 			// 		popover.element.onmousedown = event => {
+// 			// 			event.stopPropagation();
+// 			// 		}
+// 			// 	},
+// 			// 	update: popover => {
+// 			//
+// 			// 		const editorBody = this.parent.getEditorContainer().parentNode;
+// 			//
+// 			// 		const range = this.parent.getRange();
+// 			//
+// 			// 		if (range) {
+// 			//
+// 			// 			const containerBox = editorBody.getBoundingClientRect();
+// 			//
+// 			// 			let box;
+// 			//
+// 			// 			if (range.collapsed) {
+// 			// 				let node = range.startContainer;
+// 			// 				if (node.nodeType !== 1) {
+// 			// 					node = node.parentNode;
+// 			// 				}
+// 			// 				box = node.getBoundingClientRect();
+// 			// 			} else {
+// 			// 				box = range.getBoundingClientRect();
+// 			// 			}
+// 			//
+// 			// 			const parentWidth = popover.element.parentNode.parentNode.clientWidth;
+// 			// 			const width = Math.min(360, containerBox.width);
+// 			// 			const left = Math.min(box.left - containerBox.left, parentWidth - width);
+// 			// 			let top = box.top - containerBox.top + box.height + 5;
+// 			//
+// 			// 			popover.element.style.left = `${left.toFixed()}px`;
+// 			// 			popover.element.style.top = `${top.toFixed()}px`;
+// 			// 			popover.element.style.width = `${width.toFixed()}px`;
+// 			//
+// 			// 		}
+// 			//
+// 			//
+// 			//
+// 			//
+// 			// 	}
+// 			// };
+//
+// 		}
+//
+// 	}
+//
+// }
 
 
 KarmaFieldsAlpha.field.richtext.linkForm = class extends KarmaFieldsAlpha.field.group {
 
 	constructor(resource, id, parent) {
 		super({
-			key: "linkform",
-			selector: "a",
+			// key: "linkform",
+			// selector: "a",
 			// display: "flex",
 			children: [
 				// "linkFormInput",
@@ -2595,28 +3115,34 @@ KarmaFieldsAlpha.field.richtext.linkForm = class extends KarmaFieldsAlpha.field.
 						{
 							type: "input",
 							key: "href",
-							label: "Link",
+							// label: "Link",
 							width: "1fr"
 						},
 						{
+							type: "checkbox",
+							key: "target",
+							text: "Open in new tab",
+							true: "_blank",
+							false: ""
+						},
+						{
 							type: "attachFile",
-							label: "Media"
+							// label: "Media"
 						},
 						{
 							type: "button",
-							label: "Unlink",
+							// label: "Unlink",
 							dashicon: "editor-unlink",
 							action: "unlink"
+						},
+						{
+							type: "button",
+							dashicon: "no-alt",
+							action: "close"
 						}
 					]
-				},
-				{
-					type: "checkbox",
-					key: "target",
-					text: "Open in new tab",
-					true: "_blank",
-					false: ""
 				}
+
 
 				// "attachFile",
 				// "target"
@@ -2645,98 +3171,118 @@ KarmaFieldsAlpha.field.richtext.linkForm = class extends KarmaFieldsAlpha.field.
 
 	isActive() {
 
-		return this.hasFocusInside() || this.request("getEditorNode", "a");
-
-	}
-
-	parseLink(node) {
-
-		const object = {};
-
-		object.href = node.getAttribute("href");
-		object.target = node.getAttribute("target");
-
-		return object;
-	}
-
-	getContent(subkey) {
-
-		const response = new KarmaFieldsAlpha.Content();
-
-		const linkNode = this.request("getEditorNode", "a");
-
-		if (linkNode) {
-
-			response.value = this.parseLink(linkNode)[subkey] || "";
-
-		}
-
-		return response;
-	}
-
-	setValue(value, subkey) {
-
-
-		return this.request("updateLink", {[subkey]: value});
-
-		// let params = {[subkey]: value};
-		//
-		// const linkNode = this.request("getEditorNode", "a");
-		//
-		// if (linkNode) {
-		//
-		// 	params = {...this.parseLink(linkNode), ...params};
-		//
-		// }
-		//
-		// ;
-		//
-		// if (subkey === "href") {
-		//
-		//
-		//
-		// }
-
-
-
-		// const state = this.getData("data") || {};
-		//
-		// state[subkey] = value;
-		//
-		// return this.setData(state, "data");
-
-
-
-	}
-
-	async submit() {
-
-		let href = this.getContent("href");
-		let target = this.getContent("target");
-		// let request = this.parent.getEditor();
-
-		this.parent.insertLink(href.toString(), target.toString() ? "_blank" : "");
-
-		this.setData({}, "data");
-
+		return this.hasFocusInside() || this.request("isLink") && this.parent.hasFocus();
 
 	}
 
 	async close() {
 
-		// KarmaFieldsAlpha.server.setData({}, this.uid);
-		//
-		// // this.parent.setFocus();
-		//
-		// // const request = this.parent.getEditor();
-		//
-		// this.setData({}, "data");
+		// getLinksUnder
+		const editor = this.parent.getEditor();
+
+		const links = editor.nodes.filter(node => node.tagName === "A");
+
+		if (links.length) {
+
+			editor.range.setStartAfter(links[links.length-1]);
+			editor.range.collapse(true);
+
+		}
 
 		await this.parent.setFocus();
 
 		await this.render();
 
-  }
+	}
+
+	// parseLink(node) {
+	//
+	// 	const object = {};
+	//
+	// 	object.href = node.getAttribute("href");
+	// 	object.target = node.getAttribute("target");
+	//
+	// 	return object;
+	// }
+	//
+	// getContent(subkey) {
+	//
+	// 	const response = new KarmaFieldsAlpha.Content();
+	//
+	// 	const linkNode = this.request("getEditorNode", "a");
+	//
+	// 	if (linkNode) {
+	//
+	// 		response.value = this.parseLink(linkNode)[subkey] || "";
+	//
+	// 	}
+	//
+	// 	return response;
+	// }
+	//
+	// setValue(value, subkey) {
+	//
+	//
+	// 	return this.request("updateLink", {[subkey]: value});
+	//
+	// 	// let params = {[subkey]: value};
+	// 	//
+	// 	// const linkNode = this.request("getEditorNode", "a");
+	// 	//
+	// 	// if (linkNode) {
+	// 	//
+	// 	// 	params = {...this.parseLink(linkNode), ...params};
+	// 	//
+	// 	// }
+	// 	//
+	// 	// ;
+	// 	//
+	// 	// if (subkey === "href") {
+	// 	//
+	// 	//
+	// 	//
+	// 	// }
+	//
+	//
+	//
+	// 	// const state = this.getData("data") || {};
+	// 	//
+	// 	// state[subkey] = value;
+	// 	//
+	// 	// return this.setData(state, "data");
+	//
+	//
+	//
+	// }
+	//
+	// async submit() {
+	//
+	// 	let href = this.getContent("href");
+	// 	let target = this.getContent("target");
+	// 	// let request = this.parent.getEditor();
+	//
+	// 	this.parent.insertLink(href.toString(), target.toString() ? "_blank" : "");
+	//
+	// 	this.setData({}, "data");
+	//
+	//
+	// }
+	//
+	// async close() {
+	//
+	// 	// KarmaFieldsAlpha.server.setData({}, this.uid);
+	// 	//
+	// 	// // this.parent.setFocus();
+	// 	//
+	// 	// // const request = this.parent.getEditor();
+	// 	//
+	// 	// this.setData({}, "data");
+	//
+	// 	await this.parent.setFocus();
+	//
+	// 	await this.render();
+	//
+  // }
 
 	// async hasChange() {
 	//
@@ -2864,6 +3410,76 @@ KarmaFieldsAlpha.field.richtext.linkForm.applyButton = class extends KarmaFields
 
 
 
+KarmaFieldsAlpha.field.richtext.headingForm = class extends KarmaFieldsAlpha.field.group {
+
+	constructor(resource, id, parent) {
+		super({
+			display: "flex",
+			children: [
+				{
+					type: "dropdown",
+					key: "heading",
+
+					options: [
+						{id: "h1", name: "H1"},
+						{id: "h2", name: "H2"},
+						{id: "h3", name: "H3"},
+						{id: "h4", name: "H4"},
+						{id: "h5", name: "H5"},
+						{id: "h6", name: "H6"}
+					]
+				}
+			],
+			...resource
+		}, id, parent);
+	}
+
+	build() {
+
+		return {
+			class: "inspector headingForm-container",
+			update: node => {
+				const isActive = this.isActive();
+				node.element.classList.toggle("hidden", !isActive);
+				if (isActive) {
+					node.children = [super.build()]
+				}
+			}
+		};
+
+	}
+
+	isActive() {
+
+		return this.hasFocusInside() || this.request("hasHeading") && this.parent.hasFocus();
+
+	}
+
+	// getContent(subkey) {
+	//
+	// 	const response = new KarmaFieldsAlpha.Content();
+	//
+	// 	const linkNode = this.request("getEditorNode", "a");
+	//
+	// 	if (linkNode) {
+	//
+	// 		response.value = this.parseLink(linkNode)[subkey] || "";
+	//
+	// 	}
+	//
+	// 	return response;
+	// }
+	//
+	// setValue(value, subkey) {
+	//
+	//
+	// 	return this.request("updateLink", {[subkey]: value});
+	//
+	//
+	//
+	// }
+
+}
 
 // KarmaFieldsAlpha.field.tinymce.linkForm.attachFile = class extends KarmaFieldsAlpha.field.button {
 //
@@ -3112,9 +3728,11 @@ KarmaFieldsAlpha.field.richtext.filesAttacher = class extends KarmaFieldsAlpha.f
 		const selectedIds = [];
 
 		// const figure = this.parent.getElementUnder();
-		const figure = this.parent.getEditorNode("figure");
+		// const figure = this.parent.getEditorNode("figure");
 
-		if (figure && figure.nodeType === 1) {
+		const figures = this.parent.getImages();
+
+		for (let figure of figures) {
 
 			const img = figure.querySelector("img");
 
@@ -3131,6 +3749,26 @@ KarmaFieldsAlpha.field.richtext.filesAttacher = class extends KarmaFieldsAlpha.f
 			}
 
 		}
+
+
+
+		// if (figure && figure.nodeType === 1) {
+		//
+		// 	const img = figure.querySelector("img");
+		//
+		// 	if (img) {
+		//
+		// 		const id = img.getAttribute("data-id");
+		//
+		// 		if (id) {
+		//
+		// 			selectedIds.push(id);
+		//
+		// 		}
+		//
+		// 	}
+		//
+		// }
 
 		return selectedIds;
 
@@ -3290,29 +3928,40 @@ KarmaFieldsAlpha.field.richtext.filesAttacher = class extends KarmaFieldsAlpha.f
 		//
 		// return;
 
-		const id = ids[0];
 
-		let request = this.queryImage(id);
+		let requests = ids.map(id => this.queryImage(id));
 
-		while (request.loading) {
+		while (requests.some(request => request.loading)) {
 
 			await this.render();
-
-			request = this.queryImage(id);
-
-		}
-
-		const figure = this.parent.getEditorNode("figure");
-
-		if (figure) {
-
-			request.value.classes = figure.className;
+			requests = ids.map(id => this.queryImage(id));
 
 		}
 
-		const newImg = this.createImage(request.toObject());
+		const figures = this.parent.getImages();
 
-		await this.parent.insertImage2(newImg);
+		for (let i = 0; i < ids.length; i++) {
+
+			const id = ids[i];
+
+			let params = this.queryImage(id).toObject();
+
+			// const figure = this.parent.getEditorNode("figure");
+
+			if (figures[i]) {
+
+				params.classes = figures[i].className;
+
+			}
+
+			const newImg = this.createImage(params);
+
+			await this.parent.insertImage2(newImg);
+
+		}
+
+
+
 
 	}
 
@@ -3625,7 +4274,7 @@ KarmaFieldsAlpha.field.richtext.imageForm = class extends KarmaFieldsAlpha.field
 
 	isActive() {
 
-		return this.hasFocusInside() || this.request("getEditorNode", "figure");
+		return this.hasFocusInside() || this.request("getImages").length > 0 && this.parent.hasFocus();
 
 	}
 

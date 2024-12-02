@@ -4,7 +4,7 @@
 
 class Karma_Fields_Alpha {
 
-	public $version = '87';
+	public $version = '92';
 
 	public $middlewares = array();
 	public $drivers = array();

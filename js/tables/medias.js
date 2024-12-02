@@ -392,6 +392,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
 
   *genSockets() {
 
+
     const length = this.parent.getLength();
     const parentQuery = this.getContent("parent");
 
@@ -818,10 +819,13 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
     const hasFocus = this.hasFocus();
     const sockets = this.genSockets();
 
-    // console.log(selection, this);
+
+  
+
 
     //
     // for (let socket of this.genSockets()) {
+
 
     for (let socket of sockets) {
 
@@ -1358,7 +1362,7 @@ KarmaFieldsAlpha.field.medias.add = class extends KarmaFieldsAlpha.field.table.a
 //
 // }
 
-KarmaFieldsAlpha.field.medias.header.title = class extends KarmaFieldsAlpha.field.container.header.title {
+KarmaFieldsAlpha.field.medias.title = class extends KarmaFieldsAlpha.field.container.title {
 
   // constructor(resource, id, parent) {
   //

@@ -485,6 +485,16 @@ class Karma_Fields_Alpha_Driver_Posts {
         case 'post_status':
         case 'post_type':
           $value = explode(',', $value);
+
+          // never bother fetching a non public post type: this is going to fail soon or later (because it can't be fetched by id)
+          if ($key === 'post_type') {
+            foreach ($value as $post_type) {
+              if (!is_post_type_viewable($post_type)) {
+                die('Post type is not public!');
+              }
+            }
+          }
+
           $args[$key] = $value;
           break;
 
@@ -549,6 +559,8 @@ class Karma_Fields_Alpha_Driver_Posts {
 	 */
   public function query($params) {
 
+
+
     $args = $this->get_query_args($params);
 
 
@@ -570,7 +582,6 @@ class Karma_Fields_Alpha_Driver_Posts {
 
     $query = new WP_Query($args);
 
-    // var_dump($query); die();
 
     $output = array_map(function($post) {
       return array(
