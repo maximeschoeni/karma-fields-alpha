@@ -847,14 +847,22 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
 
   }
 
+  getSortableKey() {
+
+    return body.getSortableKey();
+
+  }
+
 
   async swap(index, target, length) {
 
-    const sortableKey = this.resource.sortable === true && "position" || this.resource.sortable;
+    const body = this.getChild("body");
+
+    const sortableKey = body.resource.sortable === true && "position" || body.resource.sortable;
 
     if (!sortableKey) {
 
-      console.error("not sortable!");
+      console.error("not sortable!", this);
 
     }
 
@@ -881,27 +889,49 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
     }
 
     // to be moved in Server()
-
     let previousIds = queryIds.toArray();
 
     await this.save("sort", "Sort");
 
-    const ids = [...previousIds.toArray()];
+    // const ids = [...previousIds.toArray()];
+    const ids = [...previousIds];
 
     ids.splice(target, 0, ...ids.splice(index, length));
 
     KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, ids, "ids", driver, paramstring);
 
     await KarmaFieldsAlpha.Database.States.set(ids, "queries", driver, paramstring, "ids");
-    await KarmaFieldsAlpha.History.write(ids, previousIds.toArray(), "queries", driver, paramstring, "ids"); // update history
+    await KarmaFieldsAlpha.History.write(ids, previousIds, "queries", driver, paramstring, "ids"); // update history
 
-    for (let i = 0; i < ids.length; i++) {
+    let positionQueries = ids.map((id, i) => this.getContentAt(i, sortableKey));
 
-      await this.setValueAt(i, i, sortableKey);
+    while (positionQueries.some(query => query.loading)) {
+
+      await this.render();
+
+      positionQueries = ids.map((id, i) => this.getContentAt(i, sortableKey));
 
     }
 
-    const body = this.getChild("body");
+    for (let i = 0; i < ids.length; i++) {
+
+      // const position = this.getContentAt(i, sortableKey);
+
+      // console.log(i, position, sortableKey);
+
+      const currentIndex = positionQueries[i].toNumber();
+
+      if (currentIndex !== i) {
+
+        await this.setValueAt(i, i, sortableKey);
+
+      }
+
+
+
+    }
+
+
 
     if (body) {
 

@@ -299,7 +299,6 @@ body.karma-table-open {
   flex-grow: 1;
   width: 100%;
 
-
 }
 .karma-fields .field-container .table-field .karma-field-table {
 
@@ -1323,6 +1322,14 @@ ul.karma-breadcrumb li a:hover {
   content: ", ";
 }
 
+/* Taxonomy links
+--------------------------------------*/
+.taxonomy-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 /* Tag links
 --------------------------------------*/
 .karma-field-table .table ul.tag-links {
@@ -1753,7 +1760,7 @@ ul.tag-links li:not(:last-child)::after {
   /* flex-grow: 0; */
   min-width: 0;
   width: 100%;
-  margin: 0;
+  margin: 1px; /* -> for outline */
   color: var(--text-color);
 }
 
@@ -1954,7 +1961,7 @@ textarea.clipboard {
 .karma-fields select.dropdown {
   /* max-width: 100%; */
   width: 100%;
-  margin: 0;
+  margin: 1px; /* -> set room for outline */
   color: var(--text-color);
   min-width: 0;
 }
@@ -2061,6 +2068,8 @@ textarea.clipboard {
 
   width: 100%;
   min-width: 20em;
+
+  flex-direction: column;
 }
 
 .karma-tinymce .editor-header {
@@ -2417,6 +2426,30 @@ textarea.clipboard {
 .karma-tinymce img.aligncenter {
   margin: 0 auto;
 }
+
+/* Table */
+.karma-tinymce table {
+  margin: 1rem 0;
+  width: 100%;
+}
+.karma-tinymce table td {
+  border: 1px dotted black;
+  padding: 2px 4px;
+}
+
+/* block-columns */
+.karma-tinymce .wp-block-columns {
+  display: flex;
+  margin: 1rem 0;
+}
+.karma-tinymce .wp-block-columns .wp-block-column {
+  flex: 1 1 0;
+  border: 1px dotted black;
+  margin: 1px;
+  padding: 2px 4px;
+}
+
+
 
 
 /* Footer */

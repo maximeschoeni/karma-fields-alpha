@@ -12,26 +12,30 @@ KarmaFieldsAlpha.ListSortGrid = class extends KarmaFieldsAlpha.ListSorter {
 
   swapAbove (children, translateX, translateY) {
 
-    const pivots = this.slice(this.state.selection.index - 1, 1);
+    if (this.state.selection.index > 0) {
 
-    if (pivots.length) {
+      const pivots = this.slice(this.state.selection.index - 1, 1);
 
-      const pivotBox = this.getElementBox(...pivots);
-      const elements = this.slice(this.state.selection.index, this.state.selection.length, children);
-      const selectionBox = this.getElementBox(...elements);
+      if (pivots.length) {
 
-      if (this.clientDiffY < 0 && selectionBox.y + translateY < pivotBox.y + pivotBox.height/2) {
+        const pivotBox = this.getElementBox(...pivots);
+        const elements = this.slice(this.state.selection.index, this.state.selection.length, children);
+        const selectionBox = this.getElementBox(...elements);
 
-        this.insertElements(this.container, elements, pivots[0]);
+        if (this.clientDiffY < 0 && selectionBox.y + translateY < pivotBox.y + pivotBox.height/2) {
 
-        this.state = {
-          selection: {
-            index: this.state.selection.index - 1,
-            length: this.state.selection.length
-          }
-        };
+          this.insertElements(this.container, elements, pivots[0]);
 
-        return true;
+          this.state = {
+            selection: {
+              index: this.state.selection.index - 1,
+              length: this.state.selection.length
+            }
+          };
+
+          return true;
+
+        }
 
       }
 

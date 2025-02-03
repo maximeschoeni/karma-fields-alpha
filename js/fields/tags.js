@@ -247,27 +247,10 @@ KarmaFieldsAlpha.field.tags = class extends KarmaFieldsAlpha.field.container {
     await popup.setFocus(true);
 
 
-
-
-    // const z = this.request("getZ") || 0;
-    //
-    // popup.setState(z + 1, "z");
-    // popup.setState(true, "activeXXX");
-
-    // popup.open();
-    // const tableField = popup.getChild("table");
-    // tableField.setState(params.toObject(), "params");
     await popup.setState(params.toObject(), "params");
 
-    // this.setState(true, "popup");
-
-    // yield* tableField.selectByIds(ids);
-    await popup.selectByIds(ids);
-
-
-    // KarmaFieldsAlpha.Store.State.set(this.path, "dropper", table.toString());
-    // popup.setState(this.path, "master"); // -> should replace droppers;
-
+    // bug!! -> cause querying driver without params! (may be huge query)
+    // await popup.selectByIds(ids);
 
     await this.render();
 

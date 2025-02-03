@@ -142,7 +142,7 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   hasSelection() {
 
-    return Boolean(this.getSelection().length);
+    return Boolean(this.hasFocus() && this.getSelection().length);
 
   }
 
@@ -474,6 +474,12 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
   }
 
+  getSortableKey() {
+
+    return this.resource.sortable === true && "position" || this.resource.sortable;
+
+  }
+
   getColumns() {
 
     return this.resource.children || [];
@@ -525,6 +531,15 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
       //   index: (this.resource.index || 0) + i,
       //   rowIndex: (this.resource.index || 0) + i // compat
       // }, i);
+
+      if (this.resource.sortable) {
+
+        const sortableKey = this.getSortableKey();
+
+        this.getContentAt(i, sortableKey); // -> prefetch positions
+
+      }
+
 
       const row = this.getChild(i);
 
@@ -696,6 +711,13 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
           if (this.resource.sortable) {
 
+            // for (let i = 0; i < length; i++) {
+            //
+            //   const sortableKey = this.getSortableKey();
+            //   this.getContentAt(i, sortableKey); // -> prefetch positions
+            //
+            // }
+
             const sorter = new KarmaFieldsAlpha.ListSortGrid(grid.element, selection, this.resource.children.length, this.hasHeader() ? 1 : 0);
 
             sorter.onSelect = elements => {
@@ -722,6 +744,17 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
               await this.setFocus(1);
               await this.request("render");
             }
+
+
+            // sorter.onSort = async (newState, lastState) => {
+            //   await this.save("sort", "Sort");
+            //   await this.setSelection(newState.selection);
+            //   await this.setFocus(1);
+            //   // -> !!!! swap may need multiple renderings (need to fetch position from indexedDB) !!!!
+            //   await this.request("swap", lastState.selection.index, newState.selection.index, newState.selection.length);
+            //
+            //   // await this.request("render");
+            // }
 
           } else {
 

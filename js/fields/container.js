@@ -58,6 +58,12 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 	}
 
+	isPopup() {
+
+		return this.id === "popup";
+
+	}
+
 	async close() {
 
     await this.parent.setFocus();
@@ -566,6 +572,7 @@ KarmaFieldsAlpha.field.container.close = class extends KarmaFieldsAlpha.field.bu
       dashicon: "no",
       title: "Close",
       request: ["close"],
+			visible: ["request", "isPopup"],
       ...resource
     }, id, parent);
   }

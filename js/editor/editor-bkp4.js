@@ -1,17 +1,206 @@
+KarmaFieldsAlpha.editors = {};
+
+
+document.addEventListener("selectionchange", event => {
+
+	const selection = document.getSelection();
+
+	for (let uid in KarmaFieldsAlpha.editors) {
+
+		const editor = KarmaFieldsAlpha.editors[uid];
+
+		if (editor.element === document.activeElement) {
+
+			if (selection.rangeCount > 0 && editor.element.contains(selection.anchorNode) && editor.element.contains(selection.focusNode)) {
+
+				const range = selection.getRangeAt(0);
+
+
+
+				// const pathes = editor.getPathesAt(range);
+        //
+				// KarmaFieldsAlpha.server.setState(pathes, "fields", uid, "rangePath");
+
+				// editor.update(range);
+        //
+				// if (editor.onSelectionChange) {
+        //
+				// 	editor.onSelectionChange();
+        //
+				// }
+
+        editor.setRange(range);
+
+        editor.onSelectionChange();
+
+			}
+
+		}
+
+	}
+});
 
 KarmaFieldsAlpha.Editor = class {
 
   constructor(element) {
 
-    if (!element) {
+    this.nodes = [];
+    this.range = new Range();
 
-      console.error("Container not set");
+    this.onRedo = () => {};
+    this.onUndo = () => {};
+    this.onInput = () => {};
+    this.onDblClick = () => {};
+    this.onSelectionChange = () => {};
+
+    if (element) {
+
+      this.setElement(element);
 
     }
 
-    this.element = element;
-    this.nodes = [];
-    this.range = new Range();
+  }
+
+  // onRedo() {};
+  // onUndo() {};
+  // onInput() {};
+  // onFocus() {};
+  // onDblClick() {};
+
+  setElement(element) {
+
+    if (element !== this.element) {
+
+      this.element = element;
+
+      element.oninput = async event => {
+
+        this.onInput(event.inputType);
+
+      }
+
+      element.oncut = event => {
+
+        event.preventDefault();
+
+        if (this.range && !this.range.collapsed) {
+
+          const html = this.cut(this.range);
+
+          event.clipboardData.setData("text/plain", html);
+          event.clipboardData.setData("text/html", html);
+
+          this.onInput("cut");
+
+        }
+
+      }
+
+      element.oncopy = event => {
+
+        event.preventDefault();
+
+        if (this.range && !this.range.collapsed) {
+
+          let html = this.copy(this.range);
+
+          event.clipboardData.setData("text/plain", html);
+          event.clipboardData.setData("text/html", html);
+
+        }
+
+      }
+
+
+      element.onpaste = event => {
+
+        event.preventDefault();
+
+        if (this.range) {
+
+          let html = event.clipboardData.getData("text/html");
+          let text = event.clipboardData.getData("text/plain");
+
+          if (html) {
+
+            this.paste(this.range, html);
+
+          } else if (text) {
+
+            html = `<p>${text.trim()}</p>`;
+
+            html = html.replace(/(?:\r\n|\r|\n)+/g, '</p><p>');
+
+            this.paste(this.range, html);
+
+          }
+
+
+
+          this.onInput("paste");
+
+        }
+
+      }
+
+      element.onkeydown = async event => {
+
+        if (event.key === "z" && event.metaKey) {
+
+          event.preventDefault();
+
+          if (event.shiftKey) {
+
+            this.onRedo();
+
+          } else {
+
+            this.onUndo();
+
+          }
+
+        } else if (event.key === "Backspace") {
+
+          if (this.delete(this.range)) {
+
+            event.preventDefault();
+
+            this.onInput("backspace");
+
+          }
+
+        }
+
+        if (event.key === "Enter") {
+
+          event.preventDefault();
+
+          this.breakLine(this.range, event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
+
+          this.onInput("enter");
+
+        }
+
+      }
+
+      element.ondblclick = async event => {
+
+        if (event.target.tagName === "IMG") {
+
+          this.onDblClick();
+
+        }
+
+      }
+
+    }
+
+  }
+
+  setRange(range) {
+
+    this.range = range;
+    this.nodes = [...this.listNodesAt(range)];
 
   }
 
@@ -23,6 +212,8 @@ KarmaFieldsAlpha.Editor = class {
   }
 
   contains(range) {
+
+    console.error("Deprecated");
 
     if (!range || !range.commonAncestorContainer) {
 
@@ -47,28 +238,26 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  setContent(content, pathes) {
+  setContent(content) {
 
     if (content) {
 
       this.element.innerHTML = content;
 
-      console.log(content, pathes);
-
       this.sanitize();
 
-      this.element.normalize();
+      this.element.normalize(); // ?
 
-      if (pathes) {
-
-        const range = this.getRangeFromPathes(pathes);
-        const selection = document.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-
-        this.update(range);
-
-      }
+      // if (pathes) {
+      //
+      //   const range = this.getRangeFromPathes(pathes);
+      //   const selection = document.getSelection();
+      //   selection.removeAllRanges();
+      //   selection.addRange(range);
+      //
+      //   this.update(range);
+      //
+      // }
 
     } else {
 
@@ -78,15 +267,27 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
+  // setPath(pathes) {
+  //
+  //   const range = this.getRangeFromPathes(pathes);
+  //
+  //     const selection = document.getSelection();
+  //     selection.removeAllRanges();
+  //     selection.addRange(range);
+  //
+  //   this.setRange(range);
+  //
+  // }
+
 
 
   getPathesAt(range) {
 
-    if (!this.contains(range)) {
-
-      return [];
-
-    }
+    // if (!this.contains(range)) {
+    //
+    //   return [];
+    //
+    // }
 
     if (range.collapsed) {
 
@@ -1910,6 +2111,9 @@ KarmaFieldsAlpha.Editor = class {
 
       this.insertContainerAt(range, wrapNode);
 
+      range.setStart(li, 0);
+      range.collapse(true);
+
       // range.setStart(li, 0);
       // range.collapse(true)
 
@@ -2173,6 +2377,9 @@ KarmaFieldsAlpha.Editor = class {
       case "A":
         return key === "target" || key === "href";
 
+      case "IMG":
+        return true;
+
     }
 
     return false;
@@ -2237,7 +2444,66 @@ KarmaFieldsAlpha.Editor = class {
 
   isEmpty(node) {
 
+    // if (this.isText(node) || this.isInline(node)) {
+    //
+    //   return !node.textContent.trim();
+    //
+    // } else if (this.isSingle(node)) {
+    //
+    //   return false;
+    //
+    // } else if (this.isBlock(node)) {
+    //
+    //   while
+    //
+    // }
+
+    // switch (this.getType(node)) {
+    //
+    //   case "text":
+    //   case "inline":
+    //     return !node.textContent.trim();
+    //
+    //   case "single":
+    //     return false;
+    //
+    //   case "block":
+    //     let child = node.firstChild;
+    //     while (child) {
+    //       if (!this.isEmpty(child) && child.tagName !== "BR") {
+    //         return false;
+    //       }
+    //       child = child.nextSibling;
+    //     }
+    //     return true;
+    //     // return !node.firstChild || node.firstChild.tagName === "BR";
+    //
+    //   case "container":
+    //     return !node.firstChild;
+    //
+    // }
+    //
+    // return true;
+
     return !node.textContent.trim();
+
+  }
+
+  // isEmptyBlock(node) {
+  //
+  //   return this.isBlock(node)
+  //
+  // }
+  //
+  // isEmptyText(node) {
+  //
+  //   return (this.isText(node) || this.isInline(node)) && !node.textContent.trim();
+  //
+  // }
+
+  getType(node) {
+
+    return new KarmaFieldsAlpha.EditorNode(node).type;
 
   }
 
@@ -2255,6 +2521,13 @@ KarmaFieldsAlpha.Editor = class {
       p.appendChild(document.createElement("br"));
 
       this.element.appendChild(p);
+
+      if (this.range) {
+
+        this.range.setStart(p, 0);
+        this.range.collapse(true);
+
+      }
 
     }
 
@@ -2498,78 +2771,113 @@ KarmaFieldsAlpha.Editor = class {
 
     }
 
+    // if (shift) {
+    //
+    //   let br = document.createElement("br");
+    //   range.insertNode(br);
+    //
+    //   // range.setStartAfter(br);
+    //   // range.collapse(true);
+    //   range.collapse(false);
+    //
+    //   br.parentNode.normalize();
+    //
+    //   if (this.isBlock(br.parentNode) && br.parentNode.lastChild === br) {
+    //
+    //     range.insertNode(document.createElement("br"));
+    //     // range.setStartAfter(br);
+    //     range.collapse(true);
+    //
+    //   } else if (br.nextSibling) {
+    //
+    //     let node = br.nextSibling;
+    //
+    //     while (node && !this.isSingle(node)) {
+    //
+    //       range.setStart(node, 0);
+    //       range.collapse(true);
+    //
+    //       node = node.firstChild;
+    //
+    //     }
+    //
+    //   }
+    //
+    //   return;
+    //
+    // }
+
     if (shift) {
+
+      while (!this.isBlock(range.endContainer) && !this.isContainer(range.endContainer) && !this.isRoot(!this.isBlock(range.endContainer))) {
+
+        range.setEndAfter(range.endContainer);
+
+      }
+
+      const contentAfter = range.extractContents();
+      range.collapse(false);
 
       let br = document.createElement("br");
       range.insertNode(br);
-
-      // range.setStartAfter(br);
-      // range.collapse(true);
       range.collapse(false);
 
-      br.parentNode.normalize();
+      if (br.previousSibling && this.isEmpty(br.previousSibling) && br.previousSibling.tagName !== "BR") { // -> if linebreak is at begin of a paragraph
 
-      if (br.parentNode.lastChild === br) {
+        br.parentNode.removeChild(br.previousSibling);
 
-        range.insertNode(document.createElement("br"));
-        // range.setStartAfter(br);
+      }
+
+      if (!this.isEmpty(contentAfter)) {
+
+        range.insertNode(contentAfter);
         range.collapse(true);
 
       }
 
-      return;
+      if (!br.nextSibling) {
 
+        // range.setStartAfter(br);
+        // range.collapse(true);
 
+        let br2 = document.createElement("br");
+        range.insertNode(br2);
+        range.collapse(true);
 
-      // let node = range.startContainer;
+      }
+
+      // range.setStartAfter(br);
+      // range.collapse(true);
+
       //
-      // const clone = range.cloneRange();
+      // // range.setStartAfter(br);
+      // // range.collapse(true);
+      // range.collapse(false);
       //
-      // while (!this.isBlock(clone.endContainer) && !this.isRoot(clone.endContainer)) {
+      // br.parentNode.normalize();
       //
-      //   clone.setEndAfter(clone.endContainer);
+      // if (this.isBlock(br.parentNode) && br.parentNode.lastChild === br) {
       //
-      // }
-      //
-      // const content = clone.extractContents();
-      //
-      // const br = document.createElement("br");
-      //
-      // if (this.isEmpty(content)) {
-      //
-      //   range.insertNode(br);
-      //   range.setStartAfter(br);
+      //   range.insertNode(document.createElement("br"));
+      //   // range.setStartAfter(br);
       //   range.collapse(true);
-      //   // range.insertNode(document.createElement("br"));
       //
-      // } else {
+      // } else if (br.nextSibling) {
       //
-      //   range.insertNode(br);
-      //   range.setStartAfter(br);
+      //   let node = br.nextSibling;
       //
-      //   while (content.firstChild) {
+      //   while (node && !this.isSingle(node)) {
       //
-      //     range.insertNode(content.firstChild);
+      //     range.setStart(node, 0);
+      //     range.collapse(true);
+      //
+      //     node = node.firstChild;
       //
       //   }
       //
       // }
-      //
-      //
-      //
-      //
-      //
-      // // this.insertAt(range, br);
-      //
-      // range.setStartAfter(br);
-      // range.collapse(true);
-      //
-      // // range.insertNode(document.createElement("br"));
-      // //
-      // // range.setStartAfter(br);
-      // // range.collapse(true);
-      //
-      // return;
+
+      return;
 
     }
 
@@ -2703,6 +3011,10 @@ KarmaFieldsAlpha.Editor = class {
           // }
           //
           // node.appendChild(document.createElement("br"));
+
+        } else if (node.lastChild && node.lastChild.tagName === "BR") {
+
+          node.lastChild.remove();
 
         }
 
@@ -3430,26 +3742,59 @@ KarmaFieldsAlpha.Editor = class {
 
       return true; // -> prevent default BUT should not save!
 
-    } else if (this.isText(range.startContainer) && range.startOffset > 0) {
+    } else if (this.isText(range.startContainer) && range.startOffset > 0) { // => inside text node
+
+      // range.setStart(range.startContainer, range.startOffset-1);
+      // range.deleteContents();
+			//
+      // return true;
+
 
       return false;
 
-    } else if (range.startOffset > 0) {
+    } else if (range.startOffset > 0) { // => between 2 nodes
+
+      // let nodeBefore = range.startContainer.childNodes[range.startOffset-1];
+      //
+      // while (nodeBefore) {
+      //
+      //   range.selectNodeContents(nodeBefore);
+      //   range.collapse(false);
+      //
+      //   nodeBefore = nodeBefore.lastChild;
+      //
+      // }
+      //
+      // return this.delete();
+      //
+      // return false;
+
+
 
       let nodeBefore = range.startContainer.childNodes[range.startOffset-1];
 
-      while (nodeBefore) {
-
-        range.selectNodeContents(nodeBefore);
-        range.collapse(false);
+      while (!this.isSingle(nodeBefore) && !this.isText(nodeBefore) && nodeBefore.lastChild) {
 
         nodeBefore = nodeBefore.lastChild;
 
       }
 
-      return false;
+      if (this.isText(nodeBefore) && nodeBefore.length > 0) {
 
-    } else {
+        range.selectNodeContents(nodeBefore);
+        range.setStart(range.startContent, range.startOffset-1);
+        range.deleteContents();
+
+      } else {
+
+        range.selectNode(nodeBefore);
+        range.deleteContents();
+
+      }
+
+      return true;
+
+    } else { // => at start of node (text or element)
 
       let node = range.startContainer;
 
@@ -3561,10 +3906,14 @@ KarmaFieldsAlpha.Editor = class {
 
           }
 
+					return true;
 
-        }
+				} else {
 
-        return true;
+					return false;
+				}
+
+
 
       } else if (this.isContainer(node)) {
 
@@ -3701,7 +4050,8 @@ KarmaFieldsAlpha.Editor = class {
 
       } else if (this.isBlock(node)) {
 
-        this.insertBlockAt(range, node);
+        // this.insertBlockAt(range, node);
+        this.insertContainerAt(range, node); // -> multiple blocks must be inserted as containers
 
       } else {
 
@@ -4128,7 +4478,7 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-  insertInlineAt(range, ...nodes) {
+  insertInlineAt(range, node, ...nodes) {
 
     if (!range.collapsed) {
 
@@ -4138,44 +4488,75 @@ KarmaFieldsAlpha.Editor = class {
 
     if (this.isText(range.startContainer) || this.isInline(range.startContainer) || this.isBlock(range.startContainer)) {
 
-      for (let node of nodes) {
+      // for (let node of nodes) {
 
         range.insertNode(node);
         range.collapse(false);
 
         node.parentNode.normalize();
 
-      }
+      // }
 
-    } else { // -> insert into last node
+    } else {
 
-      let nodeBefore = this.getNodeBeforePoint(range.startContainer, range.startOffset);
+      if (range.startOffset > 0) { // -> insert into last node
 
-      while (nodeBefore && this.isContainer(nodeBefore)) {
+        // let nodeBefore = this.getNodeBeforePoint(range.startContainer, range.startOffset);
+        let nodeBefore = range.startContainer.childNodes[range.startOffset-1];
 
-        nodeBefore = nodeBefore.lastChild;
+        while (nodeBefore && this.isContainer(nodeBefore)) {
 
-      }
-
-      if (nodeBefore) {
-
-        if (this.isEmpty(nodeBefore)) {
-
-          this.empty(nodeBefore);
+          nodeBefore = nodeBefore.lastChild;
 
         }
 
-        for (let node of nodes) {
+        if (nodeBefore) {
 
-          nodeBefore.appendChild(node);
+          if (this.isEmpty(nodeBefore)) {
 
-          range.selectNodeContents(node);
+            this.empty(nodeBefore);
+
+          }
+
+          // for (let node of nodes) {
+
+            nodeBefore.appendChild(node);
+
+            range.selectNode(node);
+
+          // }
+
+          // range.collapse(false);
 
         }
 
-        range.collapse(false);
+      } else { // -> insert into next node
+
+        let nodeAfter = range.startContainer.childNodes[range.startOffset];
+
+        while (nodeAfter && this.isContainer(nodeAfter)) {
+
+          nodeAfter = nodeAfter.firstChild;
+
+        }
+
+        if (nodeAfter && this.isBlock(nodeAfter)) {
+
+          if (this.isEmpty(nodeAfter)) {
+
+            this.empty(nodeAfter);
+
+          }
+
+          nodeAfter.insertBefore(node, nodeAfter.firstChild);
+
+          range.selectNode(node);
+
+        }
 
       }
+
+
 
     }
 
@@ -4386,7 +4767,7 @@ KarmaFieldsAlpha.Editor = class {
 
         this.sanitize(node);
 
-        if (!this.isValidIn(node, node.parentNode)) {
+        if (!this.isValidIn(node, node.parentNode) || node.tagName === "DIV" || node.tagName === "SPAN") {
 
           while (node.firstChild) {
 
@@ -4395,6 +4776,12 @@ KarmaFieldsAlpha.Editor = class {
           }
 
           node.parentNode.removeChild(node);
+
+        }
+
+        if (!this.isSingle(node) && !node.hasChildNodes()) {
+
+          node.remove();
 
         }
 
@@ -5130,9 +5517,198 @@ KarmaFieldsAlpha.Editor = class {
 
 
 
+	static register(tags, args) {
 
+		const {tags, type, validIn, breakMode} = args;
+
+		if (!this.tags) {
+
+			this.tags = new Map();
+
+		}
+
+		for (let tag of tags) {
+
+			this.tags.set(tag, args);
+
+		}
+
+	}
 
 }
+
+
+// KarmaFieldsAlpha.Editor.register(["UL", "OL"], {type: "container", validInTags: ["DIV", "TD"]});
+// KarmaFieldsAlpha.Editor.register(["H1", "H2", "H3", "H4", "H5", "H6"], {type: "block", validInTags: ["DIV", "TD"]});
+// KarmaFieldsAlpha.Editor.register(["SPAN","B","STRONG","EM","I","A","SUB","SUP","SMALL"], {type: "inline", validInTypes: ["block", "inline"]});
+
+KarmaFieldsAlpha.Editor.register([
+	"DIV"
+], {
+	type: "container",
+	validInTags: ["DIV"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"FIGURE"
+], {
+	type: "container",
+	validInTags: ["DIV"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"UL",
+	"OL"
+], {
+	type: "container",
+	validInTags: ["DIV"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"TABLE"
+], {
+	type: "container",
+	validInTags: ["DIV"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"TBODY",
+	"THEAD",
+	"TFOOTER"
+], {
+	type: "container",
+	validInTags: ["TABLE"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"TR"
+], {
+	type: "container",
+	validInTags: ["TABLE", "TBODY", "THEAD", "TFOOTER"]
+});
+
+
+// BLOCKS
+
+KarmaFieldsAlpha.Editor.register([
+	"TH",
+	"TD"
+], {
+	type: "container",
+	validInTags: ["TR"],
+	breakMode: "cell"
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"FIGCAPTION"
+], {
+	type: "inline",
+	validInTags: ["FIGURE"],
+	breakMode: "cell"
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"P"
+], {
+	type: "single",
+	validInTags: ["DIV"],
+	breakMode: "paragraph"
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"BLOCKQUOTE"
+], {
+	type: "single",
+	validInTags: ["DIV"],
+	breakMode: "list-item"
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"LI"
+], {
+	type: "single",
+	validInTags: ["UL", "OL"],
+	breakMode: "list-item"
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"H1",
+	"H2",
+	"H3",
+	"H4",
+	"H5",
+	"H6"
+], {
+	type: "block",
+	validInTags: ["DIV"],
+	breakMode: "header"
+});
+
+
+
+// INLINE
+
+KarmaFieldsAlpha.Editor.register([
+	"A"
+], {
+	type: "inline",
+	validInTypes: ["block", "inline"],
+	validAttributes: ["href", "target"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"SPAN"
+], {
+	type: "inline",
+	validInTypes: ["block", "inline"],
+	validAttributes: ["style"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"B",
+	"STRONG",
+	"EM",
+	"I",
+	"SUB",
+	"SUP",
+	"SMALL"
+], {
+	type: "inline",
+	validInTypes: ["block", "inline"]
+});
+
+
+
+// SINGLES
+
+KarmaFieldsAlpha.Editor.register([
+	"IMG"
+], {
+	type: "single",
+	validInTags: ["P", "FIGURE"],
+	validAttribtues: ["src", "width", "height", "srcset", "sizes", "alt", "title"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"VIDEO"
+], {
+	type: "single",
+	validInTags: ["P", "FIGURE"],
+	validAttribtues: ["src", "width", "height", "alt", "title", "autoplay", "loop", "controls"]
+});
+
+KarmaFieldsAlpha.Editor.register([
+	"BR"
+], {
+	type: "single",
+	validInTypes: ["block"]
+});
+KarmaFieldsAlpha.Editor.register([
+	"HR"
+], {
+	type: "single",
+	validInTypes: ["container"]
+});
 
 
 
@@ -5390,9 +5966,11 @@ KarmaFieldsAlpha.EditorNode = class {
     switch (this.type) {
 
       case "inline":
-      case "text": {
-        const editNode = new KarmaFieldsAlpha.EditorNode(container);
-        return editNode.isInline() || editNode.isBlock();
+      case "text":
+      case "single": {
+        // const editNode = new KarmaFieldsAlpha.EditorNode(container);
+        // return editNode.isInline() || editNode.isBlock();
+        return true;
       }
 
       default:

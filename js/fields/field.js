@@ -866,6 +866,23 @@ KarmaFieldsAlpha.field = class {
           }
           break;
         }
+        case "time": {
+          const date = this.parse(expression[1]);
+          const option = expression[2] || {}; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options
+          const locale = expression[3] || KarmaFieldsAlpha.locale || "en";
+          if (date.loading) {
+            response.loading = true;
+          } else {
+            const string = date.toString();
+            const dateObj = new Date(string);
+            if (isNaN(dateObj)) {
+              response.value = "";
+            } else {
+              response.value = dateObj.toLocaleTimeString(locale, option);
+            }
+          }
+          break;
+        }
         case "daterange": {
           let date1 = this.parse(expression[1]);
           let date2 = this.parse(expression[2]);
@@ -1117,6 +1134,12 @@ KarmaFieldsAlpha.field = class {
           break;
         case "upload-directory":
           response.value = KarmaFieldsAlpha.uploadURL;
+          break;
+        case "admin-url":
+          response.value = KarmaFieldsAlpha.adminURL;
+          break;
+        case "rest-url":
+          response.value = KarmaFieldsAlpha.restURL;
           break;
 
         default:
@@ -1427,6 +1450,29 @@ KarmaFieldsAlpha.field = class {
   redo() {
 
     KarmaFieldsAlpha.history.redo();
+
+  }
+
+  isMixed(values) {
+
+    if (values.length > 1 && values.slice(1).some(value => value !== values[0])) {
+
+      return true;
+
+    }
+
+    return false;
+  }
+
+  isPopup() {
+
+    if (this.parent) {
+
+      return this.parent.isPopup();
+
+    }
+
+    return false;
 
   }
 

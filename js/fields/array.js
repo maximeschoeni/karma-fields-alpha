@@ -135,6 +135,12 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
   //
   // }
 
+  getIndex() { // -> base index for row indexes
+
+    return 0;
+
+  }
+
 
   export() {
 

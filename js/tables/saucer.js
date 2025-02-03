@@ -368,7 +368,7 @@ KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
         });
         window.addEventListener("popstate", async event => {
           KarmaFieldsAlpha.server = new KarmaFieldsAlpha.Server();
-          
+
           await KarmaFieldsAlpha.History.update();
           await this.parent.render();
         });

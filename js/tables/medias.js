@@ -820,7 +820,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
     const sockets = this.genSockets();
 
 
-  
+
 
 
     //
@@ -835,7 +835,7 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
         update: li => {
 
           li.element.classList.remove("drop-active");
-          li.element.classList.toggle("selected", KarmaFieldsAlpha.Segment.contain(selection, socket.index));
+          li.element.classList.toggle("selected", Boolean(hasFocus && KarmaFieldsAlpha.Segment.contain(selection, socket.index)));
           li.element.classList.toggle("media-dropzone", (socket.filetype === "folder" || socket.filetype === "autofolder"));
           li.element.classList.toggle("droppable", socket.id !== "exit" && socket.filetype !== "autofolder");
 
@@ -914,7 +914,8 @@ KarmaFieldsAlpha.field.gallery = class extends KarmaFieldsAlpha.field.grid {
         update: grid => {
 
           const sockets = this.getSockets();
-          const selection = this.getSelection();
+          const hasFocus = this.hasFocus();
+          const selection = hasFocus && this.getSelection();
 
           if (this.resource.draganddrop) {
 

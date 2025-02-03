@@ -13,24 +13,24 @@ class Karma_Fields_Alpha_Driver_Postdate {
 
     if (isset($params['key']) && $params['key']) {
 
-      $key = $params['key'];
+      $field_key = $params['key'];
 
     } else {
 
-      $key = 'post_date';
+      $field_key = 'post_date';
 
     }
 
-    if ($key === 'post_date' || $key === 'post_date_gmt') {
+    if ($field_key === 'post_date' || $field_key === 'post_date_gmt') {
 
-      $select_key = "p.{$key}";
+      $select_key = "p.{$field_key}";
 
     } else {
 
-      $key = esc_sql($key);
-      $join_clauses[$key] = "INNER JOIN {$wpdb->postmeta} AS pm_{$key} ON (pm_{$key}.post_id = p.ID)";
+      $field_key = esc_sql($field_key);
+      $join_clauses[$field_key] = "INNER JOIN {$wpdb->postmeta} AS pm_{$field_key} ON (pm_{$field_key}.post_id = p.ID)";
 
-      $select_key = "pm_{$key}.meta_value";
+      $select_key = "pm_{$field_key}.meta_value";
 
     }
 
@@ -43,6 +43,7 @@ class Karma_Fields_Alpha_Driver_Postdate {
         case 'post_status':
         case 'key':
         case 'groupby':
+        case 'driver':
           break;
 
         case 'post_type':
@@ -136,24 +137,27 @@ class Karma_Fields_Alpha_Driver_Postdate {
 
     } else {
 
-      $sql = "SELECT DISTINCT YEAR($select_key) AS year
-        $join
+      $sql = "SELECT DISTINCT YEAR($select_key) AS id, YEAR($select_key) AS name
         FROM $wpdb->posts AS p
+        $join
         WHERE $where
         ORDER BY $select_key DESC";
 
       $results = $wpdb->get_results($sql);
+      $output = $results;
 
-      $output = array();
-
-      foreach ($results as $result) {
-
-        $output[] = array(
-          'id' => "$result->year",
-          'name' => "$result->year",
-        );
-
-      }
+      // $results = $wpdb->get_results($sql);
+      //
+      // $output = array();
+      //
+      // foreach ($results as $result) {
+      //
+      //   $output[] = array(
+      //     'id' => "$result->year",
+      //     'name' => "$result->year",
+      //   );
+      //
+      // }
 
     }
 

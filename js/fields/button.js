@@ -6,6 +6,33 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 	}
 
+
+	// async parseParams(params) {
+	//
+	// 	let results = [];
+	//
+	// 	for (let param of params) {
+	//
+	// 		let result = this.parse(param);
+	//
+	// 		while (result.loading) {
+	//
+	// 			await this.render();
+	//
+	// 			result = this.parse(param);
+	//
+	// 		}
+	//
+	// 		results.push(result.value);
+	//
+	// 	}
+	//
+	// 	return results;
+	//
+	// }
+
+
+
 	async doTask() {
 
 		let params = [];
@@ -26,6 +53,8 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 				params.push(result.value);
 
 			}
+
+			// params = await this.parseParams(this.resource.params);
 
 		}
 
@@ -121,6 +150,52 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 			// KarmaFieldsAlpha.Jobs.add(work);
 			//
 			// await this.render(); // should be removed because sometime we need a global rendering (like close button)
+
+		} else if (this.resource.post) {
+
+			const driver = this.getDriver();
+			let data;
+
+			if (this.resource.data) {
+
+				data = {};
+
+				for (let key in this.resource.data) {
+
+					let result = this.parse(this.resource.data[key]);
+
+					while (result.loading) {
+
+						await this.render();
+
+						result = this.parse(this.resource.data[key]);
+
+					}
+
+					data[key] = result.value;
+
+				}
+
+			}
+
+			await KarmaFieldsAlpha.HTTP.post(`post/${driver}/${this.resource.post}`, data);
+
+			await KarmaFieldsAlpha.Database.States.remove("external", driver);
+			await KarmaFieldsAlpha.Database.Queries.remove({driver});
+      await KarmaFieldsAlpha.Database.States.remove("queries", driver);
+
+
+			// sessionStorage.clear();
+      // KarmaFieldsAlpha.History.setIndex(0);
+			//
+      // await KarmaFieldsAlpha.Database.States.clear();
+      // await KarmaFieldsAlpha.Database.Vars.clear();
+      // await KarmaFieldsAlpha.Database.Queries.clear();
+      // await KarmaFieldsAlpha.Database.History.clear();
+
+			KarmaFieldsAlpha.server.store = {};
+
+			await this.render();
 
 		}
 

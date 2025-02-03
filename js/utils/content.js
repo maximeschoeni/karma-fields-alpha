@@ -131,6 +131,8 @@ KarmaFieldsAlpha.Content = class {
 
   }
 
+
+
   // slice(index = 0, length = this.toArray().length) {
   //
   //   return this.toArray().slice(index, index + length);
@@ -251,7 +253,8 @@ KarmaFieldsAlpha.Content = class {
 
     }
 
-    if (this.value === undefined) {
+    // if (this.value === undefined || this.value === 0) {
+    if (!this.value || this.value === "0") {
 
       return [];
 

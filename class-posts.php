@@ -2,7 +2,7 @@
 
 
 
-Class Karma_Fields_Alpha_Posts {
+class Karma_Fields_Alpha_Posts {
 
 	public function __construct() {
 

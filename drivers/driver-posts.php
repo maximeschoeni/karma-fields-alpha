@@ -372,7 +372,7 @@ class Karma_Fields_Alpha_Driver_Posts {
   public function get_query_args($params) {
 
     $args = array(
-      'post_status' => array('publish', 'pending', 'draft', 'future', 'inherit', 'auto-draft'),
+      'post_status' => array('publish', 'pending', 'draft', 'private', 'future', 'inherit', 'auto-draft'),
       'post_type' => 'any',
       'posts_per_page' => -1,
       'cache_results' => false,
@@ -476,6 +476,10 @@ class Karma_Fields_Alpha_Driver_Posts {
 
         case 'post_date_year':
           $args['year'] = intval($value);
+          break;
+
+        case 'post_date_yearmonth':
+          $args['m'] = $value; // ex:201307
           break;
 
         case 'post_mime_type':
@@ -1119,7 +1123,7 @@ class Karma_Fields_Alpha_Driver_Posts {
         meta_key AS 'key',
         post_id AS 'id'
         FROM $wpdb->postmeta
-        WHERE post_id IN ($ids_string) AND meta_key NOT LIKE '\_%' AND meta_key != 'trash' ORDER BY meta_id";
+        WHERE post_id IN ($ids_string) AND (meta_key NOT LIKE '\_%' OR meta_key = '_thumbnail_id') AND meta_key != 'trash' ORDER BY meta_id";
 
       $sql = apply_filters('karma_fields_posts_meta_sql', $sql, $ids, $ids_string);
 

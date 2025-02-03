@@ -137,7 +137,6 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.container {
     const params = KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.server.store, "state", "fields", this.uid, "params");
 
 
-
     // return this.queryParams().toObject();
 
     // return this.params || {};

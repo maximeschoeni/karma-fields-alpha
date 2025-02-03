@@ -595,6 +595,8 @@ KarmaFieldsAlpha.Server = class {
 
   async fetchQuery(query) {
 
+
+
     const relations = KarmaFieldsAlpha.Driver.getRelations(query.driver) || [];
     const idAlias = KarmaFieldsAlpha.Driver.getAlias(query.driver, "id");
 
@@ -627,7 +629,8 @@ KarmaFieldsAlpha.Server = class {
 
         for (let key in result) {
 
-          items.push({id, key, data: [result[key]]});
+          // items.push({id, key, data: [result[key]]});
+          items.push({id, key, data: result[key]});
 
         }
 

@@ -870,6 +870,57 @@ KarmaFieldsAlpha.field.link = class extends KarmaFieldsAlpha.field {
 }
 
 
+// KarmaFieldsAlpha.field.listFonts = class extends KarmaFieldsAlpha.field {
+//
+// 	*buildItems() {
+//
+// 		const key = this.getKey();
+// 		const fontIdsQuery = this.getContent(key);
+//
+// 		if (!fontIdsQuery.loading) {
+//
+// 			for (let fontId of fontIdsQuery.toArray()) {
+//
+// 				yield {
+// 					tag: "li",
+// 					update: node => {
+// 						const typefaceIdQuery = this.getWild("fonts", fontId, "typeface_id");
+// 						if (!typefaceIdQuery.loading) {
+// 							const typefaceNameQuery = this.getWild("posts", typefaceIdQuery.toString(), "post_title");
+// 							const weightQuery = this.getWild("fonts", fontId, "weight");
+// 							if (!typefaceNameQuery.loading && !weightQuery.loading) {
+// 								node.element.innerHTML = `${typefaceNameQuery.toString()} ${weightQuery.toString()}`;
+// 							}
+// 						}
+// 					}
+// 				};
+//
+// 			}
+//
+// 		}
+//
+// 	}
+//
+//
+// 	build() {
+// 		return {
+// 			tag: "ul",
+// 			class: "maxitype-fontlist",
+// 			init: node => {
+// 				if (this.resource.classes) {
+// 					node.element.classList.add(...this.resource.classes);
+// 				}
+// 				if (this.resource.width) {
+// 					node.element.style.width = this.resource.width;
+// 				}
+// 			},
+// 			children: [...this.buildItems()]
+// 		};
+// 	}
+//
+// }
+
+
 
 
 KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {

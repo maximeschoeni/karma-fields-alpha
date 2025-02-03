@@ -1,116 +1,83 @@
 
-// KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.textarea {}
+// KarmaFieldsAlpha.ranges = {};
+// KarmaFieldsAlpha.editors = {};
+
+// document.addEventListener("selectionchange", event => {
+//
+// 	const selection = document.getSelection();
+//
+// 	for (let uid in KarmaFieldsAlpha.editors) {
+//
+// 		const editor = KarmaFieldsAlpha.editors[uid];
+//
+// 		if (editor.element === document.activeElement) {
+//
+// 			if (selection.rangeCount > 0) {
+//
+// 				const range = selection.getRangeAt(0);
+// 				const pathes = editor.getPathesAt(range);
+//
+// 				KarmaFieldsAlpha.server.setState(pathes, "fields", uid, "rangePath");
+//
+// 				editor.update(range);
+//
+// 				if (editor.onSelectionChange) {
+//
+// 					editor.onSelectionChange();
+//
+// 				}
+//
+// 			}
+//
+// 		}
+//
+// 	}
+// });
 
 KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
-	// getPathesAt(range, container) {
+
+	// constructor(resource, id, parent) {
 	//
-  //   if (range.collapsed) {
+  //   super(resource, id, parent);
 	//
-  //     return [this.getPathFromPoint(range.startContainer, range.startOffset, container)];
-	//
-  //   } else {
-	//
-  //     return [
-  //       this.getPathFromPoint(range.startContainer, range.startOffset, container),
-  //       this.getPathFromPoint(range.endContainer, range.endOffset, container)
-  //     ];
-	//
-  //   }
+  //   console.log("richtext", id, parent);
 	//
   // }
+
+	// compareRange(range1, range2) {
 	//
-  // getPathFromPoint(node, index, container) {
+	// 	return range1.startContainer === range2.startContainer && range1.startOffset === range2.startOffset && range1.endContainer !== range2.endContainer && range1.endOffset !== range2.endOffset;
 	//
-  //   const path = [index];
+	// }
+
+	// getRange() {
 	//
-	// 	while (node !== container) {
-	//
-  //     index = 0;
-	//
-  //     while (node.previousSibling) {
-	//
-  //       index++;
-  //       node = node.previousSibling
-	//
-  //     }
-	//
-  //     path.unshift(index);
-	//
-  //     node = node.parentNode;
-	//
-  //   }
-	//
-  //   return path;
-  // }
-	//
-	//
-	// getPointFromPath(path, container) {
-	//
-  //   let nodePath = path.slice(0, -1);
-  //   let node = container;
-  //   let depth = 0;
-  //   let offset = path[path.length - 1];
-	//
-	// 	while (node.nodeType === 1 && depth < nodePath.length && node.firstChild) {
-	//
-  //     node = node.firstChild;
-	//
-  //     for (let i = 0; i < nodePath[depth]; i++) {
-	//
-  //       if (node.nextSibling) {
-	//
-  //         node = node.nextSibling;
-	//
-  //       }
-	//
-  //     }
-	//
-  //     depth++;
-	//
-  //   }
-	//
-  //   if (node.nodeType === 1) {
-	//
-  //     offset = Math.min(node.childNodes.length, offset);
-	//
-  //   } else {
-	//
-  //     offset = Math.min(node.length, offset);
-	//
-  //   }
-	//
-  //   return [node, offset];
-	//
-  // }
-	//
-	// getRangeFromPathes(pathes, range, container) {
-	//
-  //   if (!range) {
-	//
-  //     range = new Range();
-	//
-  //   }
-	//
-  //   if (pathes[0]) {
-	//
-  //     range.setStart(...this.getPointFromPath(pathes[0], container));
-	//
-  //   }
-	//
-  //   if (pathes[1]) {
-	//
-  //     range.setEnd(...this.getPointFromPath(pathes[1], container));
-	//
-  //   } else {
-	//
-  //     range.collapse(true);
-	//
-  //   }
-	//
-  //   return range;
-	//
-  // }
+	// 	return KarmaFieldsAlpha.ranges[this.uid];
+	// }
+
+
+
+	getCurrentRange() {
+
+		console.error("Deprecated");
+
+		const selection = document.getSelection();
+
+		if (selection.rangeCount > 0) {
+
+			return selection.getRangeAt(0);
+
+		} else {
+
+			const range = new Range();
+			selection.addRange(range);
+
+			return range;
+
+		}
+
+	}
 
 	getRange() {
 
@@ -118,9 +85,63 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 		return editor.range;
 
+		// const rangePath = this.getState("rangePath");
+		//
+		// if (editor && rangePath) {
+		//
+		// 	return editor.getRangeFromPathes(rangePath);
+		//
+		// }
+
+	}
+
+	setRange(range) {
+
+		console.error("deprecated");
+
+		const selection = document.getSelection();
+
+		selection.removeAllRanges();
+
+		selection.addRange(range);
+
+	}
+
+	async setSelectionState(range) {
+
+		console.error("deprecated");
+
+		CSS.highlights.clear();
+
+		// const selection = document.getSelection();
+		// let range = selection.rangeCount > 0 && selection.getRangeAt(0);
+		// if (!range) {
+		//
+		// 	range = new
+		//
+		// }
+		// let range = this.getCurrentRange();
+
+
+		const editor = this.getEditor();
+
+		if (editor && range && editor.contains(range)) {
+
+			const rangePath = editor.getPathesAt(range);
+
+			await this.setState(rangePath, "rangePath");
+
+		} else {
+
+			await this.setState([], "rangePath");
+
+		}
+
 	}
 
 	isRangeCollapsed() {
+
+		// const range = this.getRange();
 
 		const rangePath = this.getState("rangePath");
 
@@ -131,6 +152,18 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		}
 
 		return false;
+
+		// console.log(rangePath);
+		//
+		// if (range) {
+		//
+		//
+		//
+		// 	return range.collapsed;
+		//
+		// }
+		//
+		// return false;
 
 	}
 
@@ -182,24 +215,26 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 		document.body.classList.toggle("karma-table-open", focus.includes("popup"));
 
+		// this.editor = null;
+
 		return this.loop();
 
 	}
 
-	// setEditor(editor) {
+	// getEditorContainer() {
 	//
-	// 	console.error("deprecated");
+	// 	return KarmaFieldsAlpha.editors[this.uid];
 	//
-	// 	KarmaFieldsAlpha.editors[this.uid] = editor;
-	//
-	// 	KarmaFieldsAlpha.Editor.Brick.init();
 	// }
+
+	setEditor(editor) {
+
+		KarmaFieldsAlpha.editors[this.uid] = editor;
+	}
 
   getEditor() {
 
-		// return KarmaFieldsAlpha.editors[this.uid];
-
-		return KarmaFieldsAlpha.Editor;
+		return KarmaFieldsAlpha.editors[this.uid];
 
 
 		// return this.editor;
@@ -216,108 +251,551 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
   }
 
-	// async saveEditorContent(tag) {
-	//
-	// 	await this.save(tag, tag);
-	//
-	// 	// if (range) {
-	// 	//
-	// 	// 	this.setRange(range);
-	// 	// 	await this.setSelectionState(range);
-	// 	//
-	// 	// }
-	//
-	// 	const text = KarmaFieldsAlpha.Editor.Brick.getContent();
-	// 	await this.setValue(text);
-	// 	// await this.setFocus();
-	//
-	// }
+	async saveEditorContent(tag, editor = this.getEditor(), range = null) {
 
-	initEditor(element) {
+		await this.save(tag, tag);
 
-		let editor = KarmaFieldsAlpha.Editor;
+		// if (range) {
+		//
+		// 	this.setRange(range);
+		// 	await this.setSelectionState(range);
+		//
+		// }
 
-		if (editor.element !== element) {
-
-			editor.init(element);
-
-			editor.onSelectionChange = () => {
-				CSS.highlights.clear();
-				const pathes = editor.getPathes();
-				this.setState(pathes, "rangePath");
-				this.debounce(() => {
-					this.render();
-				}, 200);
-			};
-
-			editor.onInput = async inputType => {
-				const content = editor.content;
-				await this.save(inputType, inputType);
-				await this.setValue(content);
-				this.debounce(() => {
-					this.parent.render();
-				}, 200);
-			}
-
-			editor.onUndo = () => {
-				KarmaFieldsAlpha.History.undo();
-			}
-			editor.onRedo = () => {
-				KarmaFieldsAlpha.History.redo();
-			}
-
-		}
+		const text = editor.getContent();
+		await this.setValue(text);
+		// await this.setFocus();
 
 	}
 
+	// getEditorContent() {
+	//
+	// 	const editor = this.getEditor();
+	//
+	// 	if (editor) {
+	//
+	// 		return editor.getContent();
+	//
+	// 	}
+	//
+	// 	return "";
+	//
+	// 	// const container = this.getEditorContainer();
+	// 	//
+	// 	// if (container) {
+	// 	//
+	// 	// 	let value = container.innerHTML.normalize();
+	// 	//
+	// 	// 	return value;
+	// 	//
+	// 	// }
+	//
+	// }
 
 	async toggleBold() {
 
-		KarmaFieldsAlpha.Editor.toggle("B");
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	editor.toggleBoldAt(range);
+		//
+		// 	await this.saveEditorContent("bold", editor, range);
+		//
+		// 	await this.parent.render();
+		//
+		// }
+
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			// editor.toggleBoldAt(range);
+
+			const nodes = editor.nodes.filter(node => node.tagName === "B" || node.tagName === "STRONG");
+
+			if (nodes.length) {
+
+				for (let node of nodes) {
+
+					editor.unwrapNode(node);
+
+					// const range =
+					//
+					// this.setRange(range);
+
+				}
+
+			} else {
+
+				editor.wrapInlineAt(editor.range, "b");
+
+			}
+
+			editor.onInput("bold");
+
+			// await this.saveEditorContent("bold", editor, editor.range);
+			//
+			// await this.parent.render();
+
+		}
 
   }
 
   isBold() {
 
-		return KarmaFieldsAlpha.Editor.has("bold");
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	return editor.isBoldAt(range);
+		//
+		// }
+		//
+    // return false;
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			return editor.nodes.some(node => node.tagName === "B" || node.tagName === "STRONG");
+
+		}
+
+    return false;
 
   }
 
 	async toggleItalic() {
 
-		KarmaFieldsAlpha.Editor.toggle("I");
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	editor.toggleItalicAt(range);
+		//
+		// 	// const nodes = [...editor.getNodesAt(range, node => node.tagName === "I" || node.tagName === "EM")];
+		// 	//
+		// 	// if (nodes.length) {
+		// 	//
+		// 	// 	for (let node of nodes) {
+		// 	//
+		// 	// 		editor.unwrapNode(node);
+		// 	//
+		// 	// 	}
+		// 	//
+		// 	// } else {
+		// 	//
+		// 	// 	editor.wrapAt(range, "i");
+		// 	//
+		// 	// }
+		//
+		// 	await this.saveEditorContent("italic", editor, range);
+		//
+		// 	// await this.save("italic", "italic");
+		// 	// await this.setSelectionState(range);
+		// 	// const text = editor.getContent();
+		// 	// await this.setValue(text);
+		// 	await this.parent.render();
+		//
+		// }
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			// editor.toggleItalicAt(range);
+
+			const nodes = editor.nodes.filter(node => node.tagName === "I" || node.tagName === "EM");
+
+			if (nodes.length) {
+
+				for (let node of nodes) {
+
+					editor.unwrapNode(node);
+
+					// const range =
+					//
+					// this.setRange(range);
+
+				}
+
+			} else {
+
+				editor.wrapInlineAt(editor.range, "i");
+
+			}
+
+			// await this.saveEditorContent("italic", editor); //, editor.range);
+			//
+			// await this.parent.render();
+
+			editor.onInput("italic");
+
+		}
+
 
   }
 
   isItalic() {
 
-		return KarmaFieldsAlpha.Editor.has("I");
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	return editor.isItalicAt(range);
+		//
+		// 	// const result = editor.getNodesAt(range, node => node.tagName === "I" || node.tagName === "EM").next();
+		// 	//
+		// 	// return !result.done;
+		//
+		// }
+		//
+    // return false;
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			return editor.nodes.some(node => node.tagName === "I" || node.tagName === "EM");
+
+		}
+
+    return false;
 
   }
 
+  queryCommand(key) {
+
+		console.error("deprecated");
+
+		const response = new KarmaFieldsAlpha.Content();
+
+		response.value = document.queryCommandState(key); // || this.hasParentTag(element, 'B') || this.hasParentTag(element, 'STRONG');
+
+		return response;
+  }
+
+
+	getEditorNode(...tags) {
+
+		console.error("deprecated");
+
+		const editor = this.getEditor();
+		const range = this.getRange();
+
+
+		if (editor && range && editor.contains(range)) {
+
+			return editor.getNodeByTags(range, ...tags);
+
+		}
+
+  }
+
+  async execCommand(key) {
+
+		console.error("deprecated");
+
+		document.execCommand(key);
+
+  }
+
+	getTag(...tags) {
+
+		console.error("deprecated");
+
+		return this.getEditorNode(...tags);
+
+	}
+
+	getNodes(...tags) {
+
+		console.error("deprecated");
+
+		return this.getEditorNode(...tags);
+
+	}
+
+	queryNode(...tags) {
+
+		console.error("deprecated");
+
+		const response = new KarmaFieldsAlpha.Content();
+
+		const editor = this.getEditor();
+		const range = this.getRange();
+
+		if (editor && range && editor.contains(range)) {
+
+			response.value = editor.getNodeByTags(range, ...tags);
+
+		}
+
+		return response;
+	}
+
+	async execNode(...tags) {
+
+		console.error("deprecated");
+
+		const editor = this.getEditor();
+		const range = this.getRange();
+
+		if (editor && range && editor.contains(range)) {
+
+			// editor.toggleNodeByTag(range, ...tags);
+
+
+			let node = editor.getNodeByTags(range, ...tags);
+
+			if (node) {
+
+				editor.unwrapNode(node);
+
+			} else {
+
+				editor.wrapAt(range, tags[0]);
+
+			}
+
+			await this.save("heading", "heading");
+			const text = editor.getContent();
+			await this.setValue(text);
+			await this.parent.render();
+
+		}
+
+  }
+
+
 	hasHeading() {
 
-		return KarmaFieldsAlpha.Editor.has("heading");
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	return editor.isHeadingAt(range);
+		//
+		// }
+		//
+    // return false;
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			return editor.nodes.some(node => editor.isHeading(node));
+
+		}
+
+    return false;
 
 	}
 
 	async execHeading() {
 
-		KarmaFieldsAlpha.Editor.toggle(this.resource.defaultHeading || "H1");
+		// const editor = this.getEditor();
+		// const range = this.getRange();
+		//
+		// if (editor && range) {
+		//
+		// 	editor.toggleHeading(range, this.resource.defaultHeading || "h1");
+		//
+		// 	await this.saveEditorContent("heading", editor, range);
+		// 	await this.parent.render();
+		//
+		// }
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			let nodes = editor.nodes.filter(node => editor.isHeading(node));
+
+			if (nodes.length) {
+
+	      for (let node of nodes) {
+
+	        editor.updateNode(node, "p");
+
+	      }
+
+	      // range.setStartBefore(nodes[0]);
+	      // range.setEndAfter(nodes[nodes.length-1]);
+
+	    } else if (!editor.range.collapsed) {
+
+	      editor.wrapBlockAt(editor.range, this.resource.defaultHeading || "h1");
+
+	    }
+
+			// editor.toggleHeading(range, this.resource.defaultHeading || "h1");
+
+			// await this.saveEditorContent("heading", editor); //, editor.range);
+			// await this.parent.render();
+
+			editor.onInput("heading");
+
+		}
+
 
 	}
 
-	isList(tagName = "UL") {
+	isList(listTag = "ul") {
 
-		return KarmaFieldsAlpha.Editor.has(tagName);
+		// const range = this.getRange();
+		// const editor = this.getEditor();
+		//
+		// if (range && editor && editor.contains(range)) {
+		//
+		// 	return editor.isListAt(range, listTag);
+		//
+		// }
+		//
+    // return false;
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			return editor.nodes.some(node => node.tagName === listTag.toUpperCase());
+
+		}
+
+    return false;
 
   }
 
-  execList(tagName) {
+  // queryUL() {
+	//
+	// 	const response = new KarmaFieldsAlpha.Content();
+	//
+	// 	response.value = document.queryCommandValue("InsertUnorderedList") === "true";
+	//
+	// 	return response;
+  // }
+	//
+  // queryOL() {
+	//
+	// 	const response = new KarmaFieldsAlpha.Content();
+	//
+	// 	response.value = document.queryCommandValue("InsertOrderedList") === "true";
+	//
+	// 	return response;
+  // }
 
-		KarmaFieldsAlpha.Editor.toggle(tagName);
+
+  async execList(tagName) {
+
+		// const editor = this.getEditor();
+		// const range = this.getRange();
+		//
+		// if (editor && range) {
+		//
+		// 	editor.toggleList(range, tagName);
+		//
+		// 	// await this.save(tagName, tagName);
+		// 	// await this.setSelectionState(range);
+		// 	// const text = editor.getContent();
+		// 	// await this.setValue(text);
+		//
+		// 	await this.saveEditorContent(tagName, editor, range);
+		// 	await this.parent.render();
+		//
+		// }
+
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			// editor.toggleList(range, tagName);
+
+			let listNodes = editor.nodes.filter(node => node.tagName === "UL" || node.tagName === "OL");
+
+	    if (listNodes.length) {
+
+	      if (listNodes[0].tagName === tagName.toUpperCase()) {
+
+	        for (let node of listNodes) {
+
+						editor.unwrapList(node);
+
+	          // const paragraphs =
+						//
+	          // if (paragraphs.length) {
+						//
+	          //   range.setStartBefore(paragraphs[0]);
+	          //   range.setEndAfter(paragraphs[paragraphs.length - 1]);
+						//
+	          // }
+
+	        }
+
+	      } else {
+
+	        for (let node of listNodes) {
+
+	          editor.updateNode(node, tagName);
+
+	        }
+
+	      }
+
+	    } else {
+
+	      editor.wrapListAt(editor.range, tagName);
+
+	    }
+
+			// await this.saveEditorContent(tagName, editor); //, range);
+			// await this.parent.render();
+
+			editor.onInput("list");
+
+		}
 
   }
+
+
+  // getFormat() {
+	//
+	// 	const response = new KarmaFieldsAlpha.Content();
+	//
+	// 	response.value = document.queryCommandValue("FormatBlock");
+	//
+	// 	return response;
+  // }
+	//
+  // async setFormat(value) {
+	//
+	// 	const editor = this.getEditor();
+	//
+	// 	if (editor) {
+	//
+	// 		document.execCommand("FormatBlock", false, value);
+	//
+	// 		const selection = document.getSelection();
+	// 		this.range = selection.getRangeAt(0);
+	//
+	//
+	// 		await this.save("format", "format");
+	// 		// await this.setValue(text);
+	// 		// await this.updateContent();
+	// 		const text = this.getEditorContent();
+	// 		await this.setValue(text);
+	// 		await this.parent.render();
+	//
+	// 	}
+	//
+  // }
+
 
 
 	async addImage() {
@@ -334,9 +812,6 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 	}
 
 	async removeImage() {
-
-		KarmaFieldsAlpha.Editor.remove("FIGURE");
-
 
 		// const editor = this.getEditor();
 		// const range = this.getRange();
@@ -361,24 +836,24 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		//
 		// }
 
-		// const editor = this.getEditor();
-		//
-		// if (editor) {
-		//
-		// 	const figures = editor.nodes.filter(node => node.tagName === "FIGURE");
-		//
-		// 	for (let figure of figures) {
-		//
-		// 		editor.removeNode(figure);
-		//
-		// 	}
-		//
-		// 	// await this.saveEditorContent("remove-image", editor);
-		// 	// await this.parent.render();
-		//
-		// 	editor.onInput("remove-image");
-		//
-		// }
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			const figures = editor.nodes.filter(node => node.tagName === "FIGURE");
+
+			for (let figure of figures) {
+
+				editor.removeNode(figure);
+
+			}
+
+			// await this.saveEditorContent("remove-image", editor);
+			// await this.parent.render();
+
+			editor.onInput("remove-image");
+
+		}
 
 	}
 
@@ -397,63 +872,54 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		//
 		// return [];
 
-		return KarmaFieldsAlpha.Editor.query("FIGURE");
+		const editor = this.getEditor();
 
+		if (editor) {
 
+			return editor.nodes.filter(node => node.tagName === "FIGURE");
 
-		// const editor = this.getEditor();
-		//
-		// if (editor) {
-		//
-		// 	return editor.nodes.filter(node => node.tagName === "FIGURE");
-		//
-		// }
-		//
-		// return [];
+		}
+
+		return [];
 
 	}
 
 	hasImage() {
 
-		return KarmaFieldsAlpha.Editor.has("FIGURE");
+		const editor = this.getEditor();
 
-		// const editor = this.getEditor();
-		//
-		// if (editor) {
-		//
-		// 	return editor.nodes.some(node => node.tagName === "FIGURE");
-		//
-		// }
-		//
-		// return false;
+		if (editor) {
+
+			return editor.nodes.some(node => node.tagName === "FIGURE");
+
+		}
+
+		return false;
 
 	}
 
 	async insertImage2(...imgs) {
 
-			KarmaFieldsAlpha.Editor.insert(...imgs);
+		const editor = this.getEditor();
 
+		if (editor) {
 
-		// const editor = this.getEditor();
-		//
-		// if (editor) {
-		//
-		// 	const nodes = editor.nodes.filter(node => node.tagName === "FIGURE");
-		//
-		// 	if (nodes.length) {
-		//
-		// 		editor.selectNode(...nodes);
-		//
-		// 	}
-		//
-		// 	editor.insertContainerAt(editor.range, ...imgs);
-		//
-		// 	// await this.saveEditorContent("insert-image", editor);
-		// 	// await this.parent.render();
-		//
-		// 	editor.onInput("insert-image");
-		//
-		// }
+			const nodes = editor.nodes.filter(node => node.tagName === "FIGURE");
+
+			if (nodes.length) {
+
+				editor.selectNode(...nodes);
+
+			}
+
+			editor.insertContainerAt(editor.range, ...imgs);
+
+			// await this.saveEditorContent("insert-image", editor);
+			// await this.parent.render();
+
+			editor.onInput("insert-image");
+
+		}
 
 	}
 
@@ -548,12 +1014,6 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	async insertMore() {
 
-		const p = document.createElement("p");
-		p.innerHTML = "---";
-
-		KarmaFieldsAlpha.Editor.insert(p);
-
-
 		// const editor = this.getEditorContainer();
 		//
 		// if (editor) {
@@ -568,26 +1028,26 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		//
 		// }
 
-		// const editor = this.getEditor();
-		// // const range = this.getRange();
-		//
-		// if (editor) {
-		//
-		// 	const p = document.createElement("p");
-		// 	p.innerHTML = "---";
-		// 	editor.insertContainerAt(editor.range, p); // as container to break blocks
-		//
-		// 	// await this.save("more", "more");
-		// 	// // const text = this.getEditorContent();
-		// 	// const text = editor.getContent();
-		// 	// await this.setValue(text);
-		//
-		// 	// await this.saveEditorContent("insert-more", editor);
-		// 	// await this.parent.render();
-		//
-		// 	editor.onInput("insert-more");
-		//
-		// }
+		const editor = this.getEditor();
+		// const range = this.getRange();
+
+		if (editor) {
+
+			const p = document.createElement("p");
+			p.innerHTML = "---";
+			editor.insertContainerAt(editor.range, p); // as container to break blocks
+
+			// await this.save("more", "more");
+			// // const text = this.getEditorContent();
+			// const text = editor.getContent();
+			// await this.setValue(text);
+
+			// await this.saveEditorContent("insert-more", editor);
+			// await this.parent.render();
+
+			editor.onInput("insert-more");
+
+		}
 
 	}
 
@@ -622,25 +1082,19 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	getLinksUnder() {
 
-		return KarmaFieldsAlpha.Editor.query("A");
+		const editor = this.getEditor();
 
+		if (editor && range && editor.contains(range)) {
 
+			return editor.nodes.filter(node => node.tagName === "A");
 
-		// const editor = this.getEditor();
-		//
-		// if (editor && range && editor.contains(range)) {
-		//
-		// 	return editor.nodes.filter(node => node.tagName === "A");
-		//
-		// }
-		//
-		// return [];
+		}
+
+		return [];
 
 	}
 
 	isLink() {
-
-		return KarmaFieldsAlpha.Editor.has("A");
 
 		// const editor = this.getEditor();
 		// const range = this.getRange();
@@ -655,29 +1109,27 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		//
 		// return false;
 
-		// const editor = this.getEditor();
-		//
-		// if (editor) {
-		//
-		// 	return editor.nodes.some(node => node.tagName === "A");
-		//
-		// }
-		//
-		// return false;
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			return editor.nodes.some(node => node.tagName === "A");
+
+		}
+
+		return false;
 
   }
 
 	async createLink() {
 
-		// const editor = this.getEditor();
-
-		const range = KarmaFieldsAlpha.Editor.beam;
+		const editor = this.getEditor();
 
 		// if (editor && range && editor.contains(range) && !range.collapsed) {
-		if (range && !range.collapsed) {
+		if (editor && !editor.range.collapsed) {
 
 			// Create a custom highlight for these ranges.
-			const highlight = new Highlight(range);
+			const highlight = new Highlight(editor.range);
 
 			// Register the ranges in the HighlightRegistry.
 			CSS.highlights.set("richtext-highlight", highlight);
@@ -762,77 +1214,42 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	async updateLink(params) {
 
-		KarmaFieldsAlpha.Editor.edit("A", params);
-		//
-		//
-		// 			const links = KarmaFieldsAlpha.Editor.Brick.query("A");
-		//
-		// 			if (links.length) {
-		//
-		// 				for (let link of links) {
-		//
-		// 					const href = link.node.getAttribute("href");
-		// 					const target = link.node.getAttribute("target");
-		//
-		// 					editor.updateNode(link, null, {href, target, ...params});
-		//
-		// 				}
-		//
-		// 				// await this.saveEditorContent("link", editor); // not range!
-		//
-		// 			} else if (editor.range && !editor.range.collapsed && params.href) {
-		//
-		// 				editor.wrapInlineAt(editor.range, "a", params);
-		//
-		// 				// await this.saveEditorContent("link", editor); // not range!
-		// 				//
-		// 				// await this.setSelectionState(editor.range); // do not cast setRange!
-		//
-		// 			}
-		//
-		// 			// this.debounce(() => {
-		// 			// 	this.render();
-		// 			// }, 400);
-		//
-		// 			editor.onInput("link");
-		//
-		// //
-		// // const editor = this.getEditor();
-		// //
-		// // if (editor) {
-		// //
-		// // 	const links = editor.nodes.filter(node => node.tagName === "A");
-		// //
-		// // 	if (links.length) {
-		// //
-		// // 		for (let link of links) {
-		// //
-		// // 			const href = link.getAttribute("href");
-		// // 			const target = link.getAttribute("target");
-		// //
-		// // 			editor.updateNode(link, null, {href, target, ...params});
-		// //
-		// // 		}
-		// //
-		// // 		// await this.saveEditorContent("link", editor); // not range!
-		// //
-		// // 	} else if (editor.range && !editor.range.collapsed && params.href) {
-		// //
-		// // 		editor.wrapInlineAt(editor.range, "a", params);
-		// //
-		// // 		// await this.saveEditorContent("link", editor); // not range!
-		// // 		//
-		// // 		// await this.setSelectionState(editor.range); // do not cast setRange!
-		// //
-		// // 	}
-		// //
-		// // 	// this.debounce(() => {
-		// // 	// 	this.render();
-		// // 	// }, 400);
-		// //
-		// // 	editor.onInput("link");
-		// //
-		// // }
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			const links = editor.nodes.filter(node => node.tagName === "A");
+
+			if (links.length) {
+
+				for (let link of links) {
+
+					const href = link.getAttribute("href");
+					const target = link.getAttribute("target");
+
+					editor.updateNode(link, null, {href, target, ...params});
+
+				}
+
+				// await this.saveEditorContent("link", editor); // not range!
+
+			} else if (editor.range && !editor.range.collapsed && params.href) {
+
+				editor.wrapInlineAt(editor.range, "a", params);
+
+				// await this.saveEditorContent("link", editor); // not range!
+				//
+				// await this.setSelectionState(editor.range); // do not cast setRange!
+
+			}
+
+			// this.debounce(() => {
+			// 	this.render();
+			// }, 400);
+
+			editor.onInput("link");
+
+		}
 
 	}
 
@@ -867,8 +1284,6 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	async unlink() {
 
-		KarmaFieldsAlpha.Editor.unwrap("A");
-
 		// const editor = this.getEditor();
 		// const range = this.getRange();
 		//
@@ -881,26 +1296,26 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 		//
 		// }
 
-		// const editor = this.getEditor();
-		//
-		// if (editor) {
-		//
-		// 	// editor.unlinkAt(range);
-		//
-		// 	const links = editor.nodes.filter(node => node.tagName === "A");
-		//
-	  //   for (let link of links) {
-		//
-	  //     editor.unwrapNode(link);
-		//
-	  //   }
-		//
-		// 	// await this.saveEditorContent("unlink", editor, editor.range);
-		// 	// await this.parent.render();
-		//
-		// 	editor.onInput("unlink");
-		//
-		// }
+		const editor = this.getEditor();
+
+		if (editor) {
+
+			// editor.unlinkAt(range);
+
+			const links = editor.nodes.filter(node => node.tagName === "A");
+
+	    for (let link of links) {
+
+	      editor.unwrapNode(link);
+
+	    }
+
+			// await this.saveEditorContent("unlink", editor, editor.range);
+			// await this.parent.render();
+
+			editor.onInput("unlink");
+
+		}
 
 
 
@@ -946,7 +1361,12 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 				console.error("deprecated");
         return this.getFormat();
 
-
+			case "formatHeading":
+				console.error("deprecated");
+				const tag = this.getTag("h1", "h2", "h3", "h4", "h5", "h6");
+				const content = new KarmaFieldsAlpha.Content();
+				content.value = tag && tag.tagName.toLowerCase();
+				return content;
 
       case "bold":
       case "italic":
@@ -978,41 +1398,43 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 			case "filename": {
 				const content = new KarmaFieldsAlpha.Content();
 				// const range = this.getRange();
-				// const editor = this.getEditor();
-				// if (editor) {
-				// 	content.value = editor.nodes.filter(node => node.tagName === "FIGURE").map(figure => figure.querySelector("img")).filter(img => img).map(img => img.src);
-				// 	content.mixed = this.isMixed(content.value);
-				// }
-
-				content.value = KarmaFieldsAlpha.Editor.query("FIGURE").map(figure => figure.node.querySelector("img")).filter(img => img).map(img => img.src);
-				content.mixed = content.value.length > 1 && content.value.slice(1).some(url => url !== content.value[0]);
+				const editor = this.getEditor();
+				if (editor) {
+					content.value = editor.nodes.filter(node => node.tagName === "FIGURE").map(figure => figure.querySelector("img")).filter(img => img).map(img => img.src);
+					content.mixed = this.isMixed(content.value);
+				}
 				return content;
 			}
-			// case "formatHeading":
-			// case "heading":
-			// 	const content = new KarmaFieldsAlpha.Content();
-			//
-			// 	content.value = KarmaFieldsAlpha.Editor.query("heading").map(heading => heading.node.tagName);
-			// 	content.mixed = content.value.length > 1 && content.value.slice(1).some(item => item !== content.value[0]);
-			//
-			// 	return content;
-
-			case "formatHeading":
 			case "heading": {
 				const content = new KarmaFieldsAlpha.Content();
-				const values = KarmaFieldsAlpha.Editor.query("heading").map(heading => heading.node.tagName);
-				content.value = values[0];
-				content.mixed = values.length > 1 && values.slice(1).some(item => item !== values[0]);
+				const editor = this.getEditor();
+				if (editor) {
+					// const heading = editor.getHeadingAt(range);
+					content.value = editor.nodes.filter(node => editor.isHeading(node)).map(heading => heading.tagName.toLowerCase());
+					content.mixed = this.isMixed(content.value);
+				}
 				return content;
 			}
 
 			case "href":
 			case "target": {
 				const content = new KarmaFieldsAlpha.Content();
-
-				const links = KarmaFieldsAlpha.Editor.query("A");
-				content.value = links.map(link => link.node.getAttribute(key));
-				content.mixed = content.value.length > 1 && content.value.slice(1).some(item => item !== content.value[0]);
+				// const range = this.getRange();
+				// const editor = this.getEditor();
+				// if (editor && range) {
+				// 	const link = editor.getLinkAt(range);
+				// 	if (link) {
+				// 		content.value = link.getAttribute(key);
+				// 	}
+				// }
+				const editor = this.getEditor();
+				if (editor) {
+					content.value = editor.nodes.filter(link => link.tagName === "A").map(link => link.getAttribute(key));
+					content.mixed = this.isMixed(content.value);
+					// if (content.value.slice(1).some(value => value !== content.value[0])) {
+					// 	content.mixed = true;
+					// }
+				}
 				return content;
 			}
 
@@ -1033,50 +1455,46 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
     switch (key) {
 
 			case "heading": {
-				KarmaFieldsAlpha.Editor.edit(value);
-
-
 				// const range = this.getRange();
-				// const editor = this.getEditor();
-				// if (editor) {
-				// 	// let nodes = editor.getNodesAt(range, node => editor.isHeading(node));
-				// 	// for (let node of nodes) {
-				// 	// 	editor.updateNode(node, value);
-				// 	// }
-				// 	// let heading = editor.getHeadingAt(range);
-				// 	let headings = editor.nodes.filter(node => editor.isHeading(node));
-				// 	for (let heading of headings) {
-				// 		editor.updateNode(heading, value);
-				// 	}
-				// 	// if (heading) {
-				// 	// 	editor.updateNode(heading, value);
-				// 	// }
-				// 	// editor.insertHeading(range, value);
-				//
-				// 	// await this.saveEditorContent("heading", editor); // not range!
-				// 	// await this.setFocus();
-				// 	//
-				// 	// // await this.setSelectionState(range); // do not cast setRange!
-				// 	// await this.render();
-				//
-				// 	editor.onInput("heading")
-				//
-				// }
+				const editor = this.getEditor();
+				if (editor) {
+					// let nodes = editor.getNodesAt(range, node => editor.isHeading(node));
+					// for (let node of nodes) {
+					// 	editor.updateNode(node, value);
+					// }
+					// let heading = editor.getHeadingAt(range);
+					let headings = editor.nodes.filter(node => editor.isHeading(node));
+					for (let heading of headings) {
+						editor.updateNode(heading, value);
+					}
+					// if (heading) {
+					// 	editor.updateNode(heading, value);
+					// }
+					// editor.insertHeading(range, value);
+
+					// await this.saveEditorContent("heading", editor); // not range!
+					// await this.setFocus();
+					//
+					// // await this.setSelectionState(range); // do not cast setRange!
+					// await this.render();
+
+					editor.onInput("heading")
+
+				}
 				break;
 			}
 			case "href":
 			case "target": {
-
-				KarmaFieldsAlpha.Editor.edit("A", {[key]: value});
-				// await this.updateLink({[key]: value});
+				await this.updateLink({[key]: value});
 				break;
 			}
 
       case "format":
+        await this.setFormat(value);
+				break;
+
 			case "formatHeading":
-				KarmaFieldsAlpha.Editor.edit(value);
-				// console.error("deprecated");
-        // await this.setFormat(value);
+				await this.setFormat(value);
 				break;
 
 			case "file":
@@ -1326,58 +1744,52 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 				},
 				update: async node => {
 
-					this.initEditor(node.element);
+					let editor = this.getEditor();
 
-					let editor = KarmaFieldsAlpha.Editor;
-					//
-					// // if (!editor) {
-					// //
-					// // 	editor = new KarmaFieldsAlpha.Editor();
-					// //
-					// // 	this.setEditor(editor);
-					// //
-					// // }
-					//
-					// editor.init(node.element);
-					//
-					// // if (editor.element !== node.element) {
-					// //
-					// // 	editor.setElement(node.element);
-					// //
-					// // }
-					//
-					// editor.onSelectionChange = () => {
-					// 	CSS.highlights.clear();
-					// 	const pathes = editor.getPathesAt(editor.range);
-					// 	this.setState(pathes, "rangePath");
-					// 	this.debounce(() => {
-					// 		this.render();
-					// 	}, 200);
-					// };
-					//
-					// editor.onInput = async inputType => {
-					// 	const content = editor.getContent();
-					// 	await this.save(inputType, inputType);
-					// 	await this.setValue(content);
-					// 	this.debounce(() => {
-					// 		this.parent.render();
-					// 	}, 200);
-					// }
-					//
-					// editor.onUndo = () => {
-					// 	KarmaFieldsAlpha.History.undo();
-					// }
-					// editor.onRedo = () => {
-					// 	KarmaFieldsAlpha.History.redo();
-					// }
+					if (!editor) {
 
-					node.element.onDblclick = async event => {
-						if (KarmaFieldsAlpha.Editor.isSelected("IMG")) {
-							const field = this.getChild("filesAttacher");
-							if (field) {
-								await field.edit();
-								await this.render();
-							}
+						editor = new KarmaFieldsAlpha.Editor();
+
+						this.setEditor(editor);
+
+					}
+
+					if (editor.element !== node.element) {
+
+						editor.setElement(node.element);
+
+					}
+
+					editor.onSelectionChange = () => {
+						CSS.highlights.clear();
+						const pathes = editor.getPathesAt(editor.range);
+						this.setState(pathes, "rangePath");
+						this.debounce(() => {
+							this.render();
+						}, 200);
+					};
+
+					editor.onInput = async inputType => {
+						const content = editor.getContent();
+						await this.save(inputType, inputType);
+						await this.setValue(content);
+						this.debounce(() => {
+							this.parent.render();
+						}, 200);
+					}
+
+					editor.onUndo = () => {
+						KarmaFieldsAlpha.History.undo();
+					}
+					editor.onRedo = () => {
+						KarmaFieldsAlpha.History.redo();
+					}
+
+					editor.onDblclick = async () => {
+						const field = this.getChild("filesAttacher");
+						if (field) {
+							await field.edit();
+							await this.render();
 						}
 					}
 
@@ -1385,6 +1797,11 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 						await this.setFocus(content.mixed);
 						await this.parent.render(); // update clipboard textarea, unselect other stuffs
 					}
+
+					// node.element.onblur = async event => {
+					// 	console.log("blur", event.target);
+					// }
+
 
 
 					let content = this.getContent();
@@ -1457,10 +1874,9 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 							if (newContent) {
 
-								// let currentContent = editor.getContent();
+								let currentContent = editor.getContent();
 
-								// if (newContent !== currentContent) {
-								if (newContent !== editor.content) {
+								if (newContent !== currentContent) {
 
 									editor.setContent(newContent);
 
@@ -1468,19 +1884,17 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 									if (rangePath && hasFocus) {
 
-										KarmaFieldsAlpha.Editor.setPathes(rangePath);
+										const range = editor.getRangeFromPathes(rangePath);
+										const selection = document.getSelection();
+										selection.removeAllRanges();
+										selection.addRange(range);
 
-										// const range = editor.getRangeFromPathes(rangePath);
-										// const selection = document.getSelection();
-										// selection.removeAllRanges();
-										// selection.addRange(range);
-										//
-										// editor.update(range);
+										editor.setRange(range);
 									}
 
-									// newContent = editor.getContent();
-									//
-									// this.setValue(newContent);
+									newContent = editor.getContent();
+
+									this.setValue(newContent);
 
 								}
 
@@ -1653,15 +2067,15 @@ KarmaFieldsAlpha.field.richtext.buttons.format = class extends KarmaFieldsAlpha.
 			key: "formatHeading",
 			options: [
 				// {id: "", name: "Format"},
-				{id: "H1", name: "H1"},
-				{id: "H2", name: "H2"},
-				{id: "H3", name: "H3"},
-				{id: "H4", name: "H4"},
-				{id: "H5", name: "H5"},
-				{id: "H6", name: "H6"}
+				{id: "h1", name: "H1"},
+				{id: "h2", name: "H2"},
+				{id: "h3", name: "H3"},
+				{id: "h4", name: "H4"},
+				{id: "h5", name: "H5"},
+				{id: "h6", name: "H6"}
 				// {id: "p", name: "P"}
 			],
-			visible: ["request", "hasHeading"],
+			visible: ["request", "queryHeading"],
 			...resource
 		}, id, parent);
 	}
@@ -1673,10 +2087,8 @@ KarmaFieldsAlpha.field.richtext.buttons.heading = class extends KarmaFieldsAlpha
 			dashicon: "heading",
 			title: "Heading",
 			action: "execHeading",
+			// value: "bold",
 			active: ["request", "hasHeading"],
-
-			// key: "heading",
-			// value: ["resource", "heading"]
 			...resource
 		}, id, parent);
 	}
@@ -1911,7 +2323,7 @@ KarmaFieldsAlpha.field.richtext.buttons.ul = class extends KarmaFieldsAlpha.fiel
 			dashicon: "editor-ul",
 			title: "Unordered list",
 			action: "execList",
-			params: ["UL"],
+			params: ["ul"],
 			// active: ["request", "queryUL"],
 			active: ["request", "isList", "UL"],
 			...resource
@@ -1926,7 +2338,7 @@ KarmaFieldsAlpha.field.richtext.buttons.ol = class extends KarmaFieldsAlpha.fiel
 			title: "Ordered list",
 			// action: "execOL",
 			action: "execList",
-			params: ["OL"],
+			params: ["ol"],
 			// active: ["request", "queryOL"],
 			active: ["request", "isList", "OL"],
 			...resource
@@ -2228,27 +2640,14 @@ KarmaFieldsAlpha.field.richtext.linkForm = class extends KarmaFieldsAlpha.field.
 	async close() {
 
 		// getLinksUnder
-		// const editor = this.parent.getEditor();
-		//
-		// const links = editor.nodes.filter(node => node.tagName === "A");
-		//
-		// if (links.length) {
-		//
-		// 	editor.range.setStartAfter(links[links.length-1]);
-		// 	editor.range.collapse(true);
-		//
-		// }
+		const editor = this.parent.getEditor();
 
-		const editor = KarmaFieldsAlpha.Editor;
-
-		const links = editor.query("A");
+		const links = editor.nodes.filter(node => node.tagName === "A");
 
 		if (links.length) {
 
-			const range = editor.getRange();
-
-			range.setStartAfter(links[links.length-1].node);
-			range.collapse(true);
+			editor.range.setStartAfter(links[links.length-1]);
+			editor.range.collapse(true);
 
 		}
 
@@ -2484,13 +2883,12 @@ KarmaFieldsAlpha.field.richtext.headingForm = class extends KarmaFieldsAlpha.fie
 					key: "heading",
 
 					options: [
-						{id: "H1", name: "H1"},
-						{id: "H2", name: "H2"},
-						{id: "H3", name: "H3"},
-						{id: "H4", name: "H4"},
-						{id: "H5", name: "H5"},
-						{id: "H6", name: "H6"},
-						{id: "P", name: "P"}
+						{id: "h1", name: "H1"},
+						{id: "h2", name: "H2"},
+						{id: "h3", name: "H3"},
+						{id: "h4", name: "H4"},
+						{id: "h5", name: "H5"},
+						{id: "h6", name: "H6"}
 					]
 				}
 			],
