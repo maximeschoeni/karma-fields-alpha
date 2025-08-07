@@ -1,6 +1,6 @@
 
 
-KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
+KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.container {
 
   constructor(resource, id, parent) {
 
@@ -16,748 +16,1942 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
 
   }
 
-  queryParams() {
+  // queryParams() {
 
-    console.error("deprecated");
+  //   console.error("deprecated");
 
-    let params = super.queryParams();
+  //   let params = super.queryParams();
 
-    if (!params.loading && !params.string) {
+  //   if (!params.loading && !params.string) {
 
-      params.string = KarmaFieldsAlpha.Params.stringify(params.value);
+  //     params.string = KarmaFieldsAlpha.Params.stringify(params.value);
 
-    }
-
-    return params;
-
-  }
-
-  getIds(driver, paramstring) {
-
-    if (!driver) {
-
-      driver = this.getDriver();
-
-    }
-
-    if (paramstring === undefined) {
-
-      // const params = this.queryParams();
-      //
-      // if (params.loading) {
-      //
-      //   return new KarmaFieldsAlpha.Loading();
-      //
-      // } else {
-      //
-      //   paramstring = params.string;
-      //
-      // }
-
-      paramstring = this.getParamstring() || "";
-
-    }
-
-    return KarmaFieldsAlpha.server.queryIds(driver, paramstring);
-
-
-
-    // if (this.loading) {
-    //
-    //   return new KarmaFieldsAlpha.Loading();
-    //
-    // } else {
-    //
-    //   return KarmaFieldsAlpha.server.queryIds(driver || this.driver, paramstring ?? this.paramstring);
-    //
-    // }
-
-  }
-
-  // getParams() {
-  //
-  //   return this.queryParams().toObject();
-  //
-  // }
-  //
-  // async setParams(params) {
-  //
-  //   delete this.params;
-  //
-  //   // return KarmaFieldsAlpha.server.setState(params, "fields", this.uid, "params");
-  //
-  //   await this.setState(params, "params");
-  //
-  // }
-  //
-  // getParam(key) {
-  //
-  //   return this.getParams()[key];
-  //
-  // }
-  //
-  // async setParam(value, key) {
-  //
-  //   await this.setParams({...this.getParams(), [key]: value});
-  //
-  // }
-  //
-  // getContent(key) {
-  //
-  //   const params = this.queryParams();
-  //
-  //   const response = new KarmaFieldsAlpha.Content();
-  //
-  //   if (params.loading) {
-  //
-  //     response.loading = true;
-  //
-  //   } else {
-  //
-  //     response.value = params.toObject()[key];
   //   }
-  //
-  //   return response;
-  //
-  // }
-  //
-  // setValue(value, key) {
-  //
-  //   return this.setParam(value, key);
-  //
+
+  //   return params;
+
   // }
 
+	// getIds(driver, paramstring) {
 
-  getBody() {
+	// 	if (!driver) {
 
-		// const constructor = this.getConstructor(this.resource.body && this.resource.body.type || "grid");
-    //
-		// return new constructor(this.resource.body, "body", this);
+	// 		driver = this.getDriver();
 
-    return this.createChild({
-      type: "grid",
+	// 	}
+
+	// 	if (paramstring === undefined) {
+
+	// 		paramstring = this.getParamstring() || "";
+
+	// 	}
+
+	// 	return KarmaFieldsAlpha.server.queryIds(driver, paramstring);
+
+
+
+
+	// }
+
+	// getQueryNEW() {
+
+	// 	const response = new KarmaFieldsAlpha.Content();
+
+	// 	let query = KarmaFieldsAlpha.server.getState(this.uid, "query");
+
+	// 	if (query) {
+
+	// 		response.value = query;
+
+	// 	} else {
+
+	// 		let request = KarmaFieldsAlpha.server.getTempo("state", this.uid, "request");
+
+	// 		if (!request) {
+
+	// 			let params = KarmaFieldsAlpha.server.getState(this.uid, "params");
+
+	// 			if (!params) {
+
+	// 				const parsing  = this.parse(this.resource.params);
+
+	// 				if (!parsing.loading) {
+
+	// 					params = parsing.toObject();
+
+	// 				}
+
+	// 			}
+
+	// 			if (params) {
+
+	// 				const driver = this.getDriver();
+	// 				const paramstring = KarmaFieldsAlpha.Params.stringify(params);
+
+	// 				request = { driver, params, paramstring };
+
+	// 				KarmaFieldsAlpha.server.setTempo(request, "state", this.uid, "request");
+
+	// 			}
+
+	// 		}
+
+	// 		if (!request) {
+
+	// 			response.loading = true;
+
+	// 		} else {
+
+	// 			const query = KarmaFieldsAlpha.server.getQuery(request.driver, request.paramstring);
+
+	// 			if (query) {
+
+	// 				response.value = query;
+
+	// 			} else {
+
+	// 				response.loading = true;
+
+	// 			}
+
+	// 		}
+
+	// 	}
+
+	// 	return response;
+
+	// }
+
+	// getQueryNEW() {
+
+	// 	const response = new KarmaFieldsAlpha.Content();
+
+	// 	let query = KarmaFieldsAlpha.server.getState(this.uid, "query");
+
+	// 	if (query) {
+
+	// 		response.value = query;
+
+	// 	} else {
+
+	// 		let driver = KarmaFieldsAlpha.server.getTempo("state", this.uid, "driver");
+	// 		let paramstring = KarmaFieldsAlpha.server.getTempo("state", this.uid, "paramstring");
+
+	// 		if (!driver || !paramstring) {
+
+	// 			let params = KarmaFieldsAlpha.server.getState(this.uid, "params");
+
+	// 			if (!params) {
+
+	// 				const parsing  = this.parse(this.resource.params);
+
+	// 				if (!parsing.loading) {
+
+	// 					params = parsing.toObject();
+
+	// 				}
+
+	// 			}
+
+	// 			if (params) {
+
+	// 				driver = this.getDriver();
+	// 				paramstring = KarmaFieldsAlpha.Params.stringify(params);
+
+	// 				KarmaFieldsAlpha.server.setTempo(driver, "state", this.uid, "driver");
+	// 				KarmaFieldsAlpha.server.setTempo(paramstring, "state", this.uid, "paramstring");
+
+	// 			}
+
+	// 		}
+
+	// 		if (driver && paramstring) {
+
+	// 			const query = KarmaFieldsAlpha.server.getQuery(driver, paramstring);
+
+	// 			if (query) {
+
+	// 				response.value = query;
+
+	// 			} else {
+
+	// 				response.loading = true;
+
+	// 			}
+
+	// 		} else {
+
+	// 			response.loading = true;
+
+	// 		}
+
+	// 	}
+
+	// 	return response;
+
+	// }
+
+	// getQueryNEW() {
+
+	// 	let query = KarmaFieldsAlpha.server.getState(this.uid, "query"); // -> for added/deleted items
+
+	// 	if (!query) {
+
+	// 		let driver = this.getDriver();
+	// 		let paramstring = this.getParamstring();
+
+	// 		if (driver && paramstring) {
+
+	// 			query = KarmaFieldsAlpha.server.getQuery(driver, paramstring);
+
+	// 		}
+
+	// 	}
+
+	// 	return query;
+
+	// 	// const response = new KarmaFieldsAlpha.Content();
+
+	// 	// if (query) {
+
+	// 	// 	response.value = query;
+
+	// 	// } else {
+
+	// 	// 	response.loading = true;
+
+	// 	// }
+
+	// 	// return response;
+
+	// }
+
+	// getQuery() {
+
+	// 	let query = KarmaFieldsAlpha.server.getState(this.uid, "query"); // -> for added/deleted items
+
+	// 	if (!query) {
+
+	// 		query = super.getQuery();
+
+	// 	}
+
+	// 	return query;
+
+	// }
+
+	close() {
+
+		delete this.element;
+
+		super.close();
+
+	}
+
+	// getDefaults() {
+
+	// 	let defaults = super.getDefaults();
+
+	// 	const header = this.getHeader();
+
+	// 	if (header) {
+
+	// 		const params = header.getDefaults();
+
+	// 		if (params === undefined) {
+
+	// 			return undefined;
+
+	// 		}
+
+	// 		Object.assign(defaults, params);
+
+	// 	}
+
+	// 	const footer = this.getFooter();
+
+	// 	if (footer) {
+
+	// 		const params = footer.getDefaults();
+
+	// 		if (params === undefined) {
+
+	// 			return undefined;
+
+	// 		}
+
+	// 		Object.assign(defaults, params);
+
+	// 	}
+
+	// 	return defaults;
+
+	// }
+
+	getDefaults() {
+
+		if (this.resource.defaults) {
+
+			return this.parseObject(this.resource.defaults);
+
+		}
+
+		return {};
+
+	}
+
+	getFilters() {
+
+		const { page, ppp, order, orderby, ...filters } = this.getParams() || {};
+
+		return filters;
+
+	}
+
+	getParam(key) {
+
+		const params = this.getParams();
+
+		if (params !== undefined) {
+
+			return params[key] || "";
+
+		}
+
+	}
+
+	getParams() {
+
+		const defaults = this.parseObject(this.resource.params || {});
+
+		if (defaults === undefined) {
+
+			return;
+
+		}
+
+		const params = KarmaFieldsAlpha.server.getState(this.uid, "params");
+
+		return { ...defaults, ...params };
+
+	}
+
+	getParamstring() {
+
+
+
+		let paramstring = KarmaFieldsAlpha.server.getTempo("state", this.uid, "paramstring");
+
+		if (paramstring === undefined) {
+
+			// let defaults = this.getDefaults();
+
+			// if (defaults === undefined) {
+
+			// 	return;
+
+			// }
+
+			let params = this.getParams();
+
+			if (params === undefined) {
+
+				return;
+
+			}
+
+			// paramstring = KarmaFieldsAlpha.Params.stringify({ ...defaults, ...params });
+			paramstring = KarmaFieldsAlpha.Params.stringify(params);
+
+			KarmaFieldsAlpha.server.setTempo(paramstring, "state", this.uid, "paramstring");
+
+		}
+
+		return paramstring;
+
+	}
+
+
+	setParam(value, key) {
+
+		let params = this.getParams();
+
+		if (!params) {
+
+			console.error("setting params but params is not loaded");
+
+			return;
+
+		}
+
+		params = { ...params, [key]: value };
+
+		// KarmaFieldsAlpha.server.setState(params, this.uid, "params");
+
+		this.setState(params, "params");
+
+
+		const body = this.getChild("body");
+
+		body.removeState("ids");
+
+		// KarmaFieldsAlpha.server.removeState(this.uid, "query"); // -> added/removed ids data
+
+	}
+
+	getQuery() {
+
+		// if (!this.resource.driver) {
+
+		// 	console.error("Getting query by driver is not set", this);
+
+		// }
+
+		let driver = this.getDriver();
+		let paramstring = this.getParamstring();
+
+		if (driver && paramstring !== undefined) {
+
+			return KarmaFieldsAlpha.server.getQuery(driver, paramstring);
+
+		}
+
+		// } else if (this.parent) {
+
+		// 	return this.parent.getQuery();
+
+		// }
+
+	}
+
+	setQuery(query) {
+
+		let driver = this.getDriver();
+		let paramstring = this.getParamstring();
+
+		if (paramstring === undefined) {
+
+			console.error("setting query but paramstring is undefined");
+
+		}
+
+		KarmaFieldsAlpha.server.setQuery(query, driver, paramstring);
+
+		// if (this.resource.driver) {
+
+		// 	let driver = this.getDriver();
+		// 	let paramstring = this.getParamstring();
+
+		// 	if (paramstring === undefined) {
+
+		// 		console.error("setting query but paramstring is undefined");
+
+		// 	}
+
+		// 	KarmaFieldsAlpha.server.setQuery(query, driver, paramstring);
+
+		// } else if (this.parent) {
+
+		// 	this.parent.setQuery(query);
+
+		// }
+
+	}
+
+	removeQuery() {
+
+		if (this.resource.driver) {
+
+			let driver = this.getDriver();
+			let paramstring = this.getParamstring();
+
+			if (paramstring === undefined) {
+
+				console.error("removing query but paramstring is undefined");
+
+			}
+
+			KarmaFieldsAlpha.server.removeQuery(driver, paramstring);
+
+		} else if (this.parent) {
+
+			this.parent.removeQuery();
+
+		}
+
+	}
+
+	getIds() {
+
+		const query = this.getQuery();
+
+		if (query) {
+
+			return query.ids;
+
+		}
+
+		// if (!response.loading) {
+
+		// 	const content = new KarmaFieldsAlpha.Content();
+
+		// 	content.value = response.toObject().ids;
+
+		// 	return content;
+		// }
+
+		// return response;
+
+	}
+
+	setIds(ids) {
+
+		const query = this.getQuery();
+
+		if (query === undefined) {
+
+			console.error("setting ids but query is undefined");
+
+		}
+
+		const count = query.count || 0;
+
+		this.setQuery({ ids, count });
+
+	}
+
+	submit() {
+
+		KarmaFieldsAlpha.server.submit();
+
+	}
+
+
+	getBody() {
+
+		return this.createChild({
+			type: "grid",
 			children: this.resource.children, // compat
 			...this.resource.body
 		}, "body");
 
 	}
 
+	// getLength() {
 
-  // getValueById(id, key) {
-  //
-  //   if (this.loading) {
-  //
-  //     return new KarmaFieldsAlpha.Loading();
-  //
-  //   } else if (key === "id") {
-  //
-  //     return new KarmaFieldsAlpha.Content(id);
-  //
+	// 	const query = this.getQuery();
+
+	// 	if (query) {
+
+	// 		return query.ids.length;
+
+	// 	}
+
+	// }
+
+  // queryLength() {
+
+  //   const response = new KarmaFieldsAlpha.Content();
+
+  //   const ids = this.getIds();
+
+  //   if (ids.loading) {
+
+  //     response.loading = true;
+
   //   } else {
-  //
-  //     return this.server.queryValue(this.driver, id, key);
-  //
+
+  //     response.value = ids.toArray().length;
+
   //   }
-  //
-  // }
-  //
-  // async setValueById(value, id, key) {
-  //
-  //   if (!this.loading) {
-  //
-  //     this.server.setValue(this.driver, id, key)
-  //
-  //   }
-  //
+
+  //   return response;
   // }
 
-  getLength() {
+	// getContentRange(index, length, key, paramstring, driver) {
 
-    return this.getIds().toArray().length;
+	//   if (paramstring === undefined) {
 
-  }
+	//     paramstring = this.getParamstring() || "";
 
-  queryLength() {
+	//   }
 
-    const response = new KarmaFieldsAlpha.Content();
+	//   if (!driver) {
 
-    const ids = this.getIds();
+	//     driver = this.getDriver();
 
-    if (ids.loading) {
+	//   }
 
-      response.loading = true;
+	//   const response = new KarmaFieldsAlpha.Content();
 
-    } else {
 
-      response.value = ids.toArray().length;
+	//   const values = [];
 
-    }
+	//   for (let i = 0; i < length; i++) {
 
-    return response;
-  }
+	//     const value = KarmaFieldsAlpha.server.queryValueAt(driver, paramstring, index + i, key);
 
-  getContentRange(index, length, key, paramstring, driver) {
+	//     values.push(value);
 
-    if (paramstring === undefined) {
+	//   }
 
-      // const params = this.queryParams();
-      //
-      // if (params.loading) {
-      //
-      //   return new KarmaFieldsAlpha.Loading();
-      //
-      // } else {
-      //
-      //   paramstring = params.string;
-      //
-      // }
+	//   if (values.some(value => value.loading)) {
 
-      paramstring = this.getParamstring() || "";
+	//     response.loading = true;
 
-    }
+	//   } else if (values.slice(1).some(value => !value.equals(values[0]))) {
 
-    if (!driver) {
+	//     response.mixed = true;
+	//     response.value = values.map(value => value.toArray());
 
-      driver = this.getDriver();
+	//   } else if (values.length > 0) {
 
-    }
+	//     response.value = values[0].value;
 
-    const response = new KarmaFieldsAlpha.Content();
+	//   }
 
+	//   return response;
 
-    const values = [];
+	// }
 
-    for (let i = 0; i < length; i++) {
+	// getValueRange(index, length, key) {
 
-      const value = KarmaFieldsAlpha.server.queryValueAt(driver, paramstring, index + i, key);
+	// 	const paramstring = this.getParamstring();
+	// 	const driver = this.getDriver();
 
-      values.push(value);
+	// 	let values;
 
-    }
+	// 	if (paramstring && driver) {
 
-    if (values.some(value => value.loading)) {
+	// 		values = [];
 
-      response.loading = true;
+	// 		for (let i = 0; i < length; i++) {
 
-    } else if (values.slice(1).some(value => !value.equals(values[0]))) {
+	// 			const value = KarmaFieldsAlpha.server.getValueAt(driver, paramstring, index + i, key);
 
-      response.mixed = true;
-      response.value = values.map(value => value.toArray());
+	// 			values.push(value);
 
-    } else if (values.length > 0) {
+	// 		}
 
-      response.value = values[0].value;
+	// 		if (values.some(value => value === undefined)) {
 
-    }
+	// 			values = undefined;
 
-    return response;
+	// 		} else {
 
-  }
+	// 			if (values.slice(1).some(value => !KarmaFieldsAlpha.DeepObject.equal(value, values[0]))) {
 
-  getContentAt(index, key, paramstring, driver) {
+	// 				values.mixed = true; // adding a custom param to array
 
-    if (paramstring === undefined) {
+	// 			} else if (values.length > 0) { // -> all fields have same value
 
-      // const params = this.queryParams();
-      //
-      // if (params.loading) {
-      //
-      //   return new KarmaFieldsAlpha.Loading();
-      //
-      // } else {
-      //
-      //   paramstring = params.string;
-      //
-      // }
+	// 				values = values[0];
 
-      paramstring = this.getParamstring() || "";
+	// 			}
 
-    }
+	// 		}
 
-    if (!driver) {
+	// 	}
 
-      driver = this.getDriver();
+	// 	// compat
+	// 	const response = new KarmaFieldsAlpha.Content();
 
-    }
+	// 	if (values === undefined) {
 
-    return KarmaFieldsAlpha.server.queryValueAt(driver, paramstring, index, key);
+	// 		response.loading = true;
 
-  }
+	// 	} else {
 
-  setValueAt(value, index, key, driver, paramstring) {
+	// 		response.value = values;
+	// 		response.mixed = values.mixed;
 
-    if (paramstring === undefined) {
+	// 	}
 
-      // const params = this.queryParams();
-      //
-      // if (params.loading) {
-      //
-      //   return;
-      //
-      // } else {
-      //
-      //   paramstring = params.string;
-      //
-      // }
+	// 	return response;
+	// }
 
-      paramstring = this.getParamstring() || "";
 
-    }
 
-    if (!driver) {
+	getValues(key, ...ids) {
 
-      driver = this.getDriver();
+		const values = [];
 
-    }
+		for (let id of ids) {
 
-    return KarmaFieldsAlpha.server.setValueAt(value, driver, paramstring, index, key);
+			const value = this.getValue(key, id, driver);
 
-  }
+			values.push(value);
 
+		}
 
-  getOptionsList(driver, paramstring, keys = ["name"]) {
+		if (!values.some(value => value === undefined)) {
 
+			if (values.slice(1).some(value => !KarmaFieldsAlpha.DeepObject.equal(value, values[0]))) {
 
+				values.mixed = true; // adding a custom param to buildin array!
 
-    const response = new KarmaFieldsAlpha.Content();
+				return values;
 
-    // const ids = KarmaFieldsAlpha.server.queryIds(driver || this.driver, paramstring ?? this.paramstring);
+			} else if (values.length > 0) { // -> all fields have same value
 
-    const query = this.getIds(driver, paramstring);
+				return values[0];
 
-    if (query.loading) {
+			}
 
-      response.loading = true;
+		}
 
-    } else {
+	}
 
-      response.value = [];
+	// getContentAt(index, key, paramstring, driver) {
 
-      const ids = query.toArray();
+	//   if (paramstring === undefined) {
 
-      for (let i = 0; i < ids.length; i++) {
+	//     paramstring = this.getParamstring() || "";
 
-        const id = ids[i];
-        const item = {id};
+	//   }
 
-        for (let key of keys) {
+	//   if (!driver) {
 
-          // const content = this.server.getValueAt(driver || this.driver, paramstring ?? this.paramstring, i, key);
-          const content = this.getContentAt(i, key, paramstring, driver);
+	//     driver = this.getDriver();
 
-          if (content.loading) {
+	//   }
 
-            response.loading = true;
-            break;
+	//   return KarmaFieldsAlpha.server.queryValueAt(driver, paramstring, index, key);
 
-          } else {
+	// }
 
-            item[key] = content.toString();
+ //  // -> to replace getContentAt
+	// getValueAtNEW(index, key) {
 
-          }
+	// 	const queryResponse = this.getQueryNEW();
 
-        }
+	// 	if (queryResponse.loading) {
 
-        response.value.push(item);
+	// 		return queryResponse;
 
-      }
+	// 	}
 
-    }
+	// 	const query = queryResponse.toObject();
 
-    return response;
+	// 	const response = KarmaFieldsAlpha.server.getValueAt(query, index, key);
 
-  }
+	// 	if (response.loading && !response.requested) {
 
+	// 		KarmaFieldsAlpha.server.requestValueAt(query, index, key);
 
+	// 	}
 
-  queryCount(driver, paramstring) {
+	// 	return response;
+	// }
 
+	// getRequest() {
 
-    if (paramstring === undefined) {
+	// 	// let request = KarmaFieldsAlpha.server.get("state", this.uid, "request");
 
-      // const params = this.queryParams();
-      //
-      // if (params.loading) {
-      //
-      //   return new KarmaFieldsAlpha.Loading();
-      //
-      // } else {
-      //
-      //   paramstring = params.string;
-      //
-      // }
+	// 	let request = KarmaFieldsAlpha.server.getState(this.uid, "request");
 
-      paramstring = this.getParamstring() || "";
+	// 	if (request === undefined) {
 
-    }
+	// 		const response = this.parse(this.resource.params);
 
-    if (!driver) {
+	// 		if (!response.loading) {
 
-      driver = this.getDriver();
+	// 			const params = response.toObject();
+	// 			const driver = this.getDriver();
+	// 			const paramstring = KarmaFieldsAlpha.Params.stringify(params);
 
-    }
+	// 			request = { driver, params, paramstring };
 
-    return KarmaFieldsAlpha.server.queryCount(driver, paramstring);
+	// 			KarmaFieldsAlpha.server.createState(request, this.uid, "request");
 
-  }
+	// 		}
 
-  getCount(driver, paramstring) {
+	// 	}
 
-    return this.queryCount().toNumber();
+	// 	return request;
 
-  }
+	// }
 
-  getPage() {
+	// getParam(key) {
 
-    // return this.getParam("page") || 1;
-    return this.queryPage().toNumber();
+	// 	const request = this.getParams();
 
-  }
+	// 	return request && request.params[key] || "";
 
-  queryPage() {
+	// }
 
-    // const content = new KarmaFieldsAlpha.Content();
-    //
-    // if (this.loading) {
-    //
-    //   content.loading = true;
-    //
-    // } else {
-    //
-    //   content.value = this.getPage();
-    //
-    // }
-    //
-    // return content;
+	// getParams() {
 
-    const content = new KarmaFieldsAlpha.Content();
+	// 	let params = KarmaFieldsAlpha.server.getState(this.uid, "params");
 
-    const params = this.getParams() || {};
+	// 	if (!params) {
 
-    content.value = params.page || 1;
+	// 		params = KarmaFieldsAlpha.server.getTempo("state", this.uid, "params");
 
-    return content;
+	// 		const parsing  = this.parse(this.resource.params);
 
-  }
+	// 		if (!parsing.loading) {
 
-  getPpp() {
+	// 			params = parsing.toObject();
 
-    return this.getParam("ppp") || 100;
+	// 			KarmaFieldsAlpha.server.setTempo(params, "state", this.uid, "params");
 
-  }
+	// 		}
 
-  queryPpp() {
+	// 	}
 
-    const response = new KarmaFieldsAlpha.Content();
+	// 	return params;
+	// }
 
-    response.value = this.getPpp();
+	// getParamstring() {
 
-    return response;
-  }
+	// 	let paramstring = KarmaFieldsAlpha.server.getTempo("state", this.uid, "paramstring");
 
-  getIndex() {
+	// 	if (!paramstring) {
 
-    const page = this.getPage();
-    const ppp = this.getPpp();
+	// 		let params = this.getParams();
 
-    return (page - 1)*ppp;
+	// 		if (params) {
 
-  }
+	// 			paramstring = KarmaFieldsAlpha.Params.stringify(params);
 
-  queryNumPage() {
+	// 			KarmaFieldsAlpha.server.setTempo(paramstring, "state", this.uid, "paramstring");
 
-    const count = this.queryCount();
+	// 		}
 
-    const response = new KarmaFieldsAlpha.Content();
+	// 	}
 
-    if (count.loading) {
+	// 	return paramstring;
 
-      response.loading = true;
+	// }
 
-    } else {
+	// // setParam(value, key) {
 
-      const ppp = this.getPpp();
+	// // 	const request = this.getRequest();
 
-      response.value = Math.max(1, Math.ceil(count.toNumber()/ppp));
+	// // 	if (!request) {
 
-    }
+	// // 		console.error("setting params but request is not set");
 
-    return response;
-  }
+	// // 	}
 
-  getNumPage() {
+	// // 	const params = { ...request.params, [key]: value };
 
-    const count = this.getCount();
-    const ppp = this.getPpp();
+	// // 	const newRequest = this.createRequest(params);
 
-    return Math.max(1, Math.ceil(count/ppp));
-  }
+	// // 	KarmaFieldsAlpha.server.setState(newRequest, this.uid, "request");
 
-  isFirstPage() {
+	// // }
 
-    const response = new KarmaFieldsAlpha.Content();
+	// setParam(value, key) {
 
-    const page = this.getPage();
+	// 	let params = KarmaFieldsAlpha.server.getState(this.uid, "params");
 
-    response.value = page === 1;
+	// 	if (!params) {
 
-    return response;
+	// 		console.error("setting params but params is not set"); // or is it ok?
 
-  }
+	// 		params = {};
 
-  isLastPage() {
+	// 	}
 
-    const numPage = this.queryNumPage();
-    const page = this.queryPage();
-    const response = new KarmaFieldsAlpha.Content();
+	// 	params = { ...params, [key]: value };
 
-    if (page.loading || numPage.loading) {
+	// 	KarmaFieldsAlpha.server.setState(params, this.uid, "params");
 
-      response.loading = true;
+	// 	KarmaFieldsAlpha.server.removeState(this.uid, "query"); // -> added/removed ids data
 
-    } else {
+	// }
 
-      response.value = page.toNumber() === numPage.toNumber();
+	// getValueAt(index, key) {
 
-    }
+	// 	const paramstring = this.getParamstring();
+	// 	const driver = this.getDriver();
 
-    return response;
+	// 	if (paramstring && driver) {
 
-  }
+	// 		return KarmaFieldsAlpha.server.getValueAt(driver, paramstring, index, key);
 
-  setPage(page) {
+	// 	}
 
-    return this.setValue(page, "page");
+	// 	// // compat
+	// 	// const response = new KarmaFieldsAlpha.Content();
 
-  }
+	// 	// if (!value) {
 
-  async firstPage() {
+	// 	// 	response.value = value;
 
-    const page = this.queryPage();
+	// 	// } else {
 
-    if (!page.loading && page.toNumber() !== 1) {
+	// 	// 	response.loading = true;
 
-      await this.save("changePage", "Change Page");
-      await this.setValue(1, "page");
-      await this.render();
+	// 	// }
 
-    }
+	// 	// return response;
+	// }
 
-  }
+	getValue(key, id, driver) {
 
-  async prevPage() {
+		if (key === undefined) { // -> get ids
 
-    const page = this.queryPage();
+			const query = this.getQuery();
 
-    if (!page.loading && page.toNumber() > 1) {
+			if (query) {
 
-      await this.save("changePage", "Change Page");
-      await this.setPage(page.toNumber() - 1);
-      await this.render();
+				return query.ids || [];
 
-    }
+			}
 
-  }
+		} else if (id === undefined) {
 
-  async nextPage() {
+			if (key === "numpage") {
 
-    let page = this.queryPage();
-    let numPage = this.queryNumPage();
+				const value = this.getNumPage();
 
-    if (!page.loading && !numPage.loading && page.toNumber() < numPage.toNumber()) {
+				if (value === undefined) {
 
-      await this.save("changePage", "Change Page");
-      await this.setPage(page.toNumber() + 1);
-      await this.render();
+					return;
 
-    }
+				}
 
-  }
+				return [value || 1];
 
-  async lastPage() {
+			} else if (key === "page") {
 
-    let page = this.queryPage();
-    let numPage = this.queryNumPage();
+				const value = this.getPage();
 
-    if (!page.loading && !numPage.loading && page.toNumber() < numPage.toNumber()) {
+				if (value === undefined) {
 
-      await this.save("changePage", "Change Page");
-      await this.setPage(numPage.toNumber());
-      await this.render();
+					return;
 
-    }
+				}
 
-  }
+				return [value || 1];
 
-  async paste(value) {
+			} else if (key === "count") {
 
-    const body = this.getBody();
+				const value = this.getCount();
 
-    if (body) {
+				if (value === undefined) {
 
-      await body.paste(value);
+					return;
 
-    }
+				}
 
-  }
+				return [value || 0];
 
+			} else {
 
+				const value = this.getParam(key);
 
+				if (value === undefined) {
 
-  async add(length = 1, index = undefined, itemParams = {}, data = undefined) {
+					return;
 
-    const driver = this.getDriver();
-    // let params = this.queryParams();
-    //
-    // while (params.loading) {
-    //
-    //   await this.render();
-    //   params = this.queryParams();
-    //
-    // }
+				}
 
-    const params = this.getParams() || {};
+				return [value];
 
-    // const paramstring = params.string;
-    const paramstring = this.getParamstring() || "";
+			}
 
-    const body = this.getChild("body");
+		} else {
 
-    if (index === undefined) {
+			const paramstring = this.getParamstring();
 
-      index = body.getNewItemIndex();
+			if (paramstring === undefined) {
 
-    }
+				return;
 
-    let defaults = body.exportDefaults();
+			}
 
-    while (defaults.loading) {
+			if (!driver) {
 
-      await this.render();
-      defaults = body.exportDefaults();
+				driver = this.getDriver();
 
-    }
+			}
 
-    await this.save("insert", "Insert");
+			return KarmaFieldsAlpha.server.getValue(driver, id, key, paramstring);
 
-    await body.select(index, length);
+		}
 
-    const {page, ppp, order, orderby, ...filters} = params;
+	}
 
-    const gen = KarmaFieldsAlpha.server.add(driver, paramstring, index, length, {...filters, ...defaults.toObject(), ...itemParams}, data);
+	setValue(value, key, id, driver) {
 
-    for await (let result of gen) {
+		if (!Array.isArray(value)) {
 
-      await this.render();
+			console.error("setting value but value is not an array");
 
-    }
+		}
 
-    await this.render();
-  }
+		if (id === undefined) {
 
-  canDelete() {
+			this.setParam(value[0], key);
 
-    return this.hasSelection();
+		} else {
 
-  }
+			const paramstring = this.getParamstring();
 
-  hasSelection() {
+			if (paramstring === undefined) {
 
-    const body = this.getChild("body");
+				console.error("setting value at but paramstring/driver not set");
 
-    if (body && body.hasSelection) {
+			}
 
-      return body.hasSelection();
+			if (!driver) {
 
-    }
+				driver = this.getDriver();
 
-    return false;
+			}
 
-  }
+			KarmaFieldsAlpha.server.setValue(value, driver, id, key, paramstring);
 
+			// const query = this.getQuery();
 
+			// if (query) {
 
-  async delete(index, length) {
+			// 	const ids = query.ids || [];
+			// 	const id = ids[index];
 
-    // this.prepare();
-    //
-    // while (this.loading) {
-    //
-    //   await this.render();
-    //   this.prepare();
-    //
-    // }
+			// 	if (!id) {
 
-    const driver = this.getDriver();
-    // let params = this.queryParams();
-    //
-    // while (params.loading) {
-    //
-    //   await this.render();
-    //   params = this.queryParams();
-    //
-    // }
-    //
-    // const paramstring = params.string;
+			// 		console.error("index is out of bounds");
 
-    const params = this.getParams() || {};
-    const paramstring = this.getParamstring() || "";
+			// 	}
 
-    const body = this.getChild("body");
+			// 	KarmaFieldsAlpha.server.setValue(value, driver, id, key);
 
-    if (index === undefined || length === undefined) {
+			// } else {
 
-      const selection = body.querySelection();
+			// 	console.error("setting value at but query is not ready");
 
-      index = selection && selection.index || 0;
-      length = selection && selection.length || 0;
+			// }
 
-    }
+		}
 
-    await this.save("delete", "Delete");
+	}
 
-    await body.select(0, 0);
+	reorder(newIds) {
 
-    // await KarmaFieldsAlpha.server.delete(driver, paramstring, index, length);
+		const sortableKey = this.resource.sortable;
 
-    for await (let result of KarmaFieldsAlpha.server.delete(driver, paramstring, index, length)) {
+		// compat
+		if (this.resource.sortable === true) {
 
-      await this.render(); // actually never trigger
+			sortableKey = "position";
 
-    }
+		}
 
-    await this.render();
-  }
+		if (!sortableKey) {
 
+			console.error("not sortable!");
+			return;
 
-  async duplicate() {
+		}
 
-    const body = this.getChild("body");
-    const selection = body.querySelection();
+		const query = this.getQuery();
 
-    index = selection && selection.index || 0;
-    length = selection && selection.length || 0;
+		if (query === undefined) {
 
-    if (length) {
+			console.error("reordering items but query is undefined");
 
-      await this.save("duplicate", "Duplicate");
+		}
 
-      let grid = body.export(index, length);
+		for (let i = 0; i < newIds.length; i++) {
 
-      while (grid.loading) {
+			if (newIds[i] !== query.ids[i]) {
 
-        await this.render();
-        grid = body.export(index, length);
+				this.setValue(i, sortableKey, newIds[i]);
 
-      }
+			}
 
-      await body.import(grid, index + length, length);
+		}
 
-      await this.select(index + length, length);
+	}
 
-    }
 
-  }
+	// setValueAt(value, index, key) {
+
+	// 	// compat
+	// 	if (value instanceof KarmaFieldsAlpha.Content) {
+
+	// 		value = value.toArray();
+
+	// 	}
+
+	// 	if (!Array.isArray(value)) {
+
+	// 		console.error("setting value at but value is not an array");
+
+	// 	}
+
+	// 	const paramstring = this.getParamstring();
+	// 	const driver = this.getDriver();
+
+	// 	if (!paramstring || !driver) {
+
+	// 		console.error("setting value at but paramstring/driver not set");
+
+	// 	}
+
+	// 	const query = this.getQuery();
+
+	// 	if (query) {
+
+	// 		const ids = query.ids || [];
+	// 		const id = ids[index];
+
+	// 		if (!id) {
+
+	// 			console.error("index is out of bounds");
+
+	// 		}
+
+	// 		KarmaFieldsAlpha.server.setValue(value, id, key);
+
+	// 	} else {
+
+	// 		console.error("setting value at but query is not ready");
+
+	// 	}
+
+	// }
+
+  // setValueAt(value, index, key, driver, paramstring) {
+
+  //   if (paramstring === undefined) {
+
+  //     paramstring = this.getParamstring() || "";
+
+  //   }
+
+  //   if (!driver) {
+
+  //     driver = this.getDriver();
+
+  //   }
+
+  //   return KarmaFieldsAlpha.server.setValueAt(value, driver, paramstring, index, key);
+
+  // }
+
+
+  // getOptionsList(driver, paramstring, keys = ["name"]) {
+
+  //   const response = new KarmaFieldsAlpha.Content();
+
+  //   // const ids = KarmaFieldsAlpha.server.queryIds(driver || this.driver, paramstring ?? this.paramstring);
+
+  //   const query = this.getIds(driver, paramstring);
+
+  //   if (query.loading) {
+
+  //     response.loading = true;
+
+  //   } else {
+
+  //     response.value = [];
+
+  //     const ids = query.toArray();
+
+  //     for (let i = 0; i < ids.length; i++) {
+
+  //       const id = ids[i];
+  //       const item = {id};
+
+  //       for (let key of keys) {
+
+  //         // const content = this.server.getValueAt(driver || this.driver, paramstring ?? this.paramstring, i, key);
+  //         const content = this.getContentAt(i, key, paramstring, driver);
+
+  //         if (content.loading) {
+
+  //           response.loading = true;
+  //           break;
+
+  //         } else {
+
+  //           item[key] = content.toString();
+
+  //         }
+
+  //       }
+
+  //       response.value.push(item);
+
+  //     }
+
+  //   }
+
+  //   return response;
+
+  // }
+
+
+
+  // queryCount(driver, paramstring) {
+
+
+  //   if (paramstring === undefined) {
+
+  //     paramstring = this.getParamstring() || "";
+
+  //   }
+
+  //   if (!driver) {
+
+  //     driver = this.getDriver();
+
+  //   }
+
+  //   return KarmaFieldsAlpha.server.queryCount(driver, paramstring);
+
+  // }
+
+  // getCount(driver, paramstring) {
+
+  //   return this.queryCount().toNumber();
+
+  // }
+//
+
+	getCount() {
+
+		const query = this.getQuery();
+
+		if (query) {
+
+			return query.count;
+
+		}
+
+	}
+
+	getPage() {
+
+		return this.getParam("page");
+
+	}
+
+  // queryPage() {
+
+  //   const content = new KarmaFieldsAlpha.Content();
+
+  //   const params = this.getParams() || {};
+
+  //   content.value = params.page || 1;
+
+  //   return content;
+
+  // }
+
+	getPpp() {
+
+		let ppp = this.getTempo("ppp");
+
+		if (ppp === undefined) {
+
+			ppp = this.getParam("ppp");
+
+			if (!ppp) {
+
+				const defaults = this.getDefaults();
+
+				if (defaults === undefined) {
+
+					return;
+
+				} else {
+
+					ppp = defaults.ppp || 100;
+
+				}
+
+			}
+
+			ppp = Number(ppp);
+
+			this.setTempo(ppp, "ppp");
+
+		}
+
+		return ppp;
+
+	}
+
+  // queryPpp() {
+
+  //   const response = new KarmaFieldsAlpha.Content();
+
+  //   response.value = this.getPpp();
+
+  //   return response;
+  // }
+
+	getIndex() {
+
+		const page = this.getPage();
+		const ppp = this.getPpp();
+
+		if (page !== undefined && ppp !== undefined) {
+
+			return (page - 1) * ppp;
+
+		}
+
+	}
+
+	getNumPage() {
+
+		const count = this.getCount();
+		const ppp = this.getPpp();
+
+		if (count !== undefined && ppp !== undefined) {
+
+			return Math.max(1, Math.ceil(count / ppp));
+
+		}
+
+	}
+
+	// getNumPage() {
+
+	// 	const count = this.getCount();
+	// 	const ppp = this.getPpp();
+
+	// 	return Math.max(1, Math.ceil(count / ppp));
+	// }
+
+	isFirstPage() {
+
+		return this.getPage() === 1;
+
+	}
+
+	isLastPage() {
+
+		return this.getPage() === this.getNumPage();
+
+	}
+
+	setPage(page) {
+
+		return this.setParam(page, "page");
+
+	}
+
+	firstPage() {
+
+		const page = this.getPage();
+
+		if (page === undefined) {
+
+			console.error("requesting first page but page is not set");
+			return;
+
+		}
+
+		this.save("changePage", "Change Page");
+
+		this.setParam(1, "page");
+
+	}
+
+	prevPage() {
+
+		const page = this.getPage();
+
+		if (page === undefined) {
+
+			console.error("requesting previous page but page is not set");
+			return;
+
+		}
+
+		if (page > 1) {
+
+			this.save("changePage", "Change Page");
+			this.setParam(page - 1, "page");
+
+		}
+
+	}
+
+	nextPage() {
+
+		let page = this.getPage();
+		let numPage = this.getNumPage();
+
+		if (page === undefined) {
+
+			console.error("requesting next page but page is not set");
+			return;
+
+		}
+
+		if (numPage === undefined) {
+
+			console.error("requesting next page but numPage is not set");
+			return;
+
+		}
+
+		if (page < numPage) {
+
+			this.save("changePage", "Change Page");
+			this.setParam(page + 1, "page");
+
+		}
+
+	}
+
+	lastPage() {
+
+		let page = this.getPage();
+		let numPage = this.getNumPage();
+
+		if (page === undefined) {
+
+			console.error("requesting next page but page is not set");
+			return;
+
+		}
+
+		if (numPage === undefined) {
+
+			console.error("requesting next page but numPage is not set");
+			return;
+
+		}
+
+		if (page < numPage) {
+
+			this.save("changePage", "Change Page");
+			this.setParam(numPage, "page");
+
+		}
+
+	}
+
+	paste(value) {
+
+		const body = this.getBody();
+
+		if (body) {
+
+			body.paste(value);
+
+		}
+
+	}
+
+
+
+	// addTokens(tokens, params = {}, ids) {
+
+	// 	const driver = this.getDriver();
+	// 	const paramstring = this.getParamstring();
+
+	// 	if (paramstring === undefined) {
+
+	// 		console.error("adding item but paramstring is not set");
+
+	// 	}
+
+	// 	const defaults = this.getDefaults();
+	// 	const filters = this.getFilters();
+
+	// 	params = { ...defaults, ...filters, ...params };
+
+	// 	for (let token of tokens) {
+
+	// 		for (let key in params) {
+
+	// 			this.setValue([params[key]], key, token);
+
+	// 		}
+
+	// 		this.setValue(["0"], "trash", token);
+
+	// 	}
+
+	// 	KarmaFieldsAlpha.server.queries.set(true, driver, paramstring, "stalled");
+	// 	KarmaFieldsAlpha.server.queries.set(ids, driver, paramstring, "ids");
+
+
+	// 	// KarmaFieldsAlpha.server.add(this.uid, driver, paramstring, index, length, {...params, ...itemParams}, data);
+
+	// }
+
+	// setIds(ids) {
+
+	// 	const driver = this.getDriver();
+	// 	const paramstring = this.getParamstring();
+
+	// 	if (paramstring === undefined) {
+
+	// 		console.error("setting ids but paramstring is not set");
+
+	// 	}
+
+
+	// 	KarmaFieldsAlpha.server.queries.set(true, driver, paramstring, "stalled");
+	// 	KarmaFieldsAlpha.server.queries.set(ids, driver, paramstring, "ids");
+
+	// }
+
+	// setQuery(newQuery) {
+
+	// 	const driver = this.getDriver();
+	// 	const paramstring = this.getParamstring();
+
+	// 	if (paramstring === undefined) {
+
+	// 		console.error("setting ids but paramstring is not set");
+
+	// 	}
+
+	// 	const currentQuery = KarmaFieldsAlpha.server.queries.get(driver, paramstring);
+
+	// 	KarmaFieldsAlpha.server.queries.set({ ...currentQuery, ...newQuery }, driver, paramstring);
+
+
+	// 	// KarmaFieldsAlpha.server.queries.set(true, driver, paramstring, "stalled");
+	// 	// KarmaFieldsAlpha.server.queries.set(ids, driver, paramstring, "ids");
+
+	// }
+
+	// createTokens(length, params) {
+
+	// 	const tokens = KarmaFieldsAlpha.server.createTokens(length);
+
+	// 	if (tokens.length) {
+
+	// 		const defaults = this.getDefaults();
+	// 		const filters = this.getFilters();
+
+	// 		params = { ...defaults, ...filters, ...params };
+
+	// 		for (let token of tokens) {
+
+	// 			for (let key in params) {
+
+	// 				this.setValue([params[key]], key, token);
+
+	// 			}
+
+	// 			this.setValue(["0"], "trash", token);
+
+	// 		}
+
+	// 	}
+
+	// 	return tokens;
+	// }
+
+	createTokens(length, params) {
+
+		const tokens = [];
+		const driver = this.getDriver();
+		const defaults = this.getDefaults();
+		const filters = this.getFilters();
+
+		params = { ...defaults, ...filters, ...params };
+
+		for (let i = 0; i < length; i++) {
+
+			const token = KarmaFieldsAlpha.server.add(params, driver);
+
+			// for (let key in params) {
+
+			// 	this.setValue([params[key]], key, token);
+
+			// }
+
+			// this.setValue(["0"], "trash", token);
+
+			tokens.push(token);
+
+		}
+
+
+		return tokens;
+	}
+
+	add(length = 1, params = {}, index = undefined) {
+
+		const driver = this.getDriver();
+		const filters = this.getFilters();
+		const defaults = this.getDefaults();
+
+		const values = {};
+
+		params = { ...filters, ...defaults, ...params };
+
+		for (let key in params) {
+
+			const value = params[key] || "";
+
+			values[key] = value.split(",");
+
+		}
+
+		const body = this.getChild("body");
+
+		if (body && index === undefined) {
+
+			index = body.getDefaultIndex() || 0;
+
+		}
+
+		const paramstring = this.getParamstring();
+
+
+		const query = KarmaFieldsAlpha.server.getQuery(driver, paramstring);
+
+		if (query === undefined) {
+
+			console.error("adding item but query is undefined");
+
+		}
+
+		const ids = [...query.ids];
+
+		for (let i = 0; i < length; i++) {
+
+			ids.splice(index, 0, values);
+
+		}
+
+		const count = query.count + length;
+
+		KarmaFieldsAlpha.Store.setQuery({ ...query, ids, count }, driver, paramstring);
+
+		if (body) {
+
+			body.selectAt(index, length);
+
+		}
+
+
+
+		// for (let i = 0; i < length; i++) {
+
+		// 	const token = KarmaFieldsAlpha.server.add(values, driver);
+
+		// 	tokens.push(token);
+
+		// }
+
+
+
+		// if (body) {
+
+		// 	body.addIds(...tokens);
+
+		// }
+
+	}
+
+	// async add(length = 1, index = undefined, itemParams = {}, data = undefined) {
+
+	//   const driver = this.getDriver();
+	//   // let params = this.queryParams();
+	//   //
+	//   // while (params.loading) {
+	//   //
+	//   //   await this.render();
+	//   //   params = this.queryParams();
+	//   //
+	//   // }
+
+	//   const params = this.getParams() || {};
+
+	//   // const paramstring = params.string;
+	//   const paramstring = this.getParamstring() || "";
+
+	//   const body = this.getChild("body");
+
+	//   if (index === undefined) {
+
+	//     index = body.getNewItemIndex();
+
+	//   }
+
+	//   let defaults = body.exportDefaults();
+
+	//   while (defaults.loading) {
+
+	//     await this.render();
+	//     defaults = body.exportDefaults();
+
+	//   }
+
+
+	//   //  if (defaults.loading) {
+	// 		// defaults = await KarmaFieldsAlpha.server.load(() => body.exportDefaults());
+
+	// 		// KarmaFieldsAlpha.Queue.add(async () => {
+	// 		// 	while (KarmaFieldsAlpha.server.hasOrder()) {
+	// 		// 		await KarmaFieldsAlpha.server.process();
+	// 		// 		defaults = body.exportDefaults();
+	// 		// 	}
+	// 		// });
+	//   //  }
+
+	// //   KarmaFieldsAlpha.Queue.add(async () => {
+	//  //  //   let defaults = body.exportDefaults();
+
+	//  //  //   while (KarmaFieldsAlpha.server.hasOrder()) {
+
+	// 	// 	// 	await KarmaFieldsAlpha.server.process();
+
+	// 	// 	// 	defaults = body.exportDefaults();
+
+	// 	// 	// }
+	// 	// 	let defaults = await KarmaFieldsAlpha.server.load(() => body.exportDefaults());
+
+	// 	// 	await this.save("insert", "Insert");
+
+	//  //    await body.select(index, length);
+
+	//  //    const {page, ppp, order, orderby, ...filters} = params;
+
+	//  //    const gen = KarmaFieldsAlpha.server.add(driver, paramstring, index, length, {...filters, ...defaults.toObject(), ...itemParams}, data);
+
+	//  //    for await (let result of gen) {
+
+	//  //      await this.render();
+
+	//  //    }
+
+	//  //    await this.render();
+
+	// 	// });
+
+
+
+	//   await this.save("insert", "Insert");
+
+	//   await body.select(index, length);
+
+	//   const {page, ppp, order, orderby, ...filters} = params;
+
+	//   const gen = KarmaFieldsAlpha.server.add(driver, paramstring, index, length, {...filters, ...defaults.toObject(), ...itemParams}, data);
+
+	//   for await (let result of gen) {
+
+	//     await this.render();
+
+	//   }
+
+	//   await this.render();
+	// }
+
+	canDelete() {
+
+		return this.hasSelection();
+
+	}
+
+
+
+
+
+	// async delete(index, length) {
+
+	//   const driver = this.getDriver();
+
+	//   const params = this.getParams() || {};
+	//   const paramstring = this.getParamstring() || "";
+
+	//   const body = this.getChild("body");
+
+	//   if (index === undefined || length === undefined) {
+
+	//     const selection = body.querySelection();
+
+	//     index = selection && selection.index || 0;
+	//     length = selection && selection.length || 0;
+
+	//   }
+
+	//   await this.save("delete", "Delete");
+
+	//   await body.select(0, 0);
+
+	//   // await KarmaFieldsAlpha.server.delete(driver, paramstring, index, length);
+
+	//   for await (let result of KarmaFieldsAlpha.server.delete(driver, paramstring, index, length)) {
+
+	//     await this.render(); // actually never trigger
+
+	//   }
+
+	//   await this.render();
+	// }
+
+	delete(...ids) {
+
+		const body = this.getChild("body");
+
+		if (ids.length === 0) {
+
+			ids = body.getSelectedIds();
+
+		}
+
+		const driver = this.getDriver();
+		const paramstring = this.getParamstring();
+
+		const query = KarmaFieldsAlpha.Store.getQuery(driver, paramstring);
+
+		if (query === undefined) {
+
+			console.error("deleting ids but query is undefined");
+
+		}
+
+		for (let id of ids) {
+
+			KarmaFieldsAlpha.Store.setValue(["1"], driver, id, "trash", paramstring);
+
+		}
+
+		KarmaFieldsAlpha.Store.setQuery({
+			...query,
+			count: query.count - ids.length,
+			ids: query.ids.filter(id => !ids.includes(id))
+		}, driver, paramstring);
+
+
+
+		// this.deleteIds(ids);
+
+		// for (let id of ids) {
+
+		// 	this.setValue(["1"], "trash", id);
+
+		// }
+
+		// body.deleteIds(ids);
+
+
+		// -> should remove query on save or
+
+		// this.removeQuery();
+
+	}
+
+	deleteAt(index, length) {
+
+		const body = this.getChild("body");
+
+		const ids = body.getIdsAt(index, length);
+
+		this.deleteIds(...ids);
+
+	}
+
+	// deleteIds(ids) {
+
+	// 	for (let id of ids) {
+
+	// 		this.setValue(["1"], "trash", id);
+
+	// 	}
+
+	// 	const query = this.getQuery();
+
+	// 	if (!query) {
+
+	// 		console.error("adding items but query is undefined");
+
+	// 	}
+
+	// 	const remainingIds = query.ids.filter(id => !ids.include(id));
+
+	// 	this.setQuery({ ...query, ids: remainingIds, stalled: true });
+
+	// }
+
+	// deleteId(id) {
+
+	// 	this.deleteIds([id]);
+
+	// }
+
+
+  // async duplicate() {
+
+  //   const body = this.getChild("body");
+  //   const selection = body.querySelection();
+
+  //   index = selection && selection.index || 0;
+  //   length = selection && selection.length || 0;
+
+  //   if (length) {
+
+  //     await this.save("duplicate", "Duplicate");
+
+  //     let grid = body.export(index, length);
+
+  //     while (grid.loading) {
+
+  //       await this.render();
+  //       grid = body.export(index, length);
+
+  //     }
+
+  //     await body.import(grid, index + length, length);
+
+  //     await this.select(index + length, length);
+
+  //   }
+
+  // }
+
+	duplicate() {
+
+		const body = this.getChild("body");
+
+		body.duplicate();
+
+		// if (index === undefined || length === undefined) {
+
+		// 	const selection = body.getSelection();
+
+		// 	if (!selection) {
+
+		// 		console.error("duplicating but nothing is selected!");
+		// 		return;
+
+		// 	}
+
+		// 	index = selection.index;
+		// 	length = selection.length;
+
+		// }
+
+		// this.save("duplicate", "Duplicate");
+
+		// let grid = body.export(index, length);
+
+		// if (grid.loading) {
+
+		// 	console.error("duplicating but values are not loaded");
+		// 	return;
+
+		// }
+
+		// body.import(grid, index + length, length);
+
+		// body.select(index + length, length);
+
+
+	}
+
+
 
   isRowSelected() { // compat ??
 
@@ -765,217 +1959,466 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.form {
 
   }
 
-  querySelectedIds() {
+	// querySelectedIds() {
 
-    const response = new KarmaFieldsAlpha.Content();
+	//   const response = new KarmaFieldsAlpha.Content();
 
-    const ids = this.getIds();
+	//   const ids = this.getIds();
 
-    if (ids.loading) {
+	//   if (ids.loading) {
 
-      response.loading = true;
+	//     response.loading = true;
 
-    } else {
+	//   } else {
 
-      const body = this.getChild("body");
-      const selection = body.querySelection();
+	//     const body = this.getChild("body");
+	//     const selection = body.querySelection();
 
-      const index = selection.index || 0;
-      const length = selection.length || 0;
+	//     const index = selection.index || 0;
+	//     const length = selection.length || 0;
 
-      response.value = ids.toArray().slice(index, index + length);
+	//     response.value = ids.toArray().slice(index, index + length);
 
-    }
+	//   }
 
-    return response;
-  }
+	//   return response;
+	// }
 
-  getSelectedIds() {
+	getSelectedIds() {
 
-    const ids = this.getIds();
+		const body = this.getChild("body");
 
-    const body = this.getChild("body");
-    const selection = body.querySelection();
+		return body.getSelectedIds();
 
-    const index = selection.index || 0;
-    const length = selection.length || 0;
+		// const query = this.getQuery();
 
-    return ids.toArray().slice(index, index + length);
+		// if (query) {
 
-  }
+		// 	const body = this.getChild("body");
+		// 	const selection = body.querySelection();
 
-  getAdjacentId(id, direction = 1) {
+		// 	if (selection) {
 
-    const ids = this.getIds().toArray();
+		// 		const index = selection.index || 0;
+		// 		const length = selection.length || 0;
 
-    const index = ids.indexOf(id);
+		// 		return query.ids.slice(index, index + length);
 
-    if (index > -1 && index + direction >= 0 && index + direction < ids.length) {
+		// 	}
 
-      return ids[index + direction];
+		// }
 
-    }
+	}
 
-  }
+  // getAdjacentId(id, direction = 1) {
 
-  async selectByIds(selectIds) {
+  //   const ids = this.getIds().toArray();
 
-    let ids = this.getIds();
+  //   const index = ids.indexOf(id);
 
-    while (ids.loading) {
+  //   if (index > -1 && index + direction >= 0 && index + direction < ids.length) {
 
-      await this.render();
-      ids = this.getIds();
+  //     return ids[index + direction];
 
-    }
+  //   }
 
-    const body = this.getChild("body");
+  // }
 
-    const index = ids.toArray().indexOf(selectIds[0]);
+	selectByIds(ids) {
 
-    if (index > -1 && body) {
+		// let query = this.getQuery();
 
-      await body.select(index, selectIds.length);
-      await body.setFocus(true);
+		// if (!query) {
 
-    } else {
+		// 	console.error("selecting by ids but query is not set");
+		// 	return;
 
-      await body.unselect();
+		// }
 
-    }
+		const body = this.getChild("body");
 
+		body.selectByIds(ids);
 
-  }
+		// const index = query.ids.indexOf(ids[0]);
 
-  getSortableKey() {
+		// if (index > -1 && body) {
 
-    return body.getSortableKey();
+		// 	body.select(index, ids.length);
+		// 	body.setFocus(true);
 
-  }
+		// } else {
 
+		// 	body.unselect();
 
-  async swap(index, target, length) {
+		// }
 
-    const body = this.getChild("body");
+	}
 
-    const sortableKey = body.resource.sortable === true && "position" || body.resource.sortable;
+  // getSortableKey() {
 
-    if (!sortableKey) {
+  //   return body.getSortableKey();
 
-      console.error("not sortable!", this);
+  // }
 
-    }
 
-    const driver = this.getDriver();
-    // let params = this.queryParams();
-    //
-    // if (params.loading) {
-    //
-    //   console.error("params not loaded!");
-    //
-    // }
-    //
-    // const paramstring = params.string;
+  // async swap(index, target, length) {
 
-    const params = this.getParams() || {};
-    const paramstring = this.getParamstring() || "";
+  //   const body = this.getChild("body");
 
-    const queryIds = this.getIds();
+  //   const sortableKey = body.resource.sortable === true && "position" || body.resource.sortable;
 
-    if (queryIds.loading) {
+  //   if (!sortableKey) {
 
-      console.error("ids are not loaded");
+  //     console.error("not sortable!", this);
 
-    }
+  //   }
 
-    // to be moved in Server()
-    let previousIds = queryIds.toArray();
+  //   const driver = this.getDriver();
 
-    await this.save("sort", "Sort");
+  //   const params = this.getParams() || {};
+  //   const paramstring = this.getParamstring() || "";
 
-    // const ids = [...previousIds.toArray()];
-    const ids = [...previousIds];
+  //   const queryIds = this.getIds();
 
-    ids.splice(target, 0, ...ids.splice(index, length));
+  //   if (queryIds.loading) {
 
-    KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, ids, "ids", driver, paramstring);
+  //     console.error("ids are not loaded");
 
-    await KarmaFieldsAlpha.Database.States.set(ids, "queries", driver, paramstring, "ids");
-    await KarmaFieldsAlpha.History.write(ids, previousIds, "queries", driver, paramstring, "ids"); // update history
+  //   }
 
-    let positionQueries = ids.map((id, i) => this.getContentAt(i, sortableKey));
+  //   // to be moved in Server()
+  //   let previousIds = queryIds.toArray();
 
-    while (positionQueries.some(query => query.loading)) {
+  //   await this.save("sort", "Sort");
 
-      await this.render();
+  //   // const ids = [...previousIds.toArray()];
+  //   const ids = [...previousIds];
 
-      positionQueries = ids.map((id, i) => this.getContentAt(i, sortableKey));
+  //   ids.splice(target, 0, ...ids.splice(index, length));
 
-    }
+  //   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, ids, "ids", driver, paramstring);
 
-    for (let i = 0; i < ids.length; i++) {
+  //   await KarmaFieldsAlpha.Database.States.set(ids, "queries", driver, paramstring, "ids");
+  //   await KarmaFieldsAlpha.History.write(ids, previousIds, "queries", driver, paramstring, "ids"); // update history
 
-      // const position = this.getContentAt(i, sortableKey);
+  //   let positionQueries = ids.map((id, i) => this.getContentAt(i, sortableKey));
 
-      // console.log(i, position, sortableKey);
+  //   while (positionQueries.some(query => query.loading)) {
 
-      const currentIndex = positionQueries[i].toNumber();
+  //     await this.render();
 
-      if (currentIndex !== i) {
+  //     positionQueries = ids.map((id, i) => this.getContentAt(i, sortableKey));
 
-        await this.setValueAt(i, i, sortableKey);
+  //   }
 
-      }
+  //   for (let i = 0; i < ids.length; i++) {
 
+  //     // const position = this.getContentAt(i, sortableKey);
 
+  //     // console.log(i, position, sortableKey);
 
-    }
+  //     const currentIndex = positionQueries[i].toNumber();
 
+  //     if (currentIndex !== i) {
 
+  //       await this.setValueAt(i, i, sortableKey);
 
-    if (body) {
+  //     }
 
-      await body.setFocus(true);
-      await body.select(target, length);
 
-    }
 
-  }
+  //   }
 
 
-  async drop() {
 
-    let ids = this.getSelectedIds();
+  //   if (body) {
 
-    // while (ids.loading) {
-    //
-    //   await this.render();
-    //   ids = await this.getSelectedIds();
-    //
-    // }
+  //     await body.setFocus(true);
+  //     await body.select(target, length);
 
-    if (ids.length && this.parent.insert) {
+  //   }
 
-      await this.parent.insert(ids);
+  // }
 
-    }
+	// swap(index, target, length) {
 
-    await this.parent.close();
+	// 	const body = this.getChild("body");
 
-  }
+	// 	const sortableKey = body.resource.sortable;
 
-  canDrop() {
+	// 	// compat
+	// 	if (body.resource.sortable === true) {
 
-    return Boolean(this.parent.insert);
+	// 		sortableKey = "position";
 
-  }
+	// 	}
+
+	// 	if (!sortableKey) {
+
+	// 		console.error("not sortable!", this);
+	// 		return;
+
+	// 	}
+
+	// 	const driver = this.getDriver();
+	// 	const params = this.getParams();
+	// 	const paramstring = this.getParamstring() || "";
+
+	// 	this.save("sort", "Sort");
+
+	// 	KarmaFieldsAlpha.server.swap(this.uid, driver, paramstring, index, length, target, sortableKey);
+
+	// 	if (body) {
+
+	// 		body.setFocus(true);
+	// 		body.select(target, length);
+
+	// 	}
+
+	// }
+
+	// swapAt(index, length, target, sortableKey) {
+
+	// 	const driver = this.getDriver();
+	// 	const paramstring = this.getParamstring() || "";
+
+	// 	KarmaFieldsAlpha.server.swap(this.uid, driver, paramstring, index, length, target, sortableKey);
+
+	// }
+
+	drop() {
+
+		const body = this.getChild("body");
+
+		let ids = body.getSelectedIds();
+
+		if (!ids) {
+
+			console.error("dropping id but selected ids is not set");
+
+		}
+
+		if (ids.length && this.parent.insert) {
+
+			this.parent.insert(ids);
+
+		}
+
+		this.parent.close();
+
+	}
+
+	canDrop() {
+
+		return Boolean(this.parent.insert);
+
+	}
+
+	// exportTable(keys, ppp = 100) {
+
+	// 	const params = this.getParams();
+	// 	const driver = this.getDriver();
+
+	// 	if (params === undefined) {
+
+	// 		console.error("exporting table but params is not set");
+
+	// 	}
+
+	// 	KarmaFieldsAlpha.server.export(driver, params, keys, ppp);
+
+	// }
+	exportTable() {
+
+		this.exportPROMISE();
+
+		// KarmaFieldsAlpha.server.tasks.set({ page: 1, originalPage: this.getPage(), data: [] }, "get", "export", this.uid);
+
+	}
+
+	// *buildExport() {
+
+	// 	const task = KarmaFieldsAlpha.server.tasks.get("get", "export", this.uid);
+
+	// 	if (task) {
+
+
+	// 		const params = this.getParams();
+
+	// 		if (!params) {
+
+	// 			return;
+
+	// 		}
+
+	// 		const numPage = this.getNumPage();
+
+	// 		if (numPage === undefined) {
+
+	// 			return;
+
+	// 		}
+
+	// 		// change page without updating history
+	// 		KarmaFieldsAlpha.server.setState({ ...params, page: task.page }, this.uid, "params");
+	// 		KarmaFieldsAlpha.server.tempo.clear();
+
+	// 		const body = this.getChild("body");
+
+	// 		let grid = body.export();
+
+	// 		// compat
+	// 		if (grid instanceof KarmaFieldsAlpha.Content) {
+
+	// 			if (grid.loading) {
+
+	// 				grid = undefined;
+
+	// 			} else {
+
+	// 				grid = grid.toArray();
+
+	// 			}
+
+	// 		}
+
+	// 		if (grid !== undefined) {
+
+	// 			task.data.push(...grid);
+
+	// 		} else if (page === numPage) {
+
+	// 			const csv = Papa.unparse(grid);
+	// 			const filename = this.parse(this.resource.filename || "export.csv").toString();
+
+	// 			// -> download grid
+	// 			yield {
+	// 				tag: "a",
+	// 				update: element => {
+	// 					element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
+	// 					element.setAttribute("download", filename);
+	// 					element.style.display = "none";
+	// 					element.click();
+	// 				}
+	// 			};
+
+	// 			KarmaFieldsAlpha.server.tasks.remove("get", "export", this.uid);
+
+	// 			KarmaFieldsAlpha.server.store.set({ ...params, page: task.originalPage }, "fields", this.uid, "params");
+
+	// 		} else {
+
+	// 			task.page++;
+
+	// 		}
+
+	// 	}
+
+	// 	// set params back without updating history
+	// 	KarmaFieldsAlpha.server.set(params, "fields", this.uid, "params");
+	// 	KarmaFieldsAlpha.server.tempo.clear(); // -> release parastring cache
+
+	// }
+
+	exportPROMISE() {
+
+		const data = [];
+		const params = this.getParams();
+
+		if (params === undefined) {
+
+			console.error("exporting table but params are not loaded!");
+
+			return;
+
+		}
+
+		let page = params.page || 1;
+
+		KarmaFieldsAlpha.server.promise(done => {
+
+			const numPage = this.getNumPage();
+
+			if (numPage === undefined) {
+
+				return;
+
+			}
+
+
+
+			// change page without updating history
+			// KarmaFieldsAlpha.server.setState({ ...params, page }, this.uid, "params");
+			// KarmaFieldsAlpha.server.tempo.clear();
+
+			const body = this.getChild("body");
+
+			let grid = body.export();
+
+			if (grid !== undefined) {
+
+				data.push(...grid);
+
+				if (page === numPage) {
+
+					this.setData(data, "export");
+
+					KarmaFieldsAlpha.server.setState(params, this.uid, "params"); // -> set to original
+
+					done();
+
+				} else {
+
+					page++;
+					KarmaFieldsAlpha.server.setState({ ...params, page }, this.uid, "params");
+
+				}
+
+			}
+
+		});
+
+	}
+
+	*buildExport() {
+
+		const data = this.getData("export");
+
+		if (data) {
+
+			const csv = Papa.unparse(data);
+			const filename = this.parseString(this.resource.filename || "export.csv");
+
+			// -> download grid
+			yield {
+				tag: "a",
+				update: element => {
+					element.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
+					element.setAttribute("download", filename);
+					element.style.display = "none";
+					element.click();
+				}
+			};
+
+			this.setData(null, "export");
+
+		}
+
+	}
+
+	*buildContent() {
+
+		yield* super.buildContent();
+		yield* this.buildExport();
+
+	}
 
 }
 
 
 
 
-KarmaFieldsAlpha.field.table.footer = class extends KarmaFieldsAlpha.field.form.footer {
+KarmaFieldsAlpha.field.table.footer = class extends KarmaFieldsAlpha.field.container.footer {
 
   constructor(resource, id, parent) {
 
@@ -1020,6 +2463,7 @@ KarmaFieldsAlpha.field.table.add = class extends KarmaFieldsAlpha.field.button {
       action: "add",
       title: "Add",
       text: "Add",
+      save: "add",
       ...resource
     }, id, parent);
   }
@@ -1032,6 +2476,7 @@ KarmaFieldsAlpha.field.table.delete = class extends KarmaFieldsAlpha.field.butto
       title: "Delete",
       text: "Delete",
       enabled: ["request", "hasSelection"],
+      save: "delete",
       ...resource
     }, id, parent);
   }
@@ -1047,6 +2492,7 @@ KarmaFieldsAlpha.field.table.insert = class extends KarmaFieldsAlpha.field.butto
       enabled: ["request", "hasSelection"],
       // visible: ["request", "tunnel", -1, "useSocket"],
       visible: ["request", "canDrop"],
+      save: "drop",
       ...resource
     }, id, parent);
   }
@@ -1062,7 +2508,7 @@ KarmaFieldsAlpha.field.table.export = class extends KarmaFieldsAlpha.field.downl
 
 
 
-KarmaFieldsAlpha.field.table.header = class extends KarmaFieldsAlpha.field.form.header {
+KarmaFieldsAlpha.field.table.header = class extends KarmaFieldsAlpha.field.container.header {
 
   constructor(resource, id, parent) {
 
@@ -1106,14 +2552,34 @@ KarmaFieldsAlpha.field.table.header = class extends KarmaFieldsAlpha.field.form.
 //
 // }
 
-KarmaFieldsAlpha.field.table.count = class extends KarmaFieldsAlpha.field.text {
-  constructor(resource, id, parent) {
-    super({
-      style: "justify-content:center;white-space: nowrap;",
-      value: ["replace", "# elements", "#", ["request", "getCount"]],
-      ...resource
-    }, id, parent);
-  }
+KarmaFieldsAlpha.field.table.count = class extends KarmaFieldsAlpha.field.simpletext {
+  // constructor(resource, id, parent) {
+  //   super({
+  //     style: "justify-content:center;white-space: nowrap;",
+  //     value: ["replace", "# elements", "#", ["request", "getCount"]],
+  //     ...resource
+  //   }, id, parent);
+  // }
+
+	// *build() {
+
+	// 	yield {
+	// 		class: "text",
+	// 		init: element => {
+	// 			// element.style = "justify-content:center;white-space: nowrap;";
+	// 		},
+	// 		update: element => {
+	// 			element.innerHTML = this.parseString(this.resource.value || this.resource.content) || "";
+	// 		}
+	// 	};
+	// }
+	getText() {
+		const count = this.getValue("count");
+		if (count === undefined) {
+			return;
+		}
+		return (count[0] || 0).toString();
+	}
 }
 // KarmaFieldsAlpha.field.table.close = class extends KarmaFieldsAlpha.field.button {
 //   constructor(resource, id, parent) {
@@ -1150,66 +2616,200 @@ KarmaFieldsAlpha.field.table.pagination = class extends KarmaFieldsAlpha.field.g
 }
 
 KarmaFieldsAlpha.field.table.pagination.firstpage = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource, id, parent) {
-    super({
-      // task: ["set", 1, "page"],
-      // request: ["firstPage"],
-      action: "firstPage",
-      title: "First Page",
-      text: "«",
-      disabled: ["==", ["request", "getPage"], 1],
-      ...resource
-    }, id, parent);
-  }
+	// constructor(resource, id, parent) {
+	// 	super({
+	// 		// action: "firstPage",
+	// 		title: "First Page",
+	// 		text: "«",
+	// 		// disabled: ["==", ["request", "getPage"], 1],
+	// 		...resource
+	// 	}, id, parent);
+	// }
+
+	getTitle() {
+		return "First Page";
+	}
+
+	getDashicon() {
+		return "controls-skipback";
+	}
+
+	click() {
+		this.save("first-page");
+		this.setValue(["1"], "page");
+		this.render();
+	}
+
+	isDisabled() {
+		const page = this.getValue("page");
+		return !page || parseInt(page[0]) <= 1;
+	}
 }
+
 KarmaFieldsAlpha.field.table.pagination.prevpage = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource, id, parent) {
-    super({
-      // request: ["body", "prevPage"],
-      // task: ["set", ["-", ["request", "getPage"], 1], "page"],
-      action: "prevPage",
-      title: "Previous Page",
-      text: "‹",
-      disabled: ["==", ["request", "getPage"], 1],
-      ...resource
-    }, id, parent);
-  }
+  // constructor(resource, id, parent) {
+  //   super({
+  //     // request: ["body", "prevPage"],
+  //     // task: ["set", ["-", ["request", "getPage"], 1], "page"],
+  //     action: "prevPage",
+  //     title: "Previous Page",
+  //     text: "‹",
+  //     disabled: ["==", ["request", "getPage"], 1],
+  //     ...resource
+  //   }, id, parent);
+  // }
+
+	getTitle() {
+		return "Previous Page";
+	}
+
+	getDashicon() {
+		return "controls-back";
+	}
+
+	click() {
+		let page = this.getValue("page");
+		if (page && page[0] && parseInt(page[0]) > 1) {
+			const lastPage = parseInt(page[0]) - 1;
+			this.save("previous-page");
+			this.setValue([lastPage.toString()], "page");
+			this.render();
+		}
+
+	}
+
+	isDisabled() {
+		const page = this.getValue("page");
+		return !page  || !page[0] || parseInt(page[0]) === 1;
+	}
 }
-KarmaFieldsAlpha.field.table.pagination.currentpage = class extends KarmaFieldsAlpha.field.text {
-  constructor(resource, id, parent) {
-    super({
-      style: "font-family: monospace;", //"min-width: 4em;text-align: right;",
-      value: ["replace", "#/#", "#", ["request", "getPage"], ["request", "getNumPage"]],
-      ...resource
-    }, id, parent);
-  }
+// KarmaFieldsAlpha.field.table.pagination.currentpage = class extends KarmaFieldsAlpha.field.text {
+//   constructor(resource, id, parent) {
+//     super({
+//       style: "font-family: monospace;", //"min-width: 4em;text-align: right;",
+//       value: ["replace", "#/#", "#", ["request", "getPage"], ["request", "getNumPage"]],
+//       ...resource
+//     }, id, parent);
+//   }
+// }
+
+KarmaFieldsAlpha.field.table.pagination.currentpage = class extends KarmaFieldsAlpha.field {
+	// constructor(resource, id, parent) {
+	// 	super({
+	// 		style: "font-family: monospace;", //"min-width: 4em;text-align: right;",
+	// 		// value: ["replace", "#/#", "#", ["get", "page"], ["get", "numpage"]],
+	// 		...resource
+	// 	}, id, parent);
+	// }
+	// getText() {
+	// 	const count = this.getValue("count");
+	// 	if (count === undefined) {
+	// 		return;
+	// 	}
+	// 	return (count[0] || 0).toString();
+	// }
+
+	*build() {
+		const numpage = this.getValue("numpage");
+		const page = this.getValue("page");
+
+		yield {
+			class: "text",
+			init: element => {
+				element.style = "font-family:monospace;white-space:pre";
+			},
+			update: element => {
+				if (numpage && page) {
+					const length = (numpage[0] || 1).toString().length;
+					const currentPage = (page[0] || 1).toString().padStart(length, " ");
+					const lastPage = (numpage[0] || 1).toString();
+					element.innerHTML = `${currentPage}/${lastPage}`;
+				}
+			}
+		};
+	}
 }
+
 KarmaFieldsAlpha.field.table.pagination.nextpage = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource, id, parent) {
-    super({
-      // request: ["body", "nextPage"],
-      // task: ["set", ["+", ["request", "getPage"], 1], "page"],
-      action: "nextPage",
-      title: "Next Page",
-      text: "›",
-      // disabled: ["==", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
-      disabled: ["==", ["request", "getPage"], ["request", "getNumPage"]],
-      ...resource
-    }, id, parent);
-  }
+  // constructor(resource, id, parent) {
+  //   super({
+  //     // request: ["body", "nextPage"],
+  //     // task: ["set", ["+", ["request", "getPage"], 1], "page"],
+  //     action: "nextPage",
+  //     title: "Next Page",
+  //     text: "›",
+  //     // disabled: ["==", ["request", "body", "getPage"], ["request", "body", "getNumPage"]],
+  //     disabled: ["==", ["request", "getPage"], ["request", "getNumPage"]],
+  //     ...resource
+  //   }, id, parent);
+  // }
+
+
+	getTitle() {
+		return "Next Page";
+	}
+
+	getDashicon() {
+		return "controls-forward";
+	}
+
+	click() {
+		let numpage = this.getValue("numpage");
+		let page = this.getValue("page");
+
+		if (page && numpage && parseInt(page[0]) < parseInt(numpage[0])) {
+			const nextPage = parseInt(page[0]) + 1;
+			this.save("next-page");
+			this.setValue([nextPage.toString()], "page");
+			this.render();
+		}
+
+	}
+
+	isDisabled() {
+		const page = this.getValue("page");
+		let numpage = this.getValue("numpage");
+		return !page || !numpage || parseInt(page[0]) >= parseInt(numpage[0]);
+	}
 }
 KarmaFieldsAlpha.field.table.pagination.lastpage = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource, id, parent) {
-    super({
-      // request: ["body", "lastPage"],
-      // task: ["set", ["request", "getNumPage"], "page"],
-      action: "lastPage",
-      title: "Last Page",
-      text: "»",
-      disabled: ["==", ["request", "getPage"], ["request", "getNumPage"]],
-      ...resource
-    }, id, parent);
-  }
+  // constructor(resource, id, parent) {
+  //   super({
+  //     // request: ["body", "lastPage"],
+  //     // task: ["set", ["request", "getNumPage"], "page"],
+  //     action: "lastPage",
+  //     title: "Last Page",
+  //     text: "»",
+  //     disabled: ["==", ["request", "getPage"], ["request", "getNumPage"]],
+  //     ...resource
+  //   }, id, parent);
+  // }
+
+	getTitle() {
+		return "Last Page";
+	}
+
+	getDashicon() {
+		return "controls-skipforward";
+	}
+
+	click() {
+		let numpage = this.getValue("numpage");
+		let page = this.getValue("page");
+
+		if (page && numpage && parseInt(page[0]) < parseInt(numpage[0])) {
+			this.save("next-page");
+			this.setValue(numpage, "page");
+			this.render();
+		}
+
+	}
+
+	isDisabled() {
+		const page = this.getValue("page");
+		let numpage = this.getValue("numpage");
+		return !page || !numpage || parseInt(page[0]) >= parseInt(numpage[0]);
+	}
 }
 
 

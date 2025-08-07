@@ -174,7 +174,7 @@ class Karma_Fields_Alpha_Driver_Medias extends Karma_Fields_Alpha_Driver_Posts {
         p.post_mime_type,
         'folder' AS 'filetype'
         FROM $wpdb->posts AS p
-        WHERE p.ID IN ($ids)
+        WHERE p.ID IN ($ids) AND p.post_type = 'karma-folder'
         ORDER BY p.post_type ASC, p.post_title ASC"
       );
 

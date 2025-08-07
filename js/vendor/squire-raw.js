@@ -1680,7 +1680,7 @@
         "A",
         Object.assign(
           {
-            href: match[1] ? /^(?:ht|f)tps?:/i.test(match[1]) ? match[1] : "http://" + match[1] : "mailto:" + match[0]
+            href: match[1] ? /^(?:ht|f)tps?:/i.test(match[1]) ? match[1] : "https://" + match[1] : "mailto:" + match[0]
           },
           defaultAttributes
         )
@@ -3377,7 +3377,7 @@
             "A",
             Object.assign(
               {
-                href: match[1] ? /^(?:ht|f)tps?:/i.test(match[1]) ? match[1] : "http://" + match[1] : "mailto:" + match[0]
+                href: match[1] ? /^(?:ht|f)tps?:/i.test(match[1]) ? match[1] : "https://" + match[1] : "mailto:" + match[0]
               },
               defaultAttributes
             )

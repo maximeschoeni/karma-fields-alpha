@@ -1,304 +1,294 @@
 KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
-  // getConstructor(type) {
-  //
-  //   if (this.constructor[type] && typeof this.constructor[type] === "function") {
-  //     return this.constructor[type];
-  //   }
-  //
-  //   if (this.parent) {
-  //     return this.parent.getConstructor(type);
-  //   }
-  //
-  // }
+	newChild(index) {
 
-  newChild(index) {
+		const children = this.resource.children || [];
 
-    const children = this.resource.children || [];
+		let resource = children[index];
 
-    let resource = children[index];
+		if (resource) {
 
-    if (resource) {
+			return this.createChild(resource, index);
 
-      // if (typeof resource === "string") {
-      //
-      //   resource = {type: resource};
-      //
-      // }
-      //
-      // const constructor = this.getConstructor(resource.type || "group"); // compat
-      //
-      // return new constructor(resource, index, this);
+		}
 
-      // console.log(resource);
+	}
 
-      return this.createChild(resource, index);
+	getValue(key) {
 
-    }
+		const groupKey = this.getKey();
 
-  }
+		if (groupKey) {
 
-  getContent(subkey) {
+			const values = this.parent.getValue(groupKey);
 
-    const key = this.getKey();
+			if (values !== undefined) {
 
-    if (key) {
+				return values[0] && values[0][key] || [];
 
-      const content = this.parent.getContent(key);
+			}
 
-      const response = new KarmaFieldsAlpha.Content();
+		} else if (this.parent) {
 
-      if (content.loading) {
+			return this.parent.getValue(key);
 
-        response.loading = true;
+		}
 
-      }
+	}
 
-      response.value = KarmaFieldsAlpha.DeepObject.get(content.toObject(), subkey);
+	setValue(value, key) {
 
-      // return new KarmaFieldsAlpha.Content(value);
+		const groupKey = this.getKey();
 
-      // return new KarmaFieldsAlpha.Content.Node(content, subkey);
+		if (groupKey) {
 
-      return response;
+			let values = this.parent.getValues(groupKey);
 
-    } else if (this.parent) {
+			if (values === undefined) {
 
-      return this.parent.getContent(subkey);
+				console.error("setting value but group value is undefined");
 
-    }
+			}
 
-  }
+			const newValue = { ...values[0], [key]: value };
 
-  async setValue(value, ...path) {
+			this.parent.setValue([newValue], groupKey);
 
-    const key = this.getKey();
+		} else {
 
-    if (key) {
+			return this.parent.setValue(value, key);
 
-      let groupContent = this.parent.getContent(key);
+		}
 
-      if (!groupContent.loading) {
-
-        const newValue = {...groupContent.toObject()};
-
-        KarmaFieldsAlpha.DeepObject.set(newValue, value, ...path);
-
-        await this.parent.setValue(newValue, key);
-
-      }
-
-    } else {
-
-      return this.parent.setValue(value, ...path);
-
-    }
-
-  }
+	}
 
 	export() {
 
-		const key = this.getKey();
+		const groupKey = this.getKey();
 
-		if (key) {
+		if (groupKey) {
 
-      return this.parent.getContent(key);
+			return this.parent.getValue(groupKey);
 
 		} else {
 
-      return super.export();
+			return super.export();
 
 		}
 
 	}
 
-	async import(collection) {
+	import(collection) {
 
 		const key = this.getKey();
 
 		if (key) {
 
-      const value = collection.value.shift();
+			const value = collection.shift();
 
-      await this.parent.setValue(value, key);
+			this.parent.setValue(value, key);
 
 		} else {
 
-      await super.import(collection);
+			super.import(collection);
 
 		}
 
 	}
 
-  isHidden(field) {
+	isHidden(field) {
 
-    if (field.resource.hidden) {
+		if (field.resource.hidden) {
 
-      const hidden = field.parse(field.resource.hidden);
+			return field.parseBoolean(field.resource.hidden) || false;
 
-      return !hidden.loading && hidden.toBoolean();
+		} else if (field.resource.visible) {
 
-    } else if (field.resource.visible) {
+			return !field.parseBoolean(field.resource.visible);
 
-      const visible = field.parse(field.resource.visible);
-      return visible.loading || !visible.toBoolean();
+		}
 
-    }
+		return false;
+	}
 
-    return false;
-  }
+	inline() {
 
-  inline() {
+		return this.resource.display === "flex";
 
-    return this.resource.display === "flex";
+	}
 
-  }
-
-  // buildLabel() {
-  //
-	// 	return [{
-	// 		tag: "label",
-	// 		class: "label",
-	// 		update: async label => {
-	// 			label.element.htmlFor = field.getId();
-  //       const label = await
-	// 			label.element.textContent = field.getLabel();
-	// 		}
-	// 	}];
-  //
-	// }
-
-	// buildPseudoLabel() {
-  //
-	// 	return [{
-	// 		class: "label",
-	// 		update: label => {
-	// 			label.element.textContent = field.getLabel();
-	// 		}
-	// 	}];
-  //
-	// }
-
-	buildChildren(field, labelable) {
-		const children = [];
+	*buildChild(field) {
 
 		if (field.resource.label) {
 
-			children.push({
+			yield {
 				class: "label",
-				update: async node => {
-          const label = await field.getLabel();
-					node.element.textContent = label.toString();
+				update: element => {
+					element.textContent = field.getLabel();
 				}
-			});
+			};
 
 		}
 
 		if (field.build) { // -> not separators
 
-			children.push(field.build());
+			yield* field.build();
 
 		}
 
-		return children;
+		if (field.resource.description) {
+
+			yield {
+				tag: "p",
+				class: "field-description",
+				init: element => {
+					element.textContent = field.resource.description;
+				}
+			};
+
+		}
+
 	}
 
-	build() {
-		return {
-			class: "karma-field karma-field-container display-"+(this.resource.display || "block"),
-			init: group => {
-				if (this.resource.container && this.resource.container.style) {
-					group.element.style = this.resource.container.style;
-				}
-				if (this.resource.class) {
-					group.element.classList.add(this.resource.class);
-				}
-				if (this.resource.classes) {
-					group.element.classList.add(...this.resource.classes);
-				}
-				if (this.resource.wrap === false) {
-					group.element.style.flexWrap = "nowrap";
-				}
-        if (this.resource.align) {
-          group.element.style.alignItems = this.resource.align;
-        }
-			},
-			update: group => {
 
-				group.children = this.getChildren().map((resource, index) => {
+	*buildChildren() {
 
-          // if (typeof resource === "string") {
-          //
-          //   resource = {type: resource};
-          //
-          // }
+		const children = this.getChildren();
 
-					// const field = this.createChild({
-          //   id: index,
-          //   ...resource,
-          //   index: index,
-          //   uid: `${this.resource.uid}-${index}`
-          // }, index);
 
-          const field = this.createChild(resource, index);
 
-					const labelable = field.resource.type === "input"
-						|| field.resource.type === "textarea"
-						|| field.resource.type === "checkbox"
-						|| field.resource.type === "dropdown";
 
-					return {
-						tag: labelable ? "label" : "div",
-						class: `karma-field-frame karma-field-${field.resource.type} field-container`,
-						init: (container) => {
-							if (field.resource.style) {
-								container.element.style = field.resource.style;
+		for (let i = 0; i < children.length; i++) {
+
+			const field = this.createChild(children[i], i);
+			const type = field.resource.model || field.resource.type;
+			const tag = (type === "input" || type === "textarea" || type === "dropdown") && "label" || "div";
+
+			yield {
+				tag: tag,
+				class: `karma-field-frame karma-field-${type} field-container`,
+				init: element => {
+					if (field.resource.style) {
+						element.style = field.resource.style;
+					}
+					// if (field.resource.class) {
+					// 	element.classList.add(...field.resource.class.split(" "));
+					// }
+					// if (field.resource.classes) {
+					// 	element.classList.add(...field.resource.classes);
+					// }
+					// if (field.resource.flex) { // deprecated
+					// 	element.style.flex = field.resource.flex;
+					// }
+					if (field.resource.width) {
+						if (this.inline()) { // -> flex-direction: row
+							if (field.resource.width === "1fr") {
+								element.style.flexGrow = 1;
+							} else {
+								element.style.width = field.resource.width;
 							}
-							if (field.resource.class) {
-								field.resource.class.split(" ").forEach(name => container.element.classList.add(name));
+						} else { // -> flex-direction: column
+							if (field.resource.width === "auto") {
+								element.style.alignSelf = "flex-start";
+							} else if (field.resource.width !== "1fr") {
+								element.style.width = field.resource.width;
 							}
-              if (field.resource.classes) {
-								container.element.classList.add(...field.resource.classes);
-							}
-							if (field.resource.flex) { // deprecated
-								container.element.style.flex = field.resource.flex;
-							}
-							if (field.resource.width) {
-                if (this.inline()) { // -> flex-direction: row
-                  const fr = field.resource.width.match(/(.*)fr/);
-                  if (fr) {
-                    // container.element.style.flexGrow = fr[1];
-                    container.element.style.flex = `1 ${fr[1]} 0`;
-                  } else {
-                    container.element.style.width = field.resource.width;
-                  }
-                } else { // -> flex-direction: column
-                  if (field.resource.width === "auto") {
-                    container.element.style.alignSelf = "flex-start";
-                  } else if (!field.resource.width.match(/(.*)fr/)) {
-                    container.element.style.width = field.resource.width;
-                  }
-                }
-							}
-						},
-						update: (container) => {
-							container.children = [];
-
-              let hidden = this.isHidden(field);
-
-							container.element.classList.toggle("hidden", hidden);
-
-							if (!hidden) {
-
-								container.children = this.buildChildren(field, labelable);
-
-							}
-
 						}
 					}
-				});
+				},
+				children: this.buildChild(field),
+				update: element => {
+					let hidden = this.isHidden(field);
+					element.classList.toggle("hidden", hidden);
+				}
+			};
 
-			}
+		}
+
+	}
+
+	*build() {
+		yield {
+			class: "karma-field karma-field-container display-"+(this.resource.display || "block"),
+			init: element => {
+				if (this.resource.container && this.resource.container.style) {
+					element.style = this.resource.container.style;
+				}
+				// if (this.resource.class) {
+				// 	group.element.classList.add(this.resource.class);
+				// }
+				// if (this.resource.classes) {
+				// 	group.element.classList.add(...this.resource.classes);
+				// }
+				if (this.resource.wrap === false) {
+					element.style.flexWrap = "nowrap";
+				}
+				if (this.resource.align) {
+					element.style.alignItems = this.resource.align;
+				}
+			},
+			children: this.buildChildren()
+			// update: group => {
+			// 	group.children = this.getChildren().map((resource, index) => {
+			// 		const field = this.createChild(resource, index);
+
+			// 		const labelable = field.resource.type === "input"
+			// 			|| field.resource.type === "textarea"
+			// 			|| field.resource.type === "checkbox"
+			// 			|| field.resource.type === "dropdown";
+
+			// 		return {
+			// 			tag: labelable ? "label" : "div",
+			// 			class: `karma-field-frame karma-field-${field.resource.type} field-container`,
+			// 			init: (container) => {
+			// 				if (field.resource.style) {
+			// 					container.element.style = field.resource.style;
+			// 				}
+			// 				if (field.resource.class) {
+			// 					field.resource.class.split(" ").forEach(name => container.element.classList.add(name));
+			// 				}
+			// 				if (field.resource.classes) {
+			// 					container.element.classList.add(...field.resource.classes);
+			// 				}
+			// 				if (field.resource.flex) { // deprecated
+			// 					container.element.style.flex = field.resource.flex;
+			// 				}
+			// 				if (field.resource.width) {
+			// 					if (this.inline()) { // -> flex-direction: row
+			// 						const fr = field.resource.width.match(/(.*)fr/);
+			// 						if (fr) {
+			// 							// container.element.style.flexGrow = fr[1];
+			// 							container.element.style.flex = `1 ${fr[1]} 0`;
+			// 						} else {
+			// 							container.element.style.width = field.resource.width;
+			// 						}
+			// 					} else { // -> flex-direction: column
+			// 						if (field.resource.width === "auto") {
+			// 							container.element.style.alignSelf = "flex-start";
+			// 						} else if (!field.resource.width.match(/(.*)fr/)) {
+			// 							container.element.style.width = field.resource.width;
+			// 						}
+			// 					}
+			// 				}
+			// 			},
+			// 			update: (container) => {
+			// 				container.children = [];
+
+			// 				let hidden = this.isHidden(field);
+
+			// 				container.element.classList.toggle("hidden", hidden);
+
+			// 				if (!hidden) {
+
+			// 					container.children = this.buildChildren(field, labelable);
+
+			// 				}
+
+			// 			}
+			// 		}
+			// 	});
+
+			// }
 
 		};
 	}
@@ -308,62 +298,70 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
 
-  build() {
+	*buildTabHeaders() {
 
-    return {
-      class: "tabs",
-      update: tabs => {
-        // const selection = this.getSelection();
+		const children = this.getChildren();
+		const currentIndex = this.getState("index") || 0;
 
-        // const data = this.getData();
-        // const currentIndex = data && data.index || 0;
-        const currentIndex = this.getState("index") || 0;
+		for (let i = 0; i < children.length; i++) {
+			yield {
+				tag: "a",
+				class: "tab-handler",
+				update: element => {
+					element.innerHTML = children[i].label;
+					element.classList.toggle("active", i === currentIndex);
+					element.onclick = async event => {
+						this.setState(i, "index");
+						this.render();
+					}
+				}
+			};
+		}
+	}
 
-        tabs.children = [
-          {
-            class: "tabs-header",
-            children: this.getChildren().map((child, index) => {
-              return {
-                tag: "a",
-                class: "tab-handler",
-                update: node => {
-                  node.element.innerHTML = child.label;
-                  const isActive = index === currentIndex;
-                  node.element.classList.toggle("active", Boolean(isActive));
-                  node.element.onclick = async event => {
-                    // this.setSelection({child: {}, childId: index});
-                    // data.index = index;
-                    await this.setState(index, "index");
-                    await this.render();
-                  }
-                }
-              };
-            })
-          },
-          {
-            class: "tabs-body",
+	*buildTabBodies() {
 
-            children: this.getChildren().map((resource, index) => {
-              return {
-                class: "tab-content",
-                update: node => {
-                  const isActive = index === currentIndex;
-                  node.element.classList.toggle("hidden", !isActive);
-                  if (isActive) {
-                    const child = this.getChild(index);
-                    node.children = [child.build()];
-                  } else {
-                    node.children = [];
-                  }
-                }
-              };
-            })
-          }
-        ]
-      }
-    };
+		const children = this.getChildren();
+		const currentIndex = this.getState("index") || 0;
 
-  }
+		for (let i = 0; i < children.length; i++) {
+			if (i === currentIndex) {
+				const child = this.getChild(i);
+				yield {
+					class: "tab-content",
+					update: element => {
+						element.classList.remove("hidden");
+					},
+					children: child.build()
+				};
+			} else {
+				yield {
+					class: "tab-content",
+					update: element => {
+						element.classList.add("hidden");
+					}
+				};
+			}
+		}
+	}
+
+	*build() {
+
+		yield {
+			class: "tabs",
+			children: [
+				{
+					class: "tabs-header",
+					children: this.buildTabHeaders()
+				},
+				{
+					class: "tabs-body",
+					children: this.buildTabBodies()
+				}
+			]
+		};
+
+	}
 
 
 }
@@ -375,69 +373,68 @@ KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.foldableGroup = class extends KarmaFieldsAlpha.field.group {
 
-	buildChildren() {
+	build() {
+
+		const isOpen = this.getState("open") || false;
 
 		return [
 			{
 				class: "foldable",
-				init: foldable => {
-					let open = false;
-					foldable.children = [
-						{
-							tag: "label",
-							children: [
-								{
-									tag: "span",
-									update: span => {
-										if (open) {
-											span.element.className = "dashicons dashicons-arrow-down";
-										} else {
-											span.element.className = "dashicons dashicons-arrow-right";
-										}
-									}
-								},
-								{
-									tag: "span",
-									init: span => {
-										span.element.htmlFor = field.getId();
-										span.element.textContent = field.resource.label || "";
+				children: [
+					{
+						tag: "label",
+						children: [
+							{
+								tag: "span",
+								update: element => {
+									if (isOpen) {
+										element.className = "dashicons dashicons-arrow-down";
+									} else {
+										element.className = "dashicons dashicons-arrow-right";
 									}
 								}
-							],
-							init: label => {
-								label.element.style.display = "flex";
-								label.element.style.alignItems = "center";
-								label.element.onclick = event => {
-									const content = label.element.nextElementSibling;
-									content.style.height = content.children[0].clientHeight.toFixed()+"px";
-									if (open) {
-										requestAnimationFrame(() => {
-											content.style.height = "0";
-										});
-										open = false;
-									} else {
-										open = true;
-									}
-									label.render();
-								};
-							}
-						},
-						{
-							class: "group-fold-content",
-							init: content => {
-								content.element.style.overflow = "hidden";
-								content.element.style.height = "0";
-								content.element.style.transition = "height 200ms";
-								content.element.style.display = "flex";
-								content.element.style.alignItems = "flex-end";
-								content.element.ontransitionend = () => {
-									content.element.style.height = open ? "auto" : "0";
-								};
 							},
-							child: field.build()
+							{
+								tag: "span",
+								update: element => {
+									element.htmlFor = this.getId();
+									element.textContent = this.resource.label || "";
+								}
+							}
+						],
+						update: element => {
+							element.style.display = "flex";
+							element.style.alignItems = "center";
+							element.onclick = event => {
+								const content = element.nextElementSibling;
+								content.style.height = content.children[0].clientHeight.toFixed()+"px";
+								if (isOpen) {
+									requestAnimationFrame(() => {
+										content.style.height = "0";
+									});
+									this.setState(false, "open");
+								} else {
+									this.setState(true, "open");
+								}
+								this.render();
+							};
 						}
-					];
-				}
+					},
+					{
+						class: "group-fold-content",
+						update: element => {
+							element.style.overflow = "hidden";
+							element.style.height = "0";
+							element.style.transition = "height 200ms";
+							element.style.display = "flex";
+							element.style.alignItems = "flex-end";
+							element.ontransitionend = () => {
+								element.style.height = isOpen ? "auto" : "0";
+							};
+						},
+						children: this.buildChildren()
+					}
+				]
 			}
 		];
 

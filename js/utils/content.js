@@ -254,7 +254,8 @@ KarmaFieldsAlpha.Content = class {
     }
 
     // if (this.value === undefined || this.value === 0) {
-    if (!this.value || this.value === "0") {
+    // if (!this.value || this.value === "0") { // -> why?
+    if (!this.value) {
 
       return [];
 
@@ -390,6 +391,8 @@ KarmaFieldsAlpha.Content.Collection = class extends KarmaFieldsAlpha.Content {
   }
 
 }
+
+
 
 
 KarmaFieldsAlpha.Content.Grid = class extends KarmaFieldsAlpha.Content.Collection {

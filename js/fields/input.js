@@ -1,130 +1,108 @@
 KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
-	// async *create() {
-	//
-	// 	// let value = await this.getDefault();
-	// 	//
-	// 	// if (value) {
-	// 	//
-	// 	// 	while (value.loading) {
-	// 	//
-	// 	// 		yield;
-	// 	// 		value = await this.getDefault();
-	// 	//
-	// 	// 	}
-	// 	//
-	// 	// 	await this.setValue(value.toString());
-	// 	//
-	// 	// }
-	//
-	// 	if (this.resource.default !== null) {
-	//
-	// 		let value = await this.getDefault();
-	//
-	// 		while (value.loading) {
-	//
-	// 			yield;
-	// 			value = await this.getDefault();
-	//
-	// 		}
-	//
-	// 		await this.setValue(value.toString());
-	//
-	// 	}
-	//
-	// }
-
 	getDefault() {
 
-		return this.parse(this.resource.default || "");
+		return this.parseString(this.resource.default || "");
 
 	}
 
-	exportDefaults() {
+	getDefaults() {
 
-		let defaults = new KarmaFieldsAlpha.Content();
+		const key = this.getKey();
+		const value = this.parseString(this.resource.default || "");
 
-		if (this.resource.default !== null) { // -> for search field
+		if (value !== undefined) {
 
-			const response = this.getDefault();
-
-			if (response.loading) {
-
-				defaults.loading = true;
-
-			} else {
-
-				defaults.value = {[this.getKey()]: response.toString()};
-
-			}
+			return { [key]: value };
 
 		}
 
-		return defaults;
-
 	}
+
+	// exportDefaults() {
+
+	// 	let defaults = new KarmaFieldsAlpha.Content();
+
+	// 	if (this.resource.default !== null) { // -> for search field
+
+	// 		const response = this.getDefault();
+
+	// 		if (response.loading) {
+
+	// 			defaults.loading = true;
+
+	// 		} else {
+
+	// 			defaults.value = {[this.getKey()]: response.toString()};
+
+	// 		}
+
+	// 	}
+
+	// 	return defaults;
+
+	// }
 
 	isDisabled() {
 
-    if (this.resource.disabled) {
+		if (this.resource.disabled) {
 
-      return this.parse(this.resource.disabled).toBoolean();
+			return this.parseBoolean(this.resource.disabled) || false;
 
-    } else if (this.resource.enabled) {
+		} else if (this.resource.enabled) {
 
-      return !this.parse(this.resource.enabled).toBoolean();
-
-    }
-
-    return false;
-  }
-
-	debounce(callback, duration = 500) {
-
-		if (KarmaFieldsAlpha.timer) {
-
-			clearTimeout(KarmaFieldsAlpha.timer);
+			return !this.parseBoolean(this.resource.enabled);
 
 		}
 
-		KarmaFieldsAlpha.timer = setTimeout(() => void callback(), duration);
-
+		return false;
 	}
+
+	// debounce(callback, duration = 500) {
+
+	// 	if (KarmaFieldsAlpha.timer) {
+
+	// 		clearTimeout(KarmaFieldsAlpha.timer);
+
+	// 	}
+
+	// 	KarmaFieldsAlpha.timer = setTimeout(() => void callback(), duration);
+
+	// }
 
 	copy() {
 
-		let content = this.getContent();
+		let value = this.getValue();
+		const mixed = this.isMixed();
 
-		if (content.mixed) {
+		if (mixed) {
 
-			content = new KarmaFieldsAlpha.Content.Grid(content.value);
+			const key = this.getKey();
+			value = this.getSelectedValues(key);
+
+			return KarmaFieldsAlpha.CSV.stringify(value);
 
 		}
 
-		return content.toString();
+		return value[0] || "";
 
 	}
 
-	async paste(string) {
+	paste(string) {
 
-		await this.save("paste", "Paste");
-		await this.setValue(string);
-		await this.request("render");
-
-	}
-
-	async delete() { // -> for mixed values
-
-		// const content = new KarmaFieldsAlpha.Content("");
-		// KarmaFieldsAlpha.History.save("delete", "Delete");
-		// this.setContent(content);
-		// this.request("render");
-
-		await this.setValue("");
+		this.save("paste", "Paste");
+		this.setValue([string]);
+		this.render();
 
 	}
 
-	getContent(key) {
+	delete() { // -> for mixed values
+
+		this.setValue([""]);
+
+	}
+
+	getValue(key) {
 
 		if (!key) {
 
@@ -132,34 +110,8 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		}
 
+		return this.parent.getValue(key);
 
-		// if (this.resource.value) {
-		//
-		// 	const content = await this.parent.getContent(key);
-		//
-		// 	if (!content.mixed) {
-		//
-		// 		const value = await this.parse(this.resource.value);
-		//
-		// 		if (!value.loading && !value.equals(content)) {
-		//
-		// 			await this.parent.setValue(value.toString(), key);
-		//
-		// 			return value;
-		//
-		// 		}
-		//
-		// 	}
-		//
-		// 	return content;
-		//
-		// } else {
-
-			return this.parent.getContent(key);
-
-		// }
-
-		// return content;
 	}
 
 	setValue(value, key) {
@@ -177,44 +129,23 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 	export() {
 
-		// const output = new KarmaFieldsAlpha.Content();
-		//
-		// if (this.resource.export !== false) {
-		//
-		// 	const content = await this.getContent();
-		//
-		// 	if (content.loading) {
-		//
-		// 		output.loading = true;
-		//
-		// 	} else {
-		//
-		// 		output.value = content.toString() || "";
-		//
-		// 	}
-		//
-		// }
-		//
-		// return output;
-
-
 		if (this.resource.export !== false) {
 
-			return this.getContent();
+			return this.getValue();
 
 		}
 
-		return new KarmaFieldsAlpha.Content();
+		return [];
 
-  }
+	}
 
-	async import(collection) {
+	import(collection) {
 
 		if (this.resource.import !== false) {
 
-			const string = collection.value.shift();
+			const string = collection.shift();
 
-			await this.setValue(string);
+			this.setValue([string]);
 
 		}
 
@@ -224,11 +155,11 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.placeholder) {
 
-			return this.parse(this.resource.placeholder);
+			return this.parseString(this.resource.placeholder);
 
 		}
 
-		return new KarmaFieldsAlpha.Content("");
+		return "";
 
 	}
 
@@ -236,251 +167,137 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.readonly) {
 
-			return this.parse(this.resource.readonly);
+			return this.parseBoolean(this.resource.readonly);
 
 		}
 
-		return new KarmaFieldsAlpha.Content(false);
+		return false;
 	}
 
-	// save(deleting = false) {
-	//
-	// 	if (deleting) {
-	//
-	// 		KarmaFieldsAlpha.History.save(`${this.uid}-delete`, "Delete");
-	//
-	// 	} else {
-	//
-	// 		KarmaFieldsAlpha.History.save(`${this.uid}-insert`, "Insert");
-	//
-	// 	}
-	//
-	// }
 
+	*build() {
 
-
-	// write(value) {
-	//
-	// 	// if (!content) {
-	// 	//
-	// 	//
-	// 	//
-	// 	// }
-	//
-	// 	const current = this.getContent();
-	//
-	// 	// const content = this.getContent();
-	//
-	// 	// if (content.loading) {
-	// 	//
-	// 	// 	// return; // does not work because getContent() continuely return a query made when row field is set as loading
-	// 	//
-	// 	// 	// let task = KarmaFieldsAlpha.Store.Tasks.find(task => task.type === "writing" && task.id === this.uid);
-	// 	// 	//
-	// 	// 	// if (task) {
-	// 	// 	//
-	// 	// 	// 	task.value = value;
-	// 	// 	//
-	// 	// 	// } else {
-	// 	// 	//
-	// 	// 	// 	task = {
-	//   //   //     type: "writing",
-	// 	// 	// 		id: this.uid,
-	// 	// 	// 		value: value,
-	// 	// 	// 		proority: -1,
-	//   //   //     resolve: () => this.write(task.value)
-	//   //   //   };
-	// 	// 	//
-	// 	// 	// 	KarmaFieldsAlpha.Store.Tasks.add(task);
-	// 	// 	//
-	// 	// 	// }
-	// 	//
-	// 	// 	this.setOption(value, "writing");
-	// 	//
-	// 	// } else {
-	//
-	// 		const normalizedValue = value.normalize();
-	//
-	// 		this.debounce(() => {
-	//
-	// 			if (normalizedValue.length < current.toString().length) {
-	//
-	// 				this.save(`${this.uid}-delete`, "Delete");
-	//
-	// 			} else {
-	//
-	// 				this.save(`${this.uid}-insert`, "Insert");
-	//
-	// 			}
-	//
-	// 			// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
-	//
-	// 			this.setValue(normalizedValue);
-	//
-	// 			this.setData(false, "embargo");
-	//
-	// 			this.request("render");
-	//
-	// 		}, this.resource.debounce || 300);
-	//
-	// 		this.setData(true, "embargo");
-	//
-	// 	// }
-	//
-	// }
-
-
-
-
-	build() {
-		return {
+		yield {
 			tag: "input", // tag: this.resource.type   ! -> Fail when extending class!
 			class: "text-input karma-field",
-			init: input => {
-				input.element.type = "text";
+			init: element => {
+				element.type = "text";
 				if (this.resource.input) {
-					Object.assign(input.element, this.resource.input);
+					Object.assign(element, this.resource.input);
 				}
 			},
-			update: input => {
+			update: element => {
 
-        const content = this.getContent();
+				const values = this.getValue();
 				const hasFocus = this.hasFocus();
 
-				if (hasFocus && document.activeElement !== input.element) {
+				if (hasFocus && document.activeElement !== element) {
 
-					input.element.focus({preventScroll: true});
-
-				}
-
-        input.element.classList.toggle("loading", Boolean(content.loading));
-
-        if (!content.loading) {
-
-					// if (hasFocus && document.activeElement !== input.element) {
-					//
-					// 	input.element.onfocus = null;
-					// 	input.focus();
-					//
-					// }
-
-					input.element.placeholder = this.getPlaceholder().toString();
-					input.element.classList.toggle("mixed", Boolean(content.mixed));
-
-					// if (content.notFound) {
-					//
-					// } else {
-
-						input.element.classList.toggle("selected", Boolean(content.mixed && hasFocus));
-
-	          if (content.mixed) {
-
-	            input.element.value = "[mixed values]";
-	            input.element.readOnly = true;
-
-	          } else {
-
-							if (this.resource.readonly) {
-
-								input.element.readOnly = this.parse(this.resource.readonly).toBoolean();
-
-							} else {
-
-								input.element.readOnly = false;
-
-							}
-
-	            input.element.parentNode.classList.toggle("modified", Boolean(content.modified));
-
-							const value = content.toString();
-
-							if (input.element.value.normalize() !== value) { // -> replacing same value still reset caret position
-
-	              input.element.value = value || "";
-
-	            }
-
-	          }
-
-					// }
-
-				} else {
-
-					// input.element.value = ""; // set blank while loading
+					element.onfocus = undefined;
+					element.focus({ preventScroll: true });
 
 				}
 
-				// -> NOT TEXTAREA
-				// input.element.onkeyup = async event => {
-				//
-				// 	if (event.key === "Enter" && !content.mixed) {
-				//
-				// 		await this.request("submit");
-				// 		await this.render();
-				//
-				// 	}
-				//
-				// }
+				// element.classList.toggle("loading", Boolean(content.loading));
 
-        input.element.oninput = async event => {
+				if (values !== undefined) {
 
-					const normalizedValue = input.element.value.normalize();
+					const mixed = this.isMixed();
 
-					if (normalizedValue.length < content.toString().length) {
+					element.placeholder = this.getPlaceholder();
+					element.classList.toggle("mixed", mixed);
+					element.classList.toggle("selected", mixed && hasFocus);
 
-						await this.save(`${this.uid}-delete`, "Delete");
+					if (mixed) {
+
+						element.value = "[mixed values]";
+						element.readOnly = true;
 
 					} else {
 
-						await this.save(`${this.uid}-insert`, "Insert");
+						if (this.resource.readonly) {
+
+							element.readOnly = this.parseBoolean(this.resource.readonly);
+
+						} else {
+
+							element.readOnly = false;
+
+						}
+
+						element.parentNode.classList.toggle("modified", Boolean(values.modified));
+
+						// const value = content.toString();
+
+						if (element.value.normalize() !== values[0]) { // -> replacing same value still reset caret position
+
+							element.value = values[0] || "";
+
+						}
 
 					}
 
-					await this.setValue(normalizedValue);
+					element.oninput = event => {
 
-					this.debounce(() => {
-						this.request("render");
-					}, 400);
+						const normalizedValue = element.value.normalize();
 
-        }
+						const value = values[0] || "";
 
-				input.element.onfocus = async event => {
+						if (normalizedValue.length < value.length) {
 
-					await this.setFocus(content.mixed);
+							this.save("delete", "Delete");
 
-					await this.render(); // update clipboard textarea, unselect other stuffs
+						} else {
+
+							this.save("insert", "Insert");
+
+						}
+
+						this.setValue([normalizedValue]);
+						this.render();
+
+					}
+
+					element.onfocus = event => {
+
+						this.setFocus(mixed);
+
+						this.render(); // update clipboard textarea, unselect other stuffs
+
+					}
+
+					element.onmousedown = event => {
+
+						event.stopPropagation(); // -> prevent selecting parent stuffs
+
+					}
+
+					element.onkeydown = event => {
+
+						if (event.key === "Enter") {
+
+							event.preventDefault(); // -> prevent sending form if embeded in a post page
+
+							this.request("submit"); // -> Save
+							this.render();
+
+						}
+
+					}
+
+					if (this.resource.disabled) {
+
+						element.disabled = this.parseBoolean(this.resource.disabled) || false;
+
+					} else if (this.resource.enabled) {
+
+						element.disabled = !this.parseBoolean(this.resource.enabled);
+
+					}
 
 				}
 
-				input.element.onmousedown = event => {
 
-					event.stopPropagation(); // -> prevent selecting parent stuffs
-
-				}
-
-				input.element.onkeydown = async event => {
-
-					if (event.key === "Enter") {
-
-						event.preventDefault(); // -> prevent sending form if embeded in a post page
-
-            await this.request("submit"); // -> Save
-
-						await this.render();
-
-          }
-
-				}
-
-				if (this.resource.disabled) {
-
-					input.element.disabled = this.parse(this.resource.disabled).toBoolean();
-
-		    } else if (this.resource.enabled) {
-
-					input.element.disabled = !this.parse(this.resource.enabled).toBoolean();
-
-		    }
 
 			}
 		};

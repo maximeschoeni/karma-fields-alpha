@@ -1,12 +1,12 @@
 KarmaFieldsAlpha.Editor.Tag.container = class extends KarmaFieldsAlpha.Editor.Tag.element {
 
-	constructor(node) {
+	// constructor(node) {
 
-		super(node);
+	// 	super(node);
 
-		this.type = "container";
+	// 	this.type = "container";
 
-  }
+ //  }
 
 	getName() {
 
@@ -70,12 +70,26 @@ KarmaFieldsAlpha.Editor.Tag.container = class extends KarmaFieldsAlpha.Editor.Ta
 
 		this.sanitize();
 
-		this.editor.Beam.growUpStart(this.editor.beam);
+		this.editor.growUpStart(this.editor.beam);
 		this.editor.beam.collapse(true);
 
 	}
 
+	cut() {
 
+		this.editor.growDown(this.editor.beam);
+
+		return super.cut();
+
+	}
+
+	copy(range) {
+
+		this.editor.growDown(range);
+
+		return super.copy(range);
+
+	}
 
 
 
@@ -138,8 +152,8 @@ KarmaFieldsAlpha.Editor.Tag.root = class extends KarmaFieldsAlpha.Editor.Tag.con
 
 	isEmpty() {
 
-		return this.node.firstChild
-			&& this.node.firstChild === this.node.lastChild
+		return !this.node.firstChild ||
+			this.node.firstChild === this.node.lastChild
 			&& this.node.firstChild.tagName === "P"
 			&& !this.node.textContent
 			&& this.getTag(this.node.firstChild).isEmptyBlock();
@@ -156,6 +170,18 @@ KarmaFieldsAlpha.Editor.Tag.root = class extends KarmaFieldsAlpha.Editor.Tag.con
 
 	}
 
+	sanitize() {
+
+		super.sanitize();
+
+		if (!this.node.hasChildNodes()) {
+
+			this.reset();
+
+		}
+
+	}
+
 	getContent() {
 
 		if (this.isEmpty()) {
@@ -168,23 +194,27 @@ KarmaFieldsAlpha.Editor.Tag.root = class extends KarmaFieldsAlpha.Editor.Tag.con
 
 		}
 
-  }
+	}
 
 	setContent(content) {
 
-    if (content) {
+		if (content) {
 
-			this.node.innerHTML = content;
+			if (this.node.innerHTML !== content) {
 
-			this.sanitize();
+				this.node.innerHTML = content;
 
-    } else {
+				this.sanitize();
+
+			}
+
+		} else {
 
 			this.reset();
 
-    }
+		}
 
-  }
+	}
 
 
 	breakLine(shift) {

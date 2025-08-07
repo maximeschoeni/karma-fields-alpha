@@ -1,10 +1,10 @@
 
 KarmaFieldsAlpha.Editor.Tag = class {
 
-	constructor(node) {
+	constructor(node, editor) {
 
 		this.node = node;
-		this.editor = KarmaFieldsAlpha.Editor;
+		this.editor = editor;
 
 		// if (node && node.tagName) {
 		//
@@ -90,19 +90,29 @@ KarmaFieldsAlpha.Editor.Tag = class {
 
 	getTag(node) {
 
-		return KarmaFieldsAlpha.Editor.getTag(node);
+		return this.editor.getTag(node);
 
 	}
 
 	createTag(tagName, attributes, content) {
 
-		return KarmaFieldsAlpha.Editor.createTag(tagName, attributes, content);
+		return this.editor.createTag(tagName, attributes, content);
 
 	}
 
 	isEmpty() {
 
 		return !this.node.textContent.trim();
+
+	}
+
+	empty() {
+
+		while (this.node.hasChildNodes()) {
+
+			this.node.removeChild(this.node.firstChild);
+
+		}
 
 	}
 
@@ -429,7 +439,7 @@ KarmaFieldsAlpha.Editor.Tag = class {
 
 		}
 
-  }
+	}
 
 	// sanitizeChild(tag) {
 	//
@@ -631,6 +641,12 @@ KarmaFieldsAlpha.Editor.Tag = class {
 
 	}
 
+	remove() {
+
+		this.node.remove();
+
+	}
+
 
 
 
@@ -707,44 +723,60 @@ KarmaFieldsAlpha.Editor.Tag = class {
 		if (this.node === this.editor.beam.commonAncestorContainer) {
 
 			// const outerContainer = this.getContainer();
-			// const innerContainer = this.getInnerContainer().clone();
+			// const innerContainer = this.editor.createTag("div");
 			// const content = this.editor.beam.extractContents();
-			//
-			// outerContainer.sanitize();
-			//
-			// this.editor.Beam.growUpStart(this.editor.beam);
-			// this.editor.Beam.shrinkUpStart(this.editor.beam);
-			//
-			// this.editor.beam.collapse(true);
-			//
-			// innerContainer.node.appendChild(content);
-			//
-			// innerContainer.sanitize();
-			//
-			// return innerContainer.node.innerHTML;
 
-			const outerContainer = this.getContainer();
-			const innerContainer = this.editor.createTag("div");
+			// outerContainer.sanitize();
+
+			// this.editor.growUpStart(this.editor.beam);
+			// this.editor.shrinkUpStart(this.editor.beam);
+
+			// this.editor.beam.collapse(true);
+
+			// innerContainer.node.appendChild(content);
+
+			// innerContainer.sanitize();
+
+			// return innerContainer.node.innerHTML;
+			//
+
 			const content = this.editor.beam.extractContents();
 
-			outerContainer.sanitize();
+			this.sanitize();
 
-			this.editor.Beam.growUpStart(this.editor.beam);
-			this.editor.Beam.shrinkUpStart(this.editor.beam);
+			const container = this.editor.createTag("div");
+			container.node.appendChild(content);
+			container.sanitize();
 
-			this.editor.beam.collapse(true);
-
-			innerContainer.node.appendChild(content);
-
-			innerContainer.sanitize();
-
-			return innerContainer.node.innerHTML;
+			return container.node.innerHTML;
 
 		} else {
 
 			const parent = this.getParent();
 
 			return parent.cut();
+
+		}
+
+	}
+
+	copy(range) {
+
+		if (this.node === range.commonAncestorContainer) {
+
+			const content = range.cloneContents();
+
+			const container = this.editor.createTag("div");
+			container.node.appendChild(content);
+			container.sanitize();
+
+			return container.node.innerHTML;
+
+		} else {
+
+			const parent = this.getParent();
+
+			return parent.copy(range);
 
 		}
 
@@ -845,7 +877,7 @@ KarmaFieldsAlpha.Editor.Tag = class {
 
 		if (!range.collapsed) {
 
-			const node = KarmaFieldsAlpha.Editor.createNode(tagName, attributes);
+			const node = this.editor.createNode(tagName, attributes);
 
 			range.surroundContents(node);
 
@@ -868,16 +900,21 @@ KarmaFieldsAlpha.Editor.Tag = class {
 
 		if (!this.editor.beam.collapsed) {
 
-			this.editor.Beam.shrinkDown(this.editor.beam);
-			this.editor.Beam.shrinkUp(this.editor.beam);
+			this.editor.shrinkDown(this.editor.beam);
+			this.editor.shrinkUp(this.editor.beam);
 
-			this.editor.beam.surroundContents(this.node);
+			// this.editor.beam.surroundContents(this.node);
+			// -> will NOT WORK when start node is not at same level as end node
 
-			const parent = this.getParent();
+			const content = this.editor.beam.extractContents();
+			const container = this.getTag(this.editor.beam.startContainer);
 
-			if (parent) {
+			this.editor.beam.insertNode(this.node);
+			this.node.appendChild(content);
 
-				parent.sanitize();
+			if (container) {
+
+				container.sanitize(); // -> must sanitize AFTER inserting content (will be deleted if empty)
 
 			}
 
@@ -1008,6 +1045,42 @@ KarmaFieldsAlpha.Editor.Tag = class {
 
 	backwardDelete() {
 
+		if (this.editor.beam.startOffset > 0) {
+
+			const node = this.editor.beam.startContainer.childNodes[this.editor.beam.startOffset - 1];
+
+			node.remove();
+
+			return true;
+
+		} else {
+
+			console.warning("backward delete: nothing to delete!");
+
+			return false;
+
+		}
+
+		// const lastTag = this.getTagBefore();
+
+		// if (lastTag) {
+
+		// 	if (lastTag.isEmpty()) {
+
+		// 		lastTag.node.remove();
+
+		// 	} else {
+
+		// 		this.editor.beam.setStartAfter(lastTag.node);
+		// 		this.editor.growUpStart(this.editor.beam);
+		// 		this.editor.beam.collapse(true);
+		// 		return false;
+
+		// 	}
+
+		// }
+
+		// return true;
 	}
 
 	extractBefore(range) {
@@ -1140,7 +1213,9 @@ KarmaFieldsAlpha.Editor.Tag.text = class extends KarmaFieldsAlpha.Editor.Tag {
 
 	isValid() {
 
-		return this.node.length > 0;
+		return this.node.textContent.trim().length > 0;
+
+		// return this.node.length > 0;
 
 	}
 
@@ -1161,6 +1236,12 @@ KarmaFieldsAlpha.Editor.Tag.text = class extends KarmaFieldsAlpha.Editor.Tag {
 		// this.node.textContent = this.node.textContent.trim();
 		//
 		// if (this.node.textContent[this.node.textContent.length - 1] === "")
+		// const content = this.node.textContent;
+
+		// if (!content.trim()) {
+		// 	return false;
+		// }
+		// this.node.textContent = this.node.textContent.trim();
 
 		super.sanitize();
 	}
@@ -1214,12 +1295,11 @@ KarmaFieldsAlpha.Editor.Tag.text = class extends KarmaFieldsAlpha.Editor.Tag {
 
 		if (this.editor.beam.startOffset > 0) {
 
-			return false
+			return false;
 
 		} else {
 
 			this.editor.beam.setStartBefore(this.node);
-			// KarmaFieldsAlpha.Editor.Beam.growDown(beam);
 			this.editor.beam.collapse(true);
 
 			const tag = this.getTag(this.editor.beam.startContainer);
@@ -1302,14 +1382,14 @@ KarmaFieldsAlpha.Editor.register("content", KarmaFieldsAlpha.Editor.Tag.content)
 
 KarmaFieldsAlpha.Editor.Tag.BR = class extends KarmaFieldsAlpha.Editor.Tag.element {
 
-	constructor(node) {
+	// constructor(node) {
 
-		super(node);
+	// 	super(node);
 
-		this.type = "text";
-		this.single = true;
+	// 	this.type = "text";
+	// 	this.single = true;
 
-	}
+	// }
 
 	getType() {
 

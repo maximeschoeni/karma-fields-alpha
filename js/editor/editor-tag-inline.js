@@ -68,7 +68,7 @@ KarmaFieldsAlpha.Editor.Tag.inline = class extends KarmaFieldsAlpha.Editor.Tag.e
 
 		if (beam.startOffset > 0) {
 
-			KarmaFieldsAlpha.Editor.Beam.growUp(beam);
+			this.editor.growUp(beam);
 			beam.collapse(false);
 
 		} else {
@@ -125,7 +125,7 @@ KarmaFieldsAlpha.Editor.Tag.inline = class extends KarmaFieldsAlpha.Editor.Tag.e
 
 	*listInlineRanges(beam) {
 
-		const tags = KarmaFieldsAlpha.Editor.query("block");
+		const tags = this.editor.query("block");
 
 		for (let tag of tags) {
 
@@ -335,13 +335,13 @@ KarmaFieldsAlpha.Editor.Tag.inline = class extends KarmaFieldsAlpha.Editor.Tag.e
 
 KarmaFieldsAlpha.Editor.Tag.single = class extends KarmaFieldsAlpha.Editor.Tag.inline {
 
-	constructor(node) {
+	// constructor(node) {
 
-		super(node);
+	// 	super(node);
 
-		this.single = true;
+	// 	this.single = true;
 
-	}
+	// }
 
 	idEmpty() {
 
@@ -446,10 +446,14 @@ KarmaFieldsAlpha.Editor.Tag.A = class extends KarmaFieldsAlpha.Editor.Tag.inline
 
 	edit(tagName, params) {
 
-		const href = this.node.getAttribute("href");
-		const target = this.node.getAttribute("target");
+		// href = param.target
 
-		super.edit("A", {href, target, ...params});
+		// const href = this.node.getAttribute("href");
+		// const target = this.node.getAttribute("target");
+
+		// super.edit("A", {href, target, ...params});
+
+		super.edit("A", params);
 
 	}
 

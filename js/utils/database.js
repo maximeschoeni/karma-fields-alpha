@@ -1,5 +1,152 @@
 KarmaFieldsAlpha.Database = class {
 
+	static stores = {};
+
+	constructor(storeName, keyPath) {
+
+		this.keyPath = keyPath;
+		this.storeName = storeName;
+
+		this.constructor.stores[storeName] = keyPath;
+
+	}
+
+	async getDB() {
+
+		return this.constructor.getDB();
+
+	}
+
+	async getValue(...path) {
+		const db = await KarmaFieldsAlpha.Database.getDB();
+		const transaction = db.transaction(this.storeName);
+		const objectStore = transaction.objectStore(this.storeName);
+		const request = objectStore.get(path);
+
+		return new Promise((resolve, reject) => {
+			request.onsuccess = (event) => {
+				resolve(event.target.result && event.target.result.value);
+			};
+			request.onerror = (event) => {
+				reject(event.target.error);
+			};
+		});
+	}
+
+	async get(...path) {
+		const db = await KarmaFieldsAlpha.Database.getDB();
+		const transaction = db.transaction(this.storeName);
+		const objectStore = transaction.objectStore(this.storeName);
+		const request = objectStore.get(path);
+
+		return new Promise((resolve, reject) => {
+			request.onsuccess = (event) => {
+				resolve(event.target.result);
+			};
+			request.onerror = (event) => {
+				reject(event.target.error);
+			};
+		});
+	}
+
+	async getAll() {
+		const db = await KarmaFieldsAlpha.Database.getDB();
+		const transaction = db.transaction(this.storeName);
+		const objectStore = transaction.objectStore(this.storeName);
+		const request = objectStore.getAll();
+		return new Promise((resolve, reject) => {
+			request.onsuccess = (event) => {
+				resolve(request.result);
+			};
+			request.onerror = (event) => {
+				reject(event.target.error);
+			};
+		});
+	}
+
+	async remove(...path) { // -> get all edits
+		const db = await KarmaFieldsAlpha.Database.getDB();
+		const transaction = db.transaction(this.storeName);
+		const objectStore = transaction.objectStore(this.storeName);
+
+		objectStore.delete(path);
+
+		await new Promise((resolve, reject) => {
+			transaction.oncomplete = event => {
+				resolve();
+			}
+		});
+	}
+
+	async put(query) {
+		const db = await KarmaFieldsAlpha.Database.getDB();
+		const transaction = db.transaction(this.storeName, "readwrite");
+		const objectStore = transaction.objectStore(this.storeName);
+		const request = objectStore.put(query);
+
+		await new Promise((resolve, reject) => {
+			request.onsuccess = (event) => {
+				resolve();
+			}
+		});
+	}
+
+	async setValue(value, ...path) {
+
+		const query = Object.fromEntries(path.map((value, index) => [this.keyPath[index], value]));
+
+		await this.put({ ...query, value });
+
+	}
+
+	async clear() { // -> empty
+		const db = await KarmaFieldsAlpha.Database.getDB();
+		const transaction = db.transaction(this.storeName, "readwrite");
+		const objectStore = transaction.objectStore(this.storeName);
+		objectStore.clear();
+		await new Promise((resolve, reject) => {
+			transaction.oncomplete = event => {
+				resolve();
+			}
+		});
+	}
+
+	async delete(callback) { // -> empty
+		return new Promise(async (resolve, reject) => {
+			const db = await KarmaFieldsAlpha.Database.getDB();
+			const transaction = db.transaction(this.storeName, "readwrite");
+			const objectStore = transaction.objectStore(this.storeName);
+			const cursor = objectStore.openCursor();
+
+			cursor.onsuccess = (event) => {
+				const cursor = event.target.result;
+				if (cursor) {
+					if (callback(cursor.value)) {
+						cursor.delete();
+					}
+					cursor.continue();
+				}
+			}
+			transaction.oncomplete = event => {
+				resolve();
+			}
+		});
+	}
+
+	async count() {
+		const db = await KarmaFieldsAlpha.Database.getDB();
+		const transaction = db.transaction(this.storeName);
+		const objectStore = transaction.objectStore(this.storeName);
+		const request = objectStore.count();
+		await new Promise((resolve, reject) => {
+			transaction.onsuccess = event => {
+				resolve(request.result);
+			}
+		});
+	}
+
+
+
   static async getDB() {
 
     const dbName = "karma101";
@@ -43,28 +190,35 @@ KarmaFieldsAlpha.Database = class {
 
       const request = indexedDB.open(dbName, dbVersion);
 
-      request.onupgradeneeded = (event) => {
+			request.onupgradeneeded = (event) => {
 
-        const db = event.target.result;
+				const db = event.target.result;
 
-        const general = db.createObjectStore("general");
+				// const general = db.createObjectStore("general");
 
-        const queries = db.createObjectStore("queries", {keyPath: ["type", "driver", "paramstring"]});
-        queries.createIndex("driver", "driver");
+				// const queries = db.createObjectStore("queries", { keyPath: ["type", "driver", "paramstring"] });
+				// queries.createIndex("driver", "driver");
 
-        const vars = db.createObjectStore("vars", {keyPath: ["driver", "id", "key"]});
-        vars.createIndex("driver", "driver");
-        vars.createIndex("id", ["driver", "id"]);
+				// const vars = db.createObjectStore("vars", { keyPath: ["driver", "id", "key"] });
+				// vars.createIndex("driver", "driver");
+				// vars.createIndex("id", ["driver", "id"]);
 
-        const history = db.createObjectStore("history", {keyPath: ["session", "index", "context", "driver", "id", "key"]});
-        history.createIndex("index", ["session", "index"]);
+				// const history = db.createObjectStore("history", { keyPath: ["session", "index", "context", "driver", "id", "key"] });
+				// history.createIndex("index", ["session", "index"]);
 
-        const states = db.createObjectStore("states", {keyPath: ["session", "context", "driver", "id", "key"]});
-        states.createIndex("context", ["session", "context"]);
-        states.createIndex("driver", ["session", "context", "driver"]);
-        states.createIndex("id", ["session", "context", "driver", "id"]);
+				// const states = db.createObjectStore("states", { keyPath: ["session", "context", "driver", "id", "key"] });
+				// states.createIndex("context", ["session", "context"]);
+				// states.createIndex("driver", ["session", "context", "driver"]);
+				// states.createIndex("id", ["session", "context", "driver", "id"]);
 
-      };
+				for (let storeName in this.stores) {
+
+					const keyPath = this.stores[storeName];
+					db.createObjectStore(storeName, { keyPath });
+
+				}
+
+			}
 
       request.onsuccess = (event) => {
         const db = event.target.result;
@@ -443,6 +597,27 @@ KarmaFieldsAlpha.Database.History = class extends KarmaFieldsAlpha.Database {
     }));
   }
 
+	static clearOtherSessions() { // -> get all edits
+		const session = KarmaFieldsAlpha.Session.getId();
+		return this.getDB().then(db => new Promise((resolve, reject) => {
+			const transaction = db.transaction("history", "readwrite");
+			const objectStore = transaction.objectStore("history");
+			const request = objectStore.openCursor();
+			request.onsuccess = (event) => {
+				const cursor = event.target.result;
+				if (cursor) {
+					if (cursor.value.session !== session) {
+						cursor.delete();
+					}
+					cursor.continue();
+				}
+			}
+			transaction.oncomplete = event => {
+				resolve();
+			}
+		}));
+	}
+
   static clear() { // -> get all edits
     return this.getDB().then(db => new Promise((resolve, reject) => {
       const transaction = db.transaction("history", "readwrite");
@@ -604,6 +779,25 @@ KarmaFieldsAlpha.Database.States = class extends KarmaFieldsAlpha.Database {
     }));
   }
 
+	static async getAll(context) {
+		const session = KarmaFieldsAlpha.Session.getId();
+		const db = await this.getDB();
+
+		const transaction = db.transaction("states");
+		const objectStore = transaction.objectStore("states");
+
+		const index = objectStore.index("context");
+		const request = index.getAll([session, context]);
+
+		return new Promise((resolve, reject) => {
+			request.onsuccess = (event) => {
+				resolve(request.result);
+			};
+		});
+	}
+
+
+
 
 
   // static getEdits(context = "external") { // -> get all edits
@@ -743,3 +937,255 @@ KarmaFieldsAlpha.Database.States = class extends KarmaFieldsAlpha.Database {
   // }
 
 }
+
+
+
+KarmaFieldsAlpha.Database.Fields = class extends KarmaFieldsAlpha.Database {
+
+	async set(value, fieldId, key) {
+		await this.put({ value, fieldId, key });
+	}
+
+	// async get(fieldId, key) {
+	// 	const db = await KarmaFieldsAlpha.Database.getDB();
+	// 	const transaction = db.transaction(this.storeName);
+	// 	const objectStore = transaction.objectStore(this.storeName);
+	// 	const request = objectStore.get([fieldId, key]);
+
+	// 	return new Promise((resolve, reject) => {
+	// 		request.onsuccess = (event) => {
+	// 			resolve(event.target.result && event.target.result.value);
+	// 		};
+	// 		request.onerror = (event) => {
+	// 			reject(event.target.error);
+	// 		};
+	// 	});
+	// }
+
+	// async getAll() {
+	// 	const db = await KarmaFieldsAlpha.Database.getDB();
+	// 	const transaction = db.transaction(this.storeName);
+	// 	const objectStore = transaction.objectStore(this.storeName);
+	// 	const request = objectStore.getAll();
+	// 	return new Promise((resolve, reject) => {
+	// 		request.onsuccess = (event) => {
+	// 			resolve(request.result);
+	// 		};
+	// 		request.onerror = (event) => {
+	// 			reject(event.target.error);
+	// 		};
+	// 	});
+	// }
+
+	// async remove(fieldId, key) { // -> get all edits
+	// 	const db = await KarmaFieldsAlpha.Database.getDB();
+	// 	const transaction = db.transaction(this.storeName);
+	// 	const objectStore = transaction.objectStore(this.storeName);
+
+	// 	objectStore.delete([fieldId, key]);
+
+	// 	await new Promise((resolve, reject) => {
+	// 		transaction.oncomplete = event => {
+	// 			resolve();
+	// 		}
+	// 	});
+	// }
+
+	// async set(value, fieldId, key) {
+	// 	const db = await KarmaFieldsAlpha.Database.getDB();
+	// 	const transaction = db.transaction(this.storeName, "readwrite");
+	// 	const objectStore = transaction.objectStore(this.storeName);
+	// 	const request = objectStore.put({ value, fieldId, key });
+
+	// 	await new Promise((resolve, reject) => {
+	// 		request.onsuccess = (event) => {
+	// 			resolve();
+	// 		}
+	// 	});
+	// }
+
+	// async clear() { // -> empty
+	// 	const db = await KarmaFieldsAlpha.Database.getDB();
+	// 	const transaction = db.transaction(this.storeName, "readwrite");
+	// 	const objectStore = transaction.objectStore(this.storeName);
+	// 	objectStore.clear();
+	// 	await new Promise((resolve, reject) => {
+	// 		transaction.oncomplete = event => {
+	// 			resolve();
+	// 		}
+	// 	});
+	// }
+
+}
+
+// KarmaFieldsAlpha.Database.Edits = class extends KarmaFieldsAlpha.Database {
+
+// 	async set(value, driver, id, key) {
+// 		await this.put({ value, driver, id, key });
+// 	}
+
+// }
+
+// KarmaFieldsAlpha.Database.QueriesNEW = class extends KarmaFieldsAlpha.Database {
+
+// 	async set(value, driver, paramstring, key) {
+// 		await this.put({ value, driver, paramstring, key });
+// 	}
+
+// }
+
+// KarmaFieldsAlpha.Database.fields = new KarmaFieldsAlpha.Database.Fields("fields", ["fieldId", "key"]);
+// KarmaFieldsAlpha.Database.edits = new KarmaFieldsAlpha.Database.Edits("edits", ["driver", "id", "key"]);
+// // KarmaFieldsAlpha.Database.queries = new KarmaFieldsAlpha.Database.QueriesNEW("queriesNEW", ["driver", "paramstring", "key"]);
+
+// KarmaFieldsAlpha.Collection.queries = new KarmaFieldsAlpha.Collection.Queries();
+
+// KarmaFieldsAlpha.Collection = class {
+
+// 	constructor() {
+
+// 		this.data = {};
+
+// 	}
+
+// 	get(...path) {
+
+// 		return KarmaFieldsAlpha.DeepObject.get(this.data, ...path);
+
+// 	}
+
+// 	set(value, ...path) {
+
+// 		KarmaFieldsAlpha.DeepObject.get(this.data, value, ...path);
+
+// 	}
+
+// 	remove(...path) {
+
+// 		KarmaFieldsAlpha.DeepObject.get(this.data, ...path);
+
+// 	}
+
+// 	// *getAll(query = {}, object = this.data) {
+
+// 	// 	// const depth = Object.keys(query).length;
+
+// 	// 	const depth = Object.keys(query).filter(key => this.keyPath.includes(key)).length;
+
+// 	// 	if (depth < this.keyPath.length) {
+
+// 	// 		const key = this.keyPath[depth];
+
+// 	// 		for (let value in object) {
+
+// 	// 			yield* this.getAll({ ...query, [key]: value }, object[value]);
+
+// 	// 		}
+
+// 	// 	} else {
+
+// 	// 		yield { ...query, value: object };
+
+// 	// 	}
+
+// 	// }
+
+// 	*query(query = {}, object = this.data, depth = 0) {
+
+// 		if (depth < this.keyPath.length) {
+
+// 			const key = this.keyPath[depth];
+
+// 			for (let value in object) {
+
+// 				if (query[key] === undefined || query[key] === value) {
+
+// 					yield* this.query({ ...query, [key]: value }, object[value], depth + 1);
+
+// 				}
+
+// 			}
+
+// 		} else {
+
+// 			yield { ...query, value: object };
+
+// 		}
+
+// 	}
+
+// 	getAll() {
+
+// 		return [...this.query()];
+
+// 	}
+
+// 	count(object = this.data, depth = 0) {
+
+// 		const total = 0;
+
+// 		if (depth < this.keyPath.length) {
+
+// 			for (let value in object) {
+
+// 				total += this.count(object[value], depth + 1);
+
+// 			}
+
+// 		} else {
+
+// 			total++;
+
+// 		}
+
+// 		return total;
+// 	}
+
+// 	// *getAll(object = this.data, ...path) {
+
+// 	// 	const depth = path.length;
+
+// 	// 	if (depth < this.keyPath.length) {
+
+// 	// 		const key = this.keyPath[depth];
+
+// 	// 		for (let value in object) {
+
+// 	// 			yield* this.getAll(object[value], ...path, key);
+
+// 	// 		}
+
+// 	// 	} else {
+
+// 	// 		yield { ...results, value: object };
+
+// 	// 	}
+
+// 	// }
+
+// }
+
+// KarmaFieldsAlpha.Collection.Queries = class extends KarmaFieldsAlpha.Collection {
+
+// 	getAll() {
+// 		const items = [];
+// 		for (let driver in this.data) {
+// 			for (let paramstring in this.data[driver]) {
+// 				const value = this.data[driver][paramstring];
+// 				items.push({driver, paramstring, value});
+// 			}
+// 		}
+// 		return items;
+// 	}
+
+// 	count() {
+// 		const count = 0;
+// 		for (let driver in this.data) {
+// 			for (let paramstring in this.data[driver]) {
+// 				count++;
+// 			}
+// 		}
+// 		return count;
+// 	}
+
+// }

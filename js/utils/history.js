@@ -26,28 +26,45 @@ KarmaFieldsAlpha.Session = class {
   //   return id;
   // }
 
-  static getId() {
+	static init() {
 
-    let id = KarmaFieldsAlpha.Session.id;
+		this.id = this.getValue("karmaId");
 
-    if (!id) {
+		if (!this.id) {
 
-      id = this.getValue("karmaId");
+			this.id = Date.now();
 
-      if (!id) {
+			this.setValue(this.id, "karmaId");
 
-        id = Date.now();
+		}
 
-        this.setValue(id, "karmaId");
+	}
 
-      }
 
-      KarmaFieldsAlpha.Session.id = id;
+	static getId() {
 
-    }
+		return this.id;
 
-    return id;
-  }
+		// let id = KarmaFieldsAlpha.Session.id;
+
+		// if (!id) {
+
+		// 	id = this.getValue("karmaId");
+
+		// 	if (!id) {
+
+		// 		id = Date.now();
+
+		// 		this.setValue(id, "karmaId");
+
+		// 	}
+
+		// 	KarmaFieldsAlpha.Session.id = id;
+
+		// }
+
+		// return id;
+	}
 
 }
 
@@ -93,229 +110,131 @@ KarmaFieldsAlpha.History = class {
   //   return KarmaFieldsAlpha.History.sessionId;
   // }
 
-  static getIndex() {
+	static init() {
 
-    // if (!KarmaFieldsAlpha.History.index) {
-    //
-    //   KarmaFieldsAlpha.History.index = history.state && history.state.karmaHistoryIndex;
-    //
-    //   if (!KarmaFieldsAlpha.History.index) {
-    //
-    //     KarmaFieldsAlpha.History.index = 0;
-    //
-    //     history.replaceState({karmaHistoryIndex: 0}, "");
-    //
-    //   }
-    //
-    // }
+		if (!history.state || history.state.karmaHistoryIndex === undefined) {
 
-    let index = history.state && history.state.karmaHistoryIndex;
+			history.replaceState({ karmaHistoryIndex: 0 }, "");
 
-    if (!index) {
+		}
 
-      index = 0;
+		this.current = 0;
 
-      history.replaceState({karmaHistoryIndex: index}, "");
+	}
 
-    }
+	static getIndex() {
 
-    return index;
+		return history.state && history.state.karmaHistoryIndex || 0;
 
-  }
+	}
 
-  static setIndex(index) {
+	static setIndex(index) {
 
-    // KarmaFieldsAlpha.History.index = index;
-
-    history.pushState({karmaHistoryIndex: index}, "");
-
-  }
-
-
-  static async init() {
-
-  }
-
-  static async save(id, name) {
-
-    // const buffer = await KarmaFieldsAlpha.Store.Buffer.get() || {};
-    // const index = buffer.index || 0;
-
-    const index = this.getIndex();
-
-    if (this.lastId !== id) {
-
-      this.lastId = id;
-
-      this.setIndex(index+1);
-
-      KarmaFieldsAlpha.Session.setValue(index+1, "karmaHistoryIndex");
-      KarmaFieldsAlpha.Session.setValue(index+1, "karmaHistoryMax");
-
-      // await KarmaFieldsAlpha.Database.General.set(index+1, "current");
-      // await KarmaFieldsAlpha.Database.General.set(index+1, "max");
-
-      // await KarmaFieldsAlpha.Database.General.import([
-      //   {value: index+1, key: "current"},
-      //   {value: index+1, key: "max"}
-      // ]);
-
-
-      // await KarmaFieldsAlpha.Store.Buffer.set(id, "lastId");
-      // await KarmaFieldsAlpha.Store.Buffer.set(index+1, "index");
-      // await KarmaFieldsAlpha.Store.Buffer.set(index+1, "max");
-
-      // KarmaFieldsAlpha.Store.Buffer.set({
-      //   recordId: buffer.recordId,
-      //   lastId: id,
-      //   index: index+1,
-      //   max: index+1,
-      // });
-
-      // await KarmaFieldsAlpha.Database.History.put({}, buffer.recordId, index+1);
-
-    }
-
-  }
-
-  static async undo() {
-
-    history.back();
-
-    // const buffer = KarmaFieldsAlpha.Store.Buffer.get();
-    //
-    // if (!buffer) {
-    //
-    //   console.error("Buffer not set");
-    //
-    // }
-    //
-    // const index = buffer.index || 0;
-    //
-    // if (index > 0) {
-    //
-    //   KarmaFieldsAlpha.Store.Buffer.set(index-1, "index");
-    //
-    //   const state = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index-1);
-    //
-    //   KarmaFieldsAlpha.Store.Buffer.merge(state, "state"); // must not update history!
-    //
-    //   KarmaFieldsAlpha.Store.Buffer.remove("lastId");
-    //
-    // }
-
-  }
-
-  static async redo() {
-
-    history.forward();
-
-    // let index = KarmaFieldsAlpha.Store.Buffer.get("history", "index") || 0;
-    // let max = KarmaFieldsAlpha.Store.Buffer.get("history", "max") || 0;
-    // const recordId = KarmaFieldsAlpha.Store.Buffer.get("recordId");
-
-    // const buffer = KarmaFieldsAlpha.Store.Buffer.get();
-    //
-    // if (!buffer) {
-    //
-    //   console.error("Buffer not set");
-    //
-    // }
-    //
-    // const index = buffer.index || 0;
-    // const max = buffer.max || 0;
-    //
-    // if (index < max) {
-    //
-    //   KarmaFieldsAlpha.Store.Buffer.set(index+1, "index");
-    //
-    //   const state = await KarmaFieldsAlpha.Database.History.get(buffer.recordId, index+1);
-    //
-    //   KarmaFieldsAlpha.Store.Buffer.merge(state, "state"); // must not update history!
-    //
-    //   KarmaFieldsAlpha.Store.Buffer.remove("lastId");
-    //
-    // }
-
-  }
-
-  static async hasUndo() {
-
-    // const index = await KarmaFieldsAlpha.Store.Buffer.get("index") || 0;
-    //
-    // return index > 0;
-
-    const index = this.getIndex();
-
-    return index > 0;
-  }
-
-  static async hasRedo() {
-
-    // const index = await KarmaFieldsAlpha.Store.Buffer.get("index") || 0;
-    // const max = await KarmaFieldsAlpha.Store.Buffer.get("max") || 0;
-
-    const index = this.getIndex();
-    const max = KarmaFieldsAlpha.Session.getValue("karmaHistoryMax");
-
-    return index < max;
-
-  }
-
-  static async write(value, currentValue, context, driver, id, key) { // path is relative from state
-
-    const index = this.getIndex();
-
-    if (index > 0) {
-
-      const previous = await KarmaFieldsAlpha.Database.History.get(index-1, context, driver, id, key);
-
-      if (!previous) {
-
-        await KarmaFieldsAlpha.Database.History.set(currentValue, index-1, context, driver, id, key);
-
-      }
-
-    }
-
-    await KarmaFieldsAlpha.Database.History.set(value, index, context, driver, id, key);
+		history.pushState({ karmaHistoryIndex: index }, "");
 
 	}
 
 
-  static async update() { // called on popstate
 
-    let current = KarmaFieldsAlpha.Session.getValue("karmaHistoryIndex") || 0;
-    current = parseInt(current);
-    const index = this.getIndex();
+	static save(id, name) {
 
-    while (current > index) {
+		// const buffer = await KarmaFieldsAlpha.Store.Buffer.get() || {};
+		// const index = buffer.index || 0;
 
-      current--;
+		const index = this.getIndex();
 
-      const states = await KarmaFieldsAlpha.Database.History.select(current);
+		if (!id || this.lastId !== id) {
 
-      await KarmaFieldsAlpha.Database.States.insert(states, current);
+			this.lastId = id;
+			this.lastStep = name || id || "n/a";
 
-      // await KarmaFieldsAlpha.Database.History.revert(current);
+			this.setIndex(index + 1);
 
-    }
+			// KarmaFieldsAlpha.Session.setValue(index + 1, "karmaHistoryIndex");
 
-    while (current < index) {
+			this.current = index + 1;
 
-      current++;
+			KarmaFieldsAlpha.Session.setValue(index + 1, "karmaHistoryMax");
 
-      const states = await KarmaFieldsAlpha.Database.History.select(current);
+			KarmaFieldsAlpha.Store.tasks.set(true, "history", "save");
 
-      await KarmaFieldsAlpha.Database.States.insert(states, current);
+		}
 
-      // await KarmaFieldsAlpha.Database.History.revert(current);
+	}
 
-    }
+	static undo() {
 
-    KarmaFieldsAlpha.Session.setValue(current, "karmaHistoryIndex");
+		if (this.hasUndo()) {
 
-  }
+			history.back();
+
+		}
+
+	}
+
+	static redo() {
+
+		if (this.hasRedo()) {
+
+			history.forward();
+
+		}
+
+	}
+
+	static hasUndo() {
+
+		const index = this.getIndex();
+
+		return index > 0;
+	}
+
+	static hasRedo() {
+
+		const index = this.getIndex();
+		const max = KarmaFieldsAlpha.Session.getValue("karmaHistoryMax");
+
+		return index < max;
+
+	}
+
+ //  static async write(value, currentValue, context, driver, id, key) { // path is relative from state
+
+	// 	console.error("DEPRECATED");
+
+ //    const index = this.getIndex();
+
+ //    if (index > 0) {
+
+ //      const previous = await KarmaFieldsAlpha.Database.History.get(index-1, context, driver, id, key);
+
+ //      if (!previous) {
+
+ //        await KarmaFieldsAlpha.Database.History.set(currentValue, index-1, context, driver, id, key);
+
+ //      }
+
+ //    }
+
+ //    await KarmaFieldsAlpha.Database.History.set(value, index, context, driver, id, key);
+
+	// }
+
+
+	static update() { // called on popstate DO NOTHING!!
+
+		console.error("DEPRECATED (DO NOTHING)");
+
+		// let current = KarmaFieldsAlpha.Session.getValue("karmaHistoryIndex") || 0;
+		// current = parseInt(current);
+
+
+		KarmaFieldsAlpha.server.changeHistory();
+
+
+		// KarmaFieldsAlpha.Session.setValue(current, "karmaHistoryIndex");
+
+	}
 
 
 }

@@ -124,7 +124,26 @@ KarmaFieldsAlpha.HTTP = class {
 			mode: "same-origin"
 		}).then(response => response.json()).then(result => result.id);
 
+
+
+		// const fileName = file.name.normalize();
+
+  //     const formData = new FormData();
+  //     formData.append("async-upload", file);
+  //     formData.append("name", fileName);
+  //     formData.append("action", wp.Uploader.defaults.multipart_params.action);
+  //     formData.append("_wpnonce", wp.Uploader.defaults.multipart_params._wpnonce);
+
+  //     return fetch(KarmaFieldsAlpha.adminURL+"async-upload.php", {
+  //       method: "post",
+  //       body: formData,
+  //       mode: "cors"
+  //     }).then(response => response.json());
+
 	}
+
+
+
 
 
 

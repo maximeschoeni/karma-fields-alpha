@@ -471,7 +471,7 @@ KarmaFieldsAlpha.Editor.Tag.LI = class extends KarmaFieldsAlpha.Editor.Tag.block
 
 		}
 
-		this.editor.Beam.shrinkUpStart(this.editor.beam);
+		this.editor.shrinkUpStart(this.editor.beam);
 
 		this.editor.beam.collapse(true);
 

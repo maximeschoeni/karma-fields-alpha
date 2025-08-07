@@ -75,15 +75,16 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
   //
   // }
 
-  hasFocusInside() {
+  // hasFocusInside() {
 
-    // const focus = await this.getFocus();
-    //
-    // return focus && focus.length <= this.path.length + 1 && this.path.every((id, index) => id === focus[index]);
+  //   // const focus = await this.getFocus();
+  //   //
+  //   // return focus && focus.length <= this.path.length + 1 && this.path.every((id, index) => id === focus[index]);
 
-    return super.hasFocusInside();
-  }
+  //   return super.hasFocusInside();
+  // }
 
+  // deprecated: should use directly the body's one
   hasSelection() {
 
     const body = this.getChild("body");
@@ -142,387 +143,720 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
   }
 
 
-  export() {
+	export() {
 
-    const output = new KarmaFieldsAlpha.Content();
+		// const output = new KarmaFieldsAlpha.Content();
 
-    if (this.resource.export !== false) {
+		if (this.resource.export !== false) {
 
-      const body = this.getChild("body");
-      const length = this.queryLength();
+			const body = this.getChild("body");
 
-      if (length.loading) {
+			if (!body) {
 
-        output.loading = true;
+				console.error("exporting array but body is not set");
 
-      } else if (body) {
+			}
 
-        const gridContent = body.export(0, length.toNumber());
+			const grid = body.export(0, length.toNumber());
 
-        if (gridContent.loading) {
+			if (grid !== undefined) {
 
-          output.loading = true;
+				const string = KarmaFieldsAlpha.CSV.stringify(grid);
 
-        } else {
+				return [string];
 
-          output.value = gridContent.toString();
+			}
 
-        }
+		}
 
-      }
+	}
 
-    }
+	import(collection) {
 
-    return output;
-  }
+		const string = collection.shift();
 
-  async import(collection) {
+		const grid = KarmaFieldsAlpha.CSV.parse(string);
 
-    const string = collection.value.shift();
+		// const grid = new KarmaFieldsAlpha.Content.Grid(string);
 
-    const grid = new KarmaFieldsAlpha.Content.Grid(string);
+		const body = this.getChild("body");
 
-    const body = this.getChild("body");
-    const length = this.getLength();
+		body.import(grid);
 
-    await body.import(grid, 0, length);
+	}
 
-  }
 
+  // queryLength() {
 
-  queryLength() {
+  //   const keys = this.getKeys();
 
-    const keys = this.getKeys();
+  //   const length = new KarmaFieldsAlpha.Content(0);
 
-    const length = new KarmaFieldsAlpha.Content(0);
+  //   for (let key of keys) {
 
-    for (let key of keys) {
+  //     const value = this.getContent(key);
 
-      const value = this.getContent(key);
+  //     if (value.loading) {
 
-      if (value.loading) {
+  //       length.loading = true;
 
-        length.loading = true;
+  //     } else {
 
-      } else {
+  //       length.value = Math.max(length.value, value.toArray().length);
 
-        length.value = Math.max(length.value, value.toArray().length);
+  //     }
 
-      }
+  //   }
 
-    }
+  //   return length;
+  // }
 
-    return length;
-  }
+	getLength() {
 
-  getLength() {
+		const keys = this.getKeys();
 
-    const keys = this.getKeys();
+		let length = 0;
 
-    let length = 0;
+		for (let key of keys) {
 
-    for (let key of keys) {
+			const value = this.parent.getValue(key);
 
-      const value = this.getContent(key);
+			if (value === undefined) {
 
-      length = Math.max(length, value.toArray().length);
+				return;
 
-    }
+			}
 
-    return length;
-  }
+			length = Math.max(length, value.length);
 
-  getContentAt(index, key) {
+		}
 
-    const cellContent = new KarmaFieldsAlpha.Content();
-    const arrayKey = this.getKey();
+		return length;
+	}
 
-    if (arrayKey) {
+	*listIds() {
 
-      const content = this.getContent(arrayKey);
+		// const keys = this.getKeys();
 
-      if (content.loading) {
+		// let length = 0;
 
-        cellContent.loading = true;
+		// for (let key of keys) {
 
-      } else {
+		// 	const value = this.parent.getValue(key);
 
-        const array = content.toArray();
+		// 	if (value === undefined) {
 
-        if (index < array.length) {
+		// 		return;
 
-          cellContent.value = array[index] && array[index][key];
+		// 	}
 
-        } else {
+		// 	length = Math.max(length, value.length);
 
-          cellContent.notFound = true;
+		// }
 
-        }
+		const length = this.getLength() || 0;
 
-      }
+		for (let i = 0; i < length; i++) {
 
-    } else {
+			yield i;
 
-      const content = this.getContent(key);
+		}
 
-      if (content.loading) {
+	}
 
-        cellContent.loading = true;
+	getIds() {
 
-      } else {
+		return this.listIds().toArray();
 
-        const array = content.toArray();
+	}
 
-        if (index < array.length) {
+	getQuery() {
 
-          cellContent.value = array[index];
+		const ids = this.getIds();
 
-        } else {
+		return { ids, count: ids.length };
 
-          cellContent.notFound = true;
+	}
 
-        }
+	getValue(key, id, driver) {
 
-      }
+		if (id === undefined) {
 
-    }
+			return [this.getParam(key)];
 
-    return cellContent;
-  }
+		} else if (!driver) {
 
-  async setValueAt(value, index, key) {
+			const arrayKey = this.getKey();
 
-    const arrayKey = this.getKey();
+			if (arrayKey) {
 
-    if (arrayKey) {
+				const values = this.parent.getValue(arrayKey);
 
-      let content = this.getContent(arrayKey);
+				if (values !== undefined) {
 
-      if (!content.loading) {
+					if (!values[id]) {
 
-        const clone = KarmaFieldsAlpha.DeepObject.clone(content.toArray());
+						return [];
 
-        if (!clone[index]) {
+					}
 
-          clone[index] = {};
+					if (this.resource.singles) {
 
-        }
+						return [values[id][key]];
 
-        clone[index][key] = value;
+					} else {
 
-        await this.setValue(clone, arrayKey);
+						return values[id][key] || [];
 
-      }
+					}
 
-    } else {
+				}
 
-      let content = this.getContent(key);
+			} else {
 
-      if (!content.loading) {
+				const values = this.parent.getValue(key);
 
-        const clone = [...content.value];
+				if (values !== undefined) {
 
-        clone[index] = value;
+					if (id >= values.length) {
 
-        await this.setValue(clone, key);
+						console.error("getting value but index is out of range");
 
-      }
+					}
 
-    }
+					return [values[id]];
 
-  }
+				}
 
-  async delete(index, length) {
+			}
 
-    if (index === undefined && length === undefined) {
+		} else {
 
-      const body = this.getChild("body");
+			return KarmaFieldsAlpha.server.getValue(driver, id, key, paramstring);
 
-      if (body) {
+		}
 
-        const selection = body.querySelection();
+	}
 
-        index = selection && selection.index || 0;
-        length = selection && selection.length || 0;
+	setValue(value, key, id, driver) {
 
-      }
+		if (!Array.isArray(value)) {
 
-    }
+			console.error("setting value but value is not an array");
 
-    const keys = this.getKeys();
+		}
 
-    let contents = keys.map(key => this.getContent(key));
 
-    while (contents.some(content => content.loading)) {
 
-      await this.render();
-      contents = keys.map(key => this.getContent(key));
+		if (id === undefined) {
 
-    }
+			this.setParam(value[0], key);
 
-    for (let j in contents) {
+		} else if (!driver) {
 
-      const content = contents[j];
-      const key = keys[j];
+			const arrayKey = this.getKey();
 
-      const newContent = [...content.toArray()];
+			if (arrayKey) {
 
-      newContent.splice(index, length);
+				const values = this.parent.getValue(arrayKey);
 
-      await this.setValue(newContent, key);
+				if (values === undefined) {
 
-    }
+					console.error("setting value but value is undefined");
 
-    await this.render();
-  }
+				}
 
-  async swap(index, target, length) {
+				values = [...values];
 
-    const keys = this.getKeys();
+				// if (key === this.resource.sortable) {
 
-    let contents = keys.map(key => this.getContent(key));
+				// 	const index = parseInt(value[0]);
 
-    if (contents.some(content => content.loading)) {
+				// 	values = values.splice(index, 0, ...values.splice(id, 1));
 
-      console.log(keys, contents);
-      console.error("content is not loaded");
+				// } else
 
-    }
+				if (this.resource.singles) {
 
+					values[id] = { ...values[id], key: value[0] };
 
-    await this.save("sort", "Sort");
+				} else {
 
-    for (let j in contents) {
+					values[id] = { ...values[id], key: value };
 
-      const content = contents[j];
-      const key = keys[j];
+				}
 
-      const newContent = [...content.toArray()];
+				this.parent.setValue(values, arrayKey);
 
-      newContent.splice(target, 0, ...newContent.splice(index, length));
+			} else {
 
-      await this.setValue(newContent, key);
+				const values = this.parent.getValue(key);
 
-    }
+				if (values !== undefined) {
 
-    const body = this.getChild("body");
+					if (id >= values.length) {
 
-    if (body) {
+						console.error("getting value but index is out of range");
 
-      await body.setFocus(true);
-      await body.select(target, length);
+					}
 
-    }
+					values = [...values];
 
-  }
 
-  async add(num = 1, index = undefined) {
+					// if (key === this.resource.sortable) {
 
-    let length = this.queryLength();
+					// 	const index = parseInt(value[0]);
 
-    while (length.loading) {
+					// 	values = values.splice(index, 0, ...values.splice(id, 1));
 
-      await this.render();
-      length = this.queryLength();
+					// } else {
 
-    }
+						values[id] = value[0]; // -> never save value as array
 
-    const body = this.getChild("body");
+					// }
 
-    if (index === undefined) {
 
-      if (body) {
 
-        index = body.getNewItemIndex();
+					this.parent.setValue(values, key);
 
-      } else {
+				}
 
-        index = length.toNumber();
+			}
 
-      }
+		} else {
 
-    }
+			super.setValue(value, key, id, driver);
+		}
 
+	}
 
-    await this.save("add", "Insert");
+	setOrder(newIds) {
 
-    const keys = this.getKeys();
-    let contents = keys.map(key => this.getContent(key));
+		const arrayKey = this.getKey();
 
-    while (contents.some(content => content.loading)) {
+		if (arrayKey) {
 
-      await this.render();
-      contents = keys.map(key => this.getContent(key));
+			const values = this.parent.getValue(arrayKey);
 
-    }
+			if (values === undefined) {
 
-    for (let j in contents) {
+				console.error("reordering but values are not loaded");
 
-      const content = contents[j];
-      const key = keys[j];
+			}
 
-      const newContent = [...content.toArray()];
+			const newValues = [];
 
-      newContent.splice(index, 0, ...Array(num));
+			for (let i = 0; i < values.length; i++) {
 
-      await this.setValue(newContent, key);
+				const index = newIds[i];
 
-    }
+				if (index !== undefined) {
 
-    if (body) {
+					newValues[index] = values[i];
 
-      const rowField = body.getChild(0);
+				}
 
-      let defaults = rowField.exportDefaults();
+			}
 
-      while (defaults.loading) {
+			this.parent.setValue(newValues, arrayKey);
 
-        await this.render();
-        defaults = rowField.exportDefaults();
+		} else {
 
-      }
+			const keys = this.getKeys();
 
-      for (let i = 0; i < num; i++) {
+			for (let key of keys) {
 
-        const rowField = body.getChild(i + index);
+				const values = this.parent.getValue(key);
 
-        for (let key in defaults) {
+				if (values === undefined) {
 
-          await rowField.setValue(defaults[key], key);
+					console.error("reordering but values are not loaded");
 
-        }
+				}
 
-      }
+				const newValues = [];
 
-      await body.setFocus(true);
-      await body.select(index, num);
+				for (let i = 0; i < values.length; i++) {
 
-    }
+					const index = newIds[i];
 
-    await this.render();
+					if (index !== undefined) {
 
-  }
+						newValues[index] = values[i];
 
+					}
 
-  async sortUp(index, length = 1) {
+				}
 
-    if (index > 0) {
+				this.parent.setValue(newValues, key);
 
-      return this.swap(index, length, index-1);
+			}
 
-    }
 
-  }
+		}
 
-  async sortDown(index, length = 1) {
+	}
 
-    if (index + length < this.getLength().toNumber()) {
+  // getContentAt(index, key) {
 
-      return this.swap(index, length, index+1);
+  //   const cellContent = new KarmaFieldsAlpha.Content();
+  //   const arrayKey = this.getKey();
 
-    }
+  //   if (arrayKey) {
 
-  }
+  //     const content = this.getContent(arrayKey);
+
+  //     if (content.loading) {
+
+  //       cellContent.loading = true;
+
+  //     } else {
+
+  //       const array = content.toArray();
+
+  //       if (index < array.length) {
+
+  //         cellContent.value = array[index] && array[index][key];
+
+  //       } else {
+
+  //         cellContent.notFound = true;
+
+  //       }
+
+  //     }
+
+  //   } else {
+
+  //     const content = this.getContent(key);
+
+  //     if (content.loading) {
+
+  //       cellContent.loading = true;
+
+  //     } else {
+
+  //       const array = content.toArray();
+
+  //       if (index < array.length) {
+
+  //         cellContent.value = array[index];
+
+  //       } else {
+
+  //         cellContent.notFound = true;
+
+  //       }
+
+  //     }
+
+  //   }
+
+  //   return cellContent;
+  // }
+
+ //  async setValueAt(value, index, key) {
+
+ //    const arrayKey = this.getKey();
+
+ //    if (arrayKey) {
+
+ //      let content = this.getContent(arrayKey);
+
+ //      if (!content.loading) {
+
+ //        const clone = KarmaFieldsAlpha.DeepObject.clone(content.toArray());
+
+ //        if (!clone[index]) {
+
+ //          clone[index] = {};
+
+ //        }
+
+ //        clone[index][key] = value;
+
+ //        await this.setValue(clone, arrayKey);
+
+ //      }
+
+ //    } else {
+
+ //      let content = this.getContent(key);
+
+ //      if (!content.loading) {
+
+ //        const clone = [...content.value];
+
+ //        clone[index] = value;
+
+ //        await this.setValue(clone, key);
+
+ //      }
+
+ //    }
+
+ //  }
+
+ //  // need to override container setValue
+ //  async setValue(value, key) {
+
+	// 	await this.parent.setValue(value, key);
+
+	// }
+
+	delete(...ids) {
+
+		const body = this.getChild("body");
+
+		if (ids.length === 0) {
+
+			ids = body.getSelectedIds();
+
+		}
+
+		const arrayKey = this.getKey();
+
+		if (arrayKey) {
+
+			let values = this.parent.getValue(arrayKey);
+
+			values = values.filter((value, index) => !ids.includes(index));
+
+			this.parent.setValue(values, arrayKey);
+
+		} else {
+
+			const keys = this.getKeys();
+
+			for (let key of keys) {
+
+				let values = this.parent.getValue(key);
+
+				values = values.filter((value, index) => !ids.includes(index));
+
+				this.parent.setValue(values, key);
+
+			}
+
+		}
+
+		body.deleteIds(ids);
+
+	}
+
+  // async delete(index, length) {
+
+  //   if (index === undefined && length === undefined) {
+
+  //     const body = this.getChild("body");
+
+  //     if (body) {
+
+  //       const selection = body.querySelection();
+
+  //       index = selection && selection.index || 0;
+  //       length = selection && selection.length || 0;
+
+  //     }
+
+  //   }
+
+  //   const keys = this.getKeys();
+
+  //   let contents = keys.map(key => this.getContent(key));
+
+  //   while (contents.some(content => content.loading)) {
+
+  //     await this.render();
+  //     contents = keys.map(key => this.getContent(key));
+
+  //   }
+
+  //   for (let j in contents) {
+
+  //     const content = contents[j];
+  //     const key = keys[j];
+
+  //     const newContent = [...content.toArray()];
+
+  //     newContent.splice(index, length);
+
+  //     await this.setValue(newContent, key);
+
+  //   }
+
+  //   await this.render();
+  // }
+
+  // async swap(index, target, length) {
+
+  //   const keys = this.getKeys();
+
+  //   let contents = keys.map(key => this.getContent(key));
+
+  //   if (contents.some(content => content.loading)) {
+
+  //     console.log(keys, contents);
+  //     console.error("content is not loaded");
+
+  //   }
+
+
+  //   await this.save("sort", "Sort");
+
+  //   for (let j in contents) {
+
+  //     const content = contents[j];
+  //     const key = keys[j];
+
+  //     const newContent = [...content.toArray()];
+
+  //     newContent.splice(target, 0, ...newContent.splice(index, length));
+
+  //     await this.setValue(newContent, key);
+
+  //   }
+
+  //   const body = this.getChild("body");
+
+  //   if (body) {
+
+  //     await body.setFocus(true);
+  //     await body.select(target, length);
+
+  //   }
+
+  // }
+
+	// async add(num = 1, index = undefined) {
+
+	// 	let length = this.queryLength();
+
+	// 	while (length.loading) {
+
+	// 		await this.render();
+	// 		length = this.queryLength();
+
+	// 	}
+
+	// 	const body = this.getChild("body");
+
+	// 	if (index === undefined) {
+
+	// 		if (body) {
+
+	// 			index = body.getNewItemIndex();
+
+	// 		} else {
+
+	// 			index = length.toNumber();
+
+	// 		}
+
+	// 	}
+
+
+	// 	await this.save("add", "Insert");
+
+	// 	const keys = this.getKeys();
+	// 	let contents = keys.map(key => this.getContent(key));
+
+	// 	while (contents.some(content => content.loading)) {
+
+	// 		await this.render();
+	// 		contents = keys.map(key => this.getContent(key));
+
+	// 	}
+
+	// 	for (let j in contents) {
+
+	// 		const content = contents[j];
+	// 		const key = keys[j];
+
+	// 		const newContent = [...content.toArray()];
+
+	// 		newContent.splice(index, 0, ...Array(num));
+
+	// 		await this.setValue(newContent, key);
+
+	// 	}
+
+	// 	if (body) {
+
+	// 		const rowField = body.getChild(0);
+
+	// 		let defaults = rowField.exportDefaults();
+
+	// 		while (defaults.loading) {
+
+	// 			await this.render();
+	// 			defaults = rowField.exportDefaults();
+
+	// 		}
+
+	// 		for (let i = 0; i < num; i++) {
+
+	// 			const rowField = body.getChild(i + index);
+
+	// 			for (let key in defaults.value) {
+
+	// 				await rowField.setValue(defaults[key], key);
+
+	// 			}
+
+	// 		}
+
+	// 		await body.setFocus(true);
+	// 		await body.select(index, num);
+
+	// 	}
+
+	// 	await this.render();
+
+	// }
+
+	add(num = 1, params = {}) {
+
+		const body = this.getChild("body");
+		const tokens = [];
+		const length = this.getLength();
+
+		if (length === undefined) {
+
+			console.error("adding item but length is undefined");
+
+		}
+
+		for (let i = 0; i < num; i++) {
+
+			tokens.push(num + i);
+
+		}
+
+		body.addIds(tokens, length - 1);
+
+	}
+
+
+  // async sortUp(index, length = 1) {
+
+  //   if (index > 0) {
+
+  //     return this.swap(index, length, index-1);
+
+  //   }
+
+  // }
+
+  // async sortDown(index, length = 1) {
+
+  //   if (index + length < this.getLength().toNumber()) {
+
+  //     return this.swap(index, length, index+1);
+
+  //   }
+
+  // }
 
 }
 

@@ -2044,13 +2044,13 @@ textarea.clipboard {
   border: none;
   line-height: inherit;
   min-height: 0;
-  background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%232271b1'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
+  background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='https://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%232271b1'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
   background-size: 16px;
   padding: 0 25px 0 0;
   color: var(--theme-color);
 }
 .karma-tinymce .editor-header .toolbar select:hover {
-  background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%230a4b78'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
+  background: transparent url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='https://www.w3.org/2000/svg'%3E%3Cpath d='M5 6l5 5 5-5 2 1-7 7-7-7 2-1z' fill='%230a4b78'/%3E%3C/svg%3E") no-repeat right 5px top 55%;
   background-size: 16px;
   color: #0a4b78;;
 }

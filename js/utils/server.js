@@ -1035,6 +1035,7 @@ KarmaFieldsAlpha.Server = class {
 
   async setValue(value, driver, id, key) {
 
+
     // let current = await KarmaFieldsAlpha.Database.States.get("external", driver, id, key);
     //
     // if (!current) {
@@ -1232,6 +1233,15 @@ KarmaFieldsAlpha.Server = class {
   //
   //   await KarmaFieldsAlpha.History.write(ids, previousIds, "queries", driver, paramstring, "ids"); // update history
   //
+  // }
+
+  // async load(callback) {
+  // 	let result = callback();
+  //  	while (this.hasOrder()) {
+		// 	await this.process();
+		// 	result = callback();
+		// }
+		// return result;
   // }
 
   async *add(driver, paramstring, index, length, defaults, data) {
@@ -1655,7 +1665,7 @@ KarmaFieldsAlpha.Server = class {
 
   }
 
-  getDelta() { // compat
+  getDelta() { // compat. Used by postform!
 
     const edits = this.edits();
 

@@ -64,6 +64,32 @@ KarmaFieldsAlpha.Editor.Tag.FIGURE = class extends KarmaFieldsAlpha.Editor.Tag.c
 
 	}
 
+	cut() {
+
+		if (this.node === this.editor.beam.commonAncestorContainer) {
+
+			this.editor.beam.setStartBefore(this.node);
+			this.editor.beam.setEndAfter(this.node);
+
+			return super.cut();
+
+
+			// const content = this.editor.beam.extractContents();
+			// const container = document.createElement("div");
+			// container.appendChild(content);
+
+			// return container.innerHTML;
+
+		} else {
+
+			const parent = this.getParent();
+
+			return parent.cut();
+
+		}
+
+	}
+
 }
 
 KarmaFieldsAlpha.Editor.register("FIGURE", KarmaFieldsAlpha.Editor.Tag.FIGURE);
@@ -97,7 +123,7 @@ KarmaFieldsAlpha.Editor.Tag.IMG = class extends KarmaFieldsAlpha.Editor.Tag.elem
 
 	isValid() {
 
-		return true;
+		return Boolean(this.node.src);
 
 	}
 

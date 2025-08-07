@@ -35,32 +35,43 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 	export() {
 
-		const output = new KarmaFieldsAlpha.Content();
-		let content;
+		// const output = new KarmaFieldsAlpha.Content();
+		// let content;
 
 		if (this.resource.export) {
 
 			if (this.resource.export === true) {
 
-				return this.getContent();
+				return this.getValue();
 
 			} else if (this.resource.export) {
 
-				return this.parse(this.resource.export);
+				return this.parseArray(this.resource.export);
 
 			}
 
+			// if (content.loading) {
+
+			// 	output.loading = true;
+
+			// } else {
+
+			// 	output.value = content.toString();
+
+			// }
+
+
 		}
 
-		return new KarmaFieldsAlpha.Content();
+		return [];
 
 	}
 
-	import(collection) {
+	import(array) {
 
 		if (this.resource.export) {
 
-			collection.value.shift();
+			array.shift();
 
 		}
 
@@ -68,80 +79,67 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 	getContent() {
 
-		return this.parse(this.resource.value || this.resource.content);
+		return this.parseString(this.resource.value || this.resource.content) || ""; // empty string if loading
 
 	}
 
+	*buildContent() {
 
-	build() {
-		return {
-			tag: this.resource.tag,
-			class: "text karma-field",
-			init: node => {
-				if (this.resource.classes) {
-					node.element.classList.add(...this.resource.classes);
+		const array = this.parseArray(this.resource.value || this.resource.content);
+
+		if (array === undefined) {
+
+		} else if (array.mixed) {
+
+			yield {
+				update: element => {
+					element.innerHTML = "[mixed content]";
 				}
-				if (this.resource.width) {
-					node.element.style.width = this.resource.width;
-				}
-				if (this.resource.display) {
-					node.element.classList.add(`display-${this.resource.display}`);
-				}
-				// node.element.tabIndex = -1;
-			},
-			update: node => {
+			};
 
-				if (this.resource.content || this.resource.value) {
+		} else {
 
+			for (let value of array) {
 
-					let content = this.getContent();
-
-					// if (content.value === null) {
-					//
-					// 	debugger;
-					// 	content = this.getContent();
-					// }
-
-					node.element.classList.toggle("loading", Boolean(content.loading));
-
-					if (content.loading) {
-
-						// node.children = [];
-
-					} else if (content.mixed) {
-
-						node.children = [
-							{
-								update: node => {
-									node.element.innerHTML = "[mixed content]";
-								}
-							}
-						];
-
-					} else {
-
-						node.children = content.toArray().map(value => {
-							return {
-								update: node => {
-									node.element.innerHTML = value.toString();
-								}
-							}
-						});
-
+				yield {
+					update: element => {
+						element.innerHTML = value.toString();
 					}
-
-				}
-
-				if (this.resource.disabled) {
-					const disabled = this.parse(this.resource.disabled);
-					node.element.classList.toggle("disabled", disabled.toBoolean());
-				}
-        if (this.resource.enabled) {
-					const enabled = this.parse(this.resource.enabled);
-					node.element.classList.toggle("disabled", !enabled.toBoolean());
-				}
+				};
 
 			}
+
+		}
+
+	}
+
+	*build() {
+
+		yield {
+			tag: this.resource.tag,
+			class: "text karma-field",
+			init: element => {
+				if (this.resource.classes) {
+					element.classList.add(...this.resource.classes);
+				}
+				if (this.resource.width) {
+					element.style.width = this.resource.width;
+				}
+				if (this.resource.display) {
+					element.classList.add(`display-${this.resource.display}`);
+				}
+			},
+			update: element => {
+				if (this.resource.disabled) {
+					const disabled = this.parseBoolean(this.resource.disabled) || false;
+					element.classList.toggle("disabled", disabled.toBoolean());
+				}
+				if (this.resource.enabled) {
+					const enabled = this.parseBoolean(this.resource.enabled);
+					element.classList.toggle("disabled", !enabled);
+				}
+			},
+			children: this.buildContent()
 		};
 	}
 
@@ -150,34 +148,31 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.simpletext = class extends KarmaFieldsAlpha.field.text {
 
-	getContent() {
+	getText() {
 
-		return this.parse(this.resource.value || this.resource.content);
+		return this.parseString(this.resource.value || this.resource.content);
 
 	}
 
-
-	build() {
-		return {
+	*build() {
+		yield {
 			tag: this.resource.tag,
 			class: "text karma-field",
-			init: node => {
+			init: element => {
 				if (this.resource.classes) {
-					node.element.classList.add(...this.resource.classes);
+					element.classList.add(...this.resource.classes);
 				}
 				if (this.resource.width) {
-					node.element.style.width = this.resource.width;
+					element.style.width = this.resource.width;
 				}
 				if (this.resource.display) {
-					node.element.classList.add(`display-${this.resource.display}`);
+					element.classList.add(`display-${this.resource.display}`);
 				}
 			},
-			update: node => {
-				let content = this.getContent();
-				if (content.mixed) {
-					node.element.innerHTML = "[mixed content]";
-				} else if (!content.loading) {
-					node.element.innerHTML = content.toString();
+			update: element => {
+				const text = this.getText();
+				if (text !== undefined) {
+					element.innerHTML = text || "";
 				}
 			}
 		};
@@ -190,33 +185,35 @@ KarmaFieldsAlpha.field.simpletext = class extends KarmaFieldsAlpha.field.text {
 
 KarmaFieldsAlpha.field.html = class extends KarmaFieldsAlpha.field {
 
-	build() {
-		return {
+	*build() {
+		yield {
 			tag: this.resource.tag,
 			class: "text karma-field",
-			init: node => {
+			init: element => {
 				if (this.resource.classes) {
-					node.element.classList.add(...this.resource.classes);
+					element.classList.add(...this.resource.classes);
 				}
 				if (this.resource.width) {
-					node.element.style.width = this.resource.width;
+					element.style.width = this.resource.width;
 				}
 			},
-			update: node => {
+			update: element => {
 
-				const attributes = this.parseObject(this.resource.element);
-
-				if (!attributes.loading) {
-					Object.assign(node.element, attributes.toObject());
+				if (this.resource.element) {
+					const attributes = this.parseObject(this.resource.element);
+					if (attributes !== undefined) {
+						Object.assign(element, attributes);
+					}
 				}
 
 				if (this.resource.disabled) {
-					const disabled = this.parse(this.resource.disabled);
-					node.element.classList.toggle("disabled", disabled.toBoolean());
+					const disabled = this.parseBoolean(this.resource.disabled) || false;
+					element.classList.toggle("disabled", disabled);
 				}
-        if (this.resource.enabled) {
-					const enabled = this.parse(this.resource.enabled);
-					node.element.classList.toggle("disabled", !enabled.toBoolean());
+
+				if (this.resource.enabled) {
+					const enabled = this.parseBoolean(this.resource.enabled);
+					element.classList.toggle("disabled", !enabled);
 				}
 
 			}
@@ -486,53 +483,47 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
 
 
-	async nav(index = 0) {
+	nav(index = 0) {
 
-		await this.save("open", "Open link");
-
-		// KarmaFieldsAlpha.saucer.open(key);
-
-		// const popup = this.getField("board", table.toString());
+		// this.save("open", "Open link");
 
 		const popup = this.getChild("popup");
 
-		await popup.setFocus(true);
-
-    // popup.setState(params.toObject(), "params");
-
-
+		popup.setFocus(true);
 
 		if (popup.resource.preselect) {
 
-			let ids = this.parse(popup.resource.preselect);
+			KarmaFieldsAlpha.server.promise(done => {
 
-			while (ids.loading) {
+				let ids = this.parseArray(popup.resource.preselect);
 
-				await this.render();
-				ids = this.parse(popup.resource.preselect);
+				if (ids !== undefined) {
 
-			}
+					popup.selectByIds([ids[index]]);
 
-			await popup.selectByIds([ids.toArray()[index]]);
+					done();
+
+				}
+
+			});
 
 		}
 
-
 	}
 
-	async open(index) {
+	open(index) {
 
-		await this.nav(index);
+		this.nav(index);
 
 		// KarmaFieldsAlpha.Jobs.add(work);
 
-		await this.render();
+		// this.render();
 
 	}
 
-	async close() {
+	close() {
 
-		await this.setFocus(true);
+		this.setFocus(true);
 
 	}
 
@@ -562,8 +553,8 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
 			yield {
         class: "popup",
-				update: node => {
-          node.element.onmousedown = async event => {
+				update: element => {
+          element.onmousedown = async event => {
             event.stopPropagation();
 
 						await popup.setFocus(true);
@@ -572,9 +563,7 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
         },
         child: {
           class: "popup-content",
-          children: [
-            popup.build()
-          ]
+          children: popup.build()
         }
       };
 
@@ -582,88 +571,80 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 
 	}
 
+	*buildContent() {
 
-	build() {
+		const contents = this.parseArray(this.resource.content);
+		const href = this.resource.href && this.parseArray(this.resource.href);
 
-		return {
+		if (contents === undefined) {
+
+			yield {
+				tag: "li"
+			};
+
+		} else {
+
+			for (let i = 0; i < contents.length; i++) {
+
+			// node.children = contents.toArray().map((content, index) => {
+				yield {
+					tag: "li",
+					child: {
+						tag: "a",
+						update: element => {
+
+							element.onmousedown = event => {
+								event.stopPropagation();
+							};
+
+							if (this.resource.popup) {
+
+								element.onclick = event => {
+									event.preventDefault();
+									this.save("open");
+									this.open(i);
+									this.render();
+								}
+
+							} else if (href) {
+
+								element.href = href[i] || "";
+
+							}
+
+							element.innerHTML = contents[i];
+
+							if (this.resource.target) {
+
+								element.target = this.resource.target;
+
+							}
+
+						}
+					}
+				}
+			};
+
+		}
+	}
+
+	*build() {
+
+		yield {
 			class: "links",
 			children: [
 				{
 					tag: "ul",
 					class: "karma-field links",
-					update: node => {
-						node.element.classList.toggle("display-inline", this.resource.display === "inline");
-
-						const contents = this.parse(this.resource.content);
-
-						if (contents.loading) {
-
-							node.children = [{
-								tag: "li"
-							}];
-
-						} else {
-
-							node.children = contents.toArray().map((content, index) => {
-								return {
-									tag: "li",
-									child: {
-										tag: "a",
-										update: node => {
-
-											node.element.onmousedown = event => {
-												event.stopPropagation();
-											};
-
-											if (this.resource.popup) {
-
-												node.element.onclick = event => {
-													event.preventDefault();
-													// this.nav(index);
-
-													this.open(index);
-
-													// const work = this.nav(index);
-													// KarmaFieldsAlpha.Jobs.add(work);;
-													// this.render();
-
-												}
-
-											} else if (this.resource.href) {
-
-												const href = this.parse(this.resource.href);
-
-												node.element.href = href.toArray()[index];
-
-											}
-
-											node.element.innerHTML = content;
-
-											if (this.resource.target) {
-
-												node.element.target = this.resource.target;
-
-											}
-
-										}
-									}
-								}
-							});
-
-						}
-
-					}
+					update: element => {
+						element.classList.toggle("display-inline", this.resource.display === "inline");
+					},
+					children: this.buildContent()
 				},
 				{
 					class: "popup-container",
-					update: node => {
-
-
-
-						node.children = [...this.buildPopup()];
-					}
+					children: this.buildPopup()
 				}
-				// ...this.buildPopup()
 			]
 		};
 
@@ -676,116 +657,156 @@ KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
 
 	newChild(index) {
 
-    if (index === "popup" && this.resource.popup) {
+		if (index === "popup" && this.resource.popup) {
 
-			// const resource = typeof this.resource.popup === "string" && KarmaFieldsAlpha.tables[this.resource.popup] || this.resource.popup;
-			//
-      // const constructor = this.getConstructor(resource.type || "table");
-			//
-      // return new constructor(resource, "popup", this);
+			// let resource = this.resource.popup;
+
+			// if (typeof resource === "string") {
+
+
+			// }
+
+			// return this.createChild({
+			// 	sandbox: true,
+			// 	...this.resource.popup
+			// }, "popup");
 
 
 			return this.createChild(this.resource.popup, "popup");
 
-    }
+		}
 
-  }
+	}
 
-	async open() {
-
-		await this.save("open", "Open link");
+	open() {
 
 		const popup = this.getChild("popup");
 
-		await popup.setFocus(true);
+		popup.setFocus(true);
 
 		if (this.resource.params) {
 
-			let params = this.parseObject(this.resource.params);
+			KarmaFieldsAlpha.server.promise(done => {
 
-			while (params.loading) {
+				let params = this.parseObject(this.resource.params);
 
-				await this.render();
-				params = this.parse(this.resource.params);
+				if (params !== undefined) {
 
-			}
+					popup.setState(params, "params");
 
-			popup.setState(params.toObject(), "params");
+					done();
 
-		}
+				}
 
-		if (this.resource.preselect) {
-
-			let ids = this.parse(this.resource.preselect);
-
-			while (ids.loading) {
-
-				await this.render();
-				ids = this.parse(this.resource.preselect);
-
-			}
-
-			await popup.selectByIds(ids.toArray());
+			});
 
 		}
 
-		await this.render();
+		// if (this.resource.preselect) {
+
+		// 	let ids = this.parse(this.resource.preselect);
+
+		// 	while (ids.loading) {
+
+		// 		await this.render();
+		// 		ids = this.parse(this.resource.preselect);
+
+		// 	}
+
+		// 	await popup.selectByIds(ids.toArray());
+
+		// }
+
+		// await this.render();
+
+	}
+
+	close() {
+
+		this.setFocus();
 
 	}
 
 	getText() {
 
-		return this.parse(this.resource.text || this.resource.content || this.resource.value).toString();
+		return this.parseString(this.resource.text || this.resource.content || this.resource.value);
 
 	}
+
+	// async abduct() {
+
+	// 	if (this.element) {
+
+	// 		await abduct(this.element, this.buildPopup());
+
+	// 	} else {
+
+	// 		await this.parent.abduct();
+
+	// 	}
+
+	// }
+
+	// render() {
+
+	// 	if (this.element) {
+
+	// 		this.renderElement();
+
+	// 	}
+
+	// }
 
 	*buildPopup() {
 
 		const popup = this.getChild("popup");
 		const hasPopup = popup.hasFocusInside();
 
-    if (hasPopup) {
+		if (hasPopup) {
 
 			yield {
-        class: "popup",
-				update: node => {
-          node.element.onmousedown = async event => {
-            event.stopPropagation();
+				class: "popup",
+				update: element => {
+					element.onmousedown = event => {
+						event.stopPropagation();
 
-						await popup.setFocus(true);
-						await popup.render();
-          }
-        },
-        child: {
-          class: "popup-content",
-          children: [
-            popup.build()
-          ]
-        }
-      };
+						popup.setFocus(true);
+						popup.render();
+					}
+				},
+				child: {
+					class: "popup-content",
+					children: popup.build()
+				}
+			};
 
 		}
 
 	}
 
-	build() {
+	*build() {
 
-		return {
+		yield {
 			class: "popup-link",
 			children: [
 				{
 					tag: "a",
-					update: node => {
-						node.element.innerHTML = this.getText();
-						node.element.onclick = event => {
+					update: element => {
+						element.innerHTML = this.getText();
+						element.onclick = event => {
 							event.preventDefault();
+							this.save("open");
 							this.open();
+							this.render();
 						}
 					}
 				},
 				{
 					class: "popup-container",
-					children: [...this.buildPopup()]
+					update: element => {
+						this.element = element;
+					},
+					children: this.buildPopup()
 				}
 			]
 		};
@@ -804,37 +825,39 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 
 	}
 
+	*buildContent() {
 
-	build() {
+		const key = this.getKey();
+		const values = this.parent.getValue(key);
+
+		if (values !== undefined) {
+
+			for (let id of values) {
+				yield {
+					tag: "a",
+					update: element => {
+						const name = this.getValue("name", id, this.resource.driver);
+						if (name !== undefined) {
+							element.innerHTML = name;
+						}
+						element.onclick = event => {
+							event.preventDefault();
+							this.save("nav", "Nav");
+							this.parent.setParam(id, key);
+							this.render();
+						}
+					}
+				};
+			}
+
+		}
+	}
+
+	*build() {
 
 		return {
 			class: "taxonomy-links",
-			update: node => {
-				// const server = new KarmaFieldsAlpha.Server(this.resource.driver);
-				const key = this.getKey();
-				const values = this.parent.getContent(key);
-
-				if (!values.loading) {
-					node.children = values.toArray().map(id => {
-						return {
-							tag: "a",
-							update: node => {
-								// const name = await server.getValue(id, "name");
-								const name = this.getWild(this.resource.driver, id, "name");
-								if (!name.loading) {
-									node.element.innerHTML = name.toString();
-								}
-								node.element.onclick = async event => {
-									event.preventDefault();
-									await this.save("nav", "Nav");
-									await this.parent.setParam(id, this.resource.key);
-									await this.render();
-								}
-							}
-						};
-					});
-				}
-			}
+			children: this.buildContent()
 		};
 
 	}
@@ -845,22 +868,19 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 
 KarmaFieldsAlpha.field.link = class extends KarmaFieldsAlpha.field {
 
-	build() {
+	*build() {
 
 		return {
 			tag: "a",
 			class: "link",
-			init: node => {
-
-			},
-			update: node => {
-				const href = this.parse(this.resource.href);
-				if (!href.loading) {
-					node.element.href = href.toString();
+			update: element => {
+				const href = this.parseString(this.resource.href);
+				if (href !== undefined) {
+					element.href = href;
 				}
-				const content = this.parse(this.resource.text || this.resource.content);
-				if (!content.loading) {
-					node.element.innerHTML = content.toString();
+				const content = this.parseString(this.resource.text || this.resource.content);
+				if (content !== undefined) {
+					element.innerHTML = content;
 				}
 			}
 		};
@@ -931,57 +951,77 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	getContent(key) {
+	getValue(key) {
 
-		if (this.resource.driver && this.resource.id) {
+		if (this.resource.id) {
 
-			let idQuery = this.parse(this.resource.id);
+			if (typeof this.resource.id === "object") {
 
-			if (idQuery.loading) {
-
-				return new KarmaFieldsAlpha.Loading();
+				return this.resource.id[key];
 
 			} else {
 
-				// const collection = new KarmaFieldsAlpha.Model(this.resource.driver);
-				//
-				// const id = query.toString();
-				//
-		    // query = collection.queryValue(id, key);
+				let id = this.parseString(this.resource.id);
 
-				// const driver = this.getDriver();
+				if (id === undefined) {
 
-				// const form = new KarmaFieldsAlpha.field.form({
-	      //   driver: this.resource.driver
-	      // });
+					return;
 
-				const driver = this.getDriver();
-				// const server = new KarmaFieldsAlpha.Server(driver);
-				// return server.getValue(idQuery.toString(), key);
+				} else {
 
-				return this.getWild(driver, idQuery.toString(), key);
+					const driver = this.getDriver();
+
+					return this.getValue(key, id, driver);
+
+				}
 
 			}
 
+
+
 		} else {
 
-			return this.parent.getContent(key);
+			return this.parent.getValue(key);
 
 		}
 
 	}
 
+	isMixed(key) {
+
+		if (this.resource.id) {
+
+			return false;
+
+		}
+
+		return super.isMixed(key);
+
+	}
+
+	isUploading() {
+
+		if (this.resource.id) {
+
+			return typeof this.resource.id === "object";
+
+		}
+
+		return this.parent.isUploading();
+
+	}
+
 	getMedia() {
 
-		const driver = this.getDriver();
+		// const driver = this.getDriver();
 
-		// let id = this.parse(this.resource.id);
+		// if (!driver) {
 
-		if (!driver) {
+		// 	return {icon: "notfound", text: "no driver"};
 
-			return {icon: "notfound", text: "no driver"};
+		// } else
 
-		} else if (this.resource.exit) {
+		if (this.resource.exit) {
 
 			return {icon: "exit", text: ".."};
 
@@ -997,272 +1037,193 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 			return {icon: "mixed", text: "[mixed]"};
 
-		// } else if (!id.toString()) {
-		//
-		// 	return {icon: "notfound", text: "No ID"};
-
 		} else {
 
-			// const mimetype = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "mimetype");
-			// const filetype = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filetype");
-			// const name = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "name");
-			// const filename = KarmaFieldsAlpha.Query.getValue(driver, id.toString(), "filename");
-
-			// const mimetype = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "mimetype");
-			// const filetype = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filetype");
-			// const name = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "name");
-			// const filename = new KarmaFieldsAlpha.Content.Value(driver, id.toString(), "filename");
-
-			const mimetype = this.getContent("mimetype");
-			const filetype = this.getContent("filetype");
-			const name = this.getContent("name");
-			const filename = this.getContent("filename");
-			const dir = this.getContent("dir");
-
-			if (mimetype.loading || filetype.loading || name.loading || filename.loading || dir.loading) {
-
-				return {icon: "loading", text: filename.toString(), loading: true};
-
-			} else if (mimetype.mixed || filetype.mixed || name.mixed || filename.mixed || dir.mixed) {
-
-				return {icon: "mixed", text: "[mixed]"};
-
-			} else if (filetype.toString() === "") {
-
-				return {icon: "notfound", text: "no file type!"};
-
-			} else if (filetype.toString() === "exit") {
-
-				return {icon: "exit", text: ".."};
-
-			} else if (filetype.toString() === "folder" || filetype.toString() === "autofolder") {
-
-				return {icon: "folder", text: name.toString()};
-
-			} else if (mimetype.toString().startsWith("image")) {
-
-				// const filename = this.getContent("filename");
-				//
-				// if (filename.loading) {
-				//
-				// 	return {icon: "image", text: "", loading: true};
-				//
-				// }
-				//
-				// const dir = this.getContent("dir");
-				//
-				// if (dir.loading) {
-				//
-				// 	return {icon: "image", text:"", loading: true};
-				//
-				// }
-
-				if (mimetype.toString() === "image/jpeg" || mimetype.toString() === "image/png" || this.resource.display === "full") {
+			// const mimetype = this.getValue("mimetype");
+			// const filetype = this.getValue("filetype");
+			// const name = this.getValue("name");
+			// const filename = this.getValue("filename");
+			// const dir = this.getValue("dir");
 
 
+			const media = {
+				mimetype: this.getValue("mimetype"),
+				filetype: this.getValue("filetype"),
+				name: this.getValue("name"),
+				filename: this.getValue("filename"),
+				dir: this.getValue("dir")
+			};
 
+			if (media.mimetype === undefined || media.filetype === undefined || media.name === undefined || media.filename === undefined || media.dir === undefined) {
 
-					// if (this.resource.display === "full") {
-					//
-					// 	return {
-					// 		text: name.toString(),
-					// 		mimetype: mimetype.toString(),
-					// 		filename: filename.toString(),
-					// 		src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-					// 		image: true
-					// 	};
-					//
-					// } else {
+				return {icon: "loading", text: media.filename || "", loading: true};
 
-						const sizes = this.getContent("sizes");
+			} else {
 
-						if (sizes.loading) {
+				const mimetype = media.mimetype[0] || "";
+				const filetype = media.filetype[0] || "";
+				const name = media.name[0] || "";
+				const filename = media.filename[0] || "";
+				const dir = media.dir[0] || "";
 
-							return {
-								icon: "loading",
-								text: name.toString(),
-								mimetype: mimetype.toString(),
-								filename: filename.toString(),
-								loading: true,
-								sizes: []
-							};
+				const mixed = this.isMixed("filename");
+				// const isUploading = this.isUploading();
 
-						} else {
+				if (mixed) {
 
-							const sizeName = this.resource.display !== "thumb" && this.resource.display || "thumbnail"; // compat
-							const size = sizes.toArray().find(size => sizeName === size.name && size.filename);
+					return { icon: "mixed", text: "[mixed]" };
 
-							if (size) {
+				} else if (filetype === "upload") {
+
+					return { icon: "uploading", text: filetype || "..." };
+
+				} else if (filetype === "") {
+
+					return {icon: "notfound", text: "no file type!"};
+
+				} else if (filetype === "exit") {
+
+					return { icon: "exit", text: ".." };
+
+				} else if (filetype === "folder" || filetype === "autofolder") {
+
+					return { icon: "folder", text: name };
+
+				} else if (mimetype.startsWith("image")) {
+
+					if (mimetype === "image/jpeg" || mimetype === "image/png" || this.resource.display === "full") {
+
+							const sizes = this.getValue("sizes");
+
+							if (sizes === undefined) {
 
 								return {
-									text: name.toString(),
-									mimetype: mimetype.toString(),
-									filename: filename.toString(),
-									src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+size.filename.toString(),
-									image: true,
-									sizes: sizes.toArray()
+									icon: "loading",
+									text: name,
+									mimetype: mimetype,
+									filename: filename,
+									loading: true,
+									sizes: []
 								};
 
 							} else {
 
-								return {
-									icon: "image",
-									text: name.toString(),
-									mimetype: mimetype.toString(),
-									filename: filename.toString(),
-									src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-									image: true,
-									sizes: sizes.toArray()
-								};
+								const sizeName = this.resource.display !== "thumb" && this.resource.display || "thumbnail"; // compat
+								const size = sizes.find(size => sizeName === size.name && size.filename);
+
+								if (size) {
+
+									return {
+										text: name,
+										mimetype: mimetype,
+										filename: filename,
+										src: KarmaFieldsAlpha.uploadURL+dir+"/"+size.filename,
+										image: true,
+										sizes: sizes
+									};
+
+								} else {
+
+									return {
+										icon: "image",
+										text: name,
+										mimetype: mimetype,
+										filename: filename,
+										// src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+										// image: true,
+										// sizes: sizes
+									};
+
+								}
 
 							}
 
-						}
+					} else {
 
-					// }
+						return {
+							text: name,
+							mimetype: mimetype,
+							filename: filename,
+							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+							image: true
+						};
 
-					// return {
-					// 	icon: "image",
-					// 	text: name.toString(),
-					// 	mimetype: mimetype.toString(),
-					// 	filename: filename.toString(),
-					// 	src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-					// 	sizes: sizes.toArray(),
-					// 	dir: dir.toString() || ""
-					// 	// srcset: sizes.filter(size => size.width).map(size => `${KarmaFieldsAlpha.uploadURL}${dir}/${encodeURI(size.filename)} ${size.width}w`)
-					// };
+					}
 
-				} else {
+				} else if (mimetype.startsWith("video")) {
 
-					return {
-						// icon: "image",
-						text: name.toString(),
-						mimetype: mimetype.toString(),
-						filename: filename.toString(),
-						// dir: dir.toString(),
-						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-						image: true
-					};
+					if (this.resource.display === "video") {
 
-				}
+						return {
+							text: name,
+							mimetype: mimetype,
+							filename: filename,
+							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+							video: true
+						};
 
-			} else if (mimetype.toString().startsWith("video")) {
+					} else {
 
-				// const filename = this.getContent("filename");
-				//
-				// if (filename.loading) {
-				//
-				// 	return {icon: "video", text: name.toString(), loading: true};
-				//
-				// }
+						return {
+							icon: "video",
+							text: name,
+							mimetype: mimetype,
+							filename: filename,
+						};
 
-				// const dir = this.getContent("dir");
-				//
-				// if (dir.loading) {
-				//
-				// 	return {icon: "image", text: name.toString(), loading: true};
-				//
-				// }
+					}
 
-				if (this.resource.display === "video") {
+				} else if (mimetype.startsWith("audio")) {
 
-					return {
-						text: name.toString(),
-						mimetype: mimetype.toString(),
-						filename: filename.toString(),
-						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-						video: true
-					};
+					if (this.resource.display === "audio") {
 
-				} else {
+						return {
+							text: name,
+							mimetype: mimetype,
+							filename: filename,
+							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+							audio: true
+						};
 
-					return {
-						icon: "video",
-						text: name.toString(),
-						mimetype: mimetype.toString(),
-						filename: filename.toString(),
-					};
+					} else {
 
-				}
+						return {
+							icon: "audio",
+							text: name,
+							mimetype: mimetype,
+							filename: filename
+						};
 
-			} else if (mimetype.toString().startsWith("audio")) {
-
-				// const filename = this.getContent("filename");
-				// const dir = this.getContent("dir");
-
-				// if (dir.loading) {
-				//
-				// 	return {icon: "image", text: name.toString(), loading: true};
-				//
-				// }
-				//
-				// if (filename.loading) {
-				//
-				// 	return {icon: "audio", text: name.toString(), loading: true};
-				//
-				// }
-
-				if (this.resource.display === "audio") {
-
-					return {
-						text: name.toString(),
-						mimetype: mimetype.toString(),
-						filename: filename.toString(),
-						src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-						audio: true
-					};
+					}
 
 				} else {
 
-					return {
-						icon: "audio",
-						text: name.toString(),
-						mimetype: mimetype.toString(),
-						filename: filename.toString(),
+					const media = {
+						text: filename,
+						src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
 					};
 
-				}
+					if (mimetype.startsWith("text")) {
 
-			// } else if (mimetype.toString().startsWith("text")) {
-			//
-			// 	return {icon: "text", text: filename.toString()};
-			//
-			// } else if (mimetype.toString() === "application/pdf") {
-			//
-			// 	return {icon: "document", text: filename.toString()};
-			//
-			// } else if (mimetype.toString() === "application/zip") {
-			//
-			// 	return {icon: "zip", text: filename.toString()};
+						media.icon = "text";
 
-			} else {
+					} else if (mimetype === "application/pdf") {
 
-				// return {icon: "default", text: filename.toString()};
+						media.icon = "document";
 
-				const media = {
-					text: filename.toString(),
-					src: KarmaFieldsAlpha.uploadURL+dir.toString()+"/"+filename.toString(),
-				};
+					} else if (mimetype === "application/zip") {
 
-				if (mimetype.toString().startsWith("text")) {
+						media.icon = "zip";
 
-					media.icon = "text";
+					} else {
 
-				} else if (mimetype.toString() === "application/pdf") {
+						media.icon = "default";
 
-					media.icon = "document";
+					}
 
-				} else if (mimetype.toString() === "application/zip") {
-
-					media.icon = "zip";
-
-				} else {
-
-					media.icon = "default";
+					return media;
 
 				}
-
-				return media;
 
 			}
 
@@ -1270,546 +1231,143 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
   }
 
-	build() {
 
-		return {
+	*buildImage(media) {
+		if (media.image) {
+			yield {
+				tag: "img",
+				init: element => {
+					element.draggable = false;
+				},
+				update: element => {
+					if (media.src && media.src !== element.getAttribute("data-src")) {
+						element.src = media.src;
+						element.setAttribute("data-src", media.src);
+					}
+				}
+			}
+		}
+	}
+
+	*buildVideo(media) {
+
+		if (media.video) {
+			yield {
+				tag: "video",
+				init: element => {
+					element.controls = true;
+				},
+				update: element => {
+					if (media.filename && media.filename !== element.getAttribute("data-src")) {
+						element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+						element.setAttribute("data-src", media.filename);
+					}
+				}
+			};
+		}
+
+	}
+
+	*buildAudio(media) {
+		if (media.audio) {
+			yield {
+				tag: "audio",
+				init: element => {
+					element.controls = true;
+				},
+				update: element => {
+					if (media.filename && media.filename !== element.getAttribute("data-src")) {
+						element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+						element.setAttribute("data-src", media.filename);
+					}
+				}
+			}
+		}
+	}
+
+
+
+
+	*build() {
+
+		const media = this.getMedia();
+
+		yield {
 			class: "karma-field-media",
-			init: node => {
+			init: element => {
 				if (this.resource.width) {
-					node.element.style.width = this.resource.width;
+					element.style.width = this.resource.width;
 				}
 				if (this.resource.height) {
-					node.element.style.height = this.resource.height;
+					element.style.height = this.resource.height;
 				}
 				if (this.resource.display) {
-					node.element.classList.add(`display-${this.resource.display}`);
+					element.classList.add(`display-${this.resource.display}`);
 				}
 				if (this.resource.greyscale) {
-					node.element.classList.add("greyscale");
+					element.classList.add("greyscale");
 				}
 			},
-			update: node => {
-
-				const media = this.getMedia();
-
-				node.children = [
-					{
-						class: "icon",
-						tag: "figure",
-						update: node => {
-							// const visible = media.icon && (!media.src || this.resource.display === "icon" || (this.resource.display === "thumb" && (media.icon === "video" || media.icon === "audio")));
-							node.element.classList.toggle("hidden", !media.icon);
-							// if (media.icon) {
-								node.children = [
-									{
-										update: node => {
-											node.element.classList.toggle("dashicons", Boolean(media.icon));
-											// node.element.classList.toggle("dashicons-category", media.icon === "folder");
-											node.element.classList.toggle("dashicons-format-image", media.icon === "image");
-											node.element.classList.toggle("dashicons-media-video", media.icon === "video");
-											node.element.classList.toggle("dashicons-media-audio", media.icon === "audio");
-											node.element.classList.toggle("dashicons-media-text", media.icon === "text");
-											node.element.classList.toggle("dashicons-media-document", media.icon === "document");
-											node.element.classList.toggle("dashicons-media-archive", media.icon === "archive");
-											node.element.classList.toggle("dashicons-media-default", media.icon === "default");
-											node.element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
-											node.element.classList.toggle("dashicons-upload", media.icon === "uploading");
-											node.element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
-											node.element.classList.toggle("dashicons-warning", media.icon === "notfound");
-											node.element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
-										}
-									},
-									{
-										class: "filename",
-										update: filename => {
-											filename.element.classList.toggle("hidden", this.resource.caption === false);
-											filename.element.innerHTML = media.text;
-										}
-									}
-								];
-							// }
-						}
+			children: [
+				{
+					class: "icon",
+					tag: "figure",
+					update: element => {
+						element.classList.toggle("hidden", !media.icon);
 					},
-					{
-						class: "image",
-						tag: "figure",
-						update: node => {
-							// const visible = media.icon === "image" && media.filename && this.resource.display !== "icon";
-							node.element.classList.toggle("hidden", !media.image);
-							if (media.image) {
-								node.child = {
-									tag: "img",
-									init: img => {
-										img.element.draggable = false;
-									},
-									update: img => {
-										// let src;
-										// const thumb = this.resource.display === "thumb" && media.sizes && media.sizes.find(size => size.name === "thumbnail" && size.filename);
-										//
-										// if (thumb) {
-										// 	src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(thumb.filename)}`;
-										// } else {
-										// 	const large = this.resource.display === "large" && media.sizes && media.sizes.find(size => size.name === "medium" && size.filename);
-										// 	if (large) {
-										// 		src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(large.filename)}`;
-										// 	} else {
-										// 		const medium = media.sizes && media.sizes.find(size => size.name === "medium" && size.filename);
-										// 		if (medium) {
-										// 			src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(medium.filename)}`;
-										// 		} else {
-										// 			src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(media.filename)}`;
-										// 		}
-										// 	}
-										// }
-										if (media.src && media.src !== img.element.getAttribute("data-src")) {
-											img.element.src = media.src;
-											img.element.setAttribute("data-src", media.src);
-										}
-									}
-								}
+					children: [
+						{
+							update: element => {
+								element.classList.toggle("dashicons", Boolean(media.icon));
+								// node.element.classList.toggle("dashicons-category", media.icon === "folder");
+								element.classList.toggle("dashicons-format-image", media.icon === "image");
+								element.classList.toggle("dashicons-media-video", media.icon === "video");
+								element.classList.toggle("dashicons-media-audio", media.icon === "audio");
+								element.classList.toggle("dashicons-media-text", media.icon === "text");
+								element.classList.toggle("dashicons-media-document", media.icon === "document");
+								element.classList.toggle("dashicons-media-archive", media.icon === "archive");
+								element.classList.toggle("dashicons-media-default", media.icon === "default");
+								element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
+								element.classList.toggle("dashicons-upload", media.icon === "uploading");
+								element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
+								element.classList.toggle("dashicons-warning", media.icon === "notfound");
+								element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
+							}
+						},
+						{
+							class: "filename",
+							update: element => {
+								element.classList.toggle("hidden", this.resource.caption === false);
+								element.innerHTML = media.text;
 							}
 						}
+					]
+				},
+				{
+					class: "image",
+					tag: "figure",
+					update: element => {
+						element.classList.toggle("hidden", !media.image);
 					},
-					{
-						class: "video",
-						tag: "figure",
-						update: node => {
-							// const visible = media.icon === "video" && media.filename && this.resource.display !== "icon" && this.resource.display !== "thumb";
-							node.element.classList.toggle("hidden", !media.video);
-							if (media.video) {
-								node.child = {
-									tag: "video",
-									init: video => {
-										video.element.controls = true;
-									},
-									update: video => {
-										// if (!video.element.src.endsWith(media.filename)) {
-										if (media.filename && media.filename !== video.element.getAttribute("data-src")) {
-											video.element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-											video.element.setAttribute("data-src", media.filename);
-										}
-									}
-								}
-							}
-						}
+					children: this.buildImage(media)
+				},
+				{
+					class: "video",
+					tag: "figure",
+					update: element => {
+						element.classList.toggle("hidden", !media.video);
 					},
-					{
-						class: "audio",
-						tag: "figure",
-						update: node => {
-							// const visible = media.icon === "audio" && media.filename && this.resource.display !== "icon" && this.resource.display !== "thumb";
-							node.element.classList.toggle("hidden", !media.audio);
-							if (media.audio) {
-								node.child = {
-									tag: "audio",
-									init: audio => {
-										audio.element.controls = true;
-									},
-									update: audio => {
-										// if (!audio.element.src.endsWith(media.filename)) {
-										if (media.filename && media.filename !== audio.element.getAttribute("data-src")) {
-											audio.element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-											audio.element.setAttribute("data-src", media.filename);
-										}
-									}
-								}
-							}
-						}
-					}
-				]
-			}
+					children: this.buildVideo(media)
+				},
+				{
+					class: "audio",
+					tag: "figure",
+					update: element => {
+						element.classList.toggle("hidden", !media.audio);
+					},
+					children: this.buildAudio(media)
+				}
+			]
 		};
 	}
 }
-
-
-// KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
-//
-// 	getMedia() {
-//
-// 		const driver = this.resource.driver || this.getDriver();
-// 		// const id = this.resource.id || this.getId() || KarmaFieldsAlpha.loading;
-//
-//
-// 		let id = this.parse(this.resource.id);
-//
-// 		if (typeof id !== "symbol") {
-//
-// 			id = KarmaFieldsAlpha.Type.toString(id);
-//
-// 		}
-//
-// 		// if (!id) {
-// 		//
-// 		// 	id = this.getId() || KarmaFieldsAlpha.loading;
-// 		//
-// 		// }
-//
-// 		// console.log(id, this.resource.id);
-//
-// 		if (!driver) {
-//
-// 			return {icon: "notfound", text: "no driver"};
-//
-// 		} else if (id === KarmaFieldsAlpha.exit || this.resource.exit) {
-//
-// 			return {icon: "exit", text: ".."};
-//
-// 		} else if (this.resource.uploading) {
-//
-// 			return {icon: "uploading", text: ""};
-//
-// 		} else if (id === KarmaFieldsAlpha.loading || this.resource.loading) {
-//
-// 			return {icon: "loading", text: ""};
-//
-// 		} else if (id === KarmaFieldsAlpha.mixed || this.resource.mixed) {
-//
-// 			return {icon: "mixed", text: "[mixed]"};
-//
-// 		} else if (typeof id === "symbol") {
-//
-// 			return {icon: "notfound", text: id.toString()};
-//
-// 		} else if (id) {
-//
-// 			// const mimetype = KarmaFieldsAlpha.Query.getMimeType(driver, id);
-// 			const mimetype = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "mimetype");
-// 			// const filetype = KarmaFieldsAlpha.Query.getFileType(driver, id);
-// 			const filetype = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "filetype");
-// 			// const name = KarmaFieldsAlpha.Query.getName(driver, id);
-// 			const name = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "name");
-//
-// 			let text;
-//
-// 			if (name !== KarmaFieldsAlpha.loading) {
-//
-// 				text = name;
-//
-// 			} else {
-//
-// 				text = "";
-//
-// 			}
-//
-// 			if (mimetype === KarmaFieldsAlpha.loading || filetype === KarmaFieldsAlpha.loading) {
-//
-// 				return {icon: "loading", text: text};
-//
-// 			} else if (filetype === "folder") {
-//
-// 				return {icon: "folder", text: text};
-//
-// 			} else if (mimetype && mimetype.startsWith("image")) {
-//
-// 				// const filename = KarmaFieldsAlpha.Query.getFilename(driver, id);
-// 				const filename = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "filename");
-//
-// 				if (filename === KarmaFieldsAlpha.loading) {
-//
-// 					return {icon: "image", text: text};
-//
-// 				}
-//
-// 				const dir = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "dir") || "";
-//
-// 				if (dir === KarmaFieldsAlpha.loading) {
-//
-// 					return {icon: "image", text:text};
-//
-// 				}
-//
-// 				if (mimetype === "image/jpeg" || mimetype === "image/png") {
-//
-// 					// const dir = KarmaFieldsAlpha.Query.getDir(driver, id);
-//
-// 					// const sizes = KarmaFieldsAlpha.Query.getSizes(driver, id);
-// 					const sizes = KarmaFieldsAlpha.Query.getValue(driver, id, "sizes") || [];
-//
-// 					return {
-// 						icon: "image",
-// 						text: text,
-// 						mimetype: mimetype,
-// 						filename: filename,
-// 						src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-// 						sizes: sizes,
-// 						dir: dir || ""
-// 						// srcset: sizes.filter(size => size.width).map(size => `${KarmaFieldsAlpha.uploadURL}${dir}/${encodeURI(size.filename)} ${size.width}w`)
-// 					};
-//
-// 				} else {
-//
-// 					return {
-// 						icon: "image",
-// 						text: text,
-// 						mimetype: mimetype,
-// 						filename: filename,
-// 						dir: dir || "",
-// 						src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-// 					};
-//
-// 				}
-//
-// 			} else if (mimetype && mimetype.startsWith("video")) {
-//
-// 				// const filename = KarmaFieldsAlpha.Query.getFilename(driver, id);
-// 				const filename = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "filename");
-//
-// 				if (filename === KarmaFieldsAlpha.loading) {
-//
-// 					return {icon: "video", text: text};
-//
-// 				}
-//
-// 				const dir = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "dir") || "";
-//
-// 				if (dir === KarmaFieldsAlpha.loading) {
-//
-// 					return {icon: "image", text:text};
-//
-// 				}
-//
-// 				return {
-// 					icon: "video",
-// 					text: text,
-// 					mimetype: mimetype,
-// 					filename: filename,
-// 					dir: dir || "",
-// 					src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-// 				};
-//
-// 			} else if (mimetype && mimetype.startsWith("audio")) {
-//
-// 				// const filename = KarmaFieldsAlpha.Query.getFilename(driver, id);
-// 				const filename = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "filename");
-//
-// 				const dir = KarmaFieldsAlpha.Query.getSingleValue(driver, id, "dir") || "";
-//
-// 				if (dir === KarmaFieldsAlpha.loading) {
-//
-// 					return {icon: "image", text:text};
-//
-// 				}
-//
-// 				if (filename === KarmaFieldsAlpha.loading) {
-//
-// 					return {icon: "audio", text: text};
-//
-// 				}
-//
-// 				return {
-// 					icon: "audio",
-// 					text: text,
-// 					mimetype: mimetype,
-// 					filename: filename,
-// 					dir: dir || "",
-// 					src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-// 				};
-//
-// 			} else if (mimetype && mimetype.startsWith("text")) {
-//
-// 				return {icon: "text", text: text};
-//
-// 			} else if (mimetype === "application/pdf") {
-//
-// 				return {icon: "document", text: text};
-//
-// 			} else if (mimetype === "application/zip") {
-//
-// 				return {icon: "zip", text: text};
-//
-// 			} else {
-//
-// 				return {icon: "default", text: text};
-//
-// 			}
-//
-// 		} else {
-//
-// 			return {icon: "none", text: ""};
-//
-// 		}
-//
-//   }
-//
-// 	build() {
-//
-// 		return {
-// 			class: "karma-field-media",
-// 			init: node => {
-// 				if (this.resource.width) {
-// 					node.element.style.width = this.resource.width;
-// 				}
-// 				if (this.resource.height) {
-// 					node.element.style.height = this.resource.height;
-// 				}
-// 				if (this.resource.display) {
-// 					node.element.classList.add(`display-${this.resource.display}`);
-// 				}
-// 				if (this.resource.greyscale) {
-// 					node.element.classList.add("greyscale");
-// 				}
-// 			},
-// 			update: node => {
-//
-// 				const media = this.getMedia();
-//
-// 				node.children = [
-// 					{
-// 						class: "icon",
-// 						tag: "figure",
-// 						update: node => {
-// 							const visible = media.icon && (!media.src || this.resource.display === "icon" || (this.resource.display === "thumb" && (media.icon === "video" || media.icon === "audio")));
-// 							node.element.classList.toggle("hidden", !visible);
-// 							if (visible) {
-// 								node.children = [
-// 									{
-// 										update: node => {
-// 											node.element.classList.toggle("dashicons", Boolean(visible));
-// 											node.element.classList.toggle("dashicons-category", media.icon === "folder");
-// 											node.element.classList.toggle("dashicons-format-image", media.icon === "image");
-// 											node.element.classList.toggle("dashicons-media-video", media.icon === "video");
-// 											node.element.classList.toggle("dashicons-media-audio", media.icon === "audio");
-// 											node.element.classList.toggle("dashicons-media-text", media.icon === "text");
-// 											node.element.classList.toggle("dashicons-media-document", media.icon === "document");
-// 											node.element.classList.toggle("dashicons-media-archive", media.icon === "archive");
-// 											node.element.classList.toggle("dashicons-media-default", media.icon === "default");
-// 											node.element.classList.toggle("dashicons-open-folder", media.icon === "exit");
-// 											node.element.classList.toggle("dashicons-upload", media.icon === "uploading");
-// 											node.element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
-// 											node.element.classList.toggle("dashicons-warning", media.icon === "notfound");
-// 											node.element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
-// 										}
-// 									},
-// 									{
-// 										class: "filename",
-// 										update: filename => {
-// 											filename.element.innerHTML = media.text;
-// 										}
-// 									}
-// 									// {
-// 									// 	class: "file-caption",
-// 									// 	update: node => {
-// 									// 		node.element.classList.toggle("hidden", !this.resource.caption);
-// 									// 		if (this.resource.caption) {
-// 									// 			node.child = {
-// 									// 				class: "filename",
-// 									// 				update: filename => {
-// 									// 					filename.element.innerHTML = media.text;
-// 									// 				}
-// 									// 			}
-// 									// 		}
-// 									// 	}
-// 									// }
-// 								];
-// 							}
-// 						}
-// 					},
-// 					{
-// 						class: "image",
-// 						tag: "figure",
-// 						update: node => {
-// 							const visible = media.icon === "image" && media.filename && this.resource.display !== "icon";
-// 							node.element.classList.toggle("hidden", !visible);
-// 							if (visible) {
-// 								node.child = {
-// 									tag: "img",
-// 									init: img => {
-// 										img.element.draggable = false;
-// 									},
-// 									update: img => {
-// 										let src;
-// 										const thumb = this.resource.display === "thumb" && media.sizes && media.sizes.find(size => size.name === "thumbnail" && size.filename);
-//
-// 										if (thumb) {
-// 											src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(thumb.filename)}`;
-// 										} else {
-// 											const large = this.resource.display === "large" && media.sizes && media.sizes.find(size => size.name === "medium" && size.filename);
-// 											if (large) {
-// 												src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(large.filename)}`;
-// 											} else {
-// 												const medium = media.sizes && media.sizes.find(size => size.name === "medium" && size.filename);
-// 												if (medium) {
-// 													src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(medium.filename)}`;
-// 												} else {
-// 													src = `${KarmaFieldsAlpha.uploadURL}${media.dir||""}/${encodeURI(media.filename)}`;
-// 												}
-// 											}
-// 										}
-// 										// if (src && !img.element.src.endsWith(src)) {
-// 										if (src && src !== img.element.getAttribute("data-src")) {
-// 											img.element.src = src;
-// 											img.element.setAttribute("data-src", src);
-// 										}
-//
-// 										// const srcset = sizes.filter(size => size.width && size.filename).map(size => `${KarmaFieldsAlpha.uploadURL}${dir}/${encodeURI(size.filename)} ${size.width}w`).join(",");
-// 										// 		// if (srcset) {
-// 										// 		// 	img.element.sizes = this.resource.sizes || "40em";
-// 										// 		// 	img.element.srcset = srcset;
-// 										// 		// }
-// 									}
-// 								}
-// 							}
-// 						}
-// 					},
-// 					{
-// 						class: "video",
-// 						tag: "figure",
-// 						update: node => {
-// 							const visible = media.icon === "video" && media.filename && this.resource.display !== "icon" && this.resource.display !== "thumb";
-// 							node.element.classList.toggle("hidden", !visible);
-// 							if (visible) {
-// 								node.child = {
-// 									tag: "video",
-// 									init: video => {
-// 										video.element.controls = true;
-// 									},
-// 									update: video => {
-// 										if (!video.element.src.endsWith(media.filename)) {
-// 											video.element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-// 										}
-// 									}
-// 								}
-// 							}
-// 						}
-// 					},
-// 					{
-// 						class: "audio",
-// 						tag: "figure",
-// 						update: node => {
-// 							const visible = media.icon === "audio" && media.filename && this.resource.display !== "icon" && this.resource.display !== "thumb";
-// 							node.element.classList.toggle("hidden", !visible);
-// 							if (visible) {
-// 								node.child = {
-// 									tag: "audio",
-// 									init: audio => {
-// 										audio.element.controls = true;
-// 									},
-// 									update: audio => {
-// 										if (!audio.element.src.endsWith(media.filename)) {
-// 											audio.element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-// 										}
-// 									}
-// 								}
-// 							}
-// 						}
-// 					}
-// 					// {
-// 					// 	class: "file-caption",
-// 					// 	update: node => {
-// 					// 		node.element.classList.toggle("hidden", !this.resource.caption);
-// 					// 		if (this.resource.caption) {
-// 					// 			node.child = {
-// 					// 				class: "filename",
-// 					// 				update: filename => {
-// 					// 					filename.element.innerHTML = media.text;
-// 					// 				}
-// 					// 			}
-// 					// 		}
-// 					// 	}
-// 					// }
-// 				]
-// 			}
-// 		};
-// 	}
-// }

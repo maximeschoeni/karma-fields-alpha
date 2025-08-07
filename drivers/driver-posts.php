@@ -177,8 +177,6 @@ class Karma_Fields_Alpha_Driver_Posts {
 
               } else { // -> meta
 
-
-
                 $value = apply_filters('karma_fields_posts_driver_update_meta', $value, $key, $id);
 
                 $value = array_map(function($value) {
@@ -262,13 +260,12 @@ class Karma_Fields_Alpha_Driver_Posts {
 
       }
 
-
-
       if ($args) {
 
         $args = array_merge($post_arr, $args);
 
         remove_action( 'post_updated', 'wp_save_post_revision' );
+        add_filter('wp_insert_post_empty_content', '__return_false');
         // remove_action('pre_post_update', 'wp_save_post_revision');// stop revisions
 
         wp_insert_post($args);
@@ -606,7 +603,7 @@ class Karma_Fields_Alpha_Driver_Posts {
 
 
 
-    return apply_filters('karma_fields_posts_driver_query_output', $output, $query, $args);
+    return apply_filters('karma_fields_posts_driver_query_output', $output, $query, $args, $params);
 
   }
 
@@ -1118,12 +1115,49 @@ class Karma_Fields_Alpha_Driver_Posts {
       $ids = array_map('intval', $ids);
       $ids_string = implode(',', $ids);
 
-      $sql = "SELECT
-        meta_value AS 'value',
-        meta_key AS 'key',
-        post_id AS 'id'
-        FROM $wpdb->postmeta
-        WHERE post_id IN ($ids_string) AND (meta_key NOT LIKE '\_%' OR meta_key = '_thumbnail_id') AND meta_key != 'trash' ORDER BY meta_id";
+			$unlike = apply_filters('karma_fields_alpha_metakeys_unlike', array(
+				'\_oembed%',
+				'\_yoast%'
+			));
+
+			if ($unlike) {
+
+				$unlike_sql = implode("' AND meta_key NOT LIKE '", $unlike);
+				$unlike_sql = " AND meta_key NOT LIKE '$unlike_sql'";
+
+			} else {
+
+				$unlike_sql = '';
+
+			}
+
+			$notin = apply_filters('karma_fields_alpha_metakeys_notin', array(
+				'_edit_date',
+				'_edit_lock'
+			));
+
+			if ($notin) {
+
+				$notin_sql = implode("','", $notin);
+				$notin_sql = " AND meta_key NOT IN ('$notin_sql')";
+
+			} else {
+
+				$notin_sql = '';
+
+			}
+
+
+
+			// WHERE post_id IN ($ids_string) AND (meta_key NOT LIKE '\_%' OR meta_key = '_thumbnail_id') AND meta_key != 'trash' ORDER BY meta_id";
+
+
+			$sql = "SELECT
+				meta_value AS 'value',
+				meta_key AS 'key',
+				post_id AS 'id'
+				FROM $wpdb->postmeta
+				WHERE post_id IN ($ids_string){$unlike_sql}{$notin_sql} AND meta_key != 'trash' ORDER BY meta_id";
 
       $sql = apply_filters('karma_fields_posts_meta_sql', $sql, $ids, $ids_string);
 

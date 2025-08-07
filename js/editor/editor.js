@@ -1,131 +1,127 @@
 document.addEventListener("selectionchange", event => {
-
-	KarmaFieldsAlpha.Editor.update();
+	// console.log("selectionchange", event);
+	// KarmaFieldsAlpha.Editor.update();
+	//
+	// const selection = document.getSelection();
+	// const range = selection.rangeCount > 0 && selection.getRangeAt(0);
+	// console.log("selectionchange", range);
+	// if (range) debugger;
+	KarmaFieldsAlpha.Editor.onSelectionChange();
 
 });
 
 KarmaFieldsAlpha.Editor = class {
 
-	static tags = [];
-	// static range = new Range();
+	// static tags = [];
 	static map = new Map();
-	static beam;
+	// static beam;
 
-	static onInput() {}
-	static onUndo() {}
-	static onRedo() {}
+	// static onInput() {}
+	// static onUndo() {}
+	// static onRedo() {}
 
-	static dispatchInput(inputType) {
+	static onSelectionChange() {};
 
-		const content = this.getContent();
 
-		if (content !== this.content) {
 
-			this.content = content;
+	constructor(element) {
 
-			this.onInput(inputType, this);
+		this.element = element;
+		this.tags = [];
+		this.beam;
+
+	}
+
+	onInput() {}
+	onUndo() {}
+	onRedo() {}
+
+	dispatchInput(inputType) {
+
+		if (this.element) {
+
+			const root = this.getTag(this.element);
+
+			root.sanitize();
+
+			const content = root.getContent();
+
+			// if (content !== this.content) {
+
+			// 	this.content = content;
+
+				this.onInput(inputType, content, this);
+
+			// }
 
 		}
 
 	}
 
-	static init(element) {
+	init() {
 
-		if (this.element === element) {
-
-			return;
-
+		if (!this.element) {
+			console.error("editor is initialized before element is set");
 		}
 
-		this.element = element;
-
-		const tag = this.getTag(element);
-
-    element.oninput = async event => {
-
-			// this.spoil();
+		this.element.oninput = event => {
 
 			this.dispatchInput(event.inputType);
 
-			// console.time('doSomething')
-			//
-			// this.dispatchInput(event.inputType);
-			//
-			// console.timeEnd('doSomething')
+		}
 
-    }
+		this.element.oncut = event => {
 
-    element.oncut = event => {
-
-      event.preventDefault();
+		  event.preventDefault();
 
 			if (this.beam && !this.beam.collapsed) {
 
-				// const range = this.beam.cloneRange();
-				// this.Beam.shrinkDown(range);
-				// this.Beam.shrinkUp(range);
-
-				// this.selectDown(range);
-
-
-
-				this.Beam.shrinkDown(this.beam);
-				this.Beam.shrinkUp(this.beam);
+				this.shrinkDown(this.beam);
+				this.shrinkUp(this.beam);
+				// this.growDown(this.beam);
 
 				const tag = this.getTag(this.beam.endContainer);
 				const html = tag.cut();
 
-
-				// this.Beam.shrinkDown(this.beam);
-				//
-				// const commonAncestor = this.getTag(this.beam.commonAncestorContainer);
-				//
-		    // const content = this.beam.extractContents();
-				//
-				// commonAncestor.sanitize();
-				//
-		    // const container = document.createElement("div");
-		    // container.appendChild(content);
-				//
-		    // const html = container.innerHTML;
-
-        event.clipboardData.setData("text/plain", html);
-        event.clipboardData.setData("text/html", html);
+				event.clipboardData.setData("text/plain", html);
+				event.clipboardData.setData("text/html", html);
 
 				this.dispatchInput("cut");
 
-      }
+			}
 
-    }
+		}
 
-    element.oncopy = event => {
+		this.element.oncopy = event => {
 
-      event.preventDefault();
+			event.preventDefault();
 
 			if (this.beam && !this.beam.collapsed) {
 
-				// this.beam.shrinkDown();
 				const range = this.beam.cloneRange();
-				this.Beam.shrinkDown(range);
-				this.Beam.shrinkUp(range);
+				this.shrinkDown(range);
+				this.shrinkUp(range);
 
-				const content = range.cloneContents();
+				// const content = range.cloneContents();
 
-		    const container = document.createElement("div");
-		    container.appendChild(content);
+				// const container = document.createElement("div");
+				// container.appendChild(content);
 
-		    let html = container.innerHTML;
+				// let html = container.innerHTML;
 
-        event.clipboardData.setData("text/plain", html);
-        event.clipboardData.setData("text/html", html);
+				const tag = this.getTag(range.endContainer);
+				const html = tag.copy(range);
 
-      }
+				event.clipboardData.setData("text/plain", html);
+				event.clipboardData.setData("text/html", html);
 
-    }
+			}
 
-    element.onpaste = event => {
+		}
 
-      event.preventDefault();
+		this.element.onpaste = event => {
+
+		  event.preventDefault();
 
 			if (this.beam) {
 
@@ -139,28 +135,16 @@ KarmaFieldsAlpha.Editor = class {
 
 						html = text;
 
-						// html = `<p>${text.trim()}</p>`;
-						//
-						// html = html.replace(/(?:\r\n|\r|\n)+/g, '</p><p>');
-
 					}
 
-        }
+				}
 
 				if (html) {
-
-					// if (!this.beam.collapsed) {
-					//
-					// 	// this.beam.deleteContents();
-					// 	const tag = this.getTag(this.beam.endContainer);
-					// 	tag.cut();
-					//
-					// }
 
 					const node = document.createElement("div");
 					node.innerHTML = html;
 
-					const content = new this.Tag.content(node);
+					const content = new KarmaFieldsAlpha.Editor.Tag.content(node, this);
 					content.sanitize();
 
 					this.insertNode(...content.node.childNodes);
@@ -169,13 +153,13 @@ KarmaFieldsAlpha.Editor = class {
 
 				this.dispatchInput("paste", this);
 
-      }
+			}
 
-    }
+		}
 
-    element.onkeydown = async event => {
+		this.element.onkeydown = async event => {
 
-      if (event.key === "z" && event.metaKey) {
+			if (event.key === "z" && event.metaKey) {
 
 				event.preventDefault();
 
@@ -191,26 +175,7 @@ KarmaFieldsAlpha.Editor = class {
 
 			} else {
 
-				// if (!this.beam.collapsed && !event.altKey && !event.ctrlKey && !event.metaKey) {
-				//
-				// 	const tag = this.getTag(this.beam.endContainer);
-				//
-				// 	tag.cut();
-				//
-				// }
-
 				if (event.key === "Backspace") {
-
-					// const container = this.getTag(this.beam.startContainer);
-					//
-					// if (container.backwardDelete()) {
-					// if (!this.beam.collapsed && !event.altKey && !event.ctrlKey && !event.metaKey) {
-					//
-					// 	const tag = this.getTag(this.beam.endContainer);
-					//
-					// 	tag.cut();
-					//
-					// }
 
 					if (this.backwardDelete()) {
 
@@ -218,15 +183,11 @@ KarmaFieldsAlpha.Editor = class {
 
 						this.dispatchInput("backspace");
 
-	        }
+					}
 
 				} else if (event.key === "Enter") {
 
 					event.preventDefault();
-
-					// const container = this.getTag(this.beam.startContainer);
-					//
-					// container.breakLine(this.beam, event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
 
 					this.breakLine(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
 
@@ -240,11 +201,11 @@ KarmaFieldsAlpha.Editor = class {
 
 			}
 
-    }
+		}
 
 	}
 
-	static update() {
+	update() {
 
 		const selection = document.getSelection();
 
@@ -257,170 +218,124 @@ KarmaFieldsAlpha.Editor = class {
 				this.beam = range;
 
 				this.updateSelectedTags();
-
-				// console.log("update", this.tags.map(tag => tag.tagName));
-
 				this.onSelectionChange();
 
 			}
 
 		}
 
-  }
+	}
 
-	static updateSelectedTags() {
+	createRange() {
+
+		const selection = document.getSelection();
+
+		if (this.element && selection.rangeCount > 0) {
+
+			const range = selection.getRangeAt(0);
+
+			if (this.element.contains(range.commonAncestorContainer)) {
+
+				return range;
+
+			}
+
+		}
+
+	}
+
+
+	updateSelectedTags() {
 
 		const root = this.getTag(this.element);
 		const beam = this.beam.cloneRange();
 
 		if (!beam.collapsed) {
 
-			this.Beam.shrinkDown(beam);
+			this.shrinkDown(beam);
 
 		}
 
 		this.tags = [...root.listTags(beam)];
 
-		// console.log(this.tags.map(tag => tag.getName()));
 
 	}
 
-	static getSelectedTags() {
+	getSelectedTags() {
 
-		// return this.beam && this.beam.tags || [];
 		return this.tags || [];
 	}
 
-	static query(tagName, ...params) {
+	query(tagName, ...params) {
 
 		return this.getSelectedTags().filter(tag => tag.is(tagName, ...params));
 
 	}
 
-	static isSelected(tagName, ...params) {
+	isSelected(tagName, ...params) {
 
 		return this.getSelectedTags().some(tag => tag.is(tagName, ...params));
 
 	}
 
-	static has(tagName, ...params) {
+	has(tagName, ...params) {
 
 		return this.getSelectedTags().some(tag => tag.is(tagName, ...params));
 
 	}
 
 
-	static getContent() {
+	// getContent() {
 
-		// if (this.content) {
-		//
-		// 	return this.content;
-		//
-		// }
+	// 	const root = this.getTag(this.element);
 
-		const root = this.getTag(this.element);
+	// 	root.sanitize();
 
+	// 	return root.getContent();
 
-		// console.time('doSomething')
-		//
-		root.sanitize();
-		//
-		// console.timeEnd('doSomething')
+	// }
 
-
-		return root.getContent();
-
-  }
-
-	static setContent(content) {
+	setContent(content) {
 
 		const root = this.getTag(this.element);
 
 		root.setContent(content);
 
-		this.content = content;
+		// this.content = content;
 
-    // if (content) {
-		//
-		// 	const root = this.getTag(this.element);
-		//
-		// 	root.node.innerHTML = content;
-		//
-    //   root.sanitize();
-		//
-    // } else {
-		//
-		// 	root.reset();
-		//
-    // }
+	}
 
-  }
-
-	static getRange() {
+	getRange() {
 
 		return this.beam;
 
 	}
 
-	static reset() {
+	reset() {
 
 	}
 
-	static isRoot(node) {
+	isRoot(node) {
 
 		return node === this.element;
 
 	}
 
 
-	// static *listTags(range, element = this.element) {
-	//
-	// 	for (let child of element.childNodes) {
-	//
-	// 		if (range.intersectsNode(child)) {
-	//
-	// 			yield* this.listTags(range, child);
-	//
-	// 			yield child;
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
+	insertNode(...nodes) {
 
-	// static insertNode() {
-	//
-	// 	this.insertNode();
-	//
-	// 	const tags = [...content.node.children].map(node => this.getTag(node));
-	//
-	// 	const container = this.getTag(this.beam.startContainer);
-	//
-	// 	if (tags.every(tag => tag.is("inline") || tag.is("text"))) {
-	//
-	// 		container.insertInline(...tags);
-	//
-	// 	} else {
-	//
-	// 		container.insertBlock(...tags);
-	//
-	// 	}
-	//
-	// }
-
-
-
-	static insertNode(...nodes) {
+		if (!this.beam) {
+			console.error("Range not set");
+		}
 
 		if (!this.beam.collapsed) {
 
-			this.Beam.shrinkDown(this.beam);
-			this.Beam.shrinkUp(this.beam);
-			// this.Beam.growDown(this.beam);
+			this.shrinkDown(this.beam);
+			this.shrinkUp(this.beam);
+
 			this.beam.deleteContents();
 
-    }
+		}
 
 		const tags = nodes.map(node => this.getTag(node));
 		const container = this.getTag(this.beam.startContainer);
@@ -437,25 +352,7 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
-	static insert(...nodes) {
-
-		// const range = this.beam.cloneRange();
-		//
-    // for (let node of nodes) {
-		//
-		// 	const tag = this.getTag(node);
-		//
-		// 	tag.insertInto(this.beam);
-		//
-		// 	this.beam.collapse(false);
-		//
-    // }
-		//
-		// this.beam.setStart(range.startContainer, range.startOffset);
-		//
-		// const container = this.getTag(this.beam.commonAncestorContainer);
-		//
-		// container.sanitize();
+	insert(...nodes) {
 
 		this.insertNode(...nodes);
 
@@ -463,13 +360,15 @@ KarmaFieldsAlpha.Editor = class {
 
   }
 
-	static wrap(tagName, attributes) {
+	wrap(tagName, attributes) {
+
+		if (!this.beam) {
+			console.error("Range not set");
+		}
 
 		const node = this.createNode(tagName, attributes);
 
 		const tag = this.getTag(node, true);
-
-		// tag.wrap(tagName, attributes, this.beam);
 
 		tag.wrapMe();
 
@@ -477,7 +376,11 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
-	static unwrap(tagName) {
+	unwrap(tagName) {
+
+		if (!this.beam) {
+			console.error("Range not set");
+		}
 
 		const tags = this.query(tagName);
 
@@ -491,61 +394,11 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
+	edit(tagName, attributes) {
 
-
-	// static transform(tagName, attributes) {
-	//
-	// 	const tags = this.query(tagName, attributes);
-	//
-	// 	if (tags.length) {
-	//
-	// 		for (let tag of tags) {
-	//
-	// 			tag.transform(null, attributes, this.beam);
-	//
-	// 		}
-	//
-	// 	} else {
-	//
-	// 		const tag = this.createTag(tagName, attributes);
-	//
-	// 		tag.wrap(tagName, attributes, this.beam);
-	//
-	// 		this.updateSelectedTags(); // -> when a link is created
-	//
-	// 	}
-	//
-	// 	this.dispatchInput("transform");
-	//
-	// }
-
-	// static transform(tagName, attributes) {
-	//
-	// 	const tags = this.query(tagName, attributes);
-	//
-	// 	if (tags.length) {
-	//
-	// 		for (let tag of tags) {
-	//
-	// 			tag.transform(tagName, attributes, this.beam);
-	//
-	// 		}
-	//
-	// 	} else {
-	//
-	// 		const tag = this.createTag(tagName, attributes);
-	//
-	// 		tag.transform(tagName, attributes, this.beam);
-	//
-	// 		this.updateSelectedTags(); // -> when a link is created
-	//
-	// 	}
-	//
-	// 	this.dispatchInput("transform");
-	//
-	// }
-
-	static edit(tagName, attributes) {
+		if (!this.beam) {
+			console.error("Range not set");
+		}
 
 		const tag = this.createTag(tagName, attributes);
 
@@ -557,52 +410,12 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
-	// static toggle(tagName, attributes) {
-	//
-	// 	const tags = this.query(tagName, attributes);
-	//
-	// 	if (tags.length) {
-	//
-	// 		for (let tag of tags) {
-	//
-	// 			tag.unwrap(tagName, attributes, this.beam);
-	//
-	// 		}
-	//
-	// 	} else {
-	//
-	// 		const tag = this.createTag(tagName, attributes);
-	//
-	// 		tag.wrap(tagName, attributes, this.beam);
-	//
-	// 	}
-	//
-	// 	this.updateSelectedTags();
-	//
-	// 	this.dispatchInput("wrap");
-	//
-	// }
 
+	toggle(tagName, attributes) {
 
-	static toggle(tagName, attributes) {
-
-		// const tags = this.query(tagName, attributes);
-		//
-		// if (tags.length) {
-		//
-		// 	for (let tag of tags) {
-		//
-		// 		tag.toggle();
-		//
-		// 	}
-		//
-		// } else {
-		//
-		// 	const tag = this.createTag(tagName, attributes);
-		//
-		// 	tag.toggle();
-		//
-		// }
+		if (!this.beam) {
+			console.error("Range not set");
+		}
 
 		const tag = this.createTag(tagName, attributes);
 
@@ -614,9 +427,25 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
+	remove(tagName) {
+
+		const tags = this.query(tagName);
+
+		for (let tag of tags) {
+
+			tag.remove();
+
+		}
+
+		this.updateSelectedTags();
+
+		this.dispatchInput("remove");
+
+	}
 
 
-	static breakLine(shift) {
+
+	breakLine(shift) {
 
 		if (!this.beam) {
 
@@ -639,7 +468,7 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
-	static backwardDelete() {
+	backwardDelete() {
 
 		if (!this.beam) {
 
@@ -653,9 +482,23 @@ KarmaFieldsAlpha.Editor = class {
 
 			tag.cut();
 
+			// const root = this.getTag(this.element);
+
+			// if (!root.node.hasChildNodes()) {
+
+			// 	root.reset();
+
+			// 	this.beam.setStart(root.node, 0);
+			// 	this.shrinkUpStart(this.beam);
+			// 	this.beam.collapse(true);
+
+			// }
+
 			return true;
 
 		}
+
+		this.growUpStart(this.beam);
 
 		const container = this.getTag(this.beam.startContainer);
 
@@ -663,25 +506,25 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
-	static getConstructor(tagName) {
+	getConstructor(tagName) {
 
-		return this.map.get(tagName) || KarmaFieldsAlpha.Editor.Tag;
+		return KarmaFieldsAlpha.Editor.map.get(tagName) || KarmaFieldsAlpha.Editor.Tag;
 
 	}
 
-	static create(tagName, attributes) {
+	create(tagName, attributes) {
 
 		const constructor = this.getConstructor(tagName);
 
 		const node = this.createNode(tagName, attributes);
 
-		const tag = new constructor(node);
+		const tag = new constructor(node, this);
 
 		return tag;
 
 	}
 
-	static createNode(tag, attributes, content) {
+	createNode(tag, attributes, content) {
 
 		if (content) {
 
@@ -691,39 +534,9 @@ KarmaFieldsAlpha.Editor = class {
 
 		return this.transformNode(null, tag, attributes);
 
-		// const node = document.createElement(tag.toLowerCase());
-		//
-		// if (content) {
-		//
-		// 	// node.appendChild(content);
-		//
-		// 	while (content.firstChild) {
-		//
-		// 		node.appendChild(content.firstChild);
-		//
-		// 	}
-		//
-		// }
-		//
-		// if (attributes) {
-		//
-		// 	for (let key in attributes) {
-		//
-	  //     if (attributes[key]) {
-		//
-		// 			node.setAttribute(key, attributes[key]);
-		//
-	  //     }
-		//
-	  //   }
-		//
-		// }
-		//
-		// return node;
-
 	}
 
-	static transformNode(node, tagName, params) {
+	transformNode(node, tagName, params) {
 
 		if (!node) {
 
@@ -731,13 +544,13 @@ KarmaFieldsAlpha.Editor = class {
 
 		} else if (tagName && node.tagName !== tagName.toUpperCase()) {
 
-      const newNode = document.createElement(tagName);
+			const newNode = document.createElement(tagName);
 
 			while (node.firstChild) {
 
 				newNode.appendChild(node.firstChild);
 
-      }
+			}
 
 			if (node.parentNode) {
 
@@ -745,29 +558,19 @@ KarmaFieldsAlpha.Editor = class {
 
 			}
 
-			// if (this.beam.startContainer === node) {
-			//
-			// 	this.beam.setStart(newNode, this.beam.startOffset);
-			//
-			// }
-			//
-			// if (this.beam.endContainer === node) {
-			//
-			// 	this.beam.setEnd(newNode, this.beam.endOffset);
-			//
-			// }
-
 			node = newNode;
 
 		}
 
 		if (params) {
 
-			while (node.attributes.length) {
+			// -> when editing eg link attributes, we want to edit just one attribute
+			//
+			// while (node.attributes.length) {
 
-				node.removeAttributeNode(node.attributes[0]);
+			// 	node.removeAttributeNode(node.attributes[0]);
 
-	    }
+			// }
 
 			for (let key in params) {
 
@@ -775,7 +578,11 @@ KarmaFieldsAlpha.Editor = class {
 
 					node.setAttribute(key, params[key]);
 
-	      }
+				} else {
+
+					node.removeAttribute(key);
+
+				}
 
 			}
 
@@ -785,19 +592,27 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
-	static getTag(node) {
+	sanitize(content) {
+		const node = document.createElement("div");
+		node.innerHTML = content;
+		const tag = this.getTag(node);
+		tag.sanitize();
+		return node.innerHTML;
+	}
+
+	getTag(node) {
 
 		const tagName = node.nodeType === 1 && node.tagName || node.nodeType === 3 && "text" || node.nodeType === 11 && "content";
 
 		const constructor = this.getConstructor(tagName);
 
-		const tag = new constructor(node);
+		const tag = new constructor(node, this);
 
 		return tag;
 
 	}
 
-	static createTag(tagName, attributes, content) {
+	createTag(tagName, attributes, content) {
 
 		const node = this.createNode(tagName, attributes, content);
 
@@ -805,7 +620,7 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
-	static createPrototype(tagName) {
+	createPrototype(tagName) {
 
 		const constructor = this.getConstructor(tagName);
 
@@ -825,279 +640,92 @@ KarmaFieldsAlpha.Editor = class {
 
 	}
 
-	// static shrinkUp() {
-	//
-	// 	this.shrinkUpStart();
-	// 	this.shrinkUpEnd();
-	//
-	// }
-	//
-	// static shrinkDown() {
-	//
-	// 	this.shrinkDownStart();
-	// 	this.shrinkDownEnd();
-	//
-	// }
-	//
-	// static growUp() {
-	//
-	// 	this.growUpStart();
-	// 	this.growUpEnd();
-	//
-	// }
-	//
-	// static growDown() {
-	//
-	// 	this.growDownStart();
-	// 	this.growDownEnd();
-	//
-	// }
-	//
-	// static shrinkUpStart() {
-	//
-	// 	if (this.range.startContainer.nodeType === 1) {
-	//
-	// 		let child = this.range.startContainer.childNodes[this.range.startOffset];
-	//
-	// 		if (child) {
-	//
-	// 			if (child.nodeType === 3) {
-	//
-	// 				this.range.setStart(child, 0);
-	//
-	// 			} else if (child.hasChildNodes()) {
-	//
-	// 				this.range.setStart(child, 0);
-	//
-	// 				this.shrinkUpStart();
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
-	//
-	// static shrinkDownStart() {
-	//
-	// 	let node = this.range.startContainer;
-	// 	let offset = this.range.startOffset;
-	//
-	// 	if (node.nodeType === 3 && offset >= node.length || node.nodeType === 1 && offset >= node.childNodes.length) {
-	//
-	// 		this.range.setStartAfter(node);
-	//
-	// 		this.shrinkDownStart();
-	//
-	// 	}
-	//
-	// }
-	//
-	// static growUpStart() {
-	//
-	// 	if (this.range.startContainer.nodeType === 1 && this.range.startOffset > 0) {
-	//
-	// 		let child = this.range.startContainer.childNodes[this.range.startOffset - 1];
-	//
-	// 		if (child.nodeType === 3) {
-	//
-	// 			this.range.setStart(child, child.length);
-	//
-	// 		} else if (child.hasChildNodes()) {
-	//
-	// 			this.range.setStart(child, child.childNodes.length);
-	//
-	// 			this.growUpStart();
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
-	//
-	// static growDownStart() {
-	//
-	// 	if (this.range.startContainer.nodeType === 1 && this.range.startOffset === 0 || this.range.startContainer.nodeType === 3 && this.range.startOffset === 0) {
-	//
-	// 		this.range.setStartBefore(this.range.startContainer);
-	//
-	// 		this.growDownStart();
-	//
-	// 	}
-	//
-	// }
-	//
-	// static growUpEnd() {
-	//
-	// 	if (this.range.endContainer.nodeType === 1) {
-	//
-	// 		let child = this.range.endContainer.childNodes[this.range.endOffset];
-	//
-	// 		if (child) {
-	//
-	// 			if (child.nodeType === 3) {
-	//
-	// 				this.range.setStart(child, 0);
-	//
-	// 			} else if (child.hasChildNodes()) {
-	//
-	// 				this.range.setStart(child, 0);
-	//
-	// 				this.growUpEnd();
-	//
-	// 			}
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
-	//
-	// static growDownEnd() {
-	//
-	// 	if (this.range.endContainer.nodeType === 3 && this.range.endOffset >= this.range.endContainer.length || this.range.endContainer.nodeType === 1 && this.range.endOffset >= this.range.endContainer.childNodes.length) {
-	//
-	// 		this.range.setEndAfter(this.range.endContainer);
-	//
-	// 		this.growDownEnd();
-	//
-	// 	}
-	//
-	// }
-	//
-	// static shrinkUpEnd() {
-	//
-	// 	if (this.range.endContainer.nodeType === 1 && this.range.endOffset > 0) {
-	//
-	// 		let child = this.range.endContainer.childNodes[this.range.endOffset - 1];
-	//
-	// 		if (child.nodeType === 3) {
-	//
-	// 			this.range.setEnd(child, child.length);
-	//
-	// 		} else if (child.hasChildNodes()) {
-	//
-	// 			this.range.setEnd(child, child.childNodes.length);
-	//
-	// 			this.shrinkUpEnd();
-	//
-	// 		}
-	//
-	// 	}
-	//
-	// }
-	//
-	// static shrinkDownEnd() {
-	//
-	// 	if (this.range.endContainer.nodeType === 1 && this.range.endOffset === 0 || this.range.endContainer.nodeType === 3 && this.range.endOffset === 0) {
-	//
-	// 		this.range.setEndBefore(this.range.endContainer);
-	//
-	// 		this.shrinkDownEnd();
-	//
-	// 	}
-	//
-	// }
-
-
-	static getPathes() {
+	getPathes() {
 
 		if (this.beam.collapsed) {
 
 			return [this.getPathFromPoint(this.beam.startContainer, this.beam.startOffset)];
 
-    } else {
+		} else {
 
-      return [
-        this.getPathFromPoint(this.beam.startContainer, this.beam.startOffset),
-        this.getPathFromPoint(this.beam.endContainer, this.beam.endOffset)
-      ];
+			return [
+				this.getPathFromPoint(this.beam.startContainer, this.beam.startOffset),
+				this.getPathFromPoint(this.beam.endContainer, this.beam.endOffset)
+			];
 
-    }
+		}
 
-  }
+	}
 
-	static getPathFromPoint(node, index) {
+	getPathFromPoint(node, index) {
 
-    const path = [index];
+		const path = [index];
 
-		while (node !== this.element) {
+		while (node && node !== this.element) {
 
-      index = 0;
+			index = 0;
 
-      while (node.previousSibling) {
+			while (node.previousSibling) {
 
-        index++;
-        node = node.previousSibling
+				index++;
+				node = node.previousSibling
 
-      }
+			}
 
-      path.unshift(index);
+			path.unshift(index);
 
-      node = node.parentNode;
+			node = node.parentNode;
 
-    }
+		}
 
-    return path;
-  }
+		return path;
+	}
 
 
-	static getPointFromPath(path) {
+	getPointFromPath(path) {
 
-    let nodePath = path.slice(0, -1);
+		let nodePath = path.slice(0, -1);
 		let node = this.element;
-    let depth = 0;
-    let offset = path[path.length - 1];
+		let depth = 0;
+		let offset = path[path.length - 1];
 
 		while (node.nodeType === 1 && depth < nodePath.length && node.firstChild) {
 
-      node = node.firstChild;
+			node = node.firstChild;
 
-      for (let i = 0; i < nodePath[depth]; i++) {
+			for (let i = 0; i < nodePath[depth]; i++) {
 
-        if (node.nextSibling) {
+				if (node.nextSibling) {
 
-          node = node.nextSibling;
+					node = node.nextSibling;
 
-        }
+				}
 
-      }
+			}
 
-      depth++;
+			depth++;
 
-    }
+		}
 
-    if (node.nodeType === 1) {
+		if (node.nodeType === 1) {
 
-      offset = Math.min(node.childNodes.length, offset);
+			offset = Math.min(node.childNodes.length, offset);
 
-    } else {
+		} else {
 
-      offset = Math.min(node.length, offset);
+			offset = Math.min(node.length, offset);
 
-    }
+		}
 
-    return [node, offset];
+		return [node, offset];
 
-  }
+	}
 
-	static setPathes(pathes) {
+
+
+	setPathes(pathes) {
 
 		if (!this.beam) {
-
-			// const selection = document.getSelection();
-			//
-			// const range = selection.getRangeAt(0);
-			//
-			// if (this.element.contains(range.commonAncestorContainer)) {
-			//
-			// 	this.beam = new this.Beam(range);
-			//
-			// }
-
-			// const range = new Range();
-			// this.beam = new this.Beam(range);
 
 			this.beam = new Range();
 
@@ -1113,7 +741,7 @@ KarmaFieldsAlpha.Editor = class {
 
 			this.beam.setEnd(...this.getPointFromPath(pathes[1]));
 
-    } else {
+		} else {
 
 			this.beam.collapse(true);
 
@@ -1121,66 +749,242 @@ KarmaFieldsAlpha.Editor = class {
 
 		this.updateSelectedTags();
 
-  }
+	}
+
+
+	shrinkUp(range) {
+
+		this.shrinkUpStart(range);
+		this.shrinkUpEnd(range);
+
+	}
+
+	shrinkDown(range) {
+
+		this.shrinkDownStart(range);
+		this.shrinkDownEnd(range);
+
+	}
+
+	growUp(range) {
+
+		this.growUpStart(range);
+		this.growUpEnd(range);
+
+	}
+
+	growDown(range) {
+
+		this.growDownStart(range);
+		this.growDownEnd(range);
+
+	}
+
+	shrinkUpStart(range) {
+
+		if (range.startContainer.nodeType === 1) {
+
+			let child = range.startContainer.childNodes[range.startOffset];
+
+			if (child) {
+
+				if (child.nodeType === 3) {
+
+					range.setStart(child, 0);
+
+				} else if (child.hasChildNodes()) {
+
+					range.setStart(child, 0);
+
+					this.shrinkUpStart(range);
+
+				}
+
+			}
+
+		}
+
+	}
+
+	shrinkDownStart(range) {
+
+		let node = range.startContainer;
+		let offset = range.startOffset;
+
+		if (node.nodeType === 3 && offset >= node.length || node.nodeType === 1 && offset >= node.childNodes.length  && node !== this.element) {
+
+			range.setStartAfter(node);
+
+			this.shrinkDownStart(range);
+
+		}
+
+	}
+
+	growUpStart(range) {
+
+		if (range.startContainer.nodeType === 1 && range.startOffset > 0) {
+
+			let child = range.startContainer.childNodes[range.startOffset - 1];
+
+			if (child.nodeType === 3) {
+
+				range.setStart(child, child.length);
+
+			} else if (child.hasChildNodes()) {
+
+				range.setStart(child, child.childNodes.length);
+
+				this.growUpStart(range);
+
+			}
+
+		}
+
+	}
+
+	growDownStart(range) {
+
+		if (range.startContainer.nodeType === 1 && range.startOffset === 0 && range.startContainer !== this.element || range.startContainer.nodeType === 3 && range.startOffset === 0) {
+
+			range.setStartBefore(range.startContainer);
+
+			this.growDownStart(range);
+
+		}
+
+	}
+
+	growUpEnd(range) {
+
+		if (range.endContainer.nodeType === 1) {
+
+			let child = range.endContainer.childNodes[range.endOffset];
+
+			if (child) {
+
+				if (child.nodeType === 3) {
+
+					range.setStart(child, 0);
+
+				} else if (child.hasChildNodes()) {
+
+					range.setStart(child, 0);
+
+					this.growUpEnd(range);
+
+				}
+
+			}
+
+		}
+
+	}
+
+	growDownEnd(range) {
+
+		if (range.endContainer.nodeType === 3 && range.endOffset >= range.endContainer.length || range.endContainer.nodeType === 1 && range.endOffset >= range.endContainer.childNodes.length && range.endContainer !== this.element) {
+
+			range.setEndAfter(range.endContainer);
+
+			this.growDownEnd(range);
+
+		}
+
+	}
+
+	shrinkUpEnd(range) {
+
+		if (range.endContainer.nodeType === 1 && range.endOffset > 0) {
+
+			let child = range.endContainer.childNodes[range.endOffset - 1];
+
+			if (child.nodeType === 3) {
+
+				range.setEnd(child, child.length);
+
+			} else if (child.hasChildNodes()) {
+
+				range.setEnd(child, child.childNodes.length);
+
+				this.shrinkUpEnd(range);
+
+			}
+
+		}
+
+	}
+
+	shrinkDownEnd(range) {
+
+		if (range.endContainer.nodeType === 1 && range.endOffset === 0 && range.endContainer !== this.element || range.endContainer.nodeType === 3 && range.endOffset === 0) {
+
+			range.setEndBefore(range.endContainer);
+
+			this.shrinkDownEnd(range);
+
+		}
+
+	}
 
 
 }
 
-KarmaFieldsAlpha.Editor.Collection = class {
+// KarmaFieldsAlpha.Editor.Collection = class {
 
-	constructor(tags, editor) {
+// 	constructor(tags, editor) {
 
-		this.tags = tags;
-		this.editor = editor || KarmaFieldsAlpha.Editor;
+// 		this.tags = tags;
+// 		this.editor = editor || KarmaFieldsAlpha.Editor;
 
-	}
+// 	}
 
-	transform(tagName, attributes) {
+// 	transform(tagName, attributes) {
 
-		if (this.tags.length) {
+// 		if (this.tags.length) {
 
-			for (let tag of this.tags) {
+// 			for (let tag of this.tags) {
 
-				tag.transform(tagName, attributes, this.beam);
+// 				tag.transform(tagName, attributes, this.beam);
 
-			}
+// 			}
 
-		} else {
+// 		} else {
 
-			const tag = this.editor.createTag(tagName, attributes);
+// 			const tag = this.editor.createTag(tagName, attributes);
 
-			tag.transform(tagName, attributes, this.beam);
+// 			tag.transform(tagName, attributes, this.beam);
 
-		}
+// 		}
 
-		this.editor.updateSelectedTags(); // -> when a link is created
+// 		this.editor.updateSelectedTags(); // -> when a link is created
 
-		this.editor.dispatchInput("transform");
+// 		this.editor.dispatchInput("transform");
 
-	}
+// 	}
 
-	toggle(tagName, attributes) {
+// 	toggle(tagName, attributes) {
 
-		if (this.tags.length) {
+// 		if (this.tags.length) {
 
-			for (let tag of this.tags) {
+// 			for (let tag of this.tags) {
 
-				tag.toggle();
+// 				tag.toggle();
 
-			}
+// 			}
 
-		} else {
+// 		} else {
 
-			const tag = this.editor.createTag(tagName, attributes);
+// 			const tag = this.editor.createTag(tagName, attributes);
 
-			tag.toggle();
+// 			tag.toggle();
 
-		}
+// 		}
 
-		this.editor.updateSelectedTags();
+// 		this.editor.updateSelectedTags();
 
-		this.editor.dispatchInput("toggle");
+// 		this.editor.dispatchInput("toggle");
 
-	}
+// 	}
 
-}
+// }

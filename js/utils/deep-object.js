@@ -1177,3 +1177,306 @@ console.error("deprecated");
   }
 
 }
+
+KarmaFieldsAlpha.Collection = class {
+
+	constructor(name, keyPath) {
+
+		this.data = {};
+
+		this.keyPath = keyPath;
+
+		if (name) {
+
+			KarmaFieldsAlpha.Collection[name] = this.data;
+
+		}
+
+	}
+
+	static get(object, ...path) {
+
+		if (path.length === 0) {
+
+			return object;
+
+		} else if (object) {
+
+			return this.get(object[path[0]], ...path.slice(1));
+
+		}
+
+	}
+
+
+	static set(object, value, key, ...path) {
+
+		if (path.length > 0) {
+
+			if (!object[key]) {
+
+				object[key] = {};
+
+			}
+
+			this.set(object[key], value, ...path);
+
+		} else {
+
+			object[key] = value;
+
+		}
+
+	}
+
+	static remove(object, key, ...path) {
+
+		if (key !== undefined && object) {
+
+			if (path.length > 0) {
+
+				this.remove(object[key], ...path);
+
+			} else {
+
+				delete object[key];
+
+			}
+
+		}
+
+	}
+
+	// static has(object, key, ...path) {
+
+	// 	if (key === undefined) {
+
+	// 		return object !== undefined;
+
+	// 	} else if (object) {
+
+	// 		return this.has(object[key], ...path);
+
+	// 	}
+
+	// 	return false;
+
+	// }
+
+	static has(object, key, ...path) {
+
+		if (!object) {
+
+			return false;
+
+		}
+
+		if (path.length > 0) {
+
+			return this.has(object[key], ...path);
+
+		}
+
+		return object[key] !== undefined;
+
+	}
+
+	// static assign(object, value, key, ...path) {
+
+	// 	if (key === undefined) {
+
+	// 		Object.assign(object, value);
+
+	// 	} else {
+
+	// 		if (!object[key]) {
+
+	// 			object[key] = {};
+
+	// 		}
+
+	// 		this.assign(object[key], value, ...path);
+
+	// 	}
+
+	// }
+
+	static assign(object, value) {
+
+		for (let key in value) {
+
+			if (value[key] && value[key].constructor === Object) {
+
+				if (!object[key] || object[key].constructor !== Object) {
+
+					object[key] = {};
+
+				}
+
+				this.assign(object[key], value[key]);
+
+			} else {
+
+				object[key] = value[key];
+
+			}
+
+		}
+
+	}
+
+	static equal(object, value) {
+
+		if (Array.isArray(object)) {
+
+			return Array.isArray(value) && object.length === value.length && object.every((item, index) => this.equal(item, value[index]));
+
+		} else if (object && object.constructor === Object) {
+
+			if (value && value.constructor === Object && Object.keys(object).length === Object.keys(value).length) {
+
+				for (let key in object) {
+
+					if (!this.equal(object[key], value[key])) {
+
+						return false;
+
+					}
+
+				}
+
+				return true;
+
+			}
+
+			return false;
+
+		} else {
+
+			return object === value;
+
+		}
+
+	}
+
+	get(...path) {
+
+		return this.constructor.get(this.data, ...path);
+
+	}
+
+	set(value, ...path) {
+
+		this.constructor.set(this.data, value, ...path);
+
+	}
+
+	remove(...path) {
+
+		this.constructor.remove(this.data, ...path);
+
+	}
+
+	has(...path) {
+
+		return this.constructor.has(this.data, ...path);
+
+	}
+
+	assign(value) {
+
+		this.constructor.assign(this.data, value);
+
+	}
+
+
+	*query(query = {}, keyPath = this.keyPath, object = this.data) {
+
+		if (keyPath.length) {
+
+			const [key, ...rest] = keyPath;
+
+			for (let value in object) {
+
+				if (query[key] === undefined || query[key] === value) {
+
+					yield* this.query({ ...query, [key]: value }, rest, object[value]);
+
+				}
+
+			}
+
+		} else {
+
+			yield { ...query, value: object };
+
+		}
+
+	}
+
+	getAll() {
+
+		return [...this.query()];
+
+	}
+
+	// count(keyPath = this.keyPath, object = this.data, depth = 0) {
+
+	// 	let total = 0;
+
+	// 	if (depth <= keyPath.length) {
+
+	// 		for (let value in object) {
+
+	// 			total += this.count(keyPath, object[value], depth + 1);
+
+	// 		}
+
+	// 	} else {
+
+	// 		total++;
+
+	// 	}
+
+	// 	return total;
+	// }
+
+	// count(...path) {
+
+	// 	let total = 0;
+	// 	const object = this.get(...path);
+
+	// 	for (let key in object) {
+
+	// 		total++;
+
+	// 	}
+
+	// 	Object.keys(object).length;
+
+
+
+	// 	if (depth <= keyPath.length) {
+
+	// 		for (let value in object) {
+
+	// 			total += this.count(keyPath, object[value], depth + 1);
+
+	// 		}
+
+	// 	} else {
+
+	// 		total++;
+
+	// 	}
+
+	// 	return total;
+	// }
+
+	clear() {
+
+		this.data = {};
+
+	}
+
+}

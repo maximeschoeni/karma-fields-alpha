@@ -1,18 +1,19 @@
 
 KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
-  constructor(resource, id, parent) {
+	constructor(resource, id, parent) {
 
-    super(resource, id, parent);
 
-    // this.focusId = "";
-    // this.clipboard = false;
-    //
-    // this.states = {};
+		super(resource, id, parent);
 
-    KarmaFieldsAlpha.server = new KarmaFieldsAlpha.Server();
+		// this.focusId = "";
+		// this.clipboard = false;
+		//
+		// this.states = {};
 
-  }
+		// KarmaFieldsAlpha.server = new KarmaFieldsAlpha.Server();
+
+	}
 
   // useClipboard() {
   //
@@ -76,39 +77,33 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   // }
 
 
-  getContent(key) {
+	getValue(key) {
 
-    const searchParams = new URLSearchParams(location.search);
+		const searchParams = new URLSearchParams(location.search);
 
-    const value = searchParams.get(key) || undefined; // -> method get return null if empty
+		const value = searchParams.get(key) || "";
 
-    return new KarmaFieldsAlpha.Content(value);
+		return [value];
 
-  }
+	}
 
-  setContent(content, key) {
+	setValue(content, key) {
 
-    // ?? what to do?
+		// ?? what to do?
 
-  }
+	}
 
-  removeContent(key) {
+	getFocusField() {
 
-  }
+		const path = this.getFocusPath() || [];
 
-  getFocusField() {
+		if (path.length) {
 
-    // const focus = this.getFocus();
+			return this.getChild(...path.slice(1));
 
-    const path = this.getFocusPath() || [];
+		}
 
-    if (path.length) {
-
-      return this.getChild(...path.slice(1));
-
-    }
-
-  }
+	}
 
 
   undo() {
@@ -135,99 +130,119 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
   }
 
-  newChild(index) {
+	newChild(index) {
 
-    if (index === "board") {
+		if (index === "board") {
 
-      return this.createChild({
-        type: "board"
-        // tables: this.resource.tables // -> to be removed
-      }, "board");
+			return this.createChild({
+				type: "board"
+				// tables: this.resource.tables // -> to be removed
+			}, "board");
 
-    } else {
+		} else {
 
-      if (KarmaFieldsAlpha.embeds[index]) {
+			// if (KarmaFieldsAlpha.embeds[index]) {
 
-        return this.createChild(KarmaFieldsAlpha.embeds[index], index);
+			// 	return this.createChild(KarmaFieldsAlpha.embeds[index], index);
 
-      }
+			// }
 
-    }
+			if (KarmaFieldsAlpha.instances[index]) {
 
-  }
+				const item = KarmaFieldsAlpha.instances[index];
+
+				return this.createChild(item.resource, index);
+
+			}
+
+		}
+
+	}
 
 
-  async abduct() {
+	// async abduct() {
 
-    const embeds = KarmaFieldsAlpha.embeds;
+	// 	const embeds = KarmaFieldsAlpha.embeds;
 
-    if (embeds) {
+	// 	if (embeds) {
 
-      for (let index in embeds) {
+	// 		for (let index in embeds) {
 
-        const resource = embeds[index];
+	// 			const resource = embeds[index];
 
-        const element = document.getElementById(index);
+	// 			const element = document.getElementById(index);
 
-        const child = this.createChild(resource, index);
+	// 			const child = this.createChild(resource, index);
 
-        await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+	// 			// await KarmaFieldsAlpha.build(child.build(), element, element.firstElementChild);
+	// 			await abduct(element, child.build());
+	// 		}
 
-      }
+	// 		const focus = this.getFocus();
 
-      const focus = this.getFocus();
+	// 		document.body.classList.toggle("karma-table-open", focus.includes("popup"));
 
-      document.body.classList.toggle("karma-table-open", focus.includes("popup"));
+	// 	}
 
-    }
+	// }
 
-  }
+	// async loop() {
 
-  async loop() {
+	// 	if (KarmaFieldsAlpha.server.loading) {
 
-    // KarmaFieldsAlpha.server = new KarmaFieldsAlpha.Server();
+	// 		return new Promise(resolve => void setTimeout(resolve, 500));
 
-    if (this.rendering) {
+	// 	}
 
-      console.warn("Rendering under process!", this);
+	// 	KarmaFieldsAlpha.server.loading = true;
 
-    }
+	// 	// if (this.rendering) {
 
-    // console.log("rendering");
+	// 	//   console.warn("Rendering under process!", this);
 
-    // if (!this.rendering) {
+	// 	// }
 
-      this.rendering = true;
+	// 	// console.log("rendering");
 
-      for (let index in KarmaFieldsAlpha.embeds) {
-        document.getElementById(index).classList.add("container-loading");
-      }
+	// 	// if (!this.rendering) {
 
-      await KarmaFieldsAlpha.server.init();
+	// 	// this.rendering = true;
 
-      await this.abduct();
+	// 	// for (let index in KarmaFieldsAlpha.embeds) {
+	// 	//   document.getElementById(index).classList.add("container-loading");
+	// 	// }
 
-      while (KarmaFieldsAlpha.server.hasOrder()) {
+	// 	document.body.classList.add("karma-field-loading");
 
-        await KarmaFieldsAlpha.server.process();
+	// 	await KarmaFieldsAlpha.server.init();
 
-        await this.abduct();
+	// 	await this.abduct();
 
-      }
+	// 	while (KarmaFieldsAlpha.server.hasOrder()) {
 
-      for (let index in KarmaFieldsAlpha.embeds) {
-        document.getElementById(index).classList.remove("container-loading");
-      }
+	// 		await KarmaFieldsAlpha.server.process();
 
-      this.rendering = false;
+	// 		await this.abduct();
 
-    // } else {
-    //
-    //   console.warn("Rendering under process!", this);
-    //
-    // }
+	// 	}
 
-  }
+	// 	// for (let index in KarmaFieldsAlpha.embeds) {
+	// 	//   document.getElementById(index).classList.remove("container-loading");
+	// 	// }
+
+	// 	// this.rendering = false;
+
+	// 	KarmaFieldsAlpha.server.loading = false;
+
+	// 	document.body.classList.remove("karma-field-loading");
+
+	// 	// } else {
+	// 	//
+	// 	//   console.warn("Rendering under process!", this);
+	// 	//
+	// 	// }
+
+	// }
 
 
 
@@ -245,23 +260,51 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   //
   // }
 
-  render() {
+	// registerField(element, resource) {
 
-    // if (!this.rendering) {
-    //
-    //   this.rendering = this.loop().then(() => this.rendering = null);
-    //
-    // }
-    //
-    // return this.rendering;
+	// 	const field = this.createChild(resource, this.fields.length);
 
-    // KarmaFieldsAlpha.rendering = this.loop();
-    //
-    // return KarmaFieldsAlpha.rendering;
+	// 	this.fields.push({ element, field });
 
-    return this.loop();
+	// 	// await abduct(item.element, field.build());
 
-  }
+	// }
+
+	close() {
+
+		this.parent.close();
+
+	}
+
+	async abduct() {
+
+		for (let i = 0; i < KarmaFieldsAlpha.instances.length; i++) {
+
+			const item = KarmaFieldsAlpha.instances[i];
+			const field = this.createChild(item.resource, i);
+
+			await abduct(item.element, field.build());
+
+		}
+
+	}
+
+	// render() {
+
+	// 	// const item = [];
+
+	// 	// for (let i = 0; i < KarmaFieldsAlpha.instances.length; i++) {
+
+	// 	// 	const field = this.createChild(KarmaFieldsAlpha.instances[i].resource, this.fields.length);
+
+	// 	// 	item.push({ element: KarmaFieldsAlpha.instances[i].element, implants: field.build() });
+
+	// 	// }
+
+	// 	// return this.loop();
+	// 	this.renderElement();
+
+	// }
 
 
 
@@ -346,116 +389,108 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
 
-  build() {
-    return {
-      class: "saucer",
-      init: container => {
+	*build() {
+		yield {
+			class: "saucer",
+			init: element => {
+				document.addEventListener("keydown", event => {
+					if (event.key === "s" && event.metaKey) {
+						event.preventDefault();
+						const field = this.getFocusField();
+						field.submit();
+						this.render();
+					} else if (event.key === "z" && event.metaKey) {
+						if (document.activeElement === document.body || document.activeElement === document.documentElement || document.activeElement.closest(".karma-fields")) {
+							event.preventDefault();
+							if (event.shiftKey) {
+								KarmaFieldsAlpha.History.redo();
+							} else {
+								KarmaFieldsAlpha.History.undo();
+							}
+						}
+					}
+				});
+				window.addEventListener("popstate", event => {
+					// KarmaFieldsAlpha.History.update();
+					this.render();
+				});
 
-        document.addEventListener("keydown", async event => {
-          if (event.key === "s" && event.metaKey) {
-            event.preventDefault();
-            const field = await this.getFocusField();
-            await field.request("submit");
-            await this.request("render");
-          } else if (event.key === "z" && event.metaKey) {
-            // event.preventDefault();
-            // if (event.shiftKey) {
-            //   KarmaFieldsAlpha.History.redo();
-            // } else {
-            //   KarmaFieldsAlpha.History.undo();
-            // }
-          }
-        });
-        window.addEventListener("popstate", async event => {
-          KarmaFieldsAlpha.server = new KarmaFieldsAlpha.Server();
+				window.addEventListener("mousedown", event => {
+					const focus = this.getFocus();
+					if (focus) {
+						this.removeFocus();
+						this.render();
+					}
+				});
+			},
+			children: [
+				{
+					class: "clipboard",
+					tag: "textarea",
+					update: element => {
+						element.id = "karma-fields-alpha-clipboard";
+						element.readOnly = true;
+						const useClipboard = this.useClipboard();
+						if (useClipboard) {
+							element.focus({ preventScroll: true });
+						}
+						element.onkeydown = event => {
+							if (event.key === "z" && event.metaKey) {
+								event.preventDefault();
+								if (event.shiftKey) {
+									KarmaFieldsAlpha.History.redo();
+								} else {
+									KarmaFieldsAlpha.History.undo();
+								}
+							}
+							if (event.key === "a" && event.metaKey) {
+								event.preventDefault();
+								field = this.getFocusField();
+								field.selectAll();
+								this.render();
+							}
+							if (event.key === "Delete" || event.key === "Backspace") {
+								event.preventDefault();
+								const field = this.getFocusField();
+								field.delete();
+								this.render();
+							} else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+								event.preventDefault();
+							}
+						}
 
-          await KarmaFieldsAlpha.History.update();
-          await this.parent.render();
-        });
+						element.onpaste = event => {
+							event.preventDefault();
+							const string = event.clipboardData.getData("text/plain").normalize();
+							console.log("PASTE", string);
+							const field = this.getFocusField();
+							field.paste(string);
+							this.render();
+						}
 
-        window.addEventListener("mousedown", async event => {
+						element.oncut = event => {
+							event.preventDefault();
+							const field = this.getFocusField();
+							const value = field.copy();
+							console.log("CUT", value);
+							event.clipboardData.setData("text/plain", value || "");
+							field.paste("");
+							this.render();
+						}
 
-          const focus = this.getFocus();
+						element.oncopy = event => {
+							event.preventDefault();
+							const field = this.getFocusField();
+							const value = field.copy();
+							console.log("COPY", value);
+							event.clipboardData.setData("text/plain", value || "");
+						}
+					}
+				}
+			]
+		};
 
-          if (focus) {
-            await this.removeFocus();
-            await this.request("render");
-          }
-        });
-      },
-      update: saucer => {
-        saucer.children = [
-          {
-            class: "clipboard",
-            tag: "textarea",
-            update: clipboard => {
-              clipboard.element.id = "karma-fields-alpha-clipboard";
-              clipboard.readOnly = true;
-              const useClipboard = this.useClipboard();
-              if (useClipboard) {
-                clipboard.element.focus({preventScroll: true});
-              }
-              clipboard.element.onkeydown = async event => {
-                if (event.key === "z" && event.metaKey) {
-                  event.preventDefault();
-                  if (event.shiftKey) {
-                    KarmaFieldsAlpha.History.redo();
-                  } else {
-                    KarmaFieldsAlpha.History.undo();
-                  }
-                }
-                if (event.key === "a" && event.metaKey) {
-                  event.preventDefault();
-                  const field = this.getFocusField();
-                  await field.selectAll();
-                  await this.render();
-                }
-                if (event.key === "Delete" || event.key === "Backspace") {
-                  event.preventDefault();
-                  const field = this.getFocusField();
-                  await field.delete();
-                  await this.render();
-
-                } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-                  event.preventDefault();
-                  // this.request(event.key);
-                }
-              }
-
-              clipboard.element.onpaste = async event => {
-                event.preventDefault();
-                const string = event.clipboardData.getData("text/plain").normalize();
-                console.log("PASTE", string);
-                const field = this.getFocusField();
-
-                await field.paste(string);
-                await this.request("render");
-              }
-
-              clipboard.element.oncut = async event => {
-                event.preventDefault();
-                const field = this.getFocusField();
-                const value = field.copy();
-                console.log("CUT", value);
-                event.clipboardData.setData("text/plain", value || "");
-                await field.paste("");
-                await this.request("render");
-              }
-
-              clipboard.element.oncopy = async event => {
-                event.preventDefault();
-                const field = this.getFocusField();
-                const value = field.copy();
-                console.log("COPY", value);
-                event.clipboardData.setData("text/plain", value || "");
-              }
-            }
-          }
-        ];
-      }
-    };
-
-  }
+	}
 
 }
 
@@ -483,50 +518,55 @@ KarmaFieldsAlpha.field.saucer.menu = class extends KarmaFieldsAlpha.field {
 
   }
 
-  build() {
-    return {
-      tag: "ul",
-      children: this.getItems().map(item => {
-        return {
-          tag: "li",
-          children: [
-            {
-              tag: "a",
-              update: a => {
-                a.element.innerHTML = item.title;
-                a.element.href = "#"+(item.hash || "");
-                if (item.table) {
-                  a.element.onclick = event => {
-                    event.preventDefault();
-                    this.request("open", item.table, item.params || {}, true);
-                  }
-                  // const currentTable = this.request("getCurrentLayer", "table");
-                  const currentTable = KarmaFieldsAlpha.Layer.getTable();
-                  a.element.classList.toggle("active", currentTable === item.table);
-                }
-                if (item.action) {
-                  a.element.onclick = event => {
-                    event.preventDefault();
-                    this.request(item.action, ...item.values);
-                  }
-                }
-              }
-            },
-            this.createChild({
-              items: item.items || item.children || [],
-              type: "menu"
-            }, index).build()
-          ],
-          update: li => {
-            // const currentTable = this.request("getCurrentLayer", "table");
-            const currentTable = KarmaFieldsAlpha.Layer.getTable();
-            const active = this.resource.table && this.resource.table === currentTable;
-            li.element.classList.toggle("active", Boolean(active));
-          }
-        };
-      })
-    }
-  }
+	*buildChildren() {
+
+		for (let item of this.getItems()) {
+			yield {
+				tag: "li",
+				children: [
+					{
+						tag: "a",
+						update: element => {
+							element.innerHTML = item.title;
+							element.href = "#" + (item.hash || "");
+							if (item.table) {
+								element.onclick = event => {
+									event.preventDefault();
+									this.request("open", item.table, item.params || {}, true);
+								}
+								// const currentTable = this.request("getCurrentLayer", "table");
+								const currentTable = KarmaFieldsAlpha.Layer.getTable();
+								element.classList.toggle("active", currentTable === item.table);
+							}
+							if (item.action) {
+								element.onclick = event => {
+									event.preventDefault();
+									this.request(item.action, ...item.values);
+								}
+							}
+						}
+					},
+					...this.createChild({
+						items: item.items || item.children || [],
+						type: "menu"
+					}, index).build()
+				],
+				update: element => {
+					// const currentTable = this.request("getCurrentLayer", "table");
+					const currentTable = KarmaFieldsAlpha.Layer.getTable();
+					const active = this.resource.table && this.resource.table === currentTable;
+					element.classList.toggle("active", Boolean(active));
+				}
+			};
+		}
+	}
+
+	*build() {
+		yield {
+			tag: "ul",
+			children: this.buildChildren()
+		}
+	}
 
 }
 

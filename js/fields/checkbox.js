@@ -1,27 +1,6 @@
 
 KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 
-	// static mousedown = false;
-	// static state = false;
-	// static selected = [];
-
-
-	// getContent() {
-	//
-	// 	const key = this.getKey();
-	//
-	// 	return this.parent.getContent(key);
-	//
-	// }
-	//
-	// setContent(content) {
-	//
-	// 	const key = this.getKey();
-	//
-	// 	this.parent.setContent(content, key);
-	//
-	// }
-
 	true() {
 		return this.resource.true || "1";
 	}
@@ -32,113 +11,76 @@ KarmaFieldsAlpha.field.checkbox = class extends KarmaFieldsAlpha.field.input {
 
 	getDefault() {
 
-		return this.parse(this.resource.default || this.false());
+		return this.resource.default || this.false();
 
 	}
 
+	*build() {
 
-	build() {
-
-		return {
-			tag: this.resource.tag || "label",
+		yield {
+			tag: "label",
 			class: "checkbox-container",
-			update: container => {
-
-				container.element.onmousedown = event => {
-					event.stopPropagation();
+			update: element => {
+				element.onmousedown = event => {
+					event.stopPropagation(); // why?
 				}
+			},
+			children: [
+				{
+					tag: "input",
+					init: element => {
+						element.type = "checkbox";
+					},
+					update: element => {
 
-				container.children = [
-					{
-						tag: "input",
-						init: checkbox => {
-							checkbox.element.type = "checkbox";
-							// const id = this.getId();
-							checkbox.element.id = this.uid;
-						},
-						update: checkbox => {
+						let values = this.getValue();
 
-							let content = this.getContent();
+						if (values !== undefined) {
 
-							if (!content.loading) {
+							element.classList.toggle("mixed", Boolean(values.mixed));
+							element.checked = values[0] === this.true();
 
-								// -> set default
-								// if (content.notFound) {
-								//
-								// 	// const defaultValue = this.getDefault();
-								// 	//
-								// 	// if (defaultValue !== undefined && defaultValue !== null) {
-								// 	//
-								// 	// 	this.setValue(defaultValue);
-								// 	//
-								// 	// }
-								//
-								// 	// content = this.getDefault();
-								// 	//
-								// 	// if (!content.loading) {
-								// 	//
-								// 	// 	this.setContent(content);
-								// 	//
-								// 	// 	KarmaFieldsAlpha.Query.init(); // -> add fake task to force rerendering
-								// 	//
-								// 	// }
-								//
-								// 	if (this.resource.createWhenNotFound) {
-								//
-								// 		this.createTask("create");
-								//
-								// 	}
-								//
-								// }
+							element.onchange = () => {
 
-								checkbox.element.classList.toggle("mixed", Boolean(content.mixed));
-								checkbox.element.checked = content.toString() === this.true();
+								let value;
 
-								checkbox.element.onchange = async () => {
+								if (values.mixed || values[0] === this.true()) {
 
-									let value;
+									value = this.false();
 
-									if (content.mixed || content.toString() === this.true()) {
+								} else {
 
-										value = this.false();
-
-									} else {
-
-										value = this.true();
-
-									}
-
-									// const newContent = new KarmaFieldsAlpha.Content(value);
-
-									await this.save("check", "Check");
-									await this.setValue(value);
-									await this.request("render");
+									value = this.true();
 
 								}
 
-								if (this.resource.disabled) {
+								this.save("check", "Check");
+								this.setValue([value]);
+								this.render();
 
-									input.element.disabled = this.parse(this.resource.disabled).toBoolean();
+							}
 
-						    } else if (this.resource.enabled) {
+							if (this.resource.disabled) {
 
-									input.element.disabled = !this.parse(this.resource.enabled).toBoolean();
+								element.disabled = this.parseBoolean(this.resource.disabled) || false;
 
-						    }
+							} else if (this.resource.enabled) {
+
+								element.disabled = !this.parseBoolean(this.resource.enabled);
 
 							}
 
 						}
-					},
-					{
-						class: "checkbox-text",
-						update: label => {
-							label.element.innerHTML = this.resource.text || "";
-						}
-					}
-				];
-			}
 
+					}
+				},
+				{
+					class: "checkbox-text",
+					update: element => {
+						element.innerHTML = this.resource.text || "";
+					}
+				}
+			]
 		};
 	}
 

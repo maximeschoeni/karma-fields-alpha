@@ -1,62 +1,213 @@
 KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
-	async abduct() {
+	// async abduct() {
 
-		await KarmaFieldsAlpha.build(this.build(), this.element.parentNode, this.element);
+	// 	await KarmaFieldsAlpha.build(this.build(), this.element.parentNode, this.element);
 
-		const focus = this.getFocus();
+	// 	const focus = this.getFocus();
 
-		document.body.classList.toggle("karma-table-open", focus.includes("popup"));
+	// 	document.body.classList.toggle("karma-table-open", focus.includes("popup"));
 
-	}
+	// }
+	// queryParams() {
 
-	async render() {
+	// 	const params = this.parse(this.resource.params || {});
 
-		return this.parent.render();
+	// 	if (!params.loading) {
+
+	// 		return KarmaFieldsAlpha.server.queryParams(fieldId, params.toObject());
+
+	// 	}
+
+	// 	return params;
+
+	// }
+
+	// queryParam(key) {
+
+	// 	const response = this.queryParams();
+
+	// 	if (!response.loading) {
+
+	// 		response.value = response.toObject()[key] || "";
+
+	// 	}
+
+	// 	return response;
+	// }
+
+	// queryParamstring() {
+
+	// 	const response = this.queryParams();
+
+	// 	if (!response.loading) {
+
+	// 		return KarmaFieldsAlpha.server.queryParamstring(response.toObject());
+
+	// 	}
+
+	// 	return response;
+	// }
+
+	// changeParam(value, key) {
+
+	// 	// const response = this.queryParams();
+
+	// 	// if (!response.loading) {
 
 
-		// local rendering dactivated !
 
-		if (this.id === "popup" && this.element) {
+	// 	// }
 
-			if (!this.rendering) {
+	// 	KarmaFieldsAlpha.server.changeParam(value, this.uid, key);
 
-				this.rendering = true;
+	// }
 
-				this.element.classList.add("container-loading");
+	// getParams() {
 
-				await KarmaFieldsAlpha.server.init();
+	// 	const defaultParams = KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.server.store, "state", "fields", this.uid, "defaultParams");
+	// 	const params = KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.server.store, "state", "fields", this.uid, "params");
 
-				await this.abduct();
+	// 	return { ...defaultParams, ...params };
 
-				while (KarmaFieldsAlpha.server.hasOrder()) {
+	// }
 
-					await KarmaFieldsAlpha.server.process();
+	// getParamstring() {
 
-					await this.abduct();
+	// 	return KarmaFieldsAlpha.DeepObject.get(KarmaFieldsAlpha.server.store, "state", "fields", this.uid, "paramstring") || "";
 
-				}
+	// }
 
-				this.element.classList.remove("container-loading");
+	// updateParamstring() {
 
-				this.rendering = false;
+	// 	const params = this.getParams();
+	// 	const paramstring = KarmaFieldsAlpha.Params.stringify(params);
 
-			} else {
+	// 	KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, paramstring, "state", "fields", this.uid, "paramstring");
 
-				console.warn("Rendering under process!", this);
+	// }
 
-			}
+	// async setParams(params) {
+
+	// 	await this.setState(params, "params");
+
+	// 	this.updateParamstring();
+
+	// 	await this.unselect();
+
+	// }
 
 
 
-		} else {
+	// getParam(key) {
 
-			await this.parent.render();
+	// 	let value = this.getParams()[key];
 
-		}
+	// 	if (value === undefined) {
+
+	// 		if (this.resource.params && this.resource.params[key] !== undefined) {
+
+	// 			return this.parse(this.resource.params[key]).toString();
+
+	// 		} else {
+
+	// 			return this.parent.getContent(key).value;
+
+	// 		}
+
+	// 	} else {
+
+	// 		return value;
+
+	// 	}
+
+	// }
+
+	// async setParam(value, key) {
+
+	// 	const params = this.getParams() || {};
+
+	// 	if (params[key] !== value) {
+
+	// 		await this.setParams({ ...params, [key]: value });
+
+	// 	}
+
+	// }
+
+	// getContent(key) {
+
+	// 	let value = this.getParam(key);
+
+	// 	return new KarmaFieldsAlpha.Content(value);
+
+	// }
+
+	// async setValue(value, key) {
+
+	// 	await this.setParam(value, key);
+
+	// }
 
 
-	}
+	// async render() {
+
+	// 	return this.parent.render();
+
+
+	// 	// local rendering dactivated !
+
+	// 	if (this.element && this.element.parentNode.matches("dialog")) {
+
+	// 		if (!this.rendering) {
+
+	// 			this.rendering = true;
+
+	// 			this.element.classList.add("container-loading");
+
+	// 			await KarmaFieldsAlpha.server.init();
+
+	// 			await abduct(this.element.parentNode, this.build());
+
+	// 			while (KarmaFieldsAlpha.server.hasOrder()) {
+
+	// 				await KarmaFieldsAlpha.server.process();
+
+	// 				await abduct(this.element.parentNode, this.build());
+
+	// 			}
+
+	// 			this.element.classList.remove("container-loading");
+
+	// 			this.rendering = false;
+
+	// 		} else {
+
+	// 			console.warn("Rendering under process!", this);
+
+	// 		}
+
+	// 	} else {
+
+	// 		await this.parent.render();
+
+	// 	}
+
+	// }
+
+	// abduct() {
+
+	// 	if (this.element) {
+
+	// 		return abduct(this.element, this.buildContent());
+
+	// 	} else {
+
+	// 		return this.parent.abduct();
+
+	// 	}
+
+	// }
 
 	isPopup() {
 
@@ -64,96 +215,106 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	async close() {
+	// close() {
 
-    await this.parent.setFocus();
+	// 	this.save("close");
+	// 	this.parent.setFocus();
+	// 	this.parent.render();
 
-		await this.parent.render();
-
-  }
+	// }
 
 	getResource(key) {
 
-    return this.resource[key];
-
-  }
-
-	// used by array
-  getKeys() {
-
-    const key = this.getKey();
-    let keys = [];
-
-    if (key) {
-
-      keys.push(key);
-
-    } else {
-
-			const body = this.getBody();
-
-			if (body) {
-
-        keys.push(...body.getKeys());
-
-			}
-
-    }
-
-    return keys;
-
-  }
-
-	exportDefaults() {
-
-		let defaults = new KarmaFieldsAlpha.Content({});
-
-		const header = this.getHeader();
-		const footer = this.getFooter();
-
-		if (header) {
-
-			const response = header.exportDefaults();
-
-      if (response.loading) {
-
-        defaults.loading = true;
-
-      } else {
-
-        defaults.value = {...defaults.toObject(), ...response.toObject()};
-
-      }
-
-		}
-
-		if (footer) {
-
-			const response = footer.exportDefaults(defaults);
-
-      if (response.loading) {
-
-        defaults.loading = true;
-
-      } else {
-
-        defaults.value = {...defaults.toObject(), ...response.toObject()};
-
-      }
-
-		}
-
-    return defaults;
+		return this.resource[key];
 
 	}
+
+	hasSelection() {
+
+		const body = this.getBody();
+
+		if (body) {
+
+			return body.hasSelectionInside();
+
+		}
+
+		return false;
+
+	}
+
+	// used by array
+	// getKeys() {
+
+	// 	const key = this.getKey();
+	// 	let keys = [];
+
+	// 	if (key) {
+
+	// 		keys.push(key);
+
+	// 	} else {
+
+	// 		const body = this.getBody();
+
+	// 		if (body) {
+
+	// 			keys.push(...body.getKeys());
+
+	// 		}
+
+	// 	}
+
+	// 	return keys;
+
+	// }
+
+	// exportDefaults() {
+
+	// 	let defaults = new KarmaFieldsAlpha.Content({});
+
+	// 	const header = this.getHeader();
+	// 	const footer = this.getFooter();
+
+	// 	if (header) {
+
+	// 		const response = header.exportDefaults();
+
+	// 		if (response.loading) {
+
+	// 			defaults.loading = true;
+
+	// 		} else {
+
+	// 			defaults.value = { ...defaults.toObject(), ...response.toObject() };
+
+	// 		}
+
+	// 	}
+
+	// 	if (footer) {
+
+	// 		const response = footer.exportDefaults(defaults);
+
+	// 		if (response.loading) {
+
+	// 			defaults.loading = true;
+
+	// 		} else {
+
+	// 			defaults.value = { ...defaults.toObject(), ...response.toObject() };
+
+	// 		}
+
+	// 	}
+
+	// 	return defaults;
+
+	// }
 
 	getHeader() {
 
 		if (this.resource.header) {
-
-			// const constructor = this.getConstructor(this.resource.header.type || "header");
-			//
-			// return new constructor(this.resource.header, "header", this);
 
 			return this.createChild({
 				type: "header",
@@ -168,11 +329,6 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.footer) {
 
-			// const constructor = this.getConstructor(this.resource.footer.type || "footer");
-			//
-			// return new constructor(this.resource.footer, "footer", this);
-
-
 			return this.createChild({
 				type: "footer",
 				...this.resource.footer
@@ -183,13 +339,6 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 	}
 
 	getBody() {
-
-		// const constructor = this.getConstructor(this.resource.body && this.resource.body.type || "group");
-		//
-		// return new constructor({
-		// 	children: this.resource.children,
-		// 	...this.resource.body
-		// }, "body", this);
 
 		if (this.resource.body) {
 
@@ -204,160 +353,154 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 		}
 
-
-		// return this.createChild({
-		// 	children: this.resource.children, // compat
-		// 	...this.resource.body
-		// }, "body");
-
 	}
 
-	async blank() {
+	blank() {
 
 		if (!this.hasFocus()) {
 
-			await this.setSelection({index: 0, length: 0});
+			// this.setSelection({ index: 0, length: 0 });
 
-			const body = this.getBody();
+			// const body = this.getBody();
 
-			if (body && body.unselect) {
+			// if (body && body.unselect) {
 
-				await body.unselect();
+			// 	await body.unselect();
 
-			}
+			// }
 
-			await this.setFocus(true);
-			await this.render();
+			this.setFocus(true);
+			this.render();
 
 		}
 
 	}
 
-	async unselect() {
+	// async unselect() {
 
-    const body = this.getChild("body");
+	// 	const body = this.getChild("body");
 
-    if (body && body.unselect) {
+	// 	if (body && body.unselect) {
 
-      await body.unselect();
+	// 		await body.unselect();
 
-    }
+	// 	}
 
-  }
+	// }
 
-	getHeaderTop(element) {
+	// getHeaderTop(element) {
 
-		let scrollContainer = element.closest(".scroll-container");
-		let popup = element.closest(".popup");
-		let top = 0;
+	// 	let scrollContainer = element.closest(".scroll-container");
+	// 	let popup = element.closest(".popup");
+	// 	let top = 0;
 
-		if (!scrollContainer && !popup) {
+	// 	if (!scrollContainer && !popup) {
 
-			const adminBar = document.getElementById("wpadminbar");
+	// 		const adminBar = document.getElementById("wpadminbar");
 
-			if (adminBar) {
+	// 		if (adminBar) {
 
-				top += adminBar.clientHeight;
+	// 			top += adminBar.clientHeight;
 
-			}
+	// 		}
 
-		}
+	// 	}
 
-		return top;
-	}
+	// 	return top;
+	// }
 
-	getModalTop(element) {
+	// getModalTop(element) {
 
-		let tableBody = element.closest(".table-body");
-		let tableHeader = tableBody.previousElementSibling;
+	// 	let tableBody = element.closest(".table-body");
+	// 	let tableHeader = tableBody.previousElementSibling;
 
-		let top = 0;
+	// 	let top = 0;
 
-		if (tableHeader) {
+	// 	if (tableHeader) {
 
-			top += this.getHeaderTop(tableHeader);
+	// 		top += this.getHeaderTop(tableHeader);
 
-			top += tableHeader.clientHeight;
+	// 		top += tableHeader.clientHeight;
 
-		} else {
+	// 	} else {
 
-			let scrollContainer = element.parentNode.closest(".scroll-container");
+	// 		let scrollContainer = element.parentNode.closest(".scroll-container");
 
-			if (!scrollContainer) {
+	// 		if (!scrollContainer) {
 
-				const adminBar = document.getElementById("wpadminbar");
+	// 			const adminBar = document.getElementById("wpadminbar");
 
-				if (adminBar) {
+	// 			if (adminBar) {
 
-					top += adminBar.clientHeight;
+	// 				top += adminBar.clientHeight;
 
-				}
+	// 			}
 
-			}
+	// 		}
 
-		}
+	// 	}
 
-		return top;
-	}
+	// 	return top;
+	// }
 
-	getModalHeight(element) {
+	// getModalHeight(element) {
 
-		let scrollContainer = element.parentNode.closest(".scroll-container");
-		let tableBody = element.closest(".table-body");
-		let tableHeader = tableBody.previousElementSibling;
-		let tableFooter = tableBody.nextElementSibling;
-		let height = 0;
+	// 	let scrollContainer = element.parentNode.closest(".scroll-container");
+	// 	let tableBody = element.closest(".table-body");
+	// 	let tableHeader = tableBody.previousElementSibling;
+	// 	let tableFooter = tableBody.nextElementSibling;
+	// 	let height = 0;
 
-		if (scrollContainer) {
+	// 	if (scrollContainer) {
 
-			height = scrollContainer.clientHeight;
+	// 		height = scrollContainer.clientHeight;
 
-		} else {
+	// 	} else {
 
-			height = window.innerHeight;
+	// 		height = window.innerHeight;
 
-			const adminBar = document.getElementById("wpadminbar");
+	// 		const adminBar = document.getElementById("wpadminbar");
 
-			if (adminBar) {
+	// 		if (adminBar) {
 
-				height -= adminBar.clientHeight;
+	// 			height -= adminBar.clientHeight;
 
-			}
+	// 		}
 
-		}
+	// 	}
 
-		if (tableHeader) {
+	// 	if (tableHeader) {
 
-			height -= tableHeader.clientHeight;
+	// 		height -= tableHeader.clientHeight;
 
-		}
+	// 	}
 
-		if (tableFooter) {
+	// 	if (tableFooter) {
 
-			height -= tableFooter.clientHeight;
+	// 		height -= tableFooter.clientHeight;
 
-		}
+	// 	}
 
-		return height;
-	}
+	// 	return height;
+	// }
 
 	newChild(id) {
 
-    if  (id === "header") {
+		if (id === "header") {
 
 			return this.getHeader();
 
-    } else if (id === "footer") {
+		} else if (id === "footer") {
 
-      return this.getFooter();
+			return this.getFooter();
 
-    } else if (id === "body") {
+		} else if (id === "body") {
 
-      return this.getBody();
+			return this.getBody();
 
-    }
+		}
 
-  }
+	}
 
 	*buildHeader() {
 
@@ -366,31 +509,14 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		if (header) {
 
 			yield {
-        // class: "karma-header table-header table-main-header simple-buttons",
 				class: "karma-header table-header table-main-header",
-        child: header.build(),
-				update: node => {
-
-					// -> sticky
-					// node.element.style.top = `${this.getHeaderTop(node.element)}px`;
-				}
-      };
+				children: header.build()
+			};
 
 		}
 
 	}
 
-	// *buildHeaderContent() {
-	//
-	// 	const header = this.getHeader();
-	//
-	// 	if (header) {
-	//
-	// 		yield header.build();
-	//
-	// 	}
-	//
-	// }
 
 	*buildFooter() {
 
@@ -399,28 +525,18 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		if (footer) {
 
 			yield {
-        class: "table-footer table-control",
-        child: footer.build(),
-        update: node => {
-          node.element.classList.toggle("loading", Boolean(this.hasTask()));
-        }
-      };
+				class: "table-footer table-control",
+				children: footer.build(),
+				update: element => {
+					element.classList.toggle("sticky", footer.resource.sticky !== false);
+					const loading = KarmaFieldsAlpha.Store.hasDownload() || KarmaFieldsAlpha.Store.hasUpload();
+					element.classList.toggle("loading", loading);
+				}
+			};
 
 		}
 
 	}
-
-	// *buildFooterContent() {
-	//
-	// 	const footer = this.getFooter();
-	//
-	// 	if (footer) {
-	//
-	// 		yield footer.build();
-	//
-	// 	}
-	//
-	// }
 
 	*buildBody() {
 
@@ -429,9 +545,23 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		if (body) {
 
 			yield {
-	      class: "table-body",
-	      child: body.build()
-	    };
+				class: "table-body",
+				children: body.build()
+			};
+
+		}
+
+	}
+
+	abduct() {
+
+		if (this.resource.sandbox && this.element) {
+
+			return abduct(this.element, this.buildContent());
+
+		} else {
+
+			return this.parent.abduct();
 
 		}
 
@@ -445,85 +575,46 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	// *buildColumns() {
-	//
-	// 	if (this.resource.left) {
-	//
-	// 		const field = this.createChild(this.resource.left, "left");
-	//
-	// 		yield field.build();
-	//
-	// 	}
-	//
-	// 	yield {
-	// 		class: "karma-field-table",
-	// 		children: [...this.buildContent()]
-	// 	}
-	//
-	// 	if (this.resource.right) {
-	//
-	// 		const field = this.createChild(this.resource.right, "right");
-	//
-	// 		yield field.build();
-	//
-	// 	}
-	//
-	// }
+	*build() {
+		yield {
+			class: "table-field",
+			update: element => {
+				// this.element = element;
 
-  build() {
+				// element.ondrop = async event => {
+				// 	event.preventDefault();
+				// 	const files = event.dataTransfer.files;
+				// 	if (files.length) {
 
-    return {
-      class: "table-field",
-			update: node => {
-				this.element = node.element;
-
-				// const hasFocus = this.hasFocusInside();
-				// node.element.classList.toggle("has-selection", Boolean(hasFocus));
-				// node.element.onmousedown = event => {
-				// 	event.stopPropagation();
-				// 	this.blank();
+				// 	}
 				// }
-
-
-				node.element.ondrop = async event => {
-          event.preventDefault();
-          // debugger;
-          const files = event.dataTransfer.files;
-          if (files.length) {
-            // await this.request("upload", files);
-            // await this.render();
-
-
-          }
-					console.log(files);
-          // node.element.classList.remove("drop-active");
-        }
 			},
 			// children: [...this.buildColumns()]
-      child: {
+			child: {
 				class: "karma-field-table",
-				init: node => {
+				init: element => {
 					if (this.resource.class) {
-						node.element.classList.add(this.resource.class);
+						element.classList.add(this.resource.class);
 					}
 					if (this.resource.classes) {
-						node.element.classList.add(...this.resource.classes);
+						element.classList.add(...this.resource.classes);
 					}
-					node.element.style.width = this.resource.width || "100%";
+					element.style.width = this.resource.width || "100%";
 				},
-				update: node => {
+				update: element => {
 					const hasFocus = this.hasFocusInside();
-					node.element.classList.toggle("has-selection", Boolean(hasFocus));
-					node.element.onmousedown = event => {
+					element.classList.toggle("has-selection", Boolean(hasFocus));
+					element.onmousedown = event => {
 						event.stopPropagation();
 						this.blank();
 					}
+					this.element = element;
 				},
-				children: [...this.buildContent()]
+				children: this.buildContent()
 			}
-    };
+		};
 
-  }
+	}
 
 }
 
@@ -571,7 +662,7 @@ KarmaFieldsAlpha.field.container.close = class extends KarmaFieldsAlpha.field.bu
     super({
       dashicon: "no",
       title: "Close",
-      request: ["close"],
+      action: "close",
 			visible: ["request", "isPopup"],
       ...resource
     }, id, parent);
@@ -590,5 +681,18 @@ KarmaFieldsAlpha.field.container.footer = class extends KarmaFieldsAlpha.field.g
     }, id, parent);
 
   }
+
+}
+
+KarmaFieldsAlpha.field.container.single = class extends KarmaFieldsAlpha.field.group {
+
+	*build() {
+
+		yield {
+			class: "form-single",
+			children: super.build()
+		};
+
+	}
 
 }
