@@ -24,6 +24,21 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.table {
 
 	}
 
+	*buildBody() {
+
+		const body = this.getBody();
+
+		if (body) {
+
+			yield {
+				class: "body-content",
+				children: body.build()
+			};
+
+		}
+
+	}
+
 
 
 
@@ -124,7 +139,7 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.table {
 
 }
 
-KarmaFieldsAlpha.field.form.single = class extends KarmaFieldsAlpha.field.container.single {
+KarmaFieldsAlpha.field.form.single = class extends KarmaFieldsAlpha.field.group {
 
 	// getContent(key) {
 

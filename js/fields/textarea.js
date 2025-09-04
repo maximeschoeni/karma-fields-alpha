@@ -51,14 +51,27 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 							// element.parentNode.classList.toggle("modified", Boolean(values.modified));
 
-							if (values[0] !== element.value.normalize()) { // -> replacing same value will reset caret index !
+							const value = values[0] || "";
 
-								element.value = values[0];
+							if (value !== element.value.normalize()) { // -> replacing same value will reset caret index !
+								element.value = value;
 
 							}
 
-							element.style.height = "1px";
-							element.style.height = (25 + element.scrollHeight) + "px";
+							// element.style.height = "auto";
+							// element.style.height = (25 + element.scrollHeight) + "px";
+
+
+							// let height = element.getAttribute("scrollheight");
+							// if (height) {
+							// 	element.style.height = `${height}px`;
+							// 	height = element.scrollHeight;
+							// 	element.style.height = (height) + "px";
+							// 	element.setAttribute("scrollheight", height);
+							// } else {
+							// 	element.setAttribute("scrollheight", element.clientHeight);
+							// }
+
 
 						}
 
@@ -74,9 +87,11 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 							if (values) {
 
+								const value = values[0] || "";
+
 								const normalizedValue = element.value.normalize();
 
-								if (normalizedValue.length < values[0].length) {
+								if (normalizedValue.length < value.length) {
 
 									this.save("delete", "Delete");
 

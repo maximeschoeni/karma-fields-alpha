@@ -44,6 +44,14 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 			}
 
+		} else if (id === "dialog") {
+
+			if (this.resource.dialog) {
+
+				return new KarmaFieldsAlpha.field.grid.dialog(this.resource.dialog, "modal", this);
+
+			}
+
 		} else {
 
 			return new KarmaFieldsAlpha.field.grid.row({
@@ -165,6 +173,12 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 		if (!ids) {
 
 			ids = this.getSelectedIds();
+
+		}
+
+		if (!ids) {
+
+			return;
 
 		}
 
@@ -290,6 +304,46 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 	}
 
+	getSelectedValue(key) {
+
+		const ids = this.getSelectedIds();
+
+		if (ids === undefined) {
+
+			return;
+
+		}
+
+		if (ids.length) {
+
+			return super.getValue(key, ids[0]);
+
+		} else {
+
+			console.warn("getting value but nothing is selected");
+
+		}
+
+	}
+
+	setSelectedValue(value, key) {
+
+		const ids = this.getSelectedIds();
+
+		if (!ids || !ids.length) {
+
+			console.error("setting value but nothing is selected");
+
+		}
+
+		for (let id of ids) {
+
+			super.setValue(value, key, id);
+
+		}
+
+	}
+
 
 
 	// getValueAt(key, index) {
@@ -371,11 +425,25 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 	isSelected(id) {
 
+		const ids = this.getSelectedIds();
+
+		if (ids) {
+
+			return ids.includes(id);
+
+		}
+
+		return false;
+
+	}
+
+	isSelectedAt(index) {
+
 		const selection = this.getSelection();
 
 		if (selection) {
 
-			return selection.includes(id);
+			return index >= selection.index && index < selection.index + selection.length;
 
 		}
 
@@ -803,6 +871,9 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 	// }
 
+
+
+
 	swapAt(index, target, length) {
 
 
@@ -1049,7 +1120,8 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 							}
 						},
 						update: element => {
-							element.classList.toggle("selected", this.isSelected(ids[i]));
+							// element.classList.toggle("selected", this.isSelected(ids[i]));
+							element.classList.toggle("selected", this.isSelectedAt(i));
 							element.classList.toggle("odd", i % 2 === 0);
 							element.classList.toggle("last-row", i === ids.length - 1);
 							element.classList.toggle("first-cell", j === 0);
@@ -1264,15 +1336,43 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
 
 	}
 
-  getModal() {
+	getModal() {
 
-    if (this.resource.modal) {
+		if (this.resource.modal) {
 
-      return this.getChild("*");
+			return this.getChild("*");
 
-    }
+		}
 
-  }
+	}
+
+	getDialog() {
+
+		if (this.resource.dialog) {
+
+			return this.getChild("dialog");
+
+		}
+
+	}
+
+	open() {
+
+		if (this.resource.dialog) {
+
+			const dialog = this.getChild("dialog");
+
+			dialog.setFocus();
+
+		}
+
+	}
+
+	close() {
+
+		this.setFocus();
+
+	}
 
 	*buildModalContent() {
 
@@ -1291,46 +1391,50 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
     const modal = this.getModal();
 
     if (modal) {
-
-      // const selection = this.getSelection();
-      //
-      //
-      // if (modal && selection && selection.length) {
-
-        // const modal = this.getChild("*");
-
-
-
         yield {
           class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
           update: element => {
             element.classList.toggle("display-fixed", modal.resource.display === "fixed");
             element.style.width = modal.resource.width || "30em";
-
-            // redondant with container catcher
-            // div.element.onmousedown = async event => {
-            //   event.stopPropagation(); // -> prevent unselecting
-            //
-            //   if (!this.hasFocus()) {
-            //     await this.setFocus(true);
-            //     await this.request("render");
-            //   }
-            // };
-
-            // element.classList.toggle("active", this.hasSelection() && this.hasFocusInside());
-
-
-
-            // children = [...modal.build()];
           },
           children: this.buildModalContent()
         };
 
-      // }
-
     }
 
   }
+
+	*buildDialog() {
+
+
+
+		if (this.resource.dialog) {
+
+			const dialog = this.getChild("dialog");
+			const hasFocus = dialog.hasFocusInside();
+
+			if (hasFocus) {
+
+				yield {
+					class: "dialog",
+					update: (element, implants) => {
+						element.onmousedown = event => {
+							event.stopPropagation();
+
+							dialog.setFocus(true);
+							dialog.render();
+						}
+					},
+					children: dialog.build()
+				};
+
+			}
+
+
+
+		}
+
+	}
 
   // *buildModalContent() {
   //
@@ -1373,13 +1477,18 @@ KarmaFieldsAlpha.field.grid = class extends KarmaFieldsAlpha.field {
   //
   // }
 
-  *buildColumns() {
+	*buildColumns() {
 
-    yield* this.buildBody();
+		yield* this.buildBody();
 
-    yield* this.buildModal();
+		yield* this.buildModal();
 
-  }
+		yield {
+			class: "dialog-container",
+			children: this.buildDialog()
+		}
+
+	}
 
   *build() {
 
@@ -1479,32 +1588,6 @@ KarmaFieldsAlpha.field.grid.headerCell = class extends KarmaFieldsAlpha.field {
 
 KarmaFieldsAlpha.field.grid.row = class extends KarmaFieldsAlpha.field.group {
 
-	// getValue(key) {
-
-	// 	return this.parent.getValueAt(this.id, key);
-
-	// }
-
-	// setValue(value, key) {
-
-	// 	this.parent.setValueAt(value, this.id, key);
-
-	// }
-
-	// getIndex() {
-
-	// 	const indexOffset = this.parent.getIndex();
-
-	// 	return indexOffset + (this.resource.index || 0);
-
-	// }
-
-	// delete() {
-
-	// 	return this.parent.deleteAt(this.id, 1);
-
-	// }
-
 	isMixed(key) {
 
 		return false;
@@ -1583,46 +1666,50 @@ KarmaFieldsAlpha.field.grid.modal = class extends KarmaFieldsAlpha.field.contain
 
   }
 
-  // *buildModalContent() {
-  //
-  //   const modal = this.getModal();
-  //
-  //   if (modal) {
-  //
-  //     const selection = this.getSelection();
-  //
-  //
-  //     if (modal && selection && selection.length) {
-  //
-  //       // const modal = this.getChild("*");
-  //
-  //
-  //
-  //       yield {
-  //         class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
-  //         update: div => {
-  //           div.element.classList.toggle("display-fixed", modal.resource.display === "fixed");
-  //           div.element.style.width = modal.resource.width || "30em";
-  //
-  //           // redondant with container catcher
-  //           // div.element.onmousedown = async event => {
-  //           //   event.stopPropagation(); // -> prevent unselecting
-  //           //
-  //           //   if (!this.hasFocus()) {
-  //           //     await this.setFocus(true);
-  //           //     await this.request("render");
-  //           //   }
-  //           // };
-  //
-  //           div.children = [...modal.build()];
-  //         }
-  //       };
-  //
-  //     }
-  //
-  //   // }
-  //
-  // }
+}
+
+KarmaFieldsAlpha.field.grid.dialog = class extends KarmaFieldsAlpha.field {
+
+	getValue(key) {
+
+		return this.parent.getSelectedValue(key);
+
+	}
+
+	setValue(value, key) {
+
+		this.parent.setSelectedValue(value, key);
+
+	}
+
+	newChild(id) {
+
+		return this.createChild(this.resource, id);
+
+		// return new KarmaFieldsAlpha.field[this.resource.type](this.resource, id, this);
+
+	}
+
+	close() {
+
+		this.parent.removeSelection();
+
+		super.close();
+
+	}
+
+	*build() {
+
+		const content = this.getChild("content");
+
+		yield* content.build();
+
+		// yield {
+		// 	class: "dialog-content",
+		// 	children: content.build()
+		// };
+
+	}
 
 }
 

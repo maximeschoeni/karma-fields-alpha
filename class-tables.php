@@ -186,7 +186,7 @@ class Karma_Fields_Alpha {
 
 				// beta
 				// wp_enqueue_script('karma-fields-alpha-tinymce', $plugin_url . '/js/fields/tinymce.js', array('karma-fields-alpha-input', 'karma-fields-alpha-dropdown', 'karma-fields-alpha-files'), $this->version, true);
-				wp_enqueue_script('karma-fields-alpha-block-editor', $plugin_url . '/js/fields/block-editor.js', array(), $this->version, true);
+				// wp_enqueue_script('karma-fields-alpha-block-editor', $plugin_url . '/js/fields/block-editor.js', array(), $this->version, true);
 
 				// wp_enqueue_script('karma-fields-alpha-editor', $plugin_url . '/js/fields/editor.js', array('karma-fields-alpha-input'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-richtext', $plugin_url . '/js/fields/richtext.js', array('karma-fields-alpha-input', 'karma-fields-alpha-dropdown', 'karma-fields-alpha-files'), $this->version, true);
@@ -194,6 +194,9 @@ class Karma_Fields_Alpha {
 
 
 				wp_enqueue_script('karma-fields-alpha-container', $plugin_url . '/js/fields/container.js', array('karma-fields-alpha-group', 'karma-fields-alpha-text'), $this->version, true);
+
+
+				wp_enqueue_script('karma-fields-alpha-blocks', $plugin_url . '/js/fields/blocks.js', array('karma-fields-alpha-container'), $this->version, true);
 
 
 				// table
@@ -229,6 +232,8 @@ class Karma_Fields_Alpha {
 				wp_enqueue_script('karma-fields-alpha-tags', $plugin_url . '/js/fields/tags.js', array('karma-fields-alpha-form'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-files', $plugin_url . '/js/fields/files.js', array('karma-fields-alpha-tags'), $this->version, true);
 				wp_enqueue_script('karma-fields-alpha-gallery', $plugin_url . '/js/tables/gallery.js', array('karma-fields-alpha-grid'), $this->version, true);
+				wp_enqueue_script('karma-fields-alpha-hierarchy', $plugin_url . '/js/tables/hierarchy.js', array('karma-fields-alpha-grid'), $this->version, true);
+
 
 
 
@@ -705,7 +710,6 @@ class Karma_Fields_Alpha {
 		// if (isset($_REQUEST['karma-fields-items'])
 		// 	&& (isset($_REQUEST['post_ID']) && current_user_can('edit_post', $_REQUEST['post_ID']) && (!defined( 'DOING_AUTOSAVE' ) || !DOING_AUTOSAVE )
 		// 		|| isset($_REQUEST['tag_ID'] && current_user_can('manage_categories')))) {
-
 
 		if (isset($_REQUEST['karma-fields-items']) && is_array($_REQUEST['karma-fields-items'])) {
 

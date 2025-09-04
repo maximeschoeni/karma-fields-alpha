@@ -318,3 +318,17 @@ KarmaFieldsAlpha.field.submit = class extends KarmaFieldsAlpha.field.button {
 	}
 
 }
+
+KarmaFieldsAlpha.field.open = class extends KarmaFieldsAlpha.field.button {
+
+	constructor(resource, id, parent) {
+		super({
+			text: "Edit",
+			action: "open",
+			enabled: ["request", "isSelected"],
+			...resource
+		}, id, parent);
+
+	}
+
+}

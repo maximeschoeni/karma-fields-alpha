@@ -355,6 +355,12 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 	}
 
+	// getPopup() {
+
+	// 	// default -> nothing
+
+	// }
+
 	blank() {
 
 		if (!this.hasFocus()) {
@@ -509,7 +515,7 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		if (header) {
 
 			yield {
-				class: "karma-header table-header table-main-header",
+				class: "header-content",
 				children: header.build()
 			};
 
@@ -525,10 +531,9 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		if (footer) {
 
 			yield {
-				class: "table-footer table-control",
+				class: "footer-content",
 				children: footer.build(),
 				update: element => {
-					element.classList.toggle("sticky", footer.resource.sticky !== false);
 					const loading = KarmaFieldsAlpha.Store.hasDownload() || KarmaFieldsAlpha.Store.hasUpload();
 					element.classList.toggle("loading", loading);
 				}
@@ -545,13 +550,28 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 		if (body) {
 
 			yield {
-				class: "table-body",
+				class: "body-content",
 				children: body.build()
 			};
 
 		}
 
 	}
+
+	// *buildPopup() {
+
+	// 	const popup = this.getPopup();
+
+	// 	if (popup) {
+
+	// 		yield {
+	// 			tag: "dialog",
+	// 			children: popup.build()
+	// 		};
+
+	// 	}
+
+	// }
 
 	abduct() {
 
@@ -569,49 +589,44 @@ KarmaFieldsAlpha.field.container = class extends KarmaFieldsAlpha.field {
 
 	*buildContent() {
 
-		yield* this.buildHeader();
-		yield* this.buildBody();
-		yield* this.buildFooter();
+		// yield* this.buildHeader();
+		// yield* this.buildBody();
+		// yield* this.buildFooter();
+
+		yield {
+			class: "container-header",
+			children: this.buildHeader()
+		};
+
+		yield {
+			class: "container-body",
+			children: this.buildBody()
+		};
+
+		yield {
+			class: "container-footer",
+			children: this.buildFooter(),
+			update: element => {
+				element.classList.toggle("sticky", this.resource.footer && this.resource.footer.sticky !== false);
+			}
+		};
 
 	}
 
 	*build() {
 		yield {
-			class: "table-field",
+			class: "container-field",
 			update: element => {
-				// this.element = element;
-
-				// element.ondrop = async event => {
-				// 	event.preventDefault();
-				// 	const files = event.dataTransfer.files;
-				// 	if (files.length) {
-
-				// 	}
-				// }
+				element.onmousedown = event => {
+					event.stopPropagation();
+					if (!this.hasFocus()) {
+						this.setFocus(true);
+						this.render();
+					}
+				}
+				this.element = element;
 			},
-			// children: [...this.buildColumns()]
-			child: {
-				class: "karma-field-table",
-				init: element => {
-					if (this.resource.class) {
-						element.classList.add(this.resource.class);
-					}
-					if (this.resource.classes) {
-						element.classList.add(...this.resource.classes);
-					}
-					element.style.width = this.resource.width || "100%";
-				},
-				update: element => {
-					const hasFocus = this.hasFocusInside();
-					element.classList.toggle("has-selection", Boolean(hasFocus));
-					element.onmousedown = event => {
-						event.stopPropagation();
-						this.blank();
-					}
-					this.element = element;
-				},
-				children: this.buildContent()
-			}
+			children: this.buildContent()
 		};
 
 	}
@@ -684,15 +699,15 @@ KarmaFieldsAlpha.field.container.footer = class extends KarmaFieldsAlpha.field.g
 
 }
 
-KarmaFieldsAlpha.field.container.single = class extends KarmaFieldsAlpha.field.group {
+// KarmaFieldsAlpha.field.container.single = class extends KarmaFieldsAlpha.field.group {
 
-	*build() {
+// 	*build() {
 
-		yield {
-			class: "form-single",
-			children: super.build()
-		};
+// 		yield {
+// 			class: "form-single",
+// 			children: super.build()
+// 		};
 
-	}
+// 	}
 
-}
+// }

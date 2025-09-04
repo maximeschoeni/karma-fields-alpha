@@ -816,6 +816,143 @@ KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
 }
 
 
+KarmaFieldsAlpha.field.dialog = class extends KarmaFieldsAlpha.field {
+
+	newChild(index) {
+
+		if (index === "dialog" && this.resource.dialog) {
+
+			return this.createChild(this.resource.dialog, "dialog");
+
+		}
+
+	}
+
+	open() {
+
+		const dialog = this.getChild("dialog");
+
+		dialog.setFocus(true);
+
+		if (this.resource.params) {
+
+			KarmaFieldsAlpha.server.promise(done => {
+
+				let params = this.parseObject(this.resource.params);
+
+				if (params !== undefined) {
+
+					dialog.setState(params, "params");
+
+					done();
+
+				}
+
+			});
+
+		}
+
+	}
+
+	close() {
+
+		this.setFocus();
+
+	}
+
+	getText() {
+
+		return this.parseString(this.resource.text || this.resource.content);
+
+	}
+
+	*buildDialog() {
+
+		// const dialog = this.getChild("dialog");
+		// const hasDialog = dialog.hasFocusInside();
+
+		// if (hasDialog) {
+
+		// 	yield {
+		// 		tag: "dialog",
+		// 		init: element => {
+
+		// 		},
+		// 		update: element => {
+		// 			element.open = true;
+		// 			element.onmousedown = event => {
+		// 				event.stopPropagation();
+
+		// 				dialog.setFocus(true);
+		// 				dialog.render();
+		// 			}
+		// 		},
+		// 		children: dialog.build()
+		// 	};
+
+		// }
+
+		const dialog = this.getChild("dialog");
+
+
+
+
+			yield {
+				tag: "dialog",
+				update: (element, implants) => {
+					const hasDialog = dialog.hasFocusInside();
+					if (hasDialog) {
+						element.open = true;
+						implants.children = dialog.build();
+					} else {
+						// element.close();
+					}
+					element.onmousedown = event => {
+						event.stopPropagation();
+
+						dialog.setFocus(true);
+						dialog.render();
+					}
+				},
+				// children: dialog.build()
+			};
+
+
+
+
+	}
+
+	*build() {
+
+		yield {
+			class: "dialog-link",
+			children: [
+				{
+					tag: "a",
+					update: element => {
+						element.innerHTML = this.getText();
+						element.onclick = event => {
+							event.preventDefault();
+							this.save("open");
+							this.open();
+							this.render();
+						}
+					}
+				},
+				{
+					class: "dialog-container",
+					update: element => {
+						this.element = element;
+					},
+					children: this.buildDialog()
+				}
+			]
+		};
+
+	}
+
+}
+
 
 KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.links {
 
@@ -955,13 +1092,13 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.id) {
 
-			if (typeof this.resource.id === "object") {
+			if (typeof this.resource.id === "object" && !Array.isArray(this.resource.id)) {
 
 				return this.resource.id[key];
 
 			} else {
 
-				let id = this.parseString(this.resource.id);
+				let id = this.parseString(this.resource.id); // -> infinit loop if id is an expression like ['get', 'somekey'] and use this.getValue()
 
 				if (id === undefined) {
 
@@ -971,7 +1108,7 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 					const driver = this.getDriver();
 
-					return this.getValue(key, id, driver);
+					return this.parent.getValue(key, id, driver);
 
 				}
 
@@ -1036,6 +1173,14 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 		} else if (this.resource.mixed) {
 
 			return {icon: "mixed", text: "[mixed]"};
+
+		} else if (this.resource.dashicon) {
+
+			return { dashicon: this.resource.dashicon, text: this.resource.caption };
+
+		} else if (this.resource.svg) {
+
+			return { svg: this.resource.svg, text: this.resource.caption };
 
 		} else {
 
@@ -1232,17 +1377,38 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
   }
 
 
+	// *buildImage(media) {
+	// 	if (media.image) {
+	// 		yield {
+	// 			tag: "img",
+	// 			init: element => {
+	// 				element.draggable = false;
+	// 			},
+	// 			update: element => {
+	// 				if (media.src && media.src !== element.getAttribute("data-src")) {
+	// 					element.src = media.src;
+	// 					element.setAttribute("data-src", media.src);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+
 	*buildImage(media) {
 		if (media.image) {
 			yield {
-				tag: "img",
-				init: element => {
-					element.draggable = false;
-				},
-				update: element => {
-					if (media.src && media.src !== element.getAttribute("data-src")) {
-						element.src = media.src;
-						element.setAttribute("data-src", media.src);
+				tag: "figure",
+				class: "image",
+				child: {
+					tag: "img",
+					init: element => {
+						element.draggable = false;
+					},
+					update: element => {
+						if (media.src && media.src !== element.getAttribute("data-src")) {
+							element.src = media.src;
+							element.setAttribute("data-src", media.src);
+						}
 					}
 				}
 			}
@@ -1253,17 +1419,33 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 
 		if (media.video) {
 			yield {
-				tag: "video",
-				init: element => {
-					element.controls = true;
-				},
-				update: element => {
-					if (media.filename && media.filename !== element.getAttribute("data-src")) {
-						element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-						element.setAttribute("data-src", media.filename);
+				tag: "figure",
+				class: "video",
+				child: {
+					tag: "video",
+					init: element => {
+						element.controls = true;
+					},
+					update: element => {
+						if (media.filename && media.filename !== element.getAttribute("data-src")) {
+							element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+							element.setAttribute("data-src", media.filename);
+						}
 					}
 				}
 			};
+			// yield {
+			// 	tag: "video",
+			// 	init: element => {
+			// 		element.controls = true;
+			// 	},
+			// 	update: element => {
+			// 		if (media.filename && media.filename !== element.getAttribute("data-src")) {
+			// 			element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+			// 			element.setAttribute("data-src", media.filename);
+			// 		}
+			// 	}
+			// };
 		}
 
 	}
@@ -1271,19 +1453,216 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 	*buildAudio(media) {
 		if (media.audio) {
 			yield {
-				tag: "audio",
-				init: element => {
-					element.controls = true;
-				},
-				update: element => {
-					if (media.filename && media.filename !== element.getAttribute("data-src")) {
-						element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-						element.setAttribute("data-src", media.filename);
+				tag: "figure",
+				class: "audio",
+				child: {
+					tag: "audio",
+					init: element => {
+						element.controls = true;
+					},
+					update: element => {
+						if (media.filename && media.filename !== element.getAttribute("data-src")) {
+							element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+							element.setAttribute("data-src", media.filename);
+						}
 					}
 				}
-			}
+			};
+		// 	yield {
+		// 		tag: "audio",
+		// 		init: element => {
+		// 			element.controls = true;
+		// 		},
+		// 		update: element => {
+		// 			if (media.filename && media.filename !== element.getAttribute("data-src")) {
+		// 				element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+		// 				element.setAttribute("data-src", media.filename);
+		// 			}
+		// 		}
+		// 	}
 		}
+
 	}
+
+	*buildIcon(media) {
+
+		if (media.icon) {
+
+			yield {
+				class: "icon",
+				tag: "figure",
+				// update: element => {
+				// 	element.classList.toggle("hidden", !media.icon);
+				// },
+				children: [
+					{
+						update: element => {
+							element.className = "";
+							if (media.dashicon) {
+								element.classList.add("dashicons", media.dashicon);
+							} else if (media.icon) {
+								element.classList.toggle("dashicons", Boolean(media.icon));
+								// node.element.classList.toggle("dashicons-category", media.icon === "folder");
+								element.classList.toggle("dashicons-format-image", media.icon === "image");
+								element.classList.toggle("dashicons-media-video", media.icon === "video");
+								element.classList.toggle("dashicons-media-audio", media.icon === "audio");
+								element.classList.toggle("dashicons-media-text", media.icon === "text");
+								element.classList.toggle("dashicons-media-document", media.icon === "document");
+								element.classList.toggle("dashicons-media-archive", media.icon === "archive");
+								element.classList.toggle("dashicons-media-default", media.icon === "default");
+								element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
+								element.classList.toggle("dashicons-upload", media.icon === "uploading");
+								element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
+								element.classList.toggle("dashicons-warning", media.icon === "notfound");
+								element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
+							}
+						}
+					},
+					{
+						class: "filename",
+						update: element => {
+							element.classList.toggle("hidden", this.resource.caption === false);
+							element.innerHTML = media.text;
+						}
+					}
+				]
+			};
+
+		} else if (media.dashicon) {
+
+			yield {
+				class: "icon",
+				tag: "figure",
+				children: [
+					{
+						update: element => {
+							element.className = `dashicons ${media.dashicon}`;
+							// element.className = "";
+							// element.classList.add("dashicons", media.dashicon);
+						}
+					},
+					{
+						class: "filename",
+						update: element => {
+							element.classList.toggle("hidden", this.resource.caption === false);
+							element.innerHTML = media.text;
+						}
+					}
+				]
+			};
+
+		}
+
+	}
+
+	*buildMedias(media) {
+
+		yield {
+			class: "media-container",
+			children: this.buildIcon(media)
+		}
+
+		yield {
+			class: "media-container",
+			children: this.buildImage(media)
+		}
+
+		yield {
+			class: "media-container",
+			children: this.buildVideo(media)
+		}
+
+		yield {
+			class: "media-container",
+			children: this.buildAudio(media)
+		}
+
+	}
+
+
+
+	// *buildFigure(media) {
+
+	// 	if (media.image) {
+
+	// 		yield {
+	// 			tag: "img",
+	// 			transform: true,
+	// 			init: element => {
+	// 				element.draggable = false;
+	// 			},
+	// 			update: element => {
+	// 				if (media.src && media.src !== element.getAttribute("data-src")) {
+	// 					element.src = media.src;
+	// 					element.setAttribute("data-src", media.src);
+	// 				}
+	// 			}
+	// 		}
+
+	// 	} else if (media.video) {
+
+	// 		yield {
+	// 			tag: "video",
+	// 			transform: true,
+	// 			init: element => {
+	// 				element.controls = true;
+	// 			},
+	// 			update: element => {
+	// 				if (media.filename && media.filename !== element.getAttribute("data-src")) {
+	// 					element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+	// 					element.setAttribute("data-src", media.filename);
+	// 				}
+	// 			}
+	// 		};
+
+	// 	} else if (media.audio) {
+
+	// 		yield {
+	// 			tag: "audio",
+	// 			transform: true,
+	// 			init: element => {
+	// 				element.controls = true;
+	// 			},
+	// 			transform: element => {
+	// 				if (element.tagName !== "AUDIO") {
+	// 					element = document.createElement("audio");
+	// 					element.controls = true;
+	// 					return element;
+
+	// 					// element.replaceWith(audio);
+	// 					// element = audio
+	// 				}
+	// 			},
+	// 			update: element => {
+	// 				if (element.tagName !== "AUDIO") {
+	// 					const audio = document.createElement("audio");
+	// 					audio.controls = true;
+	// 					element.replaceWith(audio);
+	// 					element = audio
+	// 				}
+	// 				if (media.filename && media.filename !== element.getAttribute("data-src")) {
+	// 					element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+	// 					element.setAttribute("data-src", media.filename);
+	// 				}
+	// 			}
+	// 		}
+
+	// 	} else if (media.svg) {
+
+	// 		yield {
+	// 			class: "svg",
+	// 			transform: true,
+	// 			init: element => {
+	// 				element.draggable = false;
+	// 			},
+	// 			update: element => {
+	// 				element.innerHTML = media.svg;
+	// 			}
+	// 		}
+
+	// 	}
+
+	// }
 
 
 
@@ -1308,66 +1687,77 @@ KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
 					element.classList.add("greyscale");
 				}
 			},
-			children: [
-				{
-					class: "icon",
-					tag: "figure",
-					update: element => {
-						element.classList.toggle("hidden", !media.icon);
-					},
-					children: [
-						{
-							update: element => {
-								element.classList.toggle("dashicons", Boolean(media.icon));
-								// node.element.classList.toggle("dashicons-category", media.icon === "folder");
-								element.classList.toggle("dashicons-format-image", media.icon === "image");
-								element.classList.toggle("dashicons-media-video", media.icon === "video");
-								element.classList.toggle("dashicons-media-audio", media.icon === "audio");
-								element.classList.toggle("dashicons-media-text", media.icon === "text");
-								element.classList.toggle("dashicons-media-document", media.icon === "document");
-								element.classList.toggle("dashicons-media-archive", media.icon === "archive");
-								element.classList.toggle("dashicons-media-default", media.icon === "default");
-								element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
-								element.classList.toggle("dashicons-upload", media.icon === "uploading");
-								element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
-								element.classList.toggle("dashicons-warning", media.icon === "notfound");
-								element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
-							}
-						},
-						{
-							class: "filename",
-							update: element => {
-								element.classList.toggle("hidden", this.resource.caption === false);
-								element.innerHTML = media.text;
-							}
-						}
-					]
-				},
-				{
-					class: "image",
-					tag: "figure",
-					update: element => {
-						element.classList.toggle("hidden", !media.image);
-					},
-					children: this.buildImage(media)
-				},
-				{
-					class: "video",
-					tag: "figure",
-					update: element => {
-						element.classList.toggle("hidden", !media.video);
-					},
-					children: this.buildVideo(media)
-				},
-				{
-					class: "audio",
-					tag: "figure",
-					update: element => {
-						element.classList.toggle("hidden", !media.audio);
-					},
-					children: this.buildAudio(media)
-				}
-			]
+			children: this.buildMedias(media)
+			// children: [
+			// 	// {
+			// 	// 	class: "icon",
+			// 	// 	tag: "figure",
+			// 	// 	update: element => {
+			// 	// 		element.classList.toggle("hidden", !media.icon);
+			// 	// 	},
+			// 	// 	children: [
+			// 	// 		{
+			// 	// 			update: element => {
+			// 	// 				element.className = "";
+			// 	// 				if (media.dashicon) {
+			// 	// 					element.classList.add("dashicons", media.dashicon);
+			// 	// 				} else if (media.icon) {
+			// 	// 					element.classList.toggle("dashicons", Boolean(media.icon));
+			// 	// 					// node.element.classList.toggle("dashicons-category", media.icon === "folder");
+			// 	// 					element.classList.toggle("dashicons-format-image", media.icon === "image");
+			// 	// 					element.classList.toggle("dashicons-media-video", media.icon === "video");
+			// 	// 					element.classList.toggle("dashicons-media-audio", media.icon === "audio");
+			// 	// 					element.classList.toggle("dashicons-media-text", media.icon === "text");
+			// 	// 					element.classList.toggle("dashicons-media-document", media.icon === "document");
+			// 	// 					element.classList.toggle("dashicons-media-archive", media.icon === "archive");
+			// 	// 					element.classList.toggle("dashicons-media-default", media.icon === "default");
+			// 	// 					element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
+			// 	// 					element.classList.toggle("dashicons-upload", media.icon === "uploading");
+			// 	// 					element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
+			// 	// 					element.classList.toggle("dashicons-warning", media.icon === "notfound");
+			// 	// 					element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
+			// 	// 				}
+			// 	// 			}
+			// 	// 		},
+			// 	// 		{
+			// 	// 			class: "filename",
+			// 	// 			update: element => {
+			// 	// 				element.classList.toggle("hidden", this.resource.caption === false);
+			// 	// 				element.innerHTML = media.text;
+			// 	// 			}
+			// 	// 		}
+			// 	// 	]
+			// 	// },
+
+			// 	// {
+			// 	// 	tag: "figure",
+			// 	// 	children: this.buildFigure()
+			// 	// },
+			// 	// {
+			// 	// 	class: "image",
+			// 	// 	tag: "figure",
+			// 	// 	update: element => {
+			// 	// 		element.classList.toggle("hidden", !media.image);
+			// 	// 	},
+			// 	// 	children: this.buildImage(media)
+			// 	// },
+			// 	// {
+			// 	// 	class: "video",
+			// 	// 	tag: "figure",
+			// 	// 	update: element => {
+			// 	// 		element.classList.toggle("hidden", !media.video);
+			// 	// 	},
+			// 	// 	children: this.buildVideo(media)
+			// 	// },
+			// 	// {
+			// 	// 	class: "audio",
+			// 	// 	tag: "figure",
+			// 	// 	update: element => {
+			// 	// 		element.classList.toggle("hidden", !media.audio);
+			// 	// 	},
+			// 	// 	children: this.buildAudio(media)
+			// 	// }
+			// ]
 		};
 	}
 }

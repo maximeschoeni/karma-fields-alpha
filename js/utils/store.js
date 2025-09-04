@@ -665,7 +665,7 @@ KarmaFieldsAlpha.server = KarmaFieldsAlpha.Store = class {
 
 					}
 
-					options.push({ id: ids[i], [key]: value[0] });
+					options.push({ id: query.ids[i], [key]: value[0] });
 
 				}
 
@@ -784,7 +784,7 @@ KarmaFieldsAlpha.server = KarmaFieldsAlpha.Store = class {
 
 					if (!KarmaFieldsAlpha.Collection.equal(value, vars[driver][id][key])) {
 
-						console.log("checkVars", KarmaFieldsAlpha.History.current, driver, id, key, vars[driver][id][key], value);
+						// console.log("checkVars", KarmaFieldsAlpha.History.current, driver, id, key, vars[driver][id][key], value);
 
 						return true;
 

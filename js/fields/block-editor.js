@@ -1,54 +1,31 @@
 
 KarmaFieldsAlpha.field.blockEditor = class extends KarmaFieldsAlpha.field {
 
-  // getValue(index, ...path) {
-  //
-  //   if (index !== undefined) {
-  //
-  //     const array = super.getValue();
-  //
-  //     if (!array || array === KarmaFieldsAlpha.loading) {
-  //
-  //       return KarmaFieldsAlpha.loading;
-  //
-  //     }
-  //
-  //     const object = KarmaFieldsAlpha.DeepArray.get(array, index, ...path);
-  //
-  //     return KarmaFieldsAlpha.Type.toArray(object);
-  //
-  //   } else {
-  //
-  //     return super.getValue();
-  //
-  //   }
-  //
+
+  // constructor(resource) {
+
+  //   super({
+  //     library: [
+  //       {
+  //         type: "blockTinymce",
+  //         label: "Tinymce"
+  //       },
+  //       {
+  //         label: "Columns",
+  //         type: "columns",
+  //         children: [
+  //           {type: "column"}
+  //         ]
+  //       },
+  //       {
+  //         label: "Gallery",
+  //         type: "blockGallery"
+  //       }
+  //     ],
+  //     ...resource
+  //   });
+
   // }
-
-  constructor(resource) {
-
-    super({
-      library: [
-        {
-          type: "blockTinymce",
-          label: "Tinymce"
-        },
-        {
-          label: "Columns",
-          type: "columns",
-          children: [
-            {type: "column"}
-          ]
-        },
-        {
-          label: "Gallery",
-          type: "blockGallery"
-        }
-      ],
-      ...resource
-    });
-
-  }
 
 
   getBlockValue(...path) {
@@ -345,148 +322,6 @@ KarmaFieldsAlpha.field.blockEditor = class extends KarmaFieldsAlpha.field {
 
   }
 
-  // getColumns(rows) {
-  //
-  //   const keys = this.getKeys();
-  //
-  //   const columns = {};
-  //
-  //   for (let key of keys) {
-  //
-  //     columns[key] = [];
-  //
-  //   }
-  //
-  //   for (let i = 0; i < rows.length; i++) {
-  //
-  //     for (let key in rows[i]) {
-  //
-  //       if (columns[key]) {
-  //
-  //         columns[key][i] = rows[i][key];
-  //
-  //       }
-  //
-  //     }
-  //
-  //   }
-  //
-  //   return columns;
-  // }
-  //
-  // // -> return array of objects;
-  // getRows(columns) {
-  //
-  //   const rows = [];
-  //
-  //   for (let key in columns) {
-  //
-  //     const column = columns[key] || [];
-  //
-  //     for (let i = 0; i < column.length; i++) {
-  //
-  //       if (!rows[i]) {
-  //
-  //         rows[i] = {};
-  //
-  //       }
-  //
-  //       rows[i][key] = column[i];
-  //     }
-  //
-  //   }
-  //
-  //   return rows;
-  // }
-
-  // getValue() {
-  //
-  //   let key = this.getKey();
-  //
-  //   if (key) {
-  //
-  //     return this.parent.getValue(key);
-  //
-  //   } else {
-  //
-  //     const row = this.createChild({
-  //       type: "row",
-  //       children: this.resource.children,
-  //       index: "token"
-  //     });
-  //
-  //     const keys = row.getKeys();
-  //
-  //     const columns = {};
-  //
-  //     for (key of keys) {
-  //
-  //       const value = this.parent.getValue(key);
-  //
-  //       if (value) {
-  //
-  //         if (value[0] === KarmaFieldsAlpha.mixed) {
-  //
-  //           return value;
-  //
-  //         }
-  //
-  //         columns[key] = value;
-  //
-  //       }
-  //
-  //     }
-  //
-  //     return this.getRows(columns);
-  //
-  //   }
-  //
-  // }
-  //
-  // setValue(value) {
-  //
-  //   let key = this.getKey();
-  //
-  //   if (key) {
-  //
-  //     this.parent.setValue(value, key);
-  //
-  //   } else {
-  //
-  //     const columns = this.getColumns(value);
-  //
-  //     for (key in columns) {
-  //
-  //       this.parent.setValue(columns[key], key);
-  //
-  //     }
-  //
-  //   }
-  //
-  // }
-
-
-
-  // add() {
-  //
-  //   const array = this.getValue();
-  //
-  //   const row = this.createChild({
-  //     children: this.resource.children,
-  //     type: "row",
-  //     index: array.length
-  //   });
-  //
-  //   this.save("add");
-  //
-  //   row.initValue();
-  //
-  //   // this.setValue([...array, {}]);
-  //
-  //
-  //
-  // }
-
   remove(index, length, ...path) {
 
     let values = this.getValue();
@@ -507,57 +342,6 @@ KarmaFieldsAlpha.field.blockEditor = class extends KarmaFieldsAlpha.field {
 
   }
 
-  // delete(selection) {
-  //
-  //
-  //   debugger;
-  //
-  //
-  //   super.delete(selection);
-  //
-  // }
-
-  // paste(value, selection) {
-  //
-  //   this.import([value], selection.index || 0, selection.length || 0);
-  //
-  // }
-
-  // copy(selection) {
-  //
-  //   debugger;
-  //
-  //   const [value] = this.export([], selection.index || 0, selection.length || 0);
-  //
-  //   return value;
-  //
-  // }
-
-  // sortUp(index, length = 1) {
-  //
-  //   if (index > 0) {
-  //
-  //     this.swap(index, length, index-1);
-  //
-  //     this.setSelection({final: true, index: index-1, length: length});
-  //     this.save("sort");
-  //     this.render();
-  //   }
-  //
-  // }
-  //
-  // sortDown(index, length = 1) {
-  //
-  //   if (index + length < this.getValue().length) {
-  //
-  //     this.swap(index, length, index+1);
-  //
-  //     this.setSelection({final: true, index: index-1, length: length});
-  //     this.save("sort");
-  //     this.render();
-  //   }
-  //
-  // }
 
   swap(index, newIndex, length, path, newPath) {
 

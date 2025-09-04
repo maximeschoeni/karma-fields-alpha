@@ -537,6 +537,25 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.container {
 
 	}
 
+	// getPopup() {
+
+	// 	if (this.resource.popup) {
+
+	// 		const popup = this.createChild({
+	// 			type: "popup",
+	// 			content: this.resource.popup
+	// 		}, "popup");
+
+	// 		if (popup.hasFocusInside()) {
+
+	// 			return popup;
+
+	// 		}
+
+	// 	}
+
+	// }
+
 	// getLength() {
 
 	// 	const query = this.getQuery();
@@ -2406,10 +2425,29 @@ KarmaFieldsAlpha.field.table = class extends KarmaFieldsAlpha.field.container {
 
 	}
 
-	*buildContent() {
+	// *buildContent() {
 
-		yield* super.buildContent();
-		yield* this.buildExport();
+	// 	yield* super.buildContent();
+	// 	yield* this.buildExport();
+
+	// }
+
+	*buildBody() {
+
+		const body = this.getBody();
+
+		if (body) {
+
+			yield* body.build(); // -> don't wrap with body-content in tables
+
+			yield* this.buildExport();
+
+			// yield {
+			// 	class: "body-content",
+			// 	children: body.build()
+			// };
+
+		}
 
 	}
 

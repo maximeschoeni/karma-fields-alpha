@@ -308,6 +308,74 @@ KarmaFieldsAlpha.field = class {
 		return child;
 	}
 
+	createField(type, resource, id) { // -> simpler method for creating child field
+
+		if (!type) {
+
+			console.error("creating field without type");
+
+		}
+
+		if (!resource) {
+
+			console.error("creating field without resource");
+
+		}
+
+		if (id === undefined) {
+
+			console.error("creating field without an id");
+
+		}
+
+		if (!KarmaFieldsAlpha.field[type]) {
+
+			console.error("Creating field but type does not exist");
+
+		}
+
+		return new KarmaFieldsAlpha.field[type](resource, id, this);
+
+	}
+
+	createField2(resource, id) { // -> simpler method for creating child field
+
+		if (typeof resource === "string") {
+
+			resource = { model: resource };
+
+		}
+
+		if (resource.model) {
+
+			console.error("Creating field but there are no model in resource");
+
+		}
+
+		if (KarmaFieldsAlpha.tables[resource.model]) {
+
+			return this.createField2({
+				...KarmaFieldsAlpha.tables[resource.model],
+				...resource,
+				model: KarmaFieldsAlpha.tables[resource.model].model
+			}, id);
+
+		} else if (this.constructor[resource.model]) {
+
+			return new this.constructor[resource.model](resource, id, this);
+
+		} else if (KarmaFieldsAlpha.field[resource.model]) {
+
+			return new KarmaFieldsAlpha.field[resource.model](resource, id, this);
+
+		} else {
+
+			console.error("Creating field but model is not defined");
+
+		}
+
+	}
+
   // init() {
   //
   //   this.uid = `${this.parent.uid}-${this.id}`;
@@ -543,6 +611,7 @@ KarmaFieldsAlpha.field = class {
 		return false;
 
 	}
+
 
 
 
@@ -988,15 +1057,6 @@ KarmaFieldsAlpha.field = class {
 		if (paramstring === undefined) {
 
 			const params  = this.parse(this.resource.params);
-
-			// compat
-			if (params instanceof KarmaFieldsAlpha.Content) {
-				if (params.loading) {
-					params = undefined;
-				} else {
-					params = params.toObject();
-				}
-			}
 
 			if (params !== undefined) {
 
@@ -2403,7 +2463,10 @@ KarmaFieldsAlpha.field = class {
 							return;
 						}
 					}
-					return this.parent.getValue(key, id, driver);
+					if (key && id && driver) {
+						return this.getValue(key, id, driver);
+					}
+					return this.parent.getValue(key, id, driver); // prevent infinit loops
 				}
 				case "queryValue": {
 					return this.parse(["get", expression[3], expression[2], expression[1]]); // compat

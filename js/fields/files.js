@@ -262,6 +262,18 @@ KarmaFieldsAlpha.field.files = class extends KarmaFieldsAlpha.field.tags {
 
 	}
 
+	*buildBody() {
+
+		const body = this.getBody();
+
+		if (body) {
+
+			yield* body.build(); // -> don't wrap with body-content in tables
+
+		}
+
+	}
+
 }
 
 // KarmaFieldsAlpha.field.files.medias = class extends KarmaFieldsAlpha.field.medias {

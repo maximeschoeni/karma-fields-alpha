@@ -3,13 +3,14 @@ KarmaFieldsAlpha.field.postform = class extends KarmaFieldsAlpha.field.form {
 
 	*buildBody() {
 
-		const body = this.getBody();
+		// const body = this.getBody();
 
-		yield {
-			class: "table-body",
-			children: body.build()
-		};
+		// yield {
+		// 	class: "table-body",
+		// 	children: body.build()
+		// };
 
+		yield* super.buildBody();
 
 		if (this.resource.hiddenfield !== false) {
 
