@@ -40,15 +40,30 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.export) {
 
+			// if (!this.resource.export) {
+
+			// 	const value = this.getContent();
+
+			// 	if (value !== undefined) {
+
+			// 		return [value];
+
+			// 	}
+
+			// } else if (this.resource.export) {
+
+			// 	return this.parseArray(this.resource.export || this.getContent());
+
+			// }
+
 			if (this.resource.export === true) {
 
-				return this.getValue();
-
-			} else if (this.resource.export) {
-
-				return this.parseArray(this.resource.export);
+				return this.parseArray(this.getContent());
 
 			}
+
+			return this.parseArray(this.resource.export);
+
 
 			// if (content.loading) {
 
@@ -103,7 +118,10 @@ KarmaFieldsAlpha.field.text = class extends KarmaFieldsAlpha.field {
 
 				yield {
 					update: element => {
-						element.innerHTML = value.toString();
+						const string = value.toString() || "";
+						if (element.innerHTML !== string) {
+							element.innerHTML = string;
+						}
 					}
 				};
 
@@ -150,9 +168,23 @@ KarmaFieldsAlpha.field.simpletext = class extends KarmaFieldsAlpha.field.text {
 
 	getText() {
 
-		return this.parseString(this.resource.value || this.resource.content);
+		if (this.resource.key) {
+
+			return this.getSingleValue(this.resource.key) || "";
+
+		}
+
+		if (this.resource.value || this.resource.content) {
+
+			return this.parseString(this.resource.value || this.resource.content);
+
+		}
+
+		return "";
 
 	}
+
+
 
 	*build() {
 		yield {
@@ -178,6 +210,30 @@ KarmaFieldsAlpha.field.simpletext = class extends KarmaFieldsAlpha.field.text {
 		};
 	}
 
+
+}
+
+
+KarmaFieldsAlpha.field.title = class extends KarmaFieldsAlpha.field.simpletext {
+
+	constructor(resource, id, parent) {
+
+		super({
+			// tag: "h1",
+			style: "flex-grow:1",
+			classes: ["text-title", "ellipsis"],
+			content: "Title",
+			width: "1fr",
+			...resource
+		}, id, parent);
+
+	}
+
+	getText() {
+
+		return this.queryLabel();
+
+	}
 
 }
 
@@ -222,250 +278,9 @@ KarmaFieldsAlpha.field.html = class extends KarmaFieldsAlpha.field {
 }
 
 
-// deprecated class
-// KarmaFieldsAlpha.field.text.a = class extends KarmaFieldsAlpha.field {
-//
-// 	constructor(resource) {
-//
-// 		super(resource);
-//
-// 		this.tag = "a";
-//
-// 	}
-//
-// 	update(node) {
-//
-// 		node.element.onmousedown = event => {
-//
-// 			event.stopPropagation();
-//
-// 		};
-//
-// 		if (this.resource.href) {
-//
-// 			const href = this.parse(this.resource.href);
-//
-// 			if (href !== KarmaFieldsAlpha.loading) {
-//
-// 				node.element.href = href;
-//
-// 			}
-//
-// 		} else if (this.resource.table || this.resource.params) {
-//
-// 			node.element.onclick = event => {
-//
-// 				event.preventDefault();
-//
-// 				const table = this.parse(this.resource.table);
-//
-// 				const params = this.parseParams(this.resource.params);
-//
-// 				if (table !== KarmaFieldsAlpha.loading && params !== KarmaFieldsAlpha.loading && !Object.values(params).some(value => value === KarmaFieldsAlpha.loading)) {
-//
-// 					KarmaFieldsAlpha.saucer.open(table, params, this.resource.context);
-//
-// 				}
-//
-// 			}
-//
-// 		}
-//
-// 		const content = this.parse(this.resource.content);
-//
-// 		node.element.innerHTML = KarmaFieldsAlpha.Type.toString(content) || "...";
-//
-// 		if (this.resource.target) {
-//
-// 			node.element.target = this.resource.target;
-//
-// 		}
-//
-// 	}
-//
-//
-// }
-//
-//
-//
-// // deprecated class
-// KarmaFieldsAlpha.field.text.link = class extends KarmaFieldsAlpha.field {
-//
-// 	getHref() {
-//
-// 		if (this.resource.href) {
-//
-// 			const href = this.parse(this.resource.href);
-//
-// 			if (href !== KarmaFieldsAlpha.loading) {
-//
-// 				return href;
-//
-// 			}
-//
-// 		}
-//
-// 	}
-//
-// 	getContent() {
-//
-// 		const content = this.parse(this.resource.content);
-//
-// 		if (content === KarmaFieldsAlpha.loading) {
-//
-// 			return "";
-//
-// 		}
-//
-// 		return KarmaFieldsAlpha.Type.toString(content);
-//
-// 	}
-//
-// 	click() {
-//
-// 		const table = this.parse(this.resource.table);
-//
-// 		const params = this.parseParams(this.resource.params);
-//
-// 		if (table !== KarmaFieldsAlpha.loading && params !== KarmaFieldsAlpha.loading && !Object.values(params).some(value => value === KarmaFieldsAlpha.loading)) {
-//
-// 			KarmaFieldsAlpha.saucer.open(table, params, this.resource.context);
-//
-// 		}
-//
-// 	}
-//
-// 	build() {
-//
-// 		return {
-// 			tag: "a",
-// 			update: node => {
-//
-// 				node.element.onmousedown = event => {
-//
-// 					event.stopPropagation();
-//
-// 				};
-//
-// 				if (this.resource.href) {
-//
-// 					node.element.href = this.getHref();
-//
-// 				} else {
-//
-// 					node.element.onclick = event => {
-//
-// 						event.preventDefault();
-//
-// 						this.click();
-//
-// 					}
-//
-// 				}
-//
-// 				node.element.innerHTML = this.getContent();
-//
-// 				if (this.resource.target) {
-//
-// 					node.element.target = this.resource.target;
-//
-// 				}
-//
-// 			}
-// 		};
-//
-// 	}
-//
-// }
-
-
-
-// KarmaFieldsAlpha.field.filterLink = class extends KarmaFieldsAlpha.field.text {
-//
-// 	getChildren() {
-//
-// 		// const key = this.resource.key;
-// 		const children = [];
-//
-// 		if (!this.resource.driver) {
-//
-// 			console.error("driver is missing");
-//
-// 		}
-//
-// 		const ids = this.getValue();
-//
-// 		if (ids && ids !== KarmaFieldsAlpha.loading) {
-//
-// 			for (let id of ids) {
-//
-// 				// const values = KarmaFieldsAlpha.Query.getValue(this.resource.driver, id, "name");
-// 				const value = new KarmaFieldsAlpha.Content.Value(this.resource.driver, id, "name");
-//
-// 				if (!value.loading) {
-//
-// 					const child = this.createChild({
-// 						type: "link",
-// 						content: value.toString(),
-// 						params: {[this.resource.key]: id}
-// 					});
-//
-// 					children.push(child);
-//
-// 				}
-//
-// 			}
-//
-// 		}
-//
-// 		return children;
-//
-// 	}
-//
-// 	build() {
-//
-// 		return {
-// 			tag: "ul",
-// 			class: "karma-field links",
-// 			update: node => {
-// 				node.element.classList.toggle("display-inline", this.resource.display === "inline");
-// 				node.children = this.getChildren().map(child => {
-// 					return {
-// 						tag: "li",
-// 						child: child.build()
-// 					}
-// 				});
-// 			}
-// 		};
-//
-// 	}
-//
-// }
-
 
 
 KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
-
-	// nav(index = 0) {
-	//
-	// 	let table = this.parse(this.resource.table);
-	// 	let params = this.parse(this.resource.params);
-	//
-	// 	if (table.loading || params.loading) {
-	//
-	// 		this.addTask(() => this.nav(index), "nav");
-	//
-	// 	} else {
-	//
-	// 		this.save("nav", "Open link");
-	//
-	// 		this.request("open", table.toString(), params.toArray()[index], this.resource.replace);
-	//
-	// 	}
-	//
-	// 	this.request("render");
-	//
-	// }
 
 	newChild(index) {
 
@@ -526,21 +341,6 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 		this.setFocus(true);
 
 	}
-
-	// getContents() {
-	//
-	// 	let contents = this.parse(this.resource.content);
-	//
-	// 	return contents.toArray();
-	// }
-
-	// getHrefs(index) {
-	//
-	// 	let href = this.parse(this.resource.href);
-	//
-	// 	return href.toArray()[index];
-	//
-	// }
 
 	*buildPopup() {
 
@@ -653,24 +453,11 @@ KarmaFieldsAlpha.field.links = class extends KarmaFieldsAlpha.field {
 }
 
 
-KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
+KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field.text {
 
 	newChild(index) {
 
 		if (index === "popup" && this.resource.popup) {
-
-			// let resource = this.resource.popup;
-
-			// if (typeof resource === "string") {
-
-
-			// }
-
-			// return this.createChild({
-			// 	sandbox: true,
-			// 	...this.resource.popup
-			// }, "popup");
-
 
 			return this.createChild(this.resource.popup, "popup");
 
@@ -702,23 +489,6 @@ KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
 
 		}
 
-		// if (this.resource.preselect) {
-
-		// 	let ids = this.parse(this.resource.preselect);
-
-		// 	while (ids.loading) {
-
-		// 		await this.render();
-		// 		ids = this.parse(this.resource.preselect);
-
-		// 	}
-
-		// 	await popup.selectByIds(ids.toArray());
-
-		// }
-
-		// await this.render();
-
 	}
 
 	close() {
@@ -732,30 +502,6 @@ KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
 		return this.parseString(this.resource.text || this.resource.content || this.resource.value);
 
 	}
-
-	// async abduct() {
-
-	// 	if (this.element) {
-
-	// 		await abduct(this.element, this.buildPopup());
-
-	// 	} else {
-
-	// 		await this.parent.abduct();
-
-	// 	}
-
-	// }
-
-	// render() {
-
-	// 	if (this.element) {
-
-	// 		this.renderElement();
-
-	// 	}
-
-	// }
 
 	*buildPopup() {
 
@@ -816,151 +562,75 @@ KarmaFieldsAlpha.field.popupLink = class extends KarmaFieldsAlpha.field {
 }
 
 
-KarmaFieldsAlpha.field.dialog = class extends KarmaFieldsAlpha.field {
-
-	newChild(index) {
-
-		if (index === "dialog" && this.resource.dialog) {
-
-			return this.createChild(this.resource.dialog, "dialog");
-
-		}
-
-	}
-
-	open() {
-
-		const dialog = this.getChild("dialog");
-
-		dialog.setFocus(true);
-
-		if (this.resource.params) {
-
-			KarmaFieldsAlpha.server.promise(done => {
-
-				let params = this.parseObject(this.resource.params);
-
-				if (params !== undefined) {
-
-					dialog.setState(params, "params");
-
-					done();
-
-				}
-
-			});
-
-		}
-
-	}
-
-	close() {
-
-		this.setFocus();
-
-	}
-
-	getText() {
-
-		return this.parseString(this.resource.text || this.resource.content);
-
-	}
-
-	*buildDialog() {
-
-		// const dialog = this.getChild("dialog");
-		// const hasDialog = dialog.hasFocusInside();
-
-		// if (hasDialog) {
-
-		// 	yield {
-		// 		tag: "dialog",
-		// 		init: element => {
-
-		// 		},
-		// 		update: element => {
-		// 			element.open = true;
-		// 			element.onmousedown = event => {
-		// 				event.stopPropagation();
-
-		// 				dialog.setFocus(true);
-		// 				dialog.render();
-		// 			}
-		// 		},
-		// 		children: dialog.build()
-		// 	};
-
-		// }
-
-		const dialog = this.getChild("dialog");
 
 
 
-
-			yield {
-				tag: "dialog",
-				update: (element, implants) => {
-					const hasDialog = dialog.hasFocusInside();
-					if (hasDialog) {
-						element.open = true;
-						implants.children = dialog.build();
-					} else {
-						// element.close();
-					}
-					element.onmousedown = event => {
-						event.stopPropagation();
-
-						dialog.setFocus(true);
-						dialog.render();
-					}
-				},
-				// children: dialog.build()
-			};
-
-
-
-
-	}
-
-	*build() {
-
-		yield {
-			class: "dialog-link",
-			children: [
-				{
-					tag: "a",
-					update: element => {
-						element.innerHTML = this.getText();
-						element.onclick = event => {
-							event.preventDefault();
-							this.save("open");
-							this.open();
-							this.render();
-						}
-					}
-				},
-				{
-					class: "dialog-container",
-					update: element => {
-						this.element = element;
-					},
-					children: this.buildDialog()
-				}
-			]
-		};
-
-	}
-
-}
-
-
-KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.links {
+KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field {
 
 	getKey() {
 
 		return this.resource.key;
 
 	}
+
+	getName(value) {
+
+		const nameField = this.resource.nameField || "name";
+		const options = this.getOptions();
+
+		if (options) {
+
+			const option = options.find(option => option.id === value);
+
+			if (option) {
+
+				return option[nameField] || "";
+
+			}
+
+			return value;
+
+		}
+
+	}
+
+	export() {
+
+		if (this.resource.export) {
+
+			const key = this.getKey();
+			const values = this.parent.getValue(key);
+
+			if (values !== undefined) {
+
+				const names = values.map(id => this.getName(id));
+
+				if (names.every(name => name !== undefined)) {
+
+					return [names.join(", ")];
+
+				}
+
+			}
+
+			return;
+
+		}
+
+		return [];
+
+	}
+
+	import(array) {
+
+		if (this.resource.export) {
+
+			array.shift();
+
+		}
+
+	}
+
 
 	*buildContent() {
 
@@ -970,10 +640,12 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 		if (values !== undefined) {
 
 			for (let id of values) {
+
 				yield {
 					tag: "a",
 					update: element => {
-						const name = this.getValue("name", id, this.resource.driver);
+						// const name = this.getValue("name", id, this.resource.driver);
+						const name = this.getName(id);
 						if (name !== undefined) {
 							element.innerHTML = name;
 						}
@@ -992,7 +664,7 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 
 	*build() {
 
-		return {
+		yield {
 			class: "taxonomy-links",
 			children: this.buildContent()
 		};
@@ -1001,19 +673,116 @@ KarmaFieldsAlpha.field.taxonomyLinks = class extends KarmaFieldsAlpha.field.link
 
 }
 
+// KarmaFieldsAlpha.field.optionLinks = class extends KarmaFieldsAlpha.field {
+
+// 	getKey() {
+
+// 		return this.resource.key;
+
+// 	}
+
+// 	export() {
+
+// 		if (this.resource.export) {
+
+// 			const key = this.getKey();
+// 			const values = this.parent.getValue(key);
+
+// 			if (values !== undefined) {
+
+// 				const options = this.resource.options || [];
+
+// 				const names = values.map(id => {
+// 					const option = options.find(option => option.id === id);
+// 					return option && option.name || id;
+// 				})
+
+// 				return [names.join(", ")];
+
+// 			}
+
+// 			return;
+
+// 		}
+
+// 		return [];
+
+// 	}
+
+// 	import(array) {
+
+// 		if (this.resource.export) {
+
+// 			array.shift();
+
+// 		}
+
+// 	}
+
+
+// 	*buildContent() {
+
+// 		const key = this.getKey();
+// 		const values = this.parent.getValue(key);
+
+// 		if (values !== undefined) {
+
+// 			const options = this.resource.options || [];
+
+// 			for (let id of values) {
+
+// 				yield {
+// 					tag: "a",
+// 					update: element => {
+// 						const option = options.find(option => option.id === id);
+// 						if (option) {
+// 							element.innerHTML = option.name || "";
+// 						} else {
+// 							element.innerHTML = id;
+// 						}
+// 						element.onclick = event => {
+// 							event.preventDefault();
+// 							this.save("nav", "Nav");
+// 							this.parent.setParam(id, key);
+// 							this.render();
+// 						}
+// 					}
+// 				};
+// 			}
+
+// 		}
+// 	}
+
+// 	*build() {
+
+// 		yield {
+// 			class: "taxonomy-links",
+// 			children: this.buildContent()
+// 		};
+
+// 	}
+
+// }
 
 
 KarmaFieldsAlpha.field.link = class extends KarmaFieldsAlpha.field {
 
 	*build() {
 
-		return {
+		yield {
 			tag: "a",
 			class: "link",
 			update: element => {
-				const href = this.parseString(this.resource.href);
-				if (href !== undefined) {
-					element.href = href;
+				if (this.resource.href) {
+					const href = this.parseString(this.resource.href);
+					if (href !== undefined) {
+						element.href = href;
+					}
+				} else if (this.resource.action) {
+					element.onclick = event => {
+						event.preventDefault();
+						this.doAction(this.resource.action);
+					}
 				}
 				const content = this.parseString(this.resource.text || this.resource.content);
 				if (content !== undefined) {
@@ -1080,684 +849,560 @@ KarmaFieldsAlpha.field.link = class extends KarmaFieldsAlpha.field {
 
 
 
-KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
-
-	getDriver() {
-
-		return  this.resource.driver || this.parent.request("getDriver");
-
-	}
-
-	getValue(key) {
-
-		if (this.resource.id) {
-
-			if (typeof this.resource.id === "object" && !Array.isArray(this.resource.id)) {
-
-				return this.resource.id[key];
-
-			} else {
-
-				let id = this.parseString(this.resource.id); // -> infinit loop if id is an expression like ['get', 'somekey'] and use this.getValue()
-
-				if (id === undefined) {
-
-					return;
-
-				} else {
-
-					const driver = this.getDriver();
-
-					return this.parent.getValue(key, id, driver);
-
-				}
-
-			}
-
-
-
-		} else {
-
-			return this.parent.getValue(key);
-
-		}
-
-	}
-
-	isMixed(key) {
-
-		if (this.resource.id) {
-
-			return false;
-
-		}
-
-		return super.isMixed(key);
-
-	}
-
-	isUploading() {
-
-		if (this.resource.id) {
-
-			return typeof this.resource.id === "object";
-
-		}
-
-		return this.parent.isUploading();
-
-	}
-
-	getMedia() {
-
-		// const driver = this.getDriver();
-
-		// if (!driver) {
-
-		// 	return {icon: "notfound", text: "no driver"};
-
-		// } else
-
-		if (this.resource.exit) {
-
-			return {icon: "exit", text: ".."};
-
-		} else if (this.resource.uploading) {
-
-			return {icon: "uploading", text: ""};
-
-		} else if (this.resource.loading) {
-
-			return {icon: "loading", text: ""};
-
-		} else if (this.resource.mixed) {
-
-			return {icon: "mixed", text: "[mixed]"};
-
-		} else if (this.resource.dashicon) {
-
-			return { dashicon: this.resource.dashicon, text: this.resource.caption };
-
-		} else if (this.resource.svg) {
-
-			return { svg: this.resource.svg, text: this.resource.caption };
-
-		} else {
-
-			// const mimetype = this.getValue("mimetype");
-			// const filetype = this.getValue("filetype");
-			// const name = this.getValue("name");
-			// const filename = this.getValue("filename");
-			// const dir = this.getValue("dir");
-
-
-			const media = {
-				mimetype: this.getValue("mimetype"),
-				filetype: this.getValue("filetype"),
-				name: this.getValue("name"),
-				filename: this.getValue("filename"),
-				dir: this.getValue("dir")
-			};
-
-			if (media.mimetype === undefined || media.filetype === undefined || media.name === undefined || media.filename === undefined || media.dir === undefined) {
-
-				return {icon: "loading", text: media.filename || "", loading: true};
-
-			} else {
-
-				const mimetype = media.mimetype[0] || "";
-				const filetype = media.filetype[0] || "";
-				const name = media.name[0] || "";
-				const filename = media.filename[0] || "";
-				const dir = media.dir[0] || "";
-
-				const mixed = this.isMixed("filename");
-				// const isUploading = this.isUploading();
-
-				if (mixed) {
-
-					return { icon: "mixed", text: "[mixed]" };
-
-				} else if (filetype === "upload") {
-
-					return { icon: "uploading", text: filetype || "..." };
-
-				} else if (filetype === "") {
-
-					return {icon: "notfound", text: "no file type!"};
-
-				} else if (filetype === "exit") {
-
-					return { icon: "exit", text: ".." };
-
-				} else if (filetype === "folder" || filetype === "autofolder") {
-
-					return { icon: "folder", text: name };
-
-				} else if (mimetype.startsWith("image")) {
-
-					if (mimetype === "image/jpeg" || mimetype === "image/png" || this.resource.display === "full") {
-
-							const sizes = this.getValue("sizes");
-
-							if (sizes === undefined) {
-
-								return {
-									icon: "loading",
-									text: name,
-									mimetype: mimetype,
-									filename: filename,
-									loading: true,
-									sizes: []
-								};
-
-							} else {
-
-								const sizeName = this.resource.display !== "thumb" && this.resource.display || "thumbnail"; // compat
-								const size = sizes.find(size => sizeName === size.name && size.filename);
-
-								if (size) {
-
-									return {
-										text: name,
-										mimetype: mimetype,
-										filename: filename,
-										src: KarmaFieldsAlpha.uploadURL+dir+"/"+size.filename,
-										image: true,
-										sizes: sizes
-									};
-
-								} else {
-
-									return {
-										icon: "image",
-										text: name,
-										mimetype: mimetype,
-										filename: filename,
-										// src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-										// image: true,
-										// sizes: sizes
-									};
-
-								}
-
-							}
-
-					} else {
-
-						return {
-							text: name,
-							mimetype: mimetype,
-							filename: filename,
-							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-							image: true
-						};
-
-					}
-
-				} else if (mimetype.startsWith("video")) {
-
-					if (this.resource.display === "video") {
-
-						return {
-							text: name,
-							mimetype: mimetype,
-							filename: filename,
-							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-							video: true
-						};
-
-					} else {
-
-						return {
-							icon: "video",
-							text: name,
-							mimetype: mimetype,
-							filename: filename,
-						};
-
-					}
-
-				} else if (mimetype.startsWith("audio")) {
-
-					if (this.resource.display === "audio") {
-
-						return {
-							text: name,
-							mimetype: mimetype,
-							filename: filename,
-							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-							audio: true
-						};
-
-					} else {
-
-						return {
-							icon: "audio",
-							text: name,
-							mimetype: mimetype,
-							filename: filename
-						};
-
-					}
-
-				} else {
-
-					const media = {
-						text: filename,
-						src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
-					};
-
-					if (mimetype.startsWith("text")) {
-
-						media.icon = "text";
-
-					} else if (mimetype === "application/pdf") {
-
-						media.icon = "document";
-
-					} else if (mimetype === "application/zip") {
-
-						media.icon = "zip";
-
-					} else {
-
-						media.icon = "default";
-
-					}
-
-					return media;
-
-				}
-
-			}
-
-		}
-
-  }
-
-
-	// *buildImage(media) {
-	// 	if (media.image) {
-	// 		yield {
-	// 			tag: "img",
-	// 			init: element => {
-	// 				element.draggable = false;
-	// 			},
-	// 			update: element => {
-	// 				if (media.src && media.src !== element.getAttribute("data-src")) {
-	// 					element.src = media.src;
-	// 					element.setAttribute("data-src", media.src);
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	*buildImage(media) {
-		if (media.image) {
-			yield {
-				tag: "figure",
-				class: "image",
-				child: {
-					tag: "img",
-					init: element => {
-						element.draggable = false;
-					},
-					update: element => {
-						if (media.src && media.src !== element.getAttribute("data-src")) {
-							element.src = media.src;
-							element.setAttribute("data-src", media.src);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	*buildVideo(media) {
-
-		if (media.video) {
-			yield {
-				tag: "figure",
-				class: "video",
-				child: {
-					tag: "video",
-					init: element => {
-						element.controls = true;
-					},
-					update: element => {
-						if (media.filename && media.filename !== element.getAttribute("data-src")) {
-							element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-							element.setAttribute("data-src", media.filename);
-						}
-					}
-				}
-			};
-			// yield {
-			// 	tag: "video",
-			// 	init: element => {
-			// 		element.controls = true;
-			// 	},
-			// 	update: element => {
-			// 		if (media.filename && media.filename !== element.getAttribute("data-src")) {
-			// 			element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-			// 			element.setAttribute("data-src", media.filename);
-			// 		}
-			// 	}
-			// };
-		}
-
-	}
-
-	*buildAudio(media) {
-		if (media.audio) {
-			yield {
-				tag: "figure",
-				class: "audio",
-				child: {
-					tag: "audio",
-					init: element => {
-						element.controls = true;
-					},
-					update: element => {
-						if (media.filename && media.filename !== element.getAttribute("data-src")) {
-							element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-							element.setAttribute("data-src", media.filename);
-						}
-					}
-				}
-			};
-		// 	yield {
-		// 		tag: "audio",
-		// 		init: element => {
-		// 			element.controls = true;
-		// 		},
-		// 		update: element => {
-		// 			if (media.filename && media.filename !== element.getAttribute("data-src")) {
-		// 				element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-		// 				element.setAttribute("data-src", media.filename);
-		// 			}
-		// 		}
-		// 	}
-		}
-
-	}
-
-	*buildIcon(media) {
-
-		if (media.icon) {
-
-			yield {
-				class: "icon",
-				tag: "figure",
-				// update: element => {
-				// 	element.classList.toggle("hidden", !media.icon);
-				// },
-				children: [
-					{
-						update: element => {
-							element.className = "";
-							if (media.dashicon) {
-								element.classList.add("dashicons", media.dashicon);
-							} else if (media.icon) {
-								element.classList.toggle("dashicons", Boolean(media.icon));
-								// node.element.classList.toggle("dashicons-category", media.icon === "folder");
-								element.classList.toggle("dashicons-format-image", media.icon === "image");
-								element.classList.toggle("dashicons-media-video", media.icon === "video");
-								element.classList.toggle("dashicons-media-audio", media.icon === "audio");
-								element.classList.toggle("dashicons-media-text", media.icon === "text");
-								element.classList.toggle("dashicons-media-document", media.icon === "document");
-								element.classList.toggle("dashicons-media-archive", media.icon === "archive");
-								element.classList.toggle("dashicons-media-default", media.icon === "default");
-								element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
-								element.classList.toggle("dashicons-upload", media.icon === "uploading");
-								element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
-								element.classList.toggle("dashicons-warning", media.icon === "notfound");
-								element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
-							}
-						}
-					},
-					{
-						class: "filename",
-						update: element => {
-							element.classList.toggle("hidden", this.resource.caption === false);
-							element.innerHTML = media.text;
-						}
-					}
-				]
-			};
-
-		} else if (media.dashicon) {
-
-			yield {
-				class: "icon",
-				tag: "figure",
-				children: [
-					{
-						update: element => {
-							element.className = `dashicons ${media.dashicon}`;
-							// element.className = "";
-							// element.classList.add("dashicons", media.dashicon);
-						}
-					},
-					{
-						class: "filename",
-						update: element => {
-							element.classList.toggle("hidden", this.resource.caption === false);
-							element.innerHTML = media.text;
-						}
-					}
-				]
-			};
-
-		}
-
-	}
-
-	*buildMedias(media) {
-
-		yield {
-			class: "media-container",
-			children: this.buildIcon(media)
-		}
-
-		yield {
-			class: "media-container",
-			children: this.buildImage(media)
-		}
-
-		yield {
-			class: "media-container",
-			children: this.buildVideo(media)
-		}
-
-		yield {
-			class: "media-container",
-			children: this.buildAudio(media)
-		}
-
-	}
-
-
-
-	// *buildFigure(media) {
-
-	// 	if (media.image) {
-
-	// 		yield {
-	// 			tag: "img",
-	// 			transform: true,
-	// 			init: element => {
-	// 				element.draggable = false;
-	// 			},
-	// 			update: element => {
-	// 				if (media.src && media.src !== element.getAttribute("data-src")) {
-	// 					element.src = media.src;
-	// 					element.setAttribute("data-src", media.src);
-	// 				}
-	// 			}
-	// 		}
-
-	// 	} else if (media.video) {
-
-	// 		yield {
-	// 			tag: "video",
-	// 			transform: true,
-	// 			init: element => {
-	// 				element.controls = true;
-	// 			},
-	// 			update: element => {
-	// 				if (media.filename && media.filename !== element.getAttribute("data-src")) {
-	// 					element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-	// 					element.setAttribute("data-src", media.filename);
-	// 				}
-	// 			}
-	// 		};
-
-	// 	} else if (media.audio) {
-
-	// 		yield {
-	// 			tag: "audio",
-	// 			transform: true,
-	// 			init: element => {
-	// 				element.controls = true;
-	// 			},
-	// 			transform: element => {
-	// 				if (element.tagName !== "AUDIO") {
-	// 					element = document.createElement("audio");
-	// 					element.controls = true;
-	// 					return element;
-
-	// 					// element.replaceWith(audio);
-	// 					// element = audio
-	// 				}
-	// 			},
-	// 			update: element => {
-	// 				if (element.tagName !== "AUDIO") {
-	// 					const audio = document.createElement("audio");
-	// 					audio.controls = true;
-	// 					element.replaceWith(audio);
-	// 					element = audio
-	// 				}
-	// 				if (media.filename && media.filename !== element.getAttribute("data-src")) {
-	// 					element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
-	// 					element.setAttribute("data-src", media.filename);
-	// 				}
-	// 			}
-	// 		}
-
-	// 	} else if (media.svg) {
-
-	// 		yield {
-	// 			class: "svg",
-	// 			transform: true,
-	// 			init: element => {
-	// 				element.draggable = false;
-	// 			},
-	// 			update: element => {
-	// 				element.innerHTML = media.svg;
-	// 			}
-	// 		}
-
-	// 	}
-
-	// }
-
-
-
+KarmaFieldsAlpha.field.list = class extends KarmaFieldsAlpha.field {
 
 	*build() {
-
-		const media = this.getMedia();
-
 		yield {
-			class: "karma-field-media",
+			tag: "ul",
+			class: "text karma-field",
 			init: element => {
+				if (this.resource.classes) {
+					element.classList.add(...this.resource.classes);
+				}
 				if (this.resource.width) {
 					element.style.width = this.resource.width;
-				}
-				if (this.resource.height) {
-					element.style.height = this.resource.height;
 				}
 				if (this.resource.display) {
 					element.classList.add(`display-${this.resource.display}`);
 				}
-				if (this.resource.greyscale) {
-					element.classList.add("greyscale");
-				}
 			},
-			children: this.buildMedias(media)
-			// children: [
-			// 	// {
-			// 	// 	class: "icon",
-			// 	// 	tag: "figure",
-			// 	// 	update: element => {
-			// 	// 		element.classList.toggle("hidden", !media.icon);
-			// 	// 	},
-			// 	// 	children: [
-			// 	// 		{
-			// 	// 			update: element => {
-			// 	// 				element.className = "";
-			// 	// 				if (media.dashicon) {
-			// 	// 					element.classList.add("dashicons", media.dashicon);
-			// 	// 				} else if (media.icon) {
-			// 	// 					element.classList.toggle("dashicons", Boolean(media.icon));
-			// 	// 					// node.element.classList.toggle("dashicons-category", media.icon === "folder");
-			// 	// 					element.classList.toggle("dashicons-format-image", media.icon === "image");
-			// 	// 					element.classList.toggle("dashicons-media-video", media.icon === "video");
-			// 	// 					element.classList.toggle("dashicons-media-audio", media.icon === "audio");
-			// 	// 					element.classList.toggle("dashicons-media-text", media.icon === "text");
-			// 	// 					element.classList.toggle("dashicons-media-document", media.icon === "document");
-			// 	// 					element.classList.toggle("dashicons-media-archive", media.icon === "archive");
-			// 	// 					element.classList.toggle("dashicons-media-default", media.icon === "default");
-			// 	// 					element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
-			// 	// 					element.classList.toggle("dashicons-upload", media.icon === "uploading");
-			// 	// 					element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
-			// 	// 					element.classList.toggle("dashicons-warning", media.icon === "notfound");
-			// 	// 					element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
-			// 	// 				}
-			// 	// 			}
-			// 	// 		},
-			// 	// 		{
-			// 	// 			class: "filename",
-			// 	// 			update: element => {
-			// 	// 				element.classList.toggle("hidden", this.resource.caption === false);
-			// 	// 				element.innerHTML = media.text;
-			// 	// 			}
-			// 	// 		}
-			// 	// 	]
-			// 	// },
-
-			// 	// {
-			// 	// 	tag: "figure",
-			// 	// 	children: this.buildFigure()
-			// 	// },
-			// 	// {
-			// 	// 	class: "image",
-			// 	// 	tag: "figure",
-			// 	// 	update: element => {
-			// 	// 		element.classList.toggle("hidden", !media.image);
-			// 	// 	},
-			// 	// 	children: this.buildImage(media)
-			// 	// },
-			// 	// {
-			// 	// 	class: "video",
-			// 	// 	tag: "figure",
-			// 	// 	update: element => {
-			// 	// 		element.classList.toggle("hidden", !media.video);
-			// 	// 	},
-			// 	// 	children: this.buildVideo(media)
-			// 	// },
-			// 	// {
-			// 	// 	class: "audio",
-			// 	// 	tag: "figure",
-			// 	// 	update: element => {
-			// 	// 		element.classList.toggle("hidden", !media.audio);
-			// 	// 	},
-			// 	// 	children: this.buildAudio(media)
-			// 	// }
-			// ]
+			children: this.buildItems()
 		};
 	}
+
+	*buildItems() {
+
+		const items = this.parseArray(this.resource.value || this.resource.content);
+
+		if (items) {
+
+			for (let item of items) {
+
+				yield {
+					tag: "li",
+					update: element => {
+						element.innerHTML = item.toString();
+					}
+				};
+
+			}
+
+		}
+
+	}
+
+
 }
+
+
+
+
+
+// KarmaFieldsAlpha.field.media = class extends KarmaFieldsAlpha.field {
+
+// 	getDriver() {
+
+// 		return  this.resource.driver || "medias";
+
+// 	}
+
+// 	getValue(key) {
+
+// 		if (this.resource.id) {
+
+// 			if (typeof this.resource.id === "object" && !Array.isArray(this.resource.id)) {
+
+// 				return this.resource.id[key];
+
+// 			} else {
+
+// 				let id = this.parseString(this.resource.id); // -> infinit loop if id is an expression like ['get', 'somekey'] and use this.getValue()
+
+// 				if (id === undefined) {
+
+// 					return;
+
+// 				} else {
+
+// 					const driver = this.getDriver();
+
+// 					return this.parent.getValue(key, id, driver);
+
+// 				}
+
+// 			}
+
+
+
+// 		} else {
+
+// 			return this.parent.getValue(key);
+
+// 		}
+
+// 	}
+
+// 	isMixed(key) {
+
+// 		if (this.resource.id) {
+
+// 			return false;
+
+// 		}
+
+// 		return super.isMixed(key);
+
+// 	}
+
+// 	isUploading() {
+
+// 		if (this.resource.id) {
+
+// 			return typeof this.resource.id === "object";
+
+// 		}
+
+// 		return this.parent.isUploading();
+
+// 	}
+
+// 	getMedia() {
+
+// 		if (this.resource.exit) {
+
+// 			return {icon: "exit", text: ".."};
+
+// 		} else if (this.resource.uploading) {
+
+// 			return {icon: "uploading", text: ""};
+
+// 		} else if (this.resource.loading) {
+
+// 			return {icon: "loading", text: ""};
+
+// 		} else if (this.resource.mixed) {
+
+// 			return {icon: "mixed", text: "[mixed]"};
+
+// 		} else if (this.resource.dashicon) {
+
+// 			return { dashicon: this.resource.dashicon, text: this.resource.caption };
+
+// 		} else if (this.resource.svg) {
+
+// 			return { svg: this.resource.svg, text: this.resource.caption };
+
+// 		} else {
+
+// 			// const media = {
+// 			// 	mimetype: this.getValue("mimetype"),
+// 			// 	filetype: this.getValue("filetype"),
+// 			// 	name: this.getValue("name"),
+// 			// 	filename: this.getValue("filename"),
+// 			// 	dir: this.getValue("dir")
+// 			// };
+
+// 			const mimetype = this.getSingleValue("mimetype"),
+// 				filetype = this.getSingleValue("filetype"),
+// 				name = this.getSingleValue("name"),
+// 				filename = this.getSingleValue("filename"),
+// 				dir = this.getSingleValue("dir");
+
+// 			if (mimetype === undefined || filetype === undefined || name === undefined || filename === undefined || dir === undefined) {
+
+// 				return {icon: "loading", text: media.filename || "", loading: true};
+
+// 			} else {
+
+// 				const mixed = this.doAction("isMixed", "filename");
+
+// 				if (mixed) {
+
+// 					return { icon: "mixed", text: "[mixed]" };
+
+// 				// } else if (filetype === "upload") {
+
+// 				// 	return { icon: "uploading", text: filetype || "..." };
+
+// 				// } else if (filetype === "") {
+
+// 				// 	return {icon: "notfound", text: "no file type!"};
+
+// 				// } else if (filetype === "exit") {
+
+// 				// 	return { icon: "exit", text: ".." };
+
+// 				// } else if (filetype === "folder" || filetype === "autofolder") {
+
+// 				// 	return { icon: "folder", text: name };
+
+// 				} else if (mimetype.startsWith("image")) {
+
+// 					if (mimetype === "image/jpeg" || mimetype === "image/png" || this.resource.display === "full") {
+
+// 							const sizes = this.getValue("sizes");
+
+// 							if (sizes === undefined) {
+
+// 								return {
+// 									icon: "loading",
+// 									text: name,
+// 									mimetype: mimetype,
+// 									filename: filename,
+// 									loading: true,
+// 									sizes: []
+// 								};
+
+// 							} else {
+
+// 								const sizeName = this.resource.display !== "thumb" && this.resource.display || "thumbnail"; // compat
+// 								const size = sizes.find(size => sizeName === size.name && size.filename);
+
+// 								if (size) {
+
+// 									return {
+// 										text: name,
+// 										mimetype: mimetype,
+// 										filename: filename,
+// 										src: KarmaFieldsAlpha.uploadURL+dir+"/"+size.filename,
+// 										image: true,
+// 										sizes: sizes
+// 									};
+
+// 								} else {
+
+// 									return {
+// 										icon: "image",
+// 										text: name,
+// 										mimetype: mimetype,
+// 										filename: filename,
+// 										// src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+// 										// image: true,
+// 										// sizes: sizes
+// 									};
+
+// 								}
+
+// 							}
+
+// 					} else {
+
+// 						return {
+// 							text: name,
+// 							mimetype: mimetype,
+// 							filename: filename,
+// 							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+// 							image: true
+// 						};
+
+// 					}
+
+// 				} else if (mimetype.startsWith("video")) {
+
+// 					if (this.resource.display === "video") {
+
+// 						return {
+// 							text: name,
+// 							mimetype: mimetype,
+// 							filename: filename,
+// 							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+// 							video: true
+// 						};
+
+// 					} else {
+
+// 						return {
+// 							icon: "video",
+// 							text: name,
+// 							mimetype: mimetype,
+// 							filename: filename,
+// 						};
+
+// 					}
+
+// 				} else if (mimetype.startsWith("audio")) {
+
+// 					if (this.resource.display === "audio") {
+
+// 						return {
+// 							text: name,
+// 							mimetype: mimetype,
+// 							filename: filename,
+// 							src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+// 							audio: true
+// 						};
+
+// 					} else {
+
+// 						return {
+// 							icon: "audio",
+// 							text: name,
+// 							mimetype: mimetype,
+// 							filename: filename
+// 						};
+
+// 					}
+
+// 				} else {
+
+// 					const media = {
+// 						text: filename,
+// 						src: KarmaFieldsAlpha.uploadURL+dir+"/"+filename,
+// 					};
+
+// 					if (mimetype.startsWith("text")) {
+
+// 						media.icon = "text";
+
+// 					} else if (mimetype === "application/pdf") {
+
+// 						media.icon = "document";
+
+// 					} else if (mimetype === "application/zip") {
+
+// 						media.icon = "zip";
+
+// 					} else {
+
+// 						media.icon = "default";
+
+// 					}
+
+// 					return media;
+
+// 				}
+
+// 			}
+
+// 		}
+
+//   }
+
+
+// 	// *buildImage(media) {
+// 	// 	if (media.image) {
+// 	// 		yield {
+// 	// 			tag: "img",
+// 	// 			init: element => {
+// 	// 				element.draggable = false;
+// 	// 			},
+// 	// 			update: element => {
+// 	// 				if (media.src && media.src !== element.getAttribute("data-src")) {
+// 	// 					element.src = media.src;
+// 	// 					element.setAttribute("data-src", media.src);
+// 	// 				}
+// 	// 			}
+// 	// 		}
+// 	// 	}
+// 	// }
+
+// 	*buildImage(media) {
+// 		if (media.image) {
+// 			yield {
+// 				tag: "figure",
+// 				class: "image",
+// 				child: {
+// 					tag: "img",
+// 					init: element => {
+// 						element.draggable = false;
+// 					},
+// 					update: element => {
+// 						if (media.src && media.src !== element.getAttribute("data-src")) {
+// 							element.src = media.src;
+// 							element.setAttribute("data-src", media.src);
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	*buildVideo(media) {
+
+// 		if (media.video) {
+// 			yield {
+// 				tag: "figure",
+// 				class: "video",
+// 				child: {
+// 					tag: "video",
+// 					init: element => {
+// 						element.controls = true;
+// 					},
+// 					update: element => {
+// 						if (media.filename && media.filename !== element.getAttribute("data-src")) {
+// 							element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+// 							element.setAttribute("data-src", media.filename);
+// 						}
+// 					}
+// 				}
+// 			};
+// 			// yield {
+// 			// 	tag: "video",
+// 			// 	init: element => {
+// 			// 		element.controls = true;
+// 			// 	},
+// 			// 	update: element => {
+// 			// 		if (media.filename && media.filename !== element.getAttribute("data-src")) {
+// 			// 			element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+// 			// 			element.setAttribute("data-src", media.filename);
+// 			// 		}
+// 			// 	}
+// 			// };
+// 		}
+
+// 	}
+
+// 	*buildAudio(media) {
+// 		if (media.audio) {
+// 			yield {
+// 				tag: "figure",
+// 				class: "audio",
+// 				child: {
+// 					tag: "audio",
+// 					init: element => {
+// 						element.controls = true;
+// 					},
+// 					update: element => {
+// 						if (media.filename && media.filename !== element.getAttribute("data-src")) {
+// 							element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+// 							element.setAttribute("data-src", media.filename);
+// 						}
+// 					}
+// 				}
+// 			};
+// 		// 	yield {
+// 		// 		tag: "audio",
+// 		// 		init: element => {
+// 		// 			element.controls = true;
+// 		// 		},
+// 		// 		update: element => {
+// 		// 			if (media.filename && media.filename !== element.getAttribute("data-src")) {
+// 		// 				element.src = `${KarmaFieldsAlpha.uploadURL}/${encodeURI(media.filename)}`;
+// 		// 				element.setAttribute("data-src", media.filename);
+// 		// 			}
+// 		// 		}
+// 		// 	}
+// 		}
+
+// 	}
+
+// 	*buildIcon(media) {
+
+// 		if (media.icon) {
+
+// 			yield {
+// 				class: "icon",
+// 				tag: "figure",
+// 				// update: element => {
+// 				// 	element.classList.toggle("hidden", !media.icon);
+// 				// },
+// 				children: [
+// 					{
+// 						update: element => {
+// 							element.className = "";
+// 							if (media.dashicon) {
+// 								element.classList.add("dashicons", media.dashicon);
+// 							} else if (media.icon) {
+// 								element.classList.toggle("dashicons", Boolean(media.icon));
+// 								// node.element.classList.toggle("dashicons-category", media.icon === "folder");
+// 								element.classList.toggle("dashicons-format-image", media.icon === "image");
+// 								element.classList.toggle("dashicons-media-video", media.icon === "video");
+// 								element.classList.toggle("dashicons-media-audio", media.icon === "audio");
+// 								element.classList.toggle("dashicons-media-text", media.icon === "text");
+// 								element.classList.toggle("dashicons-media-document", media.icon === "document");
+// 								element.classList.toggle("dashicons-media-archive", media.icon === "archive");
+// 								element.classList.toggle("dashicons-media-default", media.icon === "default");
+// 								element.classList.toggle("dashicons-open-folder", media.icon === "exit" || media.icon === "folder");
+// 								element.classList.toggle("dashicons-upload", media.icon === "uploading");
+// 								element.classList.toggle("dashicons-ellipsis", media.icon === "loading");
+// 								element.classList.toggle("dashicons-warning", media.icon === "notfound");
+// 								element.classList.toggle("dashicons-format-gallery", media.icon === "mixed");
+// 							}
+// 						}
+// 					},
+// 					{
+// 						class: "filename",
+// 						update: element => {
+// 							element.classList.toggle("hidden", this.resource.caption === false);
+// 							element.innerHTML = media.text;
+// 						}
+// 					}
+// 				]
+// 			};
+
+// 		} else if (media.dashicon) {
+
+// 			yield {
+// 				class: "icon",
+// 				tag: "figure",
+// 				children: [
+// 					{
+// 						update: element => {
+// 							element.className = `dashicons ${media.dashicon}`;
+// 							// element.className = "";
+// 							// element.classList.add("dashicons", media.dashicon);
+// 						}
+// 					},
+// 					{
+// 						class: "filename",
+// 						update: element => {
+// 							element.classList.toggle("hidden", this.resource.caption === false);
+// 							element.innerHTML = media.text;
+// 						}
+// 					}
+// 				]
+// 			};
+
+// 		}
+
+// 	}
+
+// 	*buildMedias(media) {
+
+// 		yield {
+// 			class: "media-container",
+// 			children: this.buildIcon(media)
+// 		}
+
+// 		yield {
+// 			class: "media-container",
+// 			children: this.buildImage(media)
+// 		}
+
+// 		yield {
+// 			class: "media-container",
+// 			children: this.buildVideo(media)
+// 		}
+
+// 		yield {
+// 			class: "media-container",
+// 			children: this.buildAudio(media)
+// 		}
+
+// 	}
+
+
+// 	*build() {
+
+// 		const media = this.getMedia();
+
+// 		yield {
+// 			class: "karma-field-media",
+// 			init: element => {
+// 				if (this.resource.width) {
+// 					element.style.width = this.resource.width;
+// 				}
+// 				if (this.resource.height) {
+// 					element.style.height = this.resource.height;
+// 				}
+// 				if (this.resource.display) {
+// 					element.classList.add(`display-${this.resource.display}`);
+// 				}
+// 				if (this.resource.greyscale) {
+// 					element.classList.add("greyscale");
+// 				}
+// 			},
+// 			children: this.buildMedias(media)
+// 		};
+// 	}
+// }

@@ -12,3 +12,11 @@ define('KARMA_FIELDS_ALPHA_URL', WP_PLUGIN_URL . '/' . basename(dirname(__FILE__
 define('KARMA_FIELDS_ALPHA_PATH', dirname(__FILE__));
 
 require_once KARMA_FIELDS_ALPHA_PATH . '/class-tables.php';
+require_once KARMA_FIELDS_ALPHA_PATH . '/class-history.php';
+
+register_activation_hook(__FILE__, ['Karma_Fields_Alpha_History', 'activate']);
+
+// register_activation_hook(__FILE__, function() {
+// 	Karma_Fields_Alpha_History::activate();
+// });
+// register_deactivation_hook(__FILE__, [$this, 'deactivate']);

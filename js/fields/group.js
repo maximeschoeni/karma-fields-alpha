@@ -28,6 +28,10 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 			}
 
+		} else if (this.resource.values && this.resource.values[key]) {
+
+			return this.parseArray(this.resource.values[key]);
+
 		} else if (this.parent) {
 
 			return this.parent.getValue(key);
@@ -42,7 +46,7 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 		if (groupKey) {
 
-			let values = this.parent.getValues(groupKey);
+			let values = this.parent.getValue(groupKey);
 
 			if (values === undefined) {
 
@@ -68,7 +72,15 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 		if (groupKey) {
 
-			return this.parent.getValue(groupKey);
+			const values = this.parent.getValue(groupKey);
+
+			if (values === undefined) {
+
+				return;
+
+			}
+
+			return values.map(value => JSON.stringify(value));
 
 		} else {
 
@@ -84,9 +96,25 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 		if (key) {
 
-			const value = collection.shift();
+			let value = collection.shift();
 
-			this.parent.setValue(value, key);
+			if (value) {
+
+				value = JSON.parse(value);
+
+				this.parent.setValue([value], key);
+
+			} else {
+
+				// value = [];
+
+				this.parent.setValue([], key);
+
+			}
+
+			// const value = JSON.parse(collection.shift());
+
+
 
 		} else {
 
@@ -96,275 +124,336 @@ KarmaFieldsAlpha.field.group = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	isHidden(field) {
+	// isHidden(field) {
 
-		if (field.resource.hidden) {
+	// 	if (field.resource.hidden) {
 
-			return field.parseBoolean(field.resource.hidden) || false;
+	// 		return field.parseBoolean(field.resource.hidden) || false;
 
-		} else if (field.resource.visible) {
+	// 	} else if (field.resource.visible) {
 
-			return !field.parseBoolean(field.resource.visible);
+	// 		return !field.parseBoolean(field.resource.visible);
 
-		}
+	// 	}
 
-		return false;
-	}
+	// 	return false;
+	// }
 
 	inline() {
 
-		return this.resource.display === "flex";
+		return this.resource.display === "flex" || this.resource.display === "inline";
 
 	}
 
-	*buildChild(field) {
+	// *buildChild(field) {
 
-		if (field.resource.label) {
+	// 	if (field.resource.label) {
 
-			yield {
-				class: "label",
-				update: element => {
-					element.textContent = field.getLabel();
-				}
-			};
+	// 		yield {
+	// 			class: "label",
+	// 			update: element => {
+	// 				element.textContent = field.getLabel();
+	// 			}
+	// 		};
 
-		}
+	// 	}
 
-		if (field.build) { // -> not separators
+	// 	if (field.build) { // -> not separators
 
-			yield* field.build();
+	// 		yield* field.build();
 
-		}
+	// 	}
 
-		if (field.resource.description) {
+	// 	if (field.resource.description) {
 
-			yield {
-				tag: "p",
-				class: "field-description",
-				init: element => {
-					element.textContent = field.resource.description;
-				}
-			};
+	// 		yield {
+	// 			tag: "p",
+	// 			class: "field-description",
+	// 			init: element => {
+	// 				element.textContent = field.resource.description;
+	// 			}
+	// 		};
 
-		}
+	// 	}
 
-	}
+	// }
 
+
+	// *buildChildren() {
+
+	// 	const children = this.getChildren();
+
+	// 	for (let i = 0; i < children.length; i++) {
+
+	// 		const field = this.createChild(children[i], i);
+	// 		const type = field.resource.model || field.resource.type;
+	// 		const tag = (type === "input" || type === "textarea" || type === "dropdown") && "label" || "div";
+
+	// 		yield {
+	// 			tag: tag,
+	// 			class: `karma-field-frame karma-field-${type} field-container`,
+	// 			init: element => {
+	// 				if (field.resource.style) {
+	// 					element.style = field.resource.style;
+	// 				}
+	// 				if (field.resource.width) {
+	// 					if (this.inline()) { // -> flex-direction: row
+	// 						if (field.resource.width === "1fr") {
+	// 							element.style.flexGrow = 1;
+	// 						} else {
+	// 							element.style.width = field.resource.width;
+	// 						}
+	// 					} else { // -> flex-direction: column
+	// 						if (field.resource.width === "auto") {
+	// 							element.style.alignSelf = "flex-start";
+	// 						} else if (field.resource.width !== "1fr") {
+	// 							element.style.width = field.resource.width;
+	// 						}
+	// 					}
+	// 				}
+	// 			},
+	// 			children: this.buildChild(field),
+	// 			update: element => {
+	// 				let hidden = this.isHidden(field);
+	// 				element.classList.toggle("hidden", hidden);
+	// 			}
+	// 		};
+
+	// 	}
+
+	// }
+
+	// *buildBlock() {
+
+	// 	yield {
+	// 		class: "field-block",
+	// 		children: this.buildBlockContent(),
+	// 		update: element => {
+	// 			element.classList.toggle("hidden", this.isHidden());
+	// 			if (this.resource.width) {
+	// 				if (this.resource.width === "1fr") {
+	// 					element.style.flexGrow = 1;
+	// 				} else {
+	// 					element.style.width = this.resource.width;
+	// 				}
+	// 			}
+	// 		}
+	// 	};
+
+	// }
 
 	*buildChildren() {
 
 		const children = this.getChildren();
 
-
-
-
 		for (let i = 0; i < children.length; i++) {
 
 			const field = this.createChild(children[i], i);
-			const type = field.resource.model || field.resource.type;
-			const tag = (type === "input" || type === "textarea" || type === "dropdown") && "label" || "div";
+			const hidden = field.isHidden() || false;
 
-			yield {
-				tag: tag,
-				class: `karma-field-frame karma-field-${type} field-container`,
-				init: element => {
-					if (field.resource.style) {
-						element.style = field.resource.style;
-					}
-					// if (field.resource.class) {
-					// 	element.classList.add(...field.resource.class.split(" "));
-					// }
-					// if (field.resource.classes) {
-					// 	element.classList.add(...field.resource.classes);
-					// }
-					// if (field.resource.flex) { // deprecated
-					// 	element.style.flex = field.resource.flex;
-					// }
-					if (field.resource.width) {
-						if (this.inline()) { // -> flex-direction: row
+			if (this.resource.display === "table") { // deprecated
+
+				yield {
+					tag: "tr",
+					update: element => {
+						element.classList.toggle("hidden", hidden);
+					},
+					children: [
+						{
+							tag: "th",
+							children: field.buildLabel()
+						},
+						{
+							tag: "td",
+							children: this.buildGridCell(field)
+						}
+					]
+				};
+
+			} else if (this.resource.display === "grid") {
+
+				yield {
+					class: "field-group-grid-cell header-grid-cell",
+					update: element => {
+						element.classList.toggle("hidden", hidden);
+					},
+					children: field.buildLabel()
+				};
+
+				yield {
+					class: "field-group-grid-cell body-grid-cell",
+					update: element => {
+						element.classList.toggle("hidden", hidden);
+					},
+					children: this.buildGridCell(field)
+				};
+
+			} else {
+
+				yield {
+					class: `field-group-item field-block`,
+					children: this.buildBlock(field),
+					init: element => {
+						if (field.resource.style) {
+							element.style = field.resource.style;
+						}
+					},
+					update: element => {
+						element.classList.toggle("hidden", hidden);
+						if (field.resource.width) {
 							if (field.resource.width === "1fr") {
 								element.style.flexGrow = 1;
 							} else {
 								element.style.width = field.resource.width;
-							}
-						} else { // -> flex-direction: column
-							if (field.resource.width === "auto") {
-								element.style.alignSelf = "flex-start";
-							} else if (field.resource.width !== "1fr") {
-								element.style.width = field.resource.width;
+								element.style.flexShrink = 0;
 							}
 						}
 					}
-				},
-				children: this.buildChild(field),
-				update: element => {
-					let hidden = this.isHidden(field);
-					element.classList.toggle("hidden", hidden);
-				}
-			};
+				};
+
+			}
 
 		}
 
 	}
 
-	*build() {
-		yield {
-			class: "karma-field karma-field-container display-"+(this.resource.display || "block"),
-			init: element => {
-				if (this.resource.container && this.resource.container.style) {
-					element.style = this.resource.container.style;
-				}
-				// if (this.resource.class) {
-				// 	group.element.classList.add(this.resource.class);
-				// }
-				// if (this.resource.classes) {
-				// 	group.element.classList.add(...this.resource.classes);
-				// }
-				if (this.resource.wrap === false) {
-					element.style.flexWrap = "nowrap";
-				}
-				if (this.resource.align) {
-					element.style.alignItems = this.resource.align;
-				}
-			},
-			children: this.buildChildren()
-			// update: group => {
-			// 	group.children = this.getChildren().map((resource, index) => {
-			// 		const field = this.createChild(resource, index);
+	*buildBlock(field) {
 
-			// 		const labelable = field.resource.type === "input"
-			// 			|| field.resource.type === "textarea"
-			// 			|| field.resource.type === "checkbox"
-			// 			|| field.resource.type === "dropdown";
+		yield* field.buildLabel();
+		yield* field.build();
+		yield* field.buildDescription();
 
-			// 		return {
-			// 			tag: labelable ? "label" : "div",
-			// 			class: `karma-field-frame karma-field-${field.resource.type} field-container`,
-			// 			init: (container) => {
-			// 				if (field.resource.style) {
-			// 					container.element.style = field.resource.style;
-			// 				}
-			// 				if (field.resource.class) {
-			// 					field.resource.class.split(" ").forEach(name => container.element.classList.add(name));
-			// 				}
-			// 				if (field.resource.classes) {
-			// 					container.element.classList.add(...field.resource.classes);
-			// 				}
-			// 				if (field.resource.flex) { // deprecated
-			// 					container.element.style.flex = field.resource.flex;
-			// 				}
-			// 				if (field.resource.width) {
-			// 					if (this.inline()) { // -> flex-direction: row
-			// 						const fr = field.resource.width.match(/(.*)fr/);
-			// 						if (fr) {
-			// 							// container.element.style.flexGrow = fr[1];
-			// 							container.element.style.flex = `1 ${fr[1]} 0`;
-			// 						} else {
-			// 							container.element.style.width = field.resource.width;
-			// 						}
-			// 					} else { // -> flex-direction: column
-			// 						if (field.resource.width === "auto") {
-			// 							container.element.style.alignSelf = "flex-start";
-			// 						} else if (!field.resource.width.match(/(.*)fr/)) {
-			// 							container.element.style.width = field.resource.width;
-			// 						}
-			// 					}
-			// 				}
-			// 			},
-			// 			update: (container) => {
-			// 				container.children = [];
+	}
 
-			// 				let hidden = this.isHidden(field);
+	*buildGridCell(field) {
 
-			// 				container.element.classList.toggle("hidden", hidden);
+		yield* field.build();
+		yield* field.buildDescription();
 
-			// 				if (!hidden) {
+	}
 
-			// 					container.children = this.buildChildren(field, labelable);
+	// *buildBlock() {
 
-			// 				}
+	// 	if (this.resource.label) {
 
-			// 			}
-			// 		}
-			// 	});
+	// 		yield* this.buildLabel();
+
+	// 	}
+
+	// 	yield* this.build();
+
+	// }
+
+	*build(context) {
+
+		if (this.resource.scrollContainer) {
+
+			yield {
+				class: "scroll-container",
+				children: this.buildGroup()
+			};
+
+		} else {
+
+			yield* this.buildGroup();
+
+		}
+
+	}
+
+	*buildGroup() {
+
+		// if (context === "frame" || context === "dialog") {
+
+		// 	yield* super.build(context);
+
+		// } else {
+
+			if (this.resource.display === "table") { // -> deprec (use grid)
+
+				yield {
+					init: element => {
+						// if (this.resource.scrollContainer) {
+						// 	element.classList.add("scroll-container");
+						// }
+						if (this.resource.offsetContainer) {
+							element.classList.add("content-frame");
+						}
+					},
+					child: {
+						tag: "table",
+						class: "form-table",
+						children: this.buildChildren(),
+						init: element => {
+							if (this.resource.style) {
+								element.style = this.resource.style;
+							}
+						},
+						update: element => {
+							element.classList.toggle("hidden", this.isHidden());
+						}
+					}
+				};
+
+			} else {
+
+				yield {
+					class: "group-field display-"+(this.resource.display || "block"),
+					children: this.buildChildren(),
+					init: element => {
+						if (this.resource.container && this.resource.container.style) {
+							element.style = this.resource.container.style; // -> compat
+						}
+						if (this.resource.style) {
+							element.style = this.resource.style;
+						}
+						if (this.resource.wrap === false) {
+							element.style.flexWrap = "nowrap";
+						}
+						if (this.resource.align) {
+							element.style.alignItems = this.resource.align;
+						}
+						// if (this.resource.scrollContainer) {
+						// 	element.classList.add("scroll-container");
+						// }
+						if (this.resource.offsetContainer) {
+							element.classList.add("content-frame");
+						}
+					},
+					update: element => {
+						element.classList.toggle("hidden", this.isHidden());
+					}
+				};
 
 			// }
 
-		};
+		}
+
 	}
+
+
+
+	// *buildTableRows() {
+
+	// 	const children = this.getChildren();
+
+	// 	for (let i = 0; i < children.length; i++) {
+
+	// 		const field = this.createChild(children[i], i);
+
+	// 		yield {
+	// 			tag: "tr",
+	// 			children: field.buildTableCells()
+	// 		};
+
+	// 	}
+
+	// }
 
 }
 
 
-KarmaFieldsAlpha.field.tabs = class extends KarmaFieldsAlpha.field {
 
-	*buildTabHeaders() {
-
-		const children = this.getChildren();
-		const currentIndex = this.getState("index") || 0;
-
-		for (let i = 0; i < children.length; i++) {
-			yield {
-				tag: "a",
-				class: "tab-handler",
-				update: element => {
-					element.innerHTML = children[i].label;
-					element.classList.toggle("active", i === currentIndex);
-					element.onclick = async event => {
-						this.setState(i, "index");
-						this.render();
-					}
-				}
-			};
-		}
-	}
-
-	*buildTabBodies() {
-
-		const children = this.getChildren();
-		const currentIndex = this.getState("index") || 0;
-
-		for (let i = 0; i < children.length; i++) {
-			if (i === currentIndex) {
-				const child = this.getChild(i);
-				yield {
-					class: "tab-content",
-					update: element => {
-						element.classList.remove("hidden");
-					},
-					children: child.build()
-				};
-			} else {
-				yield {
-					class: "tab-content",
-					update: element => {
-						element.classList.add("hidden");
-					}
-				};
-			}
-		}
-	}
-
-	*build() {
-
-		yield {
-			class: "tabs",
-			children: [
-				{
-					class: "tabs-header",
-					children: this.buildTabHeaders()
-				},
-				{
-					class: "tabs-body",
-					children: this.buildTabBodies()
-				}
-			]
-		};
-
-	}
-
-
-}
 
 
 

@@ -1,565 +1,170 @@
 
 KarmaFieldsAlpha.field.blocks = class extends KarmaFieldsAlpha.field.container {
 
+	getValue() {
+
+		let value = super.getValue();
+
+		if (value !== undefined) {
+
+			if (value.length === 1 && typeof value[0] === "string") {
+
+				value = JSON.parse(value[0]);
+
+			}
 
 
 
-	// getValue() {
+		}
 
-	// 	return this.parent.getValue();
+		return value;
+	}
 
-	// }
+	insertAt(array, index, length = 0) {
 
+		this.setValue(array[0].children);
 
-	// setValueAt(value, index) {
+	}
 
-	// 	// let values = this.parent.getValue();
-
-	// 	// values = [...values];
-
-	// 	// values[index] = value;
-
-	// 	this.parent.setValue(values);
-
-	// }
-
-
-
-	getItems() {
+	getBody() {
 
 		const values = this.getValue();
 
 		if (values !== undefined) {
 
-			const items = this.createItems(values);
-
-			return items;
-
-		}
-
-	}
-
-
-	createItems(values) {
-
-		const items = [];
-
-		for (let i = 0; i < values.length; i++) {
-
-			const value = values[i];
-
-			// const block = this.resource.footer.find(block => block.id === value.type);
-
-			const block = this.resource.blocks && this.resource.blocks[value.type];
-
-			if (block) {
-
-				// const { media, fields, name } = block;
-				const children = value.children && this.createItems(value.children) || [];
-				const resource = { ...block, value, children, index: i };
-
-				items.push(resource);
-
-			}
-
-		}
-
-		return items;
-	}
-
-	*listSelectedBlocks(items = this.getItems()) {
-
-		if (items) {
-
-			const selection = this.getSelection();
-
-			if (selection) {
-
-				const { index = 0, length = 0 } = selection;
-
-				for (let item of items) {
-
-					if (item.index >= index && item.index < index + length) {
-
-						yield item;
-
-					}
-
-					if (selection[item.index] && item.children) {
-
-						yield* this.listSelectedBlocks(item.children);
-
-					}
-
-				}
-
-			}
+			return new KarmaFieldsAlpha.field.block({
+				index: 0,
+				group: true,
+				orientation: this.resource.orientation || "column",
+				value: { children: values },
+				header: false,
+				scrollContainer: this.resource.scrollContainer
+			}, "body", this);
 
 		}
 
 	}
 
-	add(blockId) {
+	getBlockResource(type) {
 
-		let values = this.getValue();
+		const library = this.resource.blocks || {};
 
-		if (values === undefined) {
+		if (library[type]) {
 
-			console.error("value");
+			return library[type];
 
 		}
 
-		this.setValue([...values, { type: blockId }])
+		return library[this.resource.defaultBlock || "group"]; // -> undefined block type
 
 	}
 
-	// *buildBlockBody(block) {
+	add(type, preset) {
 
-	// 	// for (let child of block.children) {
-	// 	for (let i = 0; i < this.resource.children.length; i++) {
+		let child = this.getDescendantWithFocus() || this.getBody();
 
-	// 		const child = block.children[i];
-	// 		const field = this.createChild(child, i);
+		if (child) {
 
-	// 		yield* field.build();
-
-	// 	}
-
-	// }
-
-	getFocusPathInside() {
-
-		let path = this.getFocusPath();
-
-		if (path.length > this.path.length && this.path.every((id, index) => id === path[index])) {
-
-			return path.slice(this.path.length);
+			const resource = this.getBlockResource(type);
+			child.setFocus(true);
+			child.add(type, { ...resource.preset, ...preset });
 
 		}
 
 	}
 
+	remove() {
 
-	newChild(id) {
+		let child = this.getDescendantWithFocus();
 
-		if (id === "modal") {
+		if (child) {
 
-			if (this.resource.modal) {
-
-				return new KarmaFieldsAlpha.field.grid.modal(this.resource.modal, "modal", this);
-
-			}
-
-		} else if (id === "popup") {
-
-			// const selectedBlocks = this.listSelectedBlocks().toArray();
-			const pathInside = this.getFocusPathInside();
-
-			if (pathInside) {
-				debugger;
-				const block = this.getChild(...pathInside);
-				console.log(block);
-			}
-
-
-			return new KarmaFieldsAlpha.field.container({
-				type: "container",
-				body: {
-					type: "group",
-					children: [
-						{
-							type: "input",
-							key: "test",
-							label: "test"
-						}
-					]
-				}
-			}, "popup", this);
-
-		} else if (id === "root") {
-
-			const items = this.getItems();
-
-			if (items !== undefined) {
-
-				return new KarmaFieldsAlpha.field.block({ children: items }, "groupBlock", this);
-
-			}
+			child.remove();
 
 		}
 
+	}
+
+	canAdd(type) {
+
+		let child = this.getDescendantWithFocus() || this.getBody();
+
+		if (child) {
+
+			return !child.resource.available || child.resource.available.includes(type);
+
+		}
+
+		return false;
+
+	}
+
+	hasSelection() {
+
+		let child = this.getDescendantWithFocus() || this.getBody();
+
+		if (child) {
+
+			return child.hasSelection();
+
+		}
+
+		return false;
 	}
 
 	open() {
 
-		const popup = this.getChild("popup");
+		let child = this.getDescendantWithFocus() || this.getBody();
 
-		popup.setFocus(true);
+		if (child) {
 
-	}
-
-	*buildPopup() {
-
-		// const focus = this.hasFocus();
-		// const selection = this.getSelection();
-
-		const popup = this.getChild("popup");
-		const hasPopup = popup.hasFocusInside();
-
-		if (hasPopup) {
-
-
-
-			yield {
-				class: "popup",
-				update: element => {
-					element.onmousedown = event => {
-						event.stopPropagation();
-
-						popup.setFocus(true);
-						popup.render();
-					}
-				},
-				child: {
-					class: "popup-content",
-					children: popup.build()
-				}
-			};
+			return child.open();
 
 		}
 
 	}
 
-	*buildRoot() {
+	unselectAncestors() {}
 
-		const block = this.getChild("root");
+	unselectBlocks() {
 
-		if (block) {
+		const body = this.getChild("body");
 
-			yield {
-				// tag: "ul",
-				class: "karma-field-table-grid-container karma-field-frame karma-field-group final table-body-column table-body-main-column",
-				children: block.build()
-			};
-
-			yield* this.buildPopup();
-
-		}
+		body.unselectChildren();
 
 	}
 
+	getFooter() {
 
-	*buildBody() {
+		const footer = new KarmaFieldsAlpha.field.blocks.footer({
+			...this.resource.footer,
+			offsetContainer: true
+		}, "footer", this);
 
-		yield {
-			class: "table-body",
-			children: this.buildRoot()
-		};
-
-		// // const root = this.getRoot();
-		// const block = this.getChild("root");
-
-		// // for (let item of items) { // -> should contain only 1 item
-
-		// 	// const block = new KarmaFieldsAlpha.field.block(item, i, this);
-
-
-		// if (block) {
-
-		// 	yield {
-		// 		tag: "ul",
-		// 		class: "karma-field-table-grid-container karma-field-frame karma-field-group final table-body-column table-body-main-column",
-
-		// 		init: element => {
-		// 			// if (this.resource.height) {
-		// 			// 	element.style.minHeight = this.resource.height;
-		// 			// }
-		// 			// if (this.resource.style) {
-		// 			// 	element.style = this.resource.style;
-		// 			// }
-		// 			// if (this.resource.width) {
-		// 			// 	element.style.width = this.resource.width;
-		// 			// }
-		// 			// if (this.resource.class) {
-		// 			// 	element.classList.add(this.resource.class);
-		// 			// }
-		// 			// if (this.parent.id === "popup") {
-		// 			// 	element.classList.add("scroll-container");
-		// 			// }
-		// 		},
-		// 		children: block.build()
-		// 	};
-
-		// }
-
-
+		return footer;
 
 	}
-
-	// getModal() {
-
-	// 	return this.getChild("modal");
-
-	// }
-
-	// *buildModalContent() {
-
-	// 	const modal = this.getModal();
-
-	// 	if (modal && this.hasSelection() && this.hasFocusInside()) {
-
-	// 		yield* modal.build();
-
-	// 	}
-
-	// }
-
-	// *buildModal() {
-
-	// 	const modal = this.getModal();
-
-	// 	if (modal) {
-
-	// 		yield {
-	// 			class: "grid-modal table-body-column karma-modal scroll-container table-body-side-column",
-	// 			update: element => {
-	// 				element.classList.toggle("display-fixed", modal.resource.display === "fixed");
-	// 				element.style.width = modal.resource.width || "30em";
-	// 			},
-	// 			children: this.buildModalContent()
-	// 		};
-
-	// 	}
-
-	// }
-
-	// *buildColumns() {
-
-	// 	yield* this.buildBody();
-	// 	yield* this.buildModal();
-
-	// }
 
 	// *build() {
 
-	// 	yield {
-	// 		class: "table-body-columns",
-	// 		children: this.buildColumns()
-	// 	};
-
+	// 	// yield* this.buildHeader();
+	// 	yield* this.buildBody();
+	// 	// yield* this.buildFooter();
 	// }
 
+	// *buildBody(context) {
 
-	// *buildBlockFields(item) {
+	// 	const body = this.getBody();
 
-	// 	for (let child of item.children) {
-
-	// 		const type = child.type;
-	// 		const block = this.resource.blocks[type];
+	// 	if (body) {
 
 	// 		yield {
-	// 			tag: "li",
-	// 			children: [
-	// 				{
-	// 					type: "media",
-	// 					...block.media
-	// 				}
-	// 			]
+	// 			class: "container-body",
+	// 			children: body.build()
 	// 		};
 
 	// 	}
 
-	// }
-
-	// *buildBlock() {
-
-	// 	yield {
-	// 		tag: "ul",
-	// 		class: "block",
-	// 		children: this.buildBlockFields(),
-	// 		update: element => {
-
-	// 			const selection = this.getSelection();
-
-	// 			const sorter = new KarmaFieldsAlpha.ListSorterInline(element, selection);
-
-	// 			sorter.onSelect = elements => {
-	// 				elements.map(element => element.classList.add("selected"));
-	// 				this.setSocketSelection(sorter.state.selection);
-	// 			}
-
-	// 			sorter.onUnselect = elements => {
-	// 				elements.map(element => element.classList.remove("selected"));
-	// 			}
-
-	// 			sorter.onSelectionComplete = () => {
-	// 				this.setFocus(true);
-	// 				 this.render();
-	// 			}
-
-	// 			sorter.onSwap = (newState, lastState) => {
-	// 				this.save("reorder");
-	// 				this.swapAt(lastState.selection.index, newState.selection.index, newState.selection.length);
-	// 				this.setSocketSelection(newState.selection);
-	// 			};
-
-	// 			sorter.onSort = (newSelection, lastSelection) => {
-	// 				if (!KarmaFieldsAlpha.Collection.equal(newSelection, lastSelection)) {
-	// 					this.setFocus(true);
-	// 					this.render();
-	// 				}
-	// 			}
-
-	// 		}
-	// 	}
-
-	// }
-
-
-	// *build(item = this.getRoot()) {
-
-	// 	if (item === undefined) {
-
-	// 		return;
-
-	// 	}
-
-	// 	const groupField = this.createChild({
-	// 		type: "group",
-	// 		children: item.children
-	// 	}, 0);
-
-	// 	return {
-	// 		class: "block-editor",
-	// 		children: groupField.build(),
-	// 		// update: node => {
-
-	// 		// 	let values = this.getValue();
-
-	// 		// 	if (values && values !== KarmaFieldsAlpha.loading) {
-
-	// 		// 		node.children = [
-	// 		// 			{
-	// 		// 				tag: "ul",
-	// 		// 				class: "block-columns block-root",
-	// 		// 				child: this.createChild({
-	// 		// 					type: "column",
-	// 		// 					// value: values[0],
-	// 		// 					...values[0],
-	// 		// 					depth: 0,
-	// 		// 					index: 0,
-	// 		// 					path: []
-	// 		// 				}).build(),
-
-	// 		// 				update: node => {
-
-	// 		// 					node.childrenXXXXX = [
-
-	// 		// 					];
-	// 		// 				}
-	// 		// 			},
-
-
-	// 		// 			{
-	// 		// 				class: "editor-footer",
-	// 		// 				update: node => {
-
-	// 		// 					const sorter = new KarmaFieldsAlpha.ListSortBlockLibrary(node.element);
-
-	// 		// 					sorter.onDragBegin = index => {
-
-	// 		// 						this.addBlock(this.resource.library[index]);
-
-	// 		// 						const values = this.getValue();
-
-	// 		// 						if (typeof values !== "symbol" && values[0] && values[0].children) {
-
-	// 		// 							const selection = { index: values[0].children.length - 1, length: 1 };
-
-	// 		// 							this.setSelection({ child: selection, childId: 0 });
-
-	// 		// 							sorter.state = {
-	// 		// 								selection: selection,
-	// 		// 								path: [0]
-	// 		// 							};
-
-	// 		// 							sorter.container = node.element.previousElementSibling.querySelector(".block-column");
-
-	// 		// 							const placeholder = document.createElement("div");
-	// 		// 							placeholder.className = "block";
-
-	// 		// 							sorter.container.appendChild(placeholder);
-
-	// 		// 							sorter.children = null;
-
-	// 		// 							sorter.originY = sorter.container.clientHeight - node.element.offsetTop + 35;
-
-	// 		// 							sorter.originPosition = sorter.getPosition([placeholder]);
-	// 		// 							sorter.lastPosition = sorter.originPosition;
-
-	// 		// 						}
-
-
-
-
-	// 		// 					};
-
-	// 		// 					sorter.onSelect = elements => {
-
-	// 		// 						elements.map(element => element.classList.add("selected"));
-
-	// 		// 						this.setAbsoluteSelection(sorter.state.selection, ...sorter.state.path);
-
-	// 		// 					}
-
-	// 		// 					sorter.onUnselect = elements => {
-
-	// 		// 						elements.map(element => element.classList.remove("selected"));
-
-	// 		// 					}
-
-	// 		// 					sorter.onSwap = (newState, lastState) => {
-
-	// 		// 						this.swap(lastState.selection.index, newState.selection.index, newState.selection.length, lastState.path, newState.path);
-
-	// 		// 					};
-
-	// 		// 					sorter.onSort = (newState, lastState) => {
-
-	// 		// 						this.deferFocus();
-	// 		// 						this.save("order");
-	// 		// 						this.render();
-
-	// 		// 					}
-
-
-	// 		// 					node.children = this.resource.library.map(resource => {
-	// 		// 						return {
-	// 		// 							class: "library-tile",
-	// 		// 							children: [
-	// 		// 								{
-	// 		// 									class: "block-icon dashicons dashicons-block-default"
-	// 		// 								},
-	// 		// 								{
-	// 		// 									class: "title",
-	// 		// 									update: tile => {
-	// 		// 										tile.element.innerHTML = resource.label;
-	// 		// 									}
-	// 		// 								}
-	// 		// 							]
-	// 		// 						};
-	// 		// 					});
-
-
-	// 		// 				}
-	// 		// 			}
-	// 		// 		];
-
-	// 		// 	}
-
-
-	// 		// }
-	// 	};
 	// }
 
 }
@@ -568,29 +173,205 @@ KarmaFieldsAlpha.field.blocks = class extends KarmaFieldsAlpha.field.container {
 
 KarmaFieldsAlpha.field.block = class extends KarmaFieldsAlpha.field {
 
-  // import(items) {
+	getIndex() {
 
-  //   const string = items.shift();
+		return this.resource.index;
 
-  //   const grid = new KarmaFieldsAlpha.Grid(string);
-  //   const values = grid.getColumn(0);
+	}
 
-  //   // const ids = [...KarmaFieldsAlpha.Type.toArray(this.getValue())];
-  //   //
-  //   // ids.splice(index, length, ...newIds);
-  //   //
-  //   // this.setValue(ids);
+	getChildren() {
 
+		return this.getValue(this.resource.childrenKey || "children");
 
-  //   this.setBlockValue(clone);
+		// return this.resource.value[this.resource.childrenKey || "children"] || [];
 
-  // }
+	}
 
+	setChildren(values) {
 
+		this.setValue(values, this.resource.childrenKey || "children");
+
+	}
 
 	getValue(key) {
 
-		const values = this.parent.getValue();
+
+
+		// const values = this.parent.getValue("children");
+		// const values = this.parent.getChildren();
+
+		// if (values === undefined) {
+
+		// 	return;
+
+		// }
+
+		if (!this.resource.value) {
+
+			console.error("value not set in block resource");
+
+		}
+
+		let value = this.resource.value[key] || [];
+
+		if (!Array.isArray(value)) {
+
+			value = [value];
+
+		}
+
+		return value;
+
+	}
+
+	formatValue(value, key) {
+
+		if (this.resource.properties) {
+
+			const format = this.resource.properties[key];
+
+			if (format === "string") {
+
+				return (value[0] || "").toString();
+
+			} else if (format === "number") {
+
+				return Number(value[0] || 0);
+
+			} else if (format === "boolean") {
+
+				return value[0] ? true : false;
+
+			}
+
+		}
+
+		return value;
+
+	}
+
+	setValue(value, key) {
+
+		// const values = this.parent.getValue("children");
+		//
+
+
+		// const format = this.resource.properties && this.resource.properties[key] || "array";
+
+		// if (format === "string") {
+
+		// 	value = (value[0] || "").toString();
+
+		// } else if (format === "number") {
+
+		// 	value = Number(value[0] || 0);
+
+		// } else if (format === "boolean") {
+
+		// 	value = value[0] ? true : false;
+
+		// }
+
+		value = this.formatValue(value, key);
+
+
+		// let children = this.parent.getChildren();
+
+		// children = [...children];
+
+		// children.splice(this.resource.index, 1, { ...this.resource.value, [key]: value });
+
+		// this.parent.setChildren(children);
+
+		this.resource.value = { ...this.resource.value, [key]: value };
+
+		this.parent.insertAt([this.resource.value], this.resource.index, 1);
+
+	}
+
+	getSelectedValue(key) {
+
+		const selection = this.getSelection();
+
+		let value;
+
+		if (selection?.length) {
+
+			for (let i = 0; i < selection.length; i++) {
+
+				const child = this.getChild(i + selection.index);
+
+				if (child) {
+
+					const childValue = child.getValue(key);
+
+					if (value === undefined) {
+
+						value = childValue;
+
+					} else if (!KarmaFieldsAlpha.DeepObject.equal(value, childValue)) {
+
+						return [];
+
+					}
+
+				}
+
+			}
+
+		}
+
+		return value;
+
+	}
+
+	setSelectedValue(value, key) {
+
+		const selection = this.getSelection();
+
+		if (selection?.length) {
+
+			for (let i = 0; i < selection.length; i++) {
+
+				const child = this.getChild(i + selection.index);
+
+				if (child) {
+
+					child.setValue(value, key);
+
+				}
+
+			}
+
+		}
+
+	}
+
+	*listChildren() {
+
+		// const values = this.geValue("children");
+		const values = this.getChildren();
+
+		if (values) {
+
+			for (let index = 0; index < values.length; index++) {
+
+				const value = values[index];
+				const blockResource = this.getBlockResource(value.type);
+
+				yield new KarmaFieldsAlpha.field.block({ ...blockResource, index, value }, index, this);
+
+
+			}
+
+		}
+
+
+	}
+
+	getValuesAt(index, length) {
+
+		const values = this.getChildren();
 
 		if (values === undefined) {
 
@@ -598,30 +379,77 @@ KarmaFieldsAlpha.field.block = class extends KarmaFieldsAlpha.field {
 
 		}
 
-		const object = values[this.resource.index] || {};
-
-		return object[key] || [];
+		return values.slice(index, index + length);
 
 	}
 
-	setValue(value, key) {
+	insertAt(values, index, length = 0) {
 
-		const values = this.parent.getValue();
+		let children = this.getChildren();
 
-		if (values === undefined) {
+		children = [...children];
 
-			console.error("setting value but value is not loaded");
+		if (index === undefined) {
+
+			index = children.length;
 
 		}
 
-		values = [...values];
-		values[this.resource.index] = { ...values[this.resource.index], [key]: value }
+		children.splice(index, length, ...values);
 
-		this.setValue(values);
+		this.setChildren(children);
 
 	}
 
-	// getSelection
+	removeAt(index, length) {
+
+		this.insertAt([], index, length);
+
+	}
+
+	remove() {
+
+		const { index = 0, length = 0} = this.getSelection();
+
+		if (length) {
+
+			this.removeAt(index, length);
+
+		}
+
+	}
+
+	open() { // trigger by [+] button or by [space] bar
+
+		if (this.isGroup()) {
+
+			const selection = this.getSelection();
+
+			if (selection?.length === 1) {
+
+				const dialog = this.getChild("dialog");
+
+				dialog?.setFocus(true);
+
+			}
+
+		} else {
+
+			this.parent.setSelection({ index: this.getIndex(), length: 1 });
+			this.parent.open();
+
+		}
+
+
+
+	}
+
+	close() {
+
+		this.setFocus();
+
+	}
+
 
 	isSelected(index) {
 
@@ -637,10 +465,177 @@ KarmaFieldsAlpha.field.block = class extends KarmaFieldsAlpha.field {
 
 	}
 
+	unselectDeep() {
+
+		this.unselectAncestors();
+
+		this.unselectChildren();
+
+	}
+
+	unselectBlocks() {
+
+		this.parent.unselectBlocks();
+
+	}
+
+	unselectChildren() {
+
+		this.unselect();
+
+		// const children = this.getValue("children");
+		const children = this.getChildren();
+
+		if (children) {
+
+			for (let i = 0; i < children.length; i++) {
+
+				const child = this.getChild(i);
+
+				child.unselectChildren();
+
+			}
+
+		}
+
+	}
+
+	// unselectAncestors() {
+
+	// 	this.unselect();
+
+	// 	if (this.parent.unselectAncestors) {
+
+	// 		this.parent.unselectAncestors();
+
+	// 	}
+
+	// }
+
+	hasSelection() {
+
+		const { length = 0 } = this.getSelection();
+
+		return length > 0;
+
+	}
+
+	// hasSelectionInside() {
+
+	// 	const selection = this.getSelection();
+
+	// 	if (selection && selection.length) {
+
+	// 		return true;
+
+	// 	}
+
+	// 	for (let child of this.listChildren()) {
+
+	// 		if (child.hasSelectionInside()) {
+
+	// 			return true;
+
+	// 		}
+
+	// 	}
+
+	// 	return false;
+
+	// }
+
+	add(type, preset = {}) {
+
+
+		// let children = this.getValue("children");
+		let children = this.getChildren();
+
+		// const child = this.getDescendantWithFocus();
+
+		if (children === undefined) {
+
+			console.error("Adding value while loading");
+
+		}
+
+		if (!this.canContain(type)) {
+
+			return;
+
+		}
+
+		// if (child && type === "group") {
+
+		// 	child.add(type, preset);
+
+		// } else {
+
+		// 	console.log(preset);
+
+		// this.setValue([...children, { type, ...preset }], "children");
+		this.setChildren([...children, { type, ...preset }]);
+
+		// }
+
+	}
+
+	swapAt(index, newIndex, length) {
+
+		// let children = this.getValue("children");
+		let children = this.getChildren();
+
+		if (!children) {
+
+			console.error("Swaping items but value is not ready");
+
+		}
+
+		children = [...children];
+
+		children.splice(newIndex, 0, ...children.splice(index, length));
+
+		// this.setValue(children, "children");
+		this.setChildren(children);
+
+	}
+
+
+	// getValue(key) {
+
+	// 	const parentValues = this.parent.getValue();
+
+	// 	if (parentValues === undefined) {
+	// 		return;
+	// 	}
+
+	// 	const object = parentValues[this.id] || {};
+
+	// 	return object[key] || [];
+
+	// }
+
+	getBlockResource(type) {
+
+		// if (type === undefined) {
+
+		// 	const value = this.getBlockValue();
+		// 	type = value.type || "";
+
+		// }
+
+		return this.parent.getBlockResource(type);
+
+	}
+
 	newChild(index) {
 
-		if (index === "media") {
+		// const blockResource = this.getBlockResource();
 
+		// if (!blockResource) {
+		// 	return // loading
+		// }
+
+		if (index === "media") {
 
 			if (this.resource.media) {
 
@@ -652,39 +647,159 @@ KarmaFieldsAlpha.field.block = class extends KarmaFieldsAlpha.field {
 
 			}
 
-		} else {
+		} else if (index === "header") {
 
-			const child = this.resource.children[index];
+			if (this.resource.header !== false) {
 
-			if (child) {
-
-				return new KarmaFieldsAlpha.field.block(child, index, this);
+				return new KarmaFieldsAlpha.field.container.header({
+					type: "header",
+					display: "flex",
+					offsetContainer: true,
+					children: [
+						// {
+						// 	type: "button",
+						// 	dashicon: "move",
+						// 	action: "move",
+						// 	simplebuttons: true
+						// },
+						{
+							type: "title",
+						},
+						// {
+						// 	type: "button",
+						// 	dashicon: "arrow-up",
+						// 	action: "collapse",
+						// 	simplebuttons: true
+						// },
+						{
+							type: "open",
+							// dashicon: "plus",
+							action: "open"
+						}
+					],
+					...this.resource.header
+				}, "header", this);
 
 			}
+
+
+
+		} else if (index === "dialog") {
+
+			const selection = this.getSelection();
+			// const hasFocus = this.hasFocusInside();
+
+			if (selection && selection.length === 1) {
+
+				const child = this.getChild(selection.index);
+
+				if (child.resource.dialog) {
+
+					// return new KarmaFieldsAlpha.field.dialog({
+					// 	content: {
+					// 		type: "container",
+					// 		header: {
+					// 			children: [
+					// 				{type: "title"},
+					// 				{type: "close"}
+					// 			]
+					// 		},
+					// 		...child.resource.dialog
+					// 	}
+					// }, "dialog", this);
+
+					return new KarmaFieldsAlpha.field.dialog(child.resource.dialog, "dialog", this);
+
+				}
+
+			}
+
+		} else {
+
+			// const values = this.getValue("children");
+			const values = this.getChildren();
+			if (values) {
+
+				const value = values[index];
+
+				if (value) {
+
+					const blockType = value.type;
+					const blockResource = this.getBlockResource(blockType);
+
+					return new KarmaFieldsAlpha.field.block({ ...blockResource, index, value, blockType }, index, this);
+
+				}
+
+			}
+
+
 
 		}
 
 	}
 
+	// getSibling(index) {
+
+	// 	return this.parent.getChild(index);
+
+	// }
+
+	isGroup() {
+
+		return this.resource.group === true;
+
+	}
+
+	isAvailableIn(block) {
+
+		return !block.resource.available || block.resource.available.includes(this.resource.blockType);
+
+	}
+
+	canContain(type) {
+
+		return !this.resource.available || block.resource.available.includes(type);
+
+	}
+
+	canContainField(...fields) {
+
+		return fields.every(field => this.canContain(field.getBlockType()));
+
+	}
+
+	getBlockType() {
+
+		return this.resource.blockType;
+
+	}
+
 	*buildChildren() {
 
-		if (this.resource.children) {
+		const children = this.getChildren();
 
-			for (let i = 0; i < this.resource.children.length; i++) {
+		if (children) {
+
+			for (let i = 0; i < children.length; i++) {
 
 				const block = this.getChild(i);
 
 				if (block) {
 
 					yield {
-						tag: "li",
-						class: "frame",
+						// tag: "li",
+						class: `frame block-field-item block-field-${block.getBlockType()}`,
 						children: block.build(),
 						update: element => {
-							element.classList.toggle("selected", this.isSelectedAt(i) && this.hasFocus());
+
+							const selected = this.isSelectedAt(i);
+							element.classList.toggle("draggable", selected && !KarmaFieldsAlpha.Tracker.selecting);
+							element.classList.toggle("selected", selected);
+							element.classList.toggle("focus", this.hasFocus());
 							element.ondblclick = event => {
 								this.save("open");
-								this.open();
+								block.open();
 								this.render();
 							}
 						}
@@ -696,29 +811,46 @@ KarmaFieldsAlpha.field.block = class extends KarmaFieldsAlpha.field {
 
 		}
 
-
-
-		// const item = this.getValue();
-
-		// for (let i = 0; i < item.children.length; i++) {
-
-		// 	const child = item.children[i];
-
-		// 	const resource = this.resource.footer.find(block => block.id === child.type);
-
-		// 	const block = new KarmaFieldsAlpha.field.block({
-		// 		children: child.children,
-		// 		...resource
-		// 	}, i, this);
-
-		// 	yield {
-		// 		tag: "li",
-		// 		children: block.build()
-		// 	};
-
-		// }
-
 	}
+
+	// *build2() {
+
+	// 	yield {
+	// 		tag: "li",
+	// 		class: `frame block-field-item block-field-${block.getBlockType()}`,
+	// 		children: [
+	// 			{
+	// 				class: "block-field-header header-content",
+	// 				children: this.buildHeader()
+	// 			},
+	// 			{
+	// 				class: "block-field-body",
+	// 				children: this.buildBody()
+	// 			},
+	// 			{
+	// 				class: "block-field-footer container-footer",
+	// 				children: this.buildFooter()
+	// 			},
+	// 			{
+	// 				class: "dialog-container",
+	// 				children: this.buildDialog()
+	// 			}
+	// 		],
+	// 		update: element => {
+
+	// 			const selected = this.isSelectedAt(i);
+	// 			element.classList.toggle("draggable", selected && !KarmaFieldsAlpha.Tracker.selecting);
+	// 			element.classList.toggle("selected", selected);
+	// 			element.classList.toggle("focus", this.hasFocus());
+	// 			element.ondblclick = event => {
+	// 				this.save("open");
+	// 				block.open();
+	// 				this.render();
+	// 			}
+	// 		}
+	// 	};
+
+	// }
 
 	*buildMedia() {
 
@@ -732,1036 +864,716 @@ KarmaFieldsAlpha.field.block = class extends KarmaFieldsAlpha.field {
 
 	}
 
-	*build() {
+	*buildDialog() {
 
-		yield {
-			class: "media",
-			children: this.buildMedia(),
-			// update: element => {
-			// 	element.classList.toggle("hidden", !this.resource.media);
-			// }
-		};
+		const dialog = this.getChild("dialog");
 
-		yield {
-			tag: "ul",
-			class: "children",
-			children: this.buildChildren(),
-			update: element => {
+		if (dialog) {
 
-				// element.classList.toggle("hidden", !this.resource.children);
+			const hasFocus = dialog.hasFocusInside();
+			const selection = this.getSelection();
+
+			if (hasFocus && selection && selection.length) {
+
+				// yield* dialog.build();
+				yield* dialog.buildChild();
+
+			}
+
+		}
+
+	}
+
+	*buildToolbox() {
+
+		const dialog = this.getChild("dialog");
+
+		if (dialog) {
 
 
-				if (this.resource.children && this.resource.children.length) {
+			const hasFocus = dialog.hasFocusInside();
+			const rectangle = this.getData("rectangle");
 
-					const selection = this.hasFocus() && this.getSelection();
-					const sorter = new KarmaFieldsAlpha.ListSorterInline(element, selection);
+			// console.log(hasFocus, selection);
 
-					sorter.onSelect = elements => {
-						elements.map(element => element.classList.add("selected"));
-						this.setSelection(sorter.state.selection);
-					}
+			if (hasFocus && rectangle) {
 
-					sorter.onUnselect = elements => {
-						elements.map(element => element.classList.remove("selected"));
-					}
+				// yield* dialog.build();
+				// yield* dialog.buildChild();
 
-					sorter.onSelectionComplete = () => {
-						this.setFocus(true);
-						this.render();
-					}
+				yield {
+					class: "toolbox dark",
+					init: element => {
+						if (dialog.resource.width) {
+							element.style.maxWidth = dialog.resource.width;
+						}
+					},
+					update: element => {
+						const dialogBox = element.getBoundingClientRect();
 
-					sorter.onSwap = (newState, lastState) => {
-						this.save("reorder");
-						this.swapAt(lastState.selection.index, newState.selection.index, newState.selection.length);
-						this.setSelection(newState.selection);
-					};
+						const offset = 10;
+						let x, y;
 
-					sorter.onSort = (newSelection, lastSelection) => {
-						if (!KarmaFieldsAlpha.Collection.equal(newSelection, lastSelection)) {
-							this.setFocus(true);
+						element.classList.remove("top", "bottom", "left", "right", "align-top", "align-bottom", "align-left", "align-right");
+
+						if (dialog.resource.position === "bottom" || dialog.resource.position === "top") {
+
+							if (dialog.resource.position === "top") {
+
+								y = rectangle.y - dialogBox.height - offset;
+								element.classList.add("top");
+
+							} else {
+
+								y = rectangle.y + rectangle.height + offset;
+								element.classList.add("bottom");
+
+							}
+
+							if (dialog.resource.align === "right") {
+
+								x = rectangle.x + rectangle.width - dialogBox.width;
+								element.classList.add("align-right");
+
+							} else {
+
+								x = rectangle.x;
+								element.classList.add("align-left");
+
+							}
+
+						} else {
+
+							if (dialog.resource.position === "left") {
+
+								x = rectangle.x - dialogBox.width - offset;
+								element.classList.add("left");
+
+							} else {
+
+								x = rectangle.x + rectangle.width + offset;
+								element.classList.add("right");
+
+							}
+
+							if (dialog.resource.align === "bottom") {
+
+								y = rectangle.y + rectangle.height - dialogBox.height;
+								element.classList.add("align-bottom");
+
+							} else {
+
+								y = rectangle.y;
+								element.classList.add("align-top");
+
+							}
+
+						}
+
+						element.style.left = `${x}px`;
+						element.style.top = `${y}px`;
+
+						element.onmousedown = event => {
+							event.stopPropagation();
+							dialog.setFocus(true);
 							this.render();
 						}
-					}
+					},
+					children: dialog.build2() // dialog.build is used for old system
 
+				};
+
+			}
+
+		}
+
+	}
+
+	*buildChildrenContainer() {
+
+		if (this.isGroup()) {
+
+			// yield {
+			// 	class: "content-frame",
+			// 	children: [
+
+					yield {
+						// tag: "ul",
+						class: "block-field-children group-field",
+						children: this.buildChildren(),
+						update: element => {
+
+							this.element = element;
+
+							element.classList.toggle("row", this.getOrientation() === "row");
+
+							// KarmaFieldsAlpha.Tracker.register(element, this, 0, 1);
+
+							element.onmousedown = event => {
+								KarmaFieldsAlpha.Tracker.trackMouse(element, event, this);
+							}
+
+							element.ontouchstart = event => {
+								KarmaFieldsAlpha.Tracker.trackTouch(element, event);
+							}
+
+							const selection = this.getSelection();
+
+							if (selection && selection.length) {
+
+								const children = [...element.children];
+
+								if (children.length) {
+
+									const elements = children.slice(selection.index, selection.index + selection.length);
+									const containerRectangle = KarmaFieldsAlpha.Rectangle.fromElement(this.element);
+									const rectangle = KarmaFieldsAlpha.Rectangle.fromElement(...elements).offset(-containerRectangle.x, -containerRectangle.y).toObject();
+
+									this.setData(rectangle, "rectangle");
+
+								}
+
+							}
+
+
+						}
+					};
+					// ...this.buildToolbox()
+					// // {
+					// 	// class: "dialog-container",
+					// 	// // update: element => {
+					// 	// // 	const selection = this.getSelection();
+					// 	// // 	if (selection && selection.length) {
+					// 	// // 		const children = [...element.previousElementSibling.children];
+					// 	// // 		const selectedElements = children.slice(selection.index, selection.index + selection.length);
+					// 	// // 		const box = KarmaFieldsAlpha.Tracker.getElementsBox(selectedElements);
+					// 	// // 		console.log(box, element, element.firstElementChild);
+					// 	// // 	}
+					// 	// // },
+					// 	// // child: {
+					// 	// // 	class: "dialog-box",
+					// 	// // 	update: element => {
+					// 	// // 		const selection = this.getSelection();
+					// 	// // 		if (selection && selection.length) {
+					// 	// // 			const children = [...element.parentNode.previousElementSibling.children];
+					// 	// // 			const selectedElements = children.slice(selection.index, selection.index + selection.length);
+					// 	// // 			const box = KarmaFieldsAlpha.Tracker.getElementsBox(selectedElements);
+					// 	// // 			console.log(box, element, element.firstElementChild);
+					// 	// // 		}
+					// 	// // 	},
+					// 	// // 	children: this.buildDialog()
+					// 	// // },
+					// 	// child: {
+					// 		class: "toolbox",
+					// 		init: element => {
+					// 			if (this.resource.dialog) {
+					// 				if (this.resource.dialog.width) {
+					// 					element.style.maxWidth = this.resource.dialog.width;
+					// 				}
+					// 				if (this.resource.dialog.mode === "toolbox") {
+					// 					element.classList.add("toolbox");
+					// 					element.classList.add("dark");
+					// 				}
+					// 			}
+					// 		},
+					// 		update: element => {
+					// 			const selection = this.getSelection();
+					// 			const focus = this.hasFocusInside();
+
+					// 			if (focus && selection && selection.length) {
+					// 				const children = [...element.previousElementSibling.children];
+					// 				const selectedElements = children.slice(selection.index, selection.index + selection.length);
+					// 				const targetBox = KarmaFieldsAlpha.Tracker.getElementsBox(selectedElements);
+
+					// 				const box = element.getBoundingClientRect();
+					// 				const offset = 10;
+
+					// 				// -> to right
+					// 				const x = targetBox.x + targetBox.width + offset;
+					// 				const y = targetBox.y;
+					// 				element.style.left = `${x}px`;
+					// 				element.style.top = `${y}px`;
+					// 			}
+					// 			element.onmousedown = event => {
+					// 				event.stopPropagation();
+					// 				this.setFocus(true);
+					// 				this.render();
+					// 			}
+					// 		},
+					// 		children: this.buildDialog()
+
+					// }
+
+			// 	]
+			// };
+
+			yield* this.buildToolbox();
+
+
+			// yield {
+			// 	class: "dialog-container",
+			// 	children: this.buildDialog()
+			// 	// children: dialog?.build()
+			// };
+
+		}
+
+	}
+
+	*build() {
+
+		const header = this.getChild("header");
+
+		yield {
+			class: "container-header",
+			children: header?.build()
+		};
+
+
+		yield {
+			class: "container-body",
+
+			child: {
+				class: "content-frame block-content-frame",
+				children: this.buildBody()
+			},
+
+			init: element => {
+				if (this.resource.scrollContainer) {
+					element.classList.add("scroll-container");
 				}
-
-
 			}
 		};
 
+	}
 
-		// yield {
-		// 	tag: "li",
-		// 	update: element => {
-		// 		element.classList.toggle("selected", this.isSelected());
-		// 	},
-		// 	children: [
-		// 		{
-		// 			class: "media",
-		// 			children: this.buildMedia(),
-		// 			update: element => {
-		// 				element.classList.toggle("hidden", !this.resource.media);
-		// 			}
-		// 		},
-		// 		{
-		// 			tag: "ul",
-		// 			class: "children",
-		// 			children: this.buildChildren(),
-		// 			update: element => {
-		// 				element.classList.toggle("hidden", !this.resource.children);
-		// 			}
-		// 		}
-		// 	]
-		// };
+	*buildBody() {
 
-		// const item = this.getValue();
+		// yield* this.buildChildrenContainer();
 
-		// if (item) {
+		yield {
+			class: "block-children-container",
+			children: this.buildChildrenContainer()
+		};
 
-		// 	const block = this.resource.footer.find(block => block.id === item.type);
-
-		// 	if (block) {
-
-		// 		if (item.type === "group") {
-
-		// 			yield {
-		// 				tag: "li",
-		// 				children: [
-		// 					{
-		// 						tag: "ul",
-		// 						children: this.buildChildren(item.children)
-		// 					}
-		// 				]
-		// 			};
-
-		// 		}
-
-		// 		if (this.resource.media) {
-
-		// 		// for (let i = 0; i < this.resource.fields.length; i++) {
-
-		// 		// 	const resource = this.resource.fields[i];
-
-		// 			const mediaField = this.createChild({
-		// 				type: "media",
-		// 				...this.resource.media
-		// 			}, i);
-
-		// 			// yield {
-		// 			// 	tag: "li",
-		// 			// 	children: mediaField.build(),
-		// 			// 	update: element => {
-		// 			// 		element.classList.toggle("selected", this.isSelected());
-		// 			// 	}
-		// 			// };
-
-		// 			yield {
-		// 				tag: "li",
-		// 				update: element => {
-		// 					element.classList.toggle("selected", this.isSelected());
-		// 				},
-		// 				children: [
-		// 					{
-		// 						class: "media",
-		// 						children: this.buildMedia(),
-		// 						update: element => {
-		// 							element.classList.toggle("hidden", !this.resource.media);
-		// 						}
-		// 					},
-		// 					{
-		// 						tag: "ul",
-		// 						class: "children",
-		// 						children: this.buildChildren(),
-		// 						update: element => {
-		// 							element.classList.toggle("hidden", !this.resource.children);
-		// 						}
-		// 					}
-		// 				]
-		// 			};
-
-		// 		}
-
-		// 	}
-
-		// }
+		yield {
+			class: "block-field-content",
+			children: this.buildBlockContent()
+		};
 
 
 
 	}
 
-	// *build() {
+	*buildBlockContent() {
 
-	// 	yield {
-	// 		tag: "ul",
-	// 		class: "block",
-	// 		children: this.buildFields()
-	// 	};
+		if (this.resource.content) {
+
+			const group = this.createChild({
+				type: "group",
+				...this.resource.content,
+				offsetContainer: true
+			}, "content");
+
+			yield* group.build("frame");
+
+		}
+
+	}
+
+	// getHeader() {
+
+	// 	if (this.resource.header !== false) {
+
+	// 		return this.createChild({
+	// 			type: "header",
+	// 			display: "flex",
+	// 			children: [
+	// 				// {
+	// 				// 	type: "button",
+	// 				// 	dashicon: "move",
+	// 				// 	action: "move",
+	// 				// 	simplebuttons: true
+	// 				// },
+	// 				{
+	// 					type: "title",
+	// 					content: this.resource.name
+	// 				},
+	// 				// {
+	// 				// 	type: "button",
+	// 				// 	dashicon: "arrow-up",
+	// 				// 	action: "collapse",
+	// 				// 	simplebuttons: true
+	// 				// },
+	// 				{
+	// 					type: "button",
+	// 					dashicon: "plus",
+	// 					action: "open",
+	// 					simplebuttons: true
+	// 				}
+	// 			],
+	// 			...this.resource.header
+	// 		}, "header");
+
+	// 	}
+
+
 
 	// }
 
-	// *buildBlock() {
+	// *buildHeader() {
 
-	// 	yield {
-	// 		tag: "ul",
-	// 		class: "block",
-	// 		children: this.buildBlockFields(),
-	// 		update: element => {
+	// 	if (this.resource.header !== false) {
 
-	// 			const selection = this.getSelection();
+	// 		const header = this.getHeader();
 
-	// 			const sorter = new KarmaFieldsAlpha.ListSorterInline(element, selection);
+	// 		yield* header.build();
 
-	// 			sorter.onSelect = elements => {
-	// 				elements.map(element => element.classList.add("selected"));
-	// 				this.setSocketSelection(sorter.state.selection);
-	// 			}
+	// 	}
 
-	// 			sorter.onUnselect = elements => {
-	// 				elements.map(element => element.classList.remove("selected"));
-	// 			}
+	// }
 
-	// 			sorter.onSelectionComplete = () => {
-	// 				this.setFocus(true);
-	// 				 this.render();
-	// 			}
+	// *buildFooter() {
 
-	// 			sorter.onSwap = (newState, lastState) => {
-	// 				this.save("reorder");
-	// 				this.swapAt(lastState.selection.index, newState.selection.index, newState.selection.length);
-	// 				this.setSocketSelection(newState.selection);
-	// 			};
+	// 	if (this.resource.footer) {
 
-	// 			sorter.onSort = (newSelection, lastSelection) => {
-	// 				if (!KarmaFieldsAlpha.Collection.equal(newSelection, lastSelection)) {
-	// 					this.setFocus(true);
-	// 					this.render();
-	// 				}
-	// 			}
+	// 		const footer = this.createChild({
+	// 			type: "footer",
+	// 			display: "flex",
+	// 			...this.resource.footer
+	// 		}, "header");
 
-	// 		}
+	// 		yield {
+	// 			class: "footer-content",
+	// 			children: footer.build()
+	// 			// update: element => {
+	// 			// 	const loading = KarmaFieldsAlpha.Store.hasDownload() || KarmaFieldsAlpha.Store.hasUpload();
+	// 			// 	element.classList.toggle("loading", loading);
+	// 			// }
+	// 		};
+
+
 	// 	}
 
 	// }
 
 
 
-  // setSelection(selection) {
-  //
-  //   // this.parent.setSelection(selection && {
-  //   //   [this.resource.index]: selection,
-  //   //   index: this.resource.index,
-  //   //   length: 0
-  //   // });
-  //
-  //
-  //
-  // }
+	getOrientation() {
 
-//   getSelectionChild(selection = this.getSelection()) {
-// console.error("deprecated");
-//     if (selection) {
+		return this.resource.orientation || "column";
+
+		// return this.getSingleValue("orientation") || "column";
+
+	}
 
 
+	drag(tracker) { // -> called by Tracker
 
+		return false
+			|| tracker.swapAbove()
+			|| tracker.swapBelow()
 
-//       // for (let i = 0; i < children.length; i++) {
-//       //
-//       //   if (selection[i]) {
-//       //
-//       //     return this.createChild({
-//       //       value: children[i],
-//       //       index: i,
-//       //       type: children[i].type
-//       //     });
-//       //
-//       //   }
-//       //
-//       // }
+			|| tracker.swapToChildBefore()
+			|| tracker.swapToChildAfter()
 
-//       const index = selection.index || 0;
+			|| tracker.swapToParentBefore()
+			|| tracker.swapToParentAfter();
 
-//       if (!selection.length && selection[index] && this.resource.children[index]) {
+	}
 
-//         const resource = this.resource.children[index];
+	getChildContainer(element, index) {
 
-//         return this.createChild({
-//           ...resource,
-//           index: index
-//         });
+		const child = [...element.children][index];
 
-//       }
+		return child && child.querySelector(".block-field-children");
 
-//     }
+	}
 
-//   }
+	getParentContainer(element) {
 
-//   getChild(index) {
+		if (this.parent instanceof KarmaFieldsAlpha.field.block) {
 
-//     if (this.resource.children && this.resource.children[index]) {
+			const item = element.closest(".block-field-item");
 
-//       return this.createChild({
-//         ...this.resource.children[index],
-//         index: index
-//       });
+			return item && item.parentNode;
 
-//     }
+		}
 
-//     // const child = this.resource.children && this.resource.children[index];
-//     //
-//     // if (child) {
-//     //
-//     //   // const resource = value.children && value.children[index];
-//     //   //
-//     //   // if (resource) {
-//     //
-//     //     return this.createChild({
-//     //       // ...resource,
-//     //       // value: value.children[index],
-//     //       ...child,
-//     //       index: index,
-//     //       path: [...this.resource.path, index],
-//     //       selection: this.resource.selection && this.resource.selection[index]
-//     //     });
-//     //
-//     //   // }
-//     //
-//     // }
+	}
 
+	*listSelectedChildren() {
 
-//   }
+		const selection = this.getSelection();
 
-  // paste(string, selection = this.getSelection()) { // -> same as base method
+		if (selection) {
 
-  //   if (selection) {
+			for (let i = 0; i < selection.length; i++) {
 
-  //     if (!selection.child) {
+				yield this.getChild(selection.index + i);
 
-  //       this.import([string]);
+			}
 
-  //     } else {
+		}
 
-  //       super.paste(string, selection);
+	}
 
-  //     }
+	getBox() {
 
-  //   }
+		const selection = this.getSelection();
 
-  // }
+		if (this.element && selection && selection.length) {
 
-  // setAbsoluteSelection(selection, ...path) {
+			const children = [...this.element.children];
 
-  //   this.parent.setAbsoluteSelection(selection, ...path);
+			const parentBox = this.element.getBoundingClientRect();
 
-  // }
+			const box = children[selection.index].getBoundingClientRect();
 
+			if (selection.length > 1) {
 
+				const box2 = children[selection.index + children.length - 1].getBoundingClientRect();
 
-  // buildContent() {
+				return {
+					x: box.x - parentBox.x,
+					y: box.y - parentBox.y,
+					width: box2.x + box2.width - box.x,
+					height: box2.y + box2.height - box.y
+				};
 
-  //   return this.resource.children.map((resource, index) => {
-  //     return this.createChild({
-  //       ...resource,
-  //       index: index
-  //     }).build()
-  //   });
+			} else {
 
-  // }
+				return {
+					x: box.x - parentBox.x,
+					y: box.y - parentBox.y,
+					width: box.width,
+					height: box.height
+				};
 
+			}
 
-  // build() {
+		}
 
-  //   return {
-  //     class: "block",
-  //     init: node => {
-  //       if (this.resource.class) {
-  //         node.element.classList.add(this.resource.class);
-  //       }
-  //     },
-  //     update: node => {
-  //       const isSelected = this.isSelected(this.resource.index);
-  //       node.element.classList.toggle("selected", Boolean(isSelected));
-  //     },
-  //     children: [
-  //       {
-  //         class: "block-header",
-  //         children: [
-  //           {
-  //             class: "block-title",
-  //             update: node => {
-  //               node.element.innerHTML = this.resource.title || "Block";
-  //             }
-  //           },
-  //           {
-  //             class: "block-icon dashicons dashicons-block-default"
-  //           }
-  //         ]
-  //       },
-  //       {
-  //         class: "block-body",
-  //         children: this.buildContent()
-  //       }
-  //     ]
-  //   };
+	}
 
-  // }
+	// getBox() {
+
+	// 	const children = [...this.listSelectedChildren()];
+
+	// 	console.log("getBox", children);
+
+	// 	if (children.length) {
+
+	// 		const first = children[0];
+
+	// 		console.log(first, first.element);
+
+	// 		if (first.element) {
+
+	// 			const box = first.element.getBoundingClientRect();
+
+	// 			if (children.length > 1) {
+
+	// 				const last = children[children.length - 1];
+
+	// 				if (last) {
+
+	// 					const box2 = last.element.getBoundingClientRect();
+
+	// 					return {
+	// 						x: box.x,
+	// 						y: box.y,
+	// 						width: box2.x + box2.width - box.x,
+	// 						height: box2.y + box2.height - box.y
+	// 					};
+
+	// 				}
+
+	// 			}
+
+	// 			return box;
+
+	// 		}
+
+	// 	}
+
+	// }
+
+	// *listSelectedElements() {
+
+	// 	for (let child of this.listSelectedChildren()) {
+
+	// 		yield child.element;
+
+	// 	}
+
+	// }
 
 }
 
-
-// KarmaFieldsAlpha.field.blocks.inputBlock = class extends KarmaFieldsAlpha.field.blockEditor.block {
+// KarmaFieldsAlpha.field.block.dialog = class extends KarmaFieldsAlpha.field {
 
 // 	constructor(resource, id, parent) {
 
 // 		super({
-// 			children: [
-// 				{
-// 					label: "Label",
-// 					type: "input",
-// 					key: "label"
-// 				},
-// 				{
-// 					label: "Key",
-// 					type: "input",
-// 					key: "key"
-// 				},
-// 				{
-// 					label: "Key",
-// 					type: "input",
-// 					key: "key"
-// 				},
-// 				{
-// 					label: "Placeholder",
-// 					type: "input",
-// 					key: "placeholder"
-// 				},
-// 				{
-// 					label: "Read Only",
-// 					type: "checkbox",
-// 					key: "readonly"
-// 				},
-// 				{
-// 					label: "Disabled",
-// 					type: "input",
-// 					key: "disabled",
-// 					expression: true
-// 				},
-// 				{
-// 					label: "Enabled",
-// 					type: "input",
-// 					key: "enabled",
-// 					expression: true
-// 				}
-// 			],
+
 // 			...resource
 // 		}, id, parent);
+
+// 		'dialog' => [
+// 			'type' => 'container',
+// 			'width' => '60rem',
+// 			'header' => [
+// 				'children' => [
+// 					[
+// 						'type' => 'title',
+// 						'content' => 'Block Input'
+// 					],
+// 					[
+// 						'type' => 'close',
+// 						'simplebuttons' => true
+// 					]
+// 				]
+// 			],
+// 			'body' => [
+// 				'type' => 'group',
+// 				'children' => [
+// 					[
+// 						'type' => 'input',
+// 						'key' => 'key',
+// 						'label' => 'Key'
+// 					],
+// 					[
+// 					'type' => 'input',
+// 					'key' => 'label',
+// 					'label' => 'Label'
+// 					]
+// 				]
+// 			]
+// 		]
+
+// 	}
+
+// 	getValue(key) {
+
+// 		return this.parent.getValue(key);
+
+// 	}
+
+// 	setValue(value, key) {
+
+// 		this.parent.setValue(value, key);
+
+// 	}
+
+// 	newChild(id) {
+
+// 		return this.createChild(this.resource, id);
+
+// 	}
+
+
+// 	close() {
+
+// 		super.close();
+
+// 	}
+
+// 	*build() {
+
+// 		const content = this.getChild("content");
+
+// 		yield* content.build("dialog");
+
 // 	}
 
 // }
 
 
-
-// KarmaFieldsAlpha.field.blockEditor.blockGallery = class extends KarmaFieldsAlpha.field.blockEditor.block {
-
-//   constructor(resource) {
-
-//     super({
-//       ...resource,
-//       title: "Gallery",
-//       class: "files-block",
-//       children: [
-//         {
-//           type: "files",
-//           key: "files",
-//           uploader: "wp",
-//           controls: false
-//         }
-//       ]
-//     });
-//   }
-
-// }
-
-// KarmaFieldsAlpha.field.blockEditor.blockTinymce = class extends KarmaFieldsAlpha.field.blockEditor.block {
-
-//   constructor(resource) {
-
-//     super({
-//       ...resource,
-//       title: "Rich Text",
-//       class: "tinymce-block",
-//       children: [
-//         {
-//           type: "tinymce",
-//           key: "content"
-//         }
-//       ]
-//     });
-//   }
-
-// }
-
-
-// KarmaFieldsAlpha.field.blockEditor.columns = class extends KarmaFieldsAlpha.field.blockEditor.block {
-
-//   constructor(resource) {
-
-//     super({
-//       title: "Group",
-//       class: "block-group",
-//       ...resource
-//     });
-
-//   }
-
-//   addValue(value) {
-
-//     const children = this.getValue("children");
-
-//     this.setValue([...children, value], "children");
-
-//     this.render();
-
-//   }
-
-
-
-
-//   swap(index, newIndex, length, path, newPath) {
-
-//     this.parent.swap(index, newIndex, length, path, newPath);
-
-//   }
-
-//   remove(index, length, ...path) {
-
-//     this.parent.remove(index, length, this.resource.index, ...path);
-
-//   }
-
-//   delete(selection = this.getSelection()) {
-
-//     // if (selection && !selection[selection.index]) {
-//     //
-//     //   this.remove(selection.index || 0, selection.length || 0);
-//     //
-//     // } else {
-//     //
-//     //   super.delete(selection);
-//     //
-//     // }
-
-//     if (selection) {
-
-//       if (!selection.child) {
-
-//         this.remove(selection.index || 0, selection.length || 0);
-
-//       } else {
-
-//         super.delete(selection);
-
-//       }
-
-//     }
-
-//   }
-
-//   getChild(index) {
-
-//     const resource = this.resource.value && this.resource.value.children && this.resource.value.children[index];
-
-//     if (resource) {
-
-//       return this.createChild({
-//         ...resource, // type + children
-//         type: "column",
-//         depth: (this.resource.depth || 0) + 1,
-//         index: index,
-//         path: [...this.resource.path, this.resource.index],
-//         value: resource.value,
-
-//         selection: this.resource.selection && this.resource.child
-
-//       });
-
-//     }
-
-
-
-//   }
-
-//   getSelectionChild(selection = this.getSelection()) {
-//     console.error("deprecated");
-//     if (selection) {
-
-//       const index = selection.index || 0;
-
-//       if (!selection.length && selection[index]) {
-
-//         const value = this.getBlockValue() || {};
-//         const children = value.children || [];
-
-//         return this.createChild({
-//           value: children[index],
-//           index: selection.index,
-//           type: children[index].type
-//         });
-
-//       }
-
-//     }
-
-//   }
-
-
-
-//   buildContent() {
-
-//     return [{
-//       tag: "ul",
-//       class: "block-columns",
-
-//       update: ul => {
-
-
-//         // if (this.resource.children) {
-//         if (this.resource.value && this.resource.value.children) {
-
-//           ul.children = this.resource.value.children.map((child, index) => {
-
-//             // const column = this.createChild({
-//             //   type: "column",
-//             //   value: child,
-//             //   // ...child,
-//             //   index: index,
-//             //   path: [...this.resource.path, this.resource.index],
-//             //   selection: this.resource.selection && this.resource.selection[index]
-//             // });
-
-//             const column = this.getChild(index);
-
-//             return column.build();
-
-//           });
-
-//         }
-
-//       }
-//     }];
-//   }
-
-//   // build() {
-//   //
-//   //   return {
-//   //     class: "block block-group",
-//   //     children: [
-//   //       {
-//   //         class: "block-header",
-//   //         children: [
-//   //           {
-//   //             class: "block-title",
-//   //             update: node => {
-//   //               node.element.innerHTML = "Group";
-//   //             }
-//   //           },
-//   //           {
-//   //             class: "block-icon dashicons dashicons-block-default"
-//   //           }
-//   //         ]
-//   //       },
-//   //       {
-//   //         class: "block-body",
-//   //         child: {
-//   //           tag: "ul",
-//   //           class: "block-columns fork",
-//   //           init: ul => {
-//   //             if (this.resource.classes) {
-//   //               ul.element.classList.add(...this.resource.classes);
-//   //             }
-//   //           },
-//   //           update: ul => {
-//   //             ul.element.classList.toggle("selected", Boolean(this.resource.selected));
-//   //
-//   //             const value = this.getBlockValue() || {};
-//   //             const children = value.children || [];
-//   //
-//   //             if (children && children !== KarmaFieldsAlpha.loading) {
-//   //
-//   //               ul.children = children.map((child, index) => {
-//   //
-//   //                 const column = this.createChild({
-//   //                   type: "column",
-//   //                   // children: child.children,
-//   //                   value: child,
-//   //                   index: index,
-//   //                   path: [...this.resource.path, this.resource.index],
-//   //                 });
-//   //
-//   //                 return column.build();
-//   //
-//   //               });
-//   //
-//   //             }
-//   //
-//   //           }
-//   //         }
-//   //       }
-//   //     ]
-//   //   };
-//   //
-//   // }
-
-// }
-
-
-
-// KarmaFieldsAlpha.field.blockEditor.column = class extends KarmaFieldsAlpha.field.blockEditor.columns {
-
-//   // getLength() {
-//   //
-//   //   if (this.resource.value && this.resource.value.children) {
-//   //
-//   //     return this.resource.value.children.length;
-//   //
-//   //   }
-//   //
-//   //   return 0;
-//   // }
-
-//   // getLength() {
-//   //
-//   //   return this.parent.getLength(this.resource.index);
-//   //
-//   //   return this.getValue("children").length;
-//   // }
-
-//   // getValue(...path) {
-//   //
-//   //   return this.parent.getValue(this.resource.index, ...path);
-//   // }
-
-
-
-//   // setValue(value, index) {
-//   //
-//   //   const clone = KarmaFieldsAlpha.DeepArray.cloneObject(this.resource.value || {});
-//   //
-//   //   if (!clone.children) {
-//   //
-//   //     clone.children = [];
-//   //
-//   //   }
-//   //
-//   //   clone.children[index] = value;
-//   //
-//   //   this.parent.setValue(clone, this.resource.index);
-//   //
-//   // }
-
-//   // setValue(value, ...path) {
-//   //
-//   //   this.parent.setValue(value, this.resource.index, ...path);
-//   //
-//   // }
-
-//   getChild(index) {
-
-//     const resource = this.resource.children && this.resource.children[index];
-
-//     if (resource) {
-
-//       return this.createChild({
-//         // type: "block",
-//         ...resource, // type + children
-//         depth: (this.resource.depth || 0) + 1,
-//         index: index,
-//         path: [...this.resource.path, this.resource.index],
-//         value: resource,
-
-
-
-//         selection: this.resource.selection && this.resource.selection.child
-//         // children: child.children,
-//         // values: child.children,
-//         // selected: this.isSelected(index, selection)
-//       });
-
-//     }
-
-//   }
-
-//   copy(selection = this.getSelection()) {
-
-//     // if (selection && !selection[selection.index]) {
-//     //
-//     //   const [value] = this.export([], selection.index || 0, selection.length || 0);
-//     //
-//     //   return value;
-//     //
-//     // } else {
-//     //
-//     //   return super.copy(selection);
-//     //
-//     // }
-
-//     if (selection && !selection.child) {
-
-//       const [value] = this.export([], selection.index || 0, selection.length || 0);
-
-//       return value;
-
-//     } else {
-
-//       return super.copy(selection);
-
-//     }
-
-//   }
-
-//   paste(string, selection = this.getSelection()) { // -> same as base method
-
-//     // if (selection && !selection[selection.index]) {
-//     //
-//     //   this.import([string], selection.index || 0, selection.length);
-//     //
-//     // } else {
-//     //
-//     //   return super.paste(string, selection);
-//     //
-//     // }
-
-
-
-//     if (selection && !selection.child) {
-
-//       this.import([string], selection.index || 0, selection.length);
-
-//     } else {
-
-//       return super.paste(string, selection);
-
-//     }
-
-
-//   }
-
-//   export(items = [], index = 0, length = 999999) {
-
-//     const value = this.getBlockValue() || {};
-//     let values = value.children || [];
-
-//     values = values.slice(index, index + length);
-//     values = values.map(value => JSON.stringify(value));
-
-//     const grid = new KarmaFieldsAlpha.Grid();
-//     grid.addColumn(values);
-
-//     items.push(grid.toString());
-
-//     return items;
+// KarmaFieldsAlpha.field.block.dialog = class extends KarmaFieldsAlpha.field.dialog {
+
+// 	constructor(resource, id, parent) {
+
+// 		super({
+// 			width: "60rem",
+// 			header: {
+// 				children: [
+// 					{
+// 						type: "title",
+// 						content: `Block ${parent.resource.name || ""}`
+// 					},
+// 					{
+// 						type: "close",
+// 						simplebuttons: true
+// 					}
+// 				]
+// 			},
+// 			// body: {
+// 			// 	type: "group",
+// 			// 	children: [
+// 			// 		{
+// 			// 			type: "input",
+// 			// 			key: "key",
+// 			// 			label: "Key"
+// 			// 		},
+// 			// 		{
+// 			// 			type: "input",
+// 			// 			key: "label",
+// 			// 			label: "Label"
+// 			// 		}
+// 			// 	]
+// 			// },
+// 			...resource
+// 		}, id, parent);
 
 // 	}
 
-//   import(items, index = 0, length = 999999) {
-
-//     const string = items.shift();
-
-//     const grid = new KarmaFieldsAlpha.Grid(string);
-//     let values = grid.getColumn(0);
-
-//     values = values.map(value => JSON.parse(value));
-
-//     if (values.some(value => typeof value !== "object")) {
-
-//       // -> ?
-
-//     } else {
-
-//       // const newValues = [...this.getValue()];
-
-//       let value = this.getBlockValue() || {};
-
-//       value = KarmaFieldsAlpha.DeepObject.clone(value);
-
-//       value.chilren = (value.children || []).splice(index, length, ...values);
-
-//       this.setBlockValue(value);
-
-//     }
-
-// 	}
-
-
-
-//   build() {
-
-//     return {
-//       tag: "li",
-//       class: "block-branch dropzone block-column",
-//       init: li => {
-//         if (this.resource.classes) {
-//           li.element.classList.add(...this.resource.classes);
-//         }
-//       },
-//       update: li => {
-//         // const value = this.resource.value || {};
-//         // const children = value.children || [];
-
-
-//         // const children = this.getValue();
-
-//         // const value = this.getBlockValue() || {};
-//         // const value = this.resource.value || {};
-//         // const children = value.children || [];
-//         //
-//         //
-//         // // console.log(children, value, this.resource.value);
-//         //
-//         // if (!children || children === KarmaFieldsAlpha.loading) {
-//         //
-//         //   return;
-//         //
-//         // }
-
-//         li.element.style.height = "auto";
-//         const path = this.resource.path || [];
-
-//         let selection = this.getSelection();
-
-//         // const sorter = new KarmaFieldsAlpha.BlockSorter(li.element);
-
-
-//         // sorter.colCount = 1;
-//         // sorter.rowCount = children.length;
-//         // sorter.currentSelection = selection;
-//         // sorter.selection = selection;
-//         // sorter.path = [...path, this.resource.index];
-//         // sorter.maxDepth = 10000;
-//         //
-//         // sorter.onselect = newSelection => {
-//         //   this.setSelection(newSelection);
-//         //   // KarmaFieldsAlpha.Clipboard.focus();
-//         //   this.deferFocus();
-//         //   this.save("nav");
-//         //   this.render();
-//         // }
-//         //
-//         // sorter.onsort = (index, newIndex, length, path, newPath) => {
-//         //   this.parent.request("completeSwap");
-//         //   // KarmaFieldsAlpha.Clipboard.focus();
-//         //   this.deferFocus();
-//         //   this.save("swap");
-//         //   this.render();
-//         // }
-//         //
-//         // sorter.onSwap = (index, newIndex, length, path, newPath) => {
-//         //   this.swap(index, newIndex, length, path, newPath); // -> will render.
-//         // }
-//         //
-//         // sorter.onSelectionChange = newSelection => {
-//         //   this.setSelection(newSelection);
-//         // }
-//         //
-//         // sorter.onPaintRow = elements => {
-//         //   elements.forEach(element => element.classList.add("selected"))
-//         // }
-//         //
-//         // sorter.onUnpaintRow = elements => {
-//         //   elements.forEach(element => element.classList.remove("selected"))
-//         // }
-
-
-//         const sorter = new KarmaFieldsAlpha.ListSortBlock(li.element, selection, ...path, this.resource.index);
-
-//         sorter.onSelect = elements => {
-
-//           elements.map(element => element.classList.add("selected"));
-
-//           this.setAbsoluteSelection(sorter.state.selection, ...sorter.state.path);
-
-//         }
-
-//         sorter.onUnselect = elements => {
-
-//           elements.map(element => element.classList.remove("selected"));
-
-//         }
-
-//         sorter.onSelectionComplete = () => {
-
-//           this.deferFocus();
-//           this.render();
-
-//         }
-
-//         sorter.onSwap = (newState, lastState) => {
-
-//           this.swap(lastState.selection.index, newState.selection.index, newState.selection.length, lastState.path, newState.path);
-
-//         };
-
-//         sorter.onSort = (newState, lastState) => {
-
-//           this.deferFocus();
-//           this.save("order");
-//           this.render();
-
-//         }
-
-
-
-//         const children = this.resource.children || [];
-
-//         li.children = children.map((child, index) => {
-//           // const column = this.createChild({
-//           //   type: child.type,
-//           //   depth: (this.resource.depth || 0) + 1,
-//           //   index: index,
-//           //   path: [...this.resource.path, this.resource.index],
-//           //   value: child,
-//           //
-//           //   // ...child, // -> type + children
-//           //
-//           //
-//           //   selection: this.resource.selection && this.resource.selection[index]
-//           // });
-
-//           const column = this.getChild(index);
-
-//           return column.build();
-
-//           // return {
-//           //   tag: "li",
-//           //   class: "block-frame",
-//           //   update: li => {
-//           //
-//           //     const isSelected = this.isSelected(selection, index);
-//           //
-//           //
-//           //     li.element.classList.toggle("selected", Boolean(isSelected));
-//           //   },
-//           //   child: branch.build()
-//           // };
-//         });
-//       }
-//     };
-//   }
-
 // }
 
-// KarmaFieldsAlpha.field.blockEditor.branch = class extends KarmaFieldsAlpha.field.blockEditor.column {}; // compat
+KarmaFieldsAlpha.field.blocks.footer = class extends KarmaFieldsAlpha.field.container.footer {
 
-// KarmaFieldsAlpha.field.blockEditor.test = class extends KarmaFieldsAlpha.field {
+	createChild(resource, id) {
 
-//   build() {
-//     return {
-//       class: "test-block block",
-//       update: node => {
-//         node.element.classList.toggle("selected", Boolean(this.resource.selected));
+		if (typeof resource === "string") {
 
-//         node.element.innerHTML = this.resource.value || "0";
-//       }
-//     };
-//   }
+			const blockResource = this.request("getBlockResource", resource);
 
-// }
+			if (blockResource) {
+
+				const child = new KarmaFieldsAlpha.field.blocks.addBlock({
+					text: blockResource.name || resource,
+					blockType: resource
+				}, id, this);
+
+				return child;
+
+			}
+
+		}
+
+		return super.createChild(resource, id);
+
+	}
+
+}
+
+KarmaFieldsAlpha.field.blocks.addBlock = class extends KarmaFieldsAlpha.field.button {
+
+	// constructor(resource, id, parent) {
+	// 	super({
+	// 		action: "add",
+	// 		title: "Add",
+	// 		text: ,
+	// 		save: "add block",
+	// 	}, id, parent);
+	// }
+
+	click() {
+
+		this.save("add block");
+		this.request("add", this.resource.blockType);
+		this.render();
+
+	}
+
+}

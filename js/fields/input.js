@@ -110,11 +110,68 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		}
 
-		return this.parent.getValue(key);
+		if (this.resource.datalist) { // -> datalist
+
+			let value = this.getState("value");
+
+			// if (value !== undefined) {
+			if (value) { // when empty -> check value
+
+				return [value || ""];
+
+			} else {
+
+				const values = this.parent.getValue(key);
+
+				if (values) {
+
+					const options = this.getOptions();
+
+					if (options) {
+
+						value = options.find(option => option.id === values[0]);
+
+						if (value) {
+
+							return [value.name || ""];
+
+						}
+
+					}
+
+					return [];
+
+				}
+
+			}
+
+
+
+			// if (options && values) {
+
+			// 	const value = values[0] || "";
+
+			// 	const option = options.find(option => option.id === value);
+
+			// 	if (option) {
+
+			// 		return [option.name];
+
+			// 	}
+
+			// 	return [];
+
+			// }
+
+		} else {
+
+			return this.parent.getValue(key);
+
+		}
 
 	}
 
-	setValue(value, key) {
+	setValue(values, key) {
 
 		if (!key) {
 
@@ -122,7 +179,39 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		}
 
-		return this.parent.setValue(value, key);
+		if (this.resource.datalist) { // -> datalist
+
+			this.setState(values[0], "value");
+
+			const options = this.getOptions();
+
+			if (options) {
+
+				const value = values[0] || "";
+
+				if (value) {
+
+					const option = options.find(option => option.name === value);
+
+					if (option) {
+
+						this.parent.setValue([option.id], key);
+
+					}
+
+				} else {
+
+					this.parent.setValue([], key);
+
+				}
+
+			}
+
+		} else {
+
+			this.parent.setValue(values, key);
+
+		}
 
 	}
 
@@ -155,7 +244,7 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 		if (this.resource.placeholder) {
 
-			return this.parseString(this.resource.placeholder);
+			return this.parseString(this.resource.placeholder) || "";
 
 		}
 
@@ -174,6 +263,42 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 		return false;
 	}
 
+	// *buildBlock() {
+
+	// 	yield {
+	// 		tag: "label",
+	// 		class: "field-block",
+	// 		children: this.buildBlockItems(),
+	// 		update: element => {
+	// 			element.classList.toggle("hidden", this.isHidden());
+	// 			if (this.resource.width) {
+	// 				if (this.resource.width === "1fr") {
+	// 					element.style.flexGrow = 1;
+	// 				} else {
+	// 					element.style.width = this.resource.width;
+	// 				}
+	// 			}
+	// 		}
+	// 	};
+
+	// }
+
+	*buildLabel() {
+
+		if (this.resource.label) {
+
+			yield {
+				tag: "label",
+				class: "label",
+				init: element => {
+					element.htmlFor = this.uid;
+					element.innerHTML = this.getLabel() || "";
+				}
+			};
+
+		}
+
+	}
 
 	*build() {
 
@@ -182,8 +307,12 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 			class: "text-input karma-field",
 			init: element => {
 				element.type = "text";
+				element.id = this.uid;
 				if (this.resource.input) {
 					Object.assign(element, this.resource.input);
+				}
+				if (this.resource.datalist) {
+					element.setAttribute("list", `${this.uid}-datalist`);
 				}
 			},
 			update: element => {
@@ -237,24 +366,62 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 					}
 
-					element.oninput = event => {
+					element.onchange = event => { // -> for datalist
 
 						const normalizedValue = element.value.normalize();
 
-						const value = values[0] || "";
+						if (normalizedValue !== this.getSingleValue()) {
 
-						if (normalizedValue.length < value.length) {
+							this.save("select", "Select");
 
-							this.save("delete", "Delete");
+							if (normalizedValue) {
 
-						} else {
+								this.setValue([normalizedValue]);
 
-							this.save("insert", "Insert");
+							} else {
+
+								this.setValue([]);
+
+							}
 
 						}
 
-						this.setValue([normalizedValue]);
 						this.render();
+
+					}
+
+					element.oninput = event => {
+
+						const normalizedValue = element.value.normalize();
+						const last = values && values[0] || "";
+
+						if (last !== normalizedValue) {
+
+							if (normalizedValue.length < last.length) {
+
+								this.save("delete", "Delete");
+
+							} else {
+
+								this.save("insert", "Insert");
+
+							}
+
+							this.setValue([normalizedValue]);
+
+						}
+
+						const timeout = this.getData("timeout");
+
+						if (timeout) {
+
+							clearTimeout(timeout);
+
+						}
+
+						this.setData(setTimeout(() => {
+							this.render();
+						}, 300), "timeout");
 
 					}
 
@@ -297,10 +464,51 @@ KarmaFieldsAlpha.field.input = class extends KarmaFieldsAlpha.field {
 
 				}
 
+			}
 
+		};
+
+
+		if (this.resource.datalist) { // -> datalist
+
+			yield {
+				tag: "datalist",
+				init: element => {
+					element.id = `${this.uid}-datalist`;
+					element.onmousedown = event => {
+						event.stopPropagation(); // -> prevent reseting modal selection
+						event.preventDefault(); // -> prevent input blur event
+					};
+				},
+				children: this.buildDatalistOptions()
+			};
+
+		}
+
+
+	}
+
+	*buildDatalistOptions() {
+
+		const options = this.getOptions();
+
+		if (options) {
+
+			// const text = this.getState("text");
+
+			for (let option of options) {
+
+				yield {
+					tag: "option",
+					update: element => {
+						element.value = option.name;
+					}
+				};
 
 			}
-		};
+
+		}
+
 	}
 
 }

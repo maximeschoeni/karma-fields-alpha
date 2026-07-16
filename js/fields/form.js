@@ -1,137 +1,59 @@
 
 KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.table {
 
-	// getWild(driver, id, key) {
-
-	// 	return KarmaFieldsAlpha.server.queryValue(driver || this.getDriver(), id, key);
-
-	// }
-
-	// setWild(value, driver, id, key) {
-
-	// 	return KarmaFieldsAlpha.server.setValue(value, driver || this.getDriver(), id, key);
-
-	// }
-
-
 	getBody() {
 
-		return this.createChild({
-			type: "single",
-			id: this.getId(),
-			...this.resource.body || { children: this.resource.children }
-		}, "body");
+		const query = this.getQuery();
 
-	}
+		if (query === undefined) {
 
-	*buildBody() {
-
-		const body = this.getBody();
-
-		if (body) {
-
-			yield {
-				class: "body-content",
-				children: body.build()
-			};
+			return;
 
 		}
 
-	}
+		const length = query.getLength();
 
+		if (length === undefined) {
 
+			return;
 
-
-
-	getId() {
-
-		if (this.resource.id !== undefined) {
-
-			return this.parseString(this.resource.id);
-
-		} else {
-
-			let id = this.getParam("id");
-
-			if (!id) {
-
-				if (this.resource.params) {
-
-					const params = this.parseObject(this.resource.params);
-
-					if (params !== undefined) {
-
-						id = params.id;
-
-					}
-
-				}
-
-			}
-
-			return id;
 		}
 
+		// return query.createChild({
+		// 	// id: this.getId(),
+		// 	// length,
+		// 	offsetContainer: true,
+		// 	scrollContainer: this.isScrollContainer(),
+		// 	pad: true,
+		// 	scroll: this.isScrollContainer(),
+		// 	border: false,
+		// 	...this.resource.body || { children: this.resource.children || {} },
+		// 	type: "single"
+		// }, "body");
+
+		return new KarmaFieldsAlpha.field.form.single({
+			// id: this.getId(),
+			// length,
+			offsetContainer: true,
+			scrollContainer: this.isScrollContainer(),
+			pad: true,
+			scroll: this.isScrollContainer(),
+			border: false,
+			...this.resource.body || { children: this.resource.children || {} }
+			// type: "single"
+		}, "body", query);
+
 	}
 
-	// getContentAt(index, key) {
+	*buildSections() {
 
-	// 	const id = this.getId();
+		yield* super.buildSections();
 
-	// 	if (id.loading) {
+		if (this.resource.postform) {
 
-	// 		return new KarmaFieldsAlpha.Loading();
+			const postform = new KarmaFieldsAlpha.field.form.postform({}, "postform", this);
 
-	// 	} else if (key === "id") {
-
-	// 		return id;
-
-	// 	} else {
-
-	// 		return this.getWild(this.getDriver(), id.toString(), key);
-
-	// 	}
-
-	// }
-
-	// async setValueAt(value, index, key) {
-
-	// 	const id = this.getId();
-
-	// 	if (!id.loading) {
-
-	// 		return this.setWild(value, this.getDriver(), id.toString(), key);
-
-	// 	}
-
-	// }
-
-	// *buildContent() {
-
-	// 	const params = this.queryDefaultParams();
-
-	// 	if (!params.loading) {
-
-	// 		yield* super.buildContent();
-
-	// 	}
-
-	// }
-
-
-	getDriver() {
-
-		if (this.resource.driver) {
-
-			return this.resource.driver;
-
-		} else if (this.resource.body && this.resource.body.driver) { // compat
-
-			return this.resource.body.driver;
-
-		} else {
-
-			return this.parent.getDriver();
+			yield* postform.build();
 
 		}
 
@@ -141,39 +63,30 @@ KarmaFieldsAlpha.field.form = class extends KarmaFieldsAlpha.field.table {
 
 KarmaFieldsAlpha.field.form.single = class extends KarmaFieldsAlpha.field.group {
 
-	// getContent(key) {
-
-	// 	return this.parent.getContentAt(null, key);
-
-	// }
-
-	// setValue(value, key) {
-
-	// 	return this.parent.setValueAt(value, null, key);
-
-	// }
-
 	getValue(key) {
 
-		if (this.resource.id !== undefined) {
-
-			return this.parent.getValue(key, this.resource.id);
-
-		}
+		return this.parent.getValue(key, 0, 1);
 
 	}
 
 	setValue(value, key) {
 
-		if (this.resource.id === undefined) {
-
-			console.error("setting value but id is undefined");
-
-		}
-
-		this.parent.setValue(value, key, this.resource.id);
+		this.parent.setValue(value, key, 0, 1);
 
 	}
+
+	// *build() {
+
+	// 	yield {
+	// 		class: "hgkgflj",
+	// 		init: element => {
+	// 			element.innerHTML = "lglG";
+	// 		}
+	// 	};
+
+	// }
+
+
 
 }
 
@@ -209,5 +122,55 @@ KarmaFieldsAlpha.field.form.footer = class extends KarmaFieldsAlpha.field.contai
 		}, id, parent);
 
 	}
+
+}
+
+
+KarmaFieldsAlpha.field.form.postform = class extends KarmaFieldsAlpha.field.form {
+
+	*build() {
+
+		// if (!document.getElementById("karmafieldsalpha-form-input")) {
+
+		// yield* super.build();
+
+		// if (this.resource.hiddenfield !== false) {
+
+			yield {
+				tag: "input",
+				init: element => {
+					element.id = "karmafieldsalpha-form-input";
+					element.type = "hidden";
+					element.name = "karma-fields-items[]";
+				},
+				update: element => {
+					const delta = KarmaFieldsAlpha.server.getEdits();
+					if (delta) {
+						element.value = JSON.stringify(delta);
+					} else {
+						element.value = "";
+					}
+				}
+			};
+
+			yield {
+				tag: "input",
+				init: element => {
+					element.type = "hidden";
+					element.name = "karma-fields-queries[]";
+				},
+				update: element => {
+					const delta = KarmaFieldsAlpha.server.getAdds();
+					if (delta) {
+						element.value = JSON.stringify(delta);
+					} else {
+						element.value = "";
+					}
+				}
+			};
+
+		}
+
+	// }
 
 }

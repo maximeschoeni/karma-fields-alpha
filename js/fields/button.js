@@ -6,7 +6,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 	// }
 
-	doTask() {
+	doTask(params) {
 
 		if (this.resource.action || this.resource.task) {
 
@@ -16,33 +16,35 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 			}
 
-			KarmaFieldsAlpha.server.promise(done => {
+			this.request(this.resource.action || this.resource.task, ...params);
 
-				let params = [];
+		// 	KarmaFieldsAlpha.server.promise(done => {
 
-				if (this.resource.params) {
+		// 		let params = [];
 
-					params = this.resource.params.map(param => this.parse(param));
+		// 		if (this.resource.params) {
 
-					if (params.some(param => param === undefined)) {
+		// 			params = this.resource.params.map(param => this.parse(param));
 
-						return;
+		// 			if (params.some(param => param === undefined)) {
 
-					}
+		// 				return;
 
-				}
+		// 			}
 
-				this.request(this.resource.action || this.resource.task, ...params);
+		// 		}
 
-				done();
+		// 		this.request(this.resource.action || this.resource.task, ...params);
 
-			}, "button");
+		// 		done();
+
+		// 	}, "button");
 
 		}
 
 	}
 
-	click() {
+	click(params) {
 
 		if (this.resource.request) {
 
@@ -54,7 +56,15 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 		} else if (this.resource.task ||this.resource.action) {
 
-			this.doTask();
+			this.doTask(params);
+
+			// if (this.resource.save) {
+
+			// 	this.save(this.resource.save);
+
+			// }
+
+			// this.doAction(this.resource.action || this.resource.task, ...params);
 
 		}
 
@@ -110,6 +120,30 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 	}
 
 	*build() {
+
+		let params = [];
+
+		if (this.resource.params) {
+
+			params = this.resource.params.map(param => this.parse(param));
+
+		}
+
+
+
+		// if (this.getData("doingAction")) {
+
+		// 	const results = this.parent.doAction(this.resource.action);
+
+		// 	if (results !== undefined) {
+
+		// 		this.setData(false, "doingAction");
+
+		// 	}
+
+		// }
+
+
 		yield {
 			tag: "button",
 			class: "button karma-button karma-field",
@@ -123,17 +157,6 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 					update: element => {
 						const dashicon = this.getDashicon();
 						element.className = dashicon ? `dashicons dashicons-${dashicon}` : "hidden";
-
-						// element.classList.toggle("hidden", !dashicon);
-						// if (dashicon) {
-						// 	element.classList.add("dashicons", `dashicons-${dashicon}`);
-						// }
-						// if (this.resource.dashicon) {
-						// 	const dashicon = this.parseString(this.resource.dashicon);
-						// 	if (dashicon) {
-						// 		element.classList.add("dashicons", `dashicons-${dashicon}`);
-						// 	}
-						// }
 					}
 				},
 				{
@@ -143,7 +166,7 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 						element.className = text ? "text" : "hidden";
 						// element.classList.toggle("hidden", !text);
 						// element.classList.toggle("text", Boolean(text));
-						element.textContent = text || "";
+						element.innerHTML = text || "&nbsp;";
 					}
 				},
 			],
@@ -159,30 +182,40 @@ KarmaFieldsAlpha.field.button = class extends KarmaFieldsAlpha.field {
 
 				element.onclick = event => {
 					event.preventDefault(); // -> prevent submitting form in post-edit
-					this.click();
+					if (this.resource.href) {
+						const href = this.parseString(this.resource.href);
+						if (href !== undefined) {
+							location.href = href;
+						}
+					} else {
+
+						const params = this.resource.params || [];
+
+						this.parent.doAction(this.resource.action, ...params);
+
+						// if (!params.length || params.every(param => param !== undefined)) {
+						// 	// this.click(params);
+
+						// 	this.parent.doAction(this.resource.action);
+
+						// 	// if (results === undefined) {
+
+						// 	// 	this.setData(true, "doingAction");
+
+						// 	// }
+						// }
+					}
 				}
 
-				// if (this.resource.disabled) {
-				// 	element.disabled = this.parseBoolean(this.resource.disabled) || false;
-				// } else if (this.resource.enabled) {
-				// 	element.disabled = !this.parseBoolean(this.resource.enabled);
-				// }
-
 				element.disabled = this.isDisabled();
-
-				// if (this.resource.active) {
-				// 	const active = this.parseBoolean(this.resource.active) || false;
-				// 	element.classList.toggle("active", active);
-				// }
 
 				const active = this.isActive();
 				element.classList.toggle("active", active);
 
-
-				if (this.resource.loading) {
-					const loading = this.parse(["loading", this.resource.loading]);
-					element.classList.toggle("loading", loading);
-				}
+				// if (this.resource.loading) {
+				// 	const loading = this.parse(["loading", this.resource.loading]);
+				// 	element.classList.toggle("loading", loading);
+				// }
 
 			}
 		};
@@ -294,11 +327,45 @@ KarmaFieldsAlpha.field.download = class extends KarmaFieldsAlpha.field.button {
 
 	constructor(resource, id, parent) {
 		super({
-			primary: true,
+			primary: false,
 			text: "Export",
+			// text: ["request", "getCount"],
+			// text: ["replace", "Export (%)", "%", ["request", "getCount"]],
 			action: "exportTable",
 			...resource
 		}, id, parent);
+
+	}
+
+	getText() {
+
+		const status = this.request("getExportStatus");
+		const text = this.resource.text || "Export";
+
+		const count = this.request("getCount");
+
+		if (status) {
+
+			return `${text} (${status})`;
+
+		} else if (count !== undefined) {
+
+			return `${text} (${count})`;
+
+		} else {
+
+			return text;
+
+		}
+
+
+
+		// if (this.resource.text) {
+
+		// 	return this.parseString(this.resource.text) || "";
+
+		// }
+
 
 	}
 
@@ -319,16 +386,172 @@ KarmaFieldsAlpha.field.submit = class extends KarmaFieldsAlpha.field.button {
 
 }
 
+KarmaFieldsAlpha.field.save = class extends KarmaFieldsAlpha.field.button {
+
+	constructor(resource, id, parent) {
+		super({
+			action: "submit",
+			title: "Save",
+			text: "Save",
+			enabled: ["request", "hasEdits"],
+			primary: true,
+			...resource
+		}, id, parent);
+	}
+
+}
+
+KarmaFieldsAlpha.field.undo = class extends KarmaFieldsAlpha.field.button {
+	constructor(resource, id, parent) {
+		super({
+			// action: "undo",
+			request: ["undo"],
+			dashicon: "undo",
+			disabled: ["!", ["request", "hasUndo"]],
+			...resource
+		}, id, parent);
+	}
+}
+KarmaFieldsAlpha.field.redo = class extends KarmaFieldsAlpha.field.button {
+	constructor(resource, id, parent) {
+		super({
+			// action: "redo",
+			request: ["redo"],
+			dashicon: "redo",
+			disabled: ["!", ["request", "hasRedo"]],
+			...resource
+		}, id, parent);
+	}
+}
+
 KarmaFieldsAlpha.field.open = class extends KarmaFieldsAlpha.field.button {
 
 	constructor(resource, id, parent) {
 		super({
 			text: "Edit",
 			action: "open",
-			enabled: ["request", "isSelected"],
+			save: "open",
+			// enabled: ["hasSelection"],
 			...resource
 		}, id, parent);
 
 	}
 
+}
+
+KarmaFieldsAlpha.field.edit = class extends KarmaFieldsAlpha.field.button {
+
+	constructor(resource, id, parent) {
+		super({
+			text: "Edit",
+			action: "open",
+			save: "open",
+			// enabled: ["hasSelection"],
+			...resource
+		}, id, parent);
+
+	}
+
+}
+
+KarmaFieldsAlpha.field.close = class extends KarmaFieldsAlpha.field.button {
+
+	constructor(resource, id, parent) {
+		super({
+			action: "close",
+			dashicon: "no-alt",
+			save: "close",
+			...resource
+		}, id, parent);
+
+	}
+
+}
+
+
+KarmaFieldsAlpha.field.next = class extends KarmaFieldsAlpha.field.button {
+
+	constructor(resource, id, parent) {
+		super({
+			action: "next",
+			dashicon: "arrow-right-alt2",
+			save: "next",
+			enabled: ["request", "hasNext"],
+			...resource
+		}, id, parent);
+
+	}
+
+}
+
+KarmaFieldsAlpha.field.prev = class extends KarmaFieldsAlpha.field.button {
+
+	constructor(resource, id, parent) {
+		super({
+			action: "prev",
+			dashicon: "arrow-left-alt2",
+			save: "prev",
+			enabled: ["request", "hasPrev"],
+			...resource
+		}, id, parent);
+
+	}
+
+}
+
+
+KarmaFieldsAlpha.field.add = class extends KarmaFieldsAlpha.field.button {
+	constructor(resource, id, parent) {
+		super({
+			// task: ["add"],
+			action: "add",
+			title: "Add",
+			text: "Add",
+			save: "add",
+			...resource
+		}, id, parent);
+	}
+
+	// click() {
+	// 	this.save("Add");
+	// 	const params = this.resource.params || [];
+	// 	this.parent.add(...params);
+	// 	this.render();
+	// }
+}
+
+KarmaFieldsAlpha.field.delete = class extends KarmaFieldsAlpha.field.button {
+  constructor(resource, id, parent) {
+    super({
+      action: "delete",
+      title: "Delete",
+      text: "Delete",
+      enabled: ["request", "hasSelection"],
+      save: "delete",
+      ...resource
+    }, id, parent);
+  }
+
+}
+
+
+KarmaFieldsAlpha.field.insert = class extends KarmaFieldsAlpha.field.button {
+  constructor(resource, id, parent) {
+    super({
+      action: "drop",
+      text: "Insert",
+      enabled: ["request", "hasSelection"],
+      visible: ["request", "canDrop"],
+      save: "drop",
+      ...resource
+    }, id, parent);
+  }
+}
+KarmaFieldsAlpha.field.export = class extends KarmaFieldsAlpha.field.download {
+  constructor(resource, id, parent) {
+    super({
+      text: "Export",
+      ...resource
+    }, id, parent);
+  }
 }

@@ -1301,29 +1301,76 @@ KarmaFieldsAlpha.Collection = class {
 
 	// }
 
-	static assign(object, value) {
+	static assign(object, ...values) {
 
-		for (let key in value) {
+		for (let value of values) {
 
-			if (value[key] && value[key].constructor === Object) {
+			for (let key in value) {
 
-				if (!object[key] || object[key].constructor !== Object) {
+				if (value[key] && value[key].constructor === Object) {
 
-					object[key] = {};
+					if (!object[key] || object[key].constructor !== Object) {
+
+						object[key] = {};
+
+					}
+
+					this.assign(object[key], value[key]);
+
+				} else {
+
+					object[key] = value[key];
 
 				}
-
-				this.assign(object[key], value[key]);
-
-			} else {
-
-				object[key] = value[key];
 
 			}
 
 		}
 
 	}
+
+	// static assign2(object, value, ...path) {
+
+	// 	if (path.length) {
+
+	// 		const key = path.shift();
+
+	// 		if (!object[key] || object[key].constructor !== Object) {
+
+	// 			object[key] = {};
+
+	// 		}
+
+	// 		this.assign2(object[key], value, ...path);
+
+	// 	} else {
+
+	// 		for (let key in value) {
+
+	// 			if (value[key] && value[key].constructor === Object) {
+
+	// 				if (!object[key] || object[key].constructor !== Object) {
+
+	// 					object[key] = {};
+
+	// 				}
+
+	// 				this.assign(object[key], value[key]);
+
+	// 			} else {
+
+	// 				object[key] = value[key];
+
+	// 			}
+
+	// 		}
+
+	// 	}
+
+
+
+
+	// }
 
 	static equal(object, value) {
 

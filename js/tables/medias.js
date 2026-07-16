@@ -90,329 +90,103 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.table {
 
 
 
-	add(length = 1, params = {}, index) {
+	// add(index, length = 1, params = {}) {
 
-		if (index === undefined) {
+	// 	if (index === undefined) {
 
-			const body = this.getChild("body");
-			index = body && body.getFolderIndex() || 0;
+	// 		const body = this.getChild("body");
+	// 		index = body && body.getFolderIndex() || 0;
 
-		}
+	// 	}
 
 
-		super.add(length, { ...params, filetype: "folder" }, index );
+	// 	super.add(index, length, { ...params, filetype: "folder" });
 
-	}
+	// }
 
 
 
 	upload(...files) {
 
-
-		const filters = this.getFilters();
-		const defaults = this.getDefaults();
-
-		const values = {};
-
-		const params = { ...filters, ...defaults };
-
-		for (let key in params) {
-
-			const value = params[key] || "";
-
-			values[key] = value.split(",");
-
-		}
-
-		const body = this.getChild("body");
-		const index = body && body.getFileIndex() || 0;
+		const ids = this.getIds();
 		const driver = this.getDriver();
+		const filterParams = this.getFilters();
+		const defaultParams = this.getDefaults();
 		const paramstring = this.getParamstring();
 
-		const query = KarmaFieldsAlpha.Store.getQuery(driver, paramstring);
 
-		const ids = [...query.ids];
-		ids.splice(index, 0, ...files.map(file => ({ ...values, file })));
-		const count = query.count + files.length;
+		if (ids === undefined) {
 
-		KarmaFieldsAlpha.Store.setQuery({ ...query, ids, count }, driver, paramstring);
-
-		if (body) {
-
-			body.selectAt(index, length);
+			console.error("Uploading item but ids is undefined");
 
 		}
 
+		if (!driver) {
 
+			console.error("Uploading item but driver is not set");
 
-		// const driver = this.getDriver();
+		}
 
-		// const tokens = [];
+		if (filterParams === undefined) {
 
-		// for (let file of files) {
+			console.error("Uploading item but filterParams is undefined");
 
-		// 	const token = KarmaFieldsAlpha.server.upload(file, driver);
+		}
 
-		// 	tokens.push(token);
+		if (defaultParams === undefined) {
 
-		// }
+			console.error("Uploading item but defaultParams is undefined");
 
-		// const body = this.getChild("body");
+		}
+
+		if (paramstring === undefined) {
+
+			console.error("Uploading item but paramstring is undefined");
+
+		}
+
+		const params = { ...filterParams, ...defaultParams };
+		const body = this.getChild("body");
+		const index = body && body.getFileIndex() || 0;
+
+		const symbols = [];
+
+		for (let file of files) {
+
+			const symbol = Symbol();
+
+			symbols.push(symbol);
+
+			for (let key in params) {
+
+				const value = params[key];
+
+				if (value) {
+
+					const values = value.toString().split(",");
+
+					KarmaFieldsAlpha.server.setValue(values, driver, symbol, key, paramstring);
+
+				}
+
+			}
+
+			KarmaFieldsAlpha.Store.upload(file, driver, symbol);
+
+		}
+
+		const newIds = [...ids];
+		newIds.splice(index, 0, ...symbols);
+
+		KarmaFieldsAlpha.Store.setIds(newIds, driver, paramstring);
 
 		// if (body) {
 
-		// 	body.addFiles(tokens);
+		// 	body.selectAt(index, length);
 
 		// }
 
 	}
-
-	// uploadAt(index, files) {
-
-	// 	const driver = this.getDriver();
-	// 	const params = this.getParams();
-	// 	const paramstring = this.getParamstring();
-
-	// 	if (paramstring === undefined) {
-
-	// 		console.error("uploading files but paramstring is not set");
-
-	// 	}
-
-	// 	if (params === undefined) {
-
-	// 		console.error("uploading files but params is not set");
-
-	// 	}
-
-	// 	if (driver === undefined) {
-
-	// 		console.error("uploading files but driver is not set");
-
-	// 	}
-
-	// 	// if (index === undefined) {
-
-	// 	// 	const body = this.getChild("body");
-
-	// 	// 	index = body.getNewFileIndex();
-
-	// 	// }
-
-	// 	// this.save("upload", "Upload");
-
-	// 	KarmaFieldsAlpha.server.upload(this.uid, driver, paramstring, index, files, params);
-
-	// }
-
-	// async upload(files, index) {
-
-	//   const driver = this.getDriver();
-
-	//   const params = this.getParams() || {};
-	//   const paramstring = this.getParamstring() || "";
-
-	//   const body = this.getChild("body");
-
-	//   let defaults = body.exportDefaults();
-
-	//   while (defaults.loading) {
-
-	//     await this.render();
-	//     defaults = body.exportDefaults();
-
-	//   }
-
-	//   if (index === undefined) {
-
-	//     if (body) {
-
-	//       index = body.getNewFileIndex();
-
-	//     } else {
-
-	//       index = 0;
-
-	//     }
-
-	//   }
-
-	//   if (body) {
-
-	//     await body.select(index, files.length);
-
-	//   }
-
-	//   await this.save("insert", "Insert");
-
-	//   const {page, ppp, order, orderby, ...filters} = params;
-
-	//   const gen = KarmaFieldsAlpha.server.upload(driver, paramstring, index, files, {...filters, ...defaults.toObject()});
-
-	//   for await (let token of gen) {
-
-	//     await this.render();
-
-	//   }
-
-	// }
-
-	// async move(index, length, destId) {
-
-	//   const driver = this.getDriver();
-	//   // let params = this.queryParams();
-	//   //
-	//   // while (params.loading) {
-	//   //
-	//   //   await this.render();
-	//   //   params = this.queryParams();
-	//   //
-	//   // }
-
-	//   const params = this.getParams() || {};
-	//   const paramstring = this.getParamstring() || "";
-
-	//   // remove ids
-	//   const originalIds = this.getIds().toArray();
-
-	//   // const destId = originalIds[destIndex];
-	//   const movedIds = originalIds.slice(index, index+length);
-	//   const newIds = originalIds.filter(id => !movedIds.includes(id));
-
-	//   KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.server.store, "ids", driver);
-
-	//   KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, newIds, "ids", driver, paramstring);
-
-
-	//   await this.render();
-
-	//   // clear cache
-	//   await KarmaFieldsAlpha.Database.Queries.remove(driver);
-	//   await KarmaFieldsAlpha.Database.States.remove("queries", driver);
-
-
-	//   await KarmaFieldsAlpha.Database.States.set(newIds, "queries", driver, paramstring, "ids");
-	//   await KarmaFieldsAlpha.History.write(newIds, originalIds, "queries", driver, paramstring, "ids");
-
-	//   const parentKey = KarmaFieldsAlpha.Driver.getAlias(driver, "parent");
-
-	//   // update vars
-
-	//   for (let id of movedIds) {
-
-	//     // await this.setWild(destId, id, "parent"); // just for update history
-
-	//     const originId = params.parent || "";
-
-	//     await KarmaFieldsAlpha.Database.Vars.set([destId], driver, id, parentKey);
-	//     await KarmaFieldsAlpha.Database.States.set([destId], "external", driver, id, parentKey);
-	//     await KarmaFieldsAlpha.History.write([destId], [originId], "external", driver, id, parentKey);
-
-	//   }
-
-	//   // save changes
-
-
-
-	//   const obj = Object.fromEntries(movedIds.map(id => [id, {[parentKey]: [destId]}]));
-	//   await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, obj);
-
-
-
-	// }
-	// move(index, length, delta) {
-
-	// 	const driver = this.getDriver();
-	// 	const params = this.getParams();
-	// 	const paramstring = this.getParamstring();
-
-	// 	if (!driver || paramstring === undefined) {
-
-	// 		console.error("adding item but driver or paramstring is not set");
-
-	// 	}
-
-	// 	const destParamstring = KarmaFieldsAlpha.Params.stringify({ ...params, ...delta });
-
-	// 	KarmaFieldsAlpha.server.move(this.uid, driver, paramstring, index, length, delta, destParamstring);
-
-
-
-
-	//   // const driver = this.getDriver();
-	//   // // let params = this.queryParams();
-	//   // //
-	//   // // while (params.loading) {
-	//   // //
-	//   // //   await this.render();
-	//   // //   params = this.queryParams();
-	//   // //
-	//   // // }
-
-	//   // const params = this.getParams() || {};
-	//   // const paramstring = this.getParamstring() || "";
-
-	//   // // remove ids
-	//   // const originalIds = this.getIds().toArray();
-
-	//   // // const destId = originalIds[destIndex];
-	//   // const movedIds = originalIds.slice(index, index+length);
-	//   // const newIds = originalIds.filter(id => !movedIds.includes(id));
-
-	//   // KarmaFieldsAlpha.DeepObject.remove(KarmaFieldsAlpha.server.store, "ids", driver);
-
-	//   // KarmaFieldsAlpha.DeepObject.set(KarmaFieldsAlpha.server.store, newIds, "ids", driver, paramstring);
-
-
-	//   // await this.render();
-
-	//   // // clear cache
-	//   // await KarmaFieldsAlpha.Database.Queries.remove(driver);
-	//   // await KarmaFieldsAlpha.Database.States.remove("queries", driver);
-
-
-	//   // await KarmaFieldsAlpha.Database.States.set(newIds, "queries", driver, paramstring, "ids");
-	//   // await KarmaFieldsAlpha.History.write(newIds, originalIds, "queries", driver, paramstring, "ids");
-
-	//   // const parentKey = KarmaFieldsAlpha.Driver.getAlias(driver, "parent");
-
-	//   // // update vars
-
-	//   // for (let id of movedIds) {
-
-	//   //   // await this.setWild(destId, id, "parent"); // just for update history
-
-	//   //   const originId = params.parent || "";
-
-	//   //   await KarmaFieldsAlpha.Database.Vars.set([destId], driver, id, parentKey);
-	//   //   await KarmaFieldsAlpha.Database.States.set([destId], "external", driver, id, parentKey);
-	//   //   await KarmaFieldsAlpha.History.write([destId], [originId], "external", driver, id, parentKey);
-
-	//   // }
-
-	//   // // save changes
-
-
-
-	//   // const obj = Object.fromEntries(movedIds.map(id => [id, {[parentKey]: [destId]}]));
-	//   // await KarmaFieldsAlpha.HTTP.post(`update/${driver}`, obj);
-
-
-
-	// }
-
-  // getModal() {
-  //
-  //   return this.createChild({
-  //     type: "modal",
-  //     body: {
-  //       type: "single",
-  //       children: ["description"]
-  //     },
-  //     ...this.resource.modal
-  //   }, "*");
-  //
-  // }
 
 
   getBody() {
@@ -426,7 +200,7 @@ KarmaFieldsAlpha.field.medias = class extends KarmaFieldsAlpha.field.table {
         body: {
           type: "single",
           children: [
-            "description",
+            { type: "description" },
             // {
             //   type: "text",
             //   content: ["queryValue", "posttypes", ["getValue", "post_type"], "name"]

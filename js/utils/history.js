@@ -1,5 +1,34 @@
 KarmaFieldsAlpha.Session = class {
 
+	constructor() {
+
+
+
+	}
+
+	getId() {
+
+		let id = sessionStorage.getItem("id");
+
+		if (!id) {
+
+			id = Date.now();
+			sessionStorage.setItem("id", id);
+
+		}
+
+		return id;
+	}
+
+	getIndex() {
+
+		let index = sessionStorage.getItem("index");
+
+		return index || 0;
+
+	}
+
+
   static getValue(key) {
 
     return sessionStorage.getItem(key);
@@ -11,20 +40,6 @@ KarmaFieldsAlpha.Session = class {
     sessionStorage.setItem(key, value);
 
   }
-
-  // static getId() {
-  //
-  //   let id = this.getValue("karmaId");
-  //
-  //   if (!id) {
-  //
-  //     id = Date.now();
-  //
-  //     this.setValue(id, "karmaId");
-  //   }
-  //
-  //   return id;
-  // }
 
 	static init() {
 
@@ -45,25 +60,14 @@ KarmaFieldsAlpha.Session = class {
 
 		return this.id;
 
-		// let id = KarmaFieldsAlpha.Session.id;
+		// return this.getValue("session-id");
 
-		// if (!id) {
+	}
 
-		// 	id = this.getValue("karmaId");
+	static getIndex() {
 
-		// 	if (!id) {
+		return this.getValue("history-index") || 0;
 
-		// 		id = Date.now();
-
-		// 		this.setValue(id, "karmaId");
-
-		// 	}
-
-		// 	KarmaFieldsAlpha.Session.id = id;
-
-		// }
-
-		// return id;
 	}
 
 }
@@ -110,7 +114,9 @@ KarmaFieldsAlpha.History = class {
   //   return KarmaFieldsAlpha.History.sessionId;
   // }
 
-	static init() {
+	static init() { // deprecated
+
+		return;
 
 		if (!history.state || history.state.karmaHistoryIndex === undefined) {
 
@@ -192,7 +198,7 @@ KarmaFieldsAlpha.History = class {
 	static hasRedo() {
 
 		const index = this.getIndex();
-		const max = KarmaFieldsAlpha.Session.getValue("karmaHistoryMax");
+		const max = KarmaFieldsAlpha.Session.getValue("history-max");
 
 		return index < max;
 

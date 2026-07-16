@@ -14,7 +14,7 @@ KarmaFieldsAlpha.ListSorter = class extends KarmaFieldsAlpha.ListPicker {
 
   start(index) {
 
-    // if (index > -1 && this.selection && KarmaFieldsAlpha.Segment.contain(this.selection, index)) {
+  // if (index > -1 && this.selection && KarmaFieldsAlpha.Segment.contain(this.selection, index)) {
     if (index > -1 && this.state.selection && KarmaFieldsAlpha.Segment.contain(this.state.selection, index)) {
 
       this.dragging = true;

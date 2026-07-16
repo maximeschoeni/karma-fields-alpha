@@ -1,132 +1,267 @@
 KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
-	build() {
-		return {
+	*build() {
+		yield {
 			tag: "textarea",
 			class: "textarea karma-field",
-			init: input => {
-				input.element.id = this.getUid();
+			init: element => {
+				element.id = this.getUid();
 				if (this.resource.height) {
-					input.element.style.height = this.resource.height;
+					element.style.height = this.resource.height;
 				}
 				if (this.resource.textarea || this.resource.input) {
-					Object.assign(input.element, this.resource.textarea || this.resource.input);
+					Object.assign(element, this.resource.textarea || this.resource.input);
 				}
 			},
-			update: input => {
+			update: element => {
 
-        let content = this.getContent();
-				const hasFocus = this.hasFocus();
+				const mixed = this.isMixed();
 
-        input.element.classList.toggle("loading", Boolean(content.loading));
+				if (mixed !== undefined) {
 
-        if (!content.loading) {
+					const hasFocus = this.hasFocus();
 
-					input.element.placeholder = this.getPlaceholder().toString();
+					element.classList.toggle("selected", Boolean(mixed && hasFocus));
 
-					input.element.classList.toggle("mixed", Boolean(content.mixed));
-					input.element.classList.toggle("selected", Boolean(content.mixed && hasFocus));
+					if (mixed) {
 
-          if (content.mixed) {
-
-            input.element.value = "[mixed values]";
-            input.element.readOnly = true;
-
-          } else {
-
-						if (this.resource.readonly) {
-
-							input.element.readOnly = this.parse(this.resource.readonly).toBoolean();
-
-						} else {
-
-							input.element.readOnly = false;
-
-						}
-
-            input.element.parentNode.classList.toggle("modified", Boolean(content.modified));
-
-            if (content.toString() !== input.element.value.normalize()) { // -> replacing same value will reset caret index !
-
-              input.element.value = content.toString();
-
-							input.element.style.height = "1px";
-						  input.element.style.height = (25+input.element.scrollHeight)+"px";
-
-            }
-
-          }
-
-					// input.element.onpaste = event => {
-					// 	event.preventDefault();
-					//
-					// 	console.log("onpaste", event);
-					// }
-
-				} else {
-
-					input.element.value = "";
-
-				}
-
-				const value = content.toString();
-
-        input.element.oninput = async event => {
-
-					// this.write(input.element.value, content);
-
-
-					const newValue = input.element.value;
-					const normalizedValue = newValue.normalize();
-
-					if (normalizedValue.length < content.toString().length) {
-
-						await this.save(`${this.uid}-delete`, "Delete");
+						element.value = "[mixed values]";
+						element.readOnly = true;
+						element.classList.add("mixed");
 
 					} else {
 
-						await this.save(`${this.uid}-insert`, "Insert");
+						element.classList.remove("mixed");
+
+						let values = this.getValue();
+
+						if (values !== undefined) {
+
+							element.placeholder = this.getPlaceholder() || "";
+
+							if (this.resource.readonly) {
+
+								element.readOnly = this.parseBoolean(this.resource.readonly) || false;
+
+							} else {
+
+								element.readOnly = false;
+
+							}
+
+							// element.parentNode.classList.toggle("modified", Boolean(values.modified));
+
+							const value = values[0] || "";
+
+							if (value !== element.value.normalize()) { // -> replacing same value will reset caret index !
+								element.value = value;
+
+							}
+
+							// element.style.height = "auto";
+							// element.style.height = (25 + element.scrollHeight) + "px";
+
+
+							// let height = element.getAttribute("scrollheight");
+							// if (height) {
+							// 	element.style.height = `${height}px`;
+							// 	height = element.scrollHeight;
+							// 	element.style.height = (height) + "px";
+							// 	element.setAttribute("scrollheight", height);
+							// } else {
+							// 	element.setAttribute("scrollheight", element.clientHeight);
+							// }
+
+
+						}
+
+
 
 					}
 
-					// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
+					element.oninput = event => {
 
-					await this.setValue(normalizedValue);
+						if (!mixed) {
 
-					this.debounce(() => {
-						this.request("render");
-					}, 400);
+							const values = this.getValue();
 
-        }
+							if (values) {
 
-				input.element.onfocus = async event => {
+								const value = values[0] || "";
 
-					await this.setFocus(content.mixed);
+								const normalizedValue = element.value.normalize();
 
-					// await this.request("render"); // update clipboard textarea, unselect other stuffs
-					await this.parent.render(); // -> render parent in case this is a textarea inside tinymce
+								if (normalizedValue.length < value.length) {
+
+									this.save("delete", "Delete");
+
+								} else {
+
+									this.save("insert", "Insert");
+
+								}
+
+								this.setValue([normalizedValue]);
+
+								this.render();
+
+							}
+
+						}
+
+					}
+
+					element.onfocus = event => {
+
+						this.setFocus(mixed);
+
+						this.render();
+
+					}
+
+					element.onkeydown = event => {
+
+						// console.log(event);
+					}
+
+					element.onmousedown = event => {
+
+						event.stopPropagation(); // -> prevent selecting parent stuffs
+
+					}
+
+					if (this.resource.disabled) {
+
+						element.disabled = this.parseBoolean(this.resource.disabled) || false;
+
+					} else if (this.resource.enabled) {
+
+						element.disabled = !this.parseBoolean(this.resource.enabled);
+
+					}
 
 				}
-
-				input.element.onmousedown = event => {
-
-					event.stopPropagation(); // -> prevent selecting parent stuffs
-
-				}
-
-				if (this.resource.disabled) {
-
-		      this.disabled = this.parse(this.resource.disabled).toBoolean();
-
-		    } else if (this.resource.enabled) {
-
-		      this.disabled = !this.parse(this.resource.enabled).toBoolean();
-
-		    }
-
 
 			}
+
 		};
 	}
+
+	// *build() {
+	// 	yield {
+	// 		tag: "textarea",
+	// 		class: "textarea karma-field",
+	// 		init: element => {
+	// 			element.id = this.getUid();
+	// 			if (this.resource.height) {
+	// 				element.style.height = this.resource.height;
+	// 			}
+	// 			if (this.resource.textarea || this.resource.input) {
+	// 				Object.assign(element, this.resource.textarea || this.resource.input);
+	// 			}
+	// 		},
+	// 		update: element => {
+
+	// 			let values = this.getValue();
+	// 			const hasFocus = this.hasFocus();
+
+	// 			if (values !== undefined) {
+
+	// 				element.placeholder = this.getPlaceholder() || "";
+
+	// 				element.classList.toggle("mixed", Boolean(values.mixed));
+	// 				element.classList.toggle("selected", Boolean(values.mixed && hasFocus));
+
+	// 				if (values.mixed) {
+
+	// 					element.value = "[mixed values]";
+	// 					element.readOnly = true;
+
+	// 				} else {
+
+	// 					if (this.resource.readonly) {
+
+	// 						element.readOnly = this.parseBoolean(this.resource.readonly) || false;
+
+	// 					} else {
+
+	// 						element.readOnly = false;
+
+	// 					}
+
+	// 					element.parentNode.classList.toggle("modified", Boolean(values.modified));
+
+	// 					if (values[0] !== element.value.normalize()) { // -> replacing same value will reset caret index !
+
+	// 						element.value = values[0];
+
+	// 						element.style.height = "1px";
+	// 						element.style.height = (25 + element.scrollHeight) + "px";
+
+	// 					}
+
+	// 				}
+
+	// 			} else {
+
+	// 				// element.value = "";
+
+	// 			}
+
+	// 			// const value = content.toString();
+
+	// 			element.oninput = event => {
+
+	// 				// this.write(input.element.value, content);
+
+
+	// 				const normalizedValue = element.value.normalize();
+
+	// 				if (normalizedValue.length < values.length) {
+
+	// 					this.save("delete", "Delete");
+
+	// 				} else {
+
+	// 					this.save("insert", "Insert");
+
+	// 				}
+
+	// 				// const newContent = new KarmaFieldsAlpha.Content(normalizedValue);
+
+	// 				this.setValue([normalizedValue]);
+
+	// 				this.render();
+
+	// 			}
+
+	// 			element.onfocus = async event => {
+
+	// 				this.setFocus(values.mixed);
+
+	// 				this.parent.render(); // -> render parent in case this is a textarea inside tinymce
+
+	// 			}
+
+	// 			element.onmousedown = event => {
+
+	// 				event.stopPropagation(); // -> prevent selecting parent stuffs
+
+	// 			}
+
+	// 			if (this.resource.disabled) {
+
+	// 				this.disabled = this.parseBoolean(this.resource.disabled) || false;
+
+	// 			} else if (this.resource.enabled) {
+
+	// 				this.disabled = !this.parseBoolean(this.resource.enabled);
+
+	// 			}
+
+	// 		}
+
+	// 	};
+	// }
 
 }

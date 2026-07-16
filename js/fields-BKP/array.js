@@ -46,483 +46,528 @@ KarmaFieldsAlpha.field.array = class extends KarmaFieldsAlpha.field.container {
   //
   // }
 
-  getBody() {
+	getBody() {
 
 		const constructor = this.getConstructor(this.resource.body && this.resource.body.type || "grid");
 
 		return new constructor({
-      children: this.resource.columns || this.resource.children || [],
-      sortable: this.resource.sortable,
-      class: "array",
-      style: "align-items: flex-start",
+			children: this.resource.columns || this.resource.children || [],
+			sortable: this.resource.sortable,
 			...this.resource.body
 		}, "body", this);
 
 	}
 
+	// used for button delete
+	hasSelection() {
 
-  // getChild(index, ...path) {
-  //
-  //   let child = this.newChild(index);
-  //
-  //   if (child && path.length) {
-  //
-  //     return child.getChild(...path);
-  //
+		const body = this.getChild("body");
+
+		if (body && body.hasSelection) {
+
+			return body.hasSelection();
+
+		}
+
+		return false;
+
+	}
+
+
+	getIndex() { // -> base index for row indexes
+
+		return 0;
+
+	}
+
+
+	export() {
+
+		// const output = new KarmaFieldsAlpha.Content();
+
+		if (this.resource.export !== false) {
+
+			const body = this.getChild("body");
+
+			if (!body) {
+
+				console.error("exporting array but body is not set");
+
+			}
+
+			const grid = body.export(0, length.toNumber());
+
+			if (grid !== undefined) {
+
+				const string = KarmaFieldsAlpha.CSV.stringify(grid);
+
+				return [string];
+
+			}
+
+		}
+
+	}
+
+	import(collection) {
+
+		const string = collection.shift();
+
+		const grid = KarmaFieldsAlpha.CSV.parse(string);
+
+		// const grid = new KarmaFieldsAlpha.Content.Grid(string);
+
+		const body = this.getChild("body");
+
+		body.import(grid);
+
+	}
+
+
+	getLength() {
+
+		const arrayKey = this.getKey();
+
+		if (arrayKey) {
+
+			const values = this.parent.getValue(arrayKey);
+
+			if (values) {
+
+				return values.length;
+
+			}
+
+		} else {
+
+			const keys = this.getKeys();
+
+			let length = 0;
+
+			for (let key of keys) {
+
+				const value = this.parent.getValue(key);
+
+				if (value === undefined) {
+
+					return;
+
+				}
+
+				length = Math.max(length, value.length);
+
+			}
+
+			return length;
+
+		}
+
+	}
+
+	*listIds() {
+
+
+		const length = this.getLength() || 0;
+
+		for (let i = 0; i < length; i++) {
+
+			yield i;
+
+		}
+
+	}
+
+	getIds() {
+
+		return this.listIds().toArray();
+
+	}
+
+	// getQuery() {
+
+	// 	const ids = this.getIds();
+
+	// 	return { ids, count: ids.length };
+
+	// }
+
+	getValue(key, id, driver) {
+
+		// why?
+		// if (id === undefined) {
+
+		// 	return [this.getParam(key)];
+
+		// } else
+
+		if (!key) {
+
+			return super.getValue();
+
+		} else if (!driver) {
+
+			const arrayKey = this.getKey();
+
+			if (arrayKey) {
+
+				const values = this.parent.getValue(arrayKey);
+
+				if (values !== undefined) {
+
+					if (!values[id]) {
+
+						return [];
+
+					}
+
+					let value = values[id][key] || [];
+
+					if (!Array.isArray(value)) {
+
+						value = [value];
+
+					}
+
+					return value;
+
+				}
+
+			} else {
+
+				const values = this.parent.getValue(key);
+
+				if (values !== undefined) {
+
+					if (id >= values.length) {
+
+						return [];
+
+						//console.error("getting value but index is out of range", key, id, values);
+
+					}
+
+					return [values[id]];
+
+				}
+
+			}
+
+		} else {
+
+			return KarmaFieldsAlpha.server.getValue(driver, id, key, paramstring);
+
+		}
+
+	}
+
+	setValue(value, key, id, driver) {
+
+		if (!Array.isArray(value)) {
+
+			console.error("setting value but value is not an array");
+
+		}
+
+		// why?
+		// if (id === undefined) {
+
+		// 	this.setParam(value[0], key);
+
+		// } else
+
+		if (!driver) {
+
+			const arrayKey = this.getKey();
+
+			if (arrayKey) {
+
+				let values = this.parent.getValue(arrayKey);
+
+				if (values === undefined) {
+
+					console.error("setting value but value is undefined");
+
+				}
+
+				values = [...values];
+
+				if (this.resource.singles) {
+
+					values[id] = { ...values[id], [key]: value[0] };
+
+				} else {
+
+					values[id] = { ...values[id], [key]: value };
+
+				}
+
+				this.parent.setValue(values, arrayKey);
+
+			} else {
+
+				let values = this.parent.getValue(key);
+
+				if (values !== undefined) {
+
+					// if (id >= values.length) {
+
+					// 	console.error("getting value but index is out of range");
+
+					// }
+
+					values = [...values];
+
+					values[id] = value[0]; // -> never save value as array there
+
+					this.parent.setValue(values, key);
+
+				}
+
+			}
+
+		} else {
+
+			super.setValue(value, key, id, driver);
+
+		}
+
+	}
+
+	setOrder(newIds) {
+
+		const arrayKey = this.getKey();
+
+		if (arrayKey) {
+
+			const values = this.parent.getValue(arrayKey);
+
+			if (values === undefined) {
+
+				console.error("reordering but values are not loaded");
+
+			}
+
+			const newValues = [];
+
+			for (let i = 0; i < values.length; i++) {
+
+				const index = newIds[i];
+
+				if (index !== undefined) {
+
+					newValues[index] = values[i];
+
+				}
+
+			}
+
+			this.parent.setValue(newValues, arrayKey);
+
+		} else {
+
+			const keys = this.getKeys();
+
+			for (let key of keys) {
+
+				const values = this.parent.getValue(key);
+
+				if (values === undefined) {
+
+					console.error("reordering but values are not loaded");
+
+				}
+
+				const newValues = [];
+
+				for (let i = 0; i < values.length; i++) {
+
+					const index = newIds[i];
+
+					if (index !== undefined) {
+
+						newValues[index] = values[i];
+
+					}
+
+				}
+
+				this.parent.setValue(newValues, key);
+
+			}
+
+
+		}
+
+	}
+
+	deleteAt(index, length = 1) {
+
+		const ids = [];
+
+		for (let i = 0; i < length; i++) {
+
+			ids.push(i + index);
+
+		}
+
+		this.delete(...ids);
+
+	}
+
+	delete(...ids) {
+
+		if (ids.length === 0) {
+
+			const body = this.getChild("body");
+
+			ids = body.getSelectedIds();
+
+			body.removeSelection();
+
+		}
+
+		const key = this.getKey();
+
+		if (key) {
+
+			let values = this.parent.getValue(key);
+
+			if (values) {
+
+				values = values.filter((value, index) => !ids.includes(index));
+
+				this.parent.setValue(values, key);
+
+			}
+
+		} else {
+
+			const keys = this.listKeys();
+
+			for (let key of keys) {
+
+				let values = this.parent.getValue(key);
+
+				if (values) {
+
+					values = values.filter((value, index) => !ids.includes(index));
+
+					this.parent.setValue(values, key);
+
+				}
+
+			}
+
+		}
+
+
+
+	}
+
+	add(num = 1, params = {}) {
+
+		const key = this.getKey();
+
+		if (key) {
+
+			const values = this.parent.getValue(key);
+
+			if (values) {
+
+				const newValues = [];
+
+				for (let i = 0; i < num; i++) {
+
+					newValues.push({});
+
+				}
+
+				this.parent.setValue([...values, ...newValues], key);
+
+			}
+
+		} else {
+
+			const keys = this.listKeys();
+
+			for (let key of keys) {
+
+				const values = this.parent.getValue(key);
+
+				if (values) {
+
+					const newValues = [];
+
+					for (let i = 0; i < num; i++) {
+
+						newValues.push("");
+
+					}
+					this.parent.setValue([...values, ...newValues], key);
+
+				}
+
+			}
+
+		}
+
+
+
+
+
+		// const body = this.getChild("body");
+		// const tokens = [];
+		// const length = this.getLength();
+
+		// if (length === undefined) {
+
+		// 	console.error("adding item but length is undefined");
+
+		// }
+
+		// for (let i = 0; i < num; i++) {
+
+		// 	tokens.push(num + i);
+
+		// }
+
+		// body.addIds(tokens, length - 1);
+
+	}
+
+
+  // async sortUp(index, length = 1) {
+
+  //   if (index > 0) {
+
+  //     return this.swap(index, length, index-1);
+
   //   }
-  //
-  //   return child;
-  //
+
   // }
 
-  hasFocusInside() {
+  // async sortDown(index, length = 1) {
 
-    // const focus = await this.getFocus();
-    //
-    // return focus && focus.length <= this.path.length + 1 && this.path.every((id, index) => id === focus[index]);
+  //   if (index + length < this.getLength().toNumber()) {
 
-    return super.hasFocusInside();
-  }
+  //     return this.swap(index, length, index+1);
 
-  hasSelection() {
-
-    const body = this.getChild("body");
-
-    if (body && body.hasSelection) {
-
-      return body.hasSelection();
-
-    }
-
-    return false;
-
-  }
-
-  // getChild(index) {
-  //
-  //   if (index === "body") {
-  //
-  //     return this.createChild({
-  //       type: "grid",
-  //       children: this.resource.columns || this.resource.children || [],
-  //       ...this.resource.body
-  //     }, "body");
-  //
-  //   // } else if (index === "header" && this.resource.header) {
-  //   //
-  //   //   return this.createChild({
-  //   //     type: "header",
-  //   //     ...this.resource.header
-  //   //   }, "header");
-  //
-  // } else if (index === "footer" && this.resource.footer !== false) {
-  //
-  //     return this.createChild({
-  //       type: "footer",
-  //       children: ["add"],
-  //       ...this.resource.footer
-  //     }, "footer");
-  //
   //   }
-  //
-  //
-  //
+
   // }
 
-  // getIndexOffset() {
-  //
-  //   return 0;
-  //
-  // }
 
-  getIndex() { // -> base index for row indexes
+  *buildBody() {
 
-    return 0;
+		const body = this.getBody();
 
-  }
+		if (body) {
 
+			yield* body.build(); // -> don't wrap with body-content in tables
 
-  export() {
+		}
 
-    const output = new KarmaFieldsAlpha.Content();
-
-    if (this.resource.export !== false) {
-
-      const body = this.getChild("body");
-      const length = this.queryLength();
-
-      if (length.loading) {
-
-        output.loading = true;
-
-      } else if (body) {
-
-        const gridContent = body.export(0, length.toNumber());
-
-        if (gridContent.loading) {
-
-          output.loading = true;
-
-        } else {
-
-          output.value = gridContent.toString();
-
-        }
-
-      }
-
-    }
-
-    return output;
-  }
-
-  async import(collection) {
-
-    const string = collection.value.shift();
-
-    const grid = new KarmaFieldsAlpha.Content.Grid(string);
-
-    const body = this.getChild("body");
-    const length = this.getLength();
-
-    await body.import(grid, 0, length);
-
-  }
-
-
-  queryLength() {
-
-    const keys = this.getKeys();
-
-    const length = new KarmaFieldsAlpha.Content(0);
-
-    for (let key of keys) {
-
-      const value = this.getContent(key);
-
-      if (value.loading) {
-
-        length.loading = true;
-
-      } else {
-
-        length.value = Math.max(length.value, value.toArray().length);
-
-      }
-
-    }
-
-    return length;
-  }
-
-  getLength() {
-
-    const keys = this.getKeys();
-
-    let length = 0;
-
-    for (let key of keys) {
-
-      const value = this.getContent(key);
-
-      length = Math.max(length, value.toArray().length);
-
-    }
-
-    return length;
-  }
-
-  getContentAt(index, key) {
-
-    const cellContent = new KarmaFieldsAlpha.Content();
-    const arrayKey = this.getKey();
-
-    if (arrayKey) {
-
-      const content = this.getContent(arrayKey);
-
-      if (content.loading) {
-
-        cellContent.loading = true;
-
-      } else {
-
-        const array = content.toArray();
-
-        if (index < array.length) {
-
-          cellContent.value = array[index] && array[index][key];
-
-        } else {
-
-          cellContent.notFound = true;
-
-        }
-
-      }
-
-    } else {
-
-      const content = this.getContent(key);
-
-      if (content.loading) {
-
-        cellContent.loading = true;
-
-      } else {
-
-        const array = content.toArray();
-
-        if (index < array.length) {
-
-          cellContent.value = array[index];
-
-        } else {
-
-          cellContent.notFound = true;
-
-        }
-
-      }
-
-    }
-
-    return cellContent;
-  }
-
-  async setValueAt(value, index, key) {
-
-    const arrayKey = this.getKey();
-
-    if (arrayKey) {
-
-      let content = this.getContent(arrayKey);
-
-      if (!content.loading) {
-
-        const clone = KarmaFieldsAlpha.DeepObject.clone(content.toArray());
-
-        if (!clone[index]) {
-
-          clone[index] = {};
-
-        }
-
-        clone[index][key] = value;
-
-        await this.setValue(clone, arrayKey);
-
-      }
-
-    } else {
-
-      let content = this.getContent(key);
-
-      if (!content.loading) {
-
-        const clone = [...content.value];
-
-        clone[index] = value;
-
-        await this.setValue(clone, key);
-
-      }
-
-    }
-
-  }
-
-  async delete(index, length) {
-
-    if (index === undefined && length === undefined) {
-
-      const body = this.getChild("body");
-
-      if (body) {
-
-        const selection = body.querySelection();
-
-        index = selection && selection.index || 0;
-        length = selection && selection.length || 0;
-
-      }
-
-    }
-
-    const keys = this.getKeys();
-
-    let contents = keys.map(key => this.getContent(key));
-
-    while (contents.some(content => content.loading)) {
-
-      await this.render();
-      contents = keys.map(key => this.getContent(key));
-
-    }
-
-    for (let j in contents) {
-
-      const content = contents[j];
-      const key = keys[j];
-
-      const newContent = [...content.toArray()];
-
-      newContent.splice(index, length);
-
-      await this.setValue(newContent, key);
-
-    }
-
-    await this.render();
-  }
-
-  async swap(index, target, length) {
-
-    const keys = this.getKeys();
-
-    let contents = keys.map(key => this.getContent(key));
-
-    if (contents.some(content => content.loading)) {
-
-      console.log(keys, contents);
-      console.error("content is not loaded");
-
-    }
-
-
-    await this.save("sort", "Sort");
-
-    for (let j in contents) {
-
-      const content = contents[j];
-      const key = keys[j];
-
-      const newContent = [...content.toArray()];
-
-      newContent.splice(target, 0, ...newContent.splice(index, length));
-
-      await this.setValue(newContent, key);
-
-    }
-
-    const body = this.getChild("body");
-
-    if (body) {
-
-      await body.setFocus(true);
-      await body.select(target, length);
-
-    }
-
-  }
-
-  async add(num = 1, index = undefined) {
-
-    let length = this.queryLength();
-
-    while (length.loading) {
-
-      await this.render();
-      length = this.queryLength();
-
-    }
-
-    const body = this.getChild("body");
-
-    if (index === undefined) {
-
-      if (body) {
-
-        index = body.getNewItemIndex();
-
-      } else {
-
-        index = length.toNumber();
-
-      }
-
-    }
-
-
-    await this.save("add", "Insert");
-
-    const keys = this.getKeys();
-    let contents = keys.map(key => this.getContent(key));
-
-    while (contents.some(content => content.loading)) {
-
-      await this.render();
-      contents = keys.map(key => this.getContent(key));
-
-    }
-
-    for (let j in contents) {
-
-      const content = contents[j];
-      const key = keys[j];
-
-      const newContent = [...content.toArray()];
-
-      newContent.splice(index, 0, ...Array(num));
-
-      await this.setValue(newContent, key);
-
-    }
-
-    if (body) {
-
-      const rowField = body.getChild(0);
-
-      let defaults = rowField.exportDefaults();
-
-      while (defaults.loading) {
-
-        await this.render();
-        defaults = rowField.exportDefaults();
-
-      }
-
-      for (let i = 0; i < num; i++) {
-
-        const rowField = body.getChild(i + index);
-
-        for (let key in defaults.value) {
-
-          await rowField.setValue(defaults[key], key);
-
-        }
-
-      }
-
-      await body.setFocus(true);
-      await body.select(index, num);
-
-    }
-
-    await this.render();
-
-  }
-
-
-  async sortUp(index, length = 1) {
-
-    if (index > 0) {
-
-      return this.swap(index, length, index-1);
-
-    }
-
-  }
-
-  async sortDown(index, length = 1) {
-
-    if (index + length < this.getLength().toNumber()) {
-
-      return this.swap(index, length, index+1);
-
-    }
-
-  }
+	}
 
 }
 
@@ -541,8 +586,8 @@ KarmaFieldsAlpha.field.array.footer = class extends KarmaFieldsAlpha.field.table
 
 }
 
-KarmaFieldsAlpha.field.array.add = class extends KarmaFieldsAlpha.field.table.add {}
-KarmaFieldsAlpha.field.array.delete = class extends KarmaFieldsAlpha.field.table.delete {}
+// KarmaFieldsAlpha.field.array.add = class extends KarmaFieldsAlpha.field.table.add {}
+// KarmaFieldsAlpha.field.array.delete = class extends KarmaFieldsAlpha.field.table.delete {}
 
 // KarmaFieldsAlpha.field.array.row.delete = class extends KarmaFieldsAlpha.field.button {
 //   constructor(resource) {

@@ -264,6 +264,8 @@ class Karma_Fields_Alpha_Driver_Posts {
 
         $args = array_merge($post_arr, $args);
 
+
+
         remove_action( 'post_updated', 'wp_save_post_revision' );
         add_filter('wp_insert_post_empty_content', '__return_false');
         // remove_action('pre_post_update', 'wp_save_post_revision');// stop revisions
@@ -368,6 +370,7 @@ class Karma_Fields_Alpha_Driver_Posts {
 	 */
   public function get_query_args($params) {
 
+
     $args = array(
       'post_status' => array('publish', 'pending', 'draft', 'private', 'future', 'inherit', 'auto-draft'),
       'post_type' => 'any',
@@ -455,6 +458,7 @@ class Karma_Fields_Alpha_Driver_Posts {
           break;
 
         case 'ppp':
+        case 'posts_per_page':
           $args['posts_per_page'] = intval($value);
           break;
 
@@ -523,6 +527,13 @@ class Karma_Fields_Alpha_Driver_Posts {
           // todo parse alias before sending
           $args['post_parent'] = $value;
           break;
+
+        case 'post_title':
+        case 'title':
+
+          $args['title'] = $value;
+          break;
+
 
         default:
 
@@ -1115,37 +1126,52 @@ class Karma_Fields_Alpha_Driver_Posts {
       $ids = array_map('intval', $ids);
       $ids_string = implode(',', $ids);
 
-			$unlike = apply_filters('karma_fields_alpha_metakeys_unlike', array(
-				'\_oembed%',
-				'\_yoast%'
-			));
+			// $unlike = apply_filters('karma_fields_alpha_metakeys_unlike', array(
+			// 	'\_oembed%',
+			// 	'\_yoast%'
+			// ));
 
-			if ($unlike) {
+			// if ($unlike) {
 
-				$unlike_sql = implode("' AND meta_key NOT LIKE '", $unlike);
-				$unlike_sql = " AND meta_key NOT LIKE '$unlike_sql'";
+			// 	$unlike_sql = implode("' AND meta_key NOT LIKE '", $unlike);
+			// 	$unlike_sql = " AND meta_key NOT LIKE '$unlike_sql'";
 
-			} else {
+			// } else {
 
-				$unlike_sql = '';
+			// 	$unlike_sql = '';
 
-			}
+			// }
 
-			$notin = apply_filters('karma_fields_alpha_metakeys_notin', array(
-				'_edit_date',
-				'_edit_lock'
-			));
+			// $notin = apply_filters('karma_fields_alpha_metakeys_notin', array(
+			// 	'_edit_date',
+			// 	'_edit_lock'
+			// ));
 
-			if ($notin) {
+			// if ($notin) {
 
-				$notin_sql = implode("','", $notin);
-				$notin_sql = " AND meta_key NOT IN ('$notin_sql')";
+			// 	$notin_sql = implode("','", $notin);
+			// 	$notin_sql = " AND meta_key NOT IN ('$notin_sql')";
 
-			} else {
+			// } else {
 
-				$notin_sql = '';
+			// 	$notin_sql = '';
 
-			}
+			// }
+
+			// $_keys = apply_filters('karma_fields_alpha_metakeys_builtin', array(
+			// 	'_thumbnail'
+			// ));
+
+			// if ($_keys) {
+
+			// 	$_keys_sql = implode("','", $_keys);
+			// 	$_keys_sql = " AND (meta_key NOT LIKE '\_%' OR meta_key IN ('$_keys_sql'))";
+
+			// } else {
+
+			// 	$_keys_sql = '';
+
+			// }
 
 
 
@@ -1157,7 +1183,7 @@ class Karma_Fields_Alpha_Driver_Posts {
 				meta_key AS 'key',
 				post_id AS 'id'
 				FROM $wpdb->postmeta
-				WHERE post_id IN ($ids_string){$unlike_sql}{$notin_sql} AND meta_key != 'trash' ORDER BY meta_id";
+				WHERE post_id IN ($ids_string) AND meta_key != 'trash' AND meta_key NOT LIKE '\_%' ORDER BY meta_id";
 
       $sql = apply_filters('karma_fields_posts_meta_sql', $sql, $ids, $ids_string);
 
@@ -1173,6 +1199,43 @@ class Karma_Fields_Alpha_Driver_Posts {
       }
 
       $results = apply_filters('karma_fields_posts_driver_meta_results', $results, $ids);
+
+      return $results;
+
+    } else {
+
+      return array();
+
+    }
+
+  }
+
+  /**
+	 * _meta relations
+	 */
+  public function _meta($params) {
+    global $wpdb;
+
+    $ids = explode(',', $params['ids']);
+    $ids = array_filter($ids);
+
+    if ($ids) {
+
+      $ids = array_map('intval', $ids);
+      $ids_string = implode(',', $ids);
+
+			$sql = "SELECT
+				meta_value AS 'value',
+				meta_key AS 'key',
+				post_id AS 'id'
+				FROM $wpdb->postmeta
+				WHERE post_id IN ($ids_string) AND meta_key LIKE '\_%'";
+
+      $sql = apply_filters('karma_fields_posts__meta_sql', $sql, $ids, $ids_string);
+
+			$results = $wpdb->get_results($sql);
+
+      $results = apply_filters('karma_fields_posts_driver__meta_results', $results, $ids);
 
       return $results;
 

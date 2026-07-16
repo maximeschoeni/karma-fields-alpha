@@ -76,6 +76,12 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
   //
   // }
 
+	doAction(action, ...args) {
+
+		console.error("Action was not catched: ", action, ...args);
+
+	}
+
 
 	getValue(key) {
 
@@ -387,108 +393,158 @@ KarmaFieldsAlpha.field.saucer = class extends KarmaFieldsAlpha.field {
 }
 
 
-KarmaFieldsAlpha.field.saucer.board = class extends KarmaFieldsAlpha.field {
+KarmaFieldsAlpha.field.saucer.clipboard = class extends KarmaFieldsAlpha.field {
 
 	*build() {
-		yield {
-			class: "saucer",
-			init: element => {
-				document.addEventListener("keydown", event => {
-					if (event.key === "s" && event.metaKey) {
-						event.preventDefault();
-						const field = this.getFocusField();
-						field.submit();
-						this.render();
-					} else if (event.key === "z" && event.metaKey) {
-						if (document.activeElement === document.body || document.activeElement === document.documentElement || document.activeElement.closest(".karma-fields")) {
-							event.preventDefault();
-							if (event.shiftKey) {
-								KarmaFieldsAlpha.History.redo();
-							} else {
-								KarmaFieldsAlpha.History.undo();
-							}
-						}
-					}
-				});
-				window.addEventListener("popstate", event => {
-					// KarmaFieldsAlpha.History.update();
-					this.render();
-				});
 
-				window.addEventListener("mousedown", event => {
-					const focus = this.getFocus();
-					if (focus) {
-						this.removeFocus();
-						this.render();
-					}
-				});
-			},
-			children: [
-				{
-					class: "clipboard",
-					tag: "textarea",
-					update: element => {
-						element.id = "karma-fields-alpha-clipboard";
-						element.readOnly = true;
-						const useClipboard = this.useClipboard();
-						if (useClipboard) {
-							element.focus({ preventScroll: true });
-						}
-						element.onkeydown = event => {
-							if (event.key === "z" && event.metaKey) {
-								event.preventDefault();
-								if (event.shiftKey) {
-									KarmaFieldsAlpha.History.redo();
-								} else {
-									KarmaFieldsAlpha.History.undo();
+		if (!document.getElementById("karmafieldsalpha-clipboard")) { // -> only once!
+
+			yield {
+				// class: "saucer",
+
+
+				// init: element => {
+				// 	element.id = "karmafieldsalpha-clipboard";
+				// 	document.addEventListener("keydown", event => {
+				// 		if (event.key === "s" && event.metaKey) {
+				// 			event.preventDefault();
+				// 			const field = this.getFocusField();
+				// 			field.submit();
+				// 			this.render();
+				// 		} else if (event.key === "z" && event.metaKey) {
+				// 			if (document.activeElement === document.body || document.activeElement === document.documentElement || document.activeElement.closest(".karma-fields")) {
+				// 				event.preventDefault();
+				// 				if (event.shiftKey) {
+				// 					KarmaFieldsAlpha.History.redo();
+				// 				} else {
+				// 					KarmaFieldsAlpha.History.undo();
+				// 				}
+				// 			}
+				// 		}
+				// 	});
+				// 	window.addEventListener("popstate", event => {
+				// 		// KarmaFieldsAlpha.History.update();
+				// 		this.render();
+				// 	});
+
+				// 	window.addEventListener("mousedown", event => {
+				// 		const focus = this.getFocus();
+				// 		if (focus) {
+				// 			this.removeFocus();
+				// 			this.render();
+				// 		}
+				// 	});
+				// },
+				// children: [
+					// {
+						class: "clipboard",
+						tag: "textarea",
+						init: element => {
+							element.id = "karmafieldsalpha-clipboard";
+							document.addEventListener("keydown", event => {
+								if (event.key === "s" && event.metaKey) {
+									event.preventDefault();
+									const field = this.getFocusField();
+									field.submit();
+									this.render();
+								} else if (event.key === "z" && event.metaKey) {
+									if (document.activeElement === document.body || document.activeElement === document.documentElement || document.activeElement.closest(".karma-fields")) {
+										event.preventDefault();
+										if (event.shiftKey) {
+											KarmaFieldsAlpha.History.redo();
+										} else {
+											KarmaFieldsAlpha.History.undo();
+										}
+									}
+								}
+							});
+							window.addEventListener("popstate", event => {
+								// KarmaFieldsAlpha.History.update();
+								this.render();
+							});
+
+							window.addEventListener("mousedown", event => {
+								const focus = this.getFocus();
+								if (focus) {
+									this.removeFocus();
+									this.render();
+								}
+							});
+						},
+						update: element => {
+							element.id = "karma-fields-alpha-clipboard";
+							element.readOnly = true;
+							const useClipboard = this.useClipboard();
+							if (useClipboard) {
+								element.focus({ preventScroll: true });
+							}
+							element.onkeydown = event => {
+								if (event.key === "z" && event.metaKey) {
+									event.preventDefault();
+									if (event.shiftKey) {
+										KarmaFieldsAlpha.History.redo();
+									} else {
+										KarmaFieldsAlpha.History.undo();
+									}
+								}
+								if (event.key === "a" && event.metaKey) {
+									event.preventDefault();
+									const field = this.getFocusField();
+									field.selectAll();
+									this.render();
+								}
+								if (event.key === "Delete" || event.key === "Backspace") {
+									event.preventDefault();
+									const field = this.getFocusField();
+									field.delete();
+									this.render();
+								} else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+									event.preventDefault();
+								}
+
+								if (event.key === " ") {
+
+									const field = this.getFocusField();
+									if (field) {
+										field.open();
+										this.render();
+										event.preventDefault();
+									}
 								}
 							}
-							if (event.key === "a" && event.metaKey) {
+
+							element.onpaste = event => {
 								event.preventDefault();
-								field = this.getFocusField();
-								field.selectAll();
+								const string = event.clipboardData.getData("text/plain").normalize();
+								console.log("PASTE", string);
+								const field = this.getFocusField();
+								field.paste(string);
 								this.render();
 							}
-							if (event.key === "Delete" || event.key === "Backspace") {
+
+							element.oncut = event => {
 								event.preventDefault();
 								const field = this.getFocusField();
-								field.delete();
+								const value = field.copy();
+								console.log("CUT", value);
+								event.clipboardData.setData("text/plain", value || "");
+								field.paste("");
 								this.render();
-							} else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+							}
+
+							element.oncopy = event => {
 								event.preventDefault();
+								const field = this.getFocusField();
+								const value = field.copy();
+								console.log("COPY", value);
+								event.clipboardData.setData("text/plain", value || "");
 							}
 						}
+				// 	}
+				// ]
+			};
 
-						element.onpaste = event => {
-							event.preventDefault();
-							const string = event.clipboardData.getData("text/plain").normalize();
-							console.log("PASTE", string);
-							const field = this.getFocusField();
-							field.paste(string);
-							this.render();
-						}
-
-						element.oncut = event => {
-							event.preventDefault();
-							const field = this.getFocusField();
-							const value = field.copy();
-							console.log("CUT", value);
-							event.clipboardData.setData("text/plain", value || "");
-							field.paste("");
-							this.render();
-						}
-
-						element.oncopy = event => {
-							event.preventDefault();
-							const field = this.getFocusField();
-							const value = field.copy();
-							console.log("COPY", value);
-							event.clipboardData.setData("text/plain", value || "");
-						}
-					}
-				}
-			]
-		};
+		}
 
 	}
 
@@ -570,43 +626,7 @@ KarmaFieldsAlpha.field.saucer.menu = class extends KarmaFieldsAlpha.field {
 
 }
 
-KarmaFieldsAlpha.field.save = class extends KarmaFieldsAlpha.field.button {
 
-  constructor(resource, id, parent) {
-    super({
-      action: "submit",
-      title: "Save",
-      text: "Save",
-      enabled: ["request", "hasDelta"],
-      primary: true,
-      ...resource
-    }, id, parent);
-  }
-
-}
-
-KarmaFieldsAlpha.field.undo = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource, id, parent) {
-    super({
-      // action: "undo",
-      request: ["undo"],
-      dashicon: "undo",
-      disabled: ["!", ["request", "hasUndo"]],
-      ...resource
-    }, id, parent);
-  }
-}
-KarmaFieldsAlpha.field.redo = class extends KarmaFieldsAlpha.field.button {
-  constructor(resource, id, parent) {
-    super({
-      // action: "redo",
-      request:[ "redo"],
-      dashicon: "redo",
-      disabled: ["!", ["request", "hasRedo"]],
-      ...resource
-    }, id, parent);
-  }
-}
 
 
 

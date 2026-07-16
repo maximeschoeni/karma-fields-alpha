@@ -1,4 +1,4 @@
-KarmaFieldsAlpha.Rect = class {
+KarmaFieldsAlpha.Rect = KarmaFieldsAlpha.Rectangle = class {
 
 	constructor(x = 0, y = 0, width = 0, height = 0) {
 		this.x = x;
@@ -56,8 +56,30 @@ KarmaFieldsAlpha.Rect = class {
 		return r1.x + r1.width > r2.x + r2.width/2 && r1.y + r1.height > r2.y + r2.height/2 || r1.y > r2.y + r2.height/2;
 	}
 
-	static fromElement(element) {
-		return new this(element.offsetLeft, element.offsetTop, element.clientWidth, element.clientHeight);
+	static fromBox(box) {
+
+		return new this(box.x, box.y, box.width, box.height);
+
+	}
+
+	static fromElement(...elements) {
+
+		if (elements.length) {
+
+			const box = elements.shift().getBoundingClientRect();
+			let rect = new this(box.x, box.y, box.width, box.height);
+
+			while (elements.length) {
+
+				const box = elements.shift().getBoundingClientRect();
+				rect = rect.union(box);
+
+			}
+
+			return rect;
+
+		}
+
 	}
 
 	static offset(r, x, y) {
@@ -123,5 +145,14 @@ KarmaFieldsAlpha.Rect = class {
   constrain(r) {
     return this.constructor.constrain(this, r);
   }
+
+	toObject() {
+		return {
+			x: this.x,
+			y: this.y,
+			width: this.width,
+			height: this.height
+		};
+	}
 
 }

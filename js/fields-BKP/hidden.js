@@ -1,46 +1,29 @@
 KarmaFieldsAlpha.field.hidden = class extends KarmaFieldsAlpha.field.input {
 
-	build() {
+	*build() {
 
-		return {
-			// class: "hidden-input",
-			tag: "input",
-			init: input => {
-				input.element.type = "hidden";
-				// input.element.disabled = true;
-			},
-			update: async input => {
+		let values = this.getValues();
 
-        let content = this.getContent();
+		if (values !== undefined) {
 
-				if (!content.loading) {
+			const value = this.parseString(this.resource.value);
 
-					const value = this.parse(this.resource.value);
+			if (value !== undefined && !KarmaFieldsAlpha.DeepObject.equal(value, values[0])) {
 
-					if (!value.loading && !KarmaFieldsAlpha.DeepObject.equal(value.toSingle(), content.toSingle())) {
-
-						this.setValue(value.toString());
-
-						input.element.value = value.toString();
-
-					}
-
-				}
-
-				// let content = this.getContent();
-				//
-				// if (!content.loading) {
-				//
-				// 	// this.setContent(content);
-				//
-				// 	// console.log(content);
-				//
-				// 	input.element.value = content.toString();
-				//
-				// }
+				this.setValue([value]);
 
 			}
 
+		}
+
+		yield {
+			tag: "input",
+			init: element => {
+				element.type = "hidden";
+			},
+			update: element => {
+				element.value = values[0] || "";
+			}
 		};
 	}
 

@@ -366,7 +366,13 @@ class Karma_Fields_Alpha_Driver_Taxonomy {
 
         case 'ids':
         case 'id':
-          $args['include'] = explode(',', $value);
+        	$ids = explode(',', $value);
+         	$ids = array_map('intval', $ids);
+          $ids = array_filter($ids);
+          // if (!$ids) {
+          // 	$ids = ['uh8o372gh4t79823g4t8o234gt2367o4grt72934rgt'];
+          // }
+          $args['include'] = $ids;
           break;
 
         default:
@@ -400,9 +406,11 @@ class Karma_Fields_Alpha_Driver_Taxonomy {
 
     // $args['update_term_meta_cache'] = false;
 
+    if (isset($args['include']) && !$args['include']) {
 
+    	return [];
 
-
+    }
 
 
     $terms = get_terms($args);

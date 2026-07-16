@@ -44,10 +44,9 @@
 
 
 
-
 		// sessionStorage.clear();
-		KarmaFieldsAlpha.Session.init(); // -> create a session id if there isn't
-		KarmaFieldsAlpha.History.init(); // -> replaceState index to 0
+		// KarmaFieldsAlpha.Session.init(); // -> create a session id if there isn't
+		// KarmaFieldsAlpha.History.init(); // -> replaceState index to 0
 
 
 		// const [navigation] = performance.getEntriesByType("navigation") || [];
@@ -63,8 +62,8 @@
 
 		// } else {
 
-			const currentSession = KarmaFieldsAlpha.Session.getId();
-			await KarmaFieldsAlpha.Store.history.delete(object => object.session !== currentSession);
+			// const currentSession = KarmaFieldsAlpha.Session.getId();
+			// await KarmaFieldsAlpha.Store.history.delete(object => object.session !== currentSession);
 
 		// }
 

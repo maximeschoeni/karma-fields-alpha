@@ -1,0 +1,685 @@
+{
+	"model": "blocks",
+	"footer": {
+		"children": [
+			{
+				"text": "Remove",
+				"type": "delete",
+				"enabled": ["request", "hasSelection"]
+			},
+			"input",
+			"textarea",
+			"dropdown",
+			"files",
+			"checkbox"
+		]
+	},
+	"blocks": {
+		"group": {
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "radio",
+							"label": "Orientation",
+							"key": "mode",
+							"options": [
+								{ "id": "", "name": "Column" },
+								{ "id": "row", "name": "Row" }
+							]
+						},
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						}
+					]
+				}
+			}
+		},
+		"input": {
+			"name": "Input",
+			"label": "Input",
+			"dialog": {
+				"type": "dialog",
+				"mode": "toolbox",
+				"position": "right",
+				"align": "top",
+				"content": {
+					"type": "container",
+					"body": {
+						"children": [
+							{
+								"type": "input",
+								"label": "Key",
+								"key": "key"
+							},
+							{
+								"type": "input",
+								"label": "Label",
+								"key": "label"
+							},
+							{
+								"type": "checkbox",
+								"label": "Datalist",
+								"key": "datalist"
+							},
+							{
+								"key": "options",
+								"label": "Options",
+								"type": "array",
+								"visible": ["get", "datalist"],
+								"body": {
+									"type": "grid",
+									"children": [
+										{
+											"type": "index"
+										},
+										{
+											"type": "input",
+											"label": "ID",
+											"key": "id"
+										},
+										{
+											"type": "input",
+											"label": "Name",
+											"key": "name"
+										}
+									]
+								},
+								"footer": {
+									"children": ["add", "delete"]
+								}
+							}
+						]
+					}
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"textarea": {
+			"name": "Textarea",
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"richtext": {
+			"name": "Rich Text",
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"button": {
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Text",
+							"key": "text"
+						},
+						{
+							"type": "input",
+							"label": "Action",
+							"key": "action"
+						},
+						{
+							"label": "Params",
+							"type": "array",
+							"body": {
+								"type": "grid",
+								"children": [
+									{
+										"type": "input",
+										"key": "params"
+									}
+								]
+							},
+							"footer": {
+								"children": ["add", "remove"]
+							}
+						},
+						{
+							"type": "input",
+							"label": "Placeholder",
+							"key": "placeholder"
+						},
+						{
+							"type": "input",
+							"label": "Visible",
+							"key": "visible"
+						},
+						{
+							"type": "input",
+							"label": "Hidden",
+							"key": "hidden"
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"date": {
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"dropdown": {
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						},
+						{
+							"key": "options",
+							"label": "Options",
+							"type": "array",
+							"body": {
+								"type": "grid",
+								"children": [
+									{
+										"type": "input",
+										"label": "ID",
+										"key": "id"
+									},
+									{
+										"type": "input",
+										"label": "Name",
+										"key": "name"
+									}
+								]
+							},
+							"footer": {
+								"children": ["add", "remove"]
+							}
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"array": {
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						},
+						{
+							"label": "Content",
+							"type": "dialogLink",
+							"dialog": {
+								"body": {
+									"children": [
+										{
+											"type": "group",
+											"label": "Header",
+											"key": "header",
+											"children": [
+												{
+													"type": "formblock"
+												}
+											]
+										},
+										{
+											"type": "group",
+											"label": "Body",
+											"key": "body",
+											"children": [
+												{
+													"type": "formblock"
+												}
+											]
+										},
+										{
+											"type": "group",
+											"label": "Footer",
+											"key": "footer",
+											"children": [
+												{
+													"type": "formblock"
+												}
+											]
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"checkbox": {
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						},
+						{
+							"type": "input",
+							"label": "Text",
+							"key": "text"
+						},
+						{
+							"type": "input",
+							"label": "True",
+							"key": "true",
+							"placeholder": "1"
+						},
+						{
+							"type": "input",
+							"label": "False",
+							"key": "false"
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"checkboxes": {
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						},
+						{
+							"key": "options",
+							"label": "Options",
+							"type": "array",
+							"body": {
+								"type": "grid",
+								"children": [
+									{
+										"type": "input",
+										"label": "ID",
+										"key": "id"
+									},
+									{
+										"type": "input",
+										"label": "Name",
+										"key": "name"
+									}
+								]
+							},
+							"footer": {
+								"children": ["add", "remove"]
+							}
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"radio": {
+			"name": "Radio",
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						},
+						{
+							"key": "options",
+							"label": "Options",
+							"type": "array",
+							"body": {
+								"type": "grid",
+								"children": [
+									{
+										"type": "input",
+										"label": "ID",
+										"key": "id"
+									},
+									{
+										"type": "input",
+										"label": "Name",
+										"key": "name"
+									}
+								]
+							},
+							"footer": {
+								"children": ["add", "remove"]
+							}
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		},
+		"files": {
+			"dialog": {
+				"body": {
+					"children": [
+						{
+							"type": "input",
+							"label": "Key",
+							"key": "key"
+						},
+						{
+							"type": "input",
+							"label": "Label",
+							"key": "label"
+						},
+						{
+							"label": "Mime Types",
+							"type": "array",
+							"body": {
+								"type": "grid",
+								"children": [
+									{
+										"type": "input",
+										"key": "mimetypes",
+										"datalist": true,
+										"options": [
+											{ "id": "text/html", "name": "HTML document" },
+											{ "id": "text/css", "name": "CSS stylesheet" },
+											{ "id": "text/javascript", "name": "JavaScript file" },
+											{
+												"id": "application/javascript",
+												"name": "JavaScript file (application MIME)"
+											},
+											{ "id": "text/plain", "name": "Plain text" },
+											{ "id": "text/csv", "name": "CSV text file" },
+											{ "id": "text/xml", "name": "XML document (text)" },
+
+											{ "id": "application/json", "name": "JSON data" },
+											{
+												"id": "application/xml",
+												"name": "XML document (application)"
+											},
+											{ "id": "application/pdf", "name": "PDF document" },
+											{
+												"id": "application/octet-stream",
+												"name": "Binary data"
+											},
+											{ "id": "application/zip", "name": "ZIP archive" },
+											{
+												"id": "application/x-www-form-urlencoded",
+												"name": "URL-encoded form data"
+											},
+											{
+												"id": "application/vnd.api+json",
+												"name": "JSON API format"
+											},
+											{
+												"id": "application/ld+json",
+												"name": "JSON-LD (linked data)"
+											},
+
+											{ "id": "image/jpeg", "name": "JPEG image" },
+											{ "id": "image/png", "name": "PNG image" },
+											{ "id": "image/gif", "name": "GIF image" },
+											{ "id": "image/webp", "name": "WebP image" },
+											{ "id": "image/svg+xml", "name": "SVG vector image" },
+											{ "id": "image/avif", "name": "AVIF image" },
+
+											{ "id": "audio/mpeg", "name": "MP3 audio" },
+											{ "id": "audio/ogg", "name": "Ogg audio" },
+											{ "id": "audio/wav", "name": "WAV audio" },
+											{ "id": "audio/webm", "name": "WebM audio" },
+
+											{ "id": "video/mp4", "name": "MP4 video" },
+											{ "id": "video/webm", "name": "WebM video" },
+											{ "id": "video/ogg", "name": "Ogg video" },
+
+											{ "id": "font/woff", "name": "WOFF font" },
+											{ "id": "font/woff2", "name": "WOFF2 font" },
+											{
+												"id": "application/vnd.ms-fontobject",
+												"name": "EOT font"
+											},
+											{ "id": "font/ttf", "name": "TrueType font" },
+											{ "id": "font/otf", "name": "OpenType font" }
+										]
+									}
+								]
+							},
+							"footer": {
+								"children": ["add", "remove"]
+							}
+						},
+						{
+							"type": "input",
+							"label": "Max",
+							"key": "max"
+						},
+						{
+							"type": "dropdown",
+							"label": "Uploader",
+							"key": "uploader",
+							"options": [
+								{ "id": "", "name": "Default" },
+								{ "id": "wp", "name": "WordPress" }
+							]
+						}
+					]
+				}
+			},
+			"content": {
+				"children": [
+					{
+						"type": "input",
+						"label": "Key",
+						"key": "key"
+					},
+					{
+						"type": "input",
+						"label": "Label",
+						"key": "label"
+					}
+				]
+			}
+		}
+	}
+}

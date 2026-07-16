@@ -39,7 +39,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 		} else {
 
-			return this.parent.getValues(key);
+			return this.parent.getValue(key);
 
 		}
 
@@ -51,7 +51,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 		if (subkey) {
 
-			let values = parent.getValues(key);
+			let values = this.parent.getValue(key);
 
 			if (values === undefined) {
 
@@ -59,7 +59,7 @@ KarmaFieldsAlpha.field.checkboxes = class extends KarmaFieldsAlpha.field {
 
 			}
 
-			if (subvalue === "1") {
+			if (subvalue[0] === "1") {
 
 				if (!values.includes(subkey)) {
 

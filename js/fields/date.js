@@ -169,20 +169,20 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 	}
 
 
-	render() {
+	// render() {
 
-		if (this.element) {
+	// 	if (this.element) {
 
-			// await KarmaFieldsAlpha.build(this.build(), this.element.parentNode, this.element);
-			abduct(this.element.parentNode, this.build());
+	// 		// await KarmaFieldsAlpha.build(this.build(), this.element.parentNode, this.element);
+	// 		abduct(this.element.parentNode, this.build());
 
-		} else {
+	// 	} else {
 
-			this.parent.render();
+	// 		this.parent.render();
 
-		}
+	// 	}
 
-	}
+	// }
 
 	*buildPopup() {
 
@@ -192,13 +192,14 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 			const value = values[0] || "";
 			const activeDate = values !== undefined && this.constructor.parse(value, this.resource.storeFormat);
 
-			if (!this.date) {
+			const date = this.getData("date") || activeDate || new Date();
+			// if (!this.date) {
 
-				this.date = activeDate || new Date();
+			// 	this.date = activeDate || new Date();
 
-			}
+			// }
 
-			const rows = this.createCalendar(this.date);
+			const rows = this.createCalendar(date);
 
 			yield {
 				class: "calendar",
@@ -215,7 +216,8 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 									update: element => {
 										element.innerHTML = "&lsaquo;";
 										element.onclick = event => {
-											this.date.setMonth(this.date.getMonth() - 1);
+											date.setMonth(date.getMonth() - 1);
+											this.setData(date, "date");
 											this.render(); // local render
 										};
 									}
@@ -225,7 +227,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 								tag: "li",
 								class: "current-month",
 								update: element => {
-									element.textContent = this.date.toLocaleDateString(KarmaFieldsAlpha.locale, { month: "long", year: "numeric" });
+									element.textContent = date.toLocaleDateString(KarmaFieldsAlpha.locale, { month: "long", year: "numeric" });
 								}
 							},
 							{
@@ -236,7 +238,8 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 									update: element => {
 										element.innerHTML = "&rsaquo;";
 										element.onclick = event => {
-											this.date.setMonth(this.date.getMonth() + 1);
+											date.setMonth(date.getMonth() + 1);
+											this.setData(date, "date");
 											this.render();
 										};
 									}
@@ -271,9 +274,10 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 												element.textContent = day.date.toLocaleDateString(KarmaFieldsAlpha.locale, { day: "numeric" });
 												element.onmouseup = event => {
 													event.preventDefault();
-													sqlDate = this.constructor.format(day.date, this.resource.storeFormat);
+													const sqlDate = this.constructor.format(day.date, this.resource.storeFormat);
+
 													this.save("date", "Select Date");
-													this.setValue(sqlDate);
+													this.setValue([sqlDate]);
 													this.removeFocus();
 													this.parent.render(); // -> global render
 												}
@@ -358,7 +362,7 @@ KarmaFieldsAlpha.field.date = class extends KarmaFieldsAlpha.field.input {
 
 									if (date) {
 
-										this.date = date;
+										this.setData(date, "date");
 										const sqlDate = this.constructor.format(date, this.resource.storeFormat);
 										this.setValue([sqlDate]);
 

@@ -153,6 +153,7 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 		this.editor.onInput = inputType => {
 			const content = this.editor.content;
+
 			this.save(inputType, inputType);
 			this.setValue([content]);
 			this.parent.render();
@@ -269,6 +270,7 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 				}
 
 				editor.onInput = (inputType, content) => {
+
 					// const values = this.getValue();
 					if (content !== value) {
 						value = content;
@@ -1188,19 +1190,43 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 
 	}
 
+	*buildHeaderContent() {
+
+
+		if (this.resource.header !== false) {
+
+			yield {
+				class: "toolbar simple-buttons",
+				children: this.getChild("editortoolbar").build()
+			};
+
+		}
+
+		if (this.resource.footer !== false) {
+
+			yield {
+				children: this.buildFooter()
+			};
+
+		}
+
+	}
+
 	*buildHeader() {
 
 		yield {
 			class: "editor-header-wrapper",
-			children: [
-				{
-					class: "toolbar simple-buttons",
-					children: this.getChild("editortoolbar").build()
-				},
-				{
-					children: this.buildFooter()
-				}
-			]
+			children: this.buildHeaderContent()
+			// children: [
+
+			// 	{
+			// 		class: "toolbar simple-buttons",
+			// 		children: this.getChild("editortoolbar").build()
+			// 	},
+			// 	{
+			// 		children: this.buildFooter()
+			// 	}
+			// ]
 		};
 
 	}
@@ -1305,6 +1331,7 @@ KarmaFieldsAlpha.field.richtext = class extends KarmaFieldsAlpha.field.input {
 					{
 						class: "tinymce editor-body",
 						init: element => {
+							element.id = this.uid;
 							element.setAttribute("contenteditable", true);
 						},
 						update: element => {

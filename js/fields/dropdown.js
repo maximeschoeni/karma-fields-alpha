@@ -30,14 +30,24 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 		if (this.resource.export === "name") {
 
-			const values = this.getValues();
+			const values = this.getValue();
 			const options = this.getOptions();
 
 			if (values !== undefined && options !== undefined) {
 
 				const option = options.find(option => option.id === values[0]);
 
-				return [option.name || ""];
+				if (option) {
+
+					return [option.name || ""];
+
+				} else {
+
+					return [values[0] || ""];
+
+				}
+
+
 
 			}
 
@@ -59,41 +69,54 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 		yield {
 			tag: "select",
 			class: "dropdown karma-field",
+			children: this.buildOptions(),
+			init: element => {
+				element.id = this.uid;
+			},
 			update: element => {
 
-				let options = this.getOptions();
-				let values = this.getValue();
+				// let options = this.getOptions();
+				// let values = this.getValue();
+				// const mixed = this.isMixed();
 
-				if (options !== undefined && values !== undefined) {
+				// if (options !== undefined && values !== undefined) {
 
-					if (values.mixed) {
+					// let value = values || "";
 
-						options = [...options, { id: values[0], name: "[mixed value]" }]
+					// if (mixed) {
 
-					}
+					// 	value = "*";
+					// 	options = [...options, { id: "*", name: "[mixed value]" }]
 
-					const elementOptions = [...element.options];
+					// }
 
-					if (elementOptions.length !== options.length || elementOptions.some((option, index) => option.value !== options[index].id)) {
+					// const elementOptions = [...element.options];
 
-						element.length = 0;
+					// if (elementOptions.length !== options.length || elementOptions.some((option, index) => option.value !== options[index].id)) {
 
-						for (let option of options) {
+					// 	element.length = 0;
 
-							let optionElement = new Option(option.name, option.id, values[0] === option.id, values[0] === option.id);
+					// 	for (let option of options) {
 
-							element.add(optionElement);
+					// 		const selected = value === option.id;
 
-						}
+					// 		let optionElement = new Option(option.name, option.id, selected, selected);
 
-					} else if (values[0] !== element.value && !values.mixed) {
+					// 		element.add(optionElement);
 
-						element.value = values[0]; // || "";
+					// 	}
 
-					}
+					// } else if (value !== element.value) {
+
+					// 	element.value = value;
+
+					// }
 
 					element.onchange = event => {
 
+						if (element.value === "*") {
+							return;
+						}
 
 						this.save("change", "Change");
 						this.setValue([element.value]);
@@ -103,7 +126,9 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 
 					element.onfocus = async event => {
 
-						this.setFocus(values.mixed);
+						const mixed = this.isMixed();
+
+						this.setFocus(mixed);
 
 					}
 
@@ -114,13 +139,51 @@ KarmaFieldsAlpha.field.dropdown = class extends KarmaFieldsAlpha.field.input {
 					}
 
 					element.disabled = this.isDisabled();
-					element.parentNode.classList.toggle("modified", Boolean(values.modified));
+					// element.parentNode.classList.toggle("modified", Boolean(values.modified));
 
-				}
+				// }
 
 			}
 
 		};
+	}
+
+
+	*buildOptions() {
+
+		const options = this.getOptions();
+		const values = this.getValue();
+		const mixed = this.isMixed();
+
+		if (options && values) {
+
+			for (let option of options) {
+
+				yield {
+					tag: "option",
+					update: element => {
+						element.value = option.id;
+						element.label = option.name;
+						element.selected = !mixed && option.id === values[0];
+					}
+				};
+
+			}
+
+			if (mixed) {
+
+				yield {
+					tag: "option",
+					update: element => {
+						element.value = "*";
+						element.label = "[mixed value]";
+						element.selected = true;
+					}
+				}
+
+			}
+
+		}
 	}
 
 }

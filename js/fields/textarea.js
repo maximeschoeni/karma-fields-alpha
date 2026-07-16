@@ -121,7 +121,7 @@ KarmaFieldsAlpha.field.textarea = class extends KarmaFieldsAlpha.field.input {
 
 					element.onkeydown = event => {
 
-						console.log(event);
+						// console.log(event);
 					}
 
 					element.onmousedown = event => {
